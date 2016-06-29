@@ -230,4 +230,161 @@
     <description/>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!-- The type determines whether to show LDAP or AD settings in smart config's theme.json file. -->
+  <property>
+    <name>atlas.authentication.method.ldap.type</name>
+    <value/>
+    <description>The LDAP type (ldap or ad).</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ldap</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>ad</value>
+          <label>AD</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <!-- LDAP properties. They all begin with "atlas.authentication.method.ldap."
+  Must allow empty values since the user can pick either LDAP or AD.
+  -->
+  <property>
+    <name>atlas.authentication.method.ldap.url</name>
+    <value> </value>
+    <description>The LDAP URL.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.userDNpattern</name>
+    <value>uid=</value>
+    <description>User DN Pattern. This pattern is used to create a distinguished name (DN) for a user during login</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.groupSearchBase</name>
+    <value> </value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.groupSearchFilter</name>
+    <value> </value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.groupRoleAttribute</name>
+    <value>cn</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.base.dn</name>
+    <value> </value>
+    <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.bind.dn</name>
+    <value> </value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search. </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.bind.password</name>
+    <value>admin</value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the account that can search</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.referral</name>
+    <value>ignore</value>
+    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed. Possible values are follow|throw|ignore</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.user.searchfilter</name>
+    <value> </value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.default.role</name>
+    <value>ROLE_USER</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+
+  <!-- AD properties. They all begin with "atlas.authentication.method.ldap.ad."
+  Must allow empty values since the user can pick either LDAP or AD.
+  -->
+  <property>
+    <name>atlas.authentication.method.ldap.ad.domain</name>
+    <display-name>Domain Name (Only for AD)</display-name>
+    <value> </value>
+    <description>AD domain, only used if Authentication method is AD</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.url</name>
+    <value> </value>
+    <description>AD URL, only used if Authentication method is AD</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.base.dn</name>
+    <value> </value>
+    <description>The Distinguished Name (DN) of the starting point for directory server searches.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.bind.dn</name>
+    <value> </value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search. </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.bind.password</name>
+    <value>admin</value>
+    <property-type>PASSWORD</property-type>
+    <description>Password for the account that can search</description>
+    <value-attributes>
+      <type>password</type>
+      <overridable>false</overridable>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.referral</name>
+    <value>ignore</value>
+    <description>Set to follow if multiple AD servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed. Possible values are follow|throw|ignore</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.user.searchfilter</name>
+    <value>(sAMAccountName={0})</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.authentication.method.ldap.ad.default.role</name>
+    <value>ROLE_USER</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
