@@ -77,9 +77,6 @@
             <exclude>.settings</exclude>
             <exclude>**/target/**</exclude>
             <exclude>**/.gitkeep</exclude>
-            <exclude>**/.ember-cli</exclude>
-            <exclude>**/.travis.yml</exclude>
-            <exclude>**/.watchmanconfig</exclude>
             <exclude>**/.bowerrc</exclude>
             <exclude>**/.editorconfig</exclude>
             <exclude>**/.jshintrc</exclude>
