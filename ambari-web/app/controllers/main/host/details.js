@@ -526,7 +526,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else if (this.get('refreshYARNQueueComponents').contains(component.get('componentName'))) {
       return App.showConfirmationPopup(function () {
-        self.restartComponentAndRefreshYARNQueue(component);
+        self.refreshYARNQueueAndRestartComponent(component);
       });
     } else {
       return App.showConfirmationPopup(function () {
@@ -535,12 +535,29 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
-  restartComponentAndRefreshYARNQueue: function (component) {
+  refreshYARNQueueAndRestartComponent: function (component) {
     var componentToRestartHost = App.HostComponent.find().findProperty('componentName', component.get('componentName')).get('hostName');
     var resourceManagerHost = App.HostComponent.find().findProperty('componentName', 'RESOURCEMANAGER').get('hostName');
     var batches = [
       {
         "order_id": 1,
+        "type": "POST",
+        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
+        "RequestBodyInfo": {
+          "RequestInfo": {
+            "context": "Refresh YARN Capacity Scheduler",
+            "command": "REFRESHQUEUES",
+            "parameters/forceRefreshConfigTags": "capacity-scheduler"
+          },
+          "Requests/resource_filters": [{
+            "service_name": "YARN",
+            "component_name": "RESOURCEMANAGER",
+            "hosts": resourceManagerHost
+          }]
+        }
+      },
+      {
+        "order_id": 2,
         "type": "POST",
         "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
@@ -558,23 +575,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
             "service_name": component.get('service.serviceName'),
             "component_name": component.get('componentName'),
             "hosts": componentToRestartHost
-          }]
-        }
-      },
-      {
-        "order_id": 2,
-        "type": "POST",
-        "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
-        "RequestBodyInfo": {
-          "RequestInfo": {
-            "context": "Refresh YARN Capacity Scheduler",
-            "command": "REFRESHQUEUES",
-            "parameters/forceRefreshConfigTags": "capacity-scheduler"
-          },
-          "Requests/resource_filters": [{
-            "service_name": "YARN",
-            "component_name": "RESOURCEMANAGER",
-            "hosts": resourceManagerHost
           }]
         }
       }

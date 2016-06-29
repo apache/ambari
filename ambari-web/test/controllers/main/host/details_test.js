@@ -472,13 +472,13 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(batchUtils, "restartHostComponents", Em.K);
       sinon.stub(controller, 'checkNnLastCheckpointTime', Em.clb);
-      sinon.stub(controller, "restartComponentAndRefreshYARNQueue", Em.K);
+      sinon.stub(controller, "refreshYARNQueueAndRestartComponent", Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
       batchUtils.restartHostComponents.restore();
       controller.checkNnLastCheckpointTime.restore();
-      controller.restartComponentAndRefreshYARNQueue.restore();
+      controller.refreshYARNQueueAndRestartComponent.restore();
     });
 
     it('popup should be displayed', function () {
@@ -508,7 +508,7 @@ describe('App.MainHostDetailsController', function () {
       };
       var confirmPopup = controller.restartComponent(event);
       confirmPopup.onPrimary();
-      expect(controller.restartComponentAndRefreshYARNQueue.calledOnce).to.be.true;
+      expect(controller.refreshYARNQueueAndRestartComponent.calledOnce).to.be.true;
     });
   });
 
