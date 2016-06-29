@@ -144,13 +144,6 @@ def falcon(type, action = None, upgrade_type=None):
           source = params.local_data_mirroring_dir)
 
       if params.supports_falcon_extensions:
-        # In HDP 2.5, data-mirroring directory is still needed by Falcon for the data store, but don't copy any content.
-        # Instead, copy the extensions folder to HDFS.
-        params.HdfsResource(params.dfs_data_mirroring_dir,
-                            type = "directory",
-                            action = "create_on_execute",
-                            owner = params.falcon_user,
-                            mode = 0777)
 
         params.HdfsResource(params.falcon_extensions_dest_dir,
                             type = "directory",
@@ -159,8 +152,16 @@ def falcon(type, action = None, upgrade_type=None):
                             group = params.proxyuser_group,
                             recursive_chown = True,
                             recursive_chmod = True,
-                            mode = 0770,
+                            mode = 0755,
                             source = params.falcon_extensions_source_dir)
+        # Create the extensons HiveDR store
+        params.HdfsResource(os.path.join(params.falcon_extensions_dest_dir, "mirroring"),
+                            type = "directory",
+                            action = "create_on_execute",
+                            owner = params.falcon_user,
+                            group = params.proxyuser_group,
+                            mode = 0770)
+
       # At least one HDFS Dir should be created, so execute the change now.
       params.HdfsResource(None, action = "execute")
 

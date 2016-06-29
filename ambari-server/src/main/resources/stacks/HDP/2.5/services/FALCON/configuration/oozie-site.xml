@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>oozie.service.ELService.ext.functions.workflow</name>
+    <value>
+      now=org.apache.oozie.extensions.OozieELExtensions#ph1_now_echo,
+      today=org.apache.oozie.extensions.OozieELExtensions#ph1_today_echo,
+      yesterday=org.apache.oozie.extensions.OozieELExtensions#ph1_yesterday_echo,
+      currentMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_currentMonth_echo,
+      lastMonth=org.apache.oozie.extensions.OozieELExtensions#ph1_lastMonth_echo,
+      currentYear=org.apache.oozie.extensions.OozieELExtensions#ph1_currentYear_echo,
+      lastYear=org.apache.oozie.extensions.OozieELExtensions#ph1_lastYear_echo,
+      formatTime=org.apache.oozie.coord.CoordELFunctions#ph1_coord_formatTime_echo,
+      latest=org.apache.oozie.coord.CoordELFunctions#ph2_coord_latest_echo,
+      future=org.apache.oozie.coord.CoordELFunctions#ph2_coord_future_echo
+    </value>
+    <description>
+      EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
+      This property is a convenience property to add extensions to the built in executors without having to
+      include all the built in ones.
+    </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>
