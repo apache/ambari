@@ -42,7 +42,6 @@ import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -168,9 +167,8 @@ public class Users {
         ldapAuthenticationProvider.authenticate(
             new UsernamePasswordAuthenticationToken(currentUserName, currentUserPassword));
       isLdapUser = true;
-      } catch (BadCredentialsException ex) {
-        throw new AmbariException("Incorrect password provided for LDAP user " +
-            currentUserName);
+      } catch (InvalidUsernamePasswordCombinationException ex) {
+        throw new AmbariException(ex.getMessage());
       }
     }
 

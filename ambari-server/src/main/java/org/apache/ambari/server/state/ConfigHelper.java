@@ -128,8 +128,7 @@ public class ConfigHelper {
    * has completed, otherwise it's possible to cache invalid data before the
    * transaction is committed.
    */
-  private final ExecutorService cacheInvalidationExecutor = Executors.newSingleThreadExecutor(
-      cacheInvalidationThreadFactory);
+  private final ExecutorService cacheInvalidationExecutor = createCacheInvalidationExecutor();
 
   /**
    * Used to ensure that methods which rely on the completion of
@@ -1367,6 +1366,11 @@ public class ConfigHelper {
         lock.writeLock().unlock();
       }
     }
+  }
+
+  private ExecutorService createCacheInvalidationExecutor() {
+    return Executors.newSingleThreadExecutor(
+      cacheInvalidationThreadFactory);
   }
 
 }

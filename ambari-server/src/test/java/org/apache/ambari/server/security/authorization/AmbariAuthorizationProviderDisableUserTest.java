@@ -27,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -64,12 +63,12 @@ public class AmbariAuthorizationProviderDisableUserTest {
   }
   
   @Test public void testDisabledUserViaDaoProvider(){
-    try{
+    try {
       alup.authenticate(new UsernamePasswordAuthenticationToken("disabledUser","pwd"));
       Assert.fail("Disabled user passes authentication");
-    }catch(DisabledException e){
+    } catch (InvalidUsernamePasswordCombinationException e){
       //expected
-      Assert.assertEquals("User is disabled", e.getMessage());//UI depends on this
+      Assert.assertEquals(InvalidUsernamePasswordCombinationException.MESSAGE, e.getMessage());//UI depends on this
     }
     Authentication auth = alup.authenticate(new UsernamePasswordAuthenticationToken("activeUser","pwd"));
     Assert.assertNotNull(auth);
@@ -77,12 +76,12 @@ public class AmbariAuthorizationProviderDisableUserTest {
   }
 
   @Test public void testDisabledUserViaLdapProvider(){
-    try{
+    try {
       ldapPopulator.getGrantedAuthorities(null, "disabledUser");
       Assert.fail("Disabled user passes authentication");
-    }catch(DisabledException e){
+    } catch (InvalidUsernamePasswordCombinationException e) {
       //expected
-      Assert.assertEquals("User is disabled", e.getMessage());//UI depends on this
+      Assert.assertEquals(InvalidUsernamePasswordCombinationException.MESSAGE, e.getMessage());//UI depends on this
     }
   }
   

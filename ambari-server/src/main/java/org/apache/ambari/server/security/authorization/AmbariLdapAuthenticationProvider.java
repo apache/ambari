@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -86,7 +85,7 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
                     "connecting to LDAP server) are invalid.", e);
           }
         }
-        throw e;
+        throw new InvalidUsernamePasswordCombinationException(e);
       } catch (IncorrectResultSizeDataAccessException multipleUsersFound) {
         String message = configuration.isLdapAlternateUserSearchEnabled() ?
           String.format("Login Failed: Please append your domain to your username and try again.  Example: %s@domain", username) :
@@ -198,13 +197,13 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
     // lookup is case insensitive, so no need for string comparison
     if (userEntity == null) {
       LOG.info("user not found ");
-      throw new UsernameNotFoundException("Username " + userName + " not found");
+      throw new InvalidUsernamePasswordCombinationException();
     }
 
     if (!userEntity.getActive()) {
       LOG.debug("User account is disabled");
 
-      throw new DisabledException("Username " + userName + " is disabled");
+      throw new InvalidUsernamePasswordCombinationException();
     }
 
     return userEntity.getUserId();

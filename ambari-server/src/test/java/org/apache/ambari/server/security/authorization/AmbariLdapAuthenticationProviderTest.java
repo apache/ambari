@@ -36,23 +36,15 @@ import org.apache.directory.server.core.annotations.ApplyLdifFiles;
 import org.apache.directory.server.core.annotations.ContextEntry;
 import org.apache.directory.server.core.annotations.CreateDS;
 import org.apache.directory.server.core.annotations.CreatePartition;
-import org.apache.directory.server.core.api.DirectoryService;
-import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
 import org.apache.directory.server.core.integ.FrameworkRunner;
-import org.apache.directory.server.kerberos.kdc.KdcServer;
-import org.apache.directory.server.ldap.LdapServer;
-import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 
 import static org.easymock.EasyMock.*;
 
@@ -106,7 +98,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     injector.getInstance(PersistService.class).stop();
   }
 
-  @Test(expected = BadCredentialsException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testBadCredential() throws Exception {
     Authentication authentication = new UsernamePasswordAuthenticationToken("notFound", "wrong");
     authenticationProvider.authenticate(authentication);
@@ -220,7 +212,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     assertTrue(result.isAuthenticated());
   }
 
-  @Test(expected = BadCredentialsException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testBadCredentialsForMissingLoginAlias() throws Exception {
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
@@ -232,11 +224,11 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     authenticationProvider.authenticate(authentication);
 
     // Then
-    // BadCredentialsException should be thrown due to no user with 'missingloginalias@ambari.apache.org'  is found in ldap
+    // InvalidUsernamePasswordCombinationException should be thrown due to no user with 'missingloginalias@ambari.apache.org'  is found in ldap
   }
 
 
-  @Test(expected = BadCredentialsException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testBadCredentialsBadPasswordForLoginAlias() throws Exception {
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
@@ -248,6 +240,6 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     authenticationProvider.authenticate(authentication);
 
     // Then
-    // BadCredentialsException should be thrown due to wrong password
+    // InvalidUsernamePasswordCombinationException should be thrown due to wrong password
   }
 }
