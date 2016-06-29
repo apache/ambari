@@ -168,10 +168,10 @@ export SPARK_YARN_USER_ENV="PYTHONPATH=${PYTHONPATH}"
 #ldapRealm.userDnTemplate = uid={0},cn=users,cn=accounts,dc=hortonworks,dc=com
 #ldapRealm.contextFactory.url = ldap://ldaphost:389
 #ldapRealm.contextFactory.authenticationMechanism = SIMPLE
-sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
-securityManager.sessionManager = $sessionManager
+#sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
+#securityManager.sessionManager = $sessionManager
 # 86,400,000 milliseconds = 24 hour
-securityManager.sessionManager.globalSessionTimeout = 86400000
+#securityManager.sessionManager.globalSessionTimeout = 86400000
 shiro.loginUrl = /api/login
 
 [urls]
@@ -224,7 +224,10 @@ log4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m
 
   <property>
     <name>zeppelin.server.kerberos.principal</name>
-    <value>none</value>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <description>
       Kerberos principal name for the Zeppelin.
     </description>
@@ -232,7 +235,10 @@ log4j.appender.dailyfile.layout.ConversionPattern=%5p [%d] ({%t} %F[%M]:%L) - %m
   </property>
   <property>
     <name>zeppelin.server.kerberos.keytab</name>
-    <value>none</value>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
     <description>
       Location of the kerberos keytab file for the Zeppelin.
     </description>
