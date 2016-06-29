@@ -138,9 +138,15 @@ full_stack_version = default("/commandParams/version", None)
 
 spark_client_version = get_stack_version('spark-client')
 
-if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted):
-  livy_livyserver_host = str(default("/clusterHostInfo/livy_server_hosts", [])[0])
+livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
+
+if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and \
+    len(livy_hosts) != 0:
+  livy_livyserver_host = str(livy_hosts[0])
   livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
+else:
+  livy_livyserver_host = None
+  livy_livyserver_port = None
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
