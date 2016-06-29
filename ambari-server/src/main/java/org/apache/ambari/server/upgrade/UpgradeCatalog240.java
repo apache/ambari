@@ -166,6 +166,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String AUTHENTICATED_USER_ID_COLUMN = "authenticated_user_id";
   protected static final String CLUSTER_VERSION_TABLE = "cluster_version";
   protected static final String HOST_VERSION_TABLE = "host_version";
+  protected static final String TOPOLOGY_REQUEST_TABLE = "topology_request";
+  protected static final String PROVISION_ACTION_COL = "provision_action";
   protected static final String PHOENIX_QUERY_SERVER_PRINCIPAL_KEY = "phoenix.queryserver.kerberos.principal";
   protected static final String PHOENIX_QUERY_SERVER_KEYTAB_KEY = "phoenix.queryserver.keytab.file";
   protected static final String DEFAULT_CONFIG_VERSION = "version1";
@@ -308,6 +310,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     createRemoteClusterTable();
     updateViewInstanceTable();
     updateRequestScheduleEntityTable();
+    updateTopologyRequestTable();
   }
 
   private void createRemoteClusterTable() throws SQLException {
@@ -1341,6 +1344,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     //         properly during the DML update phase.
     dbAccessor.addColumn(ADMIN_PERMISSION_TABLE,
         new DBColumnInfo(PRINCIPAL_ID_COL, Long.class, null, null, true));
+  }
+
+  protected void updateTopologyRequestTable() throws SQLException {
+    // Add the sort_order column to the adminpermission table
+    dbAccessor.addColumn(TOPOLOGY_REQUEST_TABLE,
+      new DBColumnInfo(PROVISION_ACTION_COL, String.class, null, 255, true));
   }
 
   /**
