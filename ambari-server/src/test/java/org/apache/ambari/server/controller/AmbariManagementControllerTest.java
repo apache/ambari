@@ -18,22 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.net.UnknownHostException;
@@ -175,6 +159,22 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
+
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AmbariManagementControllerTest {
 
@@ -6685,8 +6685,7 @@ public class AmbariManagementControllerTest {
       Role.RESOURCEMANAGER.name(), new ArrayList<String>() {{ add(host2); }});
     resourceFilters.add(resourceFilter);
 
-    ExecuteActionRequest request = new ExecuteActionRequest(cluster1,
-      "RESTART", null, resourceFilters, null, params, false);
+    ExecuteActionRequest request = new ExecuteActionRequest(cluster1, "RESTART", null, resourceFilters, null, params, false);
 
     RequestStatusResponse response = controller.createAction(request, requestProperties);
     Assert.assertEquals(3, response.getTasks().size());
@@ -6728,6 +6727,10 @@ public class AmbariManagementControllerTest {
         storedTasks.get(0).getRole().name());
     Assert.assertEquals(host1, storedTasks.get(0).getHostName());
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
+
+    Assert.assertEquals(State.STARTED, cluster.getService("HDFS").getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(host1).getDesiredState());
+    Assert.assertEquals(State.STARTED, cluster.getService("HDFS").getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(host2).getDesiredState());
+    Assert.assertEquals(State.STARTED, cluster.getService("YARN").getServiceComponent(Role.RESOURCEMANAGER.name()).getServiceComponentHost(host2).getDesiredState());
   }
 
 
