@@ -65,6 +65,45 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     application_properties = getSiteProperties(configurations, "application-properties")
     validationItems = []
 
+    #<editor-fold desc="LDAP and AD">
+    auth_type = application_properties['atlas.authentication.method.ldap.type']
+    Logger.info("Validating Atlas configs, authentication type: %s" % str(auth_type))
+
+    # Required props
+    ldap_props = {"atlas.authentication.method.ldap.url": "",
+                  "atlas.authentication.method.ldap.userDNpattern": "uid=",
+                  "atlas.authentication.method.ldap.groupSearchBase": "",
+                  "atlas.authentication.method.ldap.groupSearchFilter": "",
+                  "atlas.authentication.method.ldap.groupRoleAttribute": "cn",
+                  "atlas.authentication.method.ldap.base.dn": "",
+                  "atlas.authentication.method.ldap.bind.dn": "",
+                  "atlas.authentication.method.ldap.bind.password": "",
+                  "atlas.authentication.method.ldap.referral": "ignore",
+                  "atlas.authentication.method.ldap.user.searchfilter": "",
+                  "atlas.authentication.method.ldap.default.role": "ROLE_USER"
+    }
+    ad_props = {"atlas.authentication.method.ldap.ad.domain": "",
+                "atlas.authentication.method.ldap.ad.url": "",
+                "atlas.authentication.method.ldap.ad.base.dn": "",
+                "atlas.authentication.method.ldap.ad.bind.dn": "",
+                "atlas.authentication.method.ldap.ad.bind.password": "",
+                "atlas.authentication.method.ldap.ad.referral": "ignore",
+                "atlas.authentication.method.ldap.ad.user.searchfilter": "(sAMAccountName={0})",
+                "atlas.authentication.method.ldap.ad.default.role": "ROLE_USER"
+    }
+
+    props_to_require = set()
+    if auth_type.lower() == "ldap":
+      props_to_require = set(ldap_props.keys())
+    elif auth_type.lower() == "ad":
+      props_to_require = set(ad_props.keys())
+
+    for prop in props_to_require:
+      if prop not in application_properties or application_properties[prop] is None or application_properties[prop] == "":
+        validationItems.append({"config-name": prop,
+                                "item": self.getErrorItem("If authentication type is %s, this property is required." % auth_type)})
+    #</editor-fold>
+
     if application_properties['atlas.graph.index.search.backend'] == 'solr5' and \
             not application_properties['atlas.graph.index.search.solr.zookeeper-url']:
       validationItems.append({"config-name": "atlas.graph.index.search.solr.zookeeper-url",
