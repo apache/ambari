@@ -19,8 +19,8 @@
 package org.apache.ambari.server.security.authorization.internal;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.security.authorization.InvalidUsernamePasswordCombinationException;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
@@ -39,8 +39,7 @@ public class AmbariInternalAuthenticationProvider implements AuthenticationProvi
     if (internalTokenStorage.isValidInternalToken(token.getCredentials())) {
       token.setAuthenticated(true);
     } else {
-      String message = "Bad credentials";
-      throw new BadCredentialsException(message);
+      throw new InvalidUsernamePasswordCombinationException();
     }
     return token;
   }

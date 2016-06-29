@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.state.svccomphost;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.persistence.EntityManager;
 
@@ -790,6 +795,7 @@ public class ServiceComponentHostTest {
 
     makeConfig(cluster, "foo", "version1",
         new HashMap<String,String>() {{ put("a", "c"); }}, new HashMap<String, Map<String,String>>());
+    waitToStaleConfigsCacheClear();
 
     // HDP-x/HDFS does not define type 'foo', so changes do not count to stale
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
@@ -797,6 +803,7 @@ public class ServiceComponentHostTest {
 
     makeConfig(cluster, "hdfs-site", "version1",
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+    waitToStaleConfigsCacheClear();
 
     // HDP-x/HDFS/hdfs-site is not on the actual, but it is defined, so it is stale
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -810,6 +817,7 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache
     // after start/restart command execution completed
     sch1.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS/hdfs-site up to date, only for sch1
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
@@ -820,6 +828,7 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache(
     // after start/restart command execution completed)
     sch2.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS/hdfs-site up to date for both
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
@@ -827,6 +836,7 @@ public class ServiceComponentHostTest {
     makeConfig(cluster, "hdfs-site", "version2",
         new HashMap<String, String>() {{ put("dfs.journalnode.http-address", "http://foo"); }},
         new HashMap<String, Map<String,String>>());
+    waitToStaleConfigsCacheClear();
 
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -839,6 +849,7 @@ public class ServiceComponentHostTest {
     // after start/restart command execution completed
     sch1.setRestartRequired(false);
     sch2.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS/hdfs-site updated to changed property
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
@@ -859,6 +870,7 @@ public class ServiceComponentHostTest {
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
     configGroup.persist();
     cluster.addConfigGroup(configGroup);
+    waitToStaleConfigsCacheClear();
 
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -871,6 +883,7 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache
     // after start/restart command execution completed
     sch2.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
@@ -881,6 +894,7 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache
     // after start/restart command execution completed
     sch1.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS/hdfs-site updated host to changed property
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
@@ -892,6 +906,7 @@ public class ServiceComponentHostTest {
         put("dfs_namenode_name_dir", "/foo3"); // HDFS only
         put("mapred_log_dir_prefix", "/foo2"); // MR2 only
       }}, new HashMap<String, Map<String,String>>());
+    waitToStaleConfigsCacheClear();
 
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
@@ -903,6 +918,7 @@ public class ServiceComponentHostTest {
         put("a", "b");
         put("fs.trash.interval", "360"); // HDFS only
       }}, new HashMap<String, Map<String,String>>());
+    waitToStaleConfigsCacheClear();
 
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
@@ -942,10 +958,12 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache
     // after start/restart command execution completed
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
 
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
     cluster.deleteConfigGroup(id);
+    waitToStaleConfigsCacheClear();
     Assert.assertNull(cluster.getConfigGroups().get(id));
 
     sch3.updateActualConfigs(actual);
@@ -958,6 +976,7 @@ public class ServiceComponentHostTest {
     //reset restartRequired flag + invalidating isStale cache
     // after start/restart command execution completed
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
   }
 
@@ -1023,6 +1042,7 @@ public class ServiceComponentHostTest {
          put("a", "true");
        }});
       }});
+    waitToStaleConfigsCacheClear();
     // HDP-x/HDFS does not define type 'foo', so changes do not count to stale
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
@@ -1032,6 +1052,7 @@ public class ServiceComponentHostTest {
       put("mapred-site", new HashMap<String,String>() {{ put("tag", "version1"); }});
     }};
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     sch3.updateActualConfigs(actual);
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
@@ -1046,6 +1067,7 @@ public class ServiceComponentHostTest {
     sch1.setRestartRequired(false);
     sch2.setRestartRequired(false);
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
@@ -1061,6 +1083,7 @@ public class ServiceComponentHostTest {
     sch1.setRestartRequired(false);
     sch2.setRestartRequired(false);
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
@@ -1073,6 +1096,7 @@ public class ServiceComponentHostTest {
     sch1.setRestartRequired(false);
     sch2.setRestartRequired(false);
     sch3.setRestartRequired(false);
+    waitToStaleConfigsCacheClear();
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
@@ -1187,5 +1211,21 @@ public class ServiceComponentHostTest {
         Assert.assertFalse(state.isEndpoint());
       }
     }
+  }
+
+  /*
+  Stale configs cache invalidating in separate thread, so sometimes it can not be cleared in time before check.
+  So it is needed to wait until thread with cache invalidating complete his work.
+   */
+  private void waitToStaleConfigsCacheClear() throws NoSuchFieldException, InterruptedException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    Field f = ConfigHelper.class.getDeclaredField("cacheInvalidationExecutor");
+    f.setAccessible(true);
+    ExecutorService configHelperExecutor = (ExecutorService) f.get(configHelper);
+    configHelperExecutor.shutdown();
+    configHelperExecutor.awaitTermination(10, TimeUnit.SECONDS);
+
+    Method m = ConfigHelper.class.getDeclaredMethod("createCacheInvalidationExecutor");
+    m.setAccessible(true);
+    f.set(configHelper, m.invoke(configHelper));
   }
 }

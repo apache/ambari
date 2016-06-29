@@ -23,15 +23,12 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Collection;
 
@@ -65,22 +62,20 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
 
     if (userEntity == null || !StringUtils.equals(userEntity.getUserName(), userName)) {
       //TODO case insensitive name comparison is a temporary solution, until users API will change to use id as PK
-      LOG.info("user not found ");
-      throw new UsernameNotFoundException("Username " + userName + " not found");
+      LOG.info("user not found");
+      throw new InvalidUsernamePasswordCombinationException();
     }
 
     if (!userEntity.getActive()) {
       logger.debug("User account is disabled");
 
-      throw new DisabledException(messages.getMessage("AbstractUserDetailsAuthenticationProvider.disabled",
-        "User is disabled"));
+      throw new InvalidUsernamePasswordCombinationException();
     }
 
     if (authentication.getCredentials() == null) {
       logger.debug("Authentication failed: no credentials provided");
 
-      throw new BadCredentialsException(messages.getMessage(
-        "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+      throw new InvalidUsernamePasswordCombinationException();
     }
 
     String password = userEntity.getUserPassword();
@@ -89,8 +84,7 @@ public class AmbariLocalUserProvider extends AbstractUserDetailsAuthenticationPr
     if (!passwordEncoder.matches(presentedPassword, password)) {
       logger.debug("Authentication failed: password does not match stored value");
 
-      throw new BadCredentialsException(messages.getMessage(
-        "AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
+      throw new InvalidUsernamePasswordCombinationException();
     }
     Collection<AmbariGrantedAuthority> userAuthorities =
       users.getUserAuthorities(userEntity.getUserName(), userEntity.getUserType());
