@@ -17,16 +17,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+# Python imports
+import os
 import sys
-from resource_management import *
-from resource_management.libraries.functions import conf_select
-from resource_management.libraries.functions import stack_select
+
+# Local imports
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.constants import StackFeature
 from resource_management.core.exceptions import ClientComponentHasNoStatus
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
-from resource_management.core import shell
 from setup_spark import setup_spark
 
 

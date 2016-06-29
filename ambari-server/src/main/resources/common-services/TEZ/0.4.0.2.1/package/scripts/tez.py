@@ -18,9 +18,14 @@ limitations under the License.
 Ambari Agent
 
 """
+# Python Imports
 import os
 
-from resource_management import *
+# Local Imports
+from resource_management.core.resources.system import Directory, File
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.source import InlineTemplate
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
