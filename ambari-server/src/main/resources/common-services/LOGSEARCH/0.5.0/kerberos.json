@@ -80,7 +80,7 @@
               "keytab": {
                 "file": "${keytab_dir}/logfeeder.service.keytab",
                 "owner": {
-                  "name": "${logfeeder-env/logfeeder_user}",
+                  "name": "root",
                   "access": "r"
                 },
                 "group": {

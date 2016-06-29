@@ -1836,95 +1836,88 @@ var hdp2properties = [
     "index": 2
   },
   {
-    "name": "logfeeder_user",
+    "name": "logfeeder_max_mem",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 3
   },
   {
-    "name": "logfeeder_max_mem",
+    "name": "logfeeder_solr_service_logs_enable",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 4
   },
   {
-    "name": "logfeeder_solr_service_logs_enable",
+    "name": "logfeeder_solr_audit_logs_enable",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 5
   },
   {
-    "name": "logfeeder_solr_audit_logs_enable",
+    "name": "logfeeder_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 6
   },
   {
-    "name": "logfeeder_truststore_location",
+    "name": "logfeeder_truststore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 7
   },
   {
-    "name": "logfeeder_truststore_type",
+    "name": "logfeeder_truststore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 8
   },
   {
-    "name": "logfeeder_truststore_password",
+    "name": "logfeeder_keystore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 9
   },
   {
-    "name": "logfeeder_keystore_location",
+    "name": "logfeeder_keystore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 10
   },
   {
-    "name": "logfeeder_keystore_type",
+    "name": "logfeeder_keystore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 11
   },
   {
-    "name": "logfeeder_keystore_password",
+    "name": "logfeeder_kerberos_keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 12
   },
   {
-    "name": "logfeeder_kerberos_keytab",
+    "name": "logfeeder_kerberos_principal",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
     "index": 13
   },
   {
-    "name": "logfeeder_kerberos_principal",
-    "serviceName": "LOGSEARCH",
-    "filename": "logfeeder-env.xml",
-    "category": "Advanced logfeeder-env",
-    "index": 14
-  },
-  {
     "name": "content",
     "serviceName": "LOGSEARCH",
     "filename": "logfeeder-env.xml",
     "category": "Advanced logfeeder-env",
-    "index": 15
+    "index": 14
   },
   /*logfeeder-log4j*/
   {
