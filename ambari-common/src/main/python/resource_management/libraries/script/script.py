@@ -167,7 +167,7 @@ class Script(object):
 
     required_attributes = ["stack_name", "stack_root", "version"]
     for attribute in required_attributes:
-      if not has_attr(params, attribute):
+      if not hasattr(params, attribute):
         raise Fail("Failed in function 'stack_upgrade_save_new_config' because params was missing variable %s." % attribute)
 
     Logger.info("stack_upgrade_save_new_config(): Checking if can write new client configs to new config version folder.")

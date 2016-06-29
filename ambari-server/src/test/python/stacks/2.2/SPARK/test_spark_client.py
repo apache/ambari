@@ -181,3 +181,21 @@ class TestSparkClient(RMFTestCase):
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'spark', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
+
+  def test_stack_upgrade_save_new_config(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
+                       classname = "SparkClient",
+                       command = "stack_upgrade_save_new_config",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
+                       mocks_dict = mocks_dict)
+    # for now, it's enough to know the method didn't fail
