@@ -236,12 +236,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
-        <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /usr/hdp/$(old_version)/knox/data/" on the following host(s): {{hosts.all}}.</message>
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>

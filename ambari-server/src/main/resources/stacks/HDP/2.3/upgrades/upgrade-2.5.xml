@@ -500,6 +500,13 @@
 
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
 
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.KerberosKeytabsAction">
+            <summary>Ranger Kerberos Keytab Check</summary>
+            <message>Please follow below steps to complete upgrade in kerberos environment</message>
+            <message>-- If keytabs are managed by Ambari, Perform Regenerate Keytabs for missing components to get Ranger keytabs and restart ranger components.</message>
+            <message>-- If keytabs are managed manually, create the required ranger keytabs in the locations specified in ranger config and restart ranger components.</message>
+          </task>
+
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_admin.py</script>
             <function>set_pre_start</function>
