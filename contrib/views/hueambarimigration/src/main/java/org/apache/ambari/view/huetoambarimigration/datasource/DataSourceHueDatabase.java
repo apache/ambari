@@ -18,8 +18,6 @@
 
 package org.apache.ambari.view.huetoambarimigration.datasource;
 
-import org.apache.ambari.view.huetoambarimigration.controller.configurationcheck.ConfigurationCheck;
-import org.apache.ambari.view.huetoambarimigration.service.configurationcheck.ConfFileReader;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import java.beans.PropertyVetoException;
