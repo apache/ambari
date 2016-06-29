@@ -348,7 +348,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
+      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, SERVICE.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')
         && !(App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
@@ -527,7 +527,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     adminServiceAccounts: Em.Route.extend({
       route: '/serviceAccounts',
       enter: function (router, transition) {
-        if (router.get('loggedIn') && !App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS')) {
+        if (router.get('loggedIn') && !App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS')) {
           router.transitionTo('main.dashboard.index');
         }
       },
