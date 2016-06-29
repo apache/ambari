@@ -18,12 +18,17 @@ limitations under the License.
 
 """
 
+# Python Imports
+import os
 import sys
+
+# Local Imports
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons import OSConst
 
 
@@ -42,8 +47,6 @@ def hcat():
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hcat():
   import params
-
-  from setup_atlas_hive import setup_atlas_hive
 
   Directory(params.hive_conf_dir,
             create_parents = True,
@@ -77,4 +80,7 @@ def hcat():
        content=InlineTemplate(params.hcat_env_sh_template)
   )
 
-  setup_atlas_hive()
+  # Generate atlas-application.properties.xml file
+  if has_atlas_in_cluster():
+    atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
+    setup_atlas_hook(params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

@@ -40,6 +40,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 
 # Default log4j version; put config files under /etc/hive/conf
 log4j_version = '1'
@@ -505,18 +506,12 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 ########################################################
 ############# Atlas related params #####################
 ########################################################
+#region Atlas Hooks
+hive_atlas_application_properties = default('/configurations/hive-atlas-application.properties', {})
 
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
-has_atlas = len(atlas_hosts) > 0
-classpath_addition = ""
-atlas_plugin_package = "atlas-metadata*-hive-plugin"
-atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
-
-if has_atlas:
-  atlas_conf_file = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
-  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
-  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-  atlas_props = default('/configurations/application-properties', {})
+if has_atlas_in_cluster():
+  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+#endregion
 
 ########################################################
 ########### WebHCat related params #####################

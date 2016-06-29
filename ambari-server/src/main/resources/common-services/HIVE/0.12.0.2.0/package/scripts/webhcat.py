@@ -29,6 +29,7 @@ from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons import OSConst
 
 
@@ -49,8 +50,6 @@ def webhcat():
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat():
   import params
-
-  from setup_atlas_hive import setup_atlas_hive
 
   Directory(params.templeton_pid_dir,
             owner=params.webhcat_user,
@@ -142,4 +141,8 @@ def webhcat():
          content=StaticFile(format("{config_dir}/{log4j_webhcat_filename}.template"))
     )
 
-  setup_atlas_hive(configuration_directory=params.config_dir)
+  # Generate atlas-application.properties.xml file
+  if has_atlas_in_cluster():
+    # WebHCat uses a different config dir than the rest of the daemons in Hive.
+    atlas_hook_filepath = os.path.join(params.config_dir, params.atlas_hook_filename)
+    setup_atlas_hook(params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

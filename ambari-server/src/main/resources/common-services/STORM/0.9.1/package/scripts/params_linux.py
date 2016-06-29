@@ -38,6 +38,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.expect import expect
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 
 # server configurations
 config = Script.get_config()
@@ -208,18 +209,19 @@ if storm_zookeeper_servers:
 
 jar_jvm_opts = ''
 
-# Atlas related params
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
-has_atlas = len(atlas_hosts) > 0
-atlas_plugin_package = "atlas-metadata*-hive-plugin"
-atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
-if has_atlas:
-  atlas_conf_file = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
-  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else stack_root + '/current/atlas-server'
+########################################################
+############# Atlas related params #####################
+########################################################
+#region Atlas Hooks
+storm_atlas_application_properties = default('/configurations/storm-atlas-application.properties', {})
+
+if has_atlas_in_cluster():
+  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
   atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-  atlas_props = default('/configurations/application-properties', {})
-  jar_jvm_opts = '-Datlas.conf=' + atlas_conf_dir
+  jar_jvm_opts += '-Datlas.conf=' + atlas_conf_dir
+#endregion
+
 
 # ranger host
 stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)

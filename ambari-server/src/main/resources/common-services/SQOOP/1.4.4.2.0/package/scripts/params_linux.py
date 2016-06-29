@@ -17,6 +17,8 @@ limitations under the License.
 
 """
 
+import os
+
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_kinit_path import get_kinit_path
@@ -25,7 +27,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.expect import expect
-import os
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
+
 
 # a map of the Ambari role to the component name
 # for use with <stack-root>/current/<component>
@@ -120,20 +123,13 @@ if "jdbc_drivers" in config['configurations']['sqoop-env']:
     sqoop_jdbc_drivers_name_dict[jdbc_name] = jdbc_driver_name
 jdk_location = config['hostLevelParams']['jdk_location']
 
-job_data_publish_class = ''
 
 ########################################################
 ############# Atlas related params #####################
 ########################################################
+#region Atlas Hooks
+sqoop_atlas_application_properties = default('/configurations/sqoop-atlas-application.properties', {})
 
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
-has_atlas = len(atlas_hosts) > 0
-atlas_plugin_package = "atlas-metadata*-hive-plugin"
-atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
-
-if has_atlas:
-  atlas_conf_file = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
-  atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format("{stack_root}/current/atlas-server")
-  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-  atlas_props = default('/configurations/application-properties', {})
-  job_data_publish_class = 'org.apache.atlas.sqoop.hook.SqoopHook'
+if has_atlas_in_cluster():
+  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+#endregion

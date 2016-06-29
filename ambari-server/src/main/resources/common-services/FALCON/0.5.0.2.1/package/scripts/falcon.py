@@ -19,6 +19,7 @@ limitations under the License.
 
 import os.path
 
+# Local Imports
 from resource_management.core.environment import Environment
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
@@ -32,11 +33,11 @@ from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions import get_user_call_output
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from resource_management.core.logger import Logger
-
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from setup_atlas_falcon import setup_atlas_falcon
+
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
 def falcon(type, action = None, upgrade_type=None):
@@ -110,7 +111,10 @@ def falcon(type, action = None, upgrade_type=None):
         create_parents = True,
         cd_access = "a")
 
-    setup_atlas_falcon()
+    # Generate atlas-application.properties.xml file
+    if has_atlas_in_cluster():
+      atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
+      setup_atlas_hook(params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
 
   if type == 'server':
     if action == 'config':
