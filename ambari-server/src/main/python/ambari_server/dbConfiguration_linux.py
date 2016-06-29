@@ -551,15 +551,15 @@ class PGConfig(LinuxDBMSConfig):
 
   # Store local database connection properties
   def _store_local_properties(self, properties, options):
-    properties.removeOldProp(JDBC_DATABASE_PROPERTY)
-    properties.removeOldProp(JDBC_DATABASE_NAME_PROPERTY)
-    properties.removeOldProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
-    properties.removeOldProp(JDBC_HOSTNAME_PROPERTY)
-    properties.removeOldProp(JDBC_RCA_DRIVER_PROPERTY)
-    properties.removeOldProp(JDBC_RCA_URL_PROPERTY)
-    properties.removeOldProp(JDBC_PORT_PROPERTY)
-    properties.removeOldProp(JDBC_DRIVER_PROPERTY)
-    properties.removeOldProp(JDBC_URL_PROPERTY)
+    properties.removeProp(JDBC_DATABASE_PROPERTY)
+    properties.removeProp(JDBC_DATABASE_NAME_PROPERTY)
+    properties.removeProp(JDBC_POSTGRES_SCHEMA_PROPERTY)
+    properties.removeProp(JDBC_HOSTNAME_PROPERTY)
+    properties.removeProp(JDBC_RCA_DRIVER_PROPERTY)
+    properties.removeProp(JDBC_RCA_URL_PROPERTY)
+    properties.removeProp(JDBC_PORT_PROPERTY)
+    properties.removeProp(JDBC_DRIVER_PROPERTY)
+    properties.removeProp(JDBC_URL_PROPERTY)
 
     # Store the properties
     properties.process_pair(PERSISTENCE_TYPE_PROPERTY, self.persistence_type)

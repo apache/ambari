@@ -29,10 +29,8 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.easymock.EasyMock.createMock;
@@ -92,7 +90,7 @@ public class AmbariLocalUserProviderTest {
     assertEquals(1, ((User) resultedAuth.getPrincipal()).getUserId());
   }
 
-  @Test(expected = UsernameNotFoundException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testAuthWithIncorrectName() {
     Users users = createMock(Users.class);
     UserDAO userDAO = createMock(UserDAO.class);
@@ -107,7 +105,7 @@ public class AmbariLocalUserProviderTest {
     ambariLocalUserProvider.authenticate(authentication);
   }
 
-  @Test(expected = BadCredentialsException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testAuthWithoutPass() {
     Users users = createMock(Users.class);
     UserDAO userDAO = createMock(UserDAO.class);
@@ -125,7 +123,7 @@ public class AmbariLocalUserProviderTest {
     ambariLocalUserProvider.authenticate(authentication);
   }
 
-  @Test(expected = BadCredentialsException.class)
+  @Test(expected = InvalidUsernamePasswordCombinationException.class)
   public void testAuthWithIncorrectPass() {
     Users users = createMock(Users.class);
     UserDAO userDAO = createMock(UserDAO.class);
