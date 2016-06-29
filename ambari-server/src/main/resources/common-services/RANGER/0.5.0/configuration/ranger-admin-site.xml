@@ -282,7 +282,7 @@
   <property>
     <name>ranger.ldap.referral</name>
     <value>ignore</value>
-    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed</description>
+    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed. Possible values are follow|throw|ignore</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -348,7 +348,7 @@
   <property>
     <name>ranger.ldap.ad.referral</name>
     <value>ignore</value>
-    <description>"Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed"</description>
+    <description>Set to follow if multiple LDAP servers are configured to return continuation references for results. Set to ignore (default) if no referrals should be followed. Possible values are follow|throw|ignore</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
