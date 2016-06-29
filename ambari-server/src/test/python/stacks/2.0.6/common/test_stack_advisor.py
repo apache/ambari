@@ -979,7 +979,7 @@ class TestHDP206StackAdvisor(TestCase):
             "os_arch": "x86_64",
             "os_type": "centos6",
             "ph_cpu_count": 1,
-            "public_host_name": "c6401.ambari.apache.org",
+            "public_host_name": "public.c6401.ambari.apache.org",
             "rack_info": "/default-rack",
             "total_mem": 2097152,
             "disk_info": [{
@@ -996,7 +996,7 @@ class TestHDP206StackAdvisor(TestCase):
             "os_arch": "x86_64",
             "os_type": "centos6",
             "ph_cpu_count": 1,
-            "public_host_name": "c6402.ambari.apache.org",
+            "public_host_name": "public.c6402.ambari.apache.org",
             "rack_info": "/default-rack",
             "total_mem": 1048576,
             "disk_info": [{
