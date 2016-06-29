@@ -161,8 +161,11 @@ class Master(Script):
       not os.path.exists(params.conf_dir + "/interpreter.json"):
       Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
               + params.zeppelin_log_file, user=params.zeppelin_user)
-    time.sleep(20)
-    self.update_zeppelin_interpreter()
+      time.sleep(20)
+      self.update_zeppelin_interpreter()
+
+    if params.security_enabled:
+      self.update_kerberos_properties()
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -183,7 +186,7 @@ class Master(Script):
         pid_file = ''
     check_process_status(pid_file)
 
-  def update_zeppelin_interpreter(self):
+  def get_interpreter_settings(self):
     import params
     import json
 
@@ -191,39 +194,66 @@ class Master(Script):
     interpreter_config_file = open(interpreter_config, "r")
     config_data = json.load(interpreter_config_file)
     interpreter_config_file.close()
+    return config_data
+
+  def set_interpreter_settings(self, config_data):
+    import params
+    import json
+
+    interpreter_config = params.conf_dir + "/interpreter.json"
+    interpreter_config_file = open(interpreter_config, "w+")
+    interpreter_config_file.write(json.dumps(config_data, indent=2))
+    interpreter_config_file.close()
+
+  def update_kerberos_properties(self):
+    import params
+    config_data = self.get_interpreter_settings()
+    interpreter_settings = config_data['interpreterSettings']
+    for notebooks in interpreter_settings:
+      notebook = interpreter_settings[notebooks]
+      if notebook['group'] == 'livy' and params.livy_livyserver_host:
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+          notebook['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
+          notebook['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
+      elif notebook['group'] == 'spark':
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+          notebook['properties']['spark.yarn.principal'] = params.zeppelin_kerberos_principal
+          notebook['properties']['spark.yarn.keytab'] = params.zeppelin_kerberos_keytab
+
+    self.set_interpreter_settings(config_data)
+
+  def update_zeppelin_interpreter(self):
+    import params
+    config_data = self.get_interpreter_settings()
     interpreter_settings = config_data['interpreterSettings']
 
     for notebooks in interpreter_settings:
         notebook = interpreter_settings[notebooks]
-        if notebook['group'] == 'jdbc' and params.hive_server_host:
-            notebook['properties']['default.url'] = 'jdbc:hive2://' +\
-                                                             params.hive_server_host +\
-                                                             ':' + params.hive_server_port
-            notebook['properties']['default.driver'] = "org.apache.hive.jdbc.HiveDriver"
+        if notebook['group'] == 'jdbc':
             notebook['dependencies'] = []
-            notebook['dependencies'].append(
-              {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
-            notebook['dependencies'].append(
-              {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
-        elif notebook['group'] == 'phoenix' and params.zookeeper_znode_parent \
-                and params.hbase_zookeeper_quorum:
-            notebook['properties']['phoenix.jdbc.url'] = "jdbc:phoenix:" +\
-                                                         params.hbase_zookeeper_quorum + ':' +\
-                                                         params.zookeeper_znode_parent
+            if params.hive_server_host:
+                notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
+                                                     params.hive_server_host + \
+                                                         ':' + params.hive_server_port
+                notebook['dependencies'].append(
+                    {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
+                notebook['dependencies'].append(
+                    {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+
+            elif params.zookeeper_znode_parent \
+                    and params.hbase_zookeeper_quorum:
+                notebook['properties']['phoenix.url'] = "jdbc:phoenix:" + \
+                                                        params.hbase_zookeeper_quorum + ':' + \
+                                                        params.zookeeper_znode_parent
+                notebook['dependencies'].append(
+                    {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.4.0-HBase-1.0", "local": "false"})
         elif notebook['group'] == 'livy' and params.livy_livyserver_host:
             notebook['properties']['livy.spark.master'] = "yarn-cluster"
-            notebook['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
-            notebook['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
             notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
                                                           ":" + params.livy_livyserver_port
         elif notebook['group'] == 'spark':
-            notebook['properties']['master'] = "yarn-cluster"
-            notebook['properties']['spark.yarn.principal'] = params.zeppelin_kerberos_principal
-            notebook['properties']['spark.yarn.keytab'] = params.zeppelin_kerberos_keytab
-
-    interpreter_config_file = open(interpreter_config, "w+")
-    interpreter_config_file.write(json.dumps(config_data, indent=2))
-    interpreter_config_file.close()
+            notebook['properties']['master'] = "yarn-client"
+    self.set_interpreter_settings(config_data)
 
 if __name__ == "__main__":
   Master().execute()
