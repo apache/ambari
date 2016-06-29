@@ -19,6 +19,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+### BEGIN INIT INFO
+# Provides:          ambari-server
+# Required-Start:
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 6
+### END INIT INFO
+
 # /etc/init.d/ambari-server
 
 VERSION="${ambariFullVersion}"

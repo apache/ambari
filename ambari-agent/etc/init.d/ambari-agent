@@ -19,6 +19,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+### BEGIN INIT INFO
+# Provides:          ambari-agent
+# Required-Start:
+# Required-Stop:
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 6
+### END INIT INFO
+
 run_as_user=`cat /etc/ambari-agent/conf/ambari-agent.ini | grep run_as_user | tr -d ' ' | grep -v '^;\|^#' | awk -F '=' '{ print $2}'`
 
 if [ "$EUID" != `id -u $run_as_user` ] ; then
