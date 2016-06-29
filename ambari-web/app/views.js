@@ -42,6 +42,8 @@ require('views/common/modal_popups/select_groups_popup');
 require('views/common/modal_popups/logs_popup');
 require('views/common/modal_popups/log_file_search_popup');
 require('views/common/modal_popups/log_tail_popup');
+require('views/common/modal_popups/config_validation/config_validation_failed_popup');
+require('views/common/modal_popups/config_validation/config_validation_popup');
 require('views/common/editable_list');
 require('views/common/host_progress_popup_body_view');
 require('views/common/rolling_restart_view');
