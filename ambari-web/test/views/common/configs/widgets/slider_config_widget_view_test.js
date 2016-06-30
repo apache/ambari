@@ -26,6 +26,7 @@ describe('App.SliderConfigWidgetView', function () {
     viewInt = App.SliderConfigWidgetView.create({
       initSlider: Em.K,
       initPopover: Em.K,
+      movePopover: Em.K,
       slider: {
         enable: Em.K,
         disable: Em.K,

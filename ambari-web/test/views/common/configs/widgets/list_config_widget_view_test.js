@@ -25,6 +25,7 @@ describe('App.ListConfigWidgetView', function () {
 
     view = App.ListConfigWidgetView.create({
       initPopover: Em.K,
+      movePopover: Em.K,
       config: Em.Object.create({
         validate: App.ServiceConfigProperty.prototype.validate,
         name: 'a.b.c',

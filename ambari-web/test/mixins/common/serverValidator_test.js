@@ -177,7 +177,7 @@ describe('App.ServerValidatorMixin', function () {
       });
     });
 
-    it('creates general issue object', function() {
+    it('creates WRONG TYPE issue object', function() {
       expect(instanceObject.createErrorMessage.bind(instanceObject, 'WRONG TYPE', null, ['msg3']))
         .to.throw(Error, 'Unknown config error type WRONG TYPE');
     });

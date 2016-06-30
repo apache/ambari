@@ -320,7 +320,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   showFinalConfig: function () {
     var config = this.get('config');
-    return config.get('isFinal') || (!config.get('isNotEditable') && this.get('isHover'));
+    return config.get('isFinal') || !config.get('isNotEditable') && this.get('isHover');
   }.property('config.isFinal', 'config.isNotEditable', 'isHover'),
 
   /**
@@ -376,7 +376,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       this.configValueObserverForAttributes();
 
       //Add Observer to configCondition that depends on another config value
-      var isConditionConfigDependent =  configConditions.filterProperty('resource', 'config').length;
+      var isConditionConfigDependent = configConditions.filterProperty('resource', 'config').length;
       if (isConditionConfigDependent) {
         this.addObserver('config.value', this, this.configValueObserverForAttributes);
       }
@@ -405,7 +405,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName',serviceName).get('configs');
     var isConditionTrue;
     configConditions.forEach(function(configCondition){
-      var ifStatement =  configCondition.get("if");
+      var ifStatement = configCondition.get("if");
       if (configCondition.get("resource") === 'config') {
         isConditionTrue = App.configTheme.calculateConfigCondition(ifStatement, serviceConfigs);
         if (configCondition.get("type") === 'subsection' || configCondition.get("type") === 'subsectionTab') {
@@ -434,7 +434,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @method {configValueObserverForAction}
    */
   configValueObserverForAction: function() {
-    var assignMasterOnStep7Controller =  App.router.get('assignMasterOnStep7Controller');
+    var assignMasterOnStep7Controller = App.router.get('assignMasterOnStep7Controller');
     var configAction = this.get('config.configAction');
     var serviceName = this.get('config.serviceName');
     var serviceConfigs = this.get('controller.stepConfigs').findProperty('serviceName', serviceName).get('configs');
@@ -512,15 +512,15 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     var action = isConditionTrue ? subsectionCondition.get("then") : subsectionCondition.get("else");
     if (subsectionCondition.get('id')) {
       var valueAttributes = action.property_value_attributes;
-      if (valueAttributes && !Em.none(valueAttributes['visible'])) {
+      if (valueAttributes && !Em.none(valueAttributes.visible)) {
         var themeResource;
         if (subsectionCondition.get('type') === 'subsection') {
           themeResource = App.SubSection.find().findProperty('name', subsectionConditionName);
         } else if (subsectionCondition.get('type') === 'subsectionTab') {
           themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
         }
-        themeResource.set('isHiddenByConfig', !valueAttributes['visible']);
-        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes['visible']);
+        themeResource.set('isHiddenByConfig', !valueAttributes.visible);
+        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes.visible);
       }
     }
   },
@@ -584,7 +584,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @returns {boolean}
    */
   isValueCompatibleWithWidget: function() {
-    return (this.get('isOverrideEqualityError') && !this.get('config.isValid')) || this.get('config.isValid') || !this.get('supportSwitchToTextBox');
+    return this.get('isOverrideEqualityError') && !this.get('config.isValid') || this.get('config.isValid') || !this.get('supportSwitchToTextBox');
   },
 
   /**

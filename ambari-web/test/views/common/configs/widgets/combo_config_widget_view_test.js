@@ -22,7 +22,8 @@ describe('App.ComboConfigWidgetView', function() {
 
   beforeEach(function() {
     this.view = App.ComboConfigWidgetView.create({
-      initPopover: Em.K
+      initPopover: Em.K,
+      movePopover: Em.K
     });
   });
 
