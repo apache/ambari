@@ -119,7 +119,6 @@ export default Ember.ObjectController.extend({
               } else {
                 formatted.pushObject(currentNode);
               }
-
               break;
             }
           }
@@ -128,7 +127,16 @@ export default Ember.ObjectController.extend({
         formatted.pushObject(currentNode);
       }
     }
-
+    formatted = this.filterExplain(formatted);
     this.set('formattedExplain', formatted);
+  },
+  filterExplain: function (explain){
+    var formattedExplain = explain.filter(function(item){
+      if(item.text !== '""'){
+        return item;
+      }
+    })
+    return formattedExplain;
   }
 });
+

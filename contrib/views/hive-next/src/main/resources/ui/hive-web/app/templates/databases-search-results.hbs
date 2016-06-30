@@ -37,9 +37,13 @@
           {{/if}}
         </div>
       {{/each}}
-
       {{#if tableSearchResults.hasNext}}
         <strong><a {{action "showMoreResultTables" database}}>{{t "buttons.loadMore"}}</a></strong>
+      {{/if}}
+      {{#if showColumnsResultAlert}}
+        <div class="alert alert-warning database-explorer-alert" role="alert">
+          {{t "labels.noColumnsMatch"}} <strong>&quot;{{textColumnSearchTerm}}&quot;</strong>
+        </div>
       {{/if}}
     </div>
   </div>

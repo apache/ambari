@@ -124,20 +124,40 @@ export default Ember.Service.extend({
     var url      = adapter.buildURL() + '/savedQueries/defaultSettings';
     var settings = this.get('settings');
 
-    settings.forEach(function(setting) {
-      data[ setting.get('key.name') ] = setting.get('value');
-    });
+    var settingException = {};
+
+    try {
+      settings.forEach(function(setting) {
+
+        settingException['value'] = Ember.isEmpty(setting.get('value'));
+
+        if(settingException['value']) {
+          settingException['name'] = setting.get('key.name');
+          throw settingException
+        }
+        data[setting.get('key.name')] = setting.get('value');
+
+      });
+    } catch(e) {
+      if (e!==settingException) throw e;
+    }
+
+
+    if(settingException['value']){
+      self.get('notifyService').error('Please enter the value for '+ settingException['name'] );
+      return;
+    }
 
     adapter.ajax(url, 'POST', {
-      data: {settings: data }
-    })
-    .then(function(response) {
-      if (response && response.settings) {
-        self.get('notifyService').success(Ember.I18n.t('alerts.success.settings.saved'));
-      } else {
-        self.get('notifyService').error(response);
-      }
-    });
+        data: {settings: data }
+      })
+      .then(function(response) {
+        if (response && response.settings) {
+          self.get('notifyService').success(Ember.I18n.t('alerts.success.settings.saved'));
+        } else {
+          self.get('notifyService').error(response);
+        }
+      });
   },
 
   getSettings: function() {
