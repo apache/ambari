@@ -35,7 +35,7 @@ class TestAtlasCheck(RMFTestCase):
                        )
 
     self.assertResourceCalled('Execute', 'curl -s -o /dev/null -w "%{http_code}" http://c6401.ambari.apache.org:21000/',
-                              user = 'atlas',
+                              user = 'ambari-qa',
                               tries = 5,
                               try_sleep = 10)
 
@@ -55,7 +55,7 @@ class TestAtlasCheck(RMFTestCase):
                               user = 'ambari-qa')
 
     self.assertResourceCalled('Execute', 'curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{http_code}" https://c6401.ambari.apache.org:21443/',
-                              user = 'atlas',
+                              user = 'ambari-qa',
                               tries = 5,
                               try_sleep = 10)
 
