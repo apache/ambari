@@ -36,7 +36,7 @@ class AtlasServiceCheck(Script):
               user=params.smoke_test_user)
 
     try:
-      Execute(params.smoke_cmd, user=params.metadata_user, tries = 5,
+      Execute(params.smoke_cmd, user=params.smoke_test_user, tries = 5,
               try_sleep = 10)
       Logger.info('Atlas server up and running')
     except:
