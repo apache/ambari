@@ -85,7 +85,7 @@ public class XMLParser extends Parser {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() throws Exception {
     try {
       this.xmlReader.close();
     } catch (XMLStreamException e) {

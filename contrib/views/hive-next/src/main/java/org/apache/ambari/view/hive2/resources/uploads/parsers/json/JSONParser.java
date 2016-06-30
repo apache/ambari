@@ -74,7 +74,7 @@ public class JSONParser extends Parser {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() throws Exception {
     this.jsonReader.close();
   }
 

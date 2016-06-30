@@ -20,14 +20,13 @@ package org.apache.ambari.view.hive2.resources.uploads.parsers;
 
 import org.apache.ambari.view.hive2.client.Row;
 
-import java.io.IOException;
 import java.io.Reader;
 
 /**
  * Interface defining methods for Parsers that can used for generating preview
  * and uploading table into hive.
  */
-public interface IParser extends Iterable<Row> {
+public interface IParser extends Iterable<Row>, AutoCloseable{
 
   /**
    * @return returns the Reader that can be read to get the table data as CSV Text Data that can be uploaded directly
@@ -38,7 +37,4 @@ public interface IParser extends Iterable<Row> {
   PreviewData parsePreview();
 
   Row extractHeader();
-
-  void close() throws IOException;
-
 }
