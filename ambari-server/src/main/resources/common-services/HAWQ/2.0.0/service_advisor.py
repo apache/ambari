@@ -146,6 +146,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     putHawqSitePropertyAttribute = self.putPropertyAttribute(configurations, "hawq-site")
     hawq_sysctl_env = services["configurations"]["hawq-sysctl-env"]["properties"]
     putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
+    putHawqSysctlEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hawq-sysctl-env")
 
     # remove master port when master is colocated with Ambari server
     if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
@@ -188,6 +189,9 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
         vm_overcommit_mem_value = int(hawq_sysctl_env["vm.overcommit_memory"])
       putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
+      # Show vm.overcommit_ratio on theme only if vm.overcommit_memory is set to 2
+      overcommit_ratio_visibility = "true" if vm_overcommit_mem_value == 2 else "false"
+      putHawqSysctlEnvPropertyAttribute("vm.overcommit_ratio", "visible", overcommit_ratio_visibility)
       putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
       host_ram_kb = minHawqHostsMemory * vm_overcommit_ratio / 100 if vm_overcommit_mem_value == 2 else minHawqHostsMemory
       host_ram_gb = float(host_ram_kb) / (1024 * 1024)
