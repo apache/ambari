@@ -7060,17 +7060,67 @@ class TestHDP25StackAdvisor(TestCase):
     ]
     services = self.prepareServices(servicesInfo)
     services["configurations"] = {"yarn-env":{"properties":{"service_check.queue.name": "default"}},
-                                  "capacity-scheduler":{"properties":{"capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue\n"}}}
+                                  "capacity-scheduler":{"properties":{
+                                    "capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue,leaf\n" +
+                                                          "yarn.scheduler.capacity.root.ndfqueue.queues=ndfqueue1,ndfqueue2\n"}}}
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     expectedItems = [
       {'message': 'Queue is not exist, or not corresponds to existing YARN leaf queue', 'level': 'ERROR'}
     ]
     self.assertValidationResult(expectedItems, result)
-    services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "ndfqueue"
+    services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "ndfqueue2"
     expectedItems = []
     result = self.stackAdvisor.validateConfigurations(services, hosts)
     self.assertValidationResult(expectedItems, result)
+    services["configurations"]["yarn-env"]["properties"]["service_check.queue.name"] = "leaf"
+    expectedItems = []
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+    self.assertValidationResult(expectedItems, result)
+
+  def test_recommendYARNQueueConfigurations(self):
+    configurations = {"yarn-env":{"properties":{"service_check.queue.name": "default"}},
+                      "capacity-scheduler":{"properties":{
+                        "capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue\n" +
+                                              "yarn.scheduler.capacity.root.ndfqueue.queues=ndfqueue1,ndfqueue2\n"}}}
+    services = {"configurations": configurations, "services": [], "ambari-server-properties": {}}
+    clusterData = {
+      "containers" : 5,
+      "ramPerContainer": 256,
+      "mapMemory": 567,
+      "reduceMemory": 345.6666666666666,
+      "amMemory": 123.54,
+      "cpu": 4,
+      "referenceNodeManagerHost" : {
+        "total_mem" : 328960 * 1024
+      }
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendMapReduce2Configurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations["yarn-env"]["properties"]["service_check.queue.name"], "ndfqueue2")
+    self.assertEquals(configurations["mapred-site"]["properties"]["mapreduce.job.queuename"], "ndfqueue2")
+    self.assertEquals(configurations["webhcat-site"]["properties"]["templeton.hadoop.queue.name"], "ndfqueue2")
+    self.assertEquals(configurations["tez-site"]["properties"]["tez.queue.name"], "ndfqueue2")
 
   def assertValidationResult(self, expectedItems, result):
     actualItems = []
