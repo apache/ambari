@@ -269,15 +269,17 @@ logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
 has_logsearch = len(logsearch_solr_hosts) > 0
 is_solrCloud_enabled = default('/configurations/ranger-env/is_solrCloud_enabled', False)
 solr_znode = '/ranger_audits'
-if is_solrCloud_enabled:
-  solr_znode = config['configurations']['ranger-admin-site']['ranger.audit.solr.zookeepers']
+if stack_supports_logsearch_client and is_solrCloud_enabled:
+  solr_znode = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
   if solr_znode != '' and solr_znode.upper() != 'NONE':
-    solr_znode = solr_znode.split('/')[1]
-    solr_znode = format('/{solr_znode}')
+    solr_znode = solr_znode.split('/')
+    if len(solr_znode) > 1 and len(solr_znode) == 2:
+      solr_znode = solr_znode[1]
+      solr_znode = format('/{solr_znode}')
   if has_logsearch:
     solr_znode = config['configurations']['logsearch-solr-env']['logsearch_solr_znode']
 solr_user = default('/configurations/logsearch-solr-env/logsearch_solr_user', unix_user)
-custom_log4j = True if has_logsearch else False
+custom_log4j = has_logsearch
 
 # get comma separated list of zookeeper hosts
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)

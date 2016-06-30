@@ -30,6 +30,7 @@ from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
 from setup_ranger_xml import setup_ranger_audit_solr
+from resource_management.libraries.functions import solr_cloud_util
 import upgrade
 import os, errno
 
@@ -81,6 +82,10 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
+
+    if params.stack_supports_logsearch_client and params.is_solrCloud_enabled:
+      solr_cloud_util.setup_solr_client(params.config, user = params.solr_user, custom_log4j = params.custom_log4j)
+      setup_ranger_audit_solr()
 
     ranger_service('ranger_admin')
 
