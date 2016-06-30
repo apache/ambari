@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive2.resources.jobs;
 import org.apache.ambari.view.hive2.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive2.persistence.utils.Indexed;
 import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
+import org.apache.ambari.view.hive2.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.hive2.resources.IResourceManager;
 import org.apache.ambari.view.hive2.resources.files.FileService;
 import org.apache.ambari.view.hive2.resources.jobs.atsJobs.HiveQueryId;
@@ -28,16 +29,15 @@ import org.apache.ambari.view.hive2.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive2.resources.jobs.atsJobs.TezDagId;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
+import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobInfo;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * View Jobs and ATS Jobs aggregator.
@@ -70,34 +70,179 @@ public class Aggregator {
     this.ats = ats;
   }
 
+  /**
+   * gets all the jobs for 'username' where the job submission time is between 'startTime' (inclusive)
+   * and endTime (exclusive).
+   * Fetches the jobs from ATS and DB merges and update DB. returns the combined list.
+   *
+   * @param username:  username for which jobs have to be fetched.
+   * @param startTime: inclusive, time in secs from epoch
+   * @param endTime:   exclusive, time in secs from epoch
+   * @return: list of jobs
+   */
+  public List<Job> readAllForUserByTime(String username, long startTime, long endTime) {
+    List<HiveQueryId> queryIdList = ats.getHiveQueryIdsForUserByTime(username, startTime, endTime);
+    List<Job> allJobs = fetchDagsAndMergeJobs(queryIdList);
+    List<Job> dbOnlyJobs = readDBOnlyJobs(username, queryIdList, startTime, endTime);
+    allJobs.addAll(dbOnlyJobs);
+
+    return allJobs;
+  }
+
+  /**
+   * fetches the new state of jobs from ATS and from DB. Does merging/updating as required.
+   * @param jobInfos: infos of job to get
+   * @return: list of updated Job
+   */
+  public List<Job> readJobsByIds(List<JobInfo> jobInfos) {
+    //categorize jobs
+    List<String> jobsWithHiveIds = new LinkedList<>();
+    List<String> dbOnlyJobs = new LinkedList<>();
+
+    for (JobInfo jobInfo : jobInfos) {
+      if (null == jobInfo.getHiveId() || jobInfo.getHiveId().trim().isEmpty()) {
+        dbOnlyJobs.add(jobInfo.getJobId());
+      } else {
+        jobsWithHiveIds.add(jobInfo.getHiveId());
+      }
+    }
+
+    List<HiveQueryId> queryIdList = ats.getHiveQueryIdByEntityList(jobsWithHiveIds);
+    List<Job> allJobs = fetchDagsAndMergeJobs(queryIdList);
+    List<Job> dbJobs = readJobsFromDbByJobId(dbOnlyJobs);
+
+    allJobs.addAll(dbJobs);
+    return allJobs;
+  }
+
+  /**
+   * gets the jobs from the Database given their id
+   * @param jobsIds: list of ids of jobs
+   * @return: list of all the jobs found
+   */
+  private List<Job> readJobsFromDbByJobId(List<String> jobsIds) {
+    List<Job> jobs = new LinkedList<>();
+    for (final String jid : jobsIds) {
+      try {
+        Job job = getJobFromDbByJobId(jid);
+        jobs.add(job);
+      } catch (ItemNotFound itemNotFound) {
+        LOG.error("Error while finding job with id : {}", jid, itemNotFound);
+      }
+    }
+
+    return jobs;
+  }
+
+  /**
+   * fetches the job from DB given its id
+   * @param jobId: the id of the job to fetch
+   * @return: the job
+   * @throws ItemNotFound: if job with given id is not found in db
+   */
+  private Job getJobFromDbByJobId(final String jobId) throws ItemNotFound {
+    if (null == jobId)
+      return null;
+
+    List<Job> jobs = viewJobResourceManager.readAll(new FilteringStrategy() {
+      @Override
+      public boolean isConform(Indexed item) {
+        return item.getId().equals(jobId);
+      }
+
+      @Override
+      public String whereStatement() {
+        return "id = '" + jobId + "'"; // even IDs are string
+      }
+    });
+
+    if (null != jobs && !jobs.isEmpty())
+      return jobs.get(0);
+
+    throw new ItemNotFound(String.format("Job with id %s not found.", jobId));
+  }
+
+  /**
+   * returns all the jobs from ATS and DB (for this instance) for the given user.
+   * @param username
+   * @return
+   */
   public List<Job> readAll(String username) {
-    Set<String> addedOperationIds = new HashSet<>();
+    List<HiveQueryId> queries = ats.getHiveQueryIdsForUser(username);
+    LOG.debug("HiveQueryIds fetched : {}", queries);
+    List<Job> allJobs = fetchDagsAndMergeJobs(queries);
+    List<Job> dbOnlyJobs = readDBOnlyJobs(username, queries, null, null);
+    LOG.debug("Jobs only present in DB: {}", dbOnlyJobs);
+    allJobs.addAll(dbOnlyJobs);
+    return allJobs;
+  }
 
-    List<Job> allJobs = new LinkedList<>();
-    for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
+  /**
+   * reads all the jobs from DB for username and excludes the jobs mentioned in queries list
+   * @param username : username for which the jobs are to be read.
+   * @param queries : the jobs to exclude
+   * @param startTime: can be null, if not then the window start time for job
+   * @param endTime: can be null, if not then the window end time for job
+   * @return : the jobs in db that are not in the queries
+   */
+  private List<Job> readDBOnlyJobs(String username, List<HiveQueryId> queries, Long startTime, Long endTime) {
+    List<Job> dbOnlyJobs = new LinkedList<>();
+    HashMap<String, String> operationIdVsHiveId = new HashMap<>();
 
-      TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
+    for (HiveQueryId hqid : queries) {
+      operationIdVsHiveId.put(hqid.operationId, hqid.entity);
+    }
+    LOG.info("operationIdVsHiveId : {} ", operationIdVsHiveId);
+    //cover case when operationId is present, but not exists in ATS
+    //e.g. optimized queries without executing jobs, like "SELECT * FROM TABLE"
+    List<Job> jobs = viewJobResourceManager.readAll(new OnlyOwnersFilteringStrategy(username));
+    for (Job job : jobs) {
+      if (null != startTime && null != endTime && null != job.getDateSubmitted()
+        && (job.getDateSubmitted() < startTime || job.getDateSubmitted() >= endTime || operationIdVsHiveId.containsKey(job.getGuid()))
+        ) {
+        continue; // don't include this in the result
+      } else {
+        dbOnlyJobs.add(job);
+      }
+    }
+    return dbOnlyJobs;
+  }
 
-      JobImpl atsJob;
+  private List<Job> fetchDagsAndMergeJobs(List<HiveQueryId> queries) {
+    List<Job> allJobs = new LinkedList<Job>();
+
+    for (HiveQueryId atsHiveQuery : queries) {
+      JobImpl atsJob = null;
       if (hasOperationId(atsHiveQuery)) {
         try {
-          Job viewJob = getJobByOperationId(urlSafeBase64ToHexString(atsHiveQuery.operationId));
-          saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
-
-          atsJob = mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
+          Job viewJob = getJobByOperationId(atsHiveQuery.operationId);
+          TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
+          atsJob = mergeHiveAtsTez(atsHiveQuery, atsTezDag, viewJob);
         } catch (ItemNotFound itemNotFound) {
-          // Executed from HS2, but outside of Hive View
-          atsJob = atsOnlyJob(atsHiveQuery, atsTezDag);
+          LOG.error("Ignore : {}", itemNotFound.getMessage());
+          continue;
         }
       } else {
+        TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
         atsJob = atsOnlyJob(atsHiveQuery, atsTezDag);
       }
-      allJobs.add(atsJob);
 
-      addedOperationIds.add(atsHiveQuery.operationId);
+      atsJob.setHiveQueryId(atsHiveQuery.entity);
+      allJobs.add(atsJob);
     }
 
     return allJobs;
+  }
+
+  /**
+   * @param atsHiveQuery
+   * @param atsTezDag
+   * @param viewJob
+   * @return
+   */
+  private JobImpl mergeHiveAtsTez(HiveQueryId atsHiveQuery, TezDagId atsTezDag, Job viewJob) throws ItemNotFound {
+    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
+    return mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
   }
 
   public Job readATSJob(Job viewJob) throws ItemNotFound {
@@ -192,7 +337,7 @@ public class Aggregator {
   }
 
   protected Job getJobByOperationId(final String opId) throws ItemNotFound {
-    List<Job> operationHandles = viewJobResourceManager.readAll(new FilteringStrategy() {
+    List<Job> jobs = viewJobResourceManager.readAll(new FilteringStrategy() {
       @Override
       public boolean isConform(Indexed item) {
         Job opHandle = (Job) item;
@@ -205,20 +350,9 @@ public class Aggregator {
       }
     });
 
-    if (operationHandles.size() != 1)
+    if (jobs.size() != 1)
       throw new ItemNotFound();
 
-    return viewJobResourceManager.read(operationHandles.get(0).getId());
+    return jobs.get(0);
   }
-
-  protected static String urlSafeBase64ToHexString(String urlsafeBase64) {
-    byte[] decoded = Base64.decodeBase64(urlsafeBase64);
-
-    StringBuilder sb = new StringBuilder();
-    for (byte b : decoded) {
-      sb.append(String.format("%02x", b));
-    }
-    return sb.toString();
-  }
-
 }

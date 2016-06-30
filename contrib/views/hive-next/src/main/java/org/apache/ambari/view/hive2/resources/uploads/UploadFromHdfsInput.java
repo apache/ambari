@@ -21,7 +21,7 @@ package org.apache.ambari.view.hive2.resources.uploads;
 import java.io.Serializable;
 
 public class UploadFromHdfsInput implements Serializable{
-  private Boolean isFirstRowHeader;
+  private Boolean isFirstRowHeader = Boolean.FALSE;
   private String inputFileType;
   private String hdfsPath;
   private String tableName;
@@ -80,12 +80,12 @@ public class UploadFromHdfsInput implements Serializable{
 
   @Override
   public String toString() {
-    return "UploadFromHdfsInput{" +
-            "isFirstRowHeader=" + isFirstRowHeader +
-            ", inputFileType='" + inputFileType + '\'' +
-            ", hdfsPath='" + hdfsPath + '\'' +
-            ", tableName='" + tableName + '\'' +
-            ", databaseName='" + databaseName + '\'' +
-            '}';
+    return new StringBuilder("UploadFromHdfsInput{" )
+            .append("isFirstRowHeader=").append( isFirstRowHeader )
+            .append(", inputFileType='" ).append(inputFileType)
+            .append(", hdfsPath='").append(hdfsPath)
+            .append(", tableName='").append( tableName )
+            .append(", databaseName='").append(databaseName )
+            .append('}').toString();
   }
 }

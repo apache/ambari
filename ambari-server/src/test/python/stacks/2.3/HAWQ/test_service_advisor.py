@@ -299,3 +299,20 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     for property, status in properties_visible_status.iteritems():
       self.assertEqual(configurations["hawq-site"]["property_attributes"][property]["visible"], status)
+
+    ## Test if vm.overcommit_ratio is set to visible / invisible based on the value of vm.overcommit_memory
+
+    # Case 1: vm.overcommit_ratio should be invisible when overcommit_memory is set as 0
+    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 0
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-sysctl-env"]["property_attributes"]["vm.overcommit_ratio"]["visible"], "false")
+
+    # Case 2: vm.overcommit_ratio should be invisible when overcommit_memory is set as 1
+    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 1
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-sysctl-env"]["property_attributes"]["vm.overcommit_ratio"]["visible"], "false")
+
+    # Case 3: vm.overcommit_ratio should be visible when overcommit_memory is set as 2
+    services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 2
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-sysctl-env"]["property_attributes"]["vm.overcommit_ratio"]["visible"], "true")

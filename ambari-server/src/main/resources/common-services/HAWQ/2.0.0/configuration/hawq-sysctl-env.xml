@@ -342,8 +342,17 @@
       When overcommit_memory is set to 2, the committed address space is not permitted to exceed swap plus this percentage of physical RAM.
       Default is 50.
     </description>
+    <depends-on>
+      <property>
+        <type>hawq-sysctl-env</type>
+        <name>vm.overcommit_memory</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>int</type>
+      <minimum>0</minimum>
+      <maximum>200</maximum>
+      <increment-step>25</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

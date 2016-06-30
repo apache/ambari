@@ -24,6 +24,7 @@ import org.apache.ambari.view.URLConnectionProvider;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.tez.exceptions.TezWebAppException;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,21 +81,18 @@ public class ProxyHelper {
     }
   }
 
-  public String getQueryParamsString(MultivaluedMap<String, String> queryParameters) {
+  public String getProxyUrl(String baseUrl, String endPoint, MultivaluedMap<String, String> queryParameters) {
     Set<String> keySet = queryParameters.keySet();
-    StringBuilder builder = new StringBuilder();
-    if(keySet.size() > 0)
-      builder.append("?");
-
-    int count = 0;
-    for(String key: keySet) {
-      builder.append(key);
-      builder.append("=");
-      builder.append(queryParameters.getFirst(key));
-      if(count < keySet.size() - 1) {
-        builder.append("&");
+    URIBuilder builder;
+    try {
+      builder = new URIBuilder(baseUrl + "/" + endPoint);
+      for(String key: keySet) {
+        builder.addParameter(key, queryParameters.getFirst(key));
       }
+      return builder.build().toString();
+    } catch (URISyntaxException e) {
+      LOG.error("Failed to build a URL from the baseUrl: {} and endPoint: {}. Exception: {}", baseUrl, endPoint, e);
+      throw new TezWebAppException("Failed to build a URL from the baseUrl:" + baseUrl + "and endPoint: " + endPoint, e);
     }
-    return builder.toString();
   }
 }

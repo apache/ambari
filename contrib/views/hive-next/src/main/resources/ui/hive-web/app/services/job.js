@@ -31,7 +31,7 @@ export default Ember.Service.extend({
        url: url,
        type: 'DELETE',
        headers: {
-        'X-Requested-By': 'ambari',
+        'X-Requested-By': 'ambari'
        },
        success: function () {
          job.reload();
@@ -39,11 +39,11 @@ export default Ember.Service.extend({
     });
   },
 
-  fetchJobStatus: function (jobId) {
-    console.log("finding status of job : ", jobId);
+  fetchJob : function (jobId){
+    console.log("fetching job : ", jobId);
     var self = this;
     var url = this.container.lookup('adapter:application').buildURL();
-    url +=  "/jobs/" + jobId + "/status";
+    url +=  "/jobs/" + jobId ;
 
     return Ember.$.ajax({
       url: url,

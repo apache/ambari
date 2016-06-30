@@ -1360,7 +1360,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
-    leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    leafQueueNames = set()
+    leafQueues = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    for queue in leafQueues:
+      queue = queue.rstrip('.')
+      queueName = queue.split('.')[-1]
+      leafQueueNames.add(queueName)
     value = properties[propertyName]
     if len(leafQueueNames) == 0:
       return None
@@ -1372,7 +1377,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if services:
       if 'configurations' in services:
         capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
-        leafQueueNames = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+        leafQueueNames = set()
+        leafQueues = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+        for queue in leafQueues:
+          queue = queue.rstrip('.')
+          queueName = queue.split('.')[-1]
+          leafQueueNames.add(queueName)
         if leafQueueNames:
           return leafQueueNames.pop()
     return "default"

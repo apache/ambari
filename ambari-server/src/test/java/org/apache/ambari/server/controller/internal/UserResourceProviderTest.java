@@ -249,7 +249,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
     Injector injector = createInjector();
 
     Users users = injector.getInstance(Users.class);
-    users.createUser("User100", "password", (Boolean) null, null, false);
+    users.createUser("User100", "password", UserType.LOCAL, (Boolean) null, null);
     expectLastCall().atLeastOnce();
 
     // replay

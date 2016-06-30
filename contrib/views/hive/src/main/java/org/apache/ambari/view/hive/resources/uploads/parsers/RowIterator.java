@@ -41,8 +41,10 @@ public class RowIterator implements Iterator<Row> {
   public RowIterator(RowMapIterator iterator) {
     this.iterator = iterator;
     LinkedHashMap<String, String> obj = iterator.peek();
-    if (null != obj)
-      headers = new LinkedList<>(obj.keySet());
+    headers = new LinkedList<>();
+    if (null != obj) {
+      headers.addAll(obj.keySet());
+    }
   }
 
   @Override

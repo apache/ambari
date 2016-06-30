@@ -194,7 +194,8 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
     UserEntity userEntity = userDAO.findLdapUserByName(userName);
 
-    if (userEntity == null || !StringUtils.equals(userEntity.getUserName(), userName)) {
+    // lookup is case insensitive, so no need for string comparison
+    if (userEntity == null) {
       LOG.info("user not found ");
       throw new InvalidUsernamePasswordCombinationException();
     }

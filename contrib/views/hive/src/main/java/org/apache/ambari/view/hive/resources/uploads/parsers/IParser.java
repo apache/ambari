@@ -18,26 +18,13 @@
 
 package org.apache.ambari.view.hive.resources.uploads.parsers;
 
-import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.Row;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.util.List;
 
 /**
  * Interface defining methods for Parsers that can used for generating preview
  * and uploading table into hive.
  */
 public interface IParser extends Iterable<Row>, AutoCloseable{
-
-  /**
-   * @return returns the Reader that can be read to get the table data as CSV Text Data that can be uploaded directly
-   * to HDFS
-   */
-  Reader getTableDataReader();
 
   PreviewData parsePreview();
 

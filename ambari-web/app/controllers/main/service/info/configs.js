@@ -635,6 +635,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
     this.clearAllRecommendations();
+    this.clearRecommendationsInfo();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 

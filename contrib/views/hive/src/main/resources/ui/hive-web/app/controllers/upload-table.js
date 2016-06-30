@@ -22,6 +22,44 @@ import constants from 'hive/utils/constants';
 
 
 export default Ember.Controller.extend({
+  DEFAULT_CSV_DELIMITER: ',',
+  DEFAULT_CSV_QUOTE: '"',
+  DEFAULT_CSV_ESCAPE: '\\',
+  NON_PRINTABLE_CHARS:[{"id":"0", "name":"NUL", "description":"(null)"},
+    {"id":"1", "name":"SOH", "description":"(start of heading)"},
+    {"id":"2", "name":"STX", "description":"(start of text)"},
+    {"id":"3", "name":"ETX", "description":"(end of text)"},
+    {"id":"4", "name":"EOT", "description":"(end of transmission)"},
+    {"id":"5", "name":"ENQ", "description":"(enquiry)"},
+    {"id":"6", "name":"ACK", "description":"(acknowledge)"},
+    {"id":"7", "name":"BEL", "description":"(bell)"},
+    {"id":"8", "name":"BS", "description":"(backspace)"},
+    {"id":"9", "name":"TAB", "description":"(horizontal tab)"},
+    {"id":"10", "name":"LF", "description":"(NL line feed - new line)"},
+    {"id":"11", "name":"VT", "description":"(vertical tab)"},
+    {"id":"12", "name":"FF", "description":"(NP form feed - new page)"},
+    {"id":"13", "name":"CR", "description":"(carriage return)"},
+    {"id":"14", "name":"SO", "description":"(shift out)"},
+    {"id":"15", "name":"SI", "description":"(shift in)"},
+    {"id":"16", "name":"DLE", "description":"(data link escape)"},
+    {"id":"17", "name":"DC1", "description":"(device control 1)"},
+    {"id":"18", "name":"DC2", "description":"(device control 2)"},
+    {"id":"19", "name":"DC3", "description":"(device control 3)"},
+    {"id":"20", "name":"DC4", "description":"(device control 4)"},
+    {"id":"21", "name":"NAK", "description":"(negative ackowledge)"},
+    {"id":"22", "name":"SYN", "description":"(synchronous idle)"},
+    {"id":"23", "name":"ETB", "description":"(end of trans. block)"},
+    {"id":"24", "name":"CAN", "description":"(cancel)"},
+    {"id":"25", "name":"EM", "description":"(end of medium)"},
+    {"id":"26", "name":"SUB", "description":"(substitute)"},
+    {"id":"27", "name":"ESC", "description":"(escape)"},
+    {"id":"28", "name":"FS", "description":"(file separator)"},
+    {"id":"29", "name":"GS", "description":"(group separator)"},
+    {"id":"30", "name":"RS", "description":"(record separator)"},
+    {"id":"31", "name":"US", "description":"(unit separator)"},
+    {"id":"32", "name":"Space", "description":""},
+    {"id":"127", "name":"DEL", "description":""}
+  ],
   COLUMN_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   TABLE_NAME_REGEX: "^[a-zA-Z]{1}[a-zA-Z0-9_]*$",
   HDFS_PATH_REGEX: "^[/]{1}.+",  // unix path allows everything but here we have to mention full path so starts with /
@@ -48,38 +86,22 @@ export default Ember.Controller.extend({
   uploadProgressInfos : [],
   DEFAULT_DB_NAME : 'default',
   showPreview : false,
-  onChangeUploadSource : function(){
-    this.clearFields();
-  }.observes("uploadSource"),
-  setDefaultDB : function(){
-    var self = this;
-    var defaultDatabase = this.get('databases').find(
-      function(item,index){
-        if(item.id == self.DEFAULT_DB_NAME )
-          return true;
-      }
-    );
-
-    console.log("setting the initial database to : " + defaultDatabase);
-    self.set("selectedDatabase",defaultDatabase);
-  },
-  init: function() {
-    this.setDefaultDB();
-  },
-  uploadProgressInfo : Ember.computed("uploadProgressInfos.[]",function(){
-    var info = "";
-    for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++)
-        info += this.get('uploadProgressInfos').objectAt(i);
-
-    return new Ember.Handlebars.SafeString(info);
-  }),
+  containsEndlines: false,
   inputFileTypes :[
     {id : "CSV", name : "CSV"},
     {id : "JSON", name : "JSON"},
     {id : "XML", name : "XML"}
   ],
-  inputFileType : {id : "CSV", name : "CSV"},
+  inputFileType: null,
   inputFileTypeCSV : Ember.computed.equal('inputFileType.id',"CSV"),
+  storedAsTextFile : Ember.computed.equal("selectedFileType","TEXTFILE"),
+  storedAsNotTextFile : Ember.computed.not("storedAsTextFile"),
+  csvDelimiter: null,
+  csvQuote : null,
+  csvEscape : null,
+  asciiList:[],
+  fieldsTerminatedBy: null,
+  escapedBy: null,
   fileTypes:[
     "SEQUENCEFILE",
     "TEXTFILE"    ,
@@ -87,10 +109,13 @@ export default Ember.Controller.extend({
     "ORC"         ,
     "PARQUET"     ,
     "AVRO"
-    //,
-    //"INPUTFORMAT"  -- not supported as of now.
   ],
-  selectedFileType: "ORC",
+  selectedFileType: null,
+  onChangeSelectedFileType: function(){
+    if(this.get('selectedFileType') === this.get('fileTypes')[1] && this.get('containsEndlines') === true){
+      this.set('containsEndlines', false);
+    }
+  }.observes("selectedFileType", "containsEndlines"),
   dataTypes: [
     "TINYINT", //
     "SMALLINT", //
@@ -107,9 +132,61 @@ export default Ember.Controller.extend({
     "VARCHAR", // -- (Note: Available in Hive 0.12.0 and later)
     "CHAR" // -- (Note: Available in Hive 0.13.0 and later)
   ],
+  setDefaultDB : function(){
+    var self = this;
+    var defaultDatabase = this.get('databases').find(
+      function(item,index){
+        if(item.id == self.DEFAULT_DB_NAME )
+          return true;
+      }
+    );
+
+    console.log("setting the initial database to : " + defaultDatabase);
+    self.set("selectedDatabase",defaultDatabase);
+  },
+  init: function () {
+    this.setDefaultDB();
+    this.fillAsciiList();
+    this.set("selectedFileType", this.get("fileTypes")[3]);
+    this.set("inputFileType", this.get("inputFileTypes")[0]);
+  },
+  onChangeUploadSource : function(){
+    this.clearFields();
+  }.observes("uploadSource"),
+  fillAsciiList: function(){
+    var list = this.get('asciiList');
+    list.push({"id": -1, "name": ""});
+    var nonPrintable = this.get('NON_PRINTABLE_CHARS');
+    for( var i = 0 ; i <= 127 ; i++ ){
+      var charInfo = nonPrintable.find(function(item){
+        return item.id == i;
+      });
+      if(!charInfo){
+        charInfo = {"id": i, "name": String.fromCodePoint(i), "description":"" };
+      }
+      var option = {"id": i, "name": charInfo.id + "    " + charInfo.name + charInfo.description};
+      list.push(option);
+      if(i === 44){
+        this.set("csvDelimiter", option);
+      }
+      else if(i === 34){
+        this.set("csvQuote", option);
+      }
+      else if(i === 92){
+        this.set("csvEscape", option);
+      }
+    }
+  },
+  uploadProgressInfo : Ember.computed("uploadProgressInfos.[]",function(){
+    var info = "";
+    for( var i = 0 ; i < this.get('uploadProgressInfos').length ; i++)
+      info += this.get('uploadProgressInfos').objectAt(i);
+
+    return new Ember.Handlebars.SafeString(info);
+  }),
   _setHeaderElements : function(header,valueArray){
     header.forEach(function (item, index) {
-      Ember.set(item, 'name',  valueArray.objectAt(index));
+      Ember.set(item, 'name',  valueArray[index]);
     }, this);
   },
   isFirstRowHeaderDidChange: function () {
@@ -158,8 +235,9 @@ export default Ember.Controller.extend({
     this.set("hdfsPath");
     this.set("header");
     this.set("rows");
+    this.set("escapedBy");
+    this.set("fieldsTerminatedBy");
     this.set("error");
-    this.set('isFirstRowHeader',false);
     this.set('files');
     this.set("firstRow");
     this.set("selectedDatabase",null);
@@ -215,20 +293,56 @@ export default Ember.Controller.extend({
   uploadForPreview: function (files) {
     console.log("uploaderForPreview called.");
     var self = this;
+    var csvParams = this.getCSVParams();
+
     return this.get('uploader').uploadFiles('preview', files, {
       "isFirstRowHeader": self.get("isFirstRowHeader"),
-      "inputFileType": self.get("inputFileType").id
+      "inputFileType": self.get("inputFileType").id,
+      "csvDelimiter": csvParams.csvDelimiter,
+      "csvEscape": csvParams.csvEscape,
+      "csvQuote": csvParams.csvQuote
     });
+  },
+
+  getAsciiChar : function(key){
+    if(!key){
+      return null;
+    }
+
+    var value = this.get(key);
+    if(value && value.id != -1) {
+      return String.fromCharCode(value.id);
+    }else{
+      return null;
+    }
+  },
+  getCSVParams : function(){
+    var csvd = this.getAsciiChar('csvDelimiter');
+    if(!csvd && csvd != 0) csvd = this.get('DEFAULT_CSV_DELIMITER');
+
+    var csvq = this.getAsciiChar('csvQuote');
+    if(!csvq && csvq != 0) csvq = this.get('DEFAULT_CSV_QUOTE');
+
+    var csve = this.getAsciiChar('csvEscape');
+    if(!csve && csve != 0) csve = this.get('DEFAULT_CSV_ESCAPE');
+
+    return {"csvDelimiter": csvd, "csvQuote" : csvq, "csvEscape": csve};
   },
 
   uploadForPreviewFromHDFS: function () {
     console.log("uploadForPreviewFromHDFS called.");
+    var self = this;
     var hdfsPath = this.get("hdfsPath");
     this.validateHDFSPath(hdfsPath);
+    var csvParams = this.getCSVParams();
+
     return this.get('uploader').previewFromHDFS({
       "isFirstRowHeader": this.get("isFirstRowHeader"),
       "inputFileType": this.get("inputFileType").id,
-      "hdfsPath": hdfsPath
+      "hdfsPath": hdfsPath,
+      "csvDelimiter": csvParams.csvDelimiter,
+      "csvEscape": csvParams.csvEscape ,
+      "csvQuote": csvParams.csvQuote
     });
   },
 
@@ -273,16 +387,25 @@ export default Ember.Controller.extend({
     console.log('inside previewTable');
     var self = this;
     var defaultColumnNames = data.header.map(function(item,index){
-      return self.COLUMN_NAME_PREFIX + index;
+      return self.COLUMN_NAME_PREFIX + (index + 1);
     });
     this.set("defaultColumnNames",defaultColumnNames);
     this.set("header", data.header);
-    this.set("firstRow", data.rows[0].row);
     this.set('isFirstRowHeader', data.isFirstRowHeader);
     this.set('tableName', data.tableName);
+    var firstRow = null;
     if (data.isFirstRowHeader == true) {
-      data.rows = data.rows.slice(1);
+      firstRow = data.header.map(function(columnDesc){
+        return columnDesc.name;
+      });
+    }else {
+      if(data.rows.length > 0){
+        firstRow = data.rows[0].row;
+      }else{
+        firstRow = [];
+      }
     }
+    this.set("firstRow", firstRow);
     this.set("rows", data.rows);
   },
 
@@ -302,6 +425,7 @@ export default Ember.Controller.extend({
 
   createActualTable: function () {
     console.log("createActualTable");
+    var self = this;
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.startingToCreateActualTable'));
     var headers = this.get('header');
     var selectedDatabase = this.get('selectedDatabase');
@@ -309,7 +433,7 @@ export default Ember.Controller.extend({
       throw new Error(this.translate('hive.errors.emptyDatabase', {database : this.translate("hive.words.database")}));
     }
 
-    this.set('databaseName', this.get('selectedDatabase').get('name'));
+    this.set('databaseName', this.get('selectedDatabase.id'));
     var databaseName = this.get('databaseName');
     var tableName = this.get('tableName');
     var isFirstRowHeader = this.get('isFirstRowHeader');
@@ -317,16 +441,21 @@ export default Ember.Controller.extend({
 
     this.validateInput(headers,tableName,databaseName,isFirstRowHeader);
     this.showUploadModal();
-
+    var rowFormat = this.getRowFormat();
     return this.get('uploader').createTable({
       "isFirstRowHeader": isFirstRowHeader,
       "header": headers,
       "tableName": tableName,
       "databaseName": databaseName,
-      "fileType":filetype
+      "hiveFileType":filetype,
+      "rowFormat": { "fieldsTerminatedBy" : rowFormat.fieldsTerminatedBy, "escapedBy" : rowFormat.escapedBy}
     });
   },
-
+  getRowFormat : function(){
+    var fieldsTerminatedBy = this.getAsciiChar('fieldsTerminatedBy');
+    var escapedBy = this.getAsciiChar('escapedBy');
+    return {"fieldsTerminatedBy": fieldsTerminatedBy, "escapedBy" : escapedBy};
+  },
   waitForCreateActualTable: function (jobId) {
     console.log("waitForCreateActualTable");
     this.popUploadProgressInfos();
@@ -338,31 +467,39 @@ export default Ember.Controller.extend({
 
     return p;
   },
-
   onCreateActualTableSuccess: function () {
     console.log("onCreateTableSuccess");
     this.popUploadProgressInfos();
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.successfullyCreatedActualTable'));
   },
-
   onCreateActualTableFailure: function (error) {
     console.log("onCreateActualTableFailure");
     this.popUploadProgressInfos();
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.failedToCreateActualTable'));
     this.setError(error);
   },
-
   createTempTable: function () {
+    var self = this;
     console.log("createTempTable");
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.startingToCreateTemporaryTable'));
     var tempTableName = this.generateTempTableName();
     this.set('tempTableName', tempTableName);
+
+    var headers = this.get("header");
+    if(this.get("containsEndlines")){
+      headers = this.get("header").map(function(item){
+        var header = JSON.parse(JSON.stringify(item));
+        header.type = "STRING";
+        return header;
+      });
+    }
     return this.get('uploader').createTable({
       "isFirstRowHeader": this.get("isFirstRowHeader"),
-      "header": this.get("header"),
+      "header": headers,
       "tableName": tempTableName,
       "databaseName": this.get('databaseName'),
-      "fileType": "TEXTFILE"
+      "hiveFileType":"TEXTFILE",
+      "rowFormat": { "fieldsTerminatedBy" : parseInt('1', 10), "escapedBy" : null}
     });
   },
 
@@ -398,9 +535,9 @@ export default Ember.Controller.extend({
     var self = this;
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.deletingTable',{table:tableLabel}));
 
-    return this.deleteTable(databaseName, tableName).then(function (data) {
+    return this.deleteTable(databaseName, tableName).then(function (job) {
       return new Ember.RSVP.Promise(function (resolve, reject) {
-        self.waitForJobStatus(data.jobId, resolve, reject);
+        self.waitForJobStatus(job.id, resolve, reject);
       });
     }).then(function () {
       self.popUploadProgressInfos();
@@ -500,7 +637,9 @@ export default Ember.Controller.extend({
       "fromDatabase": this.get("databaseName"),
       "fromTable": this.get("tempTableName"),
       "toDatabase": this.get("databaseName"),
-      "toTable": this.get("tableName")
+      "toTable": this.get("tableName"),
+      "header": this.get("header"),
+      "unhexInsert": this.get("containsEndlines")
     });
   },
 
@@ -543,7 +682,6 @@ export default Ember.Controller.extend({
       this.get("tempTableName")
     );
   },
-
   waitForDeleteTempTable: function (jobId) {
     console.log("waitForDeleteTempTable");
     this.popUploadProgressInfos();
@@ -555,20 +693,23 @@ export default Ember.Controller.extend({
 
     return p;
   },
-
   onDeleteTempTableSuccess: function () {
     console.log("onDeleteTempTableSuccess");
     this.popUploadProgressInfos();
     this.pushUploadProgressInfos(this.formatMessage('hive.messages.successfullyDeletedTemporaryTable'));
     this.onUploadSuccessfull();
   },
-
   onDeleteTempTableFailure: function (error) {
     console.log("onDeleteTempTableFailure");
     this.setError(error);
     this.setError(this.formatMessage('hive.messages.manuallyDeleteTable',{databaseName:this.get('databaseName'), tableName: this.get("tempTableName")}));
   },
-
+  validateHDFSPath: function (hdfsPath) {
+    if (null == hdfsPath || hdfsPath == "") throw new Error(this.translate('hive.errors.emptyHdfsPath'));
+    var hdfsRegex = new RegExp(this.get("HDFS_PATH_REGEX"), "g");
+    var mArr = hdfsPath.match(hdfsRegex);
+    if (mArr == null || mArr.length != 1) throw new Error(this.translate('hive.errors.illegalHdfPath', {"hdfsPath": hdfsPath} ));
+  },
   createTableAndUploadFile: function () {
     var self = this;
     self.setError();
@@ -664,14 +805,15 @@ export default Ember.Controller.extend({
           self.onDeleteTempTableFailure(error);
         }
         throw error;
-      }).catch(function(error){
+      })
+     .catch(function(error){
         console.log("inside catch : ", error);
-      }).finally(function(){
+      })
+      .finally(function(){
         console.log("finally hide the modal always");
         self.hideUploadModal();
       });
   },
-
   validateInput: function (headers,tableName,databaseName,isFirstRowHeader) {
     // throw exception if invalid.
     if(!headers || headers.length == 0) throw new Error(this.translate('hive.errors.emptyHeaders'));
@@ -695,41 +837,52 @@ export default Ember.Controller.extend({
       throw new Error(this.translate('hive.errors.emptyIsFirstRow', {isFirstRowHeaderField:this.translate('hive.ui.isFirstRowHeader')}));
     }
   },
-
   setError: function (error) {
     if(error){
-      console.log("upload table error : ", error);
+      console.log(" error : ", error);
       this.set('error', JSON.stringify(error));
       this.get('notifyService').error(error);
     }else{
       this.set("error");
     }
   },
-
   previewError: function (error) {
     this.setError(error);
   },
-
   uploadTableFromHdfs : function(){
     console.log("uploadTableFromHdfs called.");
     if(!(this.get("inputFileTypeCSV") == true && this.get("isFirstRowHeader") == false) ){
       this.pushUploadProgressInfos(this.formatMessage('uploadingFromHdfs'));
     }
-    return  this.get('uploader').uploadFromHDFS({
-        "isFirstRowHeader": this.get("isFirstRowHeader"),
-        "databaseName" :  this.get('databaseName'),
-        "tableName" : this.get("tempTableName"),
-        "inputFileType" : this.get("inputFileType").id,
-        "hdfsPath" : this.get("hdfsPath")
-      });
+    var csvParams = this.getCSVParams();
+
+    return this.get('uploader').uploadFromHDFS({
+      "isFirstRowHeader": this.get("isFirstRowHeader"),
+      "databaseName": this.get('databaseName'),
+      "tableName": this.get("tempTableName"),
+      "inputFileType": this.get("inputFileType").id,
+      "hdfsPath": this.get("hdfsPath"),
+      "header": this.get("header"),
+      "containsEndlines": this.get("containsEndlines"),
+      "csvDelimiter": csvParams.csvDelimiter,
+      "csvEscape": csvParams.csvEscape,
+      "csvQuote": csvParams.csvQuote
+    });
   },
   uploadTable: function () {
     this.printValues();
+    var csvParams = this.getCSVParams();
+
     return this.get('uploader').uploadFiles('upload', this.get('files'), {
       "isFirstRowHeader": this.get("isFirstRowHeader"),
       "databaseName" :  this.get('databaseName'),
       "tableName" : this.get("tempTableName"),
-      "inputFileType" : this.get("inputFileType").id
+      "inputFileType" : this.get("inputFileType").id,
+      "header": JSON.stringify(this.get("header")),
+      "containsEndlines": this.get("containsEndlines"),
+      "csvDelimiter": csvParams.csvDelimiter,
+      "csvEscape": csvParams.csvEscape ,
+      "csvQuote": csvParams.csvQuote
     });
   },
 
@@ -755,6 +908,22 @@ export default Ember.Controller.extend({
   },
   displayOption: "display:none",
   actions: {
+    hideInputParamModal : function(){
+      Ember.$("#inputParamsModal").modal("hide");
+    },
+    showInputParamModal : function(){
+      if(this.get('inputFileTypeCSV')){
+        Ember.$("#inputParamsModal").modal("show");
+      }
+    },
+    hideRowFormatModal : function(){
+      Ember.$("#rowFormatModal").modal("hide");
+    },
+    showRowFormatModal : function(){
+      if(this.get('storedAsTextFile')) {
+        Ember.$("#rowFormatModal").modal("show");
+      }
+    },
     toggleErrors: function () {
       this.toggleProperty('showErrors');
     },

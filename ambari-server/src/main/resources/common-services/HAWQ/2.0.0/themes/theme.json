@@ -11,7 +11,7 @@
                   "display-name":"Settings",
                   "layout":{
                      "tab-columns":"1",
-                     "tab-rows":"2",
+                     "tab-rows":"3",
                      "sections":[
                         {
                            "name":"general",
@@ -66,6 +66,32 @@
                                  "column-span":"1"
                               }
                            ]
+                        },
+                        {
+                           "name":"workfile-limits",
+                           "display-name":"Workfile Limits",
+                           "row-index":"2",
+                           "column-index":"0",
+                           "row-span":"1",
+                           "column-span":"1",
+                           "section-columns":"2",
+                           "section-rows":"1",
+                           "subsections":[
+                              {
+                                 "name":"workfile-limits-col1",
+                                 "row-index":"0",
+                                 "column-index":"0",
+                                 "row-span":"1",
+                                 "column-span":"1"
+                              },
+                              {
+                                 "name":"workfile-limits-col2",
+                                 "row-index":"0",
+                                 "column-index":"1",
+                                 "row-span":"1",
+                                 "column-span":"1"
+                              }
+                           ]
                         }
                      ]
                   }
@@ -80,60 +106,65 @@
                "config":"hawq-site/hawq_master_directory",
                "subsection-name":"general-col1"
             },
-
             {
                "config":"hawq-site/hawq_segment_directory",
                "subsection-name":"general-col2"
             },
-
             {
                "config":"hawq-site/hawq_master_temp_directory",
                "subsection-name":"general-col1"
             },
-
             {
                "config":"hawq-site/hawq_segment_temp_directory",
                "subsection-name":"general-col2"
             },
-
             {
                "config":"hawq-site/default_hash_table_bucket_number",
                "subsection-name":"resource-management-col2"
             },
-
             {
                "config":"hawq-site/hawq_rm_nvseg_perquery_perseg_limit",
                "subsection-name":"resource-management-col2"
             },
-
             {
                "config":"hawq-site/hawq_rm_nvseg_perquery_limit",
                "subsection-name":"resource-management-col2"
             },
-
             {
                "config":"hawq-site/hawq_global_rm_type",
                "subsection-name":"resource-management-col1"
             },
-
             {
                "config":"hawq-sysctl-env/vm.overcommit_memory",
                "subsection-name":"resource-management-col1"
             },
-
             {
                "config":"hawq-sysctl-env/vm.overcommit_ratio",
                "subsection-name":"resource-management-col1"
             },
-
             {
                "config":"hawq-site/hawq_rm_memory_limit_perseg",
                "subsection-name":"resource-management-col1"
             },
-
             {
                "config":"hawq-site/hawq_rm_nvcore_limit_perseg",
                "subsection-name":"resource-management-col2"
+            },
+            {
+               "config":"hawq-site/gp_workfile_compress_algorithm",
+               "subsection-name":"workfile-limits-col1"
+            },
+            {
+               "config":"hawq-site/gp_workfile_limit_files_per_query",
+               "subsection-name":"workfile-limits-col1"
+            },
+            {
+               "config":"hawq-site/gp_workfile_limit_per_query",
+               "subsection-name":"workfile-limits-col2"
+            },
+            {
+               "config":"hawq-site/gp_workfile_limit_per_segment",
+               "subsection-name":"workfile-limits-col2"
             }
          ]
       },
@@ -198,7 +229,12 @@
          {
             "config":"hawq-sysctl-env/vm.overcommit_ratio",
             "widget":{
-               "type":"text-field"
+               "type":"slider",
+               "units": [
+                  {
+                    "unit-name":"int"
+                  }
+               ]
             }
          },
           {
@@ -233,6 +269,30 @@
                     "unit-name":"int"
                   }
                ]
+            }
+         },
+         {
+            "config":"hawq-site/gp_workfile_compress_algorithm",
+            "widget":{
+               "type":"combo"
+            }
+         },
+         {
+            "config":"hawq-site/gp_workfile_limit_files_per_query",
+            "widget":{
+               "type":"text-field"
+            }
+         },
+         {
+            "config":"hawq-site/gp_workfile_limit_per_query",
+            "widget":{
+               "type":"text-field"
+            }
+         },
+         {
+            "config":"hawq-site/gp_workfile_limit_per_segment",
+            "widget":{
+               "type":"text-field"
             }
          }
       ]

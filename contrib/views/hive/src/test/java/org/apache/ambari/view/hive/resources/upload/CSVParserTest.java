@@ -18,11 +18,9 @@
 
 package org.apache.ambari.view.hive.resources.upload;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import org.apache.ambari.view.hive.client.Row;
-import org.apache.ambari.view.hive.resources.uploads.parsers.csv.CSVParser;
-import org.apache.ambari.view.hive.resources.uploads.parsers.json.JSONParser;
+import org.apache.ambari.view.hive.resources.uploads.parsers.ParseOptions;
+import org.apache.ambari.view.hive.resources.uploads.parsers.csv.commonscsv.CSVParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,7 +40,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, null);
+      CSVParser jp = new CSVParser(sr, new ParseOptions());
       ) {
       Assert.assertEquals("There should not be any rows.",false, jp.iterator().hasNext());
     }
@@ -58,7 +56,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, null);
+      CSVParser jp = new CSVParser(sr, new ParseOptions());
       ) {
       Iterator<Row> iterator = jp.iterator();
 
@@ -73,7 +71,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, null);
+      CSVParser jp = new CSVParser(sr, new ParseOptions());
       ) {
       Iterator<Row> iterator = jp.iterator();
 
@@ -94,7 +92,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, null);
+      CSVParser jp = new CSVParser(sr, new ParseOptions());
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -107,6 +105,171 @@ public class CSVParserTest {
 
       Assert.assertEquals("Failed to detect end of rows!", false, iterator.hasNext());
       Assert.assertEquals("Failed to detect end of rows 2nd time!", false, iterator.hasNext());
+    }
+  }
+
+
+  @Test
+  public void testQuotedEndline() throws Exception {
+
+    String csv = "\"row1-\ncol1\",1,1.1\n\"row2-\\\ncol1\",2,2.2\n";
+    ParseOptions po = new ParseOptions();
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"row1-\ncol1", "1", "1.1"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+
+      Row row2 = new Row(new Object[]{"row2-\\\ncol1", "2", "2.2"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row2, iterator.next());
+
+    }
+  }
+
+  @Test
+  public void testQuotedDoubleQuote() throws Exception {
+
+    String csv = "\"aaa\",\"b\"\"bb\",\"ccc\"";
+    ParseOptions po = new ParseOptions();
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"aaa", "b\"bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+  @Test
+  public void testSpecialEscape() throws Exception {
+
+    String csv = "\"aaa\",\"b$\"bb\",\"ccc\"";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'$');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"aaa", "b\"bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+  @Test
+  public void testSpecialEscapedEscape() throws Exception {
+
+    String csv = "aaa,b$$bb,ccc";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'$');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"aaa", "b$bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+  @Test
+  public void test001Escape() throws Exception {
+
+    String csv = "aaa,b\001\"bb,ccc";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'\001');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+      Row row = new Row(new Object[]{"aaa", "b\"bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());    }
+  }
+
+  @Test
+  public void testSpecialQuote() throws Exception {
+
+    String csv = "\001aaa\001,\001b\001\001bb\001,\001ccc\001";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_QUOTE,'\001');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+      Row row = new Row(new Object[]{"aaa", "b\001bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+  @Test
+  public void testSpaceAsDelimiterAndQuoted() throws Exception {
+
+    String csv = "aaa \"b bb\" ccc\naaa2 bbb2 \"c cc2\"";
+    ParseOptions po = new ParseOptions();
+//    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'\001');
+    po.setOption(ParseOptions.OPTIONS_CSV_DELIMITER,' ');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+      Row row = new Row(new Object[]{"aaa", "b bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+
+      Row row2 = new Row(new Object[]{"aaa2", "bbb2", "c cc2"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row2, iterator.next());
+    }
+  }
+
+  @Test
+  public void testFailedDelimiterEscaped() throws Exception {
+
+    String csv = "aaa,b\\,bb,ccc";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'\\');
+    po.setOption(ParseOptions.OPTIONS_CSV_DELIMITER,',');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVParser jp = new CSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+      Row row = new Row(new Object[]{"aaa", "b,bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
     }
   }
 }

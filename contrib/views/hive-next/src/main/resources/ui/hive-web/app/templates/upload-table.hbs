@@ -30,7 +30,7 @@
     <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Upload Progress</h4>
+        <h4 class="modal-title">{{t "hive.ui.uploadProgress"}}</h4>
       </div>
       <div class="modal-body">
         <p>
@@ -51,60 +51,71 @@
   <div>
     <table class="table data-upload-form pull-left">
       <tr>
-        <td class="data-upload-form-label"><label>Upload from Local</label></td>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.uploadFromLocal"}}</label></td>
         <td  class="data-upload-form-field"> {{radio-button value='local' checked=uploadSource}}</td>
 
-        <td class="data-upload-form-label"><label>Upload from HDFS</label></td>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.uploadFromHdfs"}}</label></td>
         <td  class="data-upload-form-field">{{radio-button value='hdfs' checked=uploadSource}}</td>
       </tr>
       <tr>
-        <td class="data-upload-form-label"><label>File type</label></td>
+        <td class="data-upload-form-label"><label>{{t "hive.ui.fileType"}}</label></td>
         <td class="data-upload-form-field">
           {{typeahead-widget
           content=inputFileTypes
           optionValuePath="id"
           optionLabelPath="name"
           selection=inputFileType
-          placeholder="Select File Type"}}
+          placeholder=(t "hive.ui.uploadFromHdfs")
+          }}
         </td>
 
-
         {{#if isLocalUpload }}
-          <td class="data-upload-form-label"><label>Select from local</label></td>
-          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"}}</td>
+          <td class="data-upload-form-label"><label>{{t "hive.ui.selectFromLocal"}}</label></td>
+          <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"  uploadFiles=files}}</td>
         {{else}}
-          <td class="data-upload-form-label"><label>HDFS Path</label></td>
-          <td class="data-upload-form-field" id="hdfs-param">{{input type="text" class="form-control" placeholder="Enter full HDFS path" value=hdfsPath }}
+          <td class="data-upload-form-label"><label>{{t "hive.ui.hdfsPath"}}</label></td>
+          <td class="data-upload-form-field" id="hdfs-param">
+            {{#validated-text-field inputValue=hdfsPath allowEmpty=false tagClassName="hdfsPath"
+            tooltip=(t "hive.ui.hdfsFieldTooltip") placeholder=(t "hive.ui.hdfsFieldPlaceholder")
+            invalidClass='form-control hdfsPath red-border' validClass='form-control hdfsPath' regex=HDFS_PATH_REGEX
+            errorMessage=(t "hive.ui.hdfsFieldErrorMessage")  }}
+            {{/validated-text-field}}
             <button style="margin-left: 5px; padding-top: 6px;padding-bottom: 6px; padding-right: 10px; padding-left: 10px;" type="button" {{action "previewFromHdfs"}}
             {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.showPreview"}}</button></td>
         {{/if}}
       </tr>
-      {{#if rows}}
+      {{#if showPreview}}
         <tr>
-          <td class="data-upload-form-label"><label>Database</label></td>
+          <td class="data-upload-form-label"><label>{{t "hive.words.database"}}</label></td>
           <td class="data-upload-form-field">
             {{typeahead-widget
-            content=controllers.databases.databases
+            content=databases
             optionValuePath="id"
             optionLabelPath="name"
             selection=selectedDatabase
-            placeholder="Select a Database"
+            placeholder=(t "hive.ui.selectDatabase")
             }}
           </td>
 
-          <td class="data-upload-form-label"><label>Table name</label></td>
+          <td class="data-upload-form-label"><label>{{t "hive.ui.tableName"}}</label></td>
           <td
-            class="data-upload-form-field">{{input type="text" class="form-control" placeholder="Table Name" value=tableName }}</td>
+            class="data-upload-form-field">
+            {{#validated-text-field inputValue=tableName allowEmpty=false
+            tooltip=(t "hive.ui.tableNameTooltip")
+            invalidClass='form-control red-border' validClass='form-control' regex=TABLE_NAME_REGEX
+            errorMessage=(t "hive.ui.tableNameErrorMessage") }}
+            {{/validated-text-field}}
+          </td>
         </tr>
         <tr>
-          <td class="data-upload-form-label"><label>Stored as</label></td>
+          <td class="data-upload-form-label"><label>{{t "hive.ui.storedAs"}}</label></td>
           <td class="data-upload-form-field">
             {{typeahead-widget
             content=fileTypes
             selection=selectedFileType}}
           </td>
           {{#if inputFileTypeCSV }}
-            <td class="data-upload-form-label"><label>Is first row header ?</label></td>
+            <td class="data-upload-form-label"><label>{{t "hive.ui.isFirstRowHeader"}}</label></td>
             <td class="data-upload-form-field">
               {{input id="isFirstRowHeader" type="checkbox" checked=isFirstRowHeader }}
             </td>
@@ -114,27 +125,32 @@
       {{/if}}
     </table>
 
+    {{#if showPreview}}
     <table class="pull-right">
       <tr>
         <td>
-          {{#if rows}}
             <button type="button" {{action "uploadTable"}}
               {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadTable"}}</button>
-          {{/if}}
         </td>
       </tr>
     </table>
-
+    {{/if}}
   </div>
 
   <div>
-    {{#if rows}}
+    {{#if showPreview}}
       <div id="upload-table">
         <table class="table table-expandable no-border">
           <thead>
           <tr>
             {{#each column in header}}
-              <th>{{input placeholder="column-name" type="text" class="form-control" value=column.name}}</th>
+              <th>
+                {{#validated-text-field inputValue=column.name allowEmpty=false
+                tooltip=(t "hive.ui.columnNameTooltip")
+                invalidClass='form-control red-border' validClass='form-control' regex=COLUMN_NAME_REGEX
+                errorMessage=(t "hive.ui.columnNameErrorMessage")}}
+                {{/validated-text-field}}
+              </th>
             {{/each}}
           </tr>
           <tr id="upload-controls">

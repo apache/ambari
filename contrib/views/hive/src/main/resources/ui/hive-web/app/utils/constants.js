@@ -81,6 +81,7 @@ export default Ember.Object.create({
     databaseSearch: 'databases-search-results',
     settings: 'settings',
     jobProgress: 'job-progress',
+    ldapAuthentication: 'ldap-authentication',
     queryTabs: 'query-tabs',
     session: 'session'
   },

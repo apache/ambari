@@ -126,4 +126,102 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <placeholder>y/n</placeholder>
   </parameter>
 
+
+  <resource>
+    <name>ambaridatabases</name>
+    <plural-name>ambaridatabases</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.AmbariDatabaseCheck</service-class>
+  </resource>
+
+  <resource>
+    <name>huedatabases</name>
+    <plural-name>huedatabases</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.HueDatabaseCheck</service-class>
+  </resource>
+
+  <resource>
+    <name>huehttpurls</name>
+    <plural-name>huehttpurls</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.HueHttpUrlCheck</service-class>
+  </resource>
+
+  <resource>
+    <name>huewebhdfsurls</name>
+    <plural-name>huewebhdfsurls</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.HueWebHdfsCheck</service-class>
+  </resource>
+
+  <resource>
+    <name>ambariwebhdfsurls</name>
+    <plural-name>ambariwebhdfsurls</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.AmbariWebHdfsCheck</service-class>
+  </resource>
+
+
+
+
+  <resource>
+    <name>checkprogresses</name>
+    <plural-name>checkprogresses</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.CheckProgresStatus</service-class>
+  </resource>
+
+
+  <resource>
+    <name>startmigrations</name>
+    <plural-name>startmigrations</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.InitiateJobMigration</service-class>
+  </resource>
+
+  <resource>
+    <name>returnjobids</name>
+    <plural-name>returnjobids</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.CreateJobId</service-class>
+  </resource>
+
+  <resource>
+    <name>returnjobidforrevertchanges</name>
+    <plural-name>returnjobidforrevertchanges</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.CreateJobIdRevertChange</service-class>
+  </resource>
+
+  <resource>
+    <name>startrevertchanges</name>
+    <plural-name>startrevertchanges</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.InitiateJobMigrationforRevertchange</service-class>
+  </resource>
+
+  <resource>
+    <name>usersdetails</name>
+    <plural-name>usersdetails</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.UserDetailHue</service-class>
+  </resource>
+
+  <resource>
+    <name>hiveinstancedetails</name>
+    <plural-name>hiveinstancedetails</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.HiveInstanceDetailsAmbari</service-class>
+  </resource>
+
+  <resource>
+    <name>allinstancedetails</name>
+    <plural-name>allinstancedetails</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.AllInstanceDetailsAmbari</service-class>
+  </resource>
+
+  <resource>
+    <name>piginstancedetails</name>
+    <plural-name>piginstancedetails</plural-name>
+    <service-class>org.apache.ambari.view.huetoambarimigration.migration.configuration.PigInstanceDetailsAmbari</service-class>
+  </resource>
+
+  <persistence>
+    <entity>
+      <class>org.apache.ambari.view.huetoambarimigration.resources.scripts.models.MigrationResponse</class>
+      <id-property>id</id-property>
+    </entity>
+    </persistence>
+
+
+
 </view>

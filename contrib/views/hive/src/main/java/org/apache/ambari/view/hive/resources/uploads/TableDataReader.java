@@ -18,15 +18,17 @@
 
 package org.apache.ambari.view.hive.resources.uploads;
 
+import com.opencsv.CSVWriter;
+import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.Row;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Takes row iterator as input.
@@ -36,13 +38,17 @@ import java.util.Iterator;
 public class TableDataReader extends Reader {
 
   private static final int CAPACITY = 1024;
+  private final List<ColumnDescriptionImpl> header;
   private StringReader stringReader = new StringReader("");
 
   private Iterator<Row> iterator;
-  private static final CSVFormat CSV_FORMAT = CSVFormat.DEFAULT.withRecordSeparator("\n");
+  private boolean encode = false;
+  public static final char CSV_DELIMITER = '\001';
 
-  public TableDataReader(Iterator<Row> rowIterator) {
+  public TableDataReader(Iterator<Row> rowIterator, List<ColumnDescriptionImpl> header, boolean encode) {
     this.iterator = rowIterator;
+    this.encode = encode;
+    this.header = header;
   }
 
   @Override
@@ -64,9 +70,28 @@ public class TableDataReader extends Reader {
 
       if (iterator.hasNext()) { // keep reading as long as we keep getting rows
         StringWriter stringWriter = new StringWriter(CAPACITY);
-        CSVPrinter csvPrinter = new CSVPrinter(stringWriter, CSV_FORMAT);
+        CSVWriter csvPrinter = new CSVWriter(stringWriter,CSV_DELIMITER);
         Row row = iterator.next();
-        csvPrinter.printRecord(row.getRow());
+        // encode values so that \n and \r are overridden
+        Object[] columnValues = row.getRow();
+        String[] columns = new String[columnValues.length];
+
+        for(int i = 0; i < columnValues.length; i++){
+          String type = header.get(i).getType();
+          if(this.encode &&
+              (
+                ColumnDescription.DataTypes.STRING.toString().equals(type)
+                || ColumnDescription.DataTypes.VARCHAR.toString().equals(type)
+                || ColumnDescription.DataTypes.CHAR.toString().equals(type)
+              )
+            ){
+            columns[i] = Hex.encodeHexString(((String)columnValues[i]).getBytes()); //default charset
+          }else {
+            columns[i] = (String) columnValues[i];
+          }
+        }
+
+        csvPrinter.writeNext(columns,false);
         stringReader.close(); // close the old string reader
         stringReader = new StringReader(stringWriter.getBuffer().toString());
         csvPrinter.close();
