@@ -22,8 +22,9 @@ import org.apache.ambari.view.hive2.resources.uploads.parsers.ParseOptions;
 import org.apache.ambari.view.hive2.resources.uploads.parsers.Parser;
 import org.apache.commons.csv.CSVFormat;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Iterator;
 
 /**
  * Parses the given Reader which contains CSV stream and extracts headers and rows, and detect datatypes of columns
@@ -45,7 +46,7 @@ public class CSVParser extends Parser {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() throws Exception {
     this.parser.close();
   }
 

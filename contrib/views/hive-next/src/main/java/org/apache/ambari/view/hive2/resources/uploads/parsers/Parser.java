@@ -22,6 +22,8 @@ import org.apache.ambari.view.hive2.client.ColumnDescription;
 import org.apache.ambari.view.hive2.client.Row;
 import org.apache.ambari.view.hive2.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive2.resources.uploads.TableDataReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.util.ArrayList;
@@ -35,6 +37,9 @@ import java.util.NoSuchElementException;
  */
 public abstract class Parser implements IParser {
 
+  protected final static Logger LOG =
+    LoggerFactory.getLogger(Parser.class);
+
   protected Reader reader; // same as CSV reader in this case
   protected ParseOptions parseOptions;
   private int numberOfPreviewRows = 10;
@@ -45,22 +50,23 @@ public abstract class Parser implements IParser {
   }
 
   /**
-   * returns which datatype was detected for the maximum number of times in the given column
-   *
-   * @param typeCounts
-   * @param colNum
-   * @return
+   * returns which datatype is valid for all the values
    */
-  private int getLikelyDataType(int[][] typeCounts, int colNum) {
-    int[] colArray = typeCounts[colNum];
-    int maxIndex = 0;
-    int i = 1;
-    for (; i < colArray.length; i++) {
-      if (colArray[i] > colArray[maxIndex])
-        maxIndex = i;
+
+  /**
+   *
+   * @param rows : non empty list of rows
+   * @param colNum : to detect datatype for this column number.
+   * @return data type for that column
+   */
+  private ColumnDescription.DataTypes getLikelyDataType(List<Row> rows, int colNum) {
+    // order of detection BOOLEAN,INT,BIGINT,DOUBLE,DATE,CHAR,STRING
+    List<Object> colValues = new ArrayList<>(rows.size());
+    for( Row row : rows ){
+      colValues.add(row.getRow()[colNum]);
     }
 
-    return maxIndex;
+    return ParseUtils.detectHiveColumnDataType(colValues);
   }
 
   @Override
@@ -70,12 +76,15 @@ public abstract class Parser implements IParser {
 
   @Override
   public PreviewData parsePreview() {
-    List<Row> previewRows;
+    LOG.info("generating preview for : {}", this.parseOptions );
+
+    ArrayList<Row> previewRows;
     List<ColumnDescription> header;
 
     try {
       numberOfPreviewRows = (Integer) parseOptions.getOption(ParseOptions.OPTIONS_NUMBER_OF_PREVIEW_ROWS);
     } catch (Exception e) {
+      LOG.debug("Illegal number of preview columns supplied {}",parseOptions.getOption(ParseOptions.OPTIONS_NUMBER_OF_PREVIEW_ROWS) );
     }
 
     int numberOfRows = numberOfPreviewRows;
@@ -83,42 +92,35 @@ public abstract class Parser implements IParser {
 
     Row headerRow = null;
     Integer numOfCols = null;
-    int[][] typeCounts = null;
 
-    if (parseOptions.getOption(ParseOptions.OPTIONS_HEADER) != null && parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.FIRST_RECORD.toString())) {
-      if (!this.iterator().hasNext()) {
-        throw new NoSuchElementException("Cannot parse Header");
-      }
+    if (parseOptions.getOption(ParseOptions.OPTIONS_HEADER) != null &&
+      ( parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.FIRST_RECORD.toString()) ||
+        parseOptions.getOption(ParseOptions.OPTIONS_HEADER).equals(ParseOptions.HEADER.EMBEDDED.toString())
+      )) {
       headerRow = extractHeader();
       numOfCols = headerRow.getRow().length;
-      typeCounts = new int[numOfCols][ColumnDescription.DataTypes.values().length];
-      previewRows.add(headerRow);
     }
-
-    // find data types.
 
     Row r;
     if (iterator().hasNext()) {
       r = iterator().next();
       if( null == numOfCols ) {
         numOfCols = r.getRow().length;
-        typeCounts = new int[numOfCols][ColumnDescription.DataTypes.values().length];
       }
     } else {
-        throw new NoSuchElementException("No rows in the file.");
+      LOG.error("No rows found in the file. returning error.");
+      throw new NoSuchElementException("No rows in the file.");
     }
 
     while (true) {
       // create Header definition from row
       Object[] values = r.getRow();
-
       Object[] newValues= new Object[numOfCols]; // adds null if less columns detected and removes extra columns if any
 
       for (int colNum = 0; colNum < numOfCols; colNum++) {
         if(colNum < values.length) {
           // detect type
           ColumnDescription.DataTypes type = ParseUtils.detectHiveDataType(values[colNum]);
-          typeCounts[colNum][type.ordinal()]++;
           newValues[colNum] = values[colNum];
         }else{
           newValues[colNum] = null;
@@ -134,14 +136,25 @@ public abstract class Parser implements IParser {
       r = iterator().next();
     }
 
-    if (previewRows.size() <= 0)
+    if (previewRows.size() <= 0) {
+      LOG.error("No rows found in the file. returning error.");
       throw new NoSuchElementException("Does not contain any rows.");
+    }
 
-    header = new ArrayList<>(numOfCols);
+    // find data types.
+    header = generateHeader(headerRow,previewRows,numOfCols);
+
+    return new PreviewData(header,previewRows);
+  }
+
+  private List<ColumnDescription> generateHeader(Row headerRow,List<Row> previewRows, int numOfCols) {
+    List<ColumnDescription> header = new ArrayList<>();
+
     for (int colNum = 0; colNum < numOfCols; colNum++) {
-      int dataTypeId = getLikelyDataType(typeCounts, colNum);
-      ColumnDescription.DataTypes type = ColumnDescription.DataTypes.values()[dataTypeId];
-      String colName = "Column" + colNum;
+      ColumnDescription.DataTypes type = getLikelyDataType(previewRows,colNum);
+      LOG.info("datatype detected for column {} : {}", colNum, type);
+
+      String colName = "Column" + (colNum + 1);
       if (null != headerRow)
         colName = (String) headerRow.getRow()[colNum];
 
@@ -149,6 +162,7 @@ public abstract class Parser implements IParser {
       header.add(cd);
     }
 
-    return new PreviewData(header,previewRows);
+    LOG.debug("return headers : {} ", header);
+    return header;
   }
 }

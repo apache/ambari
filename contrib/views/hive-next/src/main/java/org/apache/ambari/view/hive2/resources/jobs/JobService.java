@@ -500,10 +500,13 @@ public class JobService extends BaseService {
 
       return Response.ok(jobObject).status(201).build();
     } catch (WebApplicationException ex) {
+      LOG.error("Error occurred while creating job : ",ex);
       throw ex;
     } catch (ItemNotFound itemNotFound) {
+      LOG.error("Error occurred while creating job : ",itemNotFound);
       throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Throwable ex) {
+      LOG.error("Error occurred while creating job : ",ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }

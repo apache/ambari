@@ -73,9 +73,9 @@ public class Aggregator {
   public List<Job> readAll(String username) {
     Set<String> addedOperationIds = new HashSet<>();
 
-    List<Job> allJobs = new LinkedList<>();
-    for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
-
+    List<Job> allJobs = new LinkedList<Job>();
+    List<HiveQueryId> queries = ats.getHiveQueryIdsList(username);
+    for (HiveQueryId atsHiveQuery : queries) {
       TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
 
       JobImpl atsJob;
