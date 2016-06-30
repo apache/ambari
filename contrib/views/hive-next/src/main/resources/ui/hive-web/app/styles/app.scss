@@ -468,6 +468,7 @@ body {
   .input-group-addon {
     text-align: justify;
     width: 50%;
+    vertical-align: top;
   }
 }
 
@@ -475,11 +476,15 @@ body {
   line-height: 30px;
   font-size: 18px;
   cursor: pointer;
+  position: absolute;
 }
 
 .setting .setting-input-value {
   width: calc(100% - 30px);
   display: inline-block;
+  input {
+    height: 33px;
+  }
 }
 .setting .global-setting-value {
   width: calc(100% - 25px);
@@ -640,6 +645,11 @@ td.data-upload-form-field {
     width: 350px;
 }
 
+.hdfsPath {
+  width: 80%;
+  display: inline;
+}
+
 #hdfs-param input {
   width: 80%;
   display: inline;
@@ -675,10 +685,26 @@ td.data-upload-form-field {
   padding-right: 10px;
 }
 
+.accordion-body {
+   word-break: break-all;
+   overflow-y: scroll;
+}
+
 table.no-border, table.no-border tr, table.no-border tr td {
   border: none;
 }
 
 .red-border {
   border-color :red;
+}
+
+ul.explainlist li{
+  background: none;
+  word-break: break-all;
+  padding: 0;
+}
+
+pre.explainprint{
+ line-height: 0.5;
+ padding: 12px 15px;
 }

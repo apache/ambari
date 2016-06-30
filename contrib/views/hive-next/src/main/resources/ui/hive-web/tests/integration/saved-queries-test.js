@@ -117,10 +117,36 @@ test('Saved Query options menu', function() {
   expect(2);
 
   visit("/queries");
-  click('.fa-gear');
+  click('.fa-gear:first');
 
   andThen(function() {
     equal(find('.dropdown-menu:visible').length, 1, 'Query menu is visible');
     equal(find('.dropdown-menu:visible li').length, 2, 'Query menu has 2 options');
+  });
+});
+
+test('User is able to see history for a query', function (assert) {
+  assert.expect(2);
+
+  visit("/queries");
+  click('.fa-gear:first');
+  click('.dropdown-menu:visible li:first');
+
+  andThen(function () {
+    assert.equal(currentURL(), "/history", 'User is redirected to history');
+    assert.equal(find('#content .table tbody tr').length, 1, 'Queries are filtered');
+  });
+});
+
+test('User is able to delete a query', function (assert) {
+  assert.expect(1);
+
+  visit("/queries");
+  click('.fa-gear:first');
+  click('.dropdown-menu:visible li:last');
+  click('.modal-footer .btn-success');
+
+  andThen(function () {
+    equal(find('#content .table tbody tr').length, 1, 'Query deleted');
   });
 });

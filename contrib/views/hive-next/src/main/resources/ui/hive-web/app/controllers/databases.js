@@ -33,6 +33,8 @@ export default Ember.Controller.extend({
   tableSearchResults: Ember.Object.create(),
 
   isDatabaseRefreshInProgress: false,
+  showColumnsResultAlert: false,
+  textColumnSearchTerm:'',
 
   tableControls: [
     {
@@ -357,6 +359,8 @@ export default Ember.Controller.extend({
 
       searchTerm = searchTerm ? searchTerm.toLowerCase() : '';
 
+      this.set('showColumnsResultAlert', false);
+
       this.set('tablesSearchTerm', searchTerm);
       resultsTab.set('visible', true);
       this.set('selectedTab', resultsTab);
@@ -381,17 +385,32 @@ export default Ember.Controller.extend({
 
       searchTerm = searchTerm ? searchTerm.toLowerCase() : '';
 
-      this.set('selectedTab', resultsTab);
+      this.set('columnSearchTerm', searchTerm);
+      this.set('textColumnSearchTerm', searchTerm);
 
+      this.set('selectedTab', resultsTab);
       this.set('isLoading', true);
+      this.set('showColumnsResultAlert', false);
+
+      var tableCount = tables.length || 0;
+      var noColumnMatchTableCount = 0;
 
       tables.forEach(function (table) {
         self.get('databaseService').getColumnsPage(database.get('name'), table, searchTerm, true).then(function (result) {
+
+          if(Ember.isEmpty(result.columns)){
+            noColumnMatchTableCount = noColumnMatchTableCount + 1;
+          }
           table.set('columns', result.columns);
           table.set('hasNext', result.hasNext);
 
           if (tables.indexOf(table) === tables.get('length') -1) {
             self.set('isLoading', false);
+          }
+
+          // This will execute only in the last interation
+          if(noColumnMatchTableCount === tableCount) {
+            self.set('showColumnsResultAlert', true);
           }
         }, function (err) {
           self._handleError(err);

@@ -101,3 +101,30 @@ test('Searching for a table will display table results and column search field',
     });
   });
 });
+
+
+test('Users can search tables', function (assert) {
+  assert.expect(4);
+
+  visit('/');
+
+  andThen(function () {
+    fillIn(find('.database-explorer .search-tables-text'), 'not_found');
+    keyEvent(find('.database-explorer .search-tables-text'), 'keyup', 13);
+  });
+
+  andThen(function () {
+    assert.ok(find('.alert-warning .database-explorer-alert'), 'Alert is show when a table is not found');
+  });
+
+  andThen(function () {
+    fillIn(find('.database-explorer .search-tables-text'), 'table');
+    keyEvent(find('.database-explorer .search-tables-text'), 'keyup', 13);
+  });
+
+  andThen(function () {
+    assert.ok(find('.database-explorer .nav-tabs li:last').hasClass('active'), 'Search results tab is active');
+    assert.ok(find('.database-explorer .databases .fa-database').length, 'Found databases are shown');
+    assert.ok(find('.database-explorer .databases .tables').length, 'Found tables are shown');
+  });
+});

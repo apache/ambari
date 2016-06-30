@@ -15,9 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
+<pre class="explainprint">
 {{#each header in formattedExplain}}
-  {{#expander-widget heading=header.text}}
-    {{tree-view content=header.contents}}
-  {{/expander-widget}}
+  {{#if header.text}}
+    <div>{{header.text}}</div>
+    {{#if header.contents.length }}
+      {{tree-view content=header.contents}}
+    {{/if}}
+  {{/if}}
 {{/each}}
+</pre>
