@@ -241,21 +241,18 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           raise Fail("Did not find run.sh file in output: " + str(output))
 
         Logger.info(format("Run file path: {run_file_path}"))
-        if os.path.isfile(run_file_path):
-          Execute(run_file_path, user=params.hive_user)
-          Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
+        Execute(run_file_path, user=params.hive_user)
+        Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
 
-          # We need to check the status of LLAP app to figure out it got
-          # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
-          status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
-          if status:
-            Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
-            return True
-          else:
-            Logger.error("LLAP app '{0}' deployment unsuccessful.".format(LLAP_APP_NAME))
-            return False
+        # We need to check the status of LLAP app to figure out it got
+        # launched properly and is in running state. Then go ahead with Hive Interactive Server start.
+        status = self.check_llap_app_status(LLAP_APP_NAME, params.num_retries_for_checking_llap_status)
+        if status:
+          Logger.info("LLAP app '{0}' deployed successfully.".format(LLAP_APP_NAME))
+          return True
         else:
-          raise Fail(format("Did not find run file {run_file_path}"))
+          Logger.error("LLAP app '{0}' deployment unsuccessful.".format(LLAP_APP_NAME))
+          return False
       except:
         # Attempt to clean up the packaged application, or potentially rename it with a .bak
         if run_file_path is not None and cleanup:
