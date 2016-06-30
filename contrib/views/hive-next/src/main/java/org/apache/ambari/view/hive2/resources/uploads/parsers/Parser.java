@@ -88,7 +88,7 @@ public abstract class Parser implements IParser {
     }
 
     int numberOfRows = numberOfPreviewRows;
-    previewRows = new ArrayList<Row>(numberOfPreviewRows + 1); // size including the header.
+    previewRows = new ArrayList<>(numberOfPreviewRows + 1); // size including the header.
 
     Row headerRow = null;
     Integer numOfCols = null;
@@ -119,8 +119,6 @@ public abstract class Parser implements IParser {
 
       for (int colNum = 0; colNum < numOfCols; colNum++) {
         if(colNum < values.length) {
-          // detect type
-          ColumnDescription.DataTypes type = ParseUtils.detectHiveDataType(values[colNum]);
           newValues[colNum] = values[colNum];
         }else{
           newValues[colNum] = null;
