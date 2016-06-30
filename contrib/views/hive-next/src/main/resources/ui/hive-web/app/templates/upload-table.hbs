@@ -69,13 +69,17 @@
           }}
         </td>
 
-
         {{#if isLocalUpload }}
           <td class="data-upload-form-label"><label>{{t "hive.ui.selectFromLocal"}}</label></td>
           <td class="data-upload-form-field">{{file-upload  filesUploaded="filesUploaded"  uploadFiles=files}}</td>
         {{else}}
           <td class="data-upload-form-label"><label>{{t "hive.ui.hdfsPath"}}</label></td>
-          <td class="data-upload-form-field" id="hdfs-param">{{input type="text" class="form-control" placeholder="Enter full HDFS path" value=hdfsPath }}
+          <td class="data-upload-form-field" id="hdfs-param">
+            {{#validated-text-field inputValue=hdfsPath allowEmpty=false tagClassName="hdfsPath"
+            tooltip=(t "hive.ui.hdfsFieldTooltip") placeholder=(t "hive.ui.hdfsFieldPlaceholder")
+            invalidClass='form-control hdfsPath red-border' validClass='form-control hdfsPath' regex=HDFS_PATH_REGEX
+            errorMessage=(t "hive.ui.hdfsFieldErrorMessage")  }}
+            {{/validated-text-field}}
             <button style="margin-left: 5px; padding-top: 6px;padding-bottom: 6px; padding-right: 10px; padding-left: 10px;" type="button" {{action "previewFromHdfs"}}
             {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.showPreview"}}</button></td>
         {{/if}}
