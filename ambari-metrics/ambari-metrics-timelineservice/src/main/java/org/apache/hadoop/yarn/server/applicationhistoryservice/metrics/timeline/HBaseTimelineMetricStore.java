@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,9 +36,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.SeriesAggregateFunction;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunction;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.TimelineMetricsSeriesAggregateFunctionFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConditionBuilder;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
@@ -45,7 +43,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -166,7 +163,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       List<String> hostnames, String applicationId, String instanceId,
       Long startTime, Long endTime, Precision precision, Integer limit,
-      boolean groupedByHosts, TopNConfig topNConfig, String seriesAggregateFunction) throws SQLException, IOException {
+      boolean groupedByHosts, TopNConfig topNConfig) throws SQLException, IOException {
 
     if (metricNames == null || metricNames.isEmpty()) {
       throw new IllegalArgumentException("No metric name filter specified.");
@@ -178,13 +175,6 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     if (limit != null && limit > PhoenixHBaseAccessor.RESULTSET_LIMIT){
       throw new IllegalArgumentException("Limit too big");
     }
-
-    TimelineMetricsSeriesAggregateFunction seriesAggrFunctionInstance = null;
-    if (!StringUtils.isEmpty(seriesAggregateFunction)) {
-      SeriesAggregateFunction func = SeriesAggregateFunction.getFunction(seriesAggregateFunction);
-      seriesAggrFunctionInstance = TimelineMetricsSeriesAggregateFunctionFactory.newInstance(func);
-    }
-
     Map<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
@@ -224,14 +214,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     } else {
       metrics = hBaseAccessor.getMetricRecords(condition, metricFunctions);
     }
-
-    metrics = postProcessMetrics(metrics);
-
-    if (metrics.getMetrics().size() == 0) {
-      return metrics;
-    }
-
-    return seriesAggregateMetrics(seriesAggrFunctionInstance, metrics);
+    return postProcessMetrics(metrics);
   }
 
   private TimelineMetrics postProcessMetrics(TimelineMetrics metrics) {
@@ -246,15 +229,6 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       }
     }
 
-    return metrics;
-  }
-
-  private TimelineMetrics seriesAggregateMetrics(TimelineMetricsSeriesAggregateFunction seriesAggrFuncInstance,
-      TimelineMetrics metrics) {
-    if (seriesAggrFuncInstance != null) {
-      TimelineMetric appliedMetric = seriesAggrFuncInstance.apply(metrics);
-      metrics.setMetrics(Collections.singletonList(appliedMetric));
-    }
     return metrics;
   }
 

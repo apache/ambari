@@ -31,7 +31,6 @@ define([
           $scope.aggregators = ['none','avg', 'sum', 'min', 'max'];
           $scope.precisions = ['default','seconds', 'minutes', 'hours', 'days'];
           $scope.transforms = ['none','diff','rate'];
-          $scope.seriesAggregators = ['none', 'avg', 'sum', 'min', 'max'];
 
           if (!$scope.target.aggregator) {
             $scope.target.aggregator = 'avg';
@@ -44,11 +43,6 @@ define([
           $scope.transform = function () {
            if (typeof $scope.target.transform == 'undefined') {
                 $scope.target.transform = "none";
-           }
-          };
-          $scope.seriesAggregator = function () {
-           if (typeof $scope.target.seriesAggregator == 'undefined') {
-                $scope.target.seriesAggregator = "none";
            }
           };
           $scope.$watch('target.app', function (newValue) {

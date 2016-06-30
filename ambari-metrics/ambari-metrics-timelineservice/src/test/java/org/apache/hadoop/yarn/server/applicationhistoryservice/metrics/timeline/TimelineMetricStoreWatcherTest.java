@@ -32,7 +32,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.List;
 
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -58,7 +57,7 @@ public class TimelineMetricStoreWatcherTest {
     expect(metricStore.getTimelineMetrics(EasyMock.<List<String>>anyObject(),
       EasyMock.<List<String>>anyObject(), anyObject(String.class),
       anyObject(String.class), anyObject(Long.class), anyObject(Long.class),
-      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class), anyString()))
+      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class)))
       .andReturn(null).anyTimes();
 
     mockStatic(ExitUtil.class);
@@ -85,7 +84,7 @@ public class TimelineMetricStoreWatcherTest {
     expect(metricStore.getTimelineMetrics(EasyMock.<List<String>>anyObject(),
       EasyMock.<List<String>>anyObject(), anyObject(String.class),
       anyObject(String.class), anyObject(Long.class), anyObject(Long.class),
-      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class), anyString()))
+      eq(Precision.SECONDS), eq(1), eq(true), anyObject(TopNConfig.class)))
       .andReturn(null).anyTimes();
 
     String msg = "Error getting metrics from TimelineMetricStore. " +

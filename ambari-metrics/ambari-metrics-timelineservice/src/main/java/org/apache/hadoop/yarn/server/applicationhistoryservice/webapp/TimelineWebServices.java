@@ -343,8 +343,7 @@ public class TimelineWebServices {
     @QueryParam("grouped") String grouped,
     @QueryParam("topN") String topN,
     @QueryParam("topNFunction") String topNFunction,
-    @QueryParam("isBottomN") String isBottomN,
-    @QueryParam("seriesAggregateFunction") String seriesAggregateFunction
+    @QueryParam("isBottomN") String isBottomN
   ) {
     init(res);
     try {
@@ -353,15 +352,14 @@ public class TimelineWebServices {
           "appId: " + appId + ", instanceId: " + instanceId + ", " +
           "hostname: " + hostname + ", startTime: " + startTime + ", " +
           "endTime: " + endTime + ", " +
-          "precision: " + precision + "seriesAggregateFunction: " + seriesAggregateFunction);
+          "precision: " + precision);
       }
 
       return timelineMetricStore.getTimelineMetrics(
         parseListStr(metricNames, ","), parseListStr(hostname, ","), appId, instanceId,
         parseLongStr(startTime), parseLongStr(endTime),
         Precision.getPrecision(precision), parseIntStr(limit),
-        parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN),
-        seriesAggregateFunction);
+        parseBoolean(grouped), parseTopNConfig(topN, topNFunction, isBottomN));
 
     } catch (NumberFormatException ne) {
       throw new BadRequestException("startTime and limit should be numeric " +

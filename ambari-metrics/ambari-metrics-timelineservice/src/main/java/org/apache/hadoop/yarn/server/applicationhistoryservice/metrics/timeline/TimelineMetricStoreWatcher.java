@@ -105,7 +105,7 @@ public class TimelineMetricStoreWatcher implements Runnable {
         TimelineMetrics timelineMetrics = timelineMetricStore.getTimelineMetrics(
           Collections.singletonList(FAKE_METRIC_NAME), Collections.singletonList(FAKE_HOSTNAME),
           FAKE_APP_ID, null, startTime - delay * 2 * 1000,
-          startTime + delay * 2 * 1000, Precision.SECONDS, 1, true, null, null);
+          startTime + delay * 2 * 1000, Precision.SECONDS, 1, true, null);
         return timelineMetrics.getMetrics().get(0);
       }
     };

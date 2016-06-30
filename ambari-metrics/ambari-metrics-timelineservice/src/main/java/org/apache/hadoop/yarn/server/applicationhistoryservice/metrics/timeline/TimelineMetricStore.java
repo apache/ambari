@@ -44,8 +44,6 @@ public interface TimelineMetricStore {
    * @param limit Override default result limit
    * @param groupedByHosts Group {@link TimelineMetric} by metric name, hostname,
    *                app id and instance id
-   * @param seriesAggregateFunction Specify this when caller want to aggregate multiple metrics
-   *                                series into one. [ SUM, AVG, MIN, MAX ]
    *
    * @return {@link TimelineMetric}
    * @throws java.sql.SQLException
@@ -53,7 +51,7 @@ public interface TimelineMetricStore {
   TimelineMetrics getTimelineMetrics(List<String> metricNames, List<String> hostnames,
                                      String applicationId, String instanceId, Long startTime,
                                      Long endTime, Precision precision, Integer limit, boolean groupedByHosts,
-                                     TopNConfig topNConfig, String seriesAggregateFunction)
+                                     TopNConfig topNConfig)
     throws SQLException, IOException;
 
   /**

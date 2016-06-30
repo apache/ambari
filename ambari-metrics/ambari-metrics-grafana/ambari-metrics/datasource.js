@@ -165,10 +165,9 @@ define([
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform +
                 metricAggregator + "&hostname=" + target.hosts + '&appId=' + target.app + '&startTime=' + from +
-                '&endTime=' + to + precision + seriesAggregator).then(
+                '&endTime=' + to + precision).then(
                 getMetricsData(target)
             );
           };
@@ -187,10 +186,9 @@ define([
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + tHost + '&appId=' + target.app + '&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
           };
@@ -208,11 +206,10 @@ define([
               topN = '&topN=' + metricTopN[0].current.value  +'&topNFunction=' + metricTopAgg[0].current.value  + '&isBottomN='+ isBottomN;
             }
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             var templatedComponent = (_.isEmpty(tComponent)) ? target.app : tComponent;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.metric + metricTransform
               + metricAggregator + '&hostname=' + target.templatedHost + '&appId=' + templatedComponent + '&startTime=' + from +
-              '&endTime=' + to + precision + topN + seriesAggregator).then(
+              '&endTime=' + to + precision + topN).then(
               allHostMetricsData(target)
             );
           };
@@ -221,19 +218,17 @@ define([
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.queue + metricTransform
               + metricAggregator + '&appId=resourcemanager&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
           };
           var getHbaseAppIdData = function(target) {
             var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
             + target.precision;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.hbMetric + '&appId=hbase&startTime=' 
-            + from + '&endTime=' + to + precision + seriesAggregator).then(
+            + from + '&endTime=' + to + precision).then(
               allHostMetricsData(target)
             );
           };
@@ -243,10 +238,9 @@ define([
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.kbMetric + metricTransform
               + metricAggregator + '&appId=kafka_broker&startTime=' + from +
-              '&endTime=' + to + precision + seriesAggregator).then(
+              '&endTime=' + to + precision).then(
               getMetricsData(target)
             );
           };
@@ -255,9 +249,8 @@ define([
             + target.precision;
             var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
             var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
-            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
             return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.nnMetric + metricTransform
-            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+            + metricAggregator + '&appId=namenode&startTime=' + from + '&endTime=' + to + precision).then(
               allHostMetricsData(target)
             );
           };
@@ -679,7 +672,6 @@ define([
           ]);
           return aggregatorsPromise;
         };
-
         return AmbariMetricsDatasource;
       });
     }

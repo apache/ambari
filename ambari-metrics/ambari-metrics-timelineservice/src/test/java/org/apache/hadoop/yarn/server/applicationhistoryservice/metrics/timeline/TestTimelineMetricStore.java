@@ -38,8 +38,7 @@ public class TestTimelineMetricStore implements TimelineMetricStore {
   @Override
   public TimelineMetrics getTimelineMetrics(List<String> metricNames,
       List<String> hostnames, String applicationId, String instanceId, Long startTime,
-      Long endTime, Precision precision, Integer limit, boolean groupedByHost,
-      TopNConfig topNConfig, String seriesAggregateFunction) throws SQLException,
+      Long endTime, Precision precision, Integer limit, boolean groupedByHost, TopNConfig topNConfig) throws SQLException,
     IOException {
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();

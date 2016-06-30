@@ -109,7 +109,6 @@
                 <i class="fa fa-warning"></i>
             </a>
         </li>
-
     </ul>
 
     <div class="clearfix"></div>
@@ -148,17 +147,6 @@
             <select ng-model="target.precision" class="tight-form-input input-small"
                     ng-options="precision for precision in precisions"
                     ng-init="precisionInit()"
-                    ng-change="targetBlur()">
-            </select>
-        </li>
-
-        <li class="tight-form-item">
-            Series Aggregator
-        </li>
-        <li>
-            <select ng-model="target.seriesAggregator" class="tight-form-input input-small"
-                    ng-options="seriesAggregator for seriesAggregator in seriesAggregators"
-                    ng-init="seriesAggregator()"
                     ng-change="targetBlur()">
             </select>
         </li>
