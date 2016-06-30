@@ -1,0 +1,51 @@
+{
+  "name": "hueambarimigration-view",
+  "version": "0.0.0",
+  "description": "Small description for hueambarimigration-view goes here",
+  "private": true,
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "ember server",
+    "build": "ember build",
+    "test": "ember test",
+    "preinstall": "chmod +x node/npm/bin/node-gyp-bin/node-gyp",
+    "postinstall": "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
+
+  },
+  "repository": "",
+  "engines": {
+    "node": ">= 0.10.0"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "bower": "1.7.2",
+    "broccoli-asset-rev": "^2.4.2",
+    "ember-ajax": "0.7.1",
+    "ember-cli": "2.4.3",
+    "ember-cli-app-version": "^1.0.0",
+    "ember-cli-auto-complete": "^0.2.1",
+    "ember-cli-babel": "^5.1.6",
+    "ember-cli-datepicker": "2.0.1",
+    "ember-cli-dependency-checker": "^1.2.0",
+    "ember-cli-htmlbars": "^1.0.3",
+    "ember-cli-htmlbars-inline-precompile": "^0.3.1",
+    "ember-cli-inject-live-reload": "^1.4.0",
+    "ember-cli-pace": "0.1.0",
+    "ember-cli-qunit": "^1.4.0",
+    "ember-cli-release": "0.2.8",
+    "ember-cli-selectize": "0.5.3",
+    "ember-cli-sri": "^2.1.0",
+    "ember-cli-uglify": "^1.2.0",
+    "ember-data": "^2.4.2",
+    "ember-export-application-global": "^1.0.5",
+    "ember-load-initializers": "^0.5.1",
+    "ember-power-select": "0.10.4",
+    "ember-resolver": "^2.0.3",
+    "emberx-select": "2.1.2",
+    "loader.js": "^4.0.1"
+  }
+}

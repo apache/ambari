@@ -357,6 +357,15 @@
             <exclude>contrib/views/*/.settings/**</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/app/**</exclude>
             <exclude>contrib/views/capacity-scheduler/src/main/resources/ui/runner.js</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/.bowerrc</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/bower_components/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/node/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/node_modules/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/public/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/vendor/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/runner.js</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/app/assets/stylesheets/**</exclude>
+            <exclude>contrib/views/hueambarimigration/src/main/resources/ui/hueambarimigration-view/app/assets/javascripts/**</exclude>
 
             <exclude>contrib/ambari-scom/ambari-scom-server/pass.txt</exclude>
             <exclude>contrib/ambari-scom/ambari-scom-server/target/**</exclude>
