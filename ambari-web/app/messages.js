@@ -2491,6 +2491,7 @@ Em.I18n.translations = {
   'hosts.host.details.for.postfix':'{0} for host',
   'hosts.host.details.setRackId':'Set Rack',
   'host.host.details.installClients': 'Install clients',
+  'host.host.details.reinstallClients': 'Reinstall clients',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',

@@ -206,6 +206,12 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   areClientWithStaleConfigs: Em.computed.someBy('clients', 'staleConfigs', true),
 
   /**
+   * List of install failed clients
+   * @type {App.HostComponent[]}
+   */
+  installFailedClients: Em.computed.filterBy('clients', 'workStatus', 'INSTALL_FAILED'),
+
+  /**
    * Template for addable component
    * @type {Em.Object}
    */
@@ -335,9 +341,16 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   }.property('controller'),
 
   /**
-   * Call installClients method from controller for not installed components
+   * Call installClients method from controller for not installed client components
    */
   installClients: function () {
     this.get('controller').installClients(this.get('notInstalledClientComponents'));
+  },
+
+  /**
+   * Call installClients method from controller for not install failed client components
+   */
+  reinstallClients: function () {
+    this.get('controller').installClients(this.get('installFailedClients'));
   }
 });

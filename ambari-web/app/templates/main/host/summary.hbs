@@ -95,6 +95,13 @@
                           {{t host.host.details.installClients}}
                         </a>
                       </li>
+                      {{#if view.anyClientFailedToInstall}}
+                        <li>
+                          <a href="javascript:void(null)" {{action reinstallClients target="view"}}>
+                            {{t host.host.details.reinstallClients}}
+                          </a>
+                        </li>
+                      {{/if}}
                       {{#each option in view.clientsWithCustomCommands}}
                         <li class="dropdown-submenu submenu-left">
                           <a href="javascript:void(null)" >
