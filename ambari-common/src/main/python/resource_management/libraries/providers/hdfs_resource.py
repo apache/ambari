@@ -29,6 +29,7 @@ from resource_management.core.resources.system import File
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 from resource_management.core import shell
+from resource_management.core import sudo
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_user_call_output import get_user_call_output
@@ -271,10 +272,10 @@ class HdfsResourceWebHDFS:
       self._copy_from_local_directory(self.main_resource.resource.target, self.main_resource.resource.source)
     
   def _copy_from_local_directory(self, target, source):
-    for next_path_part in os.listdir(source):
+    for next_path_part in sudo.listdir(source):
       new_source = os.path.join(source, next_path_part)
       new_target = format("{target}/{next_path_part}")
-      if os.path.isdir(new_source):
+      if sudo.path_isdir(new_source):
         Logger.info(format("Creating DFS directory {new_target}"))
         self._create_directory(new_target)
         self._copy_from_local_directory(new_target, new_source)
