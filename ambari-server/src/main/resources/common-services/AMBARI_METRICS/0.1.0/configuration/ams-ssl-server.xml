@@ -39,6 +39,10 @@
   <property>
     <name>ssl.server.truststore.reload.interval</name>
     <value>10000</value>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <description>Truststore reload interval, in milliseconds.</description>
     <on-ambari-upgrade add="true"/>
   </property>

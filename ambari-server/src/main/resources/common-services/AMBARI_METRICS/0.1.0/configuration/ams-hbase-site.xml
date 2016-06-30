@@ -84,6 +84,9 @@
     <description>
       Ensure that HBase Master waits for # many region server to start.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -109,24 +112,36 @@
     <name>hbase.master.info.port</name>
     <value>61310</value>
     <description>The port for the HBase Master web UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.info.port</name>
     <value>61330</value>
     <description>The port for the HBase RegionServer web UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.master.port</name>
     <value>61300</value>
     <description>The port for the HBase Master web UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.regionserver.port</name>
     <value>61320</value>
     <description>The port for the HBase RegionServer web UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -137,6 +152,10 @@
       HStoreFiles in a region.
       0 to disable automated major compactions.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -146,6 +165,10 @@
       Threshold size in bytes after which results from parallelly executed
       query results are spooled to disk. Default is 20 mb.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -164,6 +187,10 @@
       Number of rows that will be fetched when calling next on a scanner
       if it is not served from (local, client) memory.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>rows</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -177,6 +204,10 @@
     <name>hbase.normalizer.period</name>
     <value>600000</value>
     <description>Period in ms at which the region normalizer runs in the Master.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -223,8 +254,12 @@
     <name>phoenix.groupby.maxCacheSize</name>
     <value>307200000</value>
     <description>
-      Size in bytes of pages cached during GROUP BY spilling. Default is 100Mb.
+      Size in bytes of pages cached during GROUP BY spilling. Default is 300Mb.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -232,8 +267,12 @@
     <value>4294967296</value>
     <description>
       Maximum HFile size. If the sum of the sizes of a region&#x2019;s HFiles has grown
-      to exceed this value, the region is split in two. Default is 10Gb.
+      to exceed this value, the region is split in two. Default is 40Gb.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -244,6 +283,9 @@
       times hbase.hregion.memstore.flush.size bytes. Useful preventing runaway
       memstore during spikes in update traffic.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -254,6 +296,9 @@
       will be queued. With more threads, the flushes will be executed in parallel,
       increasing the load on HDFS, and potentially causing more compactions.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -263,6 +308,10 @@
       Number of milliseconds after which a query will timeout on the client.
       Default is 5 min.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -272,6 +321,10 @@
       Number of milliseconds after which a query will keep the connection to HBase alive.
       Default is 5 min.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -280,6 +333,10 @@
     <description>
       Client scanner lease period in milliseconds.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -290,6 +347,10 @@
       take for a remote call to time out. It uses pings to check connections
       but will eventually throw a TimeoutException.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <display-name>HBase RPC Timeout</display-name>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -299,6 +360,9 @@
     <description>
       Configuration key for the large compaction threads.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -307,11 +371,17 @@
     <description>
       Configuration key for the small compaction threads.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
     <value>{{zookeeper_clientPort}}</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <depends-on>
       <property>
         <type>zoo.cfg</type>
@@ -327,11 +397,17 @@
   <property>
     <name>hbase.zookeeper.peerport</name>
     <value>61288</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hbase.zookeeper.leaderport</name>
     <value>61388</value>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -343,6 +419,9 @@
       this region until a compaction is completed, or until
       hbase.hstore.blockingWaitTime has been exceeded.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -353,6 +432,10 @@
       number of bytes. Value is checked by a thread that runs every
       hbase.server.thread.wakefrequency.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -375,12 +458,20 @@
       ZooKeeper, as measured in milliseconds. This property setting only
       affects the ZK server started by AMS in embedded mode. Unit = ms.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
     <value>120000</value>
     <description>ZooKeeper session timeout in milliseconds.</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -390,6 +481,10 @@
       ZooKeeper session timeout in milliseconds for
       pseudo distributed mode.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -398,6 +493,9 @@
     <description>
       Controls the number of pre-allocated regions for SYSTEM.SEQUENCE table.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -426,6 +524,10 @@
       during the execution of an UPSERT SELECT or DELETE statement.
       This affects performance of group by aggregators if they are being used.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>rows</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -450,6 +552,10 @@
       &#x201C;Earlier hash cache(s) might have expired on servers&#x201D; might also be a
       sign that this number should be increased.
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>ms</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -460,6 +566,10 @@
       evictions will begin to occur based on least recent access time.
       Default is 20Mb
     </description>
+    <value-attributes>
+      <type>int</type>
+      <unit>Bytes</unit>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -484,6 +594,9 @@
   <property>
     <name>zookeeper.znode.parent</name>
     <value>/ams-hbase-unsecure</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

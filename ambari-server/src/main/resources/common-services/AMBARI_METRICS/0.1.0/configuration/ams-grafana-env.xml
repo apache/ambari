@@ -23,6 +23,9 @@
     <value>/var/log/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana log dir</display-name>
     <description>Metrics Grafana log directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -30,6 +33,9 @@
     <value>/var/run/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana pid dir</display-name>
     <description>Metrics Grafana pid directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -37,6 +43,9 @@
     <value>/var/lib/ambari-metrics-grafana</value>
     <display-name>Metrics Grafana data dir</display-name>
     <description>Metrics Grafana data directory.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
