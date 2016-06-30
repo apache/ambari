@@ -6675,6 +6675,7 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
+    requestProperties.put("command_retry_enabled", "true");
 
     // Test multiple restarts
     List<RequestResourceFilter> resourceFilters = new ArrayList<RequestResourceFilter>();
@@ -6696,6 +6697,12 @@ public class AmbariManagementControllerTest {
     for (HostRoleCommand hrc : storedTasks) {
       Assert.assertEquals("RESTART", hrc.getCustomCommandName());
 
+      Map<String, String> cParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+      Assert.assertEquals("Expect retry to be set", true, cParams.containsKey("command_retry_enabled"));
+      Assert.assertEquals("Expect max duration to be set", true, cParams.containsKey("max_duration_for_retries"));
+      Assert.assertEquals("Expect max duration to be 600", "600", cParams.get("max_duration_for_retries"));
+      Assert.assertEquals("Expect retry to be true", "true", cParams.get("command_retry_enabled"));
+
       if (hrc.getHostName().equals(host1) && hrc.getRole().equals(Role.DATANODE)) {
         expectedRestartCount++;
       } else if(hrc.getHostName().equals(host2)) {
@@ -6710,6 +6717,37 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("Restart 2 datanodes and 1 Resourcemanager.", 3,
         expectedRestartCount);
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
+
+    requestProperties.put("max_duration_for_retries", "423");
+    response = controller.createAction(request, requestProperties);
+    Assert.assertEquals(3, response.getTasks().size());
+    storedTasks = actionDB.getRequestTasks(response.getRequestId());
+
+    Assert.assertNotNull(storedTasks);
+    for (HostRoleCommand hrc : storedTasks) {
+      Assert.assertEquals("RESTART", hrc.getCustomCommandName());
+
+      Map<String, String> cParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+      Assert.assertEquals("Expect retry to be set", true, cParams.containsKey("command_retry_enabled"));
+      Assert.assertEquals("Expect max duration to be set", true, cParams.containsKey("max_duration_for_retries"));
+      Assert.assertEquals("Expect max duration to be 423", "423", cParams.get("max_duration_for_retries"));
+      Assert.assertEquals("Expect retry to be true", "true", cParams.get("command_retry_enabled"));
+    }
+
+    requestProperties.remove("max_duration_for_retries");
+    requestProperties.remove("command_retry_enabled");
+    response = controller.createAction(request, requestProperties);
+    Assert.assertEquals(3, response.getTasks().size());
+    storedTasks = actionDB.getRequestTasks(response.getRequestId());
+
+    Assert.assertNotNull(storedTasks);
+    for (HostRoleCommand hrc : storedTasks) {
+      Assert.assertEquals("RESTART", hrc.getCustomCommandName());
+
+      Map<String, String> cParams = hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
+      Assert.assertEquals("Expect retry to be set", false, cParams.containsKey("command_retry_enabled"));
+      Assert.assertEquals("Expect max duration to be set", false, cParams.containsKey("max_duration_for_retries"));
+    }
 
     // Test service checks - specific host
     resourceFilters.clear();
