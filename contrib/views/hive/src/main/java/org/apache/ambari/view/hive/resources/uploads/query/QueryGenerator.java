@@ -19,7 +19,8 @@
 package org.apache.ambari.view.hive.resources.uploads.query;
 
 import org.apache.ambari.view.hive.client.ColumnDescription;
-import org.apache.ambari.view.hive.resources.uploads.*;
+import org.apache.ambari.view.hive.resources.uploads.ColumnDescriptionImpl;
+import org.apache.ambari.view.hive.resources.uploads.HiveFileType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,10 +37,10 @@ public class QueryGenerator {
 
   public String generateCreateQuery(TableInfo tableInfo) {
     String tableName = tableInfo.getTableName();
-    List<ColumnDescriptionImpl> cdList = tableInfo.getColumns();
+    List<ColumnDescriptionImpl> cdList = tableInfo.getHeader();
 
     StringBuilder query = new StringBuilder();
-    query.append("create table " + tableName + " (");
+    query.append("CREATE TABLE ").append(tableName).append(" (");
     Collections.sort(cdList, new Comparator<ColumnDescription>() {
       @Override
       public int compare(ColumnDescription o1, ColumnDescription o2) {
@@ -55,7 +56,7 @@ public class QueryGenerator {
         query.append(", ");
       }
 
-      query.append(cd.getName() + " " + cd.getType());
+      query.append(cd.getName()).append(" ").append(cd.getType());
       if (cd.getPrecision() != null) {
         query.append("(").append(cd.getPrecision());
         if (cd.getScale() != null) {
@@ -68,31 +69,74 @@ public class QueryGenerator {
 
     query.append(")");
 
-    if (tableInfo.getHiveFileType() == HiveFileType.TEXTFILE)
-      query.append(" ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;");
-    else
-      query.append(" STORED AS " + tableInfo.getHiveFileType() + ";");
-
-    String queryString = query.toString();
+    if(tableInfo.getHiveFileType().equals(HiveFileType.TEXTFILE)) {
+      query.append(getRowFormatQuery(tableInfo.getRowFormat()));
+    }
+    query.append(" STORED AS ").append(tableInfo.getHiveFileType().toString());
+    String queryString = query.append(";").toString();
     LOG.info("Query : {}", queryString);
     return queryString;
   }
 
+  private String getRowFormatQuery(RowFormat rowFormat) {
+    StringBuilder sb = new StringBuilder();
+    if(rowFormat != null) {
+      sb.append(" ROW FORMAT DELIMITED");
+      if(rowFormat.getFieldsTerminatedBy() != null ){
+        sb.append(" FIELDS TERMINATED BY '").append(rowFormat.getFieldsTerminatedBy()).append('\'');
+      }
+      if(rowFormat.getEscapedBy() != null){
+        String escape = String.valueOf(rowFormat.getEscapedBy());
+        if(rowFormat.getEscapedBy() == '\\'){
+          escape = escape + '\\'; // special handling of slash as its escape char for strings in hive as well.
+        }
+        sb.append(" ESCAPED BY '").append(escape).append('\'');
+      }
+    }
+
+    return sb.toString();
+  }
+
   public String generateInsertFromQuery(InsertFromQueryInput ifqi) {
-    String insertQuery = "insert into table " + ifqi.getToDatabase() + "." + ifqi.getToTable() + " select * from " + ifqi.getFromDatabase() + "." + ifqi.getFromTable();
-    LOG.info("Insert Query : {}", insertQuery);
-    return insertQuery;
+    StringBuilder insertQuery = new StringBuilder("INSERT INTO TABLE ").append(ifqi.getToDatabase()).append(".")
+                                .append(ifqi.getToTable()).append(" SELECT ");
+
+    boolean first = true;
+    for(ColumnDescriptionImpl column : ifqi.getHeader()){
+      String type = column.getType();
+      boolean unhex = ifqi.getUnhexInsert() && (
+        ColumnDescription.DataTypes.STRING.toString().equals(type)
+          || ColumnDescription.DataTypes.VARCHAR.toString().equals(type)
+          || ColumnDescription.DataTypes.CHAR.toString().equals(type)
+      );
+
+      if(!first){
+        insertQuery.append(", ");
+      }
+
+      if(unhex) {
+        insertQuery.append("UNHEX(");
+      }
+
+      insertQuery.append(column.getName());
+
+      if(unhex) {
+        insertQuery.append(")");
+      }
+
+      first = false;
+    }
+
+    insertQuery.append(" FROM ").append(ifqi.getFromDatabase()).append(".").append(ifqi.getFromTable()).append(";");
+    String query = insertQuery.toString();
+    LOG.info("Insert Query : {}", query);
+    return query;
   }
 
   public String generateDropTableQuery(DeleteQueryInput deleteQueryInput) {
-    String dropQuery = "drop table " + deleteQueryInput.getDatabase() + "." + deleteQueryInput.getTable();
+    String dropQuery = new StringBuilder("DROP TABLE ").append(deleteQueryInput.getDatabase())
+                      .append(".").append(deleteQueryInput.getTable()).append(";").toString();
     LOG.info("Drop Query : {}", dropQuery);
     return dropQuery;
-  }
-
-  public String generateLoadQuery(LoadQueryInput loadQueryInput) {
-    String loadFromQuery = "LOAD DATA INPATH '"  + loadQueryInput.getHdfsFilePath() + "' INTO TABLE " + loadQueryInput.getDatabaseName() + "." + loadQueryInput.getTableName() + ";" ;
-    LOG.info("Load From Query : {}", loadFromQuery);
-    return loadFromQuery;
   }
 }

@@ -19,11 +19,10 @@
 package org.apache.ambari.view.hive.resources.uploads.parsers;
 
 import org.apache.ambari.view.hive.client.Row;
-import org.apache.ambari.view.hive.resources.uploads.parsers.csv.CSVParser;
+import org.apache.ambari.view.hive.resources.uploads.parsers.csv.opencsv.OpenCSVParser;
 import org.apache.ambari.view.hive.resources.uploads.parsers.json.JSONParser;
 import org.apache.ambari.view.hive.resources.uploads.parsers.xml.XMLParser;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 
@@ -37,17 +36,12 @@ public class DataParser implements IParser {
 
   public DataParser(Reader reader, ParseOptions parseOptions) throws Exception {
     if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.InputFileType.CSV.toString())) {
-      parser = new CSVParser(reader, parseOptions);
+      parser = new OpenCSVParser(reader, parseOptions);
     } else if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.InputFileType.JSON.toString())) {
       parser = new JSONParser(reader, parseOptions);
     } else if (parseOptions.getOption(ParseOptions.OPTIONS_FILE_TYPE).equals(ParseOptions.InputFileType.XML.toString())) {
       parser = new XMLParser(reader, parseOptions);
     }
-  }
-
-  @Override
-  public Reader getTableDataReader() {
-    return parser.getTableDataReader();
   }
 
   @Override

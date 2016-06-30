@@ -24,6 +24,7 @@ import org.apache.ambari.view.hive.resources.uploads.HiveFileType;
 import org.apache.ambari.view.hive.resources.uploads.query.DeleteQueryInput;
 import org.apache.ambari.view.hive.resources.uploads.query.InsertFromQueryInput;
 import org.apache.ambari.view.hive.resources.uploads.query.QueryGenerator;
+import org.apache.ambari.view.hive.resources.uploads.query.RowFormat;
 import org.apache.ambari.view.hive.resources.uploads.query.TableInfo;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,10 +43,12 @@ public class QueryGeneratorTest {
     cdl.add(new ColumnDescriptionImpl("col4", ColumnDescription.DataTypes.VARCHAR.toString(), 3, 40));
     cdl.add(new ColumnDescriptionImpl("col5", ColumnDescription.DataTypes.INT.toString(), 4));
 
-    TableInfo ti = new TableInfo("databaseName", "tableName", cdl, HiveFileType.TEXTFILE);
+    TableInfo ti = new TableInfo("databaseName", "tableName", cdl, HiveFileType.TEXTFILE, new RowFormat(',', '\\'));
 
     QueryGenerator qg = new QueryGenerator();
-    Assert.assertEquals("Create query for text file not correct ","create table tableName (col1 CHAR(10), col2 STRING, col3 DECIMAL(10,5), col4 VARCHAR(40), col5 INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' STORED AS TEXTFILE;",qg.generateCreateQuery(ti));
+    Assert.assertEquals("Create query for text file not correct ","CREATE TABLE tableName (col1 CHAR(10), col2 STRING," +
+      " col3 DECIMAL(10,5), col4 VARCHAR(40), col5 INT) ROW FORMAT DELIMITED FIELDS TERMINATED BY ','" +
+      " ESCAPED BY '\\\\' STORED AS TEXTFILE;",qg.generateCreateQuery(ti));
   }
 
   @Test
@@ -58,19 +61,40 @@ public class QueryGeneratorTest {
     cdl.add(new ColumnDescriptionImpl("col4", ColumnDescription.DataTypes.VARCHAR.toString(), 3, 40));
     cdl.add(new ColumnDescriptionImpl("col5", ColumnDescription.DataTypes.INT.toString(), 4));
 
-    TableInfo ti = new TableInfo("databaseName", "tableName", cdl, HiveFileType.ORC);
+    TableInfo ti = new TableInfo("databaseName", "tableName", cdl, HiveFileType.ORC, new RowFormat(',', '\\'));
 
     QueryGenerator qg = new QueryGenerator();
-    Assert.assertEquals("Create query for text file not correct ","create table tableName (col1 CHAR(10), col2 STRING, col3 DECIMAL(10,5), col4 VARCHAR(40), col5 INT) STORED AS ORC;",qg.generateCreateQuery(ti));
+    Assert.assertEquals("Create query for text file not correct ","CREATE TABLE tableName (col1 CHAR(10), col2 STRING, col3 DECIMAL(10,5), col4 VARCHAR(40), col5 INT) STORED AS ORC;",qg.generateCreateQuery(ti));
   }
 
   @Test
-  public void testInsertFromQuery() {
+  public void testInsertWithoutUnhexFromQuery() {
+    List<ColumnDescriptionImpl> cdl = new ArrayList<>(4);
+    cdl.add(new ColumnDescriptionImpl("col1", ColumnDescription.DataTypes.CHAR.toString(), 0, 10));
+    cdl.add(new ColumnDescriptionImpl("col2", ColumnDescription.DataTypes.STRING.toString(), 1));
+    cdl.add(new ColumnDescriptionImpl("col3", ColumnDescription.DataTypes.DECIMAL.toString(), 2, 10, 5));
+    cdl.add(new ColumnDescriptionImpl("col4", ColumnDescription.DataTypes.VARCHAR.toString(), 3, 40));
+    cdl.add(new ColumnDescriptionImpl("col5", ColumnDescription.DataTypes.INT.toString(), 4));
 
-    InsertFromQueryInput ifqi = new InsertFromQueryInput("fromDB","fromTable","toDB","toTable");
+    InsertFromQueryInput ifqi = new InsertFromQueryInput("fromDB","fromTable","toDB","toTable", cdl, Boolean.FALSE);
 
     QueryGenerator qg = new QueryGenerator();
-    Assert.assertEquals("insert from one table to another not correct ","insert into table toDB.toTable select * from fromDB.fromTable",qg.generateInsertFromQuery(ifqi));
+    Assert.assertEquals("insert from one table to another not correct ","INSERT INTO TABLE toDB.toTable SELECT col1, col2, col3, col4, col5 FROM fromDB.fromTable;",qg.generateInsertFromQuery(ifqi));
+  }
+
+  @Test
+  public void testInsertWithUnhexFromQuery() {
+    List<ColumnDescriptionImpl> cdl = new ArrayList<>(4);
+    cdl.add(new ColumnDescriptionImpl("col1", ColumnDescription.DataTypes.CHAR.toString(), 0, 10));
+    cdl.add(new ColumnDescriptionImpl("col2", ColumnDescription.DataTypes.STRING.toString(), 1));
+    cdl.add(new ColumnDescriptionImpl("col3", ColumnDescription.DataTypes.DECIMAL.toString(), 2, 10, 5));
+    cdl.add(new ColumnDescriptionImpl("col4", ColumnDescription.DataTypes.VARCHAR.toString(), 3, 40));
+    cdl.add(new ColumnDescriptionImpl("col5", ColumnDescription.DataTypes.INT.toString(), 4));
+
+    InsertFromQueryInput ifqi = new InsertFromQueryInput("fromDB","fromTable","toDB","toTable", cdl, Boolean.TRUE);
+
+    QueryGenerator qg = new QueryGenerator();
+    Assert.assertEquals("insert from one table to another not correct ","INSERT INTO TABLE toDB.toTable SELECT UNHEX(col1), UNHEX(col2), col3, UNHEX(col4), col5 FROM fromDB.fromTable;",qg.generateInsertFromQuery(ifqi));
   }
 
   @Test
@@ -79,6 +103,6 @@ public class QueryGeneratorTest {
     DeleteQueryInput deleteQueryInput = new DeleteQueryInput("dbName","tableName");
 
     QueryGenerator qg = new QueryGenerator();
-    Assert.assertEquals("drop table query not correct ","drop table dbName.tableName",qg.generateDropTableQuery(deleteQueryInput ));
+    Assert.assertEquals("drop table query not correct ","DROP TABLE dbName.tableName;",qg.generateDropTableQuery(deleteQueryInput ));
   }
 }

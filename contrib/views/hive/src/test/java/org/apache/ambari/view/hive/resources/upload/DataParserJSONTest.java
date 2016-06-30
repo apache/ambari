@@ -246,8 +246,8 @@ public class DataParserJSONTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("Column1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
-        new ColumnDescriptionImpl("Column2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.CHAR.toString(), 0),
+        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.STRING.toString(), 1)};
 
       Object cols1[] = new Object[2];
       cols1[0] = "d";

@@ -239,7 +239,7 @@ public class Aggregator {
     for (HiveQueryId hqid : queries) {
       operationIdVsHiveId.put(hqid.operationId, hqid.entity);
     }
-    LOG.info("operationIdVsHiveId : {} ", operationIdVsHiveId);
+    LOG.debug("operationIdVsHiveId : {} ", operationIdVsHiveId);
     //cover case when operationId is present, but not exists in ATS
     //e.g. optimized queries without executing jobs, like "SELECT * FROM TABLE"
     List<Job> jobs = viewJobResourceManager.readAll(new OnlyOwnersFilteringStrategy(username));
