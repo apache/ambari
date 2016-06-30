@@ -191,10 +191,6 @@ def setup_ranger_admin(upgrade_type=None):
 
   create_core_site_xml(ranger_conf)
 
-  if params.stack_supports_logsearch_client and params.is_solrCloud_enabled:
-    solr_cloud_util.setup_solr_client(params.config, user = params.solr_user, custom_log4j = params.custom_log4j)
-    setup_ranger_audit_solr()
-
 def setup_ranger_db(stack_version=None):
   import params
   
