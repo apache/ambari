@@ -406,9 +406,11 @@ describe("App.MainServiceInfoConfigsController", function () {
   describe("#doCancel", function () {
     beforeEach(function () {
       sinon.stub(Em.run, 'once', Em.K);
+      sinon.stub(mainServiceInfoConfigsController, 'clearRecommendationsInfo');
     });
     afterEach(function () {
       Em.run.once.restore();
+      mainServiceInfoConfigsController.clearRecommendationsInfo.restore();
     });
 
     it("should clear dependent configs", function() {
@@ -416,6 +418,7 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
       mainServiceInfoConfigsController.doCancel();
       expect(App.isEmptyObject(mainServiceInfoConfigsController.get('recommendations'))).to.be.true;
+      expect(mainServiceInfoConfigsController.clearRecommendationsInfo.calledOnce).to.be.true;
     });
   });
 
