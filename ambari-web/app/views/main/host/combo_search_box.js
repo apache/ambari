@@ -22,6 +22,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   templateName: require('templates/main/host/combo_search_box'),
   healthStatusCategories: require('data/host/categories'),
   errMsg: '',
+  serviceMap : {},
 
   didInsertElement: function () {
     this.initVS();
@@ -104,6 +105,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     var controller = App.router.get('mainHostComboSearchBoxController');
     this.showHideClearButton();
     var map = App.router.get('mainHostController.labelValueMap');
+    var serviceMap = this.get('serviceMap')
     var facetValue = map[facet] || facet;
     if (controller.isComponentStateFacet(facetValue)) {
       facetValue = 'componentState'
@@ -147,7 +149,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
         break;
       case 'services':
         callback(App.Service.find().toArray().map(function (service) {
-          map[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
+          serviceMap[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
           return App.format.role(service.get('serviceName'), true);
         }).reject(function (item) {
           return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
@@ -289,12 +291,13 @@ App.MainHostComboSearchBoxView = Em.View.extend({
   createFilterConditions: function(searchCollection) {
     var self = this;
     var mainHostController = App.router.get('mainHostController');
+    var map = mainHostController.get('labelValueMap');
+    var serviceMap = this.get('serviceMap');
     var filterConditions = Em.A();
     searchCollection.models.forEach(function (model) {
       var tag = model.attributes;
-      var map = mainHostController.get('labelValueMap');
       var category = map[tag.category] || tag.category;
-      var value = map[tag.value] || tag.value;
+      var value = (category == 'services')? (serviceMap[tag.value] || tag.value) : (map[tag.value] || tag.value);
 
       var iColumn = self.getFilterColumn(category, value);
       var filterValue = self.getFilterValue(category, value);
