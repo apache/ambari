@@ -21,7 +21,6 @@ package org.apache.ambari.view.hive.resources.uploads.parsers;
 import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.Row;
 import org.apache.ambari.view.hive.resources.uploads.ColumnDescriptionImpl;
-import org.apache.ambari.view.hive.resources.uploads.TableDataReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +38,7 @@ public abstract class Parser implements IParser {
 
   protected final static Logger LOG =
     LoggerFactory.getLogger(Parser.class);
+  public static final String COLUMN_PREFIX = "column";
 
   protected Reader reader; // same as CSV reader in this case
   protected ParseOptions parseOptions;
@@ -70,11 +70,6 @@ public abstract class Parser implements IParser {
   }
 
   @Override
-  public Reader getTableDataReader() {
-    return new TableDataReader(this.iterator());
-  }
-
-  @Override
   public PreviewData parsePreview() {
     LOG.info("generating preview for : {}", this.parseOptions );
 
@@ -88,7 +83,7 @@ public abstract class Parser implements IParser {
     }
 
     int numberOfRows = numberOfPreviewRows;
-    previewRows = new ArrayList<>(numberOfPreviewRows + 1); // size including the header.
+    previewRows = new ArrayList<>(numberOfPreviewRows);
 
     Row headerRow = null;
     Integer numOfCols = null;
@@ -152,7 +147,7 @@ public abstract class Parser implements IParser {
       ColumnDescription.DataTypes type = getLikelyDataType(previewRows,colNum);
       LOG.info("datatype detected for column {} : {}", colNum, type);
 
-      String colName = "Column" + (colNum + 1);
+      String colName = COLUMN_PREFIX + (colNum + 1);
       if (null != headerRow)
         colName = (String) headerRow.getRow()[colNum];
 

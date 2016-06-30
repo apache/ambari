@@ -18,10 +18,6 @@
 
 package org.apache.ambari.view.hive.resources.upload;
 
-import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.ColumnDescriptionShort;
 import org.apache.ambari.view.hive.client.Row;
@@ -33,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringReader;
 
 public class DataParserCSVTest {
@@ -189,8 +184,8 @@ public class DataParserCSVTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("Column1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
-        new ColumnDescriptionImpl("Column2", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.INT.toString(), 0),
+        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.CHAR.toString(), 1)};
 
       Object cols1[] = new Object[2];
       cols1[0] = "1";

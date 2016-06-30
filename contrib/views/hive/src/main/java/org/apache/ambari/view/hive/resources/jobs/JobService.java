@@ -435,7 +435,6 @@ public class JobService extends BaseService {
         job.setSessionTag(null);
       }
 
-      LOG.info("allJobs : {}", allJobs);
       return allJobs;
     } catch (WebApplicationException ex) {
       LOG.error("Exception occured while fetching all jobs.", ex);

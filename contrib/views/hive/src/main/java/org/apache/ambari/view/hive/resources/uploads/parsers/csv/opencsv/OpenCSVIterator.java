@@ -16,21 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads.parsers.csv;
+package org.apache.ambari.view.hive.resources.uploads.parsers.csv.opencsv;
 
 import org.apache.ambari.view.hive.client.Row;
-import org.apache.commons.csv.CSVRecord;
 
 import java.util.Iterator;
 
 /**
  * iterates over the input CSV records and generates Row objects
  */
-class CSVIterator implements Iterator<Row> {
+class OpenCSVIterator implements Iterator<Row> {
 
-  private Iterator<CSVRecord> iterator;
+  private Iterator<String[]> iterator;
 
-  public CSVIterator(Iterator<CSVRecord> iterator) {
+  public OpenCSVIterator(Iterator<String[]> iterator) {
     this.iterator = iterator;
   }
 
@@ -41,10 +40,10 @@ class CSVIterator implements Iterator<Row> {
 
   @Override
   public Row next() {
-    CSVRecord row = iterator.next();
-    Object[] values = new Object[row.size()];
+    String[] row = iterator.next();
+    Object[] values = new Object[row.length];
     for (int i = 0; i < values.length; i++) {
-      values[i] = row.get(i);
+      values[i] = row[i];
     }
     Row r = new Row(values);
     return r;

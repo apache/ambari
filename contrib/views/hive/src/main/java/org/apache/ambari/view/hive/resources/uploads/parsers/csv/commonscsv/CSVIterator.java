@@ -16,17 +16,42 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.uploads.parsers;
+package org.apache.ambari.view.hive.resources.uploads.parsers.csv.commonscsv;
 
 import org.apache.ambari.view.hive.client.Row;
+import org.apache.commons.csv.CSVRecord;
+
+import java.util.Iterator;
 
 /**
- * Interface defining methods for Parsers that can used for generating preview
- * and uploading table into hive.
+ * iterates over the input CSV records and generates Row objects
  */
-public interface IParser extends Iterable<Row>, AutoCloseable{
+class CSVIterator implements Iterator<Row> {
 
-  PreviewData parsePreview();
+  private Iterator<CSVRecord> iterator;
 
-  Row extractHeader();
+  public CSVIterator(Iterator<CSVRecord> iterator) {
+    this.iterator = iterator;
+  }
+
+  @Override
+  public boolean hasNext() {
+    return iterator.hasNext();
+  }
+
+  @Override
+  public Row next() {
+    CSVRecord row = iterator.next();
+    Object[] values = new Object[row.size()];
+    for (int i = 0; i < values.length; i++) {
+      values[i] = row.get(i);
+    }
+    Row r = new Row(values);
+    return r;
+  }
+
+  @Override
+  public void remove() {
+    this.iterator.remove();
+  }
 }

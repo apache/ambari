@@ -703,4 +703,14 @@ pre.explainprint{
  line-height: 0.5;
  padding: 12px 15px;
 }
+.settings-gear {
+  padding:5px;
+  cursor: pointer;
+}
 
+.settings-gear-disabled {
+  @extend .settings-gear;
+
+  color:#ddd;
+  cursor: default;
+}
