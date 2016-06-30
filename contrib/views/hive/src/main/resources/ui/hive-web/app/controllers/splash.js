@@ -19,9 +19,11 @@
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
-export default Ember.Controller.extend({
 
+export default Ember.Controller.extend({
   databaseService: Ember.inject.service(constants.namingConventions.database),
+  ldapAuthenticationService: Ember.inject.service(constants.namingConventions.ldapAuthentication),
+  notifyService: Ember.inject.service(constants.namingConventions.notify),
   isExpanded: false,
   errors: "",
   stackTrace: "",
@@ -32,12 +34,16 @@ export default Ember.Controller.extend({
     var self = this;
 
     var processResponse = function(name, data) {
-
       if( data != undefined ){
         if(data.databases){
           data = Ember.Object.create( {trace: null, message: "OK", status: "200"});
         } else {
-          data = data;
+
+          if(data.status === 401 && data.message === 'Hive Password Required'){
+            self.send('openLdapPasswordModal');
+          } else {
+            data = data;
+          }
         }
       } else {
         data = Ember.Object.create( {trace: null, message: "Server Error", status: "500"});
@@ -126,6 +132,33 @@ export default Ember.Controller.extend({
     toggleStackTrace:function () {
       var value = this.get('isExpanded');
       this.set('isExpanded', !value);
+    },
+    openLdapPasswordModal: function(){
+
+      var self = this,
+          defer = Ember.RSVP.defer();
+
+      this.send('openModal', 'modal-save', {
+        heading: "modals.authenticationLDAP.heading",
+        text:"",
+        type: "password",
+        defer: defer
+      });
+
+      defer.promise.then(function (text) {
+        var ldapAuthPromise = self.get('ldapAuthenticationService').authenticateLdapPassword(text);
+
+        ldapAuthPromise.then(function (data) {
+          self.send('reloadView');
+        }, function (error) {
+          console.log( "LDAP fail: " + error );
+          self.get('notifyService').error( "Wrong Credentials." );
+        })
+      });
+
+    },
+    reloadView: function() {
+      document.location.reload(true);
     }
   }
 });

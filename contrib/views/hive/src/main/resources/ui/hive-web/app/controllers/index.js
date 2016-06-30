@@ -26,6 +26,7 @@ export default Ember.Controller.extend({
   notifyService: Ember.inject.service(constants.namingConventions.notify),
   session: Ember.inject.service(constants.namingConventions.session),
   settingsService: Ember.inject.service(constants.namingConventions.settings),
+  ldapAuthenticationService: Ember.inject.service(constants.namingConventions.ldapAuthentication),
 
   openQueries   : Ember.inject.controller(constants.namingConventions.openQueries),
   udfs          : Ember.inject.controller(constants.namingConventions.udfs),
@@ -499,46 +500,32 @@ export default Ember.Controller.extend({
             self = this,
             defer = Ember.RSVP.defer();
 
-        this.send('openModal', 'modal-save', {
-          heading: "modals.authenticationLDAP.heading",
-          text:"",
-          type: "password",
-          defer: defer
-        });
+      this.send('openModal', 'modal-save', {
+        heading: "modals.authenticationLDAP.heading",
+        text:"",
+        type: "password",
+        defer: defer
+      });
 
-        defer.promise.then(function (text) {
-            // make a post call with the given ldap password.
-            var password = text;
-            var pathName = window.location.pathname;
-            var pathNameArray = pathName.split("/");
-            var hiveViewVersion = pathNameArray[3];
-            var hiveViewName = pathNameArray[4];
-            var ldapAuthURL = "/api/v1/views/HIVE/versions/"+ hiveViewVersion + "/instances/" + hiveViewName + "/jobs/auth";
+      defer.promise.then(function (text) {
+        var ldapAuthPromise = self.get('ldapAuthenticationService').authenticateLdapPassword(text);
 
-            $.ajax({
-                url: ldapAuthURL,
-                type: 'post',
-                headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
-                contentType: 'application/json',
-                data: JSON.stringify({ "password" : password}),
-                success: function( data, textStatus, jQxhr ){
-
-                  self.get('databaseService').getDatabases().then(function (databases) {
-                    var selectedDatabase = self.get('databaseService.selectedDatabase.name') || 'default';
-                    self.get('databaseService').setDatabaseByName( selectedDatabase);
-                    return self.send('executeQuery', 'job', self.get('openQueries.currentQuery.fileContent') );
-                  }).catch(function (error) {
-                    self.get('notifyService').error( "Error in accessing databases." );
-                  });
-
-                },
-                error: function( jqXhr, textStatus, errorThrown ){
-                    console.log( "LDAP fail: " + errorThrown );
-                    self.get('notifyService').error( "Wrong Credentials." );
-                }
-            });
-
+        ldapAuthPromise.then(function (data) {
+          console.log( "LDAP done: " + data );
+          self.get('databaseService').getDatabases().then(function (databases) {
+            var selectedDatabase = self.get('databaseService.selectedDatabase.name') || 'default';
+            self.get('databaseService').setDatabaseByName( selectedDatabase);
+            return self.send('executeQuery', 'job', self.get('openQueries.currentQuery.fileContent') );
+          }).catch(function (error) {
+            self.get('notifyService').error( "Error in accessing databases." );
           });
+
+        }, function (error) {
+          console.log( "LDAP fail: " + error );
+          self.get('notifyService').error( "Wrong Credentials." );
+        })
+      });
+
     },
 
     stopCurrentJob: function () {

@@ -23,6 +23,7 @@ import ENV from '../config/environment';
 export default Ember.Controller.extend({
   databaseService: Ember.inject.service(constants.namingConventions.database),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
+  ldapAuthenticationService: Ember.inject.service(constants.namingConventions.ldapAuthentication),
 
   pageCount: 10,
 
@@ -172,7 +173,7 @@ export default Ember.Controller.extend({
       self._handleError(error);
 
       if(error.status == 401) {
-         self.send('passwordLDAPDB');
+         self.send('openLdapPasswordModal');
       }
     }).finally(function() {
       self.set('isDatabaseRefreshInProgress', false);
@@ -241,9 +242,10 @@ export default Ember.Controller.extend({
       }
     },
 
-    passwordLDAPDB: function(){
+    openLdapPasswordModal: function(){
+
       var self = this,
-          defer = Ember.RSVP.defer();
+        defer = Ember.RSVP.defer();
 
       this.send('openModal', 'modal-save', {
         heading: "modals.authenticationLDAP.heading",
@@ -253,31 +255,18 @@ export default Ember.Controller.extend({
       });
 
       defer.promise.then(function (text) {
-        // make a post call with the given ldap password.
-        var password = text;
-        var pathName = window.location.pathname;
-        var pathNameArray = pathName.split("/");
-        var hiveViewVersion = pathNameArray[3];
-        var hiveViewName = pathNameArray[4];
-        var ldapAuthURL = "/api/v1/views/HIVE/versions/"+ hiveViewVersion + "/instances/" + hiveViewName + "/jobs/auth";
+        var ldapAuthPromise = self.get('ldapAuthenticationService').authenticateLdapPassword(text);
 
-        $.ajax({
-          url: ldapAuthURL,
-          type: 'post',
-          headers: {'X-Requested-With': 'XMLHttpRequest', 'X-Requested-By': 'ambari'},
-          contentType: 'application/json',
-          data: JSON.stringify({ "password" : password}),
-          success: function( data, textStatus, jQxhr ){
-            console.log( "LDAP done: " + data );
-            self.getDatabases();
-            self.syncDatabases();
-          },
-          error: function( jqXhr, textStatus, errorThrown ){
-            console.log( "LDAP fail: " + errorThrown );
-            self.get('notifyService').error( "Wrong Credentials." );
-          }
-        });
+        ldapAuthPromise.then(function (data) {
+          console.log( "LDAP done: " + data );
+          self.getDatabases();
+          self.syncDatabases();
+        }, function (error) {
+          console.log( "LDAP fail: " + error );
+          self.get('notifyService').error( "Wrong Credentials." );
+        })
       });
+
     },
 
     loadSampleData: function (tableName, database) {
