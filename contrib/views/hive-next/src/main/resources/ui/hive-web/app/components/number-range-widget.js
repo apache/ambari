@@ -54,17 +54,26 @@ export default Ember.Component.extend({
     numberRange.set('fromDuration', utils.secondsToHHMMSS(numberRange.get('from')));
     numberRange.set('toDuration', utils.secondsToHHMMSS(numberRange.get('to')));
   },
-  updateMin: function () {
+  updateFrom: function () {
     if (this.get('rendered')) {
       this.$('.slider').slider('values', 0, this.get('numberRange.from'));
       this.updateRangeLables();
     }
   }.observes('numberRange.from'),
 
-  updateMax: function () {
+  updateTo: function () {
     if (this.get('rendered')) {
       this.$('.slider').slider('values', 1, this.get('numberRange.to'));
       this.updateRangeLables();
     }
-  }.observes('numberRange.to')
+  }.observes('numberRange.to'),
+
+  updateMin: function(){
+    this.$( ".slider" ).slider( "option", "min", this.get('numberRange.min') );
+  }.observes('numberRange.min'),
+
+  updateMax: function(){
+    this.$( ".slider" ).slider( "option", "max", this.get('numberRange.max') );
+  }.observes('numberRange.max')
+
 });

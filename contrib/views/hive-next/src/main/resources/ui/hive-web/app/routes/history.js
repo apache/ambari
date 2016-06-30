@@ -17,23 +17,13 @@
  */
 
 import Ember from 'ember';
-import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
-  notifyService: Ember.inject.service(constants.namingConventions.notify),
-
-  model: function () {
-    var self = this;
-
-    return this.store.find(constants.namingConventions.job).catch(function (error) {
-      self.get('notifyService').error(error);
-    });
+  deactivate: function () {
+    this.controller.onUnloadRoute();
   },
 
   setupController: function (controller, model) {
-    if (!model) {
-      return;
-    }
-    controller.set('history', model);
+    this.controller.onLoadRoute();
   }
 });

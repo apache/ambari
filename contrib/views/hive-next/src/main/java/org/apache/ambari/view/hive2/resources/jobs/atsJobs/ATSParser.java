@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class ATSParser implements IATSParser {
   protected final static Logger LOG =
-      LoggerFactory.getLogger(ATSParser.class);
+    LoggerFactory.getLogger(ATSParser.class);
 
   private ATSRequestsDelegate delegate;
 
@@ -42,13 +42,36 @@ public class ATSParser implements IATSParser {
     this.delegate = delegate;
   }
 
+  /**
+   * returns all HiveQueryIDs from ATS for the given user.
+   * @param username
+   * @return
+   */
   @Override
-  public List<HiveQueryId> getHiveQueryIdsList(String username) {
-    JSONObject entities = delegate.hiveQueryIdList(username);
+  public List<HiveQueryId> getHiveQueryIdsForUser(String username) {
+    JSONObject entities = delegate.hiveQueryIdsForUser(username);
+    return parseHqidJsonFromATS(entities);
+  }
+
+  /**
+   * parses the JSONArray or hive query IDs
+   * @param entities: should contain 'entities' element as JSONArray
+   * @return
+   */
+  private List<HiveQueryId> parseHqidJsonFromATS(JSONObject entities) {
     JSONArray jobs = (JSONArray) entities.get("entities");
 
-    List<HiveQueryId> parsedJobs = new LinkedList<HiveQueryId>();
-    for(Object job : jobs) {
+    return getHqidListFromJsonArray(jobs);
+  }
+
+  /**
+   * parses List of HiveQueryIds from JSON
+   * @param jobs
+   * @return
+   */
+  private List<HiveQueryId> getHqidListFromJsonArray(JSONArray jobs) {
+    List<HiveQueryId> parsedJobs = new LinkedList<>();
+    for (Object job : jobs) {
       try {
         HiveQueryId parsedJob = parseAtsHiveJob((JSONObject) job);
         parsedJobs.add(parsedJob);
@@ -81,14 +104,29 @@ public class ATSParser implements IATSParser {
   @Override
   public HiveQueryId getHiveQueryIdByOperationId(String guidString) {
     JSONObject entities = delegate.hiveQueryIdByOperationId(guidString);
+    return getHiveQueryIdFromJson(entities);
+  }
+
+  private HiveQueryId getHiveQueryIdFromJson(JSONObject entities) {
     JSONArray jobs = (JSONArray) entities.get("entities");
 
-    assert jobs.size() <= 1;
     if (jobs.size() == 0) {
       return new HiveQueryId();
     }
 
     return parseAtsHiveJob((JSONObject) jobs.get(0));
+  }
+
+  /**
+   * returns the hive entity from ATS. empty object if not found.
+   *
+   * @param hiveId: the entityId of the hive
+   * @return: empty entity if not found else HiveQueryId
+   */
+  @Override
+  public HiveQueryId getHiveQueryIdByHiveEntityId(String hiveId) {
+    JSONObject entity = delegate.hiveQueryEntityByEntityId(hiveId);
+    return parseAtsHiveJob(entity);
   }
 
   @Override
@@ -101,6 +139,32 @@ public class ATSParser implements IATSParser {
   public TezDagId getTezDAGByEntity(String entity) {
     JSONArray tezDagEntities = (JSONArray) delegate.tezDagByEntity(entity).get("entities");
     return parseTezDag(tezDagEntities);
+  }
+
+  /**
+   * fetches the HIVE_QUERY_ID from ATS for given user between given time period
+   *
+   * @param username:  username for which to fetch hive query IDs
+   * @param startTime: time in miliseconds, inclusive
+   * @param endTime:   time in miliseconds, exclusive
+   * @return: List of HIVE_QUERY_ID
+   */
+  @Override
+  public List<HiveQueryId> getHiveQueryIdsForUserByTime(String username, long startTime, long endTime) {
+    JSONObject entities = delegate.hiveQueryIdsForUserByTime(username, startTime, endTime);
+    return parseHqidJsonFromATS(entities);
+  }
+
+  @Override
+  public List<HiveQueryId> getHiveQueryIdByEntityList(List<String> hiveIds) {
+    List<HiveQueryId> hiveQueryIds = new LinkedList<>();
+    for (String id : hiveIds) {
+      HiveQueryId hqi = this.getHiveQueryIdByHiveEntityId(id);
+      if (null != hqi.entity) {
+        hiveQueryIds.add(hqi);
+      }
+    }
+    return hiveQueryIds;
   }
 
   private TezDagId parseTezDag(JSONArray tezDagEntities) {
@@ -123,7 +187,7 @@ public class ATSParser implements IATSParser {
 
     parsedJob.entity = (String) job.get("entity");
     parsedJob.url = delegate.hiveQueryIdDirectUrl((String) job.get("entity"));
-    parsedJob.starttime = ((Long) job.get("starttime")) / MillisInSecond;
+    parsedJob.starttime = ((Long) job.get("starttime"));
 
     JSONObject primaryfilters = (JSONObject) job.get("primaryfilters");
     JSONArray operationIds = (JSONArray) primaryfilters.get("operationid");
@@ -136,9 +200,9 @@ public class ATSParser implements IATSParser {
     }
 
     JSONObject lastEvent = getLastEvent(job);
-    long lastEventTimestamp = ((Long) lastEvent.get("timestamp")) / MillisInSecond;
+    long lastEventTimestamp = ((Long) lastEvent.get("timestamp"));
 
-    parsedJob.duration = lastEventTimestamp - parsedJob.starttime;
+    parsedJob.duration = (lastEventTimestamp - parsedJob.starttime) / MillisInSecond;
 
     JSONObject otherinfo = (JSONObject) job.get("otherinfo");
     if (otherinfo.get("QUERY") != null) {  // workaround for HIVE-10829

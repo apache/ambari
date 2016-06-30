@@ -187,17 +187,16 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
     private static final long MillisInSecond = 1000L;
 
-    public void updateJobDuration() {
-        job.setDuration(System.currentTimeMillis() / MillisInSecond - job.getDateSubmitted());
-    }
+  public void updateJobDuration() {
+    job.setDuration((System.currentTimeMillis() / MillisInSecond) - (job.getDateSubmitted() / MillisInSecond));
+  }
 
-    public void setCreationDate() {
-        job.setDateSubmitted(System.currentTimeMillis() / MillisInSecond);
-    }
+  public void setCreationDate() {
+    job.setDateSubmitted(System.currentTimeMillis());
+  }
 
-
-    private void setupLogFile() {
-        LOG.debug("Creating log file for job#" + job.getId());
+  private void setupLogFile() {
+    LOG.debug("Creating log file for job#" + job.getId());
 
         String logFile = job.getStatusDir() + "/" + "logs";
         try {

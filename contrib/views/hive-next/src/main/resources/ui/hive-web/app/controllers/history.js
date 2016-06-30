@@ -23,50 +23,87 @@ import constants from 'hive/utils/constants';
 export default Ember.ArrayController.extend(FilterableMixin, {
   jobService: Ember.inject.service('job'),
   fileService: Ember.inject.service('file'),
-
+  historyService: Ember.inject.service('history'),
+  NUM_OF_DAYS: 5,
+  REFRESH_INTERVAL_SEC: 30000,
   sortAscending: false,
   sortProperties: ['dateSubmittedTimestamp'],
 
-  init: function () {
-    var oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    this._super();
-
-    this.set('columns', Ember.ArrayProxy.create({ content: Ember.A([
-      Ember.Object.create({
-        caption: 'columns.title',
-        property: 'title',
-        link: constants.namingConventions.subroutes.historyQuery
-      }),
-      Ember.Object.create({
-        caption: 'columns.status',
-        property: 'status'
-      }),
-      Ember.Object.create({
-        caption: 'columns.date',
-        property: 'dateSubmittedTimestamp',
-        dateRange: Ember.Object.create({
-          min: oneMonthAgo,
-          max: new Date()
-        })
-      }),
-      Ember.Object.create({
-        caption: 'columns.duration',
-        property: 'duration',
-        numberRange: Ember.Object.create({
-          min: 0,
-          max: 10,
-          units: 'sec'
-        })
-      })
-    ])}));
+  refresher: function () {
+    var self = this;
+    Ember.run.later(function () {
+      if (self.get('isShowing')) {
+        self.refresh();
+      }
+      self.refresher();
+    }, self.get('REFRESH_INTERVAL_SEC'));
   },
+  onLoadRoute: function () {
+    this.set('isShowing', true);
+  },
+  onUnloadRoute: function () {
+    this.set('isShowing', false);
+  },
+  init: function () {
+    this._super();
+    var self = this;
+    var fromTime = moment().subtract(this.get('NUM_OF_DAYS'), 'days').startOf('day');
+    var time = moment();
+    var toTime = moment({
+      years: time.year(),
+      months: time.month(),
+      date: time.date(),
+      hours: 23,
+      minutes: 59,
+      seconds: 59,
+      milliseconds: 999
+    }); // next 12AM
 
-  model: function () {
-    return this.filter(this.get('history'));
-  }.property('history', 'filters.@each'),
+    this.set('columns', Ember.ArrayProxy.create({
+      content: Ember.A([
+        Ember.Object.create({
+          caption: 'columns.title',
+          property: 'title',
+          link: constants.namingConventions.subroutes.historyQuery
+        }),
+        Ember.Object.create({
+          caption: 'columns.status',
+          property: 'status'
+        }),
+        Ember.Object.create({
+          caption: 'columns.date',
+          property: 'dateSubmittedTimestamp',
+          dateRange: Ember.Object.create({
+            min: fromTime.toDate(),
+            max: toTime.toDate()
+          })
+        }),
+        Ember.Object.create({
+          caption: 'columns.duration',
+          property: 'duration',
+          numberRange: Ember.Object.create({
+            min: 0,
+            max: 10,
+            units: 'sec'
+          })
+        })
+      ])
+    }));
 
+    return this.updateJobs(fromTime, toTime).then(function (data) {
+      self.applyDurationFilter();
+      self.refresher();
+    });
+  },
+  applyDurationFilter: function () {
+    var self = this;
+    var durationColumn = this.get('columns').find(function (column) {
+      return column.get('caption') === 'columns.duration';
+    });
+    var from = durationColumn.get('numberRange.from');
+    var to = durationColumn.get('numberRange.to');
+    self.filterBy("duration", {min: from, max: to});
+  },
   updateIntervals: function () {
     var durationColumn;
     var maxDuration;
@@ -86,51 +123,101 @@ export default Ember.ArrayController.extend(FilterableMixin, {
 
       durationColumn.set('numberRange.min', minDuration);
       durationColumn.set('numberRange.max', maxDuration);
+      var from = durationColumn.get('numberRange.from');
+      var to = durationColumn.get('numberRange.to');
+      if (from > maxDuration) {
+        durationColumn.set("numberRange.from", maxDuration);
+      }
+      if (to < minDuration) {
+        durationColumn.set("numberRange.to", minDuration);
+      }
     }
   }.observes('history'),
 
-  updateDateRange: function () {
-    var dateColumn;
-    var maxDate;
-    var minDate;
+  model: function () {
+    return this.filter(this.get('history'));
+  }.property('history', 'filters.@each'),
 
-    if (this.get('columns')) {
-      dateColumn = this.get('columns').find(function (column) {
-        return column.get('caption') === 'columns.date';
-      });
-
-      var items = this.get('history').map(function (item) {
-        return item.get(dateColumn.get('property'));
-      });
-
-      minDate = items.length ? Math.min.apply(Math, items) : new Date();
-      maxDate = items.length ? Math.max.apply(Math, items) : new Date();
-
-      dateColumn.set('dateRange.min', minDate);
-      dateColumn.set('dateRange.max', maxDate);
-    }
-  }.observes('history'),
+  updateJobs: function (fromDate, toDate) {
+    var self = this;
+    var fromTime = moment(fromDate).startOf('day').toDate().getTime();
+    var time = moment(toDate);
+    var toTime = moment({
+      years: time.year(),
+      months: time.month(),
+      date: time.date(),
+      hours: 23,
+      minutes: 59,
+      seconds: 59,
+      milliseconds: 999
+    }).toDate().getTime(); // next 12AM
+    this.set("fromTime", fromTime);
+    this.set("toTime", toTime);
+    return this.get("historyService").getJobs(fromTime, toTime).then(function (data) {
+      self.set('history', data);
+    });
+  },
 
   filterBy: function (filterProperty, filterValue, exactMatch) {
     var column = this.get('columns').find(function (column) {
       return column.get('property') === filterProperty;
     });
 
+    var isDateColumn = column.get('caption') === 'columns.date';
+
     if (column) {
       column.set('filterValue', filterValue, exactMatch);
+      if (isDateColumn) {
+
+        return this.updateJobs(filterValue.min, filterValue.max);
+      } else {
+        this.updateFilters(filterProperty, filterValue, exactMatch);
+      }
     } else {
       this.updateFilters(filterProperty, filterValue, exactMatch);
     }
   },
 
+  refresh: function () {
+    var self = this;
+    this.get('historyService').getUpdatedJobList(this.get('toTime')).then(function (data) {
+      self.set('history', data);
+    });
+  },
+
   actions: {
+
+    refreshJobs: function () {
+      this.refresh();
+    },
+
+    filterUpdated: function (filterProperty, filterValue) {
+      var self = this;
+      var column = this.get('columns').find(function (column) {
+        return column.get('property') === filterProperty;
+      });
+
+      var isDateColumn = (column.get('caption') === 'columns.date');
+
+      if (column) {
+        column.set('filterValue', filterValue);
+        if (isDateColumn) {
+          return this.updateJobs(filterValue.min, filterValue.max).then(function (data) {
+            self.updateFilters(filterProperty, filterValue);
+          });
+        } else {
+          self.updateFilters(filterProperty, filterValue);
+        }
+      }
+    },
+
     sort: function (property) {
       //if same column has been selected, toggle flag, else default it to true
       if (this.get('sortProperties').objectAt(0) === property) {
         this.set('sortAscending', !this.get('sortAscending'));
       } else {
         this.set('sortAscending', true);
-        this.set('sortProperties', [ property ]);
+        this.set('sortProperties', [property]);
       }
     },
 

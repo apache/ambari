@@ -38,6 +38,7 @@ import org.apache.ambari.view.hive2.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
+import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobInfo;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobResourceManager;
 import org.apache.ambari.view.hive2.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.hive2.utils.NotFoundFormattedException;
@@ -457,20 +458,50 @@ public class JobService extends BaseService {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getList() {
+  public List<Job> getList(@QueryParam("startTime") long startTime, @QueryParam("endTime") long endTime) {
     try {
-      LOG.debug("Getting all job");
-      List<Job> allJobs = getAggregator().readAll(context.getUsername());
+
+      LOG.debug("Getting all job: startTime: {}, endTime: {}",startTime,endTime);
+      List<Job> allJobs = getAggregator().readAllForUserByTime(context.getUsername(),startTime, endTime);
       for(Job job : allJobs) {
         job.setSessionTag(null);
       }
 
-      JSONObject object = new JSONObject();
-      object.put("jobs", allJobs);
-      return Response.ok(object).build();
+      LOG.info("allJobs : {}", allJobs);
+      return allJobs;
     } catch (WebApplicationException ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
       throw ex;
     } catch (Exception ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * fetch the jobs with given info.
+   * provide as much info about the job so that next api can optimize the fetch process.
+   * @param jobInfos
+   * @return
+   */
+  @Path("/getList")
+  @POST
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public List<Job> getList(List<JobInfo> jobInfos) {
+    try {
+      LOG.debug("fetching jobs with ids :{}", jobInfos);
+      List<Job> allJobs = getAggregator().readJobsByIds(jobInfos);
+      for(Job job : allJobs) {
+        job.setSessionTag(null);
+      }
+
+      return allJobs;
+    } catch (WebApplicationException ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
+      throw ex;
+    } catch (Exception ex) {
+      LOG.error("Exception occured while fetching all jobs.", ex);
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
