@@ -42,6 +42,6 @@ public class RMProxyResource extends BaseProxyResource {
   @Override
   public String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams) {
     String activeRMUrl = viewController.getActiveRMUrl();
-    return String.format("%s/%s%s", activeRMUrl, endpoint, proxyHelper.getQueryParamsString(queryParams));
+    return proxyHelper.getProxyUrl(activeRMUrl, endpoint, queryParams);
   }
 }
