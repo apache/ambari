@@ -22,4 +22,22 @@ package org.apache.ambari.view.hive2.persistence.utils;
  * Thrown when item was not found in DB
  */
 public class ItemNotFound extends Exception {
+  public ItemNotFound() {
+  }
+
+  public ItemNotFound(String message) {
+    super(message);
+  }
+
+  public ItemNotFound(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public ItemNotFound(Throwable cause) {
+    super(cause);
+  }
+
+  public ItemNotFound(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
+  }
 }

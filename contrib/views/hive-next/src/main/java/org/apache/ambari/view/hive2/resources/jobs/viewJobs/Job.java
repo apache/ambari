@@ -125,7 +125,7 @@ public interface Job extends Serializable,Indexed,PersonalResource {
 
   void setGuid(String guid);
 
-  String getErrorFile();
+  String getHiveQueryId();
 
-  void setErrorFile(String errorFile);
+  void setHiveQueryId(String hiveQueryId);
 }

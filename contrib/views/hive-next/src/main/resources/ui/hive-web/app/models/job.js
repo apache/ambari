@@ -21,6 +21,7 @@ import DS from 'ember-data';
 export default DS.Model.extend({
   title: DS.attr('string'),
   queryId: DS.attr(),
+  hiveQueryId: DS.attr('string'),
   queryFile: DS.attr('string'),
   owner: DS.attr('string'),
   dataBase: DS.attr('string'),
@@ -43,7 +44,7 @@ export default DS.Model.extend({
   dateSubmittedTimestamp: function () {
     var date = this.get('dateSubmitted');
 
-    return date ? date * 1000 : date;
+    return date; // ? date * 1000 : date; now dateSubmitted itself is in miliseconds. so conversion not required.
   }.property('dateSubmitted'),
 
   uppercaseStatus: function () {
