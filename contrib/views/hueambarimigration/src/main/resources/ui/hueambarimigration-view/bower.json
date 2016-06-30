@@ -1,0 +1,14 @@
+{
+  "name": "hueambarimigration-view",
+  "dependencies": {
+    "ember": "~2.4.3",
+    "ember-cli-shims": "0.1.1",
+    "ember-cli-test-loader": "0.2.2",
+    "ember-qunit-notifications": "0.1.0",
+    "bootstrap": "^3.3.6",
+    "pikaday": "^1.4.0",
+    "moment": "^2.13.0",
+    "selectize": "miguelcobain/selectize.js#master",
+    "pace": "^1.0.2"
+  }
+}
