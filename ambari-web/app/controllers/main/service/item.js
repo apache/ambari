@@ -1454,13 +1454,33 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
   /**
    * Describes condition when recommendation should be applied
-   * For removing services it's always true
-   * This property required for request for recommendations
+   * Unfortunately for removing services it's not always true
+   * Property should be updated only if it depends on service that will be removed
+   * (similar as on add service)
    *
    * @return {Boolean}
    * @override
    */
-  allowUpdateProperty: function() { return true; },
+  allowUpdateProperty: function (parentProperties, name, fileName) {
+    var stackProperty = App.configsCollection.getConfigByName(name, fileName);
+    if (!stackProperty || (stackProperty.serviceName === this.get('content.serviceName'))) {
+      /**
+       * update properties for current service (in case will be used not only for removing service)
+       * and properties that are not defined in stack
+       */
+      return true;
+    }
+    if (stackProperty.propertyDependsOn.length) {
+      /**
+       * update properties that depends on current service
+       */
+      return !!stackProperty.propertyDependsOn.filter(function (p) {
+        var service = App.config.get('serviceByConfigTypeMap')[p.type];
+        return service && (this.get('content.serviceName') === service.get('serviceName'));
+      }, this).length;
+    }
+    return false;
+  },
 
   /**
    * Just config version note
