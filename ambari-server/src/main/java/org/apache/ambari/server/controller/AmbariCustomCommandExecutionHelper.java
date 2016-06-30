@@ -72,6 +72,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgressEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -988,6 +989,20 @@ public class AmbariCustomCommandExecutionHelper {
 
         if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
+        }
+
+        // If command should be retried upon failure then add the option and also the default duration for retry
+        if (requestParams.containsKey(KeyNames.COMMAND_RETRY_ENABLED)) {
+          extraParams.put(KeyNames.COMMAND_RETRY_ENABLED, requestParams.get(KeyNames.COMMAND_RETRY_ENABLED));
+          String commandRetryDuration = ConfigHelper.COMMAND_RETRY_MAX_TIME_IN_SEC_DEFAULT;
+          if (requestParams.containsKey(KeyNames.MAX_DURATION_OF_RETRIES)) {
+            String commandRetryDurationStr = requestParams.get(KeyNames.MAX_DURATION_OF_RETRIES);
+            Integer commandRetryDurationInt = NumberUtils.toInt(commandRetryDurationStr, 0);
+            if (commandRetryDurationInt > 0) {
+              commandRetryDuration = Integer.toString(commandRetryDurationInt);
+            }
+          }
+          extraParams.put(KeyNames.MAX_DURATION_OF_RETRIES, commandRetryDuration);
         }
 
         if(requestParams.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
