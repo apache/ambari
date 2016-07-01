@@ -18,6 +18,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+def fix_subprocess_racecondition():
+  """
+  Subprocess in Python has race condition with enabling/disabling gc. Which may lead to turning off python garbage collector.
+  This leads to a memory leak.
+  This function monkey patches subprocess to fix the issue.
+
+  !!! PLEASE NOTE THIS SHOULD BE CALLED BEFORE ANY OTHER INITIALIZATION was done to avoid already created links to subprocess or subprocess.gc or gc
+  """
+  # monkey patching subprocess
+  import subprocess
+  subprocess.gc.isenabled = lambda: True
+
+  # re-importing gc to have correct isenabled for non-subprocess contexts
+  import sys
+  del sys.modules['gc']
+  import gc
+
+fix_subprocess_racecondition()
+
 import gc
 import traceback
 import threading
