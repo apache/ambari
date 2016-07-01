@@ -281,8 +281,10 @@ export default Ember.Controller.extend({
           console.log("rejecting waitForJobStatus with : " + status);
           reject(new Error(job.statusMessage));
         } else {
-          console.log("retrying waitForJobStatus : ", jobId);
-          self.waitForJobStatus(jobId, resolve, reject);
+          Ember.run.later(function(){
+            console.log("retrying waitForJobStatus : ", jobId);
+            self.waitForJobStatus(jobId, resolve, reject);
+          },1000);
         }
       }, function (error) {
         console.log("rejecting waitForJobStatus with : " + error);
