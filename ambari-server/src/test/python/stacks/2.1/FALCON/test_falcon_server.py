@@ -46,7 +46,9 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
       path = ['/usr/bin'],
       user = 'falcon',
-      environment = {'HADOOP_HOME': '/usr/lib/hadoop'})
+      environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
+      not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
+    )
 
     self.assertNoMoreResources()
 
@@ -370,6 +372,7 @@ class TestFalconServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
         path = ['/usr/hdp/current/hadoop-client/bin'],
         user = 'falcon',
+        not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
     self.assertNoMoreResources()
     

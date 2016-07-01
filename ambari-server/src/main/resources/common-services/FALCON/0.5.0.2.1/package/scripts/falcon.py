@@ -31,6 +31,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.core.logger import Logger
 
 from ambari_commons import OSConst
@@ -186,12 +187,17 @@ def falcon(type, action = None, upgrade_type=None):
     # hadoop home directory to use
     environment_dictionary = { "HADOOP_HOME" : params.hadoop_home_dir }
 
+    pid = get_user_call_output.get_user_call_output(format("cat {server_pid_file}"), user=params.falcon_user, is_checked_call=False)[1]
+    process_exists = format("ls {server_pid_file} && ps -p {pid}")
+
     if action == 'start':
       try:
         Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
           user = params.falcon_user,
           path = params.hadoop_bin_dir,
-          environment=environment_dictionary)
+          environment=environment_dictionary,
+          not_if = process_exists,
+        )
       except:
         show_logs(params.falcon_log_dir, params.falcon_user)
         raise
