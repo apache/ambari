@@ -104,6 +104,7 @@ default_connectors_map = { "mssql":"sqljdbc4.jar",
                            "sqla":"sajdbc4.jar"}
 
 java_share_dir = '/usr/share/java'
+jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor == 'mysql':
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
