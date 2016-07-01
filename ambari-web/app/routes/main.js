@@ -216,9 +216,21 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         connectOutlets: function (router, context) {
           router.get('mainController').dataLoading().done(function() {
             var controller = router.get('mainHostDetailsController');
+            var tags =[{
+            	siteName: 'hive-env'
+            	}];
             if ( App.Service.find().mapProperty('serviceName').contains('OOZIE')) {
               controller.loadConfigs('loadOozieConfigs');
               controller.isOozieConfigLoaded.always(function () {
+                if(App.Service.find().mapProperty('serviceName').contains('HIVE')){
+                  App.router.get('configurationController').getConfigsByTags(tags).always(function () {
+            	    controller.connectOutlet('mainHostSummary');
+            	  });
+            	} else
+            	  controller.connectOutlet('mainHostSummary');  
+              });
+            } else if(App.Service.find().mapProperty('serviceName').contains('HIVE')) {
+              App.router.get('configurationController').getConfigsByTags(tags).always(function () {
                 controller.connectOutlet('mainHostSummary');
               });
             } else {
