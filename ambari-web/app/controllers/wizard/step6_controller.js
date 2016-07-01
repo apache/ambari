@@ -222,6 +222,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     this.set('headers', []);
     this.clearError();
     this.set('isLoaded', false);
+    this.set('validationInProgress', false);
   },
 
   /**
