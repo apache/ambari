@@ -1218,5 +1218,36 @@ App.config = Em.Object.create({
     }
     siteConfigs[propertyName] = value;
     return value;
+  },
+
+  /**
+   * Load cluster-env configs mapped to array
+   * @return {*|{then}}
+   */
+  getClusterEnvConfigs: function () {
+    var dfd = $.Deferred();
+    App.ajax.send({
+      name: 'config.cluster_env_site',
+      sender: this
+    }).done(function (data) {
+      App.router.get('configurationController').getConfigsByTags([{
+        siteName: data.items[data.items.length - 1].type,
+        tagName: data.items[data.items.length - 1].tag
+      }]).done(function (clusterEnvConfigs) {
+        var configsObject = clusterEnvConfigs[0].properties;
+        var configsArray = [];
+        for (var property in configsObject) {
+          if (configsObject.hasOwnProperty(property)) {
+            configsArray.push(Em.Object.create({
+              name: property,
+              value: configsObject[property],
+              filename: 'cluster-env.xml'
+            }));
+          }
+        }
+        dfd.resolve(configsArray);
+      });
+    });
+    return dfd.promise();
   }
 });

@@ -320,7 +320,7 @@ module.exports = {
     var configurations = {};
     stepConfigs.forEach(function (stepConfig) {
       stepConfig.get('configs').forEach(function (config) {
-        if (config.get('isRequiredByAgent')) {
+        if (config.get('filename') === 'cluster-env.xml' || config.get('isRequiredByAgent')) {
           var type = App.config.getConfigTagFromFileName(config.get('filename'));
           if (!configurations[type]) {
             configurations[type] = {properties: {}}
