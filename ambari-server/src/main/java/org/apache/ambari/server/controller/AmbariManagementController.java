@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -858,6 +859,13 @@ public interface AmbariManagementController {
    * @return the injected {@link MetricPropertyProviderFactory}
    */
   MetricPropertyProviderFactory getMetricPropertyProviderFactory();
+
+  /**
+   * Gets the LoggingSearchPropertyProvider instance.
+   *
+   * @return the injected {@link LoggingSearchPropertyProvider}
+   */
+  LoggingSearchPropertyProvider getLoggingSearchPropertyProvider();
 
   /**
    * Returns KerberosHelper instance

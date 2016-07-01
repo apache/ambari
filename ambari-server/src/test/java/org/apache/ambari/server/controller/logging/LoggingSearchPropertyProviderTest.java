@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.logging;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -44,6 +43,7 @@ import static org.easymock.EasyMock.expect;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 /**
@@ -101,12 +101,6 @@ public class LoggingSearchPropertyProviderTest {
     // expect set method to be called
     resourceMock.setProperty(eq("logging"), capture(captureLogInfo));
 
-    LoggingRequestHelperFactory helperFactoryMock =
-      mockSupport.createMock(LoggingRequestHelperFactory.class);
-
-    LoggingRequestHelper helperMock =
-      mockSupport.createMock(LoggingRequestHelper.class);
-
     LogLevelQueryResponse levelQueryResponse =
       new LogLevelQueryResponse();
 
@@ -120,19 +114,11 @@ public class LoggingSearchPropertyProviderTest {
 
     levelQueryResponse.setNameValueList(testListOfLogLevels);
 
-
-    expect(helperMock.sendGetLogFileNamesRequest(expectedLogSearchComponentName, "c6401.ambari.apache.org")).andReturn(Collections.singleton(expectedLogFilePath));
-    expect(helperMock.sendLogLevelQueryRequest(expectedLogSearchComponentName,"c6401.ambari.apache.org")).andReturn(levelQueryResponse).atLeastOnce();
-    expect(helperMock.createLogFileTailURI(expectedAmbariURL + expectedSearchEnginePath, expectedLogSearchComponentName, "c6401.ambari.apache.org")).andReturn("").atLeastOnce();
-
     Request requestMock =
       mockSupport.createMock(Request.class);
 
     Predicate predicateMock =
       mockSupport.createMock(Predicate.class);
-
-    LoggingSearchPropertyProvider.ControllerFactory factoryMock =
-      mockSupport.createMock(LoggingSearchPropertyProvider.ControllerFactory.class);
 
     AmbariManagementController controllerMock =
       mockSupport.createMock(AmbariManagementController.class);
@@ -155,7 +141,13 @@ public class LoggingSearchPropertyProviderTest {
     LogDefinition logDefinitionMock =
       mockSupport.createMock(LogDefinition.class);
 
-    expect(factoryMock.getAmbariManagementController()).andReturn(controllerMock);
+    LogSearchDataRetrievalService dataRetrievalServiceMock =
+      mockSupport.createMock(LogSearchDataRetrievalService.class);
+
+    expect(dataRetrievalServiceMock.getLogFileNames(expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(Collections.singleton(expectedLogFilePath)).atLeastOnce();
+    expect(dataRetrievalServiceMock.getLogFileTailURI(expectedAmbariURL + expectedSearchEnginePath, expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn("").atLeastOnce();
+
+
     expect(controllerMock.getAmbariServerURI(expectedSearchEnginePath)).
       andReturn(expectedAmbariURL + expectedSearchEnginePath).atLeastOnce();
     expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
@@ -171,12 +163,13 @@ public class LoggingSearchPropertyProviderTest {
     expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
     expect(logDefinitionMock.getLogId()).andReturn(expectedLogSearchComponentName).atLeastOnce();
 
-    expect(helperFactoryMock.getHelper(controllerMock, "clusterone")).andReturn(helperMock).atLeastOnce();
-
     mockSupport.replayAll();
 
-    PropertyProvider propertyProvider =
-      new LoggingSearchPropertyProvider(helperFactoryMock, factoryMock);
+    LoggingSearchPropertyProvider propertyProvider =
+      new LoggingSearchPropertyProvider();
+
+    propertyProvider.setAmbariManagementController(controllerMock);
+    propertyProvider.setLogSearchDataRetrievalService(dataRetrievalServiceMock);
 
 
     Set<Resource> returnedResources =
@@ -210,32 +203,9 @@ public class LoggingSearchPropertyProviderTest {
     assertEquals("Incorrect URL path to searchEngine",
       expectedAmbariURL + expectedSearchEnginePath, definitionInfo.getSearchEngineURL());
 
-
     // verify that the log level count information
-    // was properly added to the HostComponent resource
-    assertNotNull("LogLevel counts should not be null",
-      returnedLogInfo.getListOfLogLevels());
-    assertEquals("LogLevel counts were of an incorrect size",
-      3, returnedLogInfo.getListOfLogLevels().size());
-
-    List<NameValuePair> returnedLevelList =
-      returnedLogInfo.getListOfLogLevels();
-
-    assertEquals("NameValue name for log level was incorrect",
-      "ERROR", returnedLevelList.get(0).getName());
-    assertEquals("NameValue name for log level was incorrect",
-      "150", returnedLevelList.get(0).getValue());
-
-    assertEquals("NameValue name for log level was incorrect",
-      "WARN", returnedLevelList.get(1).getName());
-    assertEquals("NameValue name for log level was incorrect",
-      "500", returnedLevelList.get(1).getValue());
-
-    assertEquals("NameValue name for log level was incorrect",
-      "INFO", returnedLevelList.get(2).getName());
-    assertEquals("NameValue name for log level was incorrect",
-      "2200", returnedLevelList.get(2).getValue());
-
+    // was not added to the HostComponent resource
+    assertNull(returnedLogInfo.getListOfLogLevels());
 
     mockSupport.verifyAll();
   }
@@ -273,9 +243,6 @@ public class LoggingSearchPropertyProviderTest {
     Predicate predicateMock =
       mockSupport.createMock(Predicate.class);
 
-    LoggingSearchPropertyProvider.ControllerFactory factoryMock =
-      mockSupport.createMock(LoggingSearchPropertyProvider.ControllerFactory.class);
-
     AmbariManagementController controllerMock =
       mockSupport.createMock(AmbariManagementController.class);
 
@@ -297,7 +264,9 @@ public class LoggingSearchPropertyProviderTest {
     LogDefinition logDefinitionMock =
       mockSupport.createMock(LogDefinition.class);
 
-    expect(factoryMock.getAmbariManagementController()).andReturn(controllerMock);
+    LogSearchDataRetrievalService dataRetrievalServiceMock =
+      mockSupport.createMock(LogSearchDataRetrievalService.class);
+
     expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
     expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
     expect(clustersMock.getCluster("clusterone")).andReturn(clusterMock).atLeastOnce();
@@ -308,16 +277,22 @@ public class LoggingSearchPropertyProviderTest {
     expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
     expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
 
+
+
     // simulate the case when LogSearch is not deployed, or is not available for some reason
-    expect(helperFactoryMock.getHelper(controllerMock, "clusterone")).andReturn(null).atLeastOnce();
+    expect(dataRetrievalServiceMock.getLogFileNames(expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(null).atLeastOnce();
 
     expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
     expect(logDefinitionMock.getLogId()).andReturn(expectedLogSearchComponentName).atLeastOnce();
 
     mockSupport.replayAll();
 
-    PropertyProvider propertyProvider =
-      new LoggingSearchPropertyProvider(helperFactoryMock, factoryMock);
+    LoggingSearchPropertyProvider propertyProvider =
+      new LoggingSearchPropertyProvider();
+
+    propertyProvider.setAmbariManagementController(controllerMock);
+    propertyProvider.setLogSearchDataRetrievalService(dataRetrievalServiceMock);
+
 
     // execute the populate resources method, verify that no exceptions occur, due to
     // the LogSearch helper not being available
