@@ -108,6 +108,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
       configGroups.sort(function (configGroupA, configGroupB) {
         return configGroupA.is_default || (configGroupA.name > configGroupB.name);
       });
+      App.store.commit();
       App.store.loadMany(this.get('model'), configGroups);
       App.store.commit();
     }
