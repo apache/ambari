@@ -173,6 +173,15 @@ describe('App.EnhancedConfigsMixin', function() {
         }
       });
       this.mockedCallback = sinon.stub();
+      sinon.stub(App.config, 'getClusterEnvConfigs').returns({
+        done: function (callback) {
+          callback([]);
+        }
+      });
+    });
+
+    afterEach(function(){
+      App.config.getClusterEnvConfigs.restore();
     });
 
     it("should call callback if changedConfigs is empty array", function() {
@@ -187,6 +196,20 @@ describe('App.EnhancedConfigsMixin', function() {
       expect(args[0]).exists;
       args[0].callback();
       expect(this.mockedCallback.calledOnce).to.be.true;
+    });
+
+    it("should call getClusterEnvConfigs if there is no cluster-env configs in stepConfigs", function() {
+      mixinInstance.loadConfigRecommendations([{}]);
+      expect(App.config.getClusterEnvConfigs.calledOnce).to.be.true;
+    });
+
+    it("should not call getClusterEnvConfigs if there is cluster-env configs in stepConfigs", function() {
+      mixinInstance.set('stepConfigs', [Em.Object.create({
+        serviceName: 'MISC',
+        configs: []
+      })]);
+      mixinInstance.loadConfigRecommendations([{}]);
+      expect(App.config.getClusterEnvConfigs.calledOnce).to.be.false;
     });
   });
 });

@@ -1658,7 +1658,7 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.spy(mainServiceItemController, 'loadConfigRecommendations');
+      sinon.stub(mainServiceItemController, 'loadConfigRecommendations', Em.K);
       sinon.stub(mainServiceItemController, 'deleteServiceCall', Em.K);
       mainServiceItemController.reopen({
         interDependentServices: []

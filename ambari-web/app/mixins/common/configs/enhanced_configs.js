@@ -149,8 +149,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param {Function} [onComplete]
    * @returns {$.ajax|null}
    */
-  loadConfigRecommendations: function(changedConfigs, onComplete) {
+  loadConfigRecommendations: function (changedConfigs, onComplete) {
+    var self = this;
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
+    var stepConfigs = this.get('stepConfigs');
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
       var configGroup = this.get('selectedConfigGroup');
       var recommendations = this.get('hostGroups');
@@ -164,40 +166,56 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         dataToSend.changed_configurations = changedConfigs;
       }
 
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('stepConfigs'));
-
       if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
         recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
       } else {
         delete recommendations.config_groups;
       }
 
-      dataToSend.recommendations = recommendations;
-      var self = this;
-      this.set('recommendationsInProgress', true);
-      return App.ajax.send({
-        name: 'config.recommendations',
-        sender: this,
-        data: {
-          stackVersionUrl: App.get('stackVersionURL'),
-          dataToSend: dataToSend
-        },
-        success: 'loadRecommendationsSuccess',
-        error: 'loadRecommendationsError',
-        callback: function() {
-          self.set('recommendationsInProgress', false);
-          self.set('recommendationTimeStamp', (new Date).getTime());
-          if (onComplete) {
-            onComplete()
-          }
-        }
-      });
+      if (stepConfigs.someProperty('serviceName', 'MISC')) {
+        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
+        dataToSend.recommendations = recommendations;
+        return this.getRecommendationsRequest(dataToSend, onComplete);
+      } else {
+        App.config.getClusterEnvConfigs().done(function (clusterEnvConfigs) {
+          stepConfigs = stepConfigs.concat(Em.Object.create({
+            serviceName: 'MISC',
+            configs: clusterEnvConfigs
+          }));
+
+          recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
+          dataToSend.recommendations = recommendations;
+          return self.getRecommendationsRequest(dataToSend, onComplete);
+        });
+      }
     } else {
       if (onComplete) {
         onComplete()
       }
       return null;
     }
+  },
+
+  getRecommendationsRequest: function (dataToSend, callback) {
+    var self = this;
+    this.set('recommendationsInProgress', true);
+    return App.ajax.send({
+      name: 'config.recommendations',
+      sender: self,
+      data: {
+        stackVersionUrl: App.get('stackVersionURL'),
+        dataToSend: dataToSend
+      },
+      success: 'loadRecommendationsSuccess',
+      error: 'loadRecommendationsError',
+      callback: function () {
+        self.set('recommendationsInProgress', false);
+        self.set('recommendationTimeStamp', (new Date).getTime());
+        if (callback) {
+          callback()
+        }
+      }
+    });
   },
 
   /**

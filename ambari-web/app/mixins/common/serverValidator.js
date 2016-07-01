@@ -38,13 +38,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
   recommendationsConfigs: null,
 
   /**
-   * array of cluster-env configs
-   * used for validation request
-   * @type {Array}
-   */
-  clusterEnvConfigs: [],
-
-  /**
    * Collection of all config validation errors
    *
    * @type {Object[]}
@@ -162,7 +155,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
     if (!stepConfigs.findProperty('serviceName', 'MISC')) {
-      this.getClusterEnvConfigsForValidation().done(function(clusterEnvConfigs){
+      App.config.getClusterEnvConfigs().done(function(clusterEnvConfigs){
         stepConfigs = stepConfigs.concat(Em.Object.create({
           serviceName: 'MISC',
           configs: clusterEnvConfigs
@@ -172,34 +165,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
     } else {
       dfd.resolve(blueprintUtils.buildConfigsJSON(stepConfigs));
     }
-    return dfd.promise();
-  },
-
-  getClusterEnvConfigsForValidation: function () {
-    var dfd = $.Deferred();
-    App.ajax.send({
-      name: 'config.cluster_env_site',
-      sender: this,
-      error: 'validationError'
-    }).done(function (data) {
-      App.router.get('configurationController').getConfigsByTags([{
-        siteName: data.items[data.items.length - 1].type,
-        tagName: data.items[data.items.length - 1].tag
-      }]).done(function (clusterEnvConfigs) {
-        var configsObject = clusterEnvConfigs[0].properties;
-        var configsArray = [];
-        for (var property in configsObject) {
-          if (configsObject.hasOwnProperty(property)) {
-            configsArray.push(Em.Object.create({
-              name: property,
-              value: configsObject[property],
-              filename: 'cluster-env.xml'
-            }));
-          }
-        }
-        dfd.resolve(configsArray);
-      });
-    });
     return dfd.promise();
   },
 
