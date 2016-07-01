@@ -207,7 +207,7 @@ class TestHDP21StackAdvisor(TestCase):
         "properties": {
           "javax.jdo.option.ConnectionDriverName": "",
           "ambari.hive.db.schema.name": "hive_name",
-          "javax.jdo.option.ConnectionURL": ""
+          "javax.jdo.option.ConnectionURL": "jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true"
         }
       },
       "hive-env": {
@@ -216,7 +216,15 @@ class TestHDP21StackAdvisor(TestCase):
         }
       }
     }
+    changed_configurations = [{
+                               "type" : "hive-env",
+                               "name" : "hive_database",
+                               "old_value" : "New Database"
+                             }]
+
+
     services['configurations'] = configurations
+    services['changed-configurations'] = changed_configurations
     hosts = {
       "items": [
         {
