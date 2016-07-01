@@ -292,7 +292,8 @@ var componentPropertiesValidationTests = [
   {
     componentName: 'MYSQL_SERVER',
     expected: {
-      isShownOnInstallerAssignMasterPage: false
+      isShownOnInstallerAssignMasterPage: false,
+      isDeletable: true
     }
   }
 ];

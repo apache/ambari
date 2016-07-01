@@ -107,7 +107,15 @@ describe('App.HostComponentView', function() {
   App.TestAliases.testAsComputedEqual(getView(), 'isActive', 'content.passiveState', 'OFF');
 
   describe('#isDeleteComponentDisabled', function() {
-
+    var configs=[
+    {
+      properties: {
+        'hive_database': 'Existing MYSQL Database'
+      },
+      tag: 'version2',
+      type: 'hive-env'
+    }
+    ];
     beforeEach(function() {
       this.mock = sinon.stub(App.StackServiceComponent, 'find');
       sinon.stub(App.HostComponent, 'getCount').returns(1);
@@ -134,6 +142,15 @@ describe('App.HostComponentView', function() {
     it('delete is enabled because min cardinality 0 and status STARTED', function() {
       this.mock.returns(Em.Object.create({minToInstall: 0}));
       hostComponentView.get('hostComponent').set('workStatus', 'STARTED');
+      hostComponentView.propertyDidChange('isDeleteComponentDisabled');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.be.true;
+    });
+    
+    it('delete is enabled because mysql server is stopped and hive is using external database', function() {
+      App.db.setConfigs(configs);
+      this.mock.returns(Em.Object.create({minToInstall: 0}));
+      hostComponentView.get('hostComponent').set('componentName', 'MYSQL_SERVER');
+      hostComponentView.get('hostComponent').set('workStatus', 'STOPPED');
       hostComponentView.propertyDidChange('isDeleteComponentDisabled');
       expect(hostComponentView.get('isDeleteComponentDisabled')).to.be.true;
     });

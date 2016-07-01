@@ -103,7 +103,7 @@ App.StackServiceComponent = DS.Model.extend({
   /** @property {Boolean} isDeletable - component supports delete action **/
   isDeletable: function() {
     var ignored = [];
-    return this.get('isAddableToHost') && !ignored.contains(this.get('componentName'));
+    return (this.get('isAddableToHost') && !ignored.contains(this.get('componentName'))) || (this.get('componentName') == 'MYSQL_SERVER');
   }.property('componentName'),
 
   /** @property {Boolean} isShownOnInstallerAssignMasterPage - component visible on "Assign Masters" step of Install Wizard **/
