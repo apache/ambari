@@ -192,6 +192,14 @@ App.HostComponentView = Em.View.extend({
   isDeleteComponentDisabled: function () {
     var stackComponentCount = App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('minToInstall');
     var installedCount = App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount');
+    if(this.get('hostComponent.componentName') == 'MYSQL_SERVER' && this.get('hostComponent.serviceDisplayName') == 'Hive') {
+      var db_type=App.db.getConfigs().findProperty('type','hive-env').properties['hive_database'];
+      var status=[App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
+      if(db_type.indexOf('Existing') > -1 && status)
+        return false;
+      else
+    	return true;
+    }    
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
   }.property('workStatus'),
