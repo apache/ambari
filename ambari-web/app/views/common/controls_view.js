@@ -176,6 +176,22 @@ App.ValueObserver = Em.Mixin.create(App.SupportsDependentConfigs, {
 });
 
 /**
+ * mixin is used to send request for recommendations
+ * when config value is updated by user
+ */
+App.WidgetValueObserver = Em.Mixin.create(App.ValueObserver, {
+  onValueUpdate: function () {
+    if (this.get('selected')) {
+      var self = this, config = this.get('config'),
+        controller = this.get('controller');
+      delay(function(){
+        self.sendRequestRorDependentConfigs(config, controller);
+      }, 500);
+    }
+  }.observes('config.value')
+});
+
+/**
  * mixin set class that serve as unique element identifier,
  * id not used in order to avoid collision with ember ids
  */
