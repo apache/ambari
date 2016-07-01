@@ -183,24 +183,6 @@ define(['require',
 						delete that.columns[v]
 					}
 				});
-				that.RVisualSearch.show(new VisualSearchView({
-					vent : that.vent,
-					globalVent:that.globalVent,
-					customOptions : _.values(that.columns),
-					eventName : "search:audit:query",
-					myFormatData : function(query,searchCollection){
-						var obj=[];
-						searchCollection.each(function(m){
-							var data = {};
-							data[m.get("category")] = m.get("value");
-							obj.push(data);
-						});
-						return {
-							columnQuery : JSON.stringify(obj),
-							query : query
-						}
-					}
-				}));
 				that.RVisualSearchInc.show(new VisualSearchView({
 					viewName : "includeColumns",
 					placeholder : "Include Search",
@@ -212,7 +194,7 @@ define(['require',
 						var obj=[];
 						searchCollection.each(function(m){
 							var data = {};
-							data[m.get("category")] = m.get("value");
+							data[m.get("category")] = Utils.manipulateValueForAddingAstrik(m.get("value"));
 							obj.push(data);
 						});
 						return {
@@ -231,7 +213,7 @@ define(['require',
 						var obj=[];
 						searchCollection.each(function(m){
 							var data = {};
-							data[m.get("category")] = m.get("value");
+							data[m.get("category")] = Utils.manipulateValueForAddingAstrik(m.get("value"));
 							obj.push(data);
 						});
 						return {
