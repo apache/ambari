@@ -393,7 +393,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
           'MYSQL': {'ranger.ks.jpa.jdbc.driver': 'com.mysql.jdbc.Driver',
                     'ranger.ks.jpa.jdbc.url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
           'ORACLE': {'ranger.ks.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver',
-                     'ranger.ks.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
+                     'ranger.ks.jpa.jdbc.url': 'jdbc:oracle:thin:@' + self.getOracleDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost, rangerKmsDbName)},
           'POSTGRES': {'ranger.ks.jpa.jdbc.driver': 'org.postgresql.Driver',
                        'ranger.ks.jpa.jdbc.url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerKmsDbFlavor, rangerKmsDbHost) + '/' + rangerKmsDbName},
           'MSSQL': {'ranger.ks.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
@@ -421,6 +421,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putRangerKmsAuditProperty('xasecure.audit.destination.hdfs.dir', '{0}/{1}/{2}'.format(default_fs,'ranger','audit'))
 
 
+  def getOracleDBConnectionHostPort(self, db_type, db_host, rangerDbName):
+    connection_string = self.getDBConnectionHostPort(db_type, db_host)
+    colon_count = db_host.count(':')
+    if colon_count == 1 and '/' in db_host:
+      connection_string = "//" + connection_string
+    elif colon_count == 0 or colon_count == 1:
+      connection_string = "//" + connection_string + "/" + rangerDbName if rangerDbName else "//" + connection_string
+
+    return connection_string
+
   def getDBConnectionHostPort(self, db_type, db_host):
     connection_string = ""
     if db_type is None or db_type == "":
@@ -433,6 +443,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         else:
           connection_string = db_host
       elif colon_count == 1:
+        connection_string = db_host
+      elif colon_count == 2:
         connection_string = db_host
 
     return connection_string
@@ -455,7 +467,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         'MYSQL': {'ranger.jpa.jdbc.driver': 'com.mysql.jdbc.Driver',
                   'ranger.jpa.jdbc.url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
         'ORACLE': {'ranger.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver',
-                   'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
+                   'ranger.jpa.jdbc.url': 'jdbc:oracle:thin:@' + self.getOracleDBConnectionHostPort(rangerDbFlavor, rangerDbHost, rangerDbName)},
         'POSTGRES': {'ranger.jpa.jdbc.driver': 'org.postgresql.Driver',
                      'ranger.jpa.jdbc.url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/' + rangerDbName},
         'MSSQL': {'ranger.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
@@ -474,7 +486,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerDbHost =   services['configurations']["admin-properties"]["properties"]["db_host"]
         ranger_db_privelege_url_dict = {
           'MYSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:mysql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost)},
-          'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@//' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost)},
+          'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@' + self.getOracleDBConnectionHostPort(rangerDbFlavor, rangerDbHost, None)},
           'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + '/postgres'},
           'MSSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlserver://' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';'},
           'SQLA': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + self.getDBConnectionHostPort(rangerDbFlavor, rangerDbHost) + ';'}

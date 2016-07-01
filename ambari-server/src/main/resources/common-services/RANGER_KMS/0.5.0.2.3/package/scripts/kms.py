@@ -309,6 +309,11 @@ def kms(upgrade_type=None):
 def copy_jdbc_connector(stack_version=None):
   import params
 
+  if params.jdbc_jar_name is None and params.driver_curl_source.endswith("/None"):
+    error_message = "Error! Sorry, but we can't find jdbc driver related to {0} database to download from {1}. \
+    Please run 'ambari-server setup --jdbc-db={db_name} --jdbc-driver={path_to_jdbc} on server host.'".format(params.db_flavor, params.jdk_location)
+    Logger.error(error_message)
+
   if params.driver_curl_source and not params.driver_curl_source.endswith("/None"):
     if params.previous_jdbc_jar and os.path.isfile(params.previous_jdbc_jar):
       File(params.previous_jdbc_jar, action='delete')
