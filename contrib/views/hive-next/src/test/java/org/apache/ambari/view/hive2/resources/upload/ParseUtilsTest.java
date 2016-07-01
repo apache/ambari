@@ -29,6 +29,7 @@ public class ParseUtilsTest {
     Assert.assertTrue(ParseUtils.isDate("0001-1-3"));
     Assert.assertTrue(ParseUtils.isDate("1996-1-03"));
     Assert.assertTrue(ParseUtils.isDate("1996-01-3"));
+    Assert.assertTrue(ParseUtils.isDate("1996-10-3"));
     Assert.assertFalse(ParseUtils.isDate("1970-01-01 01:01:01"));
     Assert.assertFalse(ParseUtils.isDate("1970-01-01 23:59:59.999999"));
     Assert.assertFalse(ParseUtils.isDate("1970/01/01"));
@@ -48,6 +49,7 @@ public class ParseUtilsTest {
     Assert.assertTrue(ParseUtils.isTimeStamp("1999-12-31 23:59:59.999999"));
     Assert.assertTrue(ParseUtils.isTimeStamp("1999-12-31 23:59:59.99999999"));
     Assert.assertTrue(ParseUtils.isTimeStamp("1999-12-31 23:59:59.999999999"));
+    Assert.assertTrue(ParseUtils.isTimeStamp("1999-10-31 23:59:59.999999999"));
     Assert.assertFalse(ParseUtils.isTimeStamp("1999-12-31 23:59:59.9999999999"));
     Assert.assertFalse(ParseUtils.isTimeStamp("1999/12/31 23:59:59.9999999999"));
   }

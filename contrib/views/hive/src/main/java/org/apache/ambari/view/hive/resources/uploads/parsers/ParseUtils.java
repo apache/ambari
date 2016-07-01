@@ -38,7 +38,7 @@ public class ParseUtils {
   private static final String HIVE_DATE_FORMAT = "yyyy-MM-dd";
 
   // no strict checking required as it is done by Date parsing
-  private static final String HIVE_DATE_FORMAT_REGEX = "^[0-9]{4}-[0-9]?[1-9]-[0-9]?[0-9]$";
+  private static final String HIVE_DATE_FORMAT_REGEX = "^[0-9]{4}-[0-9]?[0-9]-[0-9]?[0-9]$";
 
 
   public static boolean isInteger(Object object) {
