@@ -40,20 +40,24 @@ public class HdfsApiSupplier implements ContextSupplier<Optional<HdfsApi>> {
   @Override
   public Optional<HdfsApi> get(ViewContext context) {
     try {
-      if(!hdfsApiMap.containsKey(context.getInstanceName())) {
+      if(!hdfsApiMap.containsKey(getKey(context))) {
         synchronized (lock) {
-          if(!hdfsApiMap.containsKey(context.getInstanceName())) {
+          if(!hdfsApiMap.containsKey(getKey(context))) {
             LOG.debug("Creating HDFSApi instance for Viewname: {}, Instance Name: {}", context.getViewName(), context.getInstanceName());
             HdfsApi api = HdfsUtil.connectToHDFSApi(context);
-            hdfsApiMap.put(context.getInstanceName(), api);
+            hdfsApiMap.put(getKey(context), api);
             return Optional.of(api);
           }
         }
       }
-      return Optional.of(hdfsApiMap.get(context.getInstanceName()));
+      return Optional.of(hdfsApiMap.get(getKey(context)));
     } catch (HdfsApiException e) {
       LOG.error("Cannot get the HDFS API", e);
       return Optional.absent();
     }
+  }
+
+  private String getKey(ViewContext context) {
+    return context.getUsername() + ":" + context.getInstanceName();
   }
 }
