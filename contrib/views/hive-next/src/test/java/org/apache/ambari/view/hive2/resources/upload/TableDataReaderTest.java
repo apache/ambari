@@ -18,15 +18,18 @@
 
 package org.apache.ambari.view.hive2.resources.upload;
 
+import org.apache.ambari.view.hive2.client.ColumnDescription;
 import org.apache.ambari.view.hive2.client.Row;
+import org.apache.ambari.view.hive2.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive2.resources.uploads.TableDataReader;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class TableDataReaderTest {
 
@@ -75,32 +78,31 @@ public class TableDataReaderTest {
   @Test
   public void testCSVReader() throws IOException {
     RowIter rowIter = new RowIter(10,10);
+    List<ColumnDescriptionImpl> colDescs = new LinkedList<>();
+    for(int i = 0 ; i < 10 ; i++ ) {
+      ColumnDescriptionImpl cd = new ColumnDescriptionImpl("col" + (i+1) , ColumnDescription.DataTypes.STRING.toString(), i);
+      colDescs.add(cd);
+    }
 
-    TableDataReader tableDataReader = new TableDataReader(rowIter);
+    TableDataReader tableDataReader = new TableDataReader(rowIter, colDescs, false);
 
-    char[] first10 = "0,1,2,3,4,".toCharArray();
+    char del = TableDataReader.CSV_DELIMITER;
+    char[] first10 = {'0', del, '1', del, '2', del, '3', del, '4', del};
     char [] buf = new char[10];
     tableDataReader.read(buf,0,10);
 
-//    System.out.println("first10 : " + Arrays.toString(first10));
-//    System.out.println("buf : " + Arrays.toString(buf));
     Assert.assertArrayEquals(first10,buf);
 
-
-    char[] next11 = "5,6,7,8,9\n1".toCharArray();
+    char[] next11 = {'5', del, '6', del, '7', del, '8', del, '9', '\n', '1'}; //"5,6,7,8,9\n1".toCharArray();
     char [] buf1 = new char[11];
     tableDataReader.read(buf1,0,11);
 
-//    System.out.println("next11 : " + Arrays.toString(next11));
-//    System.out.println("buf1 : " + Arrays.toString(buf1));
     Assert.assertArrayEquals(next11,buf1);
 
     // read it fully
     while( tableDataReader.read(buf,0,10) != -1 );
 
-    char [] last10 = "97,98,99\n,".toCharArray(); // last comma is the left over of previous read.
-//    System.out.println("last10 : " + Arrays.toString(last10));
-//    System.out.println("buf : " + Arrays.toString(buf));
+    char [] last10 = {'9', '7', del, '9', '8', del, '9', '9', '\n', del}; //"97,98,99\n,".toCharArray(); // last comma is the left over of previous read.
 
     Assert.assertArrayEquals(last10,buf);
   }
@@ -109,7 +111,7 @@ public class TableDataReaderTest {
   public void testEmptyCSVReader() throws IOException {
     RowIter rowIter = new RowIter(0,0);
 
-    TableDataReader tableDataReader = new TableDataReader(rowIter);
+    TableDataReader tableDataReader = new TableDataReader(rowIter, null, false);
 
     char[] first10 = new char [10];
     char [] buf = new char[10];
@@ -120,8 +122,6 @@ public class TableDataReaderTest {
 
     tableDataReader.read(buf,0,10);
 
-//    System.out.println("first10 : " + Arrays.toString(first10));
-//    System.out.println("buf : " + Arrays.toString(buf));
     Assert.assertArrayEquals(first10,buf);
   }
 }

@@ -248,11 +248,13 @@ TRANSLATIONS = {
       'no.query': "No query to process.",
       'emptyDatabase' : "Please select {{ database }}.",
       'emptyTableName' : "Please enter {{ tableNameField }}.",
-      'illegalTableName':"Illegal {{ tableNameField }} : '{{ tableName }}'",
+      'illegalTableName': "Illegal {{ tableNameField }} : '{{ tableName }}'",
       'emptyIsFirstRow' : "{{isFirstRowHeaderField}} cannot be null.",
-      'emptyHeaders':"Headers (containing column names) cannot be null.",
-      'emptyColumnName':"Column name cannot be null.",
-      'illegalColumnName':"Illegal column name : '{{columnName}}' in column number {{index}}",
+      'emptyHeaders': "Headers (containing column names) cannot be null.",
+      'emptyColumnName': "Column name cannot be null.",
+      'illegalColumnName': "Illegal column name : '{{columnName}}' in column number {{index}}",
+      'emptyHdfsPath': "HdfsPath Name cannot be null or empty.",
+      'illegalHdfPath': "Illegal hdfs path : {{hdfsPath}}"
     },
     messages : {
       'generatingPreview':"Generating Preview.",
@@ -286,7 +288,7 @@ TRANSLATIONS = {
     words :{
       temporary : "Temporary",
       actual : "Actual",
-      database : "Database",
+      database : "Database"
     },
     ui : {
       'uploadProgress' : "Upload Progress",
@@ -306,8 +308,19 @@ TRANSLATIONS = {
       'columnNameErrorMessage':"Only alphanumeric and underscore characters are allowed in column names.",
       'hdfsFieldTooltip':"Enter full HDFS path",
       'hdfsFieldPlaceholder':"Enter full HDFS path",
-      'hdfsFieldErrorMessage':"Please enter complete path of hdfs file to upload."
-
+      'hdfsFieldErrorMessage':"Please enter complete path of hdfs file to upload.",
+      'containsEndlines': "Contains endlines?",
+      'columnDelimiterTooltip': "Delimiter for the column values. Default is comman (,).",
+      'escapeCharacterTooltip': "Escape character. Default is backslash (\).",
+      'quoteCharacterTooltip': 'Quote character. Default is double quote (").',
+      'quoteCharacterField': "Quote Character",
+      'escapeCharacterField': "Escape Character",
+      'columnDelimterField': "Field Delimiter",
+      'fieldsTerminatedByField': "Fields Terminated By",
+      'escapedByField': "Escape By",
+      'escapedByTooltip': "Escaped By character for Hive table.",
+      'fieldsTerminatedByTooltip': "Fields Terminated By character for Hive table.",
+      'isFirstRowHeaderTooltip': "Check if the first row of CSV is a header."
     }
   },
 
