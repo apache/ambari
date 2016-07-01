@@ -519,6 +519,17 @@ define(['require',
 //					}
 //				}
 //			})
+			$('body').on("mouseup.contextMenu",function(e){
+				var selection;
+				if (window.getSelection) {
+			          selection = window.getSelection();
+			        } else if (document.selection) {
+			          selection = document.selection.createRange();
+			        }
+				if(_.isEmpty(selection.toString()) && ($(".contextMenuBody").is(":hidden")) ){
+					that.selectionText ="";
+				}
+			});
 			this.$el.on('mouseup contextmenu', ".logMessage", function(e){
 		        var selection;
 		        e.stopPropagation();
@@ -532,18 +543,6 @@ define(['require',
 		        },1);
 		        
 		    });
-			$('body').on("mouseup.contextMenu",function(e){
-				var selection;
-				if (window.getSelection) {
-			          selection = window.getSelection();
-			        } else if (document.selection) {
-			          selection = document.selection.createRange();
-			        }
-				if(_.isEmpty(selection.toString())){
-					that.selectionText ="";
-				}
-					
-			});
 		},
 		selectionCallBack : function(selection,e){
 			this.RLogTable.currentView.$el.removeHighlight(true);

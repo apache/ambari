@@ -347,13 +347,13 @@ public class QueryGeneration extends QueryGenerationBase {
     case SERVICE:
       String serviceLogs = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",LogSearchConstants.DEFAULT_SERVICE_COLUMN_SUFFIX);
       type = ConfigUtil.schemaFieldsName.get(key + serviceLogs);
+      if (key.equalsIgnoreCase(LogSearchConstants.SOLR_LOG_MESSAGE)) {
+        return solrUtil.escapeForLogMessage(key, str);
+      }
       break;
     default:
       // set as null
       type = null;
-    }
-    if (key.equalsIgnoreCase(LogSearchConstants.SOLR_LOG_MESSAGE)) {
-      return solrUtil.escapeForLogMessage(key, str);
     }
     if (type == null) {
       return key + ":" + "*" + str + "*";

@@ -1212,6 +1212,15 @@ define(['require',
 		return str.replace(/(?:^|\s)\w/g, function(match) {
         	return match.toUpperCase()
         });
+	},
+	Utils.manipulateValueForAddingAstrik = function(str){
+		if(!str){
+			return "";
+		}
+		var string = ((str.lastIndexOf('*',0) === 0)) ? str : '*'+str;
+		string = ((str.lastIndexOf('*', str.length - 1) === str.length - 1)) ?  string : string+'*';
+		
+		return string;
 	};
     
 	return Utils;
