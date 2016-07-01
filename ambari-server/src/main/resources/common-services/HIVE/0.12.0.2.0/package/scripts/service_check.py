@@ -83,7 +83,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       Logger.info("Running LLAP checks")
       Logger.info("-------------------\n")
       self.check_llap(env, kinit_cmd, params.hive_interactive_hosts, int(format("{hive_server_interactive_port}")),
-                      params.hive_server_principal, params.hive_server2_authentication, params.hive_transport_mode,
+                      params.hive_llap_principal, params.hive_server2_authentication, params.hive_transport_mode,
                       params.hive_http_endpoint)
 
 

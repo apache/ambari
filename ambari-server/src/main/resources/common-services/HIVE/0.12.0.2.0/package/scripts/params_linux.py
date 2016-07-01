@@ -602,7 +602,7 @@ if has_hive_interactive:
   llap_app_name = config['configurations']['hive-interactive-env']['llap_app_name']
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
-    hive_headless_keytab = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']
+    hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
   pass
 
 # ranger host
