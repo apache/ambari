@@ -151,6 +151,7 @@ oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 #For curl command in ranger to get db connector
 jdk_location = config['hostLevelParams']['jdk_location'] 
 java_share_dir = '/usr/share/java'
+jdbc_jar_name = None
 previous_jdbc_jar_name = None
 if db_flavor.lower() == 'mysql':
   jdbc_jar_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)

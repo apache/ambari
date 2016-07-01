@@ -2656,6 +2656,13 @@ class TestHDP23StackAdvisor(TestCase):
         'ranger-kms-audit': {
           'properties': {
           }
+        },
+        'kms-properties': {
+          'properties': {
+            'DB_FLAVOR': 'ORACLE',
+            'db_host' : 'c6401.ambari.apache.org:1521:XE',
+            'db_name' : "XE"
+          }
         }
       },
       "forced-configurations": []
@@ -2665,7 +2672,10 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {}
       },
       'dbks-site': {
-        'properties': {}
+        'properties': {
+          "ranger.ks.jpa.jdbc.driver" : "oracle.jdbc.driver.OracleDriver",
+          "ranger.ks.jpa.jdbc.url" : "jdbc:oracle:thin:@c6401.ambari.apache.org:1521:XE"
+        }
       },
       'core-site': {
         'properties': {
@@ -2694,7 +2704,10 @@ class TestHDP23StackAdvisor(TestCase):
         'properties': {}
       },
       'dbks-site': {
-        'properties': {}
+        'properties': {
+          "ranger.ks.jpa.jdbc.driver" : "oracle.jdbc.driver.OracleDriver",
+          "ranger.ks.jpa.jdbc.url" : "jdbc:oracle:thin:@c6401.ambari.apache.org:1521:XE"
+        }
       },
       'core-site': {
         'properties': {
