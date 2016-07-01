@@ -18,20 +18,13 @@
 
 package org.apache.ambari.view.hive2.resources.uploads;
 
-import java.util.List;
+import org.apache.ambari.view.hive2.resources.uploads.query.TableInfo;
 
 /**
  * used as input in REST call
  */
-class TableInput {
+class TableInput extends TableInfo {
   public Boolean isFirstRowHeader = Boolean.FALSE;
-  public List<ColumnDescriptionImpl> header;
-  public String tableName;
-  public String databaseName;
-  /**
-   * the format of the file created for the table inside hive : ORC TEXTFILE etc.
-   */
-  public String fileType;
 
   public TableInput() {
   }
@@ -44,40 +37,8 @@ class TableInput {
     this.isFirstRowHeader = isFirstRowHeader;
   }
 
-  public List<ColumnDescriptionImpl> getHeader() {
-    return header;
-  }
-
-  public void setHeader(List<ColumnDescriptionImpl> header) {
-    this.header = header;
-  }
-
-  public String getTableName() {
-    return tableName;
-  }
-
-  public void setTableName(String tableName) {
-    this.tableName = tableName;
-  }
-
-  public String getDatabaseName() {
-    return databaseName;
-  }
-
-  public void setDatabaseName(String databaseName) {
-    this.databaseName = databaseName;
-  }
-
-  public String getFileType() {
-    return fileType;
-  }
-
-  public void setFileType(String fileType) {
-    this.fileType = fileType;
-  }
-
   public void validate(){
-    if( null == this.getFileType()){
+    if( null == this.getHiveFileType()){
       throw new IllegalArgumentException("fileType parameter cannot be null.");
     }
     if( null == this.getTableName()){

@@ -278,8 +278,8 @@ public class DataParserXMLTest {
       Assert.assertNotNull(pd.getHeader());
       Assert.assertEquals(1, pd.getPreviewRows().size());
       Assert.assertEquals(2, pd.getHeader().size());
-      ColumnDescription[] cd = {new ColumnDescriptionImpl("Column1", ColumnDescriptionShort.DataTypes.STRING.toString(), 0),
-        new ColumnDescriptionImpl("Column2", ColumnDescriptionShort.DataTypes.INT.toString(), 1)};
+      ColumnDescription[] cd = {new ColumnDescriptionImpl("column1", ColumnDescriptionShort.DataTypes.STRING.toString(), 0),
+        new ColumnDescriptionImpl("column2", ColumnDescriptionShort.DataTypes.INT.toString(), 1)};
 
       Object cols1[] = new Object[2];
       cols1[0] = "row1-col1-Value";

@@ -321,4 +321,15 @@ public class JobImpl implements Job {
   public void setGuid(String guid) {
     this.guid = guid;
   }
+
+  @Override
+  public String toString() {
+    return new StringBuilder("JobImpl{")
+      .append("id='").append(id)
+      .append(", owner='").append(owner)
+      .append(", hiveQueryId='").append(hiveQueryId)
+      .append(", dagId='").append(dagId)
+      .append(", queryId='").append(queryId)
+      .append('}').toString();
+  }
 }

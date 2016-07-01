@@ -18,19 +18,23 @@
 
 package org.apache.ambari.view.hive2.resources.uploads.query;
 
+import org.apache.ambari.view.hive.resources.uploads.query.RowFormat;
 import org.apache.ambari.view.hive2.resources.uploads.ColumnDescriptionImpl;
 import org.apache.ambari.view.hive2.resources.uploads.HiveFileType;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * used as input in Query generation
  */
-public class TableInfo {
+public class TableInfo implements Serializable{
   private String tableName;
   private String databaseName;
-  private List<ColumnDescriptionImpl> columns;
+  private List<ColumnDescriptionImpl> header;
   private HiveFileType hiveFileType;
+
+  private RowFormat rowFormat;
 
   public String getTableName() {
     return tableName;
@@ -48,12 +52,12 @@ public class TableInfo {
     this.databaseName = databaseName;
   }
 
-  public List<ColumnDescriptionImpl> getColumns() {
-    return columns;
+  public List<ColumnDescriptionImpl> getHeader() {
+    return header;
   }
 
-  public void setColumns(List<ColumnDescriptionImpl> columns) {
-    this.columns = columns;
+  public void setHeader(List<ColumnDescriptionImpl> header) {
+    this.header = header;
   }
 
   public HiveFileType getHiveFileType() {
@@ -64,18 +68,28 @@ public class TableInfo {
     this.hiveFileType = hiveFileType;
   }
 
-  public TableInfo(String databaseName, String tableName, List<ColumnDescriptionImpl> columns, HiveFileType hiveFileType) {
-    this.tableName = tableName;
+  public RowFormat getRowFormat() {
+    return rowFormat;
+  }
+
+  public void setRowFormat(RowFormat rowFormat) {
+    this.rowFormat = rowFormat;
+  }
+
+  public TableInfo(String databaseName, String tableName, List<ColumnDescriptionImpl> header, HiveFileType hiveFileType, RowFormat rowFormat) {
     this.databaseName = databaseName;
-    this.columns = columns;
+    this.tableName = tableName;
+    this.header = header;
     this.hiveFileType = hiveFileType;
+    this.rowFormat = rowFormat;
   }
 
   public TableInfo(TableInfo tableInfo) {
     this.tableName = tableInfo.tableName;
     this.databaseName = tableInfo.databaseName;
-    this.columns = tableInfo.columns;
+    this.header = tableInfo.header;
     this.hiveFileType = tableInfo.hiveFileType;
+    this.rowFormat = tableInfo.rowFormat;
   }
 
   public TableInfo() {
