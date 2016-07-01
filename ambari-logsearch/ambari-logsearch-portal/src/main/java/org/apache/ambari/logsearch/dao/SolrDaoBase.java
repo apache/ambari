@@ -248,7 +248,7 @@ public abstract class SolrDaoBase {
           numberOfShards, replicationFactor, allCollectionList);
       } else {
         result = setupCollectionsWithImplicitRouting(splitMode,
-          configName, numberOfShards, allCollectionList);
+          configName, numberOfShards, replicationFactor, allCollectionList);
       }
     } catch (Exception ex) {
       logger.error("Error creating collection. collectionName="
@@ -279,16 +279,16 @@ public abstract class SolrDaoBase {
   }
 
   public boolean setupCollectionsWithImplicitRouting(String splitMode,
-                                                     String configName, int numberOfShards,
+                                                     String configName, int numberOfShards, int replicationFactor,
                                                      List<String> allCollectionList) throws Exception {
     logger.info("setupCollectionsWithImplicitRouting(). collectionName="
       + collectionName + ", numberOfShards=" + numberOfShards);
     return createCollectionWithImplicitRoute(collectionName, configName,
-      numberOfShards, allCollectionList);
+      numberOfShards, replicationFactor, allCollectionList);
   }
 
   public boolean createCollectionWithImplicitRoute(String colName,
-                                                   String configName, int numberOfShards,
+                                                   String configName, int numberOfShards, int replicationFactor,
                                                    List<String> allCollectionList) throws SolrServerException,
     IOException {
 
@@ -310,7 +310,6 @@ public abstract class SolrDaoBase {
     if (!allCollectionList.contains(colName)) {
       logger.info("Creating collection " + colName + ", shardsList="
         + shardsList + ", solrDetail=" + solrDetail);
-      int replicationFactor = 1;
       CollectionAdminRequest.Create collectionCreateRequest = new CollectionAdminRequest.Create();
       collectionCreateRequest.setCollectionName(colName);
       collectionCreateRequest.setRouterName("implicit");
