@@ -20,7 +20,7 @@ package org.apache.ambari.view.hive2.resources.upload;
 
 import org.apache.ambari.view.hive2.client.Row;
 import org.apache.ambari.view.hive2.resources.uploads.parsers.ParseOptions;
-import org.apache.ambari.view.hive2.resources.uploads.parsers.csv.commonscsv.CSVParser;
+import org.apache.ambari.view.hive2.resources.uploads.parsers.csv.opencsv.OpenCSVParser;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Iterator;
 
-public class CSVParserTest {
+public class OpenCSVParserTest {
 
   /**
    * no exception in creating csvParser with emtpy stream
@@ -40,7 +40,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, new ParseOptions());
+      OpenCSVParser jp = new OpenCSVParser(sr, new ParseOptions());
       ) {
       Assert.assertEquals("There should not be any rows.",false, jp.iterator().hasNext());
     }
@@ -56,7 +56,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, new ParseOptions());
+      OpenCSVParser jp = new OpenCSVParser(sr, new ParseOptions());
       ) {
       Iterator<Row> iterator = jp.iterator();
 
@@ -71,7 +71,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, new ParseOptions());
+      OpenCSVParser jp = new OpenCSVParser(sr, new ParseOptions());
       ) {
       Iterator<Row> iterator = jp.iterator();
 
@@ -92,7 +92,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, new ParseOptions());
+      OpenCSVParser jp = new OpenCSVParser(sr, new ParseOptions());
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -108,16 +108,15 @@ public class CSVParserTest {
     }
   }
 
-
   @Test
-  public void testQuotedEndline() throws Exception {
+  public void testQuotedAndEscapedEndline() throws Exception {
 
     String csv = "\"row1-\ncol1\",1,1.1\n\"row2-\\\ncol1\",2,2.2\n";
     ParseOptions po = new ParseOptions();
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -126,7 +125,7 @@ public class CSVParserTest {
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
       Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
 
-      Row row2 = new Row(new Object[]{"row2-\\\ncol1", "2", "2.2"});
+      Row row2 = new Row(new Object[]{"row2-\ncol1", "2", "2.2"});
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
       Assert.assertEquals("Failed to match 1st row!", row2, iterator.next());
 
@@ -141,7 +140,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -153,6 +152,26 @@ public class CSVParserTest {
   }
 
   @Test
+  public void testEscapedDoubleQuote() throws Exception {
+
+    String csv = "\"aaa\",\"b\\\"bb\",\"ccc\"";
+    ParseOptions po = new ParseOptions();
+
+    try(
+      StringReader sr = new StringReader(csv);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"aaa", "b\"bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+
+  @Test
   public void testSpecialEscape() throws Exception {
 
     String csv = "\"aaa\",\"b$\"bb\",\"ccc\"";
@@ -161,7 +180,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -181,12 +200,33 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
 
       Row row = new Row(new Object[]{"aaa", "b$bb", "ccc"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+
+  @Test
+  public void testSpecialUnEscapedEscape() throws Exception {
+
+    String csv = "aaa,b$bb,ccc";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'$');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
+    ) {
+
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"aaa", "bbb", "ccc"});
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
       Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
     }
@@ -201,7 +241,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -219,7 +259,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -239,7 +279,7 @@ public class CSVParserTest {
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
@@ -258,16 +298,14 @@ public class CSVParserTest {
 
     String csv = "aaa,b\\,bb,ccc";
     ParseOptions po = new ParseOptions();
-    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'\\');
-    po.setOption(ParseOptions.OPTIONS_CSV_DELIMITER,',');
 
     try(
       StringReader sr = new StringReader(csv);
-      CSVParser jp = new CSVParser(sr, po);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
     ) {
 
       Iterator<Row> iterator = jp.iterator();
-      Row row = new Row(new Object[]{"aaa", "b,bb", "ccc"});
+      Row row = new Row(new Object[]{"aaa", "b","bb", "ccc"});   // different from Common CSVParser
       Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
       Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
     }

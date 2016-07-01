@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive2.resources.uploads;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class UploadFromHdfsInput implements Serializable{
   private Boolean isFirstRowHeader = Boolean.FALSE;
@@ -26,16 +27,54 @@ public class UploadFromHdfsInput implements Serializable{
   private String hdfsPath;
   private String tableName;
   private String databaseName;
+  private List<ColumnDescriptionImpl> header;
+  private boolean containsEndlines;
+
+  private String csvDelimiter;
+  private String csvEscape;
+  private String csvQuote;
 
   public UploadFromHdfsInput() {
   }
 
-  public UploadFromHdfsInput(Boolean isFirstRowHeader, String inputFileType, String hdfsPath, String tableName, String databaseName) {
-    this.isFirstRowHeader = isFirstRowHeader;
-    this.inputFileType = inputFileType;
-    this.hdfsPath = hdfsPath;
-    this.tableName = tableName;
-    this.databaseName = databaseName;
+  public String getCsvDelimiter() {
+    return csvDelimiter;
+  }
+
+  public List<ColumnDescriptionImpl> getHeader() {
+    return header;
+  }
+
+  public void setHeader(List<ColumnDescriptionImpl> header) {
+    this.header = header;
+  }
+
+  public boolean isContainsEndlines() {
+    return containsEndlines;
+  }
+
+  public void setContainsEndlines(boolean containsEndlines) {
+    this.containsEndlines = containsEndlines;
+  }
+
+  public void setCsvDelimiter(String csvDelimiter) {
+    this.csvDelimiter = csvDelimiter;
+  }
+
+  public String getCsvEscape() {
+    return csvEscape;
+  }
+
+  public void setCsvEscape(String csvEscape) {
+    this.csvEscape = csvEscape;
+  }
+
+  public String getCsvQuote() {
+    return csvQuote;
+  }
+
+  public void setCsvQuote(String csvQuote) {
+    this.csvQuote = csvQuote;
   }
 
   public Boolean getIsFirstRowHeader() {

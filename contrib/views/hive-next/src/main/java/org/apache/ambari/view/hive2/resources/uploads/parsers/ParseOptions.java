@@ -21,6 +21,11 @@ package org.apache.ambari.view.hive2.resources.uploads.parsers;
 import java.util.HashMap;
 
 public class ParseOptions {
+  public static final String OPTIONS_CSV_DELIMITER = "OPTIONS_CSV_DELIMITER";
+  public static final String OPTIONS_CSV_QUOTE = "OPTIONS_CSV_QUOTE";
+  public static final String OPTIONS_HEADERS = "OPTIONS_HEADERS";
+  public static final String OPTIONS_CSV_ESCAPE_CHAR = "OPTIONS_CSV_ESCAPE_CHAR";
+
   public enum InputFileType {
     CSV,
     JSON,
@@ -45,5 +50,12 @@ public class ParseOptions {
 
   public Object getOption(String key) {
     return this.options.get(key);
+  }
+
+  @Override
+  public String toString() {
+    return new StringBuilder("ParseOptions{")
+      .append("options=").append(options)
+      .append('}').toString();
   }
 }
