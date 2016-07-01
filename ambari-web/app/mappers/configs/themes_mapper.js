@@ -206,6 +206,7 @@ App.themesMapper = App.QuickDataMapper.create({
         var valueAttributes = configLink["property_value_attributes"];
         if (valueAttributes) {
           var isUiOnlyProperty = valueAttributes["ui_only_property"];
+          var isCopy = valueAttributes["copy"] || '';
           // UI only configs are mentioned in the themes for supporting widgets that is not intended for setting a value
           // And thus is affiliated with fake config property termed as ui only config property
           if (isUiOnlyProperty && subSection) {
@@ -222,7 +223,10 @@ App.themesMapper = App.QuickDataMapper.create({
                 name: configName,
                 isUserProperty: false,
                 filename: fileName,
+                fileName: fileName,
+                isNotSaved: false,
                 serviceName: serviceName,
+                copy: isCopy,
                 stackName: App.get('currentStackName'),
                 stackVersion: App.get('currentStackVersionNumber')
               };

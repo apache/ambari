@@ -47,6 +47,46 @@ describe("App.MainServiceInfoConfigsController", function () {
     App.themesMapper.generateAdvancedTabs.restore();
   });
 
+  describe("#getHash", function () {
+
+    var tests = [
+      {
+        msg: "properties only used for ui purpose should be excluded from hash",
+        configs: [
+          Em.Object.create({
+            name: "hive.llap.daemon.task.scheduler.enable.preemption",
+            isRequiredByAgent: true,
+            isFinal: false
+          }),
+          Em.Object.create({
+            name: "ambari.copy.hive.llap.daemon.num.executors",
+            isRequiredByAgent: false,
+            isFinal: false
+          })
+        ]
+      }
+    ];
+
+    afterEach(function () {
+      mainServiceInfoConfigsController.set('selectedService', '');
+    });
+
+    tests.forEach(function (t) {
+      it(t.msg, function () {
+        mainServiceInfoConfigsController.set('selectedService', {configs: t.configs});
+        var stackDrivenConfig = t.configs.findProperty('isRequiredByAgent');
+        var configs = {};
+        configs[stackDrivenConfig.name] = {
+          value: stackDrivenConfig.value,
+          overrides: [],
+          isFinal: stackDrivenConfig.isFinal
+        };
+        expect(mainServiceInfoConfigsController.getHash()).to.equal(JSON.stringify(configs));
+      });
+    });
+  });
+
+
   describe("#showSavePopup", function () {
     var tests = [
       {
