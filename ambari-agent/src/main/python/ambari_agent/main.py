@@ -23,12 +23,13 @@ import traceback
 import threading
 import time
 
+MEMORY_LEAK_DEBUG_FILEPATH = "/var/log/ambari-agent/memory_leak_debug.out"
+
 def setup_memory_leak_debugger():
   gc.disable_old = gc.disable
   gc.enable_old = gc.enable
   gc.isenabled_old = gc.isenabled
 
-  MEMORY_LEAK_DEBUG_FILEPATH = "/var/log/ambari-agent/memory_leak_debug.out"
   def print_debug_info(result):
     time_prefix =  time.strftime('%X %x')
     thread_repr = repr(threading.currentThread())

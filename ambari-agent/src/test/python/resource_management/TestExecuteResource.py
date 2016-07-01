@@ -15,7 +15,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-
+from ambari_agent import main
+main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
 from mock.mock import patch, MagicMock, call
 from only_for_platform import get_platform, not_for_platform, os_distro_value, PLATFORM_WINDOWS
