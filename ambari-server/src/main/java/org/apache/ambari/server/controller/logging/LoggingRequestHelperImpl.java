@@ -76,6 +76,10 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static final String PAGE_SIZE_QUERY_PARAMETER_NAME = "pageSize";
 
+  private static final int DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS = 5000;
+
+  private static final int DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS = 5000;
+
   private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
   private final String hostName;
@@ -108,6 +112,9 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
       HttpURLConnection httpURLConnection  = (HttpURLConnection)logSearchURI.toURL().openConnection();
       httpURLConnection.setRequestMethod("GET");
+      httpURLConnection.setConnectTimeout(DEFAULT_LOGSEARCH_CONNECT_TIMEOUT_IN_MILLISECONDS);
+      httpURLConnection.setReadTimeout(DEFAULT_LOGSEARCH_READ_TIMEOUT_IN_MILLISECONDS);
+
 
       setupCredentials(httpURLConnection);
 
