@@ -127,9 +127,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       llap_app_name = configurations[LLAP_APP_NAME_KEY]
 
     if security_enabled:
-      llap_principal = HIVE_PRINCIPAL_DEFAULT
       if HIVE_PRINCIPAL_KEY in configurations:
         llap_principal = configurations[HIVE_PRINCIPAL_KEY]
+      else:
+        llap_principal = HIVE_PRINCIPAL_DEFAULT
+      llap_principal = llap_principal.replace('_HOST',host_name.lower())
 
       llap_keytab = HIVE_PRINCIPAL_KEYTAB_DEFAULT
       if HIVE_PRINCIPAL_KEYTAB_KEY in configurations:
@@ -148,7 +150,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       kinit_lock = global_lock.get_lock(global_lock.LOCK_TYPE_KERBEROS)
       kinit_lock.acquire()
       try:
-        Execute(kinitcmd, user=hive_user,#status_params.hive_user,
+        Execute(kinitcmd, user=hive_user,
                 path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
                 timeout=10)
       finally:

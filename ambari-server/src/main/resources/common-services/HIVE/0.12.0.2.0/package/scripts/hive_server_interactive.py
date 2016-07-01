@@ -211,7 +211,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
-                      "{llap_keytab_splits[4]} --slider-principal {hive_headless_keytab}")
+                      "{llap_keytab_splits[4]} --slider-principal {params.hive_llap_principal}")
 
       # Append args.
       llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
@@ -284,7 +284,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       hive_interactive_kinit_cmd = format("{kinit_path_local} -kt {params.hive_server2_keytab} {params.hive_principal}; ")
       Execute(hive_interactive_kinit_cmd, user=params.hive_user)
 
-      llap_kinit_cmd = format("{kinit_path_local} -kt {params.hive_llap_keytab_file} {params.hive_headless_keytab}; ")
+      llap_kinit_cmd = format("{kinit_path_local} -kt {params.hive_llap_keytab_file} {params.hive_llap_principal}; ")
       Execute(llap_kinit_cmd, user=params.hive_user)
 
     """
