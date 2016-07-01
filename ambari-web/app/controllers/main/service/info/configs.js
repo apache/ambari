@@ -318,13 +318,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     }
     var hash = {};
     this.get('selectedService.configs').forEach(function (config) {
-      hash[config.get('name')] = {value: App.config.formatPropertyValue(config), overrides: [], isFinal: config.get('isFinal')};
-      if (!config.get('overrides')) return;
-      if (!config.get('overrides.length')) return;
+      if (config.isRequiredByAgent) {
+        hash[config.get('name')] = {
+          value: App.config.formatPropertyValue(config),
+          overrides: [],
+          isFinal: config.get('isFinal')
+        };
+        if (!config.get('overrides')) return;
+        if (!config.get('overrides.length')) return;
 
-      config.get('overrides').forEach(function (override) {
-        hash[config.get('name')].overrides.push(App.config.formatPropertyValue(override));
-      });
+        config.get('overrides').forEach(function (override) {
+          hash[config.get('name')].overrides.push(App.config.formatPropertyValue(override));
+        });
+      }
     });
     return JSON.stringify(hash);
   },
@@ -442,7 +448,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         var advanced = App.configsCollection.getConfig(advanced_id);
         if (advanced) {
           advanced.savedValue = null;
-          advanced.isNotSaved = true;
+          advanced.isNotSaved = advanced.isRequiredByAgent;
           configs.pushObject(App.ServiceConfigProperty.create(advanced));
         }
       }

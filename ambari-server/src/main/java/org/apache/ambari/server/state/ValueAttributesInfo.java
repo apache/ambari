@@ -38,6 +38,7 @@ public class ValueAttributesInfo {
   private String delete;
   private Boolean visible;
   private Boolean overridable;
+  private String copy;
 
   @XmlElement(name = "empty-value-valid")
   @JsonProperty("empty_value_valid")
@@ -230,6 +231,14 @@ public class ValueAttributesInfo {
     this.uiOnlyProperty = isUiOnlyProperty;
   }
 
+  public String getCopy() {
+    return copy;
+  }
+
+  public void setCopy(String copy) {
+    this.copy = copy;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -253,6 +262,8 @@ public class ValueAttributesInfo {
     if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
       return false;
     if (uiOnlyProperty != null ? !uiOnlyProperty.equals(that.uiOnlyProperty) : that.uiOnlyProperty != null)
+      return false;
+    if (copy != null ? !copy.equals(that.copy) : that.copy != null)
       return false;
     if (maximum != null ? !maximum.equals(that.maximum) : that.maximum != null) return false;
     if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) return false;
@@ -290,6 +301,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (overridable != null ? overridable.hashCode() : 0);
     result = 31 * result + (showPropertyName != null ? showPropertyName.hashCode() : 0);
     result = 31 * result + (uiOnlyProperty != null ? uiOnlyProperty.hashCode() : 0);
+    result = 31 * result + (copy != null ? copy.hashCode() : 0);
     return result;
   }
 
@@ -314,6 +326,7 @@ public class ValueAttributesInfo {
       ", selectionCardinality='" + selectionCardinality + '\'' +
       ", propertyFileName='" + propertyFileName + '\'' +
       ", propertyFileType='" + propertyFileType + '\'' +
+      ", copy='" + copy + '\'' +
       '}';
   }
 }
