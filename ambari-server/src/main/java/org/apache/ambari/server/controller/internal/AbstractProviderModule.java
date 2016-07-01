@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -236,6 +237,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    */
   @Inject
   protected AmbariEventPublisher eventPublisher;
+
 
   /**
    * The map of host components.
@@ -857,8 +859,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
             PropertyHelper.getPropertyId("HostRoles", "component_name"),
             HTTP_PROPERTY_REQUESTS));
 
-          //TODO, this may need to be conditional based on the presence/absence of LogSearch
-          providers.add(new LoggingSearchPropertyProvider());
+          // injecting the Injector type won't seem to work in this module, so
+          // this follows the current pattern of relying on the management controller
+          // to instantiate this PropertyProvider
+          providers.add(managementController.getLoggingSearchPropertyProvider());
         }
         break;
         case RootServiceComponent:
