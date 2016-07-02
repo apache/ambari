@@ -1005,6 +1005,11 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams.put(KeyNames.MAX_DURATION_OF_RETRIES, commandRetryDuration);
         }
 
+        // If command needs to explicitly disable STDOUT/STDERR logging
+        if (requestParams.containsKey(KeyNames.LOG_OUTPUT)) {
+          extraParams.put(KeyNames.LOG_OUTPUT, requestParams.get(KeyNames.LOG_OUTPUT));
+        }
+
         if(requestParams.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, requestParams.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
         }

@@ -6676,6 +6676,7 @@ public class AmbariManagementControllerTest {
     Map<String, String> requestProperties = new HashMap<String, String>();
     requestProperties.put(REQUEST_CONTEXT_PROPERTY, "Called from a test");
     requestProperties.put("command_retry_enabled", "true");
+    requestProperties.put("log_output", "false");
 
     // Test multiple restarts
     List<RequestResourceFilter> resourceFilters = new ArrayList<RequestResourceFilter>();
@@ -6702,6 +6703,8 @@ public class AmbariManagementControllerTest {
       Assert.assertEquals("Expect max duration to be set", true, cParams.containsKey("max_duration_for_retries"));
       Assert.assertEquals("Expect max duration to be 600", "600", cParams.get("max_duration_for_retries"));
       Assert.assertEquals("Expect retry to be true", "true", cParams.get("command_retry_enabled"));
+      Assert.assertEquals("Expect log_output to be set", true, cParams.containsKey("log_output"));
+      Assert.assertEquals("Expect log_output to be false", "false", cParams.get("log_output"));
 
       if (hrc.getHostName().equals(host1) && hrc.getRole().equals(Role.DATANODE)) {
         expectedRestartCount++;
