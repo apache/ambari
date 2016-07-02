@@ -197,7 +197,19 @@ App.StackService.displayOrder = [
   'ZOOKEEPER',
   'FALCON',
   'STORM',
-  'FLUME'
+  'FLUME',
+  'ACCUMULO',
+  'AMBARI_METRICS',
+  'ATLAS',
+  'KAFKA',
+  'KNOX',
+  'LOGSEARCH',
+  'RANGER',
+  'RANGER_KMS',
+  'SMARTSENSE',
+  'SPARK',
+  'SPARK2',
+  'ZEPPELIN'
 ];
 
 App.StackService.componentsOrderForService = {
