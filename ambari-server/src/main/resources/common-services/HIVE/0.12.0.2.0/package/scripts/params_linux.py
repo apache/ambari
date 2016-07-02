@@ -600,6 +600,7 @@ if has_hive_interactive:
   hive_llap_io_mem_size = config['configurations']['hive-interactive-site']['hive.llap.io.memory.size']
   llap_heap_size = config['configurations']['hive-interactive-env']['llap_heap_size']
   llap_app_name = config['configurations']['hive-interactive-env']['llap_app_name']
+  hive_llap_principal = None
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']
     hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
