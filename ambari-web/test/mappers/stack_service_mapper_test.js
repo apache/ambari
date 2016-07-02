@@ -168,7 +168,7 @@ describe('App.stackServiceMapper', function () {
           }
         ]
       },
-      sortedServiceNames = ["HDFS", "HIVE", "ZOOKEEPER", "KAFKA", "KERBEROS", "ACCUMULO"],
+      sortedServiceNames = ["HDFS", "HIVE", "ZOOKEEPER", "ACCUMULO", "KAFKA", "KERBEROS"],
       serviceResult = {
         id: "KAFKA",
         serviceName: "KAFKA",
