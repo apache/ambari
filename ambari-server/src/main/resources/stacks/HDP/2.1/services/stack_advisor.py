@@ -65,9 +65,15 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       putOozieProperty('oozie.service.JPAService.jdbc.driver', self.getDBDriver(oozieEnvProperties['oozie_database']))
     if oozieSiteProperties and oozieEnvProperties and self.checkSiteProperties(oozieSiteProperties, 'oozie.db.schema.name', 'oozie.service.JPAService.jdbc.url') and self.checkSiteProperties(oozieEnvProperties, 'oozie_database'):
       oozieServerHost = self.getHostWithComponent('OOZIE', 'OOZIE_SERVER', services, hosts)
+      oozieDBConnectionURL = oozieSiteProperties['oozie.service.JPAService.jdbc.url']
+      protocol = self.getProtocol(oozieEnvProperties['oozie_database'])
+      oldSchemaName = getOldValue(self, services, "oozie-site", "oozie.db.schema.name")
+      # under these if constructions we are checking if oozie server hostname available,
+      # if schema name was changed or if protocol according to current db type differs with protocol in db connection url(db type was changed)
       if oozieServerHost is not None:
-        dbConnection = self.getDBConnectionString(oozieEnvProperties['oozie_database']).format(oozieServerHost['Hosts']['host_name'], oozieSiteProperties['oozie.db.schema.name'])
-        putOozieProperty('oozie.service.JPAService.jdbc.url', dbConnection)
+        if oldSchemaName or (protocol and oozieDBConnectionURL and not oozieDBConnectionURL.startswith(protocol)):
+          dbConnection = self.getDBConnectionString(oozieEnvProperties['oozie_database']).format(oozieServerHost['Hosts']['host_name'], oozieSiteProperties['oozie.db.schema.name'])
+          putOozieProperty('oozie.service.JPAService.jdbc.url', dbConnection)
 
   def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     hiveSiteProperties = getSiteProperties(services['configurations'], 'hive-site')
@@ -89,9 +95,17 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       putHiveProperty('javax.jdo.option.ConnectionDriverName', self.getDBDriver(hiveEnvProperties['hive_database']))
     if hiveSiteProperties and hiveEnvProperties and self.checkSiteProperties(hiveSiteProperties, 'ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionURL') and self.checkSiteProperties(hiveEnvProperties, 'hive_database'):
       hiveServerHost = self.getHostWithComponent('HIVE', 'HIVE_SERVER', services, hosts)
+      hiveDBConnectionURL = hiveSiteProperties['javax.jdo.option.ConnectionURL']
+      protocol = self.getProtocol(hiveEnvProperties['hive_database'])
+      oldSchemaName = getOldValue(self, services, "hive-site", "ambari.hive.db.schema.name")
+      oldDBType = getOldValue(self, services, "hive-env", "hive_database")
+      # under these if constructions we are checking if hive server hostname available,
+      # if it's default db connection url with "localhost" or if schema name was changed or if db type was changed (only for db type change from default mysql to existing mysql)
+      # or if protocol according to current db type differs with protocol in db connection url(other db types changes)
       if hiveServerHost is not None:
-        dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveServerHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
-        putHiveProperty('javax.jdo.option.ConnectionURL', dbConnection)
+        if (hiveDBConnectionURL and "//localhost" in hiveDBConnectionURL) or oldSchemaName or oldDBType or (protocol and hiveDBConnectionURL and not hiveDBConnectionURL.startswith(protocol)):
+          dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveServerHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
+          putHiveProperty('javax.jdo.option.ConnectionURL', dbConnection)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if "PIG" in servicesList:
@@ -181,6 +195,18 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
       'EXISTING SQL ANYWHERE DATABASE': 'jdbc:sqlanywhere:host={0};database={1}'
     }
     return driverDict.get(databaseType.upper())
+
+  def getProtocol(self, databaseType):
+    first_parts_of_connection_string = {
+      'NEW MYSQL DATABASE': 'jdbc:mysql',
+      'NEW DERBY DATABASE': 'jdbc:derby',
+      'EXISTING MYSQL DATABASE': 'jdbc:mysql',
+      'EXISTING MYSQL / MARIADB DATABASE': 'jdbc:mysql',
+      'EXISTING POSTGRESQL DATABASE': 'jdbc:postgresql',
+      'EXISTING ORACLE DATABASE': 'jdbc:oracle',
+      'EXISTING SQL ANYWHERE DATABASE': 'jdbc:sqlanywhere'
+    }
+    return first_parts_of_connection_string.get(databaseType.upper())
 
   def getDBTypeAlias(self, databaseType):
     driverDict = {
