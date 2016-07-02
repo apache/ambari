@@ -279,6 +279,10 @@ class ActionQueue(threading.Thread):
     retryDuration = 0  # even with 0 allow one attempt
     retryAble = False
     delay = 1
+    log_command_output = True
+    if 'commandParams' in command and 'log_output' in command['commandParams'] and "false" == command['commandParams']['log_output']:
+      log_command_output = False
+
     if 'commandParams' in command:
       if 'max_duration_for_retries' in command['commandParams']:
         retryDuration = int(command['commandParams']['max_duration_for_retries'])
@@ -346,21 +350,23 @@ class ActionQueue(threading.Thread):
       'status': status,
     })
 
-    if self.config.has_option("logging","log_command_executes") and int(self.config.get("logging",
-                                                                                       "log_command_executes")) == 1:
-        if roleResult['stdout'] != '':
-            logger.info("Begin command output log for command with id = " + str(command['taskId']) + ", role = "
-                        + command['role'] + ", roleCommand = " + command['roleCommand'])
-            self.log_command_output(roleResult['stdout'], str(command['taskId']))
-            logger.info("End command output log for command with id = " + str(command['taskId']) + ", role = "
-                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+    if self.config.has_option("logging","log_command_executes") \
+        and int(self.config.get("logging", "log_command_executes")) == 1 \
+        and log_command_output:
 
-        if roleResult['stderr'] != '':
-            logger.info("Begin command stderr log for command with id = " + str(command['taskId']) + ", role = "
-                        + command['role'] + ", roleCommand = " + command['roleCommand'])
-            self.log_command_output(roleResult['stderr'], str(command['taskId']))
-            logger.info("End command stderr log for command with id = " + str(command['taskId']) + ", role = "
-                        + command['role'] + ", roleCommand = " + command['roleCommand'])
+      if roleResult['stdout'] != '':
+          logger.info("Begin command output log for command with id = " + str(command['taskId']) + ", role = "
+                      + command['role'] + ", roleCommand = " + command['roleCommand'])
+          self.log_command_output(roleResult['stdout'], str(command['taskId']))
+          logger.info("End command output log for command with id = " + str(command['taskId']) + ", role = "
+                      + command['role'] + ", roleCommand = " + command['roleCommand'])
+
+      if roleResult['stderr'] != '':
+          logger.info("Begin command stderr log for command with id = " + str(command['taskId']) + ", role = "
+                      + command['role'] + ", roleCommand = " + command['roleCommand'])
+          self.log_command_output(roleResult['stderr'], str(command['taskId']))
+          logger.info("End command stderr log for command with id = " + str(command['taskId']) + ", role = "
+                      + command['role'] + ", roleCommand = " + command['roleCommand'])
 
     if roleResult['stdout'] == '':
       roleResult['stdout'] = 'None'

@@ -171,6 +171,22 @@ class TestActionQueue(TestCase):
     'hostLevelParams':{'custom_command': 'RESTART', 'clientsToUpdateConfigs': []}
   }
 
+  datanode_restart_command_no_logging = {
+    'commandType': 'EXECUTION_COMMAND',
+    'role': u'DATANODE',
+    'roleCommand': u'CUSTOM_COMMAND',
+    'commandId': '1-1',
+    'taskId': 9,
+    'clusterName': u'cc',
+    'serviceName': u'HDFS',
+    'configurations': {'global': {}},
+    'configurationTags': {'global': {'tag': 'v123'}},
+    'commandParams': {
+      'log_output': 'false'
+    },
+    'hostLevelParams': {'custom_command': 'RESTART', 'clientsToUpdateConfigs': []}
+  }
+
   datanode_restart_command_no_clients_update = {
     'commandType': 'EXECUTION_COMMAND',
     'role': u'DATANODE',
@@ -379,6 +395,52 @@ class TestActionQueue(TestCase):
                 'exitCode': 0}
     # Agent caches configurationTags if custom_command RESTART completed
     mock_log_command_output.assert_has_calls([call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")], any_order=True)
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
+
+
+  @patch.object(ActionQueue, "log_command_output")
+  @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_do_not_log_execution_commands(self, status_update_callback_mock,
+                                         command_status_dict_mock,
+                                         cso_runCommand_mock, mock_log_command_output):
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut': '',
+      'exitcode': 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    config.set('logging', 'log_command_executes', 1)
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(self.datanode_restart_command_no_logging)
+    report = actionQueue.result()
+    expected = {'status': 'COMPLETED',
+                'configurationTags': {'global': {'tag': 'v123'}},
+                'stderr': 'stderr',
+                'stdout': 'out\n\nCommand completed successfully!\n',
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'role': u'DATANODE',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'RESTART',
+                'exitCode': 0}
+    # Agent caches configurationTags if custom_command RESTART completed
+    mock_log_command_output.assert_not_called(
+      [call("out\n\nCommand completed successfully!\n", "9"), call("stderr", "9")], any_order=True)
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
 
