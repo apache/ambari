@@ -17,14 +17,17 @@
  */
 package org.apache.ambari.server.update;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -58,14 +61,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /*
 * Class for host names update.
@@ -125,6 +127,21 @@ public class HostUpdateHelper {
 
   public void setHostChangesFileMap(Map<String, Map<String, String>> hostChangesFileMap) {
     this.hostChangesFileMap = hostChangesFileMap;
+  }
+
+  /**
+   * Extension of audit logger module
+   */
+  public static class CheckHelperAuditModule extends AuditLoggerModule {
+
+    public CheckHelperAuditModule() throws Exception {
+    }
+
+    @Override
+    protected void configure() {
+      super.configure();
+    }
+
   }
 
   /**
@@ -513,7 +530,7 @@ public class HostUpdateHelper {
         throw new AmbariException("Path to file with host names changes is empty or null.");
       }
 
-      Injector injector = Guice.createInjector(new UpdateHelperModule());
+      Injector injector = Guice.createInjector(new UpdateHelperModule(), new CheckHelperAuditModule());
       HostUpdateHelper hostUpdateHelper = injector.getInstance(HostUpdateHelper.class);
 
       hostUpdateHelper.setHostChangesFile(hostChangesFile);
