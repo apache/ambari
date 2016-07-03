@@ -35,6 +35,7 @@ class TestStormBase(RMFTestCase):
       group = 'hadoop',
       mode = 0777,
       create_parents = True,
+      cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
@@ -78,6 +79,7 @@ class TestStormBase(RMFTestCase):
       group = 'hadoop',
       mode = 0777,
       create_parents = True,
+      cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/run/storm',
       owner = 'storm',
