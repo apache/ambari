@@ -30,6 +30,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     Logger.initialize_logger()
     self.HIVE_INTERACTIVE_SITE = 'hive-interactive-site'
     self.YARN_ROOT_DEFAULT_QUEUE_NAME = 'default'
+    self.AMBARI_MANAGED_LLAP_QUEUE_NAME = 'llap'
 
   def createComponentLayoutRecommendations(self, services, hosts):
     parentComponentLayoutRecommendations = super(HDP25StackAdvisor, self).createComponentLayoutRecommendations(
@@ -167,10 +168,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
          and Hive2 app.
       2. Queue selected in 'hive.llap.daemon.queue.name' config state should not be 'STOPPED'.
       3. 'hive.server2.enable.doAs' config should be set to 'false' for Hive2.
+      4. if 'llap' queue is selected, in order to run Service Checks, 'remaining available capacity' in cluster is atleast 512 MB.
   """
   def validateHiveInteractiveSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     hsi_hosts = self.__getHostsForComponent(services, "HIVE", "HIVE_SERVER_INTERACTIVE")
+    curr_selected_queue_for_llap = None
+    curr_selected_queue_for_llap_cap_perc =  None
+    MIN_ASSUMED_CAP_REQUIRED_FOR_SERVICE_CHECKS = 512
     if len(hsi_hosts) > 0:
       capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
       if capacity_scheduler_properties:
@@ -178,16 +183,16 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             'hive.llap.daemon.queue.name' in services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']:
           curr_selected_queue_for_llap = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.llap.daemon.queue.name']
           if curr_selected_queue_for_llap:
-            curr_selected_queue_for_llap_cap = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+curr_selected_queue_for_llap+'.capacity')
-            if curr_selected_queue_for_llap_cap:
-              curr_selected_queue_for_llap_cap = int(float(curr_selected_queue_for_llap_cap))
+            curr_selected_queue_for_llap_cap_perc = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+curr_selected_queue_for_llap+'.capacity')
+            if curr_selected_queue_for_llap_cap_perc:
+              curr_selected_queue_for_llap_cap_perc = int(float(curr_selected_queue_for_llap_cap_perc))
               min_reqd_queue_cap_perc = self.min_queue_perc_reqd_for_llap_and_hive_app(services, hosts, configurations)
 
               # Validate that the selected queue in 'hive.llap.daemon.queue.name' should be sized >= to minimum required
               # to run LLAP and Hive2 app.
-              if curr_selected_queue_for_llap_cap < min_reqd_queue_cap_perc:
+              if curr_selected_queue_for_llap_cap_perc < min_reqd_queue_cap_perc:
                 errMsg1 =  "Selected queue '{0}' capacity ({1}%) is less than minimum required capacity ({2}%) for LLAP " \
-                          "app to run".format(curr_selected_queue_for_llap, curr_selected_queue_for_llap_cap, min_reqd_queue_cap_perc)
+                          "app to run".format(curr_selected_queue_for_llap, curr_selected_queue_for_llap_cap_perc, min_reqd_queue_cap_perc)
                 validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getErrorItem(errMsg1)})
             else:
               Logger.error("Couldn't retrieve '{0}' queue's capacity from 'capacity-scheduler' while doing validation checks for "
@@ -220,6 +225,23 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           hive2_enable_do_as = services['configurations'][self.HIVE_INTERACTIVE_SITE]['properties']['hive.server2.enable.doAs']
           if hive2_enable_do_as == 'true':
             validationItems.append({"config-name": "hive.server2.enable.doAs","item": self.getErrorItem("Value should be set to 'false' for Hive2.")})
+
+      # Validate that 'remaining available capacity' in cluster is atleast 512 MB, after 'llap' queue is selected,
+      # in order to run Service Checks.
+      if curr_selected_queue_for_llap and curr_selected_queue_for_llap_cap_perc and \
+          curr_selected_queue_for_llap == self.AMBARI_MANAGED_LLAP_QUEUE_NAME:
+        # Get total cluster capacity
+        node_manager_host_list = self.get_node_manager_hosts(services, hosts)
+        node_manager_cnt = len(node_manager_host_list)
+        yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
+        total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
+        curr_selected_queue_for_llap_cap = float(curr_selected_queue_for_llap_cap_perc) / 100 * total_cluster_capacity
+        available_cap_in_cluster = total_cluster_capacity - curr_selected_queue_for_llap_cap
+        if available_cap_in_cluster < MIN_ASSUMED_CAP_REQUIRED_FOR_SERVICE_CHECKS:
+          errMsg3 =  "Capacity used by '{0}' queue is '{1}'. Service checks may not run as remaining available capacity " \
+                     "({2}) in cluster is less than 512 MB.".format(self.AMBARI_MANAGED_LLAP_QUEUE_NAME, curr_selected_queue_for_llap_cap, available_cap_in_cluster)
+          validationItems.append({"config-name": "hive.llap.daemon.queue.name","item": self.getWarnItem(errMsg3)})
+
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hive-interactive-site")
     return validationProblems
@@ -525,7 +547,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         if llap_daemon_selected_queue_name:
           llap_selected_queue_state = capacity_scheduler_properties.get('yarn.scheduler.capacity.root.'+llap_daemon_selected_queue_name+".state")
           if llap_selected_queue_state == None or llap_selected_queue_state == "STOPPED":
-            raise Fail("Selected LLAP app queue '{0}' current state is : '{1}'. Setting LLAP configs to default values."
+            putHiveInteractiveEnvPropertyAttribute("llap_queue_capacity", "visible", "false")
+            raise Fail("Selected LLAP app queue '{0}' current state is : '{1}'. Setting LLAP configs to default values "
+                       "and 'llap' queue capacity slider visibility to 'False'."
                        .format(llap_daemon_selected_queue_name, llap_selected_queue_state))
         else:
           raise Fail("Retrieved LLAP app queue name is : '{0}'. Setting LLAP configs to default values."
