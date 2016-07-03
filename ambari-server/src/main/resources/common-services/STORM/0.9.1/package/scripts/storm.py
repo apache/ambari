@@ -59,7 +59,8 @@ def storm(name=None):
             owner=params.storm_user,
             group=params.user_group,
             mode=0777,
-            create_parents = True
+            create_parents = True,
+            cd_access="a",
   )
 
   Directory([params.pid_dir, params.local_dir],
