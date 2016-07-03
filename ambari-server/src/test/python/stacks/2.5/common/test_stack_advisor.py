@@ -592,6 +592,38 @@ class TestHDP25StackAdvisor(TestCase):
     res_expected3 = []
     res3 = self.stackAdvisor.validateHiveInteractiveSiteConfigurations({}, {}, configurations, services1, hosts)
     self.assertEquals(res3, res_expected3)
+
+
+    # Test D : When remaining available capacity is less than 512M (designated for running service checks), using the passed in configurations.
+    # Expected : WARN error as 'Service checks may not run as remaining available capacity is less than 512M'.
+    # With current configs passed in, also getting selected queue capacity is < than the minimum required for LLAP app to run.
+    configurations = {
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb":"512",
+          "yarn.scheduler.minimum-allocation-mb":"341"
+        }
+      },
+      "hive-site": {
+        "properties": {
+          "hive.tez.container.size" : "341",
+          "tez.am.resource.memory.mb" : "341"
+        }
+      },
+      "tez-site": {
+        "properties": {
+          "tez.am.resource.memory.mb" : "341"
+        }
+      },
+    }
+    res_expected4 = [
+      {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required capacity (200%) for LLAP app to run",
+       'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
+      {'config-type': 'hive-interactive-site', 'message': "Capacity used by 'llap' queue is '250.88'. Service checks may not run as remaining available capacity "
+                                                          "(261.12) in cluster is less than 512 MB.", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'WARN'}]
+    res4 = self.stackAdvisor.validateHiveInteractiveSiteConfigurations({}, {}, configurations, services1, hosts)
+
+    self.assertEquals(res4, res_expected4)
     pass
 
 
@@ -1537,7 +1569,7 @@ class TestHDP25StackAdvisor(TestCase):
     cap_sched_expected_dict = convertToDict(self.expected_capacity_scheduler_llap_queue_size_20['properties']['capacity-scheduler'])
     self.assertEqual(cap_sched_output_dict, cap_sched_expected_dict)
     self.assertEquals(configurations['hive-interactive-env']['property_attributes']['llap_queue_capacity'],
-                      {'maximum': '100', 'minimum': '20', 'visible': 'true'})
+                      {'maximum': '100', 'minimum': '20', 'visible': 'false'})
 
 
 
