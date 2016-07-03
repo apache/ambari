@@ -136,6 +136,7 @@ public class AMSPropertyProviderTest {
     testFilterOutOfBandMetricData();
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+    testPopulateResourcesHostBatches();
   }
 
   @Test
@@ -154,6 +155,7 @@ public class AMSPropertyProviderTest {
     testFilterOutOfBandMetricData();
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+    testPopulateResourcesHostBatches();
   }
 
   @Test
@@ -172,6 +174,7 @@ public class AMSPropertyProviderTest {
     testFilterOutOfBandMetricData();
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+    testPopulateResourcesHostBatches();
   }
 
   @Test(expected = AuthorizationException.class)
@@ -192,6 +195,7 @@ public class AMSPropertyProviderTest {
     testFilterOutOfBandMetricData();
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
+    testPopulateResourcesHostBatches();
   }
 
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
@@ -826,6 +830,57 @@ public class AMSPropertyProviderTest {
 
       return super.readFrom(spec);
     }
+  }
+
+  public void testPopulateResourcesHostBatches() throws Exception {
+    setUpCommonMocks();
+    TestStreamProviderForHostComponentMultipleHostsMetricsTest streamProvider =
+            new TestStreamProviderForHostComponentMultipleHostsMetricsTest(null);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider("h1");
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+
+    TimelineMetricCacheProvider cacheProviderMock = EasyMock.createMock(TimelineMetricCacheProvider.class);
+    TimelineMetricCache cacheMock = EasyMock.createMock(TimelineMetricCache.class);
+    expect(cacheProviderMock.getTimelineMetricsCache()).andReturn(cacheMock).anyTimes();
+
+    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+
+    Set<Resource> resources = new HashSet<>();
+    //value "100" should be equal to AMSPropertyProvider.HOST_NAMES_BATCH_REQUEST_SIZE
+    for (int i = 0; i < 100 + 1; i++) {
+      Resource resource = new ResourceImpl(Resource.Type.Host);
+      resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+      resource.setProperty(HOST_NAME_PROPERTY_ID, "h" + i);
+      resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+
+      resources.add(resource);
+    }
+
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<>();
+    temporalInfoMap.put(PROPERTY_ID4, new TemporalInfoImpl(1416445244801L, 1416448936464L, 1L));
+    Request request = PropertyHelper.getReadRequest(
+            new HashSet<String>() {{
+              add(PROPERTY_ID4);
+              add("params/padding/NONE"); // Ignore padding to match result size
+            }},
+            temporalInfoMap);
+
+    AMSPropertyProvider propertyProvider = new AMSHostComponentPropertyProvider(
+            propertyIds,
+            streamProvider,
+            sslConfiguration,
+            cacheProviderMock,
+            metricHostProvider,
+            CLUSTER_NAME_PROPERTY_ID,
+            HOST_NAME_PROPERTY_ID,
+            COMPONENT_NAME_PROPERTY_ID
+    );
+
+    Set<Resource> resources1 =
+            propertyProvider.populateResources(resources, request, null);
+    List<String> allSpecs = new ArrayList<String>(streamProvider.getAllSpecs());
+    Assert.assertEquals(2, allSpecs.size());
   }
 
   public void testPopulateResourcesForHostComponentMetricsForMultipleHosts() throws Exception {

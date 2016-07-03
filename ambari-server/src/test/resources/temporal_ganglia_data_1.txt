@@ -15,7 +15,7 @@ mapred.shuffleOutput.shuffle_exceptions_caught
 sum
 HDPJournalNode
 domU-12-31-39-0E-34-E1.compute-1.internal
-jvm.metrics.gcCount
+proc_total
 1358434800
 360
 83513252.9778
@@ -119,7 +119,7 @@ jvm.metrics.gcCount
 sum
 HDPSlaves
 domU-12-31-39-0E-34-E2.compute-1.internal
-jvm.metrics.gcCount
+proc_total
 1358434800
 360
 83513252.9778
@@ -223,7 +223,7 @@ jvm.metrics.gcCount
 sum
 HDPNameNode
 domU-12-31-39-0E-34-E3.compute-1.internal
-jvm.metrics.gcCount
+proc_total
 1358434800
 360
 83513252.9778
