@@ -42,6 +42,7 @@ import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,6 +66,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
   private static final int COLLECTOR_DEFAULT_PORT = 6188;
   private final TimelineMetricCache metricCache;
+  private static final Integer HOST_NAMES_BATCH_REQUEST_SIZE = 100;
   private static AtomicInteger printSkipPopulateMsgHostCounter = new AtomicInteger(0);
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
   private static final Map<String, String> timelineAppIdCache = new ConcurrentHashMap<>(10);
@@ -211,58 +213,61 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
         Set<String> nonHostComponentMetrics = new HashSet<String>(metrics.keySet());
         nonHostComponentMetrics.removeAll(hostComponentHostMetrics);
-        String hostnames = getHostnames(resources.get(componentName));
+        Set<String> hostNamesBatches = splitHostNamesInBatches(getHostnames(resources.get(componentName)), HOST_NAMES_BATCH_REQUEST_SIZE);
+        Map<String, Set<TimelineMetric>> metricsMap = new HashMap<>();
 
-        // Allow for multiple requests since host metrics for a
-        // hostcomponent need the HOST appId
-        if (!hostComponentHostMetrics.isEmpty()) {
-          String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
-          setQueryParams(hostComponentHostMetricParams, hostnames, true, componentName);
-          TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
-              getTimelineAppMetricCacheKey(hostComponentHostMetrics,
-                componentName, hostnames, uriBuilder.toString()), componentName);
+        // split requests on few Batches to ensure url is not too long for large clusters
+        for (String hostNamesBatch : hostNamesBatches) {
+          // Allow for multiple requests since host metrics for a
+          // hostcomponent need the HOST appId
+          if (!hostComponentHostMetrics.isEmpty()) {
+            String hostComponentHostMetricParams = getSetString(processRegexps(hostComponentHostMetrics), -1);
+            setQueryParams(hostComponentHostMetricParams, hostNamesBatch, true, componentName);
+            TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
+                    getTimelineAppMetricCacheKey(hostComponentHostMetrics,
+                            componentName, hostNamesBatch, uriBuilder.toString()), componentName);
 
-          if (metricsResponse != null) {
-            timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
-          }
-        }
-
-        if (!nonHostComponentMetrics.isEmpty()) {
-          String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
-          setQueryParams(nonHostComponentHostMetricParams, hostnames, false, componentName);
-          TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
-              getTimelineAppMetricCacheKey(nonHostComponentMetrics,
-                componentName, hostnames, uriBuilder.toString()), componentName);
-
-          if (metricsResponse != null) {
-            timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
-          }
-        }
-
-        Map<String, Set<TimelineMetric>> metricsMap = new HashMap<String, Set<TimelineMetric>>();
-        Set<String> patterns = createPatterns(metrics.keySet());
-
-        if (!timelineMetrics.getMetrics().isEmpty()) {
-          for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-            if (metric.getMetricName() != null
-                && metric.getMetricValues() != null
-                && checkMetricName(patterns, metric.getMetricName())) {
-              String hostname = metric.getHostName();
-              if (!metricsMap.containsKey(hostname)) {
-                metricsMap.put(hostname, new HashSet<TimelineMetric>());
-              }
-              metricsMap.get(hostname).add(metric);
+            if (metricsResponse != null) {
+              timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
             }
           }
-          for (Resource resource : resourceSet) {
-            String hostname = getHostName(resource);
-            if (metricsMap.containsKey(hostname)) {
-              for (TimelineMetric metric : metricsMap.get(hostname)) {
-                // Pad zeros or nulls if needed to a clone so we do not cache
-                // padded values
-                TimelineMetric timelineMetricClone = new TimelineMetric(metric);
-                metricsPaddingMethod.applyPaddingStrategy(timelineMetricClone, temporalInfo);
-                populateResource(resource, timelineMetricClone, temporalInfo);
+
+          if (!nonHostComponentMetrics.isEmpty()) {
+            String nonHostComponentHostMetricParams = getSetString(processRegexps(nonHostComponentMetrics), -1);
+            setQueryParams(nonHostComponentHostMetricParams, hostNamesBatch, false, componentName);
+            TimelineMetrics metricsResponse = getTimelineMetricsFromCache(
+                    getTimelineAppMetricCacheKey(nonHostComponentMetrics,
+                            componentName, hostNamesBatch, uriBuilder.toString()), componentName);
+
+            if (metricsResponse != null) {
+              timelineMetrics.getMetrics().addAll(metricsResponse.getMetrics());
+            }
+          }
+
+          Set<String> patterns = createPatterns(metrics.keySet());
+
+          if (!timelineMetrics.getMetrics().isEmpty()) {
+            for (TimelineMetric metric : timelineMetrics.getMetrics()) {
+              if (metric.getMetricName() != null
+                      && metric.getMetricValues() != null
+                      && checkMetricName(patterns, metric.getMetricName())) {
+                String hostnameTmp = metric.getHostName();
+                if (!metricsMap.containsKey(hostnameTmp)) {
+                  metricsMap.put(hostnameTmp, new HashSet<TimelineMetric>());
+                }
+                metricsMap.get(hostnameTmp).add(metric);
+              }
+            }
+            for (Resource resource : resourceSet) {
+              String hostnameTmp = getHostName(resource);
+              if (metricsMap.containsKey(hostnameTmp)) {
+                for (TimelineMetric metric : metricsMap.get(hostnameTmp)) {
+                  // Pad zeros or nulls if needed to a clone so we do not cache
+                  // padded values
+                  TimelineMetric timelineMetricClone = new TimelineMetric(metric);
+                  metricsPaddingMethod.applyPaddingStrategy(timelineMetricClone, temporalInfo);
+                  populateResource(resource, timelineMetricClone, temporalInfo);
+                }
               }
             }
           }
@@ -441,19 +446,36 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
   }
 
-  private String getHostnames(Set<Resource> resources) {
-    StringBuilder hostnames = new StringBuilder();
+  private List<String> getHostnames(Set<Resource> resources) {
+    List<String> hostNames = new ArrayList<>();
     for (Resource resource: resources) {
       String hostname = getHostName(resource);
-      if (hostname == null) {
-        break;
+      if (hostname != null) {
+        hostNames.add(hostname);
       }
-      if (hostnames.length() > 0) {
-        hostnames.append(',');
-      }
-      hostnames.append(hostname);
     }
-    return hostnames.toString();
+    return hostNames;
+  }
+
+  private Set<String> splitHostNamesInBatches(List<String> hostNames, int batch_size) {
+    Set<String> hostNamesBatches = new HashSet<>();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < hostNames.size(); i++) {
+      if (sb.length() != 0) {
+        sb.append(",");
+      }
+      sb.append(hostNames.get(i));
+
+      if ((i + 1) % batch_size == 0) {
+        hostNamesBatches.add(sb.toString());
+        sb = new StringBuilder();
+      }
+    }
+
+    if (hostNamesBatches.size() == 0 || !"".equals(sb.toString())) {
+      hostNamesBatches.add(sb.toString());
+    }
+    return hostNamesBatches;
   }
 
   @Override

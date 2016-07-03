@@ -77,7 +77,7 @@ import static org.easymock.EasyMock.replay;
 @PrepareForTest({ MetricHostProvider.class })
 public class GangliaPropertyProviderTest {
 
-  private static final String PROPERTY_ID = PropertyHelper.getPropertyId("metrics/jvm", "gcCount");
+  private static final String PROPERTY_ID = PropertyHelper.getPropertyId("metrics/process", "proc_total");
   private static final String PROPERTY_ID2 = PropertyHelper.getPropertyId("metrics/cpu", "cpu_wio");
   private static final String FLUME_CHANNEL_CAPACITY_PROPERTY = "metrics/flume/flume/CHANNEL/c1/ChannelCapacity";
   private static final String FLUME_CATEGORY = "metrics/flume";
@@ -223,7 +223,7 @@ public class GangliaPropertyProviderTest {
 
 
     String expected = (configuration.isHttpsEnabled() ? "https" : "http") +
-        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPDataNode%2CHDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=jvm.metrics.gcCount&s=10&e=20&r=1";
+        "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPDataNode%2CHDPSlaves&h=domU-12-31-39-0E-34-E1.compute-1.internal&m=proc_total&s=10&e=20&r=1";
     Assert.assertEquals(expected, streamProvider.getLastSpec());
 
     Assert.assertEquals(4, PropertyHelper.getProperties(resource).size());
@@ -425,7 +425,7 @@ public class GangliaPropertyProviderTest {
     uriBuilder.setPath("/cgi-bin/rrd.py");
     uriBuilder.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
     uriBuilder.setParameter("h", "domU-12-31-39-0E-34-E3.compute-1.internal,domU-12-31-39-0E-34-E1.compute-1.internal,domU-12-31-39-0E-34-E2.compute-1.internal");
-    uriBuilder.setParameter("m", "jvm.metrics.gcCount");
+    uriBuilder.setParameter("m", "proc_total");
     uriBuilder.setParameter("s", "10");
     uriBuilder.setParameter("e", "20");
     uriBuilder.setParameter("r", "1");
@@ -495,7 +495,7 @@ public class GangliaPropertyProviderTest {
     expectedUri.setParameter("c", "HDPJobTracker,HDPHBaseMaster,HDPResourceManager,HDPFlumeServer,HDPSlaves,HDPHistoryServer,HDPJournalNode,HDPTaskTracker,HDPHBaseRegionServer,HDPNameNode");
    
     expectedUri.setParameter("h", hostsList.toString());
-    expectedUri.setParameter("m", "jvm.metrics.gcCount");
+    expectedUri.setParameter("m", "proc_total");
     expectedUri.setParameter("s", "10");
     expectedUri.setParameter("e", "20");
     expectedUri.setParameter("r", "1");
