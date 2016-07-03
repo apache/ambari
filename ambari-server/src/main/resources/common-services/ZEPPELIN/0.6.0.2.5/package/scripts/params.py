@@ -98,25 +98,23 @@ zeppelin_host = str(master_configs['zeppelin_master_hosts'][0])
 
 # detect HS2 details, if installed
 
+hive_server_host = None
+hive_metastore_host = '0.0.0.0'
+hive_metastore_port = None
+hive_server_port = None
 if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
   hive_server_host = str(master_configs['hive_server_host'][0])
   hive_metastore_host = str(master_configs['hive_metastore_host'][0])
   hive_metastore_port = str(
     get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']))
   hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
-else:
-  hive_server_host = None
-  hive_metastore_host = '0.0.0.0'
-  hive_metastore_port = None
-  hive_server_port = None
 
 # detect hbase details if installed
+zookeeper_znode_parent = None
+hbase_zookeeper_quorum = None
 if 'hbase_master_hosts' in master_configs and 'hbase-site' in config['configurations']:
   zookeeper_znode_parent = config['configurations']['hbase-site']['zookeeper.znode.parent']
   hbase_zookeeper_quorum = config['configurations']['hbase-site']['hbase.zookeeper.quorum']
-else:
-  zookeeper_znode_parent = None
-  hbase_zookeeper_quorum = None
 
 # detect spark queue
 if 'spark.yarn.queue' in config['configurations']['spark-defaults']:
@@ -140,13 +138,12 @@ spark_client_version = get_stack_version('spark-client')
 
 livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 
+livy_livyserver_host = None
+livy_livyserver_port = None
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stack_version_formatted) and \
-    len(livy_hosts) != 0:
+    len(livy_hosts) > 0:
   livy_livyserver_host = str(livy_hosts[0])
   livy_livyserver_port = config['configurations']['livy-conf']['livy.server.port']
-else:
-  livy_livyserver_host = None
-  livy_livyserver_port = None
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 security_enabled = config['configurations']['cluster-env']['security_enabled']

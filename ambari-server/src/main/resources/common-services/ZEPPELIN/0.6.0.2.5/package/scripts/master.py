@@ -169,8 +169,8 @@ class Master(Script):
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
-    pidfile = glob.glob(status_params.zeppelin_pid_dir
-                        + '/zeppelin-' + params.zeppelin_user + '*.pid')[0]
+    pidfile = glob.glob(os.path.join(status_params.zeppelin_pid_dir,
+                                     'zeppelin-' + params.zeppelin_user + '*.pid'))[0]
     Execute('echo pid file is: ' + pidfile, user=params.zeppelin_user)
     contents = open(pidfile).read()
     Execute('echo pid is ' + contents, user=params.zeppelin_user)
@@ -190,7 +190,7 @@ class Master(Script):
     import params
     import json
 
-    interpreter_config = params.conf_dir + "/interpreter.json"
+    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
     interpreter_config_file = open(interpreter_config, "r")
     config_data = json.load(interpreter_config_file)
     interpreter_config_file.close()
@@ -200,10 +200,17 @@ class Master(Script):
     import params
     import json
 
-    interpreter_config = params.conf_dir + "/interpreter.json"
-    interpreter_config_file = open(interpreter_config, "w+")
-    interpreter_config_file.write(json.dumps(config_data, indent=2))
-    interpreter_config_file.close()
+    try:
+      interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+      interpreter_config_file = open(interpreter_config, "w+")
+      interpreter_config_file.write(json.dumps(config_data, indent=2))
+    except IOError:
+      pass
+    finally:
+      try:
+        interpreter_config_file.close()
+      except:
+        pass
 
   def update_kerberos_properties(self):
     import params
