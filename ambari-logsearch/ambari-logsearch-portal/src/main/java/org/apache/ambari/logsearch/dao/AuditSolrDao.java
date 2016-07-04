@@ -19,6 +19,9 @@
 
 package org.apache.ambari.logsearch.dao;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
@@ -41,6 +44,11 @@ public class AuditSolrDao extends SolrDaoBase {
     String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zk_connect_string");
     String collection = PropertiesUtil.getProperty(
       "logsearch.solr.collection.audit.logs", "audit_logs");
+    String aliasNameIn = PropertiesUtil.getProperty(
+        "logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
+    String rangerAuditCollection = PropertiesUtil.getProperty(
+        "logsearch.ranger.audit.logs.collection.name", "ranger_audits");
+    
     String splitInterval = PropertiesUtil.getProperty(
       "logsearch.audit.logs.split.interval.mins", "none");
     String configName = PropertiesUtil.getProperty(
@@ -54,6 +62,12 @@ public class AuditSolrDao extends SolrDaoBase {
       connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
         replicationFactor);
+      if(aliasNameIn != null && rangerAuditCollection != null && rangerAuditCollection.trim().length() >0) {
+        Collection<String> collectionsIn = new ArrayList<String>();
+        collectionsIn.add(collection);
+        collectionsIn.add(rangerAuditCollection.trim());
+        setupAlias(aliasNameIn, collectionsIn);
+      }
     } catch (Exception e) {
       logger.error(
         "Error while connecting to Solr for audit logs : solrUrl="
