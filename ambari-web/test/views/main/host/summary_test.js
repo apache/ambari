@@ -216,6 +216,19 @@ describe('App.MainHostSummaryView', function() {
       });
     });
 
+    it('should set isInstallFailed for clients with INIT and INSTALL_FAILED workStatus', function() {
+      mainHostSummaryView.set('content', Em.Object.create({
+        hostComponents: [
+          Em.Object.create({isMaster: false, isSlave: false, componentName: 'B', workStatus: 'INIT'}),
+          Em.Object.create({isMaster: false, isSlave: false, componentName: 'A', workStatus: 'INSTALLED'}),
+          Em.Object.create({isMaster: false, isSlave: false, componentName: 'C', workStatus: 'INSTALL_FAILED'}),
+          Em.Object.create({isMaster: false, isSlave: false, componentName: 'D', workStatus: 'INSTALLING'})
+        ]
+      }));
+      expect(mainHostSummaryView.get('clients').filterProperty('isInstallFailed', true).mapProperty('componentName')).to.eql(['B', 'C']);
+      expect(mainHostSummaryView.get('clients').filterProperty('isInstallFailed', false).mapProperty('componentName')).to.eql(['A', 'D']);
+    });
+
   });
 
   describe('#areClientWithStaleConfigs', function() {

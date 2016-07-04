@@ -181,14 +181,12 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
           clients[clients.length - 1].set('isLast', false);
         }
         component.set('isLast', true);
-        if (['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus'))) {
-          component.set('isInstallFailed', true);
-        }
+        component.set('isInstallFailed', ['INSTALL_FAILED', 'INIT'].contains(component.get('workStatus')));
         clients.push(component);
       }
     }, this);
     return clients;
-  }.property('content.hostComponents.length'),
+  }.property('content.hostComponents.length', 'content.hostComponents.@each.workStatus'),
 
   anyClientFailedToInstall: Em.computed.someBy('clients', 'isInstallFailed', true),
 
