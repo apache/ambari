@@ -186,6 +186,21 @@ App.ServiceConfigProperty = Em.Object.extend({
   hiddenBySection: false,
 
   /**
+   * Determines config visibility on subsection level when wrapped.
+   * @type {boolean}
+   */
+  hiddenBySubSection: false,
+
+  /**
+   * Determines visibility state including section/subsection state.
+   * When <code>true</code> means that property is shown and may affect validation process.
+   * When <code>false</code> means that property won't affect validation.
+   */
+  isActive: function() {
+    return this.get('isVisible') && !this.get('hiddenBySubSection') && !this.get('hiddenBySection');
+  }.property('isVisible', 'hiddenBySubSection', 'hiddenBySection'),
+
+  /**
    * @type {boolean}
    */
   recommendedValueExists: function () {
