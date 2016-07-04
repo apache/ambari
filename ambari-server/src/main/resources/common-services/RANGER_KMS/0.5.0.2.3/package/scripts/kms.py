@@ -31,6 +31,7 @@ from resource_management.libraries.resources.modify_properties_file import Modif
 from resource_management.core.source import DownloadSource, InlineTemplate
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
@@ -377,8 +378,13 @@ def enable_kms_plugin():
 
   if params.has_ranger_admin:
 
+    ranger_flag = False
+
     if params.stack_supports_ranger_kerberos and params.security_enabled:
-      ranger_flag = check_ranger_service_support_kerberos()
+      if not is_empty(params.rangerkms_principal) and params.rangerkms_principal != '':
+        ranger_flag = check_ranger_service_support_kerberos(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal)
+      else:
+        ranger_flag = check_ranger_service_support_kerberos(params.kms_user, params.spengo_keytab, params.spnego_principal)
     else:
       ranger_flag = check_ranger_service()
 
@@ -560,22 +566,22 @@ def get_repo(url, name, usernamepassword):
   except socket.timeout as e:
     raise Fail("Error creating service. Reason - {0}".format(e))
 
-def check_ranger_service_support_kerberos():
+def check_ranger_service_support_kerberos(user, keytab, principal):
   import params
 
   policymgr_mgr_url = params.policymgr_mgr_url
   if policymgr_mgr_url.endswith('/'):
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url)
-  response_code = ranger_adm_obj.check_ranger_login_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, policymgr_mgr_url, True)
+  response_code = ranger_adm_obj.check_ranger_login_curl(user, keytab, principal, policymgr_mgr_url, True)
 
   if response_code is not None and response_code[0] == 200:
-    get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, 'kms', 'true', is_keyadmin = True)
+    get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(user, keytab, principal, params.repo_name, 'kms', 'true', is_keyadmin = True)
     if get_repo_name_response is not None:
       Logger.info('KMS repository {0} exist'.format(get_repo_name_response['name']))
       return True
     else:
-      create_repo_response = ranger_adm_obj.create_repository_curl(params.kms_user, params.rangerkms_keytab, params.rangerkms_principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None, is_keyadmin = True)
+      create_repo_response = ranger_adm_obj.create_repository_curl(user, keytab, principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None, is_keyadmin = True)
       if create_repo_response is not None and len(create_repo_response) > 0:
         return True
       else:
