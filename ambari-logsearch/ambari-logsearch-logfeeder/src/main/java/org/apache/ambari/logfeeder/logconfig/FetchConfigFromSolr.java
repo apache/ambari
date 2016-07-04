@@ -40,7 +40,7 @@ public class FetchConfigFromSolr extends Thread {
   private static String endTimeDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS";//2016-04-05T04:30:00.000Z
   private static String sysTimeZone = "GMT";
 
-  public FetchConfigFromSolr(boolean isDaemon) {
+  FetchConfigFromSolr(boolean isDaemon) {
     this.setName(this.getClass().getSimpleName());
     this.setDaemon(isDaemon);
   }
@@ -81,7 +81,7 @@ public class FetchConfigFromSolr extends Thread {
     }
   }
 
-  public static boolean isFilterExpired(VLogfeederFilter logfeederFilter) {
+  private static boolean isFilterExpired(VLogfeederFilter logfeederFilter) {
     boolean isFilterExpired = false;// default is false
     if (logfeederFilter != null) {
       Date filterEndDate = parseFilterExpireDate(logfeederFilter);
@@ -98,7 +98,7 @@ public class FetchConfigFromSolr extends Thread {
     return isFilterExpired;
   }
 
-  public static String dateToStr(Date date) {
+  private static String dateToStr(Date date) {
     if (date == null) {
       return "";
     }
@@ -108,7 +108,7 @@ public class FetchConfigFromSolr extends Thread {
     return formatter.format(date);
   }
 
-  public static Date parseFilterExpireDate(VLogfeederFilter vLogfeederFilter) {
+  private static Date parseFilterExpireDate(VLogfeederFilter vLogfeederFilter) {
     String expiryTime = vLogfeederFilter.getExpiryTime();
     if (expiryTime != null && !expiryTime.isEmpty()) {
       SimpleDateFormat formatter = new SimpleDateFormat(endTimeDateFormat);

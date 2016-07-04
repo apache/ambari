@@ -24,9 +24,9 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
 
 public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
-  static Logger logger = Logger.getLogger(LogFeederAMSClient.class);
+  private static final Logger logger = Logger.getLogger(LogFeederAMSClient.class);
 
-  String collectorHosts = null;
+  private String collectorHosts = null;
 
   public LogFeederAMSClient() {
     collectorHosts = LogFeederUtil

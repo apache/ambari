@@ -30,9 +30,9 @@ import org.apache.log4j.Logger;
  * Overrides the value for the field
  */
 public class MapperFieldValue extends Mapper {
-  Logger logger = Logger.getLogger(MapperFieldValue.class);
-  String prevValue = null;
-  String newValue = null;
+  private Logger logger = Logger.getLogger(MapperFieldValue.class);
+  private String prevValue = null;
+  private String newValue = null;
 
   @Override
   public boolean init(String inputDesc, String fieldName,

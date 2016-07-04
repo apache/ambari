@@ -48,28 +48,26 @@ public class FilterGrok extends Filter {
 
   private static final String GROK_PATTERN_FILE = "grok-patterns";
 
-  String messagePattern = null;
-  String multilinePattern = null;
+  private String messagePattern = null;
+  private String multilinePattern = null;
 
-  Grok grokMultiline = null;
-  Grok grokMessage = null;
+  private Grok grokMultiline = null;
+  private Grok grokMessage = null;
 
-  StringBuilder strBuff = null;
-  String currMultilineJsonStr = null;
+  private StringBuilder strBuff = null;
+  private String currMultilineJsonStr = null;
 
-  InputMarker firstInputMarker = null;
-  InputMarker savedInputMarker = null;
+  private InputMarker savedInputMarker = null;
 
-  String sourceField = null;
-  boolean removeSourceField = true;
+  private String sourceField = null;
+  private boolean removeSourceField = true;
 
-  Set<String> namedParamList = new HashSet<String>();
-  Set<String> multiLineamedParamList = new HashSet<String>();
+  private Set<String> namedParamList = new HashSet<String>();
+  private Set<String> multiLineamedParamList = new HashSet<String>();
 
-  Type jsonType = new TypeToken<Map<String, String>>() {
-  }.getType();
+  private Type jsonType = new TypeToken<Map<String, String>>() {}.getType();
 
-  public MetricCount grokErrorMetric = new MetricCount();
+  private MetricCount grokErrorMetric = new MetricCount();
 
   @Override
   public void init() throws Exception {
@@ -185,7 +183,6 @@ public class FilterGrok extends Filter {
           } finally {
             strBuff = null;
             savedInputMarker = null;
-            firstInputMarker = null;
           }
         }
         currMultilineJsonStr = jsonStr;
@@ -193,7 +190,6 @@ public class FilterGrok extends Filter {
 
       if (strBuff == null) {
         strBuff = new StringBuilder();
-        firstInputMarker = inputMarker;
       } else {
         strBuff.append('\r');
         strBuff.append('\n');

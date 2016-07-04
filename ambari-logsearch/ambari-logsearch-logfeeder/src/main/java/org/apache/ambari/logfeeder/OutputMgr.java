@@ -35,15 +35,15 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class OutputMgr {
-  static Logger logger = Logger.getLogger(OutputMgr.class);
+  private static final Logger logger = Logger.getLogger(OutputMgr.class);
 
-  Collection<Output> outputList = new ArrayList<Output>();
+  private Collection<Output> outputList = new ArrayList<Output>();
 
-  boolean addMessageMD5 = true;
+  private boolean addMessageMD5 = true;
 
   private int MAX_OUTPUT_SIZE = 32765; // 32766-1
-  static long doc_counter = 0;
-  public MetricCount messageTruncateMetric = new MetricCount();
+  private static long doc_counter = 0;
+  private MetricCount messageTruncateMetric = new MetricCount();
 
   
   public Collection<Output> getOutputList() {

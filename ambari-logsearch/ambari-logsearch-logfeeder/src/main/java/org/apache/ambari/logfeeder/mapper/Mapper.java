@@ -22,9 +22,9 @@ package org.apache.ambari.logfeeder.mapper;
 import java.util.Map;
 
 public abstract class Mapper {
-  String inputDesc;
-  String fieldName;
-  String mapClassCode;
+  private String inputDesc;
+  protected String fieldName;
+  private String mapClassCode;
 
   public boolean init(String inputDesc, String fieldName,
                       String mapClassCode, Object mapConfigs) {

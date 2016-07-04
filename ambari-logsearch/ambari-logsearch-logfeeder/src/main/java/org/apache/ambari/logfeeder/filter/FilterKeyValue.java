@@ -31,13 +31,13 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class FilterKeyValue extends Filter {
-  static private Logger logger = Logger.getLogger(FilterKeyValue.class);
+  private static final Logger logger = Logger.getLogger(FilterKeyValue.class);
 
-  String sourceField = null;
-  String valueSplit = "=";
-  String fieldSplit = "\t";
+  private String sourceField = null;
+  private String valueSplit = "=";
+  private String fieldSplit = "\t";
 
-  public MetricCount errorMetric = new MetricCount();
+  private MetricCount errorMetric = new MetricCount();
 
   @Override
   public void init() throws Exception {
