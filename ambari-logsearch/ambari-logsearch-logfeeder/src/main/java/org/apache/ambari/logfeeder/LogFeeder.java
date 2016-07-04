@@ -43,6 +43,7 @@ import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.logconfig.LogfeederScheduler;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.util.FileUtil;
+import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -52,6 +53,8 @@ public class LogFeeder {
   static Logger logger = Logger.getLogger(LogFeeder.class);
 
   Collection<Output> outputList = new ArrayList<Output>();
+  
+  private static final int LOGFEEDER_SHUTDOWN_HOOK_PRIORITY = 30;
 
   OutputMgr outMgr = new OutputMgr();
   InputMgr inputMgr = new InputMgr();
@@ -448,8 +451,10 @@ public class LogFeeder {
 
   private void monitor() throws Exception {
     inputMgr.monitor();
-    Runtime.getRuntime().addShutdownHook(new JVMShutdownHook());
-
+    JVMShutdownHook logfeederJVMHook = new JVMShutdownHook();
+    ShutdownHookManager.get().addShutdownHook(logfeederJVMHook,
+        LOGFEEDER_SHUTDOWN_HOOK_PRIORITY);
+    
     statLoggerThread = new Thread("statLogger") {
 
       @Override

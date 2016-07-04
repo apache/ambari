@@ -139,6 +139,21 @@
     <artifactId>aws-java-sdk-iam</artifactId>
     <version>1.11.5</version>
   </dependency>
+   <dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-common</artifactId>
+    <version>${hadoop.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.hadoop</groupId>
+    <artifactId>hadoop-hdfs</artifactId>
+    <version>${hadoop.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>commons-io</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>${common.io.version}</version>
+  </dependency>
  </dependencies>
   <build>
     <finalName>LogFeeder</finalName>
