@@ -78,7 +78,9 @@ public abstract class SolrDaoBase {
   RESTErrorUtil restErrorUtil;
 
   String collectionName = null;
-  // List<String> collectionList = new ArrayList<String>();
+  
+  String aliasName = null;
+  Collection<String> aliasCollectionList = new ArrayList<String>();
 
   private SolrClient solrClient = null;
   CloudSolrClient solrClouldClient = null;
@@ -89,9 +91,11 @@ public abstract class SolrDaoBase {
   boolean isSolrInitialized = false;
 
   private boolean setup_status = false;
+
   private boolean populateFieldsThreadActive = false;
 
   int SETUP_RETRY_SECOND = 30;
+  int ALIAS_SETUP_RETRY_SECOND = 30*60; //30 minutes
   
   private boolean isZkConnectString=false;//by default its false
   
@@ -188,6 +192,103 @@ public abstract class SolrDaoBase {
       logger.error("Seems Solr is not up. solrDetail=" + solrDetail);
     }
     return status;
+  }
+
+  public void setupAlias(final String aliasNameIn, final Collection<String> collectionListIn ) throws Exception {
+    if( aliasNameIn == null || collectionListIn== null || collectionListIn.size() == 0 || solrClouldClient == null) {
+      logger.info("Will not create alias " + aliasNameIn + " for "
+        + (collectionListIn==null?null: collectionListIn.toString()) + ", solrCloudClient=" + solrClouldClient);
+      return;
+    }
+    logger.info("setupAlias " + aliasNameIn + " for " + (collectionListIn==null?null: collectionListIn.toString()));
+    aliasName = aliasNameIn;
+    aliasCollectionList = collectionListIn;
+
+    // Start a background thread to do setup
+    Thread setupThread = new Thread("setup_alias_" + aliasNameIn) {
+      @Override
+      public void run() {
+        logger.info("Started monitoring thread to check availability of Solr server. alias="
+            + aliasNameIn + ", collections=" + collectionListIn.toString());
+        int retryCount = 0;
+        while (true) {
+          try {
+            int count = createAlias(aliasNameIn,collectionListIn);
+            if (count > 0) {
+              solrClouldClient.setDefaultCollection(aliasNameIn);
+              if( count == collectionListIn.size()) {
+                logger.info("Setup for alias " + aliasNameIn
+                    + " is successful. Exiting setup retry thread. Collections=" + collectionListIn);
+                break;
+              }
+            } else {
+              logger.warn("Not able to create alias="
+                  + aliasNameIn + ", retryCount=" + retryCount);
+            }
+          } catch (Exception e) {
+            logger.error("Error setting up alias=" + aliasNameIn, e);
+          }
+          try {
+            Thread.sleep(ALIAS_SETUP_RETRY_SECOND * 1000);
+          } catch (InterruptedException sleepInterrupted) {
+            logger.info("Sleep interrupted while setting up alias "
+                + aliasNameIn);
+            break;
+          }
+          retryCount++;
+        }
+      }
+    };
+    setupThread.setDaemon(true);
+    setupThread.start();     
+  }
+  
+  /**
+   * @param aliasNameIn
+   * @param collectionListIn
+   * @return
+   * @throws IOException 
+   * @throws SolrServerException 
+   */
+  protected int createAlias(String aliasNameIn,
+      Collection<String> collectionListIn) throws SolrServerException, IOException {
+    List<String> collections = getCollections();
+    List<String> collectionToAdd = new ArrayList<String>();
+    for (String col : collections) {
+      if( collectionListIn.contains(col)) {
+        collectionToAdd.add(col);
+      }
+    }
+    String collectionsCSV = null;
+    if( collectionToAdd.size() > 0 ) {
+      for (String col : collectionToAdd) {
+        if(collectionsCSV == null) {
+          collectionsCSV = col;
+        } else {
+          collectionsCSV = collectionsCSV + ","  + col;
+        }
+      }
+      CollectionAdminRequest.CreateAlias aliasCreateRequest = new CollectionAdminRequest.CreateAlias(); 
+      aliasCreateRequest.setAliasName(aliasNameIn);
+      aliasCreateRequest.setAliasedCollections(collectionsCSV);
+      CollectionAdminResponse createResponse = aliasCreateRequest.process(solrClouldClient);
+      if (createResponse.getStatus() != 0) {
+        logger.error("Error creating alias. alias="
+        + aliasNameIn + ", collectionList=" + collectionsCSV
+        + ", solrDetail=" + solrDetail + ", response="
+        + createResponse);
+      }
+    } else {
+      if( collectionToAdd.size() == collectionListIn.size()) {
+        logger.info("Created alias for all collections. alias=" + aliasNameIn + ", collectionsCSV="
+            + collectionsCSV + ", solrDetail=" + solrDetail);        
+      } else {
+        logger.info("Created alias for " + collectionToAdd.size() + " out of " + 
+            + collectionListIn.size() + " collections. alias=" + aliasNameIn 
+            + ", collectionsCSV=" + collectionsCSV + ", solrDetail=" + solrDetail);
+      }
+    }
+    return collectionToAdd.size();
   }
 
   public void setupCollections(final String splitMode, final String configName,
