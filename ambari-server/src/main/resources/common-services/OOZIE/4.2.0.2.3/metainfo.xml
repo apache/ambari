@@ -133,6 +133,14 @@
         <config-type>hive-site</config-type>
         <config-type>tez-site</config-type>
       </configuration-dependencies>
+
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
     </service>
   </services>
 </metainfo>

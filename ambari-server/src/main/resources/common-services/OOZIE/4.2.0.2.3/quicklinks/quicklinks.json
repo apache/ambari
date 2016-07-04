@@ -27,9 +27,9 @@
     "links": [
       {
         "name": "oozie_server_ui",
-        "component_name": "OOZIE_SERVER",
         "label": "Oozie Web UI",
         "requires_user_name": "true",
+        "component_name": "OOZIE_SERVER",
         "url":"%@://%@:%@/oozie?user.name=%@",
         "port":{
           "http_property": "oozie.base.url",
