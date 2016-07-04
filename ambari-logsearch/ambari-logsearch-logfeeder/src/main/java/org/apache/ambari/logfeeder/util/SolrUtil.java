@@ -40,14 +40,14 @@ import org.apache.solr.common.SolrException;
 
 public class SolrUtil {
 
-  private static Logger logger = Logger.getLogger(SolrUtil.class);
+  private static final Logger logger = Logger.getLogger(SolrUtil.class);
 
   private static SolrUtil instance = null;
-  SolrClient solrClient = null;
-  CloudSolrClient solrClouldClient = null;
+  
+  private SolrClient solrClient = null;
+  private CloudSolrClient solrClouldClient = null;
 
-  String solrDetail = "";
-  String collectionName = null;
+  private String solrDetail = "";
 
   private SolrUtil() throws Exception {
     String url = LogFeederUtil.getStringProperty("logfeeder.solr.url");
@@ -76,9 +76,8 @@ public class SolrUtil {
     return instance;
   }
 
-  public SolrClient connectToSolr(String url, String zkConnectString,
+  private SolrClient connectToSolr(String url, String zkConnectString,
                                   String collection) throws Exception {
-    this.collectionName = collection;
     solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection
       + ", url=" + url;
 
@@ -110,7 +109,7 @@ public class SolrUtil {
     return solrClient;
   }
 
-  public boolean checkSolrStatus(int waitDurationMS) {
+  private boolean checkSolrStatus(int waitDurationMS) {
     boolean status = false;
     try {
       long beginTimeMS = System.currentTimeMillis();
@@ -150,14 +149,7 @@ public class SolrUtil {
     return status;
   }
 
-  /**
-   * @param solrQuery
-   * @return
-   * @throws SolrServerException
-   * @throws IOException
-   * @throws SolrException
-   */
-  public QueryResponse process(SolrQuery solrQuery) throws SolrServerException, IOException, SolrException {
+  private QueryResponse process(SolrQuery solrQuery) throws SolrServerException, IOException, SolrException {
     if (solrClient != null) {
       QueryResponse queryResponse = solrClient.query(solrQuery, METHOD.POST);
       return queryResponse;
@@ -167,9 +159,6 @@ public class SolrUtil {
     }
   }
 
-  /**
-   * @return
-   */
   public HashMap<String, Object> getConfigDoc() {
     HashMap<String, Object> configMap = new HashMap<String, Object>();
     SolrQuery solrQuery = new SolrQuery();

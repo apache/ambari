@@ -60,14 +60,14 @@ import com.google.gson.reflect.TypeToken;
  * This class contains utility methods used by LogFeeder
  */
 public class LogFeederUtil {
-  static Logger logger = Logger.getLogger(LogFeederUtil.class);
+  private static final Logger logger = Logger.getLogger(LogFeederUtil.class);
 
-  final static int HASH_SEED = 31174077;
+  private static final int HASH_SEED = 31174077;
   public final static String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
   public final static String SOLR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-  static Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
+  private static Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 
-  static Properties props;
+  private static Properties props;
 
   private static Map<String, LogHistory> logHistoryList = new Hashtable<String, LogHistory>();
   private static int logInterval = 30000; // 30 seconds
@@ -75,9 +75,9 @@ public class LogFeederUtil {
   public static String hostName = null;
   public static String ipAddress = null;
   
-  public static String logfeederTempDir = null;
+  private static String logfeederTempDir = null;
   
-  public static final Object _LOCK = new Object();
+  private static final Object _LOCK = new Object();
   
   static{
     setHostNameAndIP();
@@ -91,7 +91,7 @@ public class LogFeederUtil {
    * This method will read the properties from System, followed by propFile
    * and finally from the map
    */
-  static public void loadProperties(String propFile, String[] propNVList)
+  public static void loadProperties(String propFile, String[] propNVList)
     throws Exception {
     logger.info("Loading properties. propFile=" + propFile);
     props = new Properties(System.getProperties());
@@ -232,7 +232,7 @@ public class LogFeederUtil {
     return retValue;
   }
 
-  static public boolean isEnabled(Map<String, Object> conditionConfigs,
+  public static boolean isEnabled(Map<String, Object> conditionConfigs,
                                   Map<String, Object> valueConfigs) {
     boolean allow = toBoolean((String) valueConfigs.get("is_enabled"), true);
     @SuppressWarnings("unchecked")
@@ -274,7 +274,7 @@ public class LogFeederUtil {
     return allow;
   }
 
-  static public boolean isFieldConditionMatch(Map<String, Object> configs,
+  public static boolean isFieldConditionMatch(Map<String, Object> configs,
                                               String fieldName, String stringValue) {
     boolean allow = false;
     String fieldValue = (String) configs.get(fieldName);
@@ -295,7 +295,7 @@ public class LogFeederUtil {
     return allow;
   }
 
-  static public void logStatForMetric(MetricCount metric, String prefixStr,
+  public static void logStatForMetric(MetricCount metric, String prefixStr,
                                       String postFix) {
     long currStat = metric.count;
     long currMS = System.currentTimeMillis();
@@ -368,16 +368,16 @@ public class LogFeederUtil {
     return str.substring(0, maxLength);
   }
 
-  static public long genHash(String value) {
+  public static long genHash(String value) {
     if (value == null) {
       value = "null";
     }
     return MurmurHash.hash64A(value.getBytes(), HASH_SEED);
   }
 
-  static class LogHistory {
-    long lastLogTime = 0;
-    int counter = 0;
+  private static class LogHistory {
+    private long lastLogTime = 0;
+    private int counter = 0;
   }
 
   public static String getDate(String timeStampStr) {
@@ -477,7 +477,7 @@ public class LogFeederUtil {
   }
   
   
-  public static synchronized String setHostNameAndIP() {
+  private static synchronized String setHostNameAndIP() {
     if (hostName == null || ipAddress == null) {
       try {
         InetAddress ip = InetAddress.getLocalHost();

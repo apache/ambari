@@ -25,9 +25,9 @@ import org.apache.log4j.Logger;
 
 // TODO: Refactor for failover
 public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
-  static Logger logger = Logger.getLogger(LogFeederAMSClient.class);
+  private static final Logger logger = Logger.getLogger(LogFeederAMSClient.class);
 
-  String collectorHosts = null;
+  private String collectorHosts = null;
 
   public LogFeederAMSClient() {
     collectorHosts = LogFeederUtil

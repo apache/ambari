@@ -30,7 +30,7 @@ import org.apache.log4j.Priority;
 public abstract class ConfigBlock {
   static private Logger logger = Logger.getLogger(ConfigBlock.class);
 
-  boolean drain = false;
+  private boolean drain = false;
 
   protected Map<String, Object> configs;
   protected Map<String, String> contextFields = new HashMap<String, String>();

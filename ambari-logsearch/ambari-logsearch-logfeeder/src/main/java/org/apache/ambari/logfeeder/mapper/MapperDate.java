@@ -29,11 +29,11 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class MapperDate extends Mapper {
-  Logger logger = Logger.getLogger(MapperDate.class);
+  private static final Logger logger = Logger.getLogger(MapperDate.class);
 
-  String dateFormat = null;
-  SimpleDateFormat dateFormatter = null;
-  boolean isEpoch = false;
+  private String dateFormat = null;
+  private SimpleDateFormat dateFormatter = null;
+  private boolean isEpoch = false;
 
   @Override
   public boolean init(String inputDesc, String fieldName,

@@ -31,11 +31,11 @@ import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 
 public abstract class Output extends ConfigBlock {
-  static private Logger logger = Logger.getLogger(Output.class);
+  private static final Logger logger = Logger.getLogger(Output.class);
 
-  String destination = null;
+  private String destination = null;
 
-  public MetricCount writeBytesMetric = new MetricCount();
+  protected MetricCount writeBytesMetric = new MetricCount();
 
   @Override
   public String getShortDescription() {

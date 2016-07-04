@@ -30,20 +30,20 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
 
 public class MetricsMgr {
-  static Logger logger = Logger.getLogger(MetricsMgr.class);
+  private static final Logger logger = Logger.getLogger(MetricsMgr.class);
 
-  boolean isMetricsEnabled = false;
-  String nodeHostName = null;
-  String appId = "logfeeder";
+  private boolean isMetricsEnabled = false;
+  private String nodeHostName = null;
+  private String appId = "logfeeder";
 
-  long lastPublishTimeMS = 0; // Let's do the first publish immediately
-  long lastFailedPublishTimeMS = System.currentTimeMillis(); // Reset the clock
+  private long lastPublishTimeMS = 0; // Let's do the first publish immediately
+  private long lastFailedPublishTimeMS = System.currentTimeMillis(); // Reset the clock
 
-  int publishIntervalMS = 60 * 1000;
-  int maxMetricsBuffer = 60 * 60 * 1000; // If AMS is down, we should not keep
+  private int publishIntervalMS = 60 * 1000;
+  private int maxMetricsBuffer = 60 * 60 * 1000; // If AMS is down, we should not keep
   // the metrics in memory forever
-  HashMap<String, TimelineMetric> metricsMap = new HashMap<String, TimelineMetric>();
-  LogFeederAMSClient amsClient = null;
+  private HashMap<String, TimelineMetric> metricsMap = new HashMap<String, TimelineMetric>();
+  private LogFeederAMSClient amsClient = null;
 
   public void init() {
     logger.info("Initializing MetricsMgr()");

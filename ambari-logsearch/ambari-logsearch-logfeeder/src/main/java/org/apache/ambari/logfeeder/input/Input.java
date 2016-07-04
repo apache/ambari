@@ -37,22 +37,22 @@ import org.apache.log4j.Logger;
 public abstract class Input extends ConfigBlock implements Runnable {
   static private Logger logger = Logger.getLogger(Input.class);
 
-  OutputMgr outputMgr;
-  InputMgr inputMgr;
+  protected OutputMgr outputMgr;
+  protected InputMgr inputMgr;
 
-  List<Output> outputList = new ArrayList<Output>();
+  private List<Output> outputList = new ArrayList<Output>();
 
-  Filter firstFilter = null;
-  Thread thread;
+  private Filter firstFilter = null;
+  private Thread thread;
   private boolean isClosed = false;
-  String filePath = null;
-  String type = null;
+  protected String filePath = null;
+  private String type = null;
 
-  boolean tail = true;
-  boolean useEventMD5 = false;
-  boolean genEventMD5 = true;
+  protected boolean tail = true;
+  private boolean useEventMD5 = false;
+  private boolean genEventMD5 = true;
 
-  public MetricCount readBytesMetric = new MetricCount();
+  protected MetricCount readBytesMetric = new MetricCount();
 
   /**
    * This method will be called from the thread spawned for the output. This
@@ -97,7 +97,7 @@ public abstract class Input extends ConfigBlock implements Runnable {
     logger.info("Exiting thread. " + getShortDescription());
   }
 
-  public void outputLine(String line, InputMarker marker) {
+  protected void outputLine(String line, InputMarker marker) {
     statMetric.count++;
     readBytesMetric.count += (line.length());
 
@@ -110,7 +110,7 @@ public abstract class Input extends ConfigBlock implements Runnable {
     }
   }
 
-  public void flush() {
+  protected void flush() {
     if (firstFilter != null) {
       firstFilter.flush();
     }

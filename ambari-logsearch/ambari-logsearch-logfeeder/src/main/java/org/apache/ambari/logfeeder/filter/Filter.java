@@ -38,13 +38,13 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
 
 public abstract class Filter extends ConfigBlock {
-  static private Logger logger = Logger.getLogger(Filter.class);
+  private static final Logger logger = Logger.getLogger(Filter.class);
 
-  OutputMgr outputMgr;
-  Input input;
-  Filter nextFilter = null;
+  protected Input input;
+  private Filter nextFilter = null;
+  private OutputMgr outputMgr;
 
-  Map<String, List<Mapper>> postFieldValueMappers = new HashMap<String, List<Mapper>>();
+  private Map<String, List<Mapper>> postFieldValueMappers = new HashMap<String, List<Mapper>>();
 
   @Override
   public void init() throws Exception {
@@ -57,7 +57,7 @@ public abstract class Filter extends ConfigBlock {
   }
 
   @SuppressWarnings("unchecked")
-  protected void initializePostMapValues() {
+  private void initializePostMapValues() {
     Map<String, Object> postMapValues = (Map<String, Object>) getConfigValue("post_map_values");
     if (postMapValues == null) {
       return;
@@ -93,7 +93,7 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
-  protected Mapper getMapper(String mapClassCode) {
+  private Mapper getMapper(String mapClassCode) {
     String classFullName = AliasUtil.getInstance().readAlias(mapClassCode, ALIAS_TYPE.MAPPER, ALIAS_PARAM.KLASS);
     if (classFullName != null && !classFullName.isEmpty()) {
       Mapper mapper = (Mapper) LogFeederUtil.getClassInstance(classFullName, ALIAS_TYPE.MAPPER);

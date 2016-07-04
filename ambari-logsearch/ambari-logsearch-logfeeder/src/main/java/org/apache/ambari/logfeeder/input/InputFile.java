@@ -42,25 +42,25 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;
 
 public class InputFile extends Input {
-  static private Logger logger = Logger.getLogger(InputFile.class);
+  private static final Logger logger = Logger.getLogger(InputFile.class);
 
-  String logPath = null;
-  boolean isStartFromBegining = true;
+  private String logPath = null;
+  private boolean isStartFromBegining = true;
 
-  boolean isReady = false;
-  File[] logPathFiles = null;
-  Object fileKey = null;
-  String base64FileKey = null;
+  private boolean isReady = false;
+  private File[] logPathFiles = null;
+  private Object fileKey = null;
+  private String base64FileKey = null;
 
   private boolean isRolledOver = false;
-  boolean addWildCard = false;
+  private boolean addWildCard = false;
 
-  long lastCheckPointTimeMS = 0;
-  int checkPointIntervalMS = 5 * 1000; // 5 seconds
-  RandomAccessFile checkPointWriter = null;
-  Map<String, Object> jsonCheckPoint = null;
+  private long lastCheckPointTimeMS = 0;
+  private int checkPointIntervalMS = 5 * 1000; // 5 seconds
+  private RandomAccessFile checkPointWriter = null;
+  private Map<String, Object> jsonCheckPoint = null;
 
-  File checkPointFile = null;
+  private File checkPointFile = null;
 
   private InputMarker lastCheckPointInputMarker = null;
 

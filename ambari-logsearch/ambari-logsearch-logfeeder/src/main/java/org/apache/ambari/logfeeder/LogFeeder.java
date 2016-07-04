@@ -50,36 +50,36 @@ import org.apache.log4j.Logger;
 import com.google.gson.reflect.TypeToken;
 
 public class LogFeeder {
-  static Logger logger = Logger.getLogger(LogFeeder.class);
+  private static final Logger logger = Logger.getLogger(LogFeeder.class);
 
-  Collection<Output> outputList = new ArrayList<Output>();
-  
   private static final int LOGFEEDER_SHUTDOWN_HOOK_PRIORITY = 30;
 
-  OutputMgr outMgr = new OutputMgr();
-  InputMgr inputMgr = new InputMgr();
-  MetricsMgr metricsMgr = new MetricsMgr();
+  private Collection<Output> outputList = new ArrayList<Output>();
+
+  private OutputMgr outMgr = new OutputMgr();
+  private InputMgr inputMgr = new InputMgr();
+  private MetricsMgr metricsMgr = new MetricsMgr();
 
   public static Map<String, Object> globalMap = null;
-  String[] inputParams;
+  private String[] inputParams;
 
-  List<Map<String, Object>> globalConfigList = new ArrayList<Map<String, Object>>();
-  List<Map<String, Object>> inputConfigList = new ArrayList<Map<String, Object>>();
-  List<Map<String, Object>> filterConfigList = new ArrayList<Map<String, Object>>();
-  List<Map<String, Object>> outputConfigList = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> globalConfigList = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> inputConfigList = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> filterConfigList = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> outputConfigList = new ArrayList<Map<String, Object>>();
   
-  int checkPointCleanIntervalMS = 24 * 60 * 60 * 60 * 1000; // 24 hours
-  long lastCheckPointCleanedMS = 0;
+  private int checkPointCleanIntervalMS = 24 * 60 * 60 * 60 * 1000; // 24 hours
+  private long lastCheckPointCleanedMS = 0;
   
   private static boolean isLogfeederCompleted = false;
   
   private Thread statLoggerThread = null;
 
-  public LogFeeder(String[] args) {
+  private LogFeeder(String[] args) {
     inputParams = args;
   }
 
-  public void init() throws Throwable {
+  private void init() throws Throwable {
 
     LogFeederUtil.loadProperties("logfeeder.properties", inputParams);
 
@@ -131,7 +131,7 @@ public class LogFeeder {
     logger.debug("==============");
   }
 
-  void loadConfigsUsingClassLoader(String configFileName) throws Exception {
+  private void loadConfigsUsingClassLoader(String configFileName) throws Exception {
     BufferedInputStream fileInputStream = (BufferedInputStream) this
       .getClass().getClassLoader()
       .getResourceAsStream(configFileName);
@@ -148,7 +148,7 @@ public class LogFeeder {
   /**
    * This method loads the configurations from the given file.
    */
-  void loadConfigsUsingFile(File configFile) throws Exception {
+  private void loadConfigsUsingFile(File configFile) throws Exception {
     FileInputStream fileInputStream = null;
     try {
       fileInputStream = new FileInputStream(configFile);
@@ -172,7 +172,7 @@ public class LogFeeder {
   }
 
   @SuppressWarnings("unchecked")
-  void loadConfigs(String configData) throws Exception {
+  private void loadConfigs(String configData) throws Exception {
     Type type = new TypeToken<Map<String, Object>>() {
     }.getType();
     Map<String, Object> configMap = LogFeederUtil.getGson().fromJson(
@@ -503,7 +503,7 @@ public class LogFeeder {
     }
   }
 
-  public String readFile(BufferedReader br) throws Exception {
+  private String readFile(BufferedReader br) throws Exception {
     try {
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
@@ -527,12 +527,6 @@ public class LogFeeder {
   }
 
   public static void main(String[] args) {
-    LogFeeder logFeeder = new LogFeeder(args);
-    logFeeder.run();
-  }
-
-
-  public static void run(String[] args) {
     LogFeeder logFeeder = new LogFeeder(args);
     logFeeder.run();
   }
@@ -572,7 +566,7 @@ public class LogFeeder {
     }
   }
   
-  public void waitOnAllDaemonThreads() {
+  private void waitOnAllDaemonThreads() {
     String foreground = LogFeederUtil.getStringProperty("foreground");
     if (foreground != null && foreground.equalsIgnoreCase("true")) {
       inputMgr.waitOnAllInputs();
