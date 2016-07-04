@@ -46,6 +46,9 @@
 		},
 		"s3_file": {
 			"klass": "org.apache.ambari.logfeeder.output.OutputS3File"
- 		}
+ 		},
+ 		"hdfs": {
+			"klass": "org.apache.ambari.logfeeder.output.OutputHDFSFile"
+  		}
 	}
 }

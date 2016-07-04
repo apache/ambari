@@ -1,0 +1,20 @@
+{
+
+"output": [{
+		"comment": "Write log to hdfs",
+		"destination": "hdfs",
+		"hdfs_out_dir": "logfeeder/$HOST/service",
+		"file_name_prefix":"service-logs-",
+		"hdfs_host": "hdfs_host",
+		"hdfs_port": "8020",
+		"rollover_sec":"300",
+		"conditions": {
+			"fields": {
+				"rowtype": [
+					"service"
+				]
+			}
+		}
+	}]
+
+}

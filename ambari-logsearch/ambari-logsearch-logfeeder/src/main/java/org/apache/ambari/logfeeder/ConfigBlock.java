@@ -204,6 +204,20 @@ public abstract class ConfigBlock {
     }
     return retValue;
   }
+  
+  public long getLongValue(String key, long defaultValue) {
+    String strValue = getStringValue(key);
+    Long retValue = defaultValue;
+    if (!StringUtils.isEmpty(strValue)) {
+      try {
+        retValue = Long.parseLong(strValue);
+      } catch (Throwable t) {
+        logger.error("Error parsing long value. key=" + key + ", value="
+            + strValue);
+      }
+    }
+    return retValue;
+  }
 
   public Map<String, String> getContextFields() {
     return contextFields;
