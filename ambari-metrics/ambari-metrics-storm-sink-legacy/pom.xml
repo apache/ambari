@@ -25,13 +25,14 @@ limitations under the License.
     <version>2.0.0.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>ambari-metrics-storm-sink</artifactId>
+  <artifactId>ambari-metrics-storm-sink-legacy</artifactId>
   <version>2.0.0.0-SNAPSHOT</version>
-  <name>Ambari Metrics Storm Sink</name>
+  <name>Ambari Metrics Storm Sink (Legacy)</name>
   <packaging>jar</packaging>
 
   <properties>
-    <storm.version>1.1.0-SNAPSHOT</storm.version>
+    <!--<storm.version>0.9.3.2.2.1.0-2340</storm.version>-->
+    <storm.version>0.10.0.2.3.0.0-2557</storm.version>
   </properties>
 
   <build>

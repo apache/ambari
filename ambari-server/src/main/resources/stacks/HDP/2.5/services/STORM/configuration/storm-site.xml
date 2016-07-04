@@ -54,4 +54,8 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>metrics.reporter.register</name>
+    <on-ambari-upgrade delete="true"/>
+  </property>
 </configuration>

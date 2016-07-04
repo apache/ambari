@@ -26,6 +26,7 @@
     <module>ambari-metrics-flume-sink</module>
     <module>ambari-metrics-kafka-sink</module>
     <module>ambari-metrics-storm-sink</module>
+    <module>ambari-metrics-storm-sink-legacy</module>
     <module>ambari-metrics-timelineservice</module>
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
@@ -76,6 +77,11 @@
       <id>apache-hadoop</id>
       <name>hdp</name>
       <url>http://repo.hortonworks.com/content/groups/public/</url>
+    </repository>
+    <repository>
+      <id>apache-snapshots</id>
+      <name>snapshots</name>
+      <url>https://repository.apache.org/content/repositories/snapshots</url>
     </repository>
   </repositories>
   <dependencyManagement>

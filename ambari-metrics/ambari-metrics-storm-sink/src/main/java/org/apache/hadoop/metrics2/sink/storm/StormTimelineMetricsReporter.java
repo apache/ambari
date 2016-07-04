@@ -18,37 +18,33 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import backtype.storm.generated.ClusterSummary;
-import backtype.storm.generated.SupervisorSummary;
-import backtype.storm.generated.TopologySummary;
-import backtype.storm.metric.IClusterReporter;
-import backtype.storm.utils.NimbusClient;
-import backtype.storm.utils.Utils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
+import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
+import org.apache.storm.metric.api.DataPoint;
+import org.apache.storm.metric.api.IClusterMetricsConsumer;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
-  implements IClusterReporter {
+    implements IClusterMetricsConsumer {
 
-  public static final String METRICS_COLLECTOR_CATEGORY = "metrics_collector";
-  public static final String APP_ID = "appId";
+  public static final String CLUSTER_REPORTER_APP_ID = "clusterReporterAppId";
+  public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "nimbus";
 
   private String hostname;
-  private String collectorUri;
   private String port;
   private String collectors;
   private String zkQuorum;
   private String protocol;
-  private NimbusClient nimbusClient;
   private String applicationId;
   private int timeoutSeconds;
 
@@ -87,7 +83,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
-  public void prepare(Map conf) {
+  public void prepare(Object registrationArgument) {
     LOG.info("Preparing Storm Metrics Reporter");
     try {
       try {
@@ -100,74 +96,62 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
         LOG.error("Could not identify hostname.");
         throw new RuntimeException("Could not identify hostname.", e);
       }
-      Validate.notNull(conf.get(METRICS_COLLECTOR_CATEGORY), METRICS_COLLECTOR_CATEGORY + " can not be null");
-      Map cf = (Map) conf.get(METRICS_COLLECTOR_CATEGORY);
-      Map stormConf = Utils.readStormConfig();
-      this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
 
-      collectors = cf.get(COLLECTOR_PROPERTY).toString();
-      protocol = cf.get(COLLECTOR_PROTOCOL) != null ? cf.get(COLLECTOR_PROTOCOL).toString() : "http";
-      port = cf.get(COLLECTOR_PORT) != null ? cf.get(COLLECTOR_PORT).toString() : "6188";
-      zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
+      Configuration configuration = new Configuration("/storm-metrics2.properties");
+      collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+      protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
+      port = configuration.getProperty(COLLECTOR_PORT, "6188");
+      zkQuorum = configuration.getProperty(ZOOKEEPER_QUORUM);
 
-      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
-        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
-        DEFAULT_POST_TIMEOUT_SECONDS;
-      applicationId = cf.get(APP_ID).toString();
+      timeoutSeconds = configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS) != null ?
+          Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS)) :
+          DEFAULT_POST_TIMEOUT_SECONDS;
+      applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
 
-      collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
       if (protocol.contains("https")) {
-        String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
-        String trustStoreType = cf.get(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
-        String trustStorePwd = cf.get(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
+        String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
+        String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
+        String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
         loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
       }
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify " +
-        "protocol, host, port under $STORM_HOME/conf/config.yaml ", e);
+          "protocol, host, port, appId, zkQuorum under $STORM_HOME/conf/storm-metrics2.properties ", e);
     }
     // Initialize the collector write strategy
     super.init();
   }
 
   @Override
-  public void reportMetrics() throws Exception {
-    List<TimelineMetric> totalMetrics = new ArrayList<TimelineMetric>(7);
-    ClusterSummary cs = this.nimbusClient.getClient().getClusterInfo();
-    long currentTimeMillis = System.currentTimeMillis();
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Supervisors", String.valueOf(cs.get_supervisors_size())));
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Topologies", String.valueOf(cs.get_topologies_size())));
+  public void handleDataPoints(ClusterInfo clusterInfo, Collection<DataPoint> dataPoints) {
+    long timestamp = clusterInfo.getTimestamp();
+    List<TimelineMetric> totalMetrics = new ArrayList<>();
 
-    List<SupervisorSummary> sups = cs.get_supervisors();
-    int totalSlots = 0;
-    int usedSlots = 0;
-    for (SupervisorSummary ssum : sups) {
-      totalSlots += ssum.get_num_workers();
-      usedSlots += ssum.get_num_used_workers();
-    }
-    int freeSlots = totalSlots - usedSlots;
+    for (DataPoint dataPoint : dataPoints) {
+      LOG.debug(dataPoint.getName() + " = " + dataPoint.getValue());
+      List<DataPoint> populatedDataPoints = populateDataPoints(dataPoint);
 
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Total Slots", String.valueOf(totalSlots)));
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Used Slots", String.valueOf(usedSlots)));
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Free Slots", String.valueOf(freeSlots)));
+      for (DataPoint populatedDataPoint : populatedDataPoints) {
+        LOG.debug("Populated datapoint: " + dataPoint.getName() + " = " + dataPoint.getValue());
 
-    List<TopologySummary> topos = cs.get_topologies();
-    int totalExecutors = 0;
-    int totalTasks = 0;
-    for (TopologySummary topo : topos) {
-      totalExecutors += topo.get_num_executors();
-      totalTasks += topo.get_num_tasks();
+        try {
+          StormAmbariMappedMetric mappedMetric = StormAmbariMappedMetric
+              .valueOf(populatedDataPoint.getName());
+          TimelineMetric timelineMetric = createTimelineMetric(timestamp * 1000, applicationId,
+              mappedMetric.getAmbariMetricName(),
+              Double.valueOf(populatedDataPoint.getValue().toString()));
+
+          totalMetrics.add(timelineMetric);
+        } catch (IllegalArgumentException e) {
+          // not interested metrics on Ambari, skip
+          LOG.debug("Not interested metrics, skip: " + populatedDataPoint.getName());
+        }
+      }
     }
 
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Total Executors", String.valueOf(totalExecutors)));
-    totalMetrics.add(createTimelineMetric(currentTimeMillis,
-      applicationId, "Total Tasks", String.valueOf(totalTasks)));
+    if (totalMetrics.size() <= 0) {
+      return;
+    }
 
     TimelineMetrics timelineMetrics = new TimelineMetrics();
     timelineMetrics.setMetrics(totalMetrics);
@@ -177,17 +161,87 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     } catch (UnableToConnectException e) {
       LOG.warn("Unable to connect to Metrics Collector " + e.getConnectUrl() + ". " + e.getMessage());
     }
-
   }
 
-  private TimelineMetric createTimelineMetric(long currentTimeMillis, String component, String attributeName, String attributeValue) {
+  @Override
+  public void handleDataPoints(SupervisorInfo supervisorInfo, Collection<DataPoint> dataPoints) {
+    // Ambari is not interested on metrics on each supervisor
+  }
+
+  @Override
+  public void cleanup() {
+    LOG.info("Stopping Storm Metrics Reporter");
+  }
+
+  private List<DataPoint> populateDataPoints(DataPoint dataPoint) {
+    List<DataPoint> dataPoints = new ArrayList<>();
+
+    if (dataPoint.getValue() == null) {
+      LOG.warn("Data point with name " + dataPoint.getName() + " is null. Discarding." + dataPoint
+          .getName());
+    } else if (dataPoint.getValue() instanceof Map) {
+      Map<String, Object> dataMap = (Map<String, Object>) dataPoint.getValue();
+
+      for (Map.Entry<String, Object> entry : dataMap.entrySet()) {
+        Double value = convertValueToDouble(entry.getKey(), entry.getValue());
+        if (value != null) {
+          dataPoints.add(new DataPoint(dataPoint.getName() + "." + entry.getKey(), value));
+        }
+      }
+    } else {
+      Double value = convertValueToDouble(dataPoint.getName(), dataPoint.getValue());
+      if (value != null) {
+        dataPoints.add(new DataPoint(dataPoint.getName(), value));
+      }
+    }
+
+    return dataPoints;
+  }
+
+  private Double convertValueToDouble(String metricName, Object value) {
+    try {
+      Double converted = NumberUtil.convertValueToDouble(value);
+      if (converted == null) {
+        LOG.warn("Data point with name " + metricName + " has value " + value +
+            " which is not supported. Discarding.");
+      }
+      return converted;
+    } catch (NumberFormatException e) {
+      LOG.warn("Data point with name " + metricName + " doesn't have number format value " +
+          value + ". Discarding.");
+      return null;
+    }
+  }
+
+  private TimelineMetric createTimelineMetric(long currentTimeMillis, String component,
+                                              String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostname);
     timelineMetric.setAppId(component);
     timelineMetric.setStartTime(currentTimeMillis);
-    timelineMetric.getMetricValues().put(currentTimeMillis, Double.parseDouble(attributeValue));
+    timelineMetric.setType(ClassUtils.getShortCanonicalName(attributeValue, "Number"));
+    timelineMetric.getMetricValues().put(currentTimeMillis, attributeValue);
     return timelineMetric;
   }
 
+  enum StormAmbariMappedMetric {
+    supervisors("Supervisors"),
+    topologies("Topologies"),
+    slotsTotal("Total Slots"),
+    slotsUsed("Used Slots"),
+    slotsFree("Free Slots"),
+    executorsTotal("Total Executors"),
+    tasksTotal("Total Tasks");
+
+    private String ambariMetricName;
+
+    StormAmbariMappedMetric(String ambariMetricName) {
+      this.ambariMetricName = ambariMetricName;
+    }
+
+    public String getAmbariMetricName() {
+      return ambariMetricName;
+    }
+  }
 }
