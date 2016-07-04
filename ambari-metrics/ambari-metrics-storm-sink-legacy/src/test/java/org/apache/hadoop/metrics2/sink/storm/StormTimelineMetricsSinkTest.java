@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import static org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink.SYSTEM_BOLT_TASK_ID;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -37,7 +36,7 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.apache.storm.metric.api.IMetricsConsumer;
+import backtype.storm.metric.api.IMetricsConsumer;
 
 public class StormTimelineMetricsSinkTest {
   @Test
@@ -63,23 +62,6 @@ public class StormTimelineMetricsSinkTest {
     replay(timelineMetricsCache);
     stormTimelineMetricsSink.handleDataPoints(
         new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),
-        Collections.singleton(new IMetricsConsumer.DataPoint("key1", 42)));
-    verify(timelineMetricsCache);
-  }
-
-  @Test
-  @Ignore // TODO: Fix for failover
-  public void testNumericMetricFromSystemBoltMetricSubmission() throws InterruptedException, IOException {
-    StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
-    TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
-    expect(timelineMetricsCache.getTimelineMetric("testComponent.localhost.1234.key1"))
-        .andReturn(new TimelineMetric()).once();
-    timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
-    expectLastCall().once();
-    stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
-    replay(timelineMetricsCache);
-    stormTimelineMetricsSink.handleDataPoints(
-        new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", SYSTEM_BOLT_TASK_ID, 20000L, 60),
         Collections.singleton(new IMetricsConsumer.DataPoint("key1", 42)));
     verify(timelineMetricsCache);
   }

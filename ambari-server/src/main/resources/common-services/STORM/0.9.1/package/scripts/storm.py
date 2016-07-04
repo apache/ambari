@@ -111,9 +111,14 @@ def storm(name=None):
     # On old HDP 2.1 versions, this symlink may also exist and break EU to newer versions
     Link("/usr/lib/storm/lib/ambari-metrics-storm-sink.jar", action="delete")
 
-    Execute(format("{sudo} ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
+    if Script.get_stack_name() == "HDP" and Script.is_stack_greater_or_equal("2.5"):
+      sink_jar = params.metric_collector_sink_jar
+    else:
+      sink_jar = params.metric_collector_legacy_sink_jar
+
+    Execute(format("{sudo} ln -s {sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
             not_if=format("ls {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
-            only_if=format("ls {metric_collector_sink_jar}")
+            only_if=format("ls {sink_jar}")
     )
 
   if params.storm_logs_supported:
