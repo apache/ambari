@@ -28,7 +28,7 @@ import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.view.VLogfeederFilter;
 import org.apache.log4j.Logger;
 
-public class ApplyLogFilter extends DefaultDataFilter {
+class ApplyLogFilter extends DefaultDataFilter {
 
   private static Logger logger = Logger.getLogger(ApplyLogFilter.class);
 

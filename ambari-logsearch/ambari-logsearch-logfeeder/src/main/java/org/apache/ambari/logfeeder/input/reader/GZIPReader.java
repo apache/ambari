@@ -28,16 +28,16 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 
-public class GZIPReader extends InputStreamReader {
+class GZIPReader extends InputStreamReader {
 
   private static Logger logger = Logger.getLogger(GZIPReader.class);
 
-  public GZIPReader(String fileName) throws FileNotFoundException {
+  GZIPReader(String fileName) throws FileNotFoundException {
     super(getStream(fileName));
     logger.info("Created GZIPReader for file : " + fileName);
   }
 
-  public GZIPReader(File file) throws FileNotFoundException {
+  GZIPReader(File file) throws FileNotFoundException {
     super(getStream(file.getName()));
   }
 
@@ -56,7 +56,7 @@ public class GZIPReader extends InputStreamReader {
   /**
    * validating file based on magic number
    */
-  public static boolean isValidFile(String fileName) {
+  static boolean isValidFile(String fileName) {
     // TODO make it generic and put in factory itself
     InputStream is = null;
     try {

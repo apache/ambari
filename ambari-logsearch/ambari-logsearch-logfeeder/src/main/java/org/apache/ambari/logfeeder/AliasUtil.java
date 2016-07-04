@@ -82,7 +82,7 @@ public class AliasUtil {
   }
 
   @SuppressWarnings("unchecked")
-  public HashMap<String, String> getAliasInfo(String key, ALIAS_TYPE aliastype) {
+  private HashMap<String, String> getAliasInfo(String key, ALIAS_TYPE aliastype) {
     HashMap<String, String> aliasInfo = null;
     if (aliasMap != null) {
       String typeKey = aliastype.name().toLowerCase();

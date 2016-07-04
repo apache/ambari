@@ -23,26 +23,26 @@ import java.util.Map;
 /**
  * Default filter to allow everything
  */
-public class DefaultDataFilter {
+class DefaultDataFilter {
   public boolean applyFilter(Map<String, Object> outputJsonObj, boolean defaultValue) {
     return defaultValue;
   }
 
-  public boolean isEmpty(Map<String, Object> map) {
+  protected boolean isEmpty(Map<String, Object> map) {
     if (map == null || map.isEmpty()) {
       return true;
     }
     return false;
   }
 
-  public boolean isEmpty(String str) {
+  protected boolean isEmpty(String str) {
     if (str == null || str.trim().isEmpty()) {
       return true;
     }
     return false;
   }
 
-  public boolean isNotEmpty(String str) {
+  protected boolean isNotEmpty(String str) {
     return !isEmpty(str);
   }
 
