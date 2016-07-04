@@ -26,6 +26,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
+from resource_management.libraries.functions.is_empty import is_empty
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -236,13 +237,11 @@ rangerkms_bare_principal = 'rangerkms'
 
 if stack_supports_ranger_kerberos:
   if security_enabled:
-    rangerkms_principal = default("/configurations/dbks-site/ranger.ks.kerberos.principal", None)
-    if rangerkms_principal is not None:
+    rangerkms_principal = config['configurations']['dbks-site']['ranger.ks.kerberos.principal']
+    if not is_empty(rangerkms_principal) and rangerkms_principal != '':
       rangerkms_bare_principal = get_bare_principal(rangerkms_principal)
       rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())
-    kms_plugin_config['policy.download.auth.users'] = format('keyadmin,{rangerkms_bare_principal}')
-  else:
-    kms_plugin_config['policy.download.auth.users'] = 'keyadmin'
+  kms_plugin_config['policy.download.auth.users'] = format('keyadmin,{rangerkms_bare_principal}')
 
 kms_ranger_plugin_repo = {
   'isEnabled' : 'true',
@@ -256,3 +255,8 @@ kms_ranger_plugin_repo = {
 user_group = config['configurations']['cluster-env']['user_group']
 ranger_kms_pid_dir = default("/configurations/kms-env/ranger_kms_pid_dir", "/var/run/ranger_kms")
 ranger_kms_pid_file = format('{ranger_kms_pid_dir}/rangerkms.pid')
+
+if security_enabled:
+  spengo_keytab = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab']
+  spnego_principal = config['configurations']['kms-site']['hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal']
+  spnego_principal = spnego_principal.replace('_HOST', current_host.lower())
