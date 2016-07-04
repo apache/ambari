@@ -234,7 +234,7 @@
   <!-- The type determines whether to show LDAP or AD settings in smart config's theme.json file. -->
   <property>
     <name>atlas.authentication.method.ldap.type</name>
-    <value/>
+    <value>ldap</value>
     <description>The LDAP type (ldap or ad).</description>
     <value-attributes>
       <overridable>false</overridable>
