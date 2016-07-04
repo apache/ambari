@@ -20,9 +20,9 @@ package org.apache.ambari.view.hive2;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
+import akka.actor.Inbox;
+import akka.actor.PoisonPill;
 import akka.actor.Props;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
 import org.apache.ambari.view.hive2.actor.OperationController;
@@ -30,21 +30,16 @@ import org.apache.ambari.view.hive2.internal.ConnectionSupplier;
 import org.apache.ambari.view.hive2.internal.DataStorageSupplier;
 import org.apache.ambari.view.hive2.internal.HdfsApiSupplier;
 
-import java.io.InputStream;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public class ConnectionSystem {
 
-  private static final String ACTOR_CONF_FILE = "application.conf";
   private static final String ACTOR_SYSTEM_NAME = "HiveViewActorSystem";
   private ActorSystem actorSystem = null;
   private static volatile ConnectionSystem instance = null;
   private static final Object lock = new Object();
-  private static Map<String, ActorRef> operationControllerMap = new HashMap<>();
+  private static Map<String, ActorRef> operationControllerMap = new ConcurrentHashMap<>();
 
   private ConnectionSystem() {
     this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);
@@ -92,6 +87,14 @@ public class ConnectionSystem {
       }
     }
     return ref;
+  }
+
+  public void removeOperationControllerFromCache(String viewInstanceName) {
+    ActorRef ref = operationControllerMap.remove(viewInstanceName);
+    if (ref != null) {
+      Inbox inbox = Inbox.create(getActorSystem());
+      inbox.send(ref, PoisonPill.getInstance());
+    }
   }
 
   public void shutdown() {
