@@ -173,6 +173,13 @@ if has_metric_collector:
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 
+#Collector hosts
+metric_collector_hosts = ""
+if ams_collector_hosts:
+  for host in ams_collector_hosts:
+    metric_collector_hosts += host + ':' + metric_collector_port + ','
+  metric_collector_hosts = metric_collector_hosts[:-1]
+
 # if hbase is selected the hbase_rs_hosts, should not be empty, but still default just in case
 if 'slave_hosts' in config['clusterHostInfo']:
   rs_hosts = default('/clusterHostInfo/hbase_rs_hosts', '/clusterHostInfo/slave_hosts') #if hbase_rs_hosts not given it is assumed that region servers on same nodes as slaves
