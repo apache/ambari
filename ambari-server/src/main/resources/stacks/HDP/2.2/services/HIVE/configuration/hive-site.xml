@@ -132,13 +132,15 @@ limitations under the License.
     <name>fs.hdfs.impl.disable.cache</name>
     <value>false</value>
     <description>Disable HDFS filesystem cache.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>fs.file.impl.disable.cache</name>
     <value>false</value>
     <description>Disable local filesystem cache.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.exec.scratchdir</name>
@@ -1422,13 +1424,15 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.server2.enable.impersonation</name>
     <value>true</value>
     <description>Enable user impersonation for HiveServer2</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ambari.hive.db.schema.name</name>
@@ -1445,7 +1449,8 @@ limitations under the License.
     <name>hive.auto.convert.sortmerge.join.noconditionaltask</name>
     <value>true</value>
     <description>Required to Enable the conversion of an SMB (Sort-Merge-Bucket) to a map-join SMB.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hive.optimize.mapjoin.mapreduce</name>
@@ -1455,7 +1460,8 @@ limitations under the License.
       job (for e.g a group by), each map-only job is merged with the following
       map-reduce job.
     </description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <!-- performance -->
   <property>

@@ -57,6 +57,7 @@
     <name>nimbus.host</name>
     <value>localhost</value>
     <description>Deprecated config in favor of nimbus.seeds used during non HA mode.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

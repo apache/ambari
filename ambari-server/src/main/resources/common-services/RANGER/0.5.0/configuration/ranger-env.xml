@@ -49,7 +49,8 @@
   </property>
   <property>
     <name>oracle_home</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger_privelege_user_jdbc_url</name>

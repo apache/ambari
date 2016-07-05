@@ -22,7 +22,8 @@
 <configuration>
   <property>
     <name>xasecure.audit.destination.db</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>ranger_solr_config_set</name>

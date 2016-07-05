@@ -22,11 +22,13 @@
   <property>
     <name>spark.driver.extraJavaOptions</name>
     <value></value>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>spark.yarn.am.extraJavaOptions</name>
     <value></value>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

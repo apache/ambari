@@ -19,8 +19,12 @@
 package org.apache.ambari.server.state;
 
 
-import org.apache.ambari.server.controller.StackConfigurationResponse;
-import org.w3c.dom.Element;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -31,12 +35,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.apache.ambari.server.controller.StackConfigurationResponse;
+import org.w3c.dom.Element;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyInfo {
@@ -48,6 +48,7 @@ public class PropertyInfo {
   private String displayName;
 
   private String filename;
+  private boolean deleted;
 
   @XmlElement(name="on-ambari-upgrade", required = true)
   private PropertyUpgradeBehavior propertyAmbariUpgradeBehavior;
@@ -150,6 +151,14 @@ public class PropertyInfo {
       getDependsOnProperties());
   }
 
+  public boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
+  }
+
   public Map<String, String> getAttributesMap() {
     Map<String, String> attributes = new HashMap<String, String>();
     for (Element propertyAttribute : propertyAttributes) {
@@ -229,6 +238,7 @@ public class PropertyInfo {
       ", value='" + value + '\'' +
       ", description='" + description + '\'' +
       ", filename='" + filename + '\'' +
+      ", deleted=" + deleted +
       ", requireInput=" + requireInput +
       ", propertyTypes=" + propertyTypes +
       ", propertyAttributes=" + propertyAttributes +

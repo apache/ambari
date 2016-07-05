@@ -140,7 +140,8 @@
     <name>port</name>
     <value>6667</value>
     <description>Deprecated config in favor of listeners config.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>external.kafka.metrics.exclude.prefix</name>

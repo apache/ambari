@@ -34,7 +34,8 @@
     <description>
     The number of times the region flush operation will be retried.
     </description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>

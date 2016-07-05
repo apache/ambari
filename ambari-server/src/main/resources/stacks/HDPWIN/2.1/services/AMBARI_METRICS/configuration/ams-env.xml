@@ -20,7 +20,8 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>ams_user</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>metrics_collector_log_dir</name>
