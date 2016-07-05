@@ -512,7 +512,6 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
     return
 
   # make backup dir and copy everything in case configure() was called after install()
-  backup_dir = None
   for dir_def in dirs:
     old_conf = dir_def['conf_dir']
     backup_dir = _get_backup_conf_directory(old_conf)
@@ -572,6 +571,8 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
       # or
       # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
       if link_to == DIRECTORY_TYPE_BACKUP:
+        old_conf = dir_def['conf_dir']
+        backup_dir = _get_backup_conf_directory(old_conf)
         Link(new_symlink, to = backup_dir)
       else:
         Link(new_symlink, to = dir_def['current_dir'])
