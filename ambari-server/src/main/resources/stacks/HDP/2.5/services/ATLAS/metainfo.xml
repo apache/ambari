@@ -28,6 +28,13 @@
         </component>
       </components>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
+
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
