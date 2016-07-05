@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.CommandUtils;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +139,7 @@ public class ActionManager {
    * twice
    */
   public void processTaskResponse(String hostname, List<CommandReport> reports,
-                                  Collection<HostRoleCommand> commands) {
+                                  Map<Long, HostRoleCommand> commands) {
     if (reports == null) {
       return;
     }
@@ -149,10 +151,9 @@ public class ActionManager {
       }
     });
     List<CommandReport> reportsToProcess = new ArrayList<CommandReport>();
-    Iterator<HostRoleCommand> commandIterator = commands.iterator();
     //persist the action response into the db.
     for (CommandReport report : reports) {
-      HostRoleCommand command = commandIterator.next();
+      HostRoleCommand command = commands.get(report.getTaskId());
       if (LOG.isDebugEnabled()) {
         LOG.debug("Processing command report : " + report.toString());
       }
@@ -210,6 +211,10 @@ public class ActionManager {
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
     return db.getTasks(taskIds);
+  }
+
+  public Map<Long, HostRoleCommand> getTasksMap(Collection<Long> taskIds) {
+    return CommandUtils.convertToTaskIdCommandMap(getTasks(taskIds));
   }
 
   /**

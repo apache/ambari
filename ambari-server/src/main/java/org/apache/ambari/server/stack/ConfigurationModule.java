@@ -18,14 +18,15 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.PropertyInfo;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.PropertyInfo;
 
 
 /**
@@ -150,7 +151,7 @@ public class ConfigurationModule extends BaseModule<ConfigurationModule, Configu
     while (iter.hasNext()) {
       PropertyInfo prop = iter.next();
       existingProps.add(prop.getFilename() + "/" + prop.getName());
-      if (prop.getPropertyAmbariUpgradeBehavior().isDelete()) {
+      if (prop.isDeleted()) {
         iter.remove();
       }
     }

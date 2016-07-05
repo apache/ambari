@@ -79,15 +79,18 @@
   </property>
   <property>
     <name>dfs.client.read.shortcircuit</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.client.read.shortcircuit.streams.cache.size</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.domain.socket.path</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>dfs.journalnode.edits.dir</name>

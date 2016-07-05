@@ -22,7 +22,8 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>storm_user</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>storm_log_dir</name>

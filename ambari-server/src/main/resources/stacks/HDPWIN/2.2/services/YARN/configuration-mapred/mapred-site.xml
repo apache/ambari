@@ -22,7 +22,8 @@
     <name>mapreduce.admin.user.env</name>
     <value/>
     <description/>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.application.classpath</name>
@@ -38,25 +39,29 @@
     <name>mapreduce.application.framework.path</name>
     <value/>
     <description/>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.app.mapreduce.am.admin-command-opts</name>
     <value/>
     <description/>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.admin.map.child.java.opts</name>
     <value/>
     <description/>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.admin.reduce.child.java.opts</name>
     <value/>
     <description/>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>mapreduce.reduce.shuffle.fetch.retry.enabled</name>

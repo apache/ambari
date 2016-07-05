@@ -61,6 +61,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.utils.CommandUtils;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.EasyMock;
@@ -563,7 +564,7 @@ public class HeartbeatProcessorTest {
 
 
     reports.add(cr);
-    am.processTaskResponse(DummyHostname1, reports, stage.getOrderedHostRoleCommands());
+    am.processTaskResponse(DummyHostname1, reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
     assertEquals(215,
         am.getAction(requestId, stageId).getExitCode(DummyHostname1, HBASE_MASTER));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
