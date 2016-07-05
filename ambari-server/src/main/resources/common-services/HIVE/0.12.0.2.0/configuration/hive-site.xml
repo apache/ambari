@@ -212,7 +212,7 @@ limitations under the License.
     <name>hive.server2.max.start.attempts</name>
     <description>This number of times HiveServer2 will attempt to start before exiting, sleeping 60 seconds between retries.</description>
     <value>5</value>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.server2.authentication</name>

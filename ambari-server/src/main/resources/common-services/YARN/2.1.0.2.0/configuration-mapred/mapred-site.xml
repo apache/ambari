@@ -462,7 +462,7 @@
       The following values are supported: - HTTP_ONLY : Service is provided only
       on http - HTTPS_ONLY : Service is provided only on https
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>mapreduce.job.queuename</name>
@@ -476,6 +476,6 @@
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

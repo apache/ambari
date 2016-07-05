@@ -374,7 +374,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_workfile_limit_files_per_query</name>
@@ -389,7 +389,7 @@
       <type>int</type>
       <minimum>0</minimum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_workfile_limit_per_query</name>
@@ -404,7 +404,7 @@
       <minimum>0</minimum>
       <unit>kB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_workfile_limit_per_segment</name>
@@ -419,7 +419,7 @@
       <minimum>0</minimum>
       <unit>kB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_autostats_mode</name>
@@ -446,7 +446,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_autostats_on_change_threshold</name>
@@ -459,7 +459,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>gp_external_max_segs</name>
@@ -471,7 +471,7 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hawq_rm_resource_idle_timeout</name>
@@ -484,7 +484,7 @@
       <minimum>-1</minimum>
       <maximum>65535</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>log_duration</name>
@@ -495,7 +495,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>log_rotation_age</name>
@@ -507,7 +507,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>log_statement</name>
@@ -536,7 +536,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>log_statement_stats</name>
@@ -548,7 +548,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>log_truncate_on_rotation</name>
@@ -562,7 +562,7 @@
     <value-attributes>
       <type>string</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>runaway_detector_activation_percent</name>
@@ -577,7 +577,7 @@
       <minimum>0</minimum>
       <maximum>100</maximum>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>statement_timeout</name>
@@ -588,6 +588,6 @@
     <value-attributes>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

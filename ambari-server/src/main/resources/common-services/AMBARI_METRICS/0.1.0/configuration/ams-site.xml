@@ -665,7 +665,7 @@
       Skip block cache on aggregator queries to allow, HBase block
       utilization only for user queries.
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cache.commit.interval</name>
@@ -677,7 +677,7 @@
       <type>int</type>
       <unit>s</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cache.size</name>
@@ -689,7 +689,7 @@
       <type>int</type>
       <unit>Bytes</unit>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.cache.enabled</name>
@@ -697,7 +697,7 @@
     <description>
       If set to true PhoenixHBaseAccessor will use cache to store metrics before committing them
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>timeline.metrics.service.http.policy</name>
@@ -734,6 +734,6 @@
       Commas separated list of regular expressions that match metric names
       which prevents certain metrics from ending up in metadata cache.
     </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

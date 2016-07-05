@@ -25,7 +25,7 @@
       for the java.library.path value. java.library.path tells the JVM where
       to look for native libraries. It is necessary to set this config correctly since
       Storm uses the ZeroMQ and JZMQ native libs. </description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>nimbus.childopts</name>
@@ -34,7 +34,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>worker.childopts</name>
@@ -43,7 +43,7 @@
     <value-attributes>
       <type>multiLine</type>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>supervisor.childopts</name>
@@ -52,6 +52,6 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>

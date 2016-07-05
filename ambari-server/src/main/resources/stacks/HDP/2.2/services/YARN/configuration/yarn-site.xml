@@ -229,7 +229,7 @@
         <name>yarn_cgroups_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.linux-container-executor.cgroups.strict-resource-usage</name>
