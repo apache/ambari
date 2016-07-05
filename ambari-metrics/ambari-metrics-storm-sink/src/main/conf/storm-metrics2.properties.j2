@@ -16,14 +16,7 @@
 # limitations under the License.
 #}
 
-collector={{metric_collector_hosts}}
-protocol={{metric_collector_protocol}}
-port={{metric_collector_port}}
-zookeeper.quorum={{zookeeper_quorum}}
+collector={{metric_collector_host}}
+port=6188
 maxRowCacheSize=10000
-sendInterval={{metrics_report_interval}}000
-
-# HTTPS properties
-truststore.path = {{metric_truststore_path}}
-truststore.type = {{metric_truststore_type}}
-truststore.password = {{metric_truststore_password}}
+sendInterval=59000

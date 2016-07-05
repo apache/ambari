@@ -18,9 +18,9 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import org.apache.storm.metric.api.IMetricsConsumer;
-import org.apache.storm.task.IErrorReporter;
-import org.apache.storm.task.TopologyContext;
+import backtype.storm.metric.api.IMetricsConsumer;
+import backtype.storm.task.IErrorReporter;
+import backtype.storm.task.TopologyContext;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -97,11 +97,11 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     }
     Configuration configuration = new Configuration("/storm-metrics2.properties");
     timeoutSeconds = Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS,
-        String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
+      String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
         String.valueOf(MAX_RECS_PER_NAME_DEFAULT)));
     int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
-        String.valueOf(MAX_EVICTION_TIME_MILLIS)));
+      String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
     collectors = configuration.getProperty(COLLECTOR_PROPERTY);
     zkQuorum = configuration.getProperty("zookeeper.quorum");
@@ -218,7 +218,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
-                                              String attributeName, Double attributeValue) {
+      String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);

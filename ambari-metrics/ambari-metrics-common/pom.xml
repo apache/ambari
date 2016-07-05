@@ -53,62 +53,6 @@
           <controlDir>${project.basedir}/../src/main/package/deb/control</controlDir>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
-        <executions>
-          <!-- Run shade goal on package phase -->
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <minimizeJar>true</minimizeJar>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <relocations>
-                <relocation>
-                  <pattern>com.google</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.google</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.io</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.io</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.curator</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.curator</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.jute</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jute</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.zookeeper</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.zookeeper</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.slf4j</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.slf4j</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.log4j</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.log4j</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>jline</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jline</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jboss</pattern>
-                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.jboss</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -118,6 +62,7 @@
       <artifactId>commons-logging</artifactId>
       <version>1.1.1</version>
     </dependency>
+    <!-- TODO: Need to add these as shaded dependencies -->
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
@@ -138,6 +83,7 @@
       <artifactId>curator-framework</artifactId>
       <version>2.7.1</version>
     </dependency>
+    <!--  END TODO -->
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-xc</artifactId>
