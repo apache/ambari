@@ -318,11 +318,10 @@ class ActionQueue(threading.Thread):
         if commandresult['exitcode'] == 0:
           status = self.COMPLETED_STATUS
         else:
+          status = self.FAILED_STATUS
           if (commandresult['exitcode'] == -signal.SIGTERM) or (commandresult['exitcode'] == -signal.SIGKILL):
             logger.info('Command {cid} was canceled!'.format(cid=taskId))
-            return
-          else:
-            status = self.FAILED_STATUS
+            break
 
       if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
         delay = self.get_retry_delay(delay)
