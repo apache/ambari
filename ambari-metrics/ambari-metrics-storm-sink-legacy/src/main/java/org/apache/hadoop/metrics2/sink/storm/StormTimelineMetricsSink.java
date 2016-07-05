@@ -18,9 +18,9 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import org.apache.storm.metric.api.IMetricsConsumer;
-import org.apache.storm.task.IErrorReporter;
-import org.apache.storm.task.TopologyContext;
+import backtype.storm.metric.api.IMetricsConsumer;
+import backtype.storm.task.IErrorReporter;
+import backtype.storm.task.TopologyContext;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -40,8 +40,6 @@ import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCach
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
 public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implements IMetricsConsumer {
-  public static final int SYSTEM_BOLT_TASK_ID = -1;
-
   private String collectorUri;
   private TimelineMetricsCache metricsCache;
   private String hostname;
@@ -98,17 +96,9 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       List<DataPoint> populatedDataPoints = populateDataPoints(dataPoint);
 
       for (DataPoint populatedDataPoint : populatedDataPoints) {
-        String metricName;
-        if (taskInfo.srcTaskId == SYSTEM_BOLT_TASK_ID) {
-          metricName = createMetricNameForSystemBolt(taskInfo, populatedDataPoint.name);
-        } else {
-          metricName = createMetricName(taskInfo.srcComponentId, taskInfo.srcTaskId, populatedDataPoint.name);
-        }
-
-        LOG.debug("populated datapoint: " + metricName + " = " + populatedDataPoint.value);
-
-        TimelineMetric timelineMetric = createTimelineMetric(taskInfo.timestamp * 1000, taskInfo.srcWorkerHost,
-            metricName, Double.valueOf(populatedDataPoint.value.toString()));
+        TimelineMetric timelineMetric = createTimelineMetric(taskInfo.timestamp * 1000,
+            taskInfo.srcComponentId, taskInfo.srcTaskId, taskInfo.srcWorkerHost, populatedDataPoint.name,
+            Double.valueOf(populatedDataPoint.value.toString()));
 
         // Put intermediate values into the cache until it is time to send
         metricsCache.putTimelineMetric(timelineMetric);
@@ -186,10 +176,10 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     }
   }
 
-  private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
+  private TimelineMetric createTimelineMetric(long currentTimeMillis, String componentId, int taskId, String hostName,
       String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
-    timelineMetric.setMetricName(attributeName);
+    timelineMetric.setMetricName(createMetricName(componentId, taskId, attributeName));
     timelineMetric.setHostName(hostName);
     timelineMetric.setAppId(topologyName);
     timelineMetric.setStartTime(currentTimeMillis);
@@ -201,13 +191,6 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
   private String createMetricName(String componentId, int taskId, String attributeName) {
     String metricName = componentId + "." + taskId + "." + attributeName;
-    // since '._' is treat as special character (separator) so it should be replaced
-    return metricName.replace('_', '-');
-  }
-
-  private String createMetricNameForSystemBolt(TaskInfo taskInfo, String attributeName) {
-    String metricName = taskInfo.srcComponentId + "." + taskInfo.srcWorkerHost + "." +
-        taskInfo.srcWorkerPort + "." + attributeName;
     // since '._' is treat as special character (separator) so it should be replaced
     return metricName.replace('_', '-');
   }
