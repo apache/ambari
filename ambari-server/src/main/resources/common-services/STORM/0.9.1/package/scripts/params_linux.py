@@ -243,7 +243,7 @@ storm_ui_port = config['configurations']['storm-site']['ui.port']
 repo_config_username = config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
-policy_user = config['configurations']['ranger-storm-plugin-properties']['policy_user']
+policy_user = storm_user
 storm_cluster_log4j_content = config['configurations']['storm-cluster-log4j']['content']
 storm_worker_log4j_content = config['configurations']['storm-worker-log4j']['content']
 
@@ -315,6 +315,7 @@ if has_ranger_admin:
   }
 
   if stack_supports_ranger_kerberos and security_enabled:
+    policy_user = format('{storm_user},{storm_bare_jaas_principal}')
     storm_ranger_plugin_config['policy.download.auth.users'] = storm_user
     storm_ranger_plugin_config['tag.download.auth.users'] = storm_user
     storm_ranger_plugin_config['ambari.service.check.user'] = policy_user
