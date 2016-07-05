@@ -120,7 +120,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return "http://" + (App.singleNodeInstall ? App.singleNodeAlias :  this.get('service.nameNode.publicHostName')) + ":50070";
   }.property('service.nameNode'),
 
-  nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.hdfs.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service,jvmMemoryHeapMax'),
+  nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.hdfs.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
 
   dfsUsedDisk: diskPart('dashboard.services.hdfs.capacityUsed', 'service.capacityTotal', 'service.capacityUsed'),
 
