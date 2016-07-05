@@ -363,9 +363,8 @@ public class HeartbeatProcessor extends AbstractService{
     for (CommandReport report : reports) {
       taskIds.add(report.getTaskId());
     }
-    Collection<HostRoleCommand> commands = actionManager.getTasks(taskIds);
+    Map<Long, HostRoleCommand> commands = actionManager.getTasksMap(taskIds);
 
-    Iterator<HostRoleCommand> hostRoleCommandIterator = commands.iterator();
     for (CommandReport report : reports) {
 
       Long clusterId = null;
@@ -378,8 +377,6 @@ public class HeartbeatProcessor extends AbstractService{
       }
 
       LOG.debug("Received command report: " + report);
-      // Fetch HostRoleCommand that corresponds to a given task ID
-      HostRoleCommand hostRoleCommand = hostRoleCommandIterator.next();
       Host host = clusterFsm.getHost(hostname);
 //      HostEntity hostEntity = hostDAO.findByName(hostname); //don't touch database
       if (host == null) {
@@ -395,17 +392,23 @@ public class HeartbeatProcessor extends AbstractService{
         ambariEventPublisher.publish(event);
       }
 
-      // Skip sending events for command reports for ABORTed commands
-      if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
-        continue;
-      }
-      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED &&
-          report.getStatus().equals("IN_PROGRESS")) {
-        hostRoleCommand.setStartTime(now);
+      // Fetch HostRoleCommand that corresponds to a given task ID
+      HostRoleCommand hostRoleCommand = commands.get(report.getTaskId());
+      if (hostRoleCommand == null) {
+        LOG.warn("Can't fetch HostRoleCommand with taskId = " + report.getTaskId());
+      } else {
+        // Skip sending events for command reports for ABORTed commands
+        if (hostRoleCommand.getStatus() == HostRoleStatus.ABORTED) {
+          continue;
+        }
+        if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED &&
+            report.getStatus().equals("IN_PROGRESS")) {
+          hostRoleCommand.setStartTime(now);
 
-        // Because the task may be retried several times, set the original start time only once.
-        if (hostRoleCommand.getOriginalStartTime() == -1) {
-          hostRoleCommand.setOriginalStartTime(now);
+          // Because the task may be retried several times, set the original start time only once.
+          if (hostRoleCommand.getOriginalStartTime() == -1) {
+            hostRoleCommand.setOriginalStartTime(now);
+          }
         }
       }
 

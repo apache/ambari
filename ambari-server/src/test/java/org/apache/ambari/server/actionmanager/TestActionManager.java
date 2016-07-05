@@ -44,6 +44,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
+import org.apache.ambari.server.utils.CommandUtils;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -112,7 +113,7 @@ public class TestActionManager {
     cr.setStructuredOut("STRUCTURED_OUTPUT");
     cr.setExitCode(215);
     reports.add(cr);
-    am.processTaskResponse(hostname, reports, stage.getOrderedHostRoleCommands());
+    am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
     assertEquals(215,
         am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
@@ -165,7 +166,7 @@ public class TestActionManager {
     cr2.setStructuredOut("STRUCTURED_OUTPUT");
     cr2.setExitCode(215);
     reports.add(cr2);
-    am.processTaskResponse(hostname, reports, am.getTasks(Arrays.asList(new Long[]{1L, 2L})));
+    am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(am.getTasks(Arrays.asList(new Long[]{1L, 2L}))));
     assertEquals(HostRoleStatus.IN_PROGRESS, am.getAction(requestId, stageId)
         .getHostRoleStatus(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.PENDING, am.getAction(requestId, stageId)
@@ -196,7 +197,7 @@ public class TestActionManager {
     cr.setStructuredOut(outLog);
     cr.setExitCode(215);
     reports.add(cr);
-    am.processTaskResponse(hostname, reports, stage.getOrderedHostRoleCommands());
+    am.processTaskResponse(hostname, reports, CommandUtils.convertToTaskIdCommandMap(stage.getOrderedHostRoleCommands()));
     assertEquals(215,
         am.getAction(requestId, stageId).getExitCode(hostname, "HBASE_MASTER"));
     assertEquals(HostRoleStatus.COMPLETED, am.getAction(requestId, stageId)
