@@ -77,7 +77,7 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <!-- metadata-env.sh -->
   <property>

@@ -316,7 +316,7 @@
       <overridable>false</overridable>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>kdc_create_attributes</name>
@@ -342,7 +342,7 @@
       <empty-value-valid>true</empty-value-valid>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>set_password_expiry</name>
@@ -359,7 +359,7 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>password_chat_timeout</name>
@@ -374,6 +374,6 @@
       <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

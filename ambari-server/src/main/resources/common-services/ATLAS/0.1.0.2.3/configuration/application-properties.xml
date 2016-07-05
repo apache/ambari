@@ -156,13 +156,13 @@
     <name>atlas.notification.embedded</name>
     <value>false</value>
     <description>Indicates whether or not the notification service should be embedded.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.cluster.name</name>
     <value>{{cluster_name}}</value>
     <description>The cluster name.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.server.http.port</name>
@@ -180,55 +180,55 @@
     <name>atlas.http.authentication.type</name>
     <value>simple</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.synchronous</name>
     <value>false</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.numRetries</name>
     <value>3</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.minThreads</name>
     <value>5</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.maxThreads</name>
     <value>5</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.keepAliveTime</name>
     <value>10</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.hook.falcon.queueSize</name>
     <value>1000</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.audit.hbase.tablename</name>
     <value>ATLAS_ENTITY_AUDIT_EVENTS</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.audit.zookeeper.session.timeout.ms</name>
     <value>1000</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- The type determines whether to show LDAP or AD settings in smart config's theme.json file. -->

@@ -255,6 +255,6 @@ YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
