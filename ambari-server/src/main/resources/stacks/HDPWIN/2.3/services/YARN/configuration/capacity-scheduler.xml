@@ -18,14 +18,17 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

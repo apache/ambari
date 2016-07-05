@@ -22,7 +22,8 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>zk_user</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>zk_log_dir</name>

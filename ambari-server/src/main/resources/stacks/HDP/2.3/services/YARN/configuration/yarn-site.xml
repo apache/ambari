@@ -20,7 +20,8 @@
 <configuration xmlns:xi="http://www.w3.org/2001/XInclude" supports_final="true">
   <property>
     <name>yarn.node-labels.manager-class</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.timeline-service.recovery.enabled</name>

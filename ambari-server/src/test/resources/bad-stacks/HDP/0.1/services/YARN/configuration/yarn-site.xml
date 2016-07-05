@@ -22,13 +22,15 @@
   <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.scheduler.address</name>
     <value>localhost:8030</value>
     <description>The address of the scheduler interface.</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.resourcemanager.address</name>

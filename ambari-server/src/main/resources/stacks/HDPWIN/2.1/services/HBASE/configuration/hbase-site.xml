@@ -22,7 +22,8 @@
 <configuration supports_final="true">
   <property>
     <name>dfs.domain.socket.path</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.tmp.dir</name>

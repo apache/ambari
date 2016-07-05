@@ -519,7 +519,8 @@
     <name>yarn.node-labels.manager-class</name>
     <value>org.apache.hadoop.yarn.server.resourcemanager.nodelabels.MemoryRMNodeLabelsManager</value>
     <description>If user want to enable this feature, specify it to "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</description>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>yarn.nodemanager.container-executor.class</name>

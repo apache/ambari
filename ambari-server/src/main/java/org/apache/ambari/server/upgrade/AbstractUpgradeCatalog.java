@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -45,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -396,7 +392,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
 
-            if (upgradeBehavior.isDelete()) {
+            if (property.isDeleted()) {
+              // Do nothing
+            } else if (upgradeBehavior.isDelete()) {
               if (!toRemoveProperties.containsKey(configType)) {
                 toRemoveProperties.put(configType, new HashSet<String>());
               }

@@ -44,7 +44,8 @@
   </property>
   <property>
     <name>hbase_user</name>
-    <on-ambari-upgrade delete="true"/>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
   <!-- hbase-env.cmd -->
   <property>
