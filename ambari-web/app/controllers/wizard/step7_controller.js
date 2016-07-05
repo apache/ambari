@@ -118,6 +118,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   isConfigsLoaded: Em.computed.and('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
+  transitionInProgress: Em.computed.alias('App.router.btnClickInProgress'),
+
   /**
    * PreInstall Checks allowed only for Install
    * @type {boolean}
@@ -246,8 +248,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   ],
 
   issuesFilterText: function () {
-    return this.get('isSubmitDisabled') && !this.get('submitButtonClicked') &&
-      this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected') ?
+    return !this.get('transitionInProgress') && this.get('issuesFilterSelected') ?
         Em.I18n.t('installer.step7.showingPropertiesWithIssues') : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
@@ -255,14 +256,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @type {string}
    */
   issuesFilterLinkText: function () {
-    var issuesAttrSelected = this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected');
-    if (issuesAttrSelected) {
-      return Em.I18n.t('installer.step7.showAllProperties');
-    }
-
-    if (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) {
-      return issuesAttrSelected ?
-        Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues');
+    var issuesAttrSelected = this.get('issuesFilterSelected');
+    if (!this.get('transitionInProgress')) {
+      if (issuesAttrSelected) {
+        return Em.I18n.t('installer.step7.showAllProperties');
+      }
+      if (this.get('hasStepConfigIssues')) {
+        return Em.I18n.t('installer.step7.showPropertiesWithIssues');
+      }
     }
     return '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
@@ -1557,19 +1558,34 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   toggleIssuesFilter: function () {
+    var errorServices = [],
+        issueServices = [];
+
     this.get('filterColumns').findProperty('attributeName', 'hasIssues').toggleProperty('selected');
 
     // if currently selected service does not have issue, jump to the first service with issue.
-    if (this.get('selectedService.errorCount') == 0 )
+    if (this.get('selectedService.errorCount') === 0 )
     {
-      var errorServices = this.get('stepConfigs').filterProperty('errorCount');
-      if (errorServices.length > 0)
-      {
-        var service = errorServices[0];
-        this.set('selectedService', service);
-        $('a[href="#' + service.serviceName + '"]').tab('show');
-      }
+      this.get('stepConfigs').filterProperty('showConfig', true).forEach(function(service) {
+        if (service.get('errorCount') > 0) errorServices.push(service);
+        if (service.get('hasConfigIssues') === true) issueServices.push(service);
+      });
+      if (errorServices.length === 0 && issueServices.length === 0) return;
+      this.switchToService(errorServices.length > 0 ? errorServices[0] : issueServices[0]);
     }
-  }
+  },
 
+  switchToService: function(service) {
+    this.set('selectedService', service);
+    $('a[href="#' + service.serviceName + '"]').tab('show');
+  },
+
+
+  issuesFilterSelected: function() {
+    return this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected');
+  }.property('filterColumns.@each.selected'),
+
+  hasStepConfigIssues: function() {
+    return !this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('hasConfigIssues', false);
+  }.property('stepConfigs.@each.hasConfigIssues')
 });

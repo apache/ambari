@@ -136,7 +136,9 @@ App.ServiceConfig = Ember.Object.extend({
     this._super();
     this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
     this.observeForeignKeys();
-  }
+  },
+
+  hasConfigIssues: Em.computed.someBy('activeProperties', 'hasIssues', true)
 });
 
 App.ConfigSiteTag = Ember.Object.extend({

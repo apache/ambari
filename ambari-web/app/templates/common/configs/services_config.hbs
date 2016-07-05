@@ -44,19 +44,19 @@
 {{view App.ServiceConfigContainerView}}
 {{#if controller.isRecommendedLoaded}}
     <p class="loading align-center"></p>
-    {{#if isSubmitDisabled}}
-      {{#unless submitButtonClicked}}
+    {{#unless controller.transitionInProgress}}
+      {{#if controller.hasStepConfigIssues}}
         <div class="alert">
           <span class="icon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
           {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
         </div>
-      {{/unless}}
-    {{else}}
-      {{#unless submitButtonClicked}}
+      {{else}}
         <div class="alert alert-success">
           <span class="icon-check"></span> {{t installer.step7.noIssues}}<br />
-          <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
+          {{#if controller.issuesFilterSelected}}
+            <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
+          {{/if}}
         </div>
-      {{/unless}}
-    {{/if}}
+      {{/if}}
+    {{/unless}}
 {{/if}}

@@ -24,76 +24,62 @@ var testHelpers = require('test/helpers');
 var installerStep7Controller,
   issuesFilterCases = [
     {
-      isSubmitDisabled: true,
-      submitButtonClicked: true,
-      isIssuesFilterActive: true,
-      issuesFilterText: '',
-      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
-      title: 'issues filter on, submit button clicked'
-    },
-    {
-      isSubmitDisabled: true,
-      submitButtonClicked: false,
-      isIssuesFilterActive: true,
+      transitionInProgress: false,
+      hasStepConfigIssues: true,
+      issuesFilterSelected: true,
       issuesFilterText: Em.I18n.t('installer.step7.showingPropertiesWithIssues'),
       issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
-      title: 'issues filter on, submit button disabled'
+      title: 'issues filter on, has property issues, submit not clicked'
     },
     {
-      isSubmitDisabled: true,
-      submitButtonClicked: true,
-      isIssuesFilterActive: false,
+      transitionInProgress: true,
+      hasStepConfigIssues: true,
+      issuesFilterSelected: true,
       issuesFilterText: '',
       issuesFilterLinkText: '',
-      title: 'issues filter off, submit button clicked'
+      title: 'issues filter on, has property issues, submit clicked'
     },
     {
-      isSubmitDisabled: true,
-      submitButtonClicked: false,
-      isIssuesFilterActive: false,
+      transitionInProgress: false,
+      hasStepConfigIssues: false,
+      issuesFilterSelected: true,
+      issuesFilterText: Em.I18n.t('installer.step7.showingPropertiesWithIssues'),
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
+      title: 'issues filter on, no property issues, submit not clicked'
+    },
+    {
+      transitionInProgress: false,
+      hasStepConfigIssues: true,
+      issuesFilterSelected: false,
       issuesFilterText: '',
       issuesFilterLinkText: Em.I18n.t('installer.step7.showPropertiesWithIssues'),
-      title: 'issues filter off, submit button disabled'
+      title: 'issues filter off, has property issues, submit not clicked'
     },
     {
-      isSubmitDisabled: false,
-      submitButtonClicked: false,
-      isIssuesFilterActive: true,
+      transitionInProgress: false,
+      hasStepConfigIssues: true,
+      issuesFilterSelected: false,
       issuesFilterText: '',
-      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
-      title: 'issues filter on, submit button enabled'
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showPropertiesWithIssues'),
+      title: 'issues filter off, has property issues, submit not clicked'
     },
     {
-      isSubmitDisabled: false,
-      submitButtonClicked: false,
-      isIssuesFilterActive: false,
+      transitionInProgress: false,
+      hasStepConfigIssues: true,
+      issuesFilterSelected: false,
       issuesFilterText: '',
-      issuesFilterLinkText: '',
-      title: 'issues filter off, submit button enabled'
-    },
-    {
-      isSubmitDisabled: false,
-      submitButtonClicked: false,
-      isIssuesFilterActive: true,
-      issuesFilterText: '',
-      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
-      title: 'issues filter on, submit button not clicked but active'
-    },
-    {
-      isSubmitDisabled: false,
-      submitButtonClicked: true,
-      isIssuesFilterActive: true,
-      issuesFilterText: '',
-      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
-      title: 'issues filter on, submit button clicked and active'
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showPropertiesWithIssues'),
+      title: 'issues filter off, has property issues, submit not clicked'
     }
   ],
   issuesFilterTestSetup = function (controller, testCase) {
     controller.set('submitButtonClicked', testCase.submitButtonClicked);
     controller.reopen({
-      isSubmitDisabled: testCase.isSubmitDisabled
+      isSubmitDisabled: testCase.isSubmitDisabled,
+      transitionInProgress: testCase.transitionInProgress,
+      issuesFilterSelected: testCase.issuesFilterSelected,
+      hasStepConfigIssues: testCase.hasStepConfigIssues
     });
-    controller.get('filterColumns').findProperty('attributeName', 'hasIssues').set('selected', testCase.isIssuesFilterActive);
   };
 
 function getController() {
@@ -1403,7 +1389,7 @@ describe('App.InstallerStep7Controller', function () {
       it(item.title, function () {
         issuesFilterTestSetup(installerStep7Controller, item);
         expect(installerStep7Controller.get('issuesFilterLinkText')).to.equal(item.issuesFilterLinkText);
-      })
+      });
     });
 
   });
@@ -1420,25 +1406,28 @@ describe('App.InstallerStep7Controller', function () {
     it('selected service should be changed', function () {
       installerStep7Controller.setProperties({
         selectedService: {
+          serviceName: 'service1',
           errorCount: 0,
-          configGroups: []
+          configGroups: [],
+          showConfig: true
         },
         stepConfigs: [
-          {
+          Em.Object.create({
+            serviceName: 'service2',
             errorCount: 1,
-            configGroups: []
-          },
-          {
+            configGroups: [],
+            showConfig: true
+          }),
+          Em.Object.create({
+            serviceName: 'service3',
             errorCount: 2,
-            configGroups: []
-          }
+            configGroups: [],
+            showConfig: true
+          })
         ]
       });
       installerStep7Controller.toggleIssuesFilter();
-      expect(installerStep7Controller.get('selectedService')).to.eql({
-        errorCount: 1,
-        configGroups: []
-      });
+      expect(installerStep7Controller.get('selectedService.serviceName')).to.eql('service2');
     });
   });
 
