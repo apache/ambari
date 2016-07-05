@@ -37,7 +37,7 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import org.apache.storm.metric.api.IMetricsConsumer;
+import backtype.storm.metric.api.IMetricsConsumer;
 
 public class StormTimelineMetricsSinkTest {
   @Test
