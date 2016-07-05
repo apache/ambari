@@ -27,7 +27,7 @@
                 <div class="form-group" ng-class="{'has-error' : formHolder.form.url_name.$error.required  && formHolder.form.submitted}">
                     <label for="urlname" class="col-sm-2 control-label">{{'urls.name' | translate}}</label>
                     <div class="col-sm-10">
-                        <input ng-minlength="3" ng-maxlength="20" type="text" id="urlname" class="form-control urlname-input" name="url_name" placeholder="{{'urls.name' | translate}}" ng-model="url.urlName" required autocomplete="off">
+                        <input ng-minlength="2" ng-maxlength="25" type="text" id="urlname" class="form-control urlname-input" name="url_name" placeholder="{{'urls.name' | translate}}" ng-model="url.urlName" required autocomplete="off">
                         <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.required  && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
                         <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.minlength   && formHolder.form.submitted">{{'common.alerts.minimumTwoChars' | translate}}</div>
                         <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_name.$error.maxlength   && formHolder.form.submitted">{{'common.alerts.maxTwentyFiveChars' | translate}}</div>
@@ -55,7 +55,7 @@
                     <label for="urlsuffixin" class="col-sm-2 control-label">{{'views.shortUrl' | translate}}</label>
                     <div class="col-sm-10">
                         <div class="input-group">
-                            <span id="basic-addon1" class="input-group-addon">/main/view/{{chomp(url.selectedView)}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.suffix" ng-pattern="/^[a-z0-9-_]+$/" ng-minlength="3" ng-maxlength="25" required autocomplete="off">
+                            <span id="basic-addon1" class="input-group-addon">/main/view/{{chomp(url.selectedView)}}/</span><input aria-describedby="basic-addon1" type="text" class="form-control" id="urlsuffixin" name="url_view_suffix" placeholder="{{'views.shortUrl' | translate}}" ng-model="url.suffix" ng-pattern="/^[a-z0-9-_]+$/" ng-minlength="2" ng-maxlength="25" required autocomplete="off">
                         </div>
                         <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.required   && formHolder.form.submitted">{{'common.alerts.fieldIsRequired' | translate}}</div>
                         <div class="alert alert-danger top-margin" ng-show="formHolder.form.url_view_suffix.$error.minlength   && formHolder.form.submitted">{{'common.alerts.minimumTwoChars' | translate}}</div>
