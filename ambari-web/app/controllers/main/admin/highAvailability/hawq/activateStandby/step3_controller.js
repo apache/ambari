@@ -88,7 +88,7 @@ App.ActivateHawqStandbyWizardStep3Controller = App.HighAvailabilityProgressPageC
       data.items[0].properties[property.name] = property.value;
     });
 
-    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.addHawqStandby.step4.save.configuration.note').format(App.format.role('HAWQSTANDBY', false)));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.activateHawqStandby.step4.save.configuration.note').format(App.format.role('HAWQSTANDBY', false)));
 
     App.ajax.send({
       name: 'common.service.configurations',
