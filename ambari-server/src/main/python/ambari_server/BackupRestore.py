@@ -58,7 +58,8 @@ class BackupRestore:
     """
     try:
       print("Creating zip file...")
-      zipf = zipfile.ZipFile(self.zip_folder_path + self.zipname, 'w')
+      # Use allowZip64=True to allow sizes greater than 4GB
+      zipf = zipfile.ZipFile(self.zip_folder_path + self.zipname, 'w', allowZip64=True)
       zipdir(zipf, self.state_file_list, self.zipname)
     except Exception, e:
       sys.exit("Could not create zip file. Details: " + str(e))
