@@ -553,9 +553,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var config = configs.filterProperty('filename', fileName).findProperty('name', configName);
       if (config) {
         var isServiceInstalled = App.Service.find().findProperty('serviceName', config.serviceName);
-        if (isServiceInstalled) {
+        // service already installed or is being added in add service wizard
+        if (isServiceInstalled || stepConfigs.someProperty("serviceName", config.serviceName)) {
           var serviceConfigs = stepConfigs.findProperty('serviceName', config.serviceName).get('configs');
           var serviceConfig = serviceConfigs.filterProperty('filename', fileName).findProperty('name', configName);
+          var notEditableText = " " + Em.I18n.t('installer.step7.addWizard.notEditable');
+          serviceConfig.set('description', serviceConfig.get('description') + notEditableText);
           serviceConfig.set('isReconfigurable', false);
           config.isReconfigurable = false;
         }
