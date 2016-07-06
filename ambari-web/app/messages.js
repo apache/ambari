@@ -3142,6 +3142,7 @@ Em.I18n.translations = {
   'admin.activateHawqStandby.wizard.step2.hawqMaster': '<b>Current HAWQ Master:</b>',
   'admin.activateHawqStandby.wizard.step2.hawqStandby': '<b>Current HAWQ Standby Master:</b>',
   'admin.activateHawqStandby.wizard.step2.toBeActivated': 'TO BE ACTIVATED AS NEW HAWQ MASTER',
+  'admin.activateHawqStandby.step4.save.configuration.note': 'This configuration is created by Activate HAWQ Standby wizard',
   'admin.activateHawqStandby.wizard.step2.confirm.config.body': '<div class="alert alert-info">' +
       '<b>Review Configuration Changes.</b><br/><br/>The Wizard will make the following configuration changes. '+
       'This information is for review only, and cannot be edited.<br/><br/><b>After activating the HAWQ Standby ' +
