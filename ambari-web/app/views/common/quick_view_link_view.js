@@ -631,6 +631,9 @@ App.QuickViewLinks = Em.View.extend({
           case "YARN":
             hosts = hosts.concat(this.processYarnHosts(componentHosts));
             break;
+          case "SMARTSENSE":
+            hosts = [];
+            break;
           default:
             hosts = hosts.concat(componentHosts);
             if(hosts.length < 1 && this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
