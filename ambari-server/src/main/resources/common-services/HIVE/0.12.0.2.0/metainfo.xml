@@ -347,11 +347,6 @@
         <config-type>application.properties</config-type>
         <config-type>hive-atlas-application.properties</config-type>
       </configuration-dependencies>
-
-      <!-- Make a new config version when these config types are changed. -->
-      <excluded-config-types>
-        <config-type>application.properties</config-type>
-      </excluded-config-types>
     </service>
   </services>
 </metainfo>

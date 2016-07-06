@@ -116,12 +116,12 @@
         <config-type>falcon-runtime.properties</config-type>
         <config-type>falcon-client.properties</config-type>
         <config-type>falcon-atlas-application.properties</config-type>
+        <config-type>application.properties</config-type>
       </configuration-dependencies>
 
       <!-- Make a new config version when these config types are changed. -->
       <excluded-config-types>
         <config-type>oozie-site</config-type>
-        <config-type>application.properties</config-type>
       </excluded-config-types>
 
       <quickLinksConfigurations>
