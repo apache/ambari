@@ -23,7 +23,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/yarn'),
   serviceName: 'YARN',
 
-  nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.yarn.summary', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
+  nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.yarn.nodes.heapUsed', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
   
   nodeManagerComponent: Em.Object.create({
     componentName: 'NODEMANAGER'
