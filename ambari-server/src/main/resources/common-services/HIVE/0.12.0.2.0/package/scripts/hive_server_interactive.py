@@ -231,7 +231,6 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       SLIDER_APP_NAME = "llap0"
 
       stop_cmd = ["slider", "stop", SLIDER_APP_NAME]
-      Logger.info(format("Command: {stop_cmd}"))
 
       code, output, error = shell.call(stop_cmd, user=params.hive_user, stderr=subprocess.PIPE, logoutput=True)
       if code == 0:
@@ -239,18 +238,14 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       elif code == 69 and output is not None and "Unknown application instance" in output:
         Logger.info(format("Application {SLIDER_APP_NAME} was already stopped on Slider"))
       else:
-        raise Fail(format("Could not stop application {SLIDER_APP_NAME} on Slider"))
+        raise Fail(format("Could not stop application {SLIDER_APP_NAME} on Slider. {error}\n{output}"))
 
       # Will exit with code 4 if need to run with "--force" to delete directories and registries.
-      destroy_cmd = ['slider', 'destroy', SLIDER_APP_NAME, "--force"]
-      code, output, error = shell.call(destroy_cmd, user=params.hive_user, stderr=subprocess.PIPE)
-      if code == 0:
-        Logger.info(format("Successfully removed slider app {SLIDER_APP_NAME}."))
-      else:
-        message = format("Could not remove slider app {SLIDER_APP_NAME}. Please retry this task.")
-        if error is not None:
-          message += " " + error
-        raise Fail(message)
+      Execute(('slider', 'destroy', SLIDER_APP_NAME, "--force"),
+              user=params.hive_user,
+              timeout=30,
+              ignore_failures=True,
+      )
 
     """
     Controls the start of LLAP.

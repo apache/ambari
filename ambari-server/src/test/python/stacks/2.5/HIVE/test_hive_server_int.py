@@ -213,7 +213,11 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('File', '/var/run/hive/hive-interactive.pid',
                               action=['delete'],
     )
-
+    self.assertResourceCalled('Execute', ('slider', 'destroy', 'llap0', '--force'),
+        ignore_failures = True,
+        user = 'hive',
+        timeout = 30,
+    )
     self.assertNoMoreResources()
 
 
