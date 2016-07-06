@@ -281,13 +281,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
 
   loadRecommendationsError: Em.K,
 
-  changedDependentGroup: function() {
-    var dependentServices = this.get('stepConfigs').filter(function(stepConfig) {
-      return this.get('selectedService.dependentServiceNames').contains(stepConfig.get('serviceName'));
+  changedDependentGroup: function () {
+    var dependentServices = this.get('selectedService.dependentServiceNames');
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    var services = this.get('stepConfigs').filter(function (stepConfig) {
+      return installedServices.contains(stepConfig.get('serviceName')) && dependentServices.contains(stepConfig.get('serviceName'));
     }, this);
     App.showSelectGroupsPopup(this.get('selectedService.serviceName'),
-      this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),
-      dependentServices, this.get('recommendations'))
+        this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),
+        services, this.get('recommendations'));
   },
 
   /**
