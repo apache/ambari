@@ -36,6 +36,10 @@ except Exception as e:
 
 class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
 
+  def __init__(self, *args, **kwargs):
+    self.as_super = super(HAWQ200ServiceAdvisor, self)
+    self.as_super.__init__(*args, **kwargs)
+
   def getHostsForMasterComponent(self, services, hosts, component, hostsList):
     if component["StackServiceComponents"]["component_name"] == 'HAWQSTANDBY':
       # Do not recommend HAWQSTANDBY on single node cluster, or cluster with no active hosts
@@ -56,7 +60,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           return availableHosts[:1]
         return [ambariServerHost]
 
-    return super(HAWQ200ServiceAdvisor, self).getHostsForMasterComponent(services, hosts, component, hostsList)
+    return self.as_super.getHostsForMasterComponent(services, hosts, component, hostsList)
 
   def getNotPreferableOnServerComponents(self):
     return ['HAWQMASTER', 'HAWQSTANDBY']

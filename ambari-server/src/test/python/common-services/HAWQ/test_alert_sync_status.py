@@ -50,7 +50,7 @@ class TestAlertSyncStatus(RMFTestCase):
     sys.path.append(file_path)
     global alert_sync_status
     import alert_sync_status
-  
+
   def test_missing_configs(self):
     """
     Check that the status is UNKNOWN when configs are missing.
