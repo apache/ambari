@@ -95,12 +95,8 @@
       <configuration-dependencies>
         <config-type>sqoop-env</config-type>
         <config-type>sqoop-site</config-type>
-      </configuration-dependencies>
-
-      <!-- Make a new config version when these config types are changed. -->
-      <excluded-config-types>
         <config-type>application.properties</config-type>
-      </excluded-config-types>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>
