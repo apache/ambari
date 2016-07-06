@@ -23,6 +23,27 @@
       <name>STORM</name>
       <version>1.0.1</version>
       <extends>common-services/STORM/0.10.0</extends>
+
+      <configuration-dependencies>
+        <config-type>storm-site</config-type>
+        <config-type>storm-env</config-type>
+        <config-type>ranger-storm-plugin-properties</config-type>
+        <config-type>ranger-storm-audit</config-type>
+        <config-type>ranger-storm-policymgr-ssl</config-type>
+        <config-type>ranger-storm-security</config-type>
+        <config-type>admin-properties</config-type>
+        <config-type>ranger-ugsync-site</config-type>
+        <config-type>ranger-admin-site</config-type>
+        <config-type>zookeeper-env</config-type>
+        <config-type>zoo.cfg</config-type>
+        <config-type>ams-ssl-client</config-type>
+        <config-type>storm-atlas-application.properties</config-type>
+      </configuration-dependencies>
+
+      <!-- Make a new config version when these config types are changed. -->
+      <excluded-config-types>
+        <config-type>application.properties</config-type>
+      </excluded-config-types>
     </service>
   </services>
 </metainfo>
