@@ -894,6 +894,47 @@ describe('App.WizardStep8Controller', function () {
       });
   });
 
+  describe('#loadDbValue', function() {
+
+    beforeEach(function() {
+      installerStep8Controller.set('wizardController', Em.Object.create({
+        getDBProperty: Em.K
+      }));
+      this.mock = sinon.stub(installerStep8Controller.get('wizardController'), 'getDBProperty');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    var tests = [
+    {
+       it: "Hive test for Existing Oracle Database",
+       serviceConfigProperties: [
+         {name: 'hive_database', value: 'Existing Oracle Database'}
+       ],
+       serviceName: 'HIVE',
+       result: 'Existing Oracle Database'
+     },
+     {
+       it: "Oozie test for New Derby Database",
+       serviceConfigProperties: [
+         {name: 'oozie_database', value: 'New Derby Database'}
+       ],
+       serviceName: 'OOZIE',
+       result: 'New Derby Database'
+     }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.it, function() {
+        this.mock.returns(test.serviceConfigProperties);
+        var dbComponent = installerStep8Controller.loadDbValue(test.serviceName);
+        expect(dbComponent).to.equal(test.result);
+      })
+    });
+  });
+
   describe('#submit', function() {
     beforeEach(function() {
       sinon.stub(installerStep8Controller, 'submitProceed', Em.K);
