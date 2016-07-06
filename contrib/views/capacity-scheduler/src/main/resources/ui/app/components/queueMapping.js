@@ -22,8 +22,8 @@
    layoutName: 'components/queueMapping',
 
    queues: null,
-   mappings: '',
-   mappingsOverrideEnable: false,
+   mappings: null,
+   mappingsOverrideEnable: null,
 
    isShowing: false,
    queueMappings: [],
@@ -47,6 +47,9 @@
      },
      removeQueueMapping: function(qm){
        this.get('queueMappings').removeObject(qm);
+     },
+     toggleMappingOverride: function() {
+       this.toggleProperty('mappingsOverrideEnable');
      }
    },
 
@@ -57,10 +60,12 @@
    },
 
    parseMappings: function(){
-     var mappings = this.get('mappings') || '';
-     this.set('queueMappings', mappings.split(',').filter(function(mapping){
-       return mapping !== "";
-     }) || []);
+     var mappings = this.get('mappings') || null;
+     if (mappings) {
+       this.set('queueMappings', mappings.split(',').filter(function(mapping){
+         return mapping !== "";
+       }) || []);
+     }
    }.observes('mappings').on('init'),
 
    extractLeafQueueNames: function(){
@@ -91,7 +96,7 @@
    },
 
    queueMappingsDidChange: function(){
-     var csMappings = this.get('queueMappings').join(',') || '';
+     var csMappings = this.get('queueMappings').join(',') || null;
      this.set('mappings', csMappings);
    }.observes('queueMappings', 'queueMappings.length', 'queueMappings.@each'),
 

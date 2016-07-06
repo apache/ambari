@@ -25,8 +25,13 @@
   {{/if}}
 </div>
 <div class="row">
-  <div class="btn btn-group-md col-md-offset-5">
-    <button type="button" {{bind-attr class=":btn :btn-default :btn-success isQueueMappingsDirty::disabled"}} name="saveAdvanced">Save</button>
-    <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isQueueMappingsDirty::disabled"}} name="cancelAdvanced" {{action "rollbackQueueMappingProps"}}>Cancel</button>
+  <div class="btn btn-group-md col-md-offset-3">
+    <button type="button" {{bind-attr class=":btn :btn-default :btn-success isQueueMappingsDirty::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
+    <button type="button" {{bind-attr class=":btn :btn-default :btn-success isQueueMappingsDirty::disabled"}} name="saveRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
+    <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isQueueMappingsDirty::disabled"}} name="cancelAdvanced" {{action "showConfirmDialog"}}>Discard Changes</button>
   </div>
 </div>
+
+{{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="rollbackQueueMappingProps"}}
+
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}

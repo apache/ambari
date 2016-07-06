@@ -25,6 +25,8 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   needs: ['capsched', 'loading'],
   queues: Ember.computed.alias('controllers.capsched.queues'),
   isOperator: Ember.computed.alias('controllers.capsched.isOperator'),
+  allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
+  allNodeLabelRecords: [],
 
   actions: {
     addNewQueue: function() {
@@ -65,36 +67,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
         maximum_capacity: qCapacity
       });
       this.set('newQueue', newQueue);
-      store.saveAndUpdateQueue(newQueue)
-      .then(Em.run.bind(this, 'saveAndUpdateQueueSuccess', newQueue))
-      .catch(Em.run.bind(this, 'saveQueuesConfigError', 'createQueue'));
-    },
-    saveQueuesConfig: function(saveMode) {
-      var that = this;
-      var collectedLabels = this.get('queues').reduce(function (prev, q) {
-        return prev.pushObjects(q.get('labels.content'));
-      },[]);
-
-      var store = this.get('store'),
-      optn = '',
-      saveQs = this.get('queues').save(),
-      labels = DS.ManyArray.create({content:collectedLabels}).save();
-
-      if (saveMode === 'refresh') {
-        optn = 'saveAndRefresh';
-      } else if (saveMode === 'restart') {
-        optn = 'saveAndRestart';
-      }
-
-      Ember.RSVP.Promise.all([labels, saveQs])
-      .then(Em.run.bind(that, 'saveQueuesConfigSuccess'))
-      .then(function() {
-        if (optn) {
-          return store.relaunchCapSched(optn);
-        }
-      })
-      .then(Em.run.bind(that, 'relaunchCapSchedSuccess', optn))
-      .catch(Em.run.bind(that, 'saveQueuesConfigError', optn));
+      store.saveAndUpdateQueue(newQueue).then(Em.run.bind(this, 'saveAndUpdateQueueSuccess', newQueue));
     },
     clearCreateQueue: function() {
       this.set('newQueueName', '');
@@ -102,11 +75,30 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       this.set('isInvalidQueueName', false);
       this.set('invalidQueueNameMessage', '');
     },
-    clearAlert: function () {
-      this.set('alertMessage', null);
-    },
-    cancelQueuesChanges: function() {
-
+    discardQueuesChanges: function() {
+      var allQueues = this.get('queues');
+      allQueues.forEach(function(qq){
+        var qAttrs = qq.changedAttributes();
+        for (var qProp in qAttrs) {
+          if (qAttrs.hasOwnProperty(qProp)) {
+            qq.set(qProp, qAttrs[qProp][0]);
+          }
+        }
+        var labels = qq.get('labels');
+        labels.forEach(function(lb){
+          var lbAttrs = lb.changedAttributes();
+          for (var lbProp in lbAttrs) {
+            if (lbAttrs.hasOwnProperty(lbProp)) {
+              lb.set(lbProp, lbAttrs[lbProp][0]);
+            }
+          }
+        });
+        //Setting root label capacities back to 100,
+        //if discard changes set root label capacity to 0.
+        if (qq.get('id') === 'root') {
+          qq.get('labels').setEach('capacity', 100);
+        }
+      });
     },
     stopQueue: function() {
       this.set('selectedQueue.state', _stopState);
@@ -124,6 +116,17 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       .then(Em.run.schedule('afterRender', function () {
         that.get('store').recurceRemoveQueue(delQ);
       }));
+    },
+    showSaveConfigDialog: function(mode) {
+      if (mode) {
+        this.set('saveMode', mode);
+      } else {
+        this.set('saveMode', '');
+      }
+      this.set('isSaveConfigDialogOpen', true);
+    },
+    showConfirmDialog: function() {
+      this.set('isConfirmDialogOpen', true);
     }
   },
 
@@ -161,6 +164,28 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     this.validateQueueName();
   }.observes('newQueueName', 'newQueueName.length'),
 
+  initNodeLabelRecords: function() {
+    var allQs = this.get('queues'),
+    allLabels = this.get('allNodeLabels'),
+    store = this.get('store'),
+    records = [],
+    nonAccessible = [],
+    ctrl = this;
+    allQs.forEach(function(queue) {
+      nonAccessible = [];
+      allLabels.forEach(function(label) {
+        var qLabel = store.getById('label', [queue.get('path'), label.name].join('.'));
+        if (!queue.get('labels').contains(qLabel)) {
+          nonAccessible.pushObject(qLabel);
+        }
+        records.pushObject(qLabel);
+      });
+      queue.set('nonAccessibleLabels', nonAccessible);
+    });
+    this.set('allNodeLabelRecords', records);
+
+  }.on('init'),
+
   /**
    * Marks each queue in leaf with 'overCapacity' if sum if their capacity values is greater than 100.
    * @method capacityControl
@@ -192,7 +217,15 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
    * Check properties for refresh requirement
    * @type {Boolean}
    */
-  needRefreshProps: Ember.computed.any('hasChanges', 'hasNewQueues'),
+  needRefreshProps: Ember.computed.any('hasChanges', 'hasNewQueues', 'hasDirtyNodeLabels'),
+
+  dirtyNodeLabels: function() {
+    return this.get('allNodeLabelRecords').filter(function (label) {
+      return label.get('isDirty');
+    });
+  }.property('allNodeLabelRecords.@each.isDirty'),
+
+  hasDirtyNodeLabels: Ember.computed.notEmpty('dirtyNodeLabels.[]'),
 
   /**
    * List of modified queues.
@@ -250,7 +283,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
    * check if can save configs
    * @type {bool}
    */
-  canNotSave: Em.computed.any('hasOverCapacity', 'hasInvalidMaxCapacity', 'hasUncompetedAddings', 'hasNotValid', 'hasNotValidLabels'),
+  canNotSave: Em.computed.any('hasOverCapacity', 'hasInvalidMaxCapacity', 'hasInvalidLabelMaxCapacity', 'hasIncompletedAddings', 'hasNotValid', 'hasNotValidLabels'),
 
   /**
    * List of not valid queues.
@@ -292,19 +325,25 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
    * True if any queue has invalid max capacity (if max_cappacity < capacity).
    * @type {Boolean}
    */
-  hasInvalidMaxCapacity: Em.computed.filterBy('queues', 'isInvalidMaxCapacity', true),
+  hasInvalidMaxCapacity: function() {
+    return this.get('queues').anyBy('isInvalidMaxCapacity', true);
+  }.property('queues.@each.isInvalidMaxCapacity'),
+
+  hasInvalidLabelMaxCapacity: function() {
+    return this.get('queues').anyBy('isInvalidLabelMaxCapacity', true);
+  }.property('queues.@each.isInvalidLabelMaxCapacity'),
 
   /**
    * List of queues with incomplete adding process
    * @type {[type]}
    */
-  uncompetedAddings: Em.computed.filterBy('queues', 'isNew', true),
+  incompletedAddings: Em.computed.filterBy('queues', 'isNew', true),
 
   /**
    * True if uncompetedAddings is not empty.
    * @type {Boolean}
    */
-  hasUncompetedAddings: Em.computed.notEmpty('uncompetedAddings.[]'),
+  hasIncompletedAddings: Em.computed.notEmpty('incompletedAddings.[]'),
 
   /**
    * Represents queue run state. Returns true if state is null.
@@ -341,22 +380,12 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
      return !this.get('isRootQSelected') && !this.get('isSelectedQRunning');
    }.property('isRootQSelected', 'isSelectedQRunning'),
 
-   /**
-    * Property for error message which may appear when saving queue.
-    * @type {Object}
-    */
-   alertMessage: null,
-
    configNote: Ember.computed.alias('store.configNote'),
+   saveMode: '',
 
-   saveQueuesConfigSuccess: function() {
-     this.set('store.deletedQueues', []);
-   },
-   saveQueuesConfigError: function(operation, error) {
-     var response = (error && error.responseJSON)? error.responseJSON : {};
-     response.simpleMessage = operation.capitalize() + ' failed!';
-     this.set('alertMessage', response);
-   },
+   isSaveConfigDialogOpen: false,
+   isConfirmDialogOpen: false,
+
    saveAndUpdateQueueSuccess: function(newQ) {
      var parentPath = newQ.get('parentPath'),
      parentQ = this.store.getById('queue', parentPath.toLowerCase()),
@@ -365,8 +394,5 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
      pQueues.sort();
      parentQ.set('queues', pQueues.join(","));
      this.set('newQueue', null);
-   },
-   relaunchCapSchedSuccess: function(opt) {
-
    }
 });

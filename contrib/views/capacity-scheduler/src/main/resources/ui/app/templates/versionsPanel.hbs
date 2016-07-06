@@ -16,28 +16,28 @@
 * limitations under the License.
 }}
 
-<div class="panel panel-default">
+<div class="panel panel-default capsched-versions-panel">
   <div class="panel-heading">
     <div class="panel-title">
       Versions
     </div>
   </div>
   <div class="panel-body">
-    <div id="versions-table-wrap">
+    <div class="versions-table-wrap">
       <table class="table table-condensed">
         <tbody>
-          {{#each sortedTags}}
+          {{#each tag in sortedTags}}
             <tr>
               <td>
-                <span class="label label-info">v{{id}}</span>
-                {{#if isCurrent}}
+                <span class="label label-info">v{{tag.id}}</span>
+                {{#if tag.isCurrent}}
                   <span class="label label-success">Current</span>
                 {{/if}}
               </td>
-              <td>{{timeAgo changed}}</td>
+              <td>{{timeAgo tag.changed}}</td>
               <td>
                 <div class="btn-group btn-group-xs btn-block">
-                  <button type="button" class="btn btn-default btn-xs btn-block" {{action 'loadTagged' tag}}>load</button>
+                  <button type="button" class="btn btn-default btn-xs btn-block" {{action 'loadTagged' tag.tag}}>Load</button>
                 </div>
               </td>
             </tr>

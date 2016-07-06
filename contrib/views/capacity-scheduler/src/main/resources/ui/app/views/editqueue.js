@@ -22,6 +22,7 @@ App.CapschedQueuesconfEditqueueView = Ember.View.extend({
   isAclPanelCollapsed: true,
   isResourcesPanelCollapsed: true,
   isCapacityPanelCollapsed: false,
+  isLabelsPanelCollapsed: true,
 
   doExpandCollapsePanel: function() {
     var that = this;
@@ -38,6 +39,11 @@ App.CapschedQueuesconfEditqueueView = Ember.View.extend({
     this.$('#collapseQueueCapacityPanelBtn').on('click', function(e) {
       Ember.run.next(that, function() {
         this.toggleProperty('isCapacityPanelCollapsed');
+      });
+    });
+    this.$('#collapseLabelCapacityPanelBtn').on('click', function(e) {
+      Ember.run.next(that, function() {
+        this.toggleProperty('isLabelsPanelCollapsed');
       });
     });
   }.on('didInsertElement'),

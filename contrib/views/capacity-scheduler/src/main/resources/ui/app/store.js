@@ -303,6 +303,8 @@ App.ApplicationStore = DS.Store.extend({
 
   isRmOffline:false,
 
+  isNodeLabelsEnabledByRM: false,
+
   isInitialized: Ember.computed.and('tag', 'clusterName'),
 
   relaunchCapSched: function (opt) {

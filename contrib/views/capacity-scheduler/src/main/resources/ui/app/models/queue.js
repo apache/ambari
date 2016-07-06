@@ -35,7 +35,8 @@ App.Label = DS.Model.extend({
   }.property('store.nodeLabels.content.@each.notExist'),
   isDefault: function () {
     return this.get('queue.default_node_label_expression') === this.get('name');
-  }.property('queue.default_node_label_expression')
+  }.property('queue.default_node_label_expression'),
+  absoluteCapacity: 0
 });
 
 App.Scheduler = DS.Model.extend({
@@ -145,6 +146,43 @@ App.Queue = DS.Model.extend({
     }
   },
 
+  removeQueueNodeLabel: function(qLabel) {
+    qLabel = this.get('labels').findBy('name', qLabel.get('name'));
+    if (qLabel) {
+      if (this.get('labels').contains(qLabel)) {
+        this.get('labels').removeObject(qLabel);
+      }
+      if (!this.get('nonAccessibleLabels').contains(qLabel)) {
+        this.get('nonAccessibleLabels').addObject(qLabel);
+      }
+      this.notifyPropertyChange('labels');
+      this.notifyPropertyChange('nonAccessibleLabels');
+    }
+  },
+
+  recursiveRemoveChildQueueLabels: function(qLabel) {
+    qLabel = this.get('labels').findBy('name', qLabel.get('name'));
+    if (qLabel) {
+      this.removeQueueNodeLabel(qLabel);
+      var childrenQs = this.store.all('queue').filterBy('depth', this.get('depth') + 1).filterBy('parentPath', this.get('path'));
+      childrenQs.forEach(function(child){
+        child.recursiveRemoveChildQueueLabels(qLabel);
+      }.bind(this));
+    }
+  },
+
+  addQueueNodeLabel: function(qLabel) {
+    qLabel = this.store.getById('label', [this.get('path'), qLabel.get('name')].join('.'));
+    if (!this.get('labels').contains(qLabel)) {
+      this.get('labels').addObject(qLabel);
+    }
+    if (this.get('nonAccessibleLabels').contains(qLabel)) {
+      this.get('nonAccessibleLabels').removeObject(qLabel);
+    }
+    this.notifyPropertyChange('labels');
+    this.notifyPropertyChange('nonAccessibleLabels');
+  },
+
   isAnyDirty: function () {
     return this.get('isDirty') || !Em.isEmpty(this.get('labels').findBy('isDirty',true)) || this.get('isLabelsDirty');
   }.property('isDirty','labels.@each.isDirty','initialLabels','isLabelsDirty'),
@@ -153,6 +191,13 @@ App.Queue = DS.Model.extend({
   labelsLoad:function() {
     this.set('labelsEnabled',this._data.labelsEnabled);
     this.set('initialLabels',this.get('labels').mapBy('id'));
+
+    //Setting root label capacity to 100
+    if (this.get('id') === 'root') {
+      this.get('labels').forEach(function(label){
+        label.set('capacity', 100);
+      });
+    }
   }.on('didLoad','didUpdate','didCreate'),
 
   isLabelsDirty:function () {
@@ -211,6 +256,9 @@ App.Queue = DS.Model.extend({
   }.property('_overCapacity','labels.@each.overCapacity'),
 
   isInvalidMaxCapacity: false,
+  isInvalidLabelMaxCapacity: false,
+
+  nonAccessibleLabels: [],
 
   //new queue flag
   isNewQueue:DS.attr('boolean', {defaultValue: false}),

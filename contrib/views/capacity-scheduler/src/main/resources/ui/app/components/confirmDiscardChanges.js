@@ -18,18 +18,23 @@
 
 var App = require('app');
 
-App.CapschedPartialsEditQueueCapacityView = Ember.View.extend({
-  isQueueCapacityDirty: function() {
-    return this.get('controller.content').changedAttributes().hasOwnProperty('capacity');
-  }.property('controller.content.capacity'),
-
-  isQueueMaximumCapacityDirty: function() {
-    return this.get('controller.content').changedAttributes().hasOwnProperty('maximum_capacity');
-  }.property('controller.content.maximum_capacity'),
-
-  isInvalidQueueMaximumCapacity: function() {
-    var isInvalid = this.get('controller.content.maximum_capacity') < this.get('controller.content.capacity');
-    this.set('controller.content.isInvalidMaxCapacity', isInvalid);
-    return isInvalid;
-  }.property('controller.content.capacity', 'controller.content.maximum_capacity')
+App.ConfirmDiscardChangesComponent = Ember.Component.extend({
+  layoutName: 'components/confirmDiscardChanges',
+  isDialogOpen: false,
+  actions: {
+    okay: function() {
+      this.set('isDialogOpen', false);
+      this.sendAction('action');
+    },
+    cancel: function() {
+      this.set('isDialogOpen', false);
+    }
+  },
+  watchDialog: function() {
+    if (this.get('isDialogOpen')) {
+      this.$('#confirmDiscardChangesDialog').modal('show');
+    } else {
+      this.$('#confirmDiscardChangesDialog').modal('hide');
+    }
+  }.observes('isDialogOpen')
 });

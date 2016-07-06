@@ -18,36 +18,36 @@
 
 <div class="row form-inline">
   <div class="col-md-2 col-sm-2">
-    <span class="queue-name">{{this.name}}</span>
+    <span class="queue-name">{{queue.name}}</span>
   </div>
   <div class="col-md-5 col-md-5">
-    <div class="form-group input-group capacity-input-percent">
-      {{capacity-input class='input-sm' value=this.capacity queue=this maxVal=100}}
+    <div {{bind-attr class=":form-group :input-group :capacity-input-percent warnInvalidTotalCapacity:has-error"}}>
+      {{capacity-input class='input-sm' value=queue.capacity queue=this maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">
-      {{input-range min="0" max="100" step="1" value=this.capacity class="input-sm"}}
+      {{input-range min="0" max="100" step="1" value=queue.capacity class="input-sm"}}
     </div>
-    {{#if view.isQueueCapacityDirty}}
+    {{#if isQueueCapacityDirty}}
       <div class="btn-group btn-group-xs">
-        <a {{action 'rollbackProp' 'capacity' this}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+        <a {{action 'rollbackProp' 'capacity' queue}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
       </div>
     {{/if}}
   </div>
   <div class="col-md-5 col-sm-5">
-    <div {{bind-attr class=":form-group :input-group :capacity-input-percent view.isInvalidQueueMaximumCapacity:has-error"}}>
-      {{max-capacity-input class='input-sm' value=this.maximum_capacity queue=this maxVal=100}}
+    <div {{bind-attr class=":form-group :input-group :capacity-input-percent isInvalidQueueMaximumCapacity:has-error"}}>
+      {{max-capacity-input class='input-sm' value=queue.maximum_capacity queue=queue maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">
-      {{input-range min="0" max="100" step="1" value=this.maximum_capacity class="input-sm"}}
+      {{input-range min="0" max="100" step="1" value=queue.maximum_capacity class="input-sm"}}
     </div>
-    {{#if view.isQueueMaximumCapacityDirty}}
+    {{#if isQueueMaximumCapacityDirty}}
       <div class="btn-group btn-group-xs">
-        <a {{action 'rollbackProp' 'maximum_capacity' this}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+        <a {{action 'rollbackProp' 'maximum_capacity' queue}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
       </div>
     {{/if}}
-    {{#if view.isInvalidQueueMaximumCapacity}}
+    {{#if isInvalidQueueMaximumCapacity}}
       <div class="row">
         <div class="col-md-12 col-sm-12">
           <span class="text-danger">Maximum capacity must be greater than or equal to capacity</span>
