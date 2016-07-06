@@ -1,0 +1,53 @@
+{
+  "services": [
+    {
+      "name": "SOLR",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/smokeuser"
+        },
+        {
+          "name": "/hdfs"
+        }
+      ],
+      "configurations": [
+        {
+          "solr-site": {
+              "solr.hdfs.security.kerberos.enabled":"true"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "SOLR",
+          "identities": [
+            {
+              "name": "solr",
+              "principal": {
+                "value": "${solr-env/solr_user}/_HOST@${realm}",
+                "type": "service",
+                "configuration": "solr-site/solr.hdfs.security.kerberos.principal",
+                "local_username": "${solr-env/solr_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/solr.service.keytab",
+                "owner": {
+                  "name": "${solr-env/solr_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "solr-site/solr.hdfs.security.kerberos.keytabfile"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

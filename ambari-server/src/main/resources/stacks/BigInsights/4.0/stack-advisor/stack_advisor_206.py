@@ -1,0 +1,1 @@
+../../../HDP/2.0.6/services/stack_advisor.py

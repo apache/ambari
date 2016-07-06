@@ -1,0 +1,639 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false" supports_adding_forbidden="true">
+  <property>
+    <name>content</name>
+    <display-name>pig-properties template</display-name>
+    <value>
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Pig configuration file. All values can be overwritten by command line
+# arguments; for a description of the properties, run
+#
+#     pig -h properties
+#
+
+############################################################################
+#
+# == Logging properties
+#
+
+# Location of pig log file. If blank, a file with a timestamped slug
+# ('pig_1399336559369.log') will be generated in the current working directory.
+#
+# pig.logfile=
+# pig.logfile=/tmp/pig-err.log
+
+# Log4j configuration file. Set at runtime with the -4 parameter. The source
+# distribution has a ./conf/log4j.properties.template file you can rename and
+# customize.
+#
+# log4jconf=./conf/log4j.properties
+
+# Verbose Output.
+# * false (default): print only INFO and above to screen
+# * true: Print all log messages to screen
+#
+# verbose=false
+
+# Omit timestamps on log messages. (default: false)
+#
+# brief=false
+
+# Logging level. debug=OFF|ERROR|WARN|INFO|DEBUG (default: INFO)
+#
+# debug=INFO
+
+# Roll up warnings across tasks, so that when millions of mappers suddenly cry
+# out in error they are partially silenced. (default, recommended: true)
+#
+# aggregate.warning=true
+
+# Should DESCRIBE pretty-print its schema?
+# * false (default): print on a single-line, suitable for pasting back in to your script
+# * true (recommended): prints on multiple lines with indentation, much more readable
+#
+# pig.pretty.print.schema=false
+
+# === Profiling UDFs  ===
+
+# Turn on UDF timers? This will cause two counters to be
+# tracked for every UDF and LoadFunc in your script: approx_microsecs measures
+# approximate time spent inside a UDF approx_invocations reports the approximate
+# number of times the UDF was invoked.
+#
+# * false (default): do not record timing information of UDFs.
+# * true: report UDF performance. Uses more counters, but gives more insight
+#   into script operation
+#
+# pig.udf.profile=false
+
+# Specify frequency of profiling (default: every 100th).
+# pig.udf.profile.frequency=100
+
+############################################################################
+#
+# == Site-specific Properties
+#
+
+# Execution Mode. Local mode is much faster, but only suitable for small amounts
+# of data. Local mode interprets paths on the local file system; Mapreduce mode
+# on the HDFS. Read more under 'Execution Modes' within the Getting Started
+# documentation.
+#
+# * mapreduce (default): use the Hadoop cluster defined in your Hadoop config files
+# * local: use local mode
+# * tez: use Tez on Hadoop cluster
+# * tez_local: use Tez local mode
+#
+# exectype=mapreduce
+
+# Bootstrap file with default statements to execute in every Pig job, similar to
+# .bashrc.  If blank, uses the file '.pigbootup' from your home directory; If a
+# value is supplied, that file is NOT loaded.  This does not do tilde expansion
+# -- you must supply the full path to the file.
+#
+# pig.load.default.statements=
+# pig.load.default.statements=/home/bob/.pigrc
+
+# Kill all waiting/running MR jobs upon a MR job failure? (default: false) If
+# false, jobs that can proceed independently will do so unless a parent stage
+# fails. If true, the failure of any stage in the script kills all jobs.
+#
+# stop.on.failure=false
+
+# File containing the pig script to run. Rarely set in the properties file.
+# Commandline: -f
+#
+# file=
+
+# Jarfile to load, colon separated. Rarely used.
+#
+# jar=
+
+# Register additional .jar files to use with your Pig script.
+# Most typically used as a command line option (see http://pig.apache.org/docs/r0.12.0/basic.html#register):
+#
+#     pig -Dpig.additional.jars=hdfs://nn.mydomain.com:9020/myjars/my.jar
+#
+# pig.additional.jars=&lt;colon separated list of jars with optional wildcards&gt;
+# pig.additional.jars=/usr/local/share/pig/pig/contrib/piggybank/java/piggybank.jar:/usr/local/share/pig/datafu/datafu-pig/build/libs/datafu-pig-1.2.1.jar
+
+# Specify potential packages to which a UDF or a group of UDFs belong,
+# eliminating the need to qualify the UDF on every call. See
+# http://pig.apache.org/docs/r0.12.0/udf.html#use-short-names
+#
+# Commandline use:
+#
+#     pig \
+#       -Dpig.additional.jars=$PIG_HOME/contrib/piggybank/java/piggybank.jar:$PIG_HOME/../datafu/datafu-pig/build/libs/datafu-pig-1.2.1.jar \
+#       -Dudf.import.list=org.apache.pig.piggybank.evaluation:datafu.pig.util \
+#       happy_job.pig
+#
+# udf.import.list=&lt;colon separated list of imports&gt;
+# udf.import.list=org.apache.pig.piggybank.evaluation:datafu.pig.bags:datafu.pig.hash:datafu.pig.stats:datafu.pig.util
+
+#
+# Reuse jars across jobs run by the same user? (default: false) If enabled, jars
+# are placed in ${pig.user.cache.location}/${user.name}/.pigcache. Since most
+# jars change infrequently, this gives a minor speedup.
+#
+# pig.user.cache.enabled=false
+
+# Base path for storing jars cached by the pig.user.cache.enabled feature. (default: /tmp)
+#
+# pig.user.cache.location=/tmp
+
+# Replication factor for cached jars. If not specified mapred.submit.replication
+# is used, whose default is 10.
+#
+# pig.user.cache.replication=10
+
+# Default UTC offset. (default: the host's current UTC offset) Supply a UTC
+# offset in Java's timezone format: e.g., +08:00.
+#
+# pig.datetime.default.tz=
+
+############################################################################
+#
+# Memory impacting properties
+#
+
+# Amount of memory (as fraction of heap) allocated to bags before a spill is
+# forced. Default is 0.2, meaning 20% of available memory. Note that this memory
+# is shared across all large bags used by the application. See
+# http://pig.apache.org/docs/r0.12.0/perf.html#memory-management
+#
+# pig.cachedbag.memusage=0.2
+
+# Don't spill bags smaller than this size (bytes). Default: 5000000, or about
+# 5MB. Usually, the more spilling the longer runtime, so you might want to tune
+# it according to heap size of each task and so forth.
+#
+# pig.spill.size.threshold=5000000
+
+# EXPERIMENTAL: If a file bigger than this size (bytes) is spilled -- thus
+# freeing a bunch of ram -- tell the JVM to perform garbage collection.  This
+# should help reduce the number of files being spilled, but causes more-frequent
+# garbage collection. Default: 40000000 (about 40 MB)
+#
+# pig.spill.gc.activation.size=40000000
+
+# Maximum amount of data to replicate using the distributed cache when doing
+# fragment-replicated join. (default: 1000000000, about 1GB) Consider increasing
+# this in a production environment, but carefully.
+#
+# pig.join.replicated.max.bytes=1000000000
+
+# Fraction of heap available for the reducer to perform a skewed join. A low
+# fraction forces Pig to use more reducers, but increases the copying cost. See
+# http://pig.apache.org/docs/r0.12.0/perf.html#skewed-joins
+#
+# pig.skewedjoin.reduce.memusage=0.3
+
+#
+# === SchemaTuple ===
+#
+# The SchemaTuple feature (PIG-2632) uses a tuple's schema (when known) to
+# generate a custom Java class to hold records. Otherwise, tuples are loaded as
+# a plain list that is unaware of its contents' schema -- and so each element
+# has to be wrapped as a Java object on its own. This can provide more efficient
+# CPU utilization, serialization, and most of all memory usage.
+#
+# This feature is considered experimental and is off by default. You can
+# selectively enable it for specific operations using pig.schematuple.udf,
+# pig.schematuple.load, pig.schematuple.fr_join and pig.schematuple.merge_join
+#
+
+# Enable the SchemaTuple optimization in all available cases? (default: false; recommended: true)
+#
+# pig.schematuple=false
+
+# EXPERIMENTAL: Use SchemaTuples with UDFs (default: value of pig.schematuple).
+# pig.schematuple.udf=false
+
+# EXPERIMENTAL, CURRENTLY NOT IMPLEMENTED, but in the future, LoadFunc's with
+# known schemas should output SchemaTuples. (default: value of pig.schematuple)
+# pig.schematuple.load=false
+
+# EXPERIMENTAL: Use SchemaTuples in replicated joins. The potential memory
+# saving here is significant. (default: value of pig.schematuple)
+# pig.schematuple.fr_join=false
+
+# EXPERIMENTAL: Use SchemaTuples in merge joins. (default: value of pig.schematuple).
+# pig.schematuple.merge_join=false
+
+############################################################################
+#
+# Serialization options
+#
+
+# Omit empty part files from the output? (default: false)
+#
+# * false (default): reducers generates an output file, even if output is empty
+# * true (recommended): do not generate zero-byte part files
+#
+# The default behavior of MapReduce is to generate an empty file for no data, so
+# Pig follows that. But many small files can cause annoying extra map tasks and
+# put load on the HDFS, so consider setting this to 'true'
+#
+# pig.output.lazy=false
+
+#
+# === Tempfile Handling
+#
+
+# EXPERIMENTAL: Storage format for temporary files generated by intermediate
+# stages of Pig jobs. This can provide significant speed increases for certain
+# codecs, as reducing the amount of data transferred to and from disk can more
+# than make up for the cost of compression/compression. Recommend that you set
+# up LZO compression in Hadoop and specify tfile storage.
+#
+# Compress temporary files?
+# * false (default): do not compress
+# * true (recommended): compress temporary files.
+#
+# pig.tmpfilecompression=false
+# pig.tmpfilecompression=true
+
+# Tempfile storage container type.
+#
+# * tfile (default, recommended): more efficient, but only supports supports gz(gzip) and lzo compression.
+#   https://issues.apache.org/jira/secure/attachment/12396286/TFile%20Specification%2020081217.pdf
+# * seqfile: only supports gz(gzip), lzo, snappy, and bzip2 compression
+#
+# pig.tmpfilecompression.storage=tfile
+
+# Codec types for intermediate job files. tfile supports gz(gzip) and lzo;
+# seqfile support gz(gzip), lzo, snappy, bzip2
+#
+# * lzo (recommended with caveats): moderate compression, low cpu burden;
+#   typically leads to a noticeable speedup. Best default choice, but you must
+#   set up LZO independently due to license incompatibility
+# * snappy: moderate compression, low cpu burden; typically leads to a noticeable speedup..
+# * gz (default): higher compression, high CPU burden. Typically leads to a noticeable slowdown.
+# * bzip2: most compression, major CPU burden. Typically leads to a noticeable slowdown.
+#
+# pig.tmpfilecompression.codec=gzip
+
+#
+# === Split Combining
+#
+
+#
+# Should pig try to combine small files for fewer map tasks? This improves the
+# efficiency of jobs with many small input files, reduces the overhead on the
+# jobtracker, and reduces the number of output files a map-only job
+# produces. However, it only works with certain loaders and increases non-local
+# map tasks. See http://pig.apache.org/docs/r0.12.0/perf.html#combine-files
+#
+# * false (default, recommended): _do_ combine files
+# * true: do not combine files
+#
+# pig.noSplitCombination=false
+
+#
+# Size, in bytes, of data to be processed by a single map. Smaller files are
+# combined untill this size is reached. If unset, defaults to the file system's
+# default block size.
+#
+# pig.maxCombinedSplitSize=
+
+# ###########################################################################
+#
+# Execution options
+#
+
+# Should pig omit combiners? (default, recommended: false -- meaning pig _will_
+# use combiners)
+#
+# When combiners work well, they eliminate a significant amount of
+# data. However, if they do not eliminate much data -- say, a DISTINCT operation
+# that only eliminates 5% of the records -- they add a noticeable overhead to
+# the job. So the recommended default is false (use combiners), selectively
+# disabling them per-job:
+#
+#     pig -Dpig.exec.nocombiner=true distinct_but_not_too_much.pig
+#
+# pig.exec.nocombiner=false
+
+# EXPERIMENTAL: Aggregate records in map task before sending to the combiner?
+# (default: false, 10; recommended: true, 10). In cases where there is a massive
+# reduction of data in the aggregation step, pig can do a first pass of
+# aggregation before the data even leaves the mapper, saving much serialization
+# overhead. It's off by default but can give a major improvement to
+# group-and-aggregate operations. Pig skips partial aggregation unless reduction
+# is better than a factor of minReduction (default: 10). See
+# http://pig.apache.org/docs/r0.12.0/perf.html#hash-based-aggregation
+#
+# pig.exec.mapPartAgg=false
+# pig.exec.mapPartAgg.minReduction=10
+
+#
+# === Control how many reducers are used.
+#
+
+# Estimate number of reducers naively using a fixed amount of data per
+# reducer. Optimally, you have both fewer reducers than available reduce slots,
+# and reducers that are neither getting too little data (less than a half-GB or
+# so) nor too much data (more than 2-3 times the reducer child process max heap
+# size). The default of 1000000000 (about 1GB) is probably low for a production
+# cluster -- however it's much worse to set this too high (reducers spill many
+# times over in group-sort) than too low (delay waiting for reduce slots).
+#
+# pig.exec.reducers.bytes.per.reducer=1000000000
+
+#
+# Don't ever use more than this many reducers. (default: 999)
+#
+# pig.exec.reducers.max=999
+
+#
+# === Local mode for small jobs
+#
+
+# EXPERIMENTAL: Use local mode for small jobs? If true, jobs with input data
+# size smaller than pig.auto.local.input.maxbytes bytes and one or no reducers
+# are run in local mode, which is much faster. Note that file paths are still
+# interpreted as pig.exectype implies.
+#
+# * true (recommended): allow local mode for small jobs, which is much faster.
+# * false (default): always use pig.exectype.
+#
+# pig.auto.local.enabled=false
+
+#
+# Definition of a small job for the pig.auto.local.enabled feature. Only jobs
+# with less than this may bytes are candidates to run locally (default:
+# 100000000 bytes, about 1GB)
+#
+# pig.auto.local.input.maxbytes=100000000
+
+############################################################################
+#
+# Security Features
+#
+
+# Comma-delimited list of commands/operators that are disallowed. This security
+# feature can be used by administrators to block use of certain commands by
+# users.
+#
+# * &lt;blank&gt; (default): all commands and operators are allowed.
+# * fs,set (for example): block all filesystem commands and config changes from pig scripts.
+#
+# pig.blacklist=
+# pig.blacklist=fs,set
+
+# Comma-delimited list of the only commands/operators that are allowed. This
+# security feature can be used by administrators to block use of certain
+# commands by users.
+#
+# * &lt;blank&gt; (default): all commands and operators not on the pig.blacklist are allowed.
+# * load,store,filter,group: only LOAD, STORE, FILTER, GROUP
+#   from pig scripts. All other commands and operators will fail.
+#
+# pig.whitelist=
+# pig.whitelist=load,store,filter,group
+
+#####################################################################
+#
+# Advanced Site-specific Customizations
+#
+
+# Remove intermediate output files?
+#
+# * true (default, recommended): remove the files
+# * false: do NOT remove the files. You must clean them up yourself.
+#
+# Keeping them is useful for advanced debugging, but can be dangerous -- you
+# must clean them up yourself.  Inspect the intermediate outputs with
+#
+#     LOAD '/path/to/tmp/file' USING org.apache.pig.impl.io.TFileStorage();
+#
+# (Or ...SequenceFileInterStorage if pig.tmpfilecompression.storage is seqfile)
+#
+# pig.delete.temp.files=true
+
+# EXPERIMENTAL: A Pig Progress Notification Listener (PPNL) lets you wire pig's
+# progress into your visibility stack. To use a PPNL, supply the fully qualified
+# class name of a PPNL implementation. Note that only one PPNL can be set up, so
+# if you need several, write a PPNL that will chain them.
+#
+# See https://github.com/twitter/ambrose for a pretty awesome one of these
+#
+# pig.notification.listener=&lt;fully qualified class name of a PPNL implementation&gt;
+
+# String argument to pass to your PPNL constructor (optional). Only a single
+# string value is allowed. (default none)
+#
+# pig.notification.listener.arg=&lt;somevalue&gt;
+
+# EXPERIMENTAL: Class invoked to estimate the number of reducers to use.
+# (default: org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.InputSizeReducerEstimator)
+#
+# If you don't know how or why to write a PigReducerEstimator, you're unlikely
+# to use this. By default, the naive mapReduceLayer.InputSizeReducerEstimator is
+# used, but you can specify anything implementing the interface
+# org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigReducerEstimator
+#
+# pig.exec.reducer.estimator=&lt;fully qualified class name of a PigReducerEstimator implementation&gt;
+
+# Optional String argument to pass to your PigReducerEstimator. (default: none;
+# a single String argument is allowed).
+#
+# pig.exec.reducer.estimator.arg=&lt;somevalue&gt;
+
+# Class invoked to report the size of reducers output. By default, the reducers'
+# output is computed as the total size of output files. But not every storage is
+# file-based, and so this logic can be replaced by implementing the interface
+# org.apache.pig.backend.hadoop.executionengine.mapReduceLayer.PigStatsOutputSizeReader
+# If you need to register more than one reader, you can register them as a comma
+# separated list. Every reader implements a boolean supports(POStore sto) method.
+# When there are more than one reader, they are consulted in order, and the
+# first one whose supports() method returns true will be used.
+#
+# pig.stats.output.size.reader=&lt;fully qualified class name of a PigStatsOutputSizeReader implementation&gt;
+# pig.stats.output.size.reader.unsupported=&lt;comma separated list of StoreFuncs that are not supported by this reader&gt;
+
+# By default, Pig retrieves TaskReports for every launched task to compute
+# various job statistics. But this can cause OOM if the number of tasks is
+# large. In such case, you can disable it by setting this property to true.
+# pig.stats.notaskreport=false
+
+#
+# Override hadoop configs programatically
+#
+# By default, Pig expects hadoop configs (hadoop-site.xml and core-site.xml)
+# to be present on the classpath. There are cases when these configs are
+# needed to be passed programatically, such as while using the PigServer API.
+# In such cases, you can override hadoop configs by setting the property
+# "pig.use.overriden.hadoop.configs".
+#
+# When this property is set to true, Pig ignores looking for hadoop configs
+# in the classpath and instead picks it up from Properties/Configuration
+# object passed to it.
+#
+# pig.use.overriden.hadoop.configs=false
+
+# Implied LoadFunc for the LOAD operation when no USING clause is
+# present. Supply the fully qualified class name of a LoadFunc
+# implementation. Note: setting this means you will have to modify most code
+# brought in from elsewhere on the web, as people generally omit the USING
+# clause for TSV files.
+#
+# * org.apache.pig.builtin.PigStorage (default): the traditional tab-separated-values LoadFunc
+# * my.custom.udfcollection.MyCustomLoadFunc (for example): use MyCustomLoadFunc instead
+#
+# pig.default.load.func=&lt;fully qualified class name of a LoadFunc implementation&gt;
+
+# The implied StoreFunc for STORE operations with no USING clause. Supply the
+# fully qualified class name of a StoreFunc implementation.
+#
+# * org.apache.pig.builtin.PigStorage (default): the traditional tab-separated-values StoreFunc.
+# * my.custom.udfcollection.MyCustomStoreFunc (for example): use MyCustomStoreFunc instead
+#
+# pig.default.store.func=&lt;fully qualified class name of a StoreFunc implementation&gt;
+
+# Recover jobs when the application master is restarted? (default: false). This
+# is a Hadoop 2 specific property; enable it to take advantage of AM recovery.
+#
+# pig.output.committer.recovery.support=true
+
+# Should scripts check to prevent multiple stores writing to the same location?
+# (default: false) When set to true, stops the execution of script right away.
+#
+pig.location.check.strict=false
+
+# In addition to the fs-style commands (rm, ls, etc) Pig can now execute
+# SQL-style DDL commands, eg "sql create table pig_test(name string, age int)".
+# The only implemented backend is hcat, and luckily that's also the default.
+#
+# pig.sql.type=hcat
+
+# Path to the hcat executable, for use with pig.sql.type=hcat (default: null)
+#
+hcat.bin=/usr/local/hcat/bin/hcat
+
+###########################################################################
+#
+# Overrides for extreme environments
+#
+# (Most people won't have to adjust these parameters)
+#
+
+
+# Limit the pig script length placed in the jobconf xml. (default:10240)
+# Extremely long queries can waste space in the JobConf; since its contents are
+# only advisory, the default is fine unless you are retaining it for forensics.
+#
+# pig.script.max.size=10240
+
+# Disable use of counters by Pig. Note that the word 'counter' is singular here.
+#
+# * false (default, recommended): do NOT disable counters.
+# * true: disable counters. Set this to true only when your Pig job will
+#   otherwise die because of using more counters than hadoop configured limit
+#
+# pig.disable.counter=true
+
+# Sample size (per-mapper, in number of rows) the ORDER..BY operation's
+# RandomSampleLoader uses to estimate how your data should be
+# partitioned. (default, recommended: 100 rows per task) Increase this if you
+# have exceptionally large input splits and are unhappy with the reducer skew.
+#
+# pig.random.sampler.sample.size=100
+
+# Process an entire script at once, reducing the amount of work and number of
+# tasks? (default, recommended: true) See http://pig.apache.org/docs/r0.12.0/perf.html#multi-query-execution
+#
+# MultiQuery optimization is very useful, and so the recommended default is
+# true. You may find a that a script fails to compile under MultiQuery. If so,
+# disable it at runtime:
+#
+#     pig -no_multiquery script_that_makes_pig_sad.pig
+#
+# opt.multiquery=true
+
+# For small queries, fetch data directly from the HDFS. (default, recommended:
+# true). If you want to force Pig to launch a MR job, for example when you're
+# testing a live cluster, disable with the -N option. See PIG-3642.
+#
+# opt.fetch=true
+
+# Enable auto/grace parallelism in tez. These should be used by default unless
+# you encounter some bug in automatic parallelism. If pig.tez.auto.parallelism
+# to false, use 1 as default parallelism
+pig.tez.auto.parallelism=true
+pig.tez.grace.parallelism=true
+
+###########################################################################
+#
+# Streaming properties
+#
+
+# Define what properties will be set in the streaming environment. Just set this
+# property to a comma-delimited list of properties to set, and those properties
+# will be set in the environment.
+#
+# pig.streaming.environment=&lt;comma-delimited list of propertes&gt;
+
+# Specify a comma-delimited list of local files to ship to distributed cache for
+# streaming job.
+#
+# pig.streaming.ship.files=&lt;comma-delimited list of local files&gt;
+
+# Specify a comma-delimited list of remote files to cache on distributed cache
+# for streaming job.
+#
+# pig.streaming.cache.files=&lt;comma-delimited list of remote files&gt;
+
+# Specify the python command to be used for python streaming udf. By default,
+# python is used, but you can overwrite it with a non-default version such as
+# python2.7.
+#
+# pig.streaming.udf.python.command=python
+
+    </value>
+    <description>Describe all the Pig agent configurations</description>
+    <value-attributes>
+      <type>content</type>
+      <empty-value-valid>true</empty-value-valid>
+      <show-property-name>false</show-property-name>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+</configuration>

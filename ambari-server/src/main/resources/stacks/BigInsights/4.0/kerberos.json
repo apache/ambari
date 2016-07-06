@@ -1,0 +1,68 @@
+{
+  "properties": {
+    "realm": "${kerberos-env/realm}",
+    "keytab_dir": "/etc/security/keytabs"
+  },
+  "identities": [
+    {
+      "name": "spnego",
+      "principal": {
+        "value": "HTTP/_HOST@${realm}",
+        "type" : "service"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/spnego.service.keytab",
+        "owner": {
+          "name": "root",
+          "access": "r"
+        },
+        "group": {
+          "name": "${cluster-env/user_group}",
+          "access": "r"
+        }
+      }
+    },
+    {
+      "name": "hdfs",
+      "principal": {
+        "value": "${hadoop-env/hdfs_user}@${realm}",
+        "type" : "user" ,
+        "configuration": "hadoop-env/hdfs_principal_name",
+        "local_username" : "${hadoop-env/hdfs_user}"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/hdfs.headless.keytab",
+        "owner": {
+          "name": "${hadoop-env/hdfs_user}",
+          "access": "r"
+        },
+        "group": {
+          "name": "${cluster-env/user_group}",
+          "access": "r"
+        },
+        "configuration": "hadoop-env/hdfs_user_keytab"
+      }
+    },
+    {
+      "name": "smokeuser",
+      "principal": {
+        "value": "${cluster-env/smokeuser}@${realm}",
+        "type" : "user",
+        "configuration": "cluster-env/smokeuser_principal_name",
+        "local_username" : "${cluster-env/smokeuser}"
+      },
+      "keytab": {
+        "file": "${keytab_dir}/smokeuser.headless.keytab",
+        "owner": {
+          "name": "${cluster-env/smokeuser}",
+          "access": "r"
+        },
+        "group": {
+          "name": "${cluster-env/user_group}",
+          "access": "r"
+        },
+        "configuration": "cluster-env/smokeuser_keytab"
+      }
+    }
+  ]
+}

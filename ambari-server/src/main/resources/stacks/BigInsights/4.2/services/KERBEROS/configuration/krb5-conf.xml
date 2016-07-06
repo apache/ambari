@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+
+<configuration>
+  <property require-input="false">
+    <name>domains</name>
+    <display-name>Domains</display-name>
+    <description>
+      A comma-separated list of domain names used to map server host names to the Realm name (e.g. .example.com,example.com). This is optional
+    </description>
+    <value/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>manage_krb5_conf</name>
+    <display-name>Manage Kerberos client krb5.conf</display-name>
+    <description>
+      Indicates whether your krb5.conf file should be managed by the wizard or should you manage it yourself
+    </description>
+    <value>true</value>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>conf_dir</name>
+    <display-name>krb5-conf directory path</display-name>
+    <description>The krb5.conf configuration directory</description>
+    <value>/etc</value>
+    <value-attributes>
+      <type>directory</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+  <property>
+    <name>content</name>
+    <display-name>krb5-conf template</display-name>
+    <description>Customizable krb5.conf template (Jinja template engine)</description>
+    <value>
+[libdefaults]
+  renew_lifetime = 7d
+  forwardable = true
+  default_realm = {{realm}}
+  ticket_lifetime = 24h
+  dns_lookup_realm = false
+  dns_lookup_kdc = false
+  #default_tgs_enctypes = {{encryption_types}}
+  #default_tkt_enctypes = {{encryption_types}}
+
+{% if domains %}
+[domain_realm]
+{% for domain in domains.split(',') %}
+  {{domain}} = {{realm}}
+{% endfor %}
+{% endif %}
+
+[logging]
+  default = FILE:/var/log/krb5kdc.log
+  admin_server = FILE:/var/log/kadmind.log
+  kdc = FILE:/var/log/krb5kdc.log
+
+[realms]
+  {{realm}} = {
+    admin_server = {{admin_server_host|default(kdc_host, True)}}
+    kdc = {{kdc_host}}
+  }
+
+{# Append additional realm declarations below #}
+    </value>
+    <value-attributes>
+      <type>content</type>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+</configuration>
