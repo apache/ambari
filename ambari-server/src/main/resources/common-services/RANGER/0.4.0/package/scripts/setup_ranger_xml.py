@@ -19,7 +19,6 @@ limitations under the License.
 """
 import os
 import re
-import random
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
 from resource_management.core.source import DownloadSource, InlineTemplate, Template
@@ -559,9 +558,6 @@ def create_core_site_xml(conf_dir):
 def setup_ranger_audit_solr():
   import params
 
-  random_num = random.random()
-  tmp_config_set_folder = format('{tmp_dir}/ranger_config_{ranger_solr_config_set}_{random_num}')
-
   if params.security_enabled and params.stack_supports_ranger_kerberos:
     File(format("{solr_jaas_file}"),
       content=Template("ranger_solr_jass_conf.j2"),
@@ -573,7 +569,7 @@ def setup_ranger_audit_solr():
     solr_znode = params.solr_znode,
     config_set = params.ranger_solr_config_set,
     config_set_dir = params.ranger_solr_conf,
-    tmp_config_set_dir = tmp_config_set_folder,
+    tmp_dir = params.tmp_dir,
     java64_home = params.java_home,
     user = params.unix_user,
     retry=30, interval=5)

@@ -297,7 +297,7 @@ def verifyDependencies():
     cmd = ['/usr/bin/yum', '-d', '0', '-e', '0', 'check', 'dependencies']
     check_str = "has missing requires|Error:"
   elif OSCheck.is_suse_family():
-    cmd = ['/usr/bin/zypper', '--quiet', '--non-interactive' 'verify', '--dry-run']
+    cmd = ['/usr/bin/zypper', '--quiet', '--non-interactive', 'verify', '--dry-run']
     check_str = "\d+ new package(s)? to install"
   elif OSCheck.is_ubuntu_family():
     cmd = ['/usr/bin/apt-get', '-qq', 'check']

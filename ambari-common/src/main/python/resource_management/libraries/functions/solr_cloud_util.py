@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import random
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.core.resources.system import Directory, Execute, File
@@ -36,25 +37,46 @@ def __append_flags_if_exists(command, flagsDict):
   return command
 
 
-def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_set_dir, tmp_config_set_dir,
-                         java64_home, user, retry = 5, interval = 10):
+def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_set_dir, tmp_dir,
+                         java64_home, user, retry = 5, interval = 10, solrconfig_content = None):
   """
   Upload configuration set to zookeeper with solrCloudCli.sh
   At first, it tries to download configuration set if exists into a temporary location, then upload that one to
   zookeeper. (if the configuration changed there, in that case the user wont redefine it)
-  If the configuration set does not exits in zookeeper then upload it based on the config_set_dir parameter.
+  If the configuration set does not exist in zookeeper then upload it based on the config_set_dir parameter.
   """
+  random_num = random.random()
+  tmp_config_set_dir = format('{tmp_dir}/solr_config_{config_set}_{random_num}')
   solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
   Execute(format('{solr_cli_prefix} --download-config --config-dir {tmp_config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
           only_if=as_user(format("{solr_cli_prefix} --check-config --config-set {config_set} --retry {retry} --interval {interval}"), user),
           user=user
           )
 
+  if solrconfig_content is not None:
+      File(format("{tmp_config_set_dir}/solrconfig.xml"),
+       content=solrconfig_content,
+       owner=user,
+       only_if=format("test -d {tmp_config_set_dir}")
+      )
+
+      Execute(format(
+        '{solr_cli_prefix} --upload-config --config-dir {tmp_config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
+        user=user,
+        only_if=format("test -d {tmp_config_set_dir}")
+      )
+
   Execute(format(
     '{solr_cli_prefix} --upload-config --config-dir {config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
-    not_if=format("test -d {tmp_config_set_dir}"),
-    user=user
+    user=user,
+    not_if=format("test -d {tmp_config_set_dir}")
   )
+
+  Directory(tmp_config_set_dir,
+              action="delete",
+              owner=user,
+              create_parents=True
+            )
 
 def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java64_home, user,
                       shards = 1, replication_factor = 1, max_shards = 1, retry = 5, interval = 10,

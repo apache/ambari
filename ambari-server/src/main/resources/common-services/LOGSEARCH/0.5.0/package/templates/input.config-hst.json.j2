@@ -27,6 +27,16 @@
        "type":"hst_agent",
        "rowtype":"service",
        "path":"{{hst_log_dir}}/hst-agent.log"
+     },
+     {
+       "type":"activity_analyzer",
+       "rowtype":"service",
+       "path":"{{hst_activity_log_dir}}/activity-analyzer.log"
+     },
+     {
+       "type":"activity_explorer",
+       "rowtype":"service",
+       "path":"{{hst_activity_log_dir}}/activity-explorer.log"
      }
    ],
    "filter":[
@@ -64,7 +74,9 @@
         "conditions":{
           "fields":{
             "type":[
-              "hst_server"
+              "hst_server",
+              "activity_analyzer",
+              "activity_explorer"
             ]
           }
          },

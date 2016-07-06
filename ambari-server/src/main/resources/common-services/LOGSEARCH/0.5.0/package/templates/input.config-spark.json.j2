@@ -27,6 +27,11 @@
        "type":"spark_thriftserver",
        "rowtype":"service",
        "path":"{{spark_log_dir}}/spark-*-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2*.out"
+     },
+     {
+       "type":"livy_server",
+       "rowtype":"service",
+       "path":"{{livy_log_dir}}/livy-livy-server.out"
      }
    ],
    "filter":[
@@ -36,7 +41,8 @@
             "fields":{
               "type":[
                 "spark_jobhistory_server",
-                "spark_thriftserver"
+                "spark_thriftserver",
+                "livy_server"
               ]
 
             }
