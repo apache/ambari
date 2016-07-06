@@ -160,7 +160,7 @@ public class ConfigGroupResourceProviderTest {
     ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
     ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
 
-    expect(managementController.getClusters()).andReturn(clusters);
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getHost("h1")).andReturn(h1);
     expect(clusters.getHost("h2")).andReturn(h2);
