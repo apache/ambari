@@ -307,33 +307,28 @@ class DefaultStackAdvisor(StackAdvisor):
   have an advisor. Stack-versions can extend this class to provide their own
   implement
   """
-  services = None
-  # Dictionary that maps serviceName or componentName to serviceAdvisor
-  serviceAdvisorsDict = {}
 
-  """
-  Filters the list of specified hosts object and returns
-  a list of hosts which are not in maintenance mode.
-  """
+  def __init__(self):
+    self.services = None
+    # Dictionary that maps serviceName or componentName to serviceAdvisor
+    self.serviceAdvisorsDict = {}
+
+
   def getActiveHosts(self, hosts):
+    """ Filters the list of specified hosts object and returns
+        a list of hosts which are not in maintenance mode. """
     hostsList = []
-
-    if (hosts is not None):
+    if hosts is not None:
       hostsList = [host['host_name'] for host in hosts
                    if host.get('maintenance_state') is None or host.get('maintenance_state') == "OFF"]
-
     return hostsList
 
   def getServiceAdvisor(self, key):
-
     if len(self.serviceAdvisorsDict) == 0:
       self.loadServiceAdvisors()
     return self.serviceAdvisorsDict[key]
 
-  def loadServiceAdvisors(self, services=None):
-
-    if self.services is None:
-      self.services = services
+  def loadServiceAdvisors(self):
     for service in self.services["services"]:
       serviceName = service["StackServices"]["service_name"]
       self.serviceAdvisorsDict[serviceName] = self.instantiateServiceAdvisor(service)

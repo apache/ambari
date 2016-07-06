@@ -18,14 +18,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, json, crypt
-import  resource_management.libraries.functions
+import os, json, copy, crypt
+from mock.mock import patch
+from stacks.utils.RMFTestCase import RMFTestCase, InlineTemplate, UnknownConfigurationMock
 
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 
-@patch.object(resource_management.libraries.functions, 'check_process_status', new = MagicMock())
 class TestHawqMaster(RMFTestCase):
+
   COMMON_SERVICES_PACKAGE_DIR = 'HAWQ/2.0.0/package'
   STACK_VERSION = '2.3'
   GPADMIN = 'gpadmin'
@@ -33,14 +32,11 @@ class TestHawqMaster(RMFTestCase):
   DEFAULT_IMMUTABLE_PATHS = ['/apps/hive/warehouse', '/apps/falcon', '/mr-history/done', '/app-logs', '/tmp']
   CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/hawq_default.json')
   HAWQ_CHECK_COMMAND = 'source /usr/local/hawq/greenplum_path.sh && export PGHOST="c6403.ambari.apache.org" && hawq check -f /usr/local/hawq/etc/hawq_hosts --hadoop /usr/phd/current/hadoop-client --config /usr/local/hawq/etc/hawq_check.cnf '
+  with open(CONFIG_FILE, "r") as f:
+    hawq_config = json.load(f)
 
   def setUp(self):
-    try:
-      with open(self.CONFIG_FILE, "r") as f:
-        self.config_dict = json.load(f)
-    except IOError:
-      raise RuntimeError("Can not read config file: " + self.CONFIG_FILE)
-
+    self.config_dict = copy.deepcopy(self.hawq_config)
 
   def __asserts_for_configure(self):
 
@@ -50,7 +46,7 @@ class TestHawqMaster(RMFTestCase):
 
     self.assertResourceCalled('User', self.GPADMIN,
         gid = self.GPADMIN,
-        groups = ['gpadmin', u'hadoop'],
+        groups = [self.GPADMIN, u'hadoop'],
         ignore_failures = True,
         password = crypt.crypt(self.config_dict['configurations']['hawq-env']['hawq_password'], "$1$salt$")
         )
@@ -100,7 +96,7 @@ class TestHawqMaster(RMFTestCase):
         content = self.getConfig()['configurations']['hawq-check-env']['content'],
         owner = self.GPADMIN,
         group = self.GPADMIN,
-        mode=0644
+        mode = 0644
         )
 
     self.assertResourceCalled('File', '/usr/local/hawq/etc/slaves',
@@ -118,7 +114,7 @@ class TestHawqMaster(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
         user = 'root',
-        timeout =  600
+        timeout = 600
         )
 
     self.assertResourceCalled('Directory', '/data/hawq/tmp/master',
@@ -184,7 +180,7 @@ class TestHawqMaster(RMFTestCase):
         kinit_path_local = '/usr/bin/kinit',
         recursive_chown = True,
         keytab = UnknownConfigurationMock(),
-        principal_name = UnknownConfigurationMock(),
+        principal_name = UnknownConfigurationMock()
         )
 
     self.assertResourceCalled('HdfsResource', None,
@@ -200,9 +196,9 @@ class TestHawqMaster(RMFTestCase):
         )
 
     self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init master -a -v --ignore-bad-hosts',
-        logoutput = True, 
-        not_if = None, 
-        only_if = None, 
+        logoutput = True,
+        not_if = None,
+        only_if = None,
         user = self.GPADMIN,
         timeout = 900
         )

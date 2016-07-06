@@ -1,0 +1,510 @@
+{
+  "href" : "/api/v1/stacks/HDP/versions/2.3/?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version,services/StackServices/service_name,services/StackServices/service_version,services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy,services/configurations/StackConfigurations/property_depends_on,services/configurations/dependencies/StackConfigurationDependency/dependency_name,services/configurations/dependencies/StackConfigurationDependency/dependency_type,services/configurations/StackConfigurations/type&services/StackServices/service_name.in(HDFS,ZOOKEEPER,HAWQ)",
+  "Versions" : {
+    "parent_stack_version" : "2.2",
+    "stack_name" : "HDP",
+    "stack_version" : "2.3",
+    "stack_hierarchy" : {
+      "stack_name" : "HDP",
+      "stack_versions" : [ "2.2", "2.1", "2.0.6" ]
+    }
+  },
+  "services" : [ {
+    "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ",
+    "StackServices" : {
+      "service_name" : "HAWQ",
+      "service_version" : "2.0",
+      "stack_name" : "HDP",
+      "stack_version" : "2.3"
+    },
+    "components" : [ {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER",
+      "StackServiceComponents" : {
+        "advertise_version" : false,
+        "cardinality" : "1",
+        "component_category" : "MASTER",
+        "component_name" : "HAWQMASTER",
+        "custom_commands" : [ ],
+        "display_name" : "HAWQ Master",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER/dependencies/HDFS_CLIENT",
+        "Dependencies" : {
+          "component_name" : "HDFS_CLIENT",
+          "dependent_component_name" : "HAWQMASTER",
+          "dependent_service_name" : "HAWQ",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      }, {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQMASTER/dependencies/NAMENODE",
+        "Dependencies" : {
+          "component_name" : "NAMENODE",
+          "dependent_component_name" : "HAWQMASTER",
+          "dependent_service_name" : "HAWQ",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      } ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSEGMENT",
+      "StackServiceComponents" : {
+        "advertise_version" : false,
+        "cardinality" : "1+",
+        "component_category" : "SLAVE",
+        "component_name" : "HAWQSEGMENT",
+        "custom_commands" : [ ],
+        "display_name" : "HAWQ Segment",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSEGMENT/dependencies/DATANODE",
+        "Dependencies" : {
+          "component_name" : "DATANODE",
+          "dependent_component_name" : "HAWQSEGMENT",
+          "dependent_service_name" : "HAWQ",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      } ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSTANDBY",
+      "StackServiceComponents" : {
+        "advertise_version" : false,
+        "cardinality" : "0-1",
+        "component_category" : "MASTER",
+        "component_name" : "HAWQSTANDBY",
+        "custom_commands" : [ ],
+        "display_name" : "HAWQ Standby Master",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/components/HAWQSTANDBY/dependencies/HDFS_CLIENT",
+        "Dependencies" : {
+          "component_name" : "HDFS_CLIENT",
+          "dependent_component_name" : "HAWQSTANDBY",
+          "dependent_service_name" : "HAWQ",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      } ]
+    } ],
+    "configurations" : [ {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/content",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "content",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-check-env.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_dfs_url",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_dfs_url",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_address_host",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_master_address_host",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_address_port",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_master_address_port",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_directory",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_master_directory",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_master_temp_directory",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_master_temp_directory",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_hierarchy_name",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_cgroup_hierarchy_name",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_mount_point",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_cgroup_mount_point",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cleanup_period",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_cleanup_period",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cpu_enable",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_cpu_enable",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cpu_weight",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_cpu_weight",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_vcore_pcore_ratio",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_re_vcore_pcore_ratio",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_nvcore_limit_perseg",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_nvcore_limit_perseg",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_memory_limit_perseg",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_memory_limit_perseg",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_server_type",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_resourcemanager_server_type",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_app_name",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_yarn_app_name",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_queue_name",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_yarn_queue_name",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_address",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_yarn_address",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_scheduler_address",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_rm_yarn_scheduler_address",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_address_port",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_segment_address_port",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_directory",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_segment_directory",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_segment_temp_directory",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_segment_temp_directory",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_standby_address_host",
+      "StackConfigurations" : {
+        "property_depends_on" : [ ],
+        "property_name" : "hawq_standby_address_host",
+        "service_name" : "HAWQ",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "type" : "hawq-site.xml"
+      },
+      "dependencies" : [ ]
+    } ]
+  }, {
+    "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS",
+    "StackServices" : {
+      "service_name" : "HDFS",
+      "service_version" : "2.7.1.2.3",
+      "stack_name" : "HDP",
+      "stack_version" : "2.3"
+    },
+    "components" : [ {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/DATANODE",
+      "StackServiceComponents" : {
+        "advertise_version" : true,
+        "cardinality" : "1+",
+        "component_category" : "SLAVE",
+        "component_name" : "DATANODE",
+        "custom_commands" : [ ],
+        "display_name" : "DataNode",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/HDFS_CLIENT",
+      "StackServiceComponents" : {
+        "advertise_version" : true,
+        "cardinality" : "1+",
+        "component_category" : "CLIENT",
+        "component_name" : "HDFS_CLIENT",
+        "custom_commands" : [ ],
+        "display_name" : "HDFS Client",
+        "is_client" : true,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/JOURNALNODE",
+      "StackServiceComponents" : {
+        "advertise_version" : true,
+        "cardinality" : "0+",
+        "component_category" : "SLAVE",
+        "component_name" : "JOURNALNODE",
+        "custom_commands" : [ ],
+        "display_name" : "JournalNode",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/JOURNALNODE/dependencies/HDFS_CLIENT",
+        "Dependencies" : {
+          "component_name" : "HDFS_CLIENT",
+          "dependent_component_name" : "JOURNALNODE",
+          "dependent_service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      } ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NAMENODE",
+      "StackServiceComponents" : {
+        "advertise_version" : true,
+        "cardinality" : "1-2",
+        "component_category" : "MASTER",
+        "component_name" : "NAMENODE",
+        "custom_commands" : [ "DECOMMISSION", "REBALANCEHDFS" ],
+        "display_name" : "NameNode",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6401.ambari.apache.org" ]
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NFS_GATEWAY",
+      "StackServiceComponents" : {
+        "advertise_version" : false,
+        "cardinality" : "0+",
+        "component_category" : "SLAVE",
+        "component_name" : "NFS_GATEWAY",
+        "custom_commands" : [ ],
+        "display_name" : "NFSGateway",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ ]
+      },
+      "dependencies" : [ {
+        "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/NFS_GATEWAY/dependencies/HDFS_CLIENT",
+        "Dependencies" : {
+          "component_name" : "HDFS_CLIENT",
+          "dependent_component_name" : "NFS_GATEWAY",
+          "dependent_service_name" : "HDFS",
+          "stack_name" : "HDP",
+          "stack_version" : "2.3"
+        }
+      } ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/SECONDARY_NAMENODE",
+      "StackServiceComponents" : {
+        "advertise_version" : true,
+        "cardinality" : "1",
+        "component_category" : "MASTER",
+        "component_name" : "SECONDARY_NAMENODE",
+        "custom_commands" : [ ],
+        "display_name" : "SNameNode",
+        "is_client" : false,
+        "is_master" : true,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6402.ambari.apache.org" ]
+      },
+      "dependencies" : [ ]
+    }, {
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HDFS/components/ZKFC",
+      "StackServiceComponents" : {
+        "advertise_version" : false,
+        "cardinality" : "0+",
+        "component_category" : "SLAVE",
+        "component_name" : "ZKFC",
+        "custom_commands" : [ ],
+        "display_name" : "ZKFailoverController",
+        "is_client" : false,
+        "is_master" : false,
+        "service_name" : "HDFS",
+        "stack_name" : "HDP",
+        "stack_version" : "2.3",
+        "hostnames" : [ "c6403.ambari.apache.org" ]
+      },
+      "dependencies" : [ ]
+    } ]
+  } ],
+  "configurations" : { }
+}

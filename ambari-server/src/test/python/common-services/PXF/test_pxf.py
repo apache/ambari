@@ -18,11 +18,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import os, copy, json
 from mock.mock import patch
 from stacks.utils.RMFTestCase import Template, RMFTestCase
-from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
-@not_for_platform(PLATFORM_WINDOWS)
+
 class TestPxf(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PXF/3.0.0/package"
   STACK_VERSION = "2.3"
@@ -31,6 +31,12 @@ class TestPxf(RMFTestCase):
   TOMCAT_GROUP = 'tomcat'
   BASH_SHELL = '/bin/bash'
   DEFAULT_TIMEOUT = 600
+  CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/pxf_default.json')
+  with open(CONFIG_FILE, "r") as f:
+     pxf_config = json.load(f)
+
+  def setUp(self):
+    self.config_dict = copy.deepcopy(self.pxf_config)
 
   def assert_configure_default(self):
     self.assertResourceCalled('User', self.PXF_USER,
@@ -62,7 +68,7 @@ class TestPxf(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
                        classname="Pxf",
                        command="install",
-                       config_file="pxf_default.json",
+                       config_dict=self.config_dict,
                        stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES,
                        try_install=True)
@@ -90,7 +96,7 @@ class TestPxf(RMFTestCase):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="configure",
-                   config_file="pxf_default.json",
+                   config_dict=self.config_dict,
                    stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
@@ -102,7 +108,7 @@ class TestPxf(RMFTestCase):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="start",
-                   config_file="pxf_default.json",
+                   config_dict=self.config_dict,
                    stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
@@ -122,7 +128,7 @@ class TestPxf(RMFTestCase):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="stop",
-                   config_file="pxf_default.json",
+                   config_dict=self.config_dict,
                    stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
@@ -135,7 +141,7 @@ class TestPxf(RMFTestCase):
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="status",
-                   config_file="pxf_default.json",
+                   config_dict=self.config_dict,
                    stack_version=self.STACK_VERSION,
                    target=RMFTestCase.TARGET_COMMON_SERVICES,
                    try_install=True)
