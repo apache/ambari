@@ -77,6 +77,11 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>tez.dag.recovery.enabled</name>
+    <value>false</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>tez.am.resource.memory.mb</name>
     <value>1536</value>
     <description>The amount of memory to be used by the AppMaster</description>
