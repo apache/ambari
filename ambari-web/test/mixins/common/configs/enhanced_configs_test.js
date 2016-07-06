@@ -212,5 +212,56 @@ describe('App.EnhancedConfigsMixin', function() {
       expect(App.config.getClusterEnvConfigs.calledOnce).to.be.false;
     });
   });
+
+  describe("#changedDependentGroup", function () {
+    var mixinInstance;
+
+    beforeEach(function () {
+      mixinInstance = mixinObject.create({
+        selectedService: {
+          serviceName: 'test',
+          dependentServiceNames: ['test1', 'test2', 'test3'],
+          configGroups: [
+            {name: 'testCG'},
+            {name: 'notTestCG'}
+          ]
+        },
+        stepConfigs: [
+          Em.Object.create({serviceName: 'test1'}),
+          Em.Object.create({serviceName: 'test2'}),
+          Em.Object.create({serviceName: 'test3'}),
+          Em.Object.create({serviceName: 'test4'}),
+          Em.Object.create({serviceName: 'test5'})
+        ],
+        selectedConfigGroup: {name: 'testCG'},
+        recommendations: [1, 2, 3]
+      });
+
+      sinon.stub(App, 'showSelectGroupsPopup', Em.K);
+      sinon.stub(App.Service, 'find').returns([
+        {serviceName: 'test2'},
+        {serviceName: 'test3'},
+        {serviceName: 'test4'}
+      ]);
+    });
+
+    afterEach(function () {
+      App.showSelectGroupsPopup.restore();
+      App.Service.find.restore();
+    });
+
+    it("should call showSelectGroupsPopup with appropriate arguments", function () {
+      mixinInstance.changedDependentGroup();
+      expect(App.showSelectGroupsPopup.calledWith(
+          'test',
+          {name: 'testCG'},
+          [
+            Em.Object.create({serviceName: 'test2'}),
+            Em.Object.create({serviceName: 'test3'})
+          ],
+          [1, 2, 3]
+      )).to.be.true;
+    });
+  });
 });
 
