@@ -17,10 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import random
-from resource_management import Directory, Fail, Logger, File, \
-    InlineTemplate, PropertiesFile, StaticFile, XmlConfig
-from resource_management.libraries.functions import format
+
+from resource_management.core.resources.system import Directory, File
+from resource_management.core.source import StaticFile, InlineTemplate
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions import solr_cloud_util
 
@@ -50,7 +51,8 @@ def metadata(type='server'):
                 cd_access='a',
                 owner=params.metadata_user,
                 group=params.user_group,
-                create_parents = True
+                create_parents = True,
+                recursive_ownership=True
       )
       Directory(params.log_dir,
                 mode=0755,
@@ -106,9 +108,7 @@ def metadata(type='server'):
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       solr_cloud_util.setup_solr_client(params.config)
 
-      random_num = random.random()
-
-      upload_conf_set('basic_configs', random_num)
+      upload_conf_set('basic_configs')
 
       create_collection('vertex_index', 'basic_configs')
       create_collection('edge_index', 'basic_configs')
@@ -118,18 +118,18 @@ def metadata(type='server'):
         TemplateConfig(format(params.atlas_jaas_file),
                          owner=params.metadata_user)
 
-def upload_conf_set(config_set, random_num):
+def upload_conf_set(config_set):
   import params
-  tmp_config_set_folder = format('{tmp_dir}/solr_config_{config_set}_{random_num}')
 
   solr_cloud_util.upload_configuration_to_zk(
       zookeeper_quorum=params.zookeeper_quorum,
       solr_znode=params.logsearch_solr_znode,
       config_set_dir=format("{conf_dir}/solr"),
       config_set=config_set,
-      tmp_config_set_dir=tmp_config_set_folder,
+      tmp_dir=params.tmp_dir,
       java64_home=params.java64_home,
       user=params.metadata_user,
+      solrconfig_content=InlineTemplate(params.metadata_solrconfig_content),
       retry=30, interval=5)
 
 def create_collection(collection, config_set):
