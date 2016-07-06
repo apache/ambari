@@ -95,6 +95,7 @@
       <configuration-dependencies>
         <config-type>sqoop-env</config-type>
         <config-type>sqoop-site</config-type>
+        <config-type>application.properties</config-type>
       </configuration-dependencies>
     </service>
   </services>

@@ -158,12 +158,15 @@
     <description>Indicates whether or not the notification service should be embedded.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!-- atlas.cluster.name is also part of Atlas Hooks -->
   <property>
     <name>atlas.cluster.name</name>
     <value>{{cluster_name}}</value>
     <description>The cluster name.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+
   <property>
     <name>atlas.server.http.port</name>
     <value>21000</value>
@@ -182,42 +185,9 @@
     <description/>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property>
-    <name>atlas.hook.falcon.synchronous</name>
-    <value>false</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.hook.falcon.numRetries</name>
-    <value>3</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.hook.falcon.minThreads</name>
-    <value>5</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.hook.falcon.maxThreads</name>
-    <value>5</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.hook.falcon.keepAliveTime</name>
-    <value>10</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.hook.falcon.queueSize</name>
-    <value>1000</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
+
+
+
   <property>
     <name>atlas.audit.hbase.tablename</name>
     <value>ATLAS_ENTITY_AUDIT_EVENTS</value>

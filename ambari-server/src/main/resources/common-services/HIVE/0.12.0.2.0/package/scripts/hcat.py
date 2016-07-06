@@ -17,11 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 
 from resource_management import *
 import sys
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -39,8 +41,6 @@ def hcat():
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hcat():
   import params
-
-  from setup_atlas_hive import setup_atlas_hive
 
   Directory(params.hive_conf_dir,
             create_parents = True,
@@ -74,4 +74,7 @@ def hcat():
        content=InlineTemplate(params.hcat_env_sh_template)
   )
 
-  setup_atlas_hive()
+  # Generate atlas-application.properties.xml file
+  if has_atlas_in_cluster():
+    atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
+    setup_atlas_hook(params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

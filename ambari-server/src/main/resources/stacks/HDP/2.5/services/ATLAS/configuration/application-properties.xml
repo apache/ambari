@@ -145,6 +145,10 @@
     <description>The Kafka data directory.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!-- Start: Atlas Hooks that are also written out to configs for Falcon, Storm, Hive, and Sqoop.
+  There are several more properties for when Atlas is Kerberized.
+  -->
   <property>
     <name>atlas.kafka.bootstrap.servers</name>
     <value/>
@@ -163,6 +167,44 @@
     <description>Kafka group id for the hook topic.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>atlas.kafka.zookeeper.session.timeout.ms</name>
+    <value>400</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.kafka.zookeeper.connection.timeout.ms</name>
+    <value>200</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.kafka.zookeeper.sync.time.ms</name>
+    <value>20</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.notification.create.topics</name>
+    <value>true</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.notification.replicas</name>
+    <value>1</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>atlas.notification.topics</name>
+    <value>ATLAS_HOOK,ATLAS_ENTITIES</value>
+    <description></description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- End: Atlas Hooks -->
+
   <property>
     <name>atlas.kafka.entities.group.id</name>
     <value>entities</value>

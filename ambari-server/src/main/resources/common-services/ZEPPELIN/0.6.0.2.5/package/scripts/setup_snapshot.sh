@@ -41,7 +41,7 @@ export SETUP_VIEW=$7
 export PACKAGE_DIR=$8
 export java64_home=$9
 
-SETUP_VIEW=${SETUP_VIEW,,}
+SETUP_VIEW=`awk '{ print tolower($0) }' <<< "$SETUP_VIEW"`
 echo "SETUP_VIEW is $SETUP_VIEW"
 
 SetupZeppelin () {
