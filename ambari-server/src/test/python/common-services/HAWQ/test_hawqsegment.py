@@ -18,15 +18,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, json, crypt
-from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
+import os, json, copy, crypt
+from mock.mock import patch
+from stacks.utils.RMFTestCase import RMFTestCase
+
 
 class TestHawqSegment(RMFTestCase):
+
   COMMON_SERVICES_PACKAGE_DIR = 'HAWQ/2.0.0/package'
   STACK_VERSION = '2.3'
   GPADMIN = 'gpadmin'
   POSTGRES = 'postgres'
+  CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/hawq_default.json')
+  with open(CONFIG_FILE, "r") as f:
+    hawq_config = json.load(f)
+
+  def setUp(self):
+    self.config_dict = copy.deepcopy(self.hawq_config)
 
   def __asserts_for_configure(self):
 
@@ -83,15 +91,15 @@ class TestHawqSegment(RMFTestCase):
         )
 
     self.assertResourceCalled('Directory', '/data/hawq/segment',
-                              owner = self.GPADMIN,
-                              group = self.GPADMIN,
-                              create_parents = True
-                              )
+        owner = self.GPADMIN,
+        group = self.GPADMIN,
+        create_parents = True
+        )
 
     self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/segment',
-                              user = 'root',
-                              timeout = 600
-                              )
+        user = 'root',
+        timeout = 600
+        )
 
     self.assertResourceCalled('Directory', '/data/hawq/tmp/segment',
         owner = self.GPADMIN,
@@ -100,14 +108,13 @@ class TestHawqSegment(RMFTestCase):
         )
 
 
-
   @patch ('hawqsegment.common.__set_osparams')
   def test_configure_default(self, set_osparams_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqsegment.py',
         classname = 'HawqSegment',
         command = 'configure',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -122,7 +129,7 @@ class TestHawqSegment(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqsegment.py',
         classname = 'HawqSegment',
         command = 'install',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -137,7 +144,7 @@ class TestHawqSegment(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqsegment.py',
         classname = 'HawqSegment',
         command = 'start',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
@@ -145,9 +152,9 @@ class TestHawqSegment(RMFTestCase):
     self.__asserts_for_configure()
 
     self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init segment -a -v',
-        logoutput = True, 
-        not_if = None, 
-        only_if = None, 
+        logoutput = True,
+        not_if = None,
+        only_if = None,
         user = self.GPADMIN,
         timeout = 900
         )
@@ -162,14 +169,14 @@ class TestHawqSegment(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqsegment.py',
         classname = 'HawqSegment',
         command = 'stop',
-        config_file ='hawq_default.json',
+        config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES
         )
 
     self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq stop segment -M fast -a -v',
-        logoutput = True, 
-        not_if = None, 
+        logoutput = True,
+        not_if = None,
         only_if = "netstat -tupln | egrep ':40000\\s' | egrep postgres",
         user = self.GPADMIN,
         timeout = 900
