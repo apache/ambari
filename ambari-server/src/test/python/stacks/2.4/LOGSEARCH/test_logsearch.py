@@ -78,6 +78,11 @@ class TestLogSearch(RMFTestCase):
                               group='hadoop',
                               content = Template('logsearch.properties.j2')
     )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
+                              owner = 'logsearch',
+                              group='hadoop',
+                              content = Template('HadoopServiceConfig.json.j2')
+    )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/log4j.xml',
                               owner = 'logsearch',
                               group='hadoop',

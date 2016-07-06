@@ -56,6 +56,12 @@ def setup_logsearch():
        group=params.user_group
        )
 
+  File(format("{logsearch_server_conf}/HadoopServiceConfig.json"),
+       content=Template("HadoopServiceConfig.json.j2"),
+       owner=params.logsearch_user,
+       group=params.user_group
+       )
+
   File(format("{logsearch_server_conf}/log4j.xml"),
        content=InlineTemplate(params.logsearch_app_log4j_content),
        owner=params.logsearch_user,

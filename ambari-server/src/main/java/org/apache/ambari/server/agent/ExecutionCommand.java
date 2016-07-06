@@ -111,6 +111,9 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("localComponents")
   private Set<String> localComponents = new HashSet<String>();
 
+  @SerializedName("availableServices")
+  private Set<String> availableServices = new HashSet<String>();
+
   public String getCommandId() {
     return commandId;
   }
@@ -259,6 +262,14 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setLocalComponents(Set<String> localComponents) {
     this.localComponents = localComponents;
+  }
+
+  public Set<String> getAvailableServices() {
+    return availableServices;
+  }
+
+  public void setAvailableServices(Set<String> availableServices) {
+    this.availableServices = availableServices;
   }
 
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {

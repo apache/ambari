@@ -40,6 +40,7 @@ import org.apache.ambari.logfeeder.AliasUtil.ALIAS_PARAM;
 import org.apache.ambari.logfeeder.AliasUtil.ALIAS_TYPE;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.Input;
+import org.apache.ambari.logfeeder.input.InputSimulate;
 import org.apache.ambari.logfeeder.logconfig.LogfeederScheduler;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.ambari.logfeeder.util.FileUtil;
@@ -118,6 +119,9 @@ public class LogFeeder {
           + configFileName);
       }
     }
+    
+    addSimulatedInputs();
+    
     mergeAllConfigs();
     
     LogfeederScheduler.INSTANCE.start();
@@ -196,7 +200,22 @@ public class LogFeeder {
         outputConfigList.addAll(mapList);
       }
     }
-
+  }
+  
+  private void addSimulatedInputs() {
+    int simulatedInputNumber = LogFeederUtil.getIntProperty("logfeeder.simulate.input_number", 0);
+    if (simulatedInputNumber == 0)
+      return;
+    
+    InputSimulate.loadTypeToFilePath(inputConfigList);
+    inputConfigList.clear();
+    
+    for (int i = 0; i < simulatedInputNumber; i++) {
+      HashMap<String, Object> mapList = new HashMap<String, Object>();
+      mapList.put("source", "simulate");
+      mapList.put("rowtype", "service");
+      inputConfigList.add(mapList);
+    }
   }
 
   private void mergeAllConfigs() {
