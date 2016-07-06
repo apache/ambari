@@ -354,6 +354,12 @@
         },
         {
           "name": "hst_agent"
+        },
+        {
+          "name": "activity_analyzer"
+        },
+        {
+          "name": "activity_explorer"
         }
       ],
       "dependencies": [

@@ -243,6 +243,7 @@ ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
 knox_log_dir = '/var/log/knox'
 hst_log_dir = '/var/log/hst'
+hst_activity_log_dir = '/var/log/smartsense-activity'
 
 metrics_collector_log_dir = default('/configurations/ams-env/metrics_collector_log_dir', '/var/log/ambari-metrics-collector')
 metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_dir', '/var/log/ambari-metrics-monitor')
