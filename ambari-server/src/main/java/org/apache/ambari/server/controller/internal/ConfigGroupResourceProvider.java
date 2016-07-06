@@ -391,6 +391,9 @@ public class ConfigGroupResourceProvider extends
   }
 
   private void verifyConfigs(Map<String, Config> configs, String clusterName) throws AmbariException {
+    if (configs == null) {
+      return;
+    }
     Clusters clusters = getManagementController().getClusters();
     for (String key : configs.keySet()) {
       if(!clusters.getCluster(clusterName).isConfigTypeExists(key)){
@@ -570,6 +573,7 @@ public class ConfigGroupResourceProvider extends
         request.getTag(), request.getDescription(),
         request.getConfigs(), hosts);
 
+      verifyConfigs(configGroup.getConfigurations(), cluster.getClusterName());
       configGroup.setServiceName(serviceName);
 
       // Persist before add, since id is auto-generated
