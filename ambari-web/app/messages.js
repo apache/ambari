@@ -2740,6 +2740,7 @@ Em.I18n.translations = {
   'dashboard.services.yarn.resourceManager':'ResourceManager',
   'dashboard.services.yarn.nodeManagers':'NodeManagers',
   'dashboard.services.yarn.nodeManager':'NodeManager',
+  'dashboard.services.yarn.nodes.heapUsed':'{0} / {1} ({2}% used)',
   'dashboard.services.yarn.clients':'YARN Clients',
   'dashboard.services.yarn.client':'YARN Client',
   'dashboard.services.yarn.resourceManager.uptime':'ResourceManager Uptime',
