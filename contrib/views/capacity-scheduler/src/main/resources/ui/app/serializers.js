@@ -160,12 +160,13 @@ App.SerializerMixin = Em.Mixin.create({
       nodeLabels.forEach(function(label) {
         var labelId = [queue.id,label.name].join('.'),
             cp =  [prefix, queue.path, 'accessible-node-labels',label.name,'capacity'].join('.'),
-            mcp = [prefix, queue.path, 'accessible-node-labels',label.name,'maximum-capacity'].join('.');
+            mcp = [prefix, queue.path, 'accessible-node-labels',label.name,'maximum-capacity'].join('.'),
+            labelCapacity = properties.hasOwnProperty(cp)?+properties[cp]:0;
         labels.push({
           id:labelId,
-          capacity:properties.hasOwnProperty(cp)?+properties[cp]:0,
+          capacity:labelCapacity,
           maximum_capacity:properties.hasOwnProperty(mcp)?+properties[mcp]:100,
-          queue:(queue.labels.contains([queue.id,label.name].join('.')))?queue.id:null
+          queue:(queue.labels.contains(labelId))?queue.id:null
         });
       });
 
@@ -306,4 +307,3 @@ App.ConfigSerializer = DS.RESTSerializer.extend({
     return resourceHash;
   }
 });
-

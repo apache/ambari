@@ -65,7 +65,7 @@
        currentQ = allQueues.findBy('id', currentQ.get('parentPath').toLowerCase()) || null;
      }
      var effectiveCapacityPercent = effectiveCapacityRatio * 100;
-     this.get('queue').set('absolute_capacity', effectiveCapacityPercent || null);
+     this.get('queue').set('absolute_capacity', effectiveCapacityPercent || 0);
      return effectiveCapacityPercent;
    }.property('queue.capacity', 'allQueues.@each.capacity', 'allQueues.length')
  });

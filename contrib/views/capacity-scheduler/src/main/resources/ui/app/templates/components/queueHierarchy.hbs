@@ -16,8 +16,9 @@
 }}
 
 {{#each queue in leafQs}}
-  {{#link-to 'capsched.queuesconf.editqueue' queue class="list-group-item"}}
+  {{#link-to 'capsched.queuesconf.editqueue' queue classNameBindings=":list-group-item queue.overCapacity:list-group-item-danger queue.isNew:list-group-item-info" disabled=queue.isDeletedQueue}}
     <div class="col-md-offset-{{unbound queue.depth}} col-sm-offset-{{unbound queue.depth}}">
+
       {{#unless queue.queues}}
         <span>
           <i class="fa fa-leaf"></i>

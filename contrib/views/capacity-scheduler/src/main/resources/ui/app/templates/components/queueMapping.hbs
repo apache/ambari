@@ -33,7 +33,7 @@
             {{#each qm in queueMappings}}
               <li class="list-group-item">{{queueMappingParser qm}}<span class="pull-right remove-mapping-icon" {{action "removeQueueMapping" qm}}><i class="fa fa-times"></i></span></li>
             {{else}}
-              <label>No queue mappings defined</label>
+              <span>No queue mappings defined</span>
             {{/each}}
           </ul>
         </div>

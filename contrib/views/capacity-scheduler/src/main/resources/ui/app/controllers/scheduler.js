@@ -22,6 +22,7 @@ var cmp = Ember.computed;
 
 App.CapschedSchedulerController = Ember.Controller.extend({
   needs: ['capsched'],
+  scheduler: cmp.alias('controllers.capsched.content'),
   schedulerProps: ['maximum_am_resource_percent', 'maximum_applications', 'node_locality_delay', 'resource_calculator'],
 
   actions: {
@@ -34,16 +35,29 @@ App.CapschedSchedulerController = Ember.Controller.extend({
           sched.set(prop, attributes[prop][0]);
         }
       });
+    },
+    showConfirmDialog: function() {
+      this.set('isConfirmDialogOpen', true);
+    },
+    showSaveConfigDialog: function(mode) {
+      if (mode) {
+        this.set('saveMode', mode);
+      } else {
+        this.set('saveMode', '');
+      }
+      this.set('isSaveConfigDialogOpen', true);
     }
   },
 
   isOperator: cmp.alias('controllers.capsched.isOperator'),
 
-  /**
-   * Scheduler record
-   * @type {App.Scheduler}
-   */
-  scheduler: cmp.alias('controllers.capsched.content'),
+  saveMode: '',
+
+  isConfirmDialogOpen: false,
+  isSaveConfigDialogOpen: false,
+
+  configNote: cmp.alias('store.configNote'),
+
   isSchedulerDirty: false,
 
   schedulerBecomeDirty: function() {

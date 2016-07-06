@@ -27,6 +27,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
   isNotOperator: Ember.computed.not('isOperator'),
   scheduler: Ember.computed.alias('controllers.capsched.content'),
   allQueues: Ember.computed.alias('controllers.capsched.queues'),
+  isNodeLabelsEnabledByRM: Ember.computed.alias('store.isNodeLabelsEnabledByRM'),
 
   isRangerEnabledForYarn: function() {
     var isRanger = this.get('controllers.capsched.isRangerEnabledForYarn');
@@ -315,7 +316,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     },
 
     /**
-     * Array of leaf queues.
+     * Array of children queues.
      * @return {Array}
      */
     childrenQueues: function () {
@@ -385,5 +386,55 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    propertyBecomeDirty: function (controller, property) {
      var queueProp = property.split('.').objectAt(1);
      this.set('queueDirtyFields.' + queueProp, this.get('content').changedAttributes().hasOwnProperty(queueProp));
-   }
+   },
+
+   allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
+   queueNodeLabels: Ember.computed.alias('content.sortedLabels'),
+   hasQueueLabels: Ember.computed.gt('content.sortedLabels.length', 0),
+   nonAccessibleLabels: Ember.computed.alias('content.nonAccessibleLabels'),
+   allLabelsForQueue: Ember.computed.union('queueNodeLabels', 'nonAccessibleLabels'),
+   hasAnyNodeLabelsForQueue: Ember.computed.gt('allLabelsForQueue.length', 0),
+
+   accessibleLabelNames: function() {
+     var labels = this.get('queueNodeLabels'),
+     len = this.get('queueNodeLabels.length'),
+     labelNames = ['None'];
+     if (len > 0) {
+       labelNames = labels.map(function(label){
+         return label.get('name');
+       });
+     }
+     return labelNames.join(", ");
+   }.property('content', 'queueNodeLabels.[]'),
+
+   childrenQueueLabels: function() {
+     var childrenQs = this.get('childrenQueues'),
+     allNodeLabels = this.get('allNodeLabels'),
+     chidrenQLabels = [],
+     ctrl = this;
+     allNodeLabels.forEach(function(label) {
+       var labelName = label.name,
+       labelGroup = {
+         labelName: labelName,
+         childrenQueueLabels: []
+       };
+       childrenQs.forEach(function(queue) {
+         var qLabel = ctrl.store.getById('label', [queue.get('path'), labelName].join('.')),
+         parentQ = ctrl.store.getById('queue', queue.get('parentPath').toLowerCase());
+         var cql = {
+           label: qLabel,
+           queue: queue,
+           parentQueue: parentQ
+         };
+         labelGroup.childrenQueueLabels.pushObject(cql);
+       });
+       if (labelGroup.childrenQueueLabels.length > 0) {
+         chidrenQLabels.pushObject(labelGroup);
+       }
+     });
+     return chidrenQLabels;
+   }.property('childrenQueues.length', 'childrenQueues.@each.labels.[]', 'content.labels.length'),
+
+   hasChildrenQueueLabels: Ember.computed.gt('childrenQueueLabels.length', 0)
+
 });
