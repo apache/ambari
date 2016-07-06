@@ -139,6 +139,7 @@
                             <exclude>classes/log4j.xml</exclude>
                             <exclude>classes/logsearch.properties</exclude>
                             <exclude>classes/user_pass.json</exclude>
+                            <exclude>classes/HadoopServiceConfig.json</exclude>
                             <exclude>solr_configsets/**</exclude>
                           </excludes>
                         </source>
@@ -391,7 +392,7 @@
                         <group>root</group>
                       </mapper>
                       <excludes>
-                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,solr_configsets/**
+                        classes/log4j.xml,classes/logsearch.properties,classes/user_pass.json,classes/HadoopServiceConfig.json,solr_configsets/**
                       </excludes>
                     </data>
                     <data>

@@ -70,6 +70,7 @@ zookeeper_hosts_list.sort()
 # get comma separated list of zookeeper hosts from clusterHostInfo
 zookeeper_hosts = ",".join(zookeeper_hosts_list)
 cluster_name = str(config['clusterName'])
+availableServices = config['availableServices']
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
