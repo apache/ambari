@@ -367,6 +367,8 @@ public class AmbariCustomCommandExecutionHelper {
         execCmd.setForceRefreshConfigTagsBeforeExecution(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)));
       }
 
+      execCmd.setAvailableServices(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()).keySet());
+
       Map<String, String> hostLevelParams = new TreeMap<String, String>();
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);

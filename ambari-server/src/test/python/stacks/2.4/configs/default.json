@@ -32,6 +32,10 @@
     },
     "taskId": 152,
     "public_hostname": "c6401.ambari.apache.org",
+    "availableServices": [
+      "ACCUMULO",
+      "ATLAS"
+    ],
     "configurations": {
         "slider-client": {
             "slider.yarn.queue": "default"
