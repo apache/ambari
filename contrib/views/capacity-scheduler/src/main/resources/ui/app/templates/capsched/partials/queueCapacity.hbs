@@ -45,7 +45,7 @@
               </div>
             </div>
             {{#each childQ in childrenQueues}}
-              {{render "capsched/partials/editQueueCapacity" childQ}}
+              {{edit-queue-capacity queue=childQ warnInvalidTotalCapacity=warnInvalidCapacity}}
             {{/each}}
             <div class="row">
               <div class="col-md-2 col-sm-2">

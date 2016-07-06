@@ -79,32 +79,17 @@
   </div>
   {{#if isOperator}}
     <div class="btn btn-group-sm col-sm-offset-2">
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needSave::disabled"}} name="saveOnly" {{action "showSaveConfigDialog" target="view"}}>Save Only</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRefresh::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh" target="view"}}>Save And Refresh Queues</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart" target="view"}}>Save And Restart RM</button>
-      <button type="button" {{bind-attr class=":btn :btn-danger isAnyQueueDirty::disabled"}} name="cancelQueuesconfBtn" {{action "cancelQueuesChanges"}}>Cancel Changes</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needSave::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRefresh::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-danger isAnyQueueDirty::disabled"}} name="cancelQueuesconfBtn" {{action "showConfirmDialog"}}>Discard Changes</button>
     </div>
   {{/if}}
 </div>
 
-{{!-- CONFIG NOTE MODAL --}}
-<div class="modal fade" id="configNoteModalDialog" tabindex="-1" role="dialog" aria-labelledby="noteConfigModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="noteConfigModalLabel">Notes</h4>
-      </div>
-      <div class="modal-body">
-        {{textarea class="form-control" rows="3" style="max-width: 100%;" placeholder="What did you change?" value=configNote}}
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button {{action 'saveQueuesConfig' view.saveMode}} type="button" class="btn btn-success" data-dismiss="modal">Save Changes</button>
-      </div>
-    </div>
-  </div>
-</div>
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}
+
+{{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="discardQueuesChanges"}}
 
 {{!-- DELETE QUEUE CONFIRM MODAL --}}
 <div class="modal fade" id="deleteQueueModalDialog" tabindex="-1" role="dialog" aria-labelledby="deleteQModalLabel" aria-hidden="true">
@@ -112,7 +97,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title" id="deleteQModalLabel">Confirm?</h4>
+        <h4 class="modal-title" id="deleteQModalLabel">Confirm</h4>
       </div>
       <div class="modal-body">
         <span>Are you sure you want to delete the queue?</span>
@@ -124,16 +109,3 @@
     </div>
   </div>
 </div>
-
-{{!-- ALERT --}}
-{{#if alertMessage}}
-  <div class="alert alert-danger">
-    <button {{action 'clearAlert'}} type="button" class="close" aria-hidden="true">&times;</button>
-    <strong> {{alertMessage.status}} </strong> {{alertMessage.simpleMessage}}
-    <div>
-      <small>{{alertMessage.message}}</small>
-    </div>
-    <br>
-    {{#link-to 'capsched.trace' class="alert-link"}}Trace{{/link-to}}
-  </div>
-{{/if}}

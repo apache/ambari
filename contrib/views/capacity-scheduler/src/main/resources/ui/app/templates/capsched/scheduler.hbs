@@ -118,7 +118,7 @@
             }}
             {{#if schedulerDirtyFilelds.resource_calculator}}
               <div class="btn-group btn-group-xs">
-                  <a {{action 'rollbackProp' 'resource_calculator' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                <a {{action 'rollbackProp' 'resource_calculator' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
               </div>
             {{/if}}
           </div>
@@ -129,9 +129,14 @@
 </div>
 {{#if isOperator}}
   <div class="row">
-    <div class="btn btn-group-md col-md-offset-5">
-      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveAdvanced">Save</button>
-      <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'rollbackSchedulerProps'}}>Cancel</button>
+    <div class="btn btn-group-md col-md-offset-3">
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveOnly" {{action 'showSaveConfigDialog'}}>Save Only</button>
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveRestart" {{action 'showSaveConfigDialog' 'restart'}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'showConfirmDialog'}}>Discard Changes</button>
     </div>
   </div>
 {{/if}}
+
+{{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="rollbackSchedulerProps"}}
+
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}

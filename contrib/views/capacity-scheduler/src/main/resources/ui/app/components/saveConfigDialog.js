@@ -18,38 +18,28 @@
 
 var App = require('app');
 
-App.CapschedController = Ember.Controller.extend({
-  actions: {
-    loadTagged: function (tag) {
-      this.transitionToRoute('capsched.scheduler').then(function() {
-         this.store.fetchTagged(App.Queue, tag);
-       }.bind(this));
-    },
-    clearAlert: function () {
-      this.set('alertMessage',null);
-    },
-  },
+App.SaveConfigDialogComponent = Ember.Component.extend({
+ layoutName: 'components/saveConfigDialog',
+ isDialogOpen: false,
+ configNote: '',
+ param: '',
 
-  /**
-   * User admin status.
-   * @type {Boolean}
-   */
-  isOperator: false,
+ actions: {
+   saveConfigs: function() {
+     this.set('isDialogOpen', false);
+     var mode = this.get('param');
+     this.sendAction('action', mode);
+   },
+   closeDialog: function() {
+     this.set('isDialogOpen', false);
+   }
+ },
 
-  /**
-   * Inverted isOperator value.
-   * @type {Boolean}
-   */
-  isNotOperator: Ember.computed.not('isOperator'),
-
-  alertMessage: null,
-
-  tags: function () {
-    return this.store.find('tag');
-  }.property('store.current_tag'),
-
-  sortedTags: Ember.computed.sort('tags', function(a, b){
-    return (+a.id > +b.id)? (+a.id < +b.id)? 0 : -1 : 1;
-  })
-
+ watchDialog: function() {
+   if (this.get('isDialogOpen')) {
+     this.$('#configNoteModalDialog').modal('show');
+   } else {
+     this.$('#configNoteModalDialog').modal('hide');
+   }
+ }.observes('isDialogOpen')
 });

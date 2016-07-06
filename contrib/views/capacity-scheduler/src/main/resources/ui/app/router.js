@@ -23,15 +23,17 @@ App.Router.map(function() {
     this.resource('queue', { path: '/:queue_id' });
     this.resource('trace', { path: '/log' });
   });
+  this.route('refuse');
+
   this.resource('capsched', {path: '/capacity-scheduler'}, function() {
     this.route('scheduler', {path: '/scheduler'});
     this.route('advanced', {path: '/advanced'});
     this.route('trace', {path: '/log'});
+    this.route('refuse', {path: '/refuse'});
     this.route('queuesconf', {path: '/queues'}, function() {
       this.route('editqueue', {path: '/:queue_id'});
     });
   });
-  this.route('refuse');
 });
 
 var RANGER_SITE = 'ranger-yarn-plugin-properties';
@@ -203,6 +205,36 @@ App.CapschedRoute = Ember.Route.extend({
       if (attributes.hasOwnProperty(prop)) {
         item.set(prop, attributes[prop][0]);
       }
+    },
+    saveCapSchedConfigs: function(saveMode) {
+      var store = this.get('store'),
+        that = this,
+        capschedCtrl = this.controllerFor("capsched");
+
+      var collectedLabels = capschedCtrl.get('queues').reduce(function (prev,q) {
+        return prev.pushObjects(q.get('labels.content'));
+      },[]);
+
+      var scheduler = capschedCtrl.get('content').save(),
+          queues = capschedCtrl.get('queues').save(),
+          labels = DS.ManyArray.create({content: collectedLabels}).save(),
+          opt = '';
+
+      if (saveMode == 'restart') {
+        opt = 'saveAndRestart';
+      } else if (saveMode == 'refresh') {
+        opt = 'saveAndRefresh';
+      }
+
+      Em.RSVP.Promise.all([labels, queues, scheduler]).then(
+        Em.run.bind(that,'saveConfigsSuccess'),
+        Em.run.bind(that,'saveConfigsError', 'save')
+      ).then(function () {
+        if (opt) {
+          return store.relaunchCapSched(opt);
+        }
+      })
+      .catch(Em.run.bind(this,'saveConfigsError', opt));
     }
   },
   beforeModel: function(transition) {
@@ -252,6 +284,23 @@ App.CapschedRoute = Ember.Route.extend({
         reject(e);
       });
     }, 'App: CapschedRoute#model');
+  },
+  loadingError: function (transition, error) {
+    var refuseController = this.container.lookup('controller:capsched.refuse') || this.generateController('capsched.refuse'),
+        message = error.responseJSON || {'message': 'Something went wrong.'};
+
+    transition.abort();
+    refuseController.set('model', message);
+    this.transitionTo('refuse');
+  },
+  saveConfigsSuccess: function() {
+    this.set('store.deletedQueues', []);
+  },
+  saveConfigsError: function(operation, err) {
+    var response = error.responseJSON || {};
+    response.simpleMessage = operation.capitalize() + ' failed!';
+    this.controllerFor("capsched").set('alertMessage', response);
+    throw Error(err);
   }
 });
 
@@ -272,5 +321,11 @@ App.CapschedQueuesconfEditqueueRoute = Ember.Route.extend({
   setupController: function(controller, model) {
     controller.set('model', model);
     this.controllerFor('capsched.queuesconf').set('selectedQueue', model);
+  }
+});
+
+App.CapschedTraceRoute = Ember.Route.extend({
+  model: function() {
+    return this.controllerFor('capsched.queuesconf').get('alertMessage');
   }
 });

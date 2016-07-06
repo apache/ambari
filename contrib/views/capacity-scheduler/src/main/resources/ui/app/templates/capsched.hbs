@@ -21,7 +21,7 @@
     <span class="navbar-brand">Capacity Scheduler</span>
   </div>
 </nav>
-<div class="col-lg-12 capsched-container">
+<div class="capsched-container">
   <div class="col-lg-8">
     <ul class="nav nav-tabs">
       {{#link-to "capsched.scheduler" tagName="li"}}
@@ -38,7 +38,20 @@
       {{outlet}}
     </div>
   </div>
-  <div class="col-lg-4">
-    {{partial "versionsPanel"}}
-  </div>
 </div>
+<div class="col-lg-4 capsched-versions-wrapper">
+  {{partial "versionsPanel"}}
+</div>
+
+{{!-- ALERT --}}
+{{#if alertMessage}}
+  <div class="alert alert-danger">
+    <button {{action 'clearAlert'}} type="button" class="close" aria-hidden="false">&times;</button>
+    <strong> {{alertMessage.status}} </strong> {{alertMessage.simpleMessage}}
+    <div>
+      <small>{{alertMessage.message}}</small>
+    </div>
+    <br>
+    {{#link-to 'capsched.trace' class="alert-link"}}Trace{{/link-to}}
+  </div>
+{{/if}}

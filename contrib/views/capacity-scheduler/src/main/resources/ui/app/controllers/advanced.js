@@ -33,14 +33,33 @@ App.CapschedAdvancedController = Ember.Controller.extend({
           sched.set(prop, attributes[prop][0]);
         }
       });
+    },
+    showSaveConfigDialog: function(mode) {
+      if (mode) {
+        this.set('saveMode', mode);
+      } else {
+        this.set('saveMode', '');
+      }
+      this.set('isSaveConfigDialogOpen', true);
+    },
+    showConfirmDialog: function() {
+      this.set('isConfirmDialogOpen', true);
     }
   },
 
   isOperator: cmp.alias('controllers.capsched.isOperator'),
   scheduler: cmp.alias('controllers.capsched.content'),
   queues: cmp.alias('controllers.capsched.queues'),
+
   isQueueMappingsDirty: false,
   queueMappingProps: ['queue_mappings', 'queue_mappings_override_enable'],
+
+  saveMode: '',
+
+  isConfirmDialogOpen: false,
+  isSaveConfigDialogOpen: false,
+
+  configNote: cmp.alias('store.configNote'),
 
   queueMappingsDidChange: function() {
     var sched = this.get('scheduler'),

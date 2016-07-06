@@ -48,7 +48,6 @@ require('models');
 //views
 require('views/queues');
 require('views/editqueue');
-require('views/editQueueCapacity');
 require('views/queuesconf');
 
 // routes
