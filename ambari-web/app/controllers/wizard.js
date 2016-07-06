@@ -415,7 +415,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       data = {
         context: Em.I18n.t('requestInfo.installComponents'),
         HostRoles: {"state": "INSTALLED"},
-        urlParams: "HostRoles/desired_state=INSTALLED"
+        urlParams: "HostRoles/desired_state!=INSTALLED"
       };
     } else {
       data = {
