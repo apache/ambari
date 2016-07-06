@@ -40,11 +40,15 @@ import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCach
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
 public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implements IMetricsConsumer {
+  public static final String CLUSTER_REPORTER_APP_ID = "clusterReporterAppId";
+  public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "storm";
+
   private String collectorUri;
   private TimelineMetricsCache metricsCache;
   private String hostname;
   private int timeoutSeconds;
   private String topologyName;
+  private String applicationId;
 
   @Override
   protected String getCollectorUri() {
@@ -76,6 +80,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         String.valueOf(MAX_RECS_PER_NAME_DEFAULT)));
     int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(MAX_EVICTION_TIME_MILLIS)));
+    applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
     collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
     if (collectorUri.toLowerCase().startsWith("https://")) {
@@ -96,9 +101,13 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       List<DataPoint> populatedDataPoints = populateDataPoints(dataPoint);
 
       for (DataPoint populatedDataPoint : populatedDataPoints) {
+        String metricName = createMetricName(taskInfo.srcComponentId, taskInfo.srcWorkerHost,
+            taskInfo.srcWorkerPort, taskInfo.srcTaskId, populatedDataPoint.name);
+
+        LOG.debug("populated datapoint: " + metricName + " = " + populatedDataPoint.value);
+
         TimelineMetric timelineMetric = createTimelineMetric(taskInfo.timestamp * 1000,
-            taskInfo.srcComponentId, taskInfo.srcTaskId, taskInfo.srcWorkerHost, populatedDataPoint.name,
-            Double.valueOf(populatedDataPoint.value.toString()));
+            taskInfo.srcWorkerHost, metricName, Double.valueOf(populatedDataPoint.value.toString()));
 
         // Put intermediate values into the cache until it is time to send
         metricsCache.putTimelineMetric(timelineMetric);
@@ -126,6 +135,11 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   @Override
   public void cleanup() {
     LOG.info("Stopping Storm Metrics Sink");
+  }
+
+  // purpose just for testing
+  void setTopologyName(String topologyName) {
+    this.topologyName = topologyName;
   }
 
   private String removeNonce(String topologyId) {
@@ -176,12 +190,12 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     }
   }
 
-  private TimelineMetric createTimelineMetric(long currentTimeMillis, String componentId, int taskId, String hostName,
+  private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
       String attributeName, Double attributeValue) {
     TimelineMetric timelineMetric = new TimelineMetric();
-    timelineMetric.setMetricName(createMetricName(componentId, taskId, attributeName));
+    timelineMetric.setMetricName(attributeName);
     timelineMetric.setHostName(hostName);
-    timelineMetric.setAppId(topologyName);
+    timelineMetric.setAppId(applicationId);
     timelineMetric.setStartTime(currentTimeMillis);
     timelineMetric.setType(ClassUtils.getShortCanonicalName(
         attributeValue, "Number"));
@@ -189,8 +203,12 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     return timelineMetric;
   }
 
-  private String createMetricName(String componentId, int taskId, String attributeName) {
-    String metricName = componentId + "." + taskId + "." + attributeName;
+  private String createMetricName(String componentId, String workerHost, int workerPort, int taskId,
+      String attributeName) {
+    // <topology name>.<component name>.<worker host>.<worker port>.<task id>.<metric name>
+    String metricName = topologyName + "." + componentId + "." + workerHost + "." + workerPort +
+        "." + taskId + "." + attributeName;
+
     // since '._' is treat as special character (separator) so it should be replaced
     return metricName.replace('_', '-');
   }

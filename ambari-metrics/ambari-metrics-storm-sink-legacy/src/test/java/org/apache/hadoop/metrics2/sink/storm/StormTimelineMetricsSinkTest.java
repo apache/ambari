@@ -42,6 +42,7 @@ public class StormTimelineMetricsSinkTest {
   @Test
   public void testNonNumericMetricMetricExclusion() throws InterruptedException, IOException {
     StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
+    stormTimelineMetricsSink.setTopologyName("topology");
     TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
     stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
     replay(timelineMetricsCache);
@@ -54,8 +55,10 @@ public class StormTimelineMetricsSinkTest {
   @Test
   public void testNumericMetricMetricSubmission() throws InterruptedException, IOException {
     StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
+    stormTimelineMetricsSink.setTopologyName("topology");
     TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
-    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1")).andReturn(new TimelineMetric()).once();
+    expect(timelineMetricsCache.getTimelineMetric("topology.testComponent.localhost.1234.42.key1"))
+        .andReturn(new TimelineMetric()).once();
     timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
     expectLastCall().once();
     stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
@@ -70,10 +73,11 @@ public class StormTimelineMetricsSinkTest {
   @Ignore // TODO: Fix for failover
   public void testMapMetricMetricSubmission() throws InterruptedException, IOException {
     StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
+    stormTimelineMetricsSink.setTopologyName("topology");
     TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
-    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1.field1"))
+    expect(timelineMetricsCache.getTimelineMetric("topology.testComponent.localhost.1234.42.key1.field1"))
         .andReturn(new TimelineMetric()).once();
-    expect(timelineMetricsCache.getTimelineMetric("testComponent.42.key1.field2"))
+    expect(timelineMetricsCache.getTimelineMetric("topology.testComponent.localhost.1234.42.key1.field2"))
         .andReturn(new TimelineMetric()).once();
     timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
     expectLastCall().once();
