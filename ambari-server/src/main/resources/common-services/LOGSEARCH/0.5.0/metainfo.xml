@@ -70,6 +70,8 @@
             <config-type>logsearch-log4j</config-type>
             <config-type>logsearch-admin-json</config-type>
             <config-type>logsearch-solr-env</config-type>
+            <config-type>logsearch-service_logs-solrconfig.xml</config-type>
+            <config-type>logsearch-audit_logs-solrconfig.xml</config-type>
           </configuration-dependencies>
         </component>
 
@@ -112,6 +114,8 @@
             <config-type>logsearch-solr-env</config-type>
             <config-type>logsearch-solr-xml</config-type>
             <config-type>logsearch-solr-log4j</config-type>
+            <config-type>logsearch-service_logs-solrconfig.xml</config-type>
+            <config-type>logsearch-audit_logs-solrconfig.xml</config-type>
           </configuration-dependencies>
         </component>
 

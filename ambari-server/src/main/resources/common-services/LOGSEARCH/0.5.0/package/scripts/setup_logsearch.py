@@ -17,7 +17,6 @@ limitations under the License.
 
 """
 
-import random
 from resource_management.libraries.functions import solr_cloud_util
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
@@ -99,29 +98,31 @@ def setup_logsearch():
          owner=params.logsearch_user
          )
 
-  random_num = random.random()
+  upload_conf_set(format('{logsearch_solr_collection_service_logs}'),
+                  solrconfig_content=InlineTemplate(params.logsearch_service_logs_solrconfig_content)
+                  )
 
-  upload_conf_set(format('{logsearch_solr_collection_service_logs}'), random_num)
+  upload_conf_set('history')
 
-  upload_conf_set('history', random_num)
-
-  upload_conf_set(format('{logsearch_solr_collection_audit_logs}'), random_num)
+  upload_conf_set(format('{logsearch_solr_collection_audit_logs}'),
+                  solrconfig_content=InlineTemplate(params.logsearch_audit_logs_solrconfig_content)
+                  )
 
   Execute(("chmod", "-R", "ugo+r", format("{logsearch_server_conf}/solr_configsets")),
           sudo=True
           )
 
 
-def upload_conf_set(config_set, random_num):
+def upload_conf_set(config_set, solrconfig_content = None):
   import params
-  tmp_config_set_folder = format('{tmp_dir}/solr_config_{config_set}_{random_num}')
 
   solr_cloud_util.upload_configuration_to_zk(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.logsearch_solr_znode,
     config_set_dir=format("{logsearch_server_conf}/solr_configsets/{config_set}/conf"),
     config_set=config_set,
-    tmp_config_set_dir=tmp_config_set_folder,
+    tmp_dir=params.tmp_dir,
     java64_home=params.java64_home,
     user=params.logsearch_solr_user,
+    solrconfig_content= solrconfig_content,
     retry=30, interval=5)

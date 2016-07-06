@@ -290,11 +290,20 @@ class RMFTestCase(TestCase):
       for key in set(resource.arguments.keys()) | set(kwargs.keys()):
         resource_value = resource.arguments.get(key, '')
         actual_value = kwargs.get(key, '')
-        self.assertRegexpMatches(resource_value, actual_value, msg="Key " + key + " doesn't match")
+        if self.isstring(resource_value):
+          self.assertRegexpMatches(resource_value, actual_value,
+                                   msg="Key '%s': '%s' does not match with '%s'" % (key, resource_value, actual_value))
+        else: # check only the type of a custom object
+          self.assertEquals(resource_value.__class__.__name__, actual_value.__class__.__name__)
 
   def assertRegexpMatches(self, value, pattern, msg=None):
     if not re.match(pattern, value):
       raise AssertionError, msg or 'pattern %s does not match %s' % (pattern, value)
+
+  def isstring(self, s):
+    if (sys.version_info[0] == 3):
+      return isinstance(s, str)
+    return isinstance(s, basestring)
 
   def assertNoMoreResources(self):
     self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
