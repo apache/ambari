@@ -1512,7 +1512,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')
 
   def test_validateHDFSConfigurations(self):
-    properties = {}
+    properties = {'dfs.datanode.data.dir': '/hadoop/hdfs/data'}
     recommendedDefaults = {}
     configurations = {
       "core-site": {"properties": {}},

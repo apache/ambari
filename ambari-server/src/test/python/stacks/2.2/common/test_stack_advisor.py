@@ -358,6 +358,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Unsecured cluster, secure ports
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
     }
@@ -377,7 +378,8 @@ class TestHDP22StackAdvisor(TestCase):
                           {"service_name" : "HDFS",
                            "service_version" : "2.6.0.2.2",
                            }
-                     }]
+                     }],
+                "configurations": {}
                 }
     expected = []  # No warnings
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
@@ -386,6 +388,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Unsecured cluster, unsecure ports
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.datanode.address': '0.0.0.0:55555',
                     'dfs.datanode.http.address': '0.0.0.0:55555',
                     }
@@ -407,8 +410,9 @@ class TestHDP22StackAdvisor(TestCase):
                 [{"StackServices":
                       {"service_name" : "HDFS",
                        "service_version" : "2.6.0.2.2",
-                       }
-                 }]
+                       },
+                 }],
+                "configurations": {}
             }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
@@ -416,6 +420,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'WRONG_VALUE',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -442,8 +447,9 @@ class TestHDP22StackAdvisor(TestCase):
             [{"StackServices":
                   {"service_name" : "HDFS",
                    "service_version" : "2.6.0.2.2",
-                   }
-             }]
+                   },
+             }],
+             "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
@@ -451,6 +457,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     }
@@ -473,7 +480,8 @@ class TestHDP22StackAdvisor(TestCase):
                   {"service_name" : "HDFS",
                    "service_version" : "2.6.0.2.2",
                    }
-             }]
+             }],
+            "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
@@ -481,6 +489,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -504,7 +513,8 @@ class TestHDP22StackAdvisor(TestCase):
                   {"service_name" : "HDFS",
                    "service_version" : "2.6.0.2.2",
                    }
-             }]
+             }],
+             "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
@@ -512,6 +522,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -535,7 +546,8 @@ class TestHDP22StackAdvisor(TestCase):
                   {"service_name" : "HDFS",
                    "service_version" : "2.6.0.2.2",
                    }
-             }]
+             }],
+             "configurations": {}
         }
     validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, None)
     self.assertEquals(validation_problems, expected)
@@ -543,6 +555,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                  }
@@ -595,6 +608,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https defined and secure
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -645,6 +659,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -670,6 +685,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:50475',
@@ -712,6 +728,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -736,6 +753,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
                     }
@@ -759,6 +777,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -789,6 +808,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -819,6 +839,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     properties = {  # hdfs-site
                     'dfs.datanode.du.reserved': '1024',
+                    'dfs.datanode.data.dir': '/hadoop/hdfs/data',
                     'dfs.encrypt.data.transfer': 'true',  # Wire encryption
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',

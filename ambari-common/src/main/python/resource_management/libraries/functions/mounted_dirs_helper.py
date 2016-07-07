@@ -19,9 +19,10 @@ limitations under the License.
 Ambari Agent
 
 """
-__all__ = ["handle_mounted_dirs", ]
+__all__ = ["handle_mounted_dirs", "get_mounts_with_multiple_data_dirs"]
 import os
 import re
+from collections import defaultdict
 
 from resource_management.libraries.functions.file_system import get_mount_point_for_dir, get_and_cache_mount_points
 from resource_management.core.logger import Logger
@@ -198,3 +199,19 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
 
   return dir_to_mount
 
+def get_mounts_with_multiple_data_dirs(mount_points, dirs):
+  """
+  Returns a list with (mount, dir_list) for mounts with multiple dirs.
+  Currently is used in the stack_advisor.
+  """
+  mount_dirs = defaultdict(list)
+  for dir in [raw_dir.strip() for raw_dir in dirs.split(",")]:
+    mount_point = get_mount_point_for_dir(dir, mount_points)
+    mount_dirs[mount_point].append(dir)
+
+  partition_mounts_list = []
+  for mount_point, dir_list in mount_dirs.iteritems():
+    if len(dir_list) > 1:
+      partition_mounts_list.append((mount_point, dir_list))
+
+  return partition_mounts_list
