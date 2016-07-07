@@ -294,6 +294,12 @@ class TestHDP23StackAdvisor(TestCase):
           },
           {
             "StackServices": {
+              "service_name": "RANGER",
+              "service_version": "0.5.0.2.3"
+            }
+          },
+          {
+            "StackServices": {
               "service_name": "AMBARI_METRICS"
             },
             "components": [{
@@ -318,6 +324,12 @@ class TestHDP23StackAdvisor(TestCase):
         "core-site": {
           "properties": { },
         },
+        "cluster-env": {
+          "properties": {
+            "security_enabled" : "true"
+          },
+          "property_attributes": {}
+        },
         "kafka-broker": {
           "properties": {
             "authorizer.class.name" : "kafka.security.auth.SimpleAclAuthorizer"
@@ -338,10 +350,12 @@ class TestHDP23StackAdvisor(TestCase):
     }
 
     # Test authorizer.class.name with Ranger Kafka plugin disabled in non-kerberos environment
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['kafka-broker']['property_attributes']['authorizer.class.name'], {'delete': 'true'}, "Test authorizer.class.name with Ranger Kafka plugin is disabled in non-kerberos environment")
 
     # Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
     services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
@@ -350,6 +364,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
 
     # Test authorizer.class.name with Ranger Kafka plugin enabled in non-kerberos environment
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
     del services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol']
@@ -358,7 +373,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
 
-    # Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
     services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
@@ -2110,35 +2125,3 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.getComponentHostNames = return_c6401_hostname
     self.stackAdvisor.recommendLogsearchConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
-
-  def test_validateRangerConfigurationsEnv(self):
-    properties = {
-      "ranger-kafka-plugin-enabled": "Yes",
-      }
-    recommendedDefaults = {
-      "ranger-kafka-plugin-enabled": "No",
-      }
-
-    configurations = {
-      "cluster-env": {
-        "properties": {
-          "security_enabled": "false",
-          }
-      }
-    }
-    services = {
-      "services":
-        [
-          {
-            "StackServices": {
-              "service_name" : "KAFKA"
-            }
-          }
-        ]
-      }
-
-    # Test with ranger plugin enabled, validation fails
-    res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'}]
-
-    res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
-    self.assertEquals(res, res_expected)

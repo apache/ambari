@@ -194,7 +194,9 @@ describe('App.ConfigRecommendationParser', function() {
         'result': {
           'recommendedValue': 'recommendedValue',
           'value': 'recommendedValue',
-          'initialValue': 'recommendedValue'
+          'initialValue': 'recommendedValue',
+          'errorMessage': '',
+          'warnMessage': ''
         }
       },
       {
@@ -204,7 +206,9 @@ describe('App.ConfigRecommendationParser', function() {
         'result': {
           'recommendedValue': 'recommendedValue',
           'value': 'recommendedValue',
-          'initialValue': null
+          'initialValue': null,
+          'errorMessage': '',
+          'warnMessage': ''
         }
       },
       {

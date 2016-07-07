@@ -708,7 +708,9 @@ describe('App.config', function () {
       dependentConfigPattern: null,
       options: null,
       radioName: null,
-      widgetType: null
+      widgetType: null,
+      errorMessage: '',
+      warnMessage: ''
     };
     it('create default config object', function () {
       expect(App.config.createDefaultConfig('pName', 'pFileName', true)).to.eql(res);
