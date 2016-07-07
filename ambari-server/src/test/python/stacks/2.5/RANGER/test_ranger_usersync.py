@@ -148,13 +148,13 @@ class TestRangerUsersync(RMFTestCase):
       mode = 04555
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-usersync/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'usersync.ssl.key.password', '-value', 'UnIx529p', '-provider', 'jceks://file/usr/hdp/current/ranger-usersync/conf/ugsync.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-usersync/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'usersync.ssl.key.password', '-value', 'UnIx529p', '-provider', 'localjceks://file/usr/hdp/current/ranger-usersync/conf/ugsync.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-usersync/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'usersync.ssl.truststore.password', '-value', 'changeit', '-provider', 'jceks://file/usr/hdp/current/ranger-usersync/conf/ugsync.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-usersync/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'usersync.ssl.truststore.password', '-value', 'changeit', '-provider', 'localjceks://file/usr/hdp/current/ranger-usersync/conf/ugsync.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True

@@ -317,7 +317,7 @@ class TestRangerAdmin(RMFTestCase):
       mode = 0644
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'localjceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
@@ -460,7 +460,7 @@ class TestRangerAdmin(RMFTestCase):
       mode = 0644
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'jceks://file/etc/ranger/admin/rangeradmin.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-admin/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'rangeradmin', '-value', 'rangeradmin01', '-provider', 'localjceks://file/etc/ranger/admin/rangeradmin.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo = True
