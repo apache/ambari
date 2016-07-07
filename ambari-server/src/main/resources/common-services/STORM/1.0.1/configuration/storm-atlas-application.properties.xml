@@ -26,6 +26,6 @@
     <name>atlas.hook.storm.numRetries</name>
     <value>3</value>
     <description/>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
