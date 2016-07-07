@@ -66,6 +66,7 @@ stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature
 stack_supports_usersync_passwd = stack_version_formatted and check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, stack_version_formatted)
 stack_supports_logsearch_client = stack_version_formatted and check_stack_feature(StackFeature.RANGER_INSTALL_LOGSEARCH_CLIENT, stack_version_formatted)
 stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_PID_SUPPORT, stack_version_formatted)
+stack_supports_localjceks = stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOCALJCEKS_SUPPORT, stack_version_formatted)
 stack_supports_ranger_admin_password_change = stack_version_formatted and check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, stack_version_formatted)
 
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)

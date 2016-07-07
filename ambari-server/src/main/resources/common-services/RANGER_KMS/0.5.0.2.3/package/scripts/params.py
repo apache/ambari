@@ -42,6 +42,7 @@ stack_supports_config_versioning =  stack_version_formatted and check_stack_feat
 stack_support_kms_hsm = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, stack_version_formatted)
 stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
 stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted)
+stack_supports_localjceks = stack_version_formatted and check_stack_feature(StackFeature.RANGER_LOCALJCEKS_SUPPORT, stack_version_formatted)
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
