@@ -53,6 +53,9 @@ class HostInfo():
     """
     cpu_times = psutil.cpu_times_percent()
     cpu_count = self.__host_static_info.get('cpu_num', 1)
+    # Since only boot time which is a part of static info is not sent with
+    # other payload sending it with cpu stats.
+    boot_time = self.__host_static_info.get('boot_time')
 
     result = {
       'cpu_num': int(cpu_count),
@@ -63,7 +66,8 @@ class HostInfo():
       'cpu_wio': cpu_times.iowait if hasattr(cpu_times, 'iowait') else 0,
       'cpu_intr': cpu_times.irq if hasattr(cpu_times, 'irq') else 0,
       'cpu_sintr': cpu_times.softirq if hasattr(cpu_times, 'softirq') else 0,
-      'cpu_steal': cpu_times.steal if hasattr(cpu_times, 'steal') else 0
+      'cpu_steal': cpu_times.steal if hasattr(cpu_times, 'steal') else 0,
+      'boot_time': long(boot_time) if boot_time else 0
     }
     if platform.system() != "Windows":
       load_avg = os.getloadavg()
