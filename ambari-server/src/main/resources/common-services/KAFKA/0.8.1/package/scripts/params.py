@@ -155,6 +155,8 @@ if security_enabled and stack_version_formatted != "" and 'kafka_principal_name'
     kafka_kerberos_params = "-Djava.security.auth.login.config="+ conf_dir +"/kafka_jaas.conf"
 else:
     kafka_kerberos_params = ''
+    kafka_jaas_principal = None
+    kafka_keytab_path = None
 
 # ***********************  RANGER PLUGIN CHANGES ***********************
 # ranger host
