@@ -1399,29 +1399,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       has_ranger_tagsync = len(ranger_tagsync_host) > 0
 
     if 'ATLAS' in servicesList and has_ranger_tagsync:
-      atlas_hosts = self.getHostNamesWithComponent("ATLAS", "ATLAS_SERVER", services)
-      atlas_host = 'localhost' if len(atlas_hosts) == 0 else atlas_hosts[0]
-      protocol = 'http'
-      atlas_port = '21000'
-
-      if 'application-properties' in services['configurations'] and 'atlas.enableTLS' in services['configurations']['application-properties']['properties'] \
-        and services['configurations']['application-properties']['properties']['atlas.enableTLS'].lower() == 'true':
-        protocol = 'https'
-        if 'application-properties' in services['configurations'] and 'atlas.server.https.port' in services['configurations']['application-properties']['properties']:
-          atlas_port = services['configurations']['application-properties']['properties']['atlas.server.https.port']
-      else:
-        protocol = 'http'
-        if 'application-properties' in services['configurations'] and 'atlas.server.http.port' in services['configurations']['application-properties']['properties']:
-          atlas_port = services['configurations']['application-properties']['properties']['atlas.server.http.port']
-
-      atlas_rest_endpoint = '{0}://{1}:{2}'.format(protocol, atlas_host, atlas_port)
-
       putTagsyncSiteProperty('ranger.tagsync.source.atlas', 'true')
-      putTagsyncSiteProperty('ranger.tagsync.source.atlasrest.endpoint', atlas_rest_endpoint)
 
     zookeeper_host_port = self.getZKHostPortString(services)
     if zookeeper_host_port and has_ranger_tagsync:
-      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_port)
+      zookeeper_host_list = zookeeper_host_port.split(',')
+      putTagsyncAppProperty('atlas.kafka.zookeeper.connect', zookeeper_host_list[0])
 
     if 'KAFKA' in servicesList and has_ranger_tagsync:
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
