@@ -148,13 +148,13 @@
     {{/unless}}
   </div>
   <div class="btn-area">
-    <button type="button" class="btn pull-left installer-back-btn" {{bindAttr disabled="isBackDisabled"}} {{action back}}>
+    <button type="button" class="btn pull-left installer-back-btn" {{bindAttr disabled="isBackButtonDisabled"}} {{action back}}>
       &larr; {{t common.back}}
       {{#if App.router.backBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
     </button>
-    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action submit target="controller"}}>
+    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}}>
       {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
       {{/if}}
