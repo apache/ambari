@@ -25,6 +25,7 @@ import socket
 from math import ceil, floor
 
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -1438,7 +1439,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [{"config-name": 'dfs.datanode.du.reserved', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'dfs.datanode.du.reserved')}]
+    clusterEnv = getSiteProperties(configurations, "cluster-env")
+    validationItems = [{"config-name": 'dfs.datanode.du.reserved', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'dfs.datanode.du.reserved')},
+                       {"config-name": 'dfs.datanode.data.dir', "item": self.validatorOneDataDirPerPartition(properties, 'dfs.datanode.data.dir', services, hosts, clusterEnv)}]
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
   def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1446,6 +1449,45 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+
+  def validatorOneDataDirPerPartition(self, properties, propertyName, services, hosts, clusterEnv):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    dirs = properties[propertyName]
+
+    if not (clusterEnv and "one_dir_per_partition" in clusterEnv and clusterEnv["one_dir_per_partition"].lower() == "true"):
+      return None
+
+    dataNodeHosts = self.getDataNodeHosts(services, hosts)
+
+    warnings = set()
+    for host in dataNodeHosts:
+      hostName = host["Hosts"]["host_name"]
+
+      mountPoints = []
+      for diskInfo in host["Hosts"]["disk_info"]:
+        mountPoints.append(diskInfo["mountpoint"])
+
+      if get_mounts_with_multiple_data_dirs(mountPoints, dirs):
+        # A detailed message can be too long on large clusters:
+        # warnings.append("Host: " + hostName + "; Mount: " + mountPoint + "; Data directories: " + ", ".join(dirList))
+        warnings.add(hostName)
+        break;
+
+    if len(warnings) > 0:
+      return self.getWarnItem("cluster-env/one_dir_per_partition is enabled but there are multiple data directories on the same mount. Affected hosts: {0}".format(", ".join(sorted(warnings))))
+
+    return None
+
+  """
+  Returns the list of Data Node hosts.
+  """
+  def getDataNodeHosts(self, services, hosts):
+    if len(hosts["items"]) > 0:
+      dataNodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+      if dataNodeHosts is not None:
+        return dataNodeHosts
+    return []
 
   def getMastersWithMultipleInstances(self):
     return ['ZOOKEEPER_SERVER', 'HBASE_MASTER']

@@ -1261,23 +1261,26 @@ class TestHDP206StackAdvisor(TestCase):
 
   def test_validateHDFSConfigurations(self):
     configurations = {}
-    services = ''
+    services = {'configurations': {}}
     hosts = ''
     #Default configuration
     recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
-    properties = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '1024',
+                  'dfs.datanode.data.dir': '/hadoop/hdfs/data'}
     res = self.stackAdvisor.validateHDFSConfigurations(properties, 
                     recommendedDefaults, configurations, services, hosts)
     self.assertFalse(res)
     #Value is less then expected
     recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
-    properties = {'dfs.datanode.du.reserved': '512'}
+    properties = {'dfs.datanode.du.reserved': '512',
+                  'dfs.datanode.data.dir': '/hadoop/hdfs/data'}
     res = self.stackAdvisor.validateHDFSConfigurations(properties, 
                     recommendedDefaults, configurations, services, hosts)
     self.assertTrue(res)
     #Value is begger then expected
     recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
-    properties = {'dfs.datanode.du.reserved': '2048'}
+    properties = {'dfs.datanode.du.reserved': '2048',
+                  'dfs.datanode.data.dir': '/hadoop/hdfs/data'}
     res = self.stackAdvisor.validateHDFSConfigurations(properties, 
                     recommendedDefaults, configurations, services, hosts)
     self.assertFalse(res)
@@ -1313,6 +1316,79 @@ class TestHDP206StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_validateOneDataDirPerPartition(self):
+    recommendedDefaults = {
+      'dfs.datanode.du.reserved': '1024'
+    }
+
+    properties = {
+                  'dfs.datanode.du.reserved': '1024',
+                  'dfs.datanode.data.dir': '/hadoop/hdfs/data,/hadoop/hdfs/data2',
+                 }
+    configurations = {
+      'hdfs-site': {
+          'properties': properties,
+      },
+      'cluster-env': {
+          'properties': {'one_dir_per_partition': 'true'}
+      },
+    }
+    services = {"services":
+                 [{"StackServices":
+                   {"service_name" : "HDFS",
+                     "service_version" : "2.6.0.2.2",
+                   },
+                   "components": [
+                     {
+                       "StackServiceComponents": {
+                         "component_name": "DATANODE",
+                         "hostnames": ["host1", "host2"]
+                       }
+                     }
+                   ]
+                 }],
+                "configurations": configurations,
+               }
+    host1 = {
+      "Hosts" : {
+        "host_name" : "host1",
+        "disk_info": [
+          {"mountpoint" : "/hadoop/hdfs/data"},
+          {"mountpoint" : "/hadoop/hdfs/data2"}
+        ]
+      }
+    }
+    host2 = {
+      "Hosts" : {
+        "host_name" : "host2",
+        "disk_info": [
+          {"mountpoint": "/"},
+          {"mountpoint" : "/hadoop"}
+        ]
+      }
+    }
+    hosts = {
+        "items" : [
+            host1,
+            host2
+        ]
+    }
+
+    # Multiple data directories on the same mount. A warning is expected.
+    expected = [{'config-name': 'dfs.datanode.data.dir',
+               'config-type': 'hdfs-site',
+               'level': 'WARN',
+               'message': "cluster-env/one_dir_per_partition is enabled but there are multiple data directories on the same mount. Affected hosts: host2",
+               'type': 'configuration'}]
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(validation_problems, expected)
+
+    # One data directory.
+    properties['dfs.datanode.data.dir'] = '/hadoop/hdfs/data'
+    expected = []
+    validation_problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(validation_problems, expected)
 
   def test_validateAmsHbaseSiteConfigurations(self):
     configurations = {
