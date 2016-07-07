@@ -72,7 +72,7 @@ public class ResultSetIterator extends HiveActor {
   }
 
   @Override
-  void handleMessage(HiveMessage hiveMessage) {
+  public void handleMessage(HiveMessage hiveMessage) {
     sendKeepAlive();
     Object message = hiveMessage.getMessage();
     if (message instanceof Next) {
