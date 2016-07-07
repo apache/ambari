@@ -85,9 +85,10 @@ define([
         AmbariMetricsDatasource.prototype.query = function (options) {
 
           var emptyData = function (metric) {
+            var legend = metric.alias ? metric.alias : metric.metric;
             return {
               data: {
-                target: metric,
+                target: legend,
                 datapoints: []
               }
             };
@@ -102,7 +103,7 @@ define([
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
-                return $q.when(emptyData(target.metric));
+                return $q.when(emptyData(target));
               }
               var series = [];
               var metricData = res.metrics[0].metrics;
@@ -130,7 +131,7 @@ define([
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
-                return $q.when(emptyData(target.metric));
+                return $q.when(emptyData(target));
               }
               var series = [];
               var timeSeries = {};

@@ -174,8 +174,13 @@ def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, stack_versio
                                 ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
 
   stack_root = Script.get_stack_root()
+  service_name = str(service_name).lower()
   cred_lib_path = format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/install/lib/*')
   cred_setup_prefix = (format('{stack_root}/{stack_version}/ranger-{service_name}-plugin/ranger_credential_helper.py'), '-l', cred_lib_path)
+
+  if service_name == 'nifi':
+    cred_lib_path = format('{stack_root}/{stack_version}/{service_name}/ext/ranger/install/lib/*')
+    cred_setup_prefix = (format('{stack_root}/{stack_version}/{service_name}/ext/ranger/scripts/ranger_credential_helper.py'), '-l', cred_lib_path)
 
   if audit_db_is_enabled:
     cred_setup = cred_setup_prefix + ('-f', credential_file, '-k', 'auditDBCred', '-v', PasswordString(xa_audit_db_password), '-c', '1')
