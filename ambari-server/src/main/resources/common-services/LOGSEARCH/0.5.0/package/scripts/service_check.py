@@ -27,7 +27,8 @@ class LogSearchServiceCheck(Script):
     env.set_params(params)
 
     try:
-      Execute(params.smoke_logsearch_cmd, user=params.logsearch_user, timeout = 10)
+      Execute(params.smoke_logsearch_cmd, user=params.logsearch_user,
+              tries=10, try_sleep=5)
       Logger.info('Log Search Server up and running')
     except:
       Logger.error('Log Search Server not running')
