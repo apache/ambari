@@ -88,7 +88,7 @@
   <property>
     <name>ranger.tagsync.source.atlasrest.download.interval.millis</name>
     <display-name>AtlasREST Source: Atlas source download interval</display-name>
-    <value>60000</value>
+    <value/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
@@ -137,20 +137,6 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.server.http.port</name>
-      </property>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.server.https.port</name>
-      </property>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.enableTLS</name>
-      </property>
-    </depends-on>
   </property>
   <property>
     <name>ranger.tagsync.kerberos.principal</name>
@@ -173,21 +159,6 @@
   <property>
     <name>ranger.tagsync.dest.ranger.username</name>
     <value>rangertagsync</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>ranger.tagsync.source.atlasrest.keystore.filename</name>
-    <value>/etc/ranger/tagsync/conf/atlasuser.jceks</value>
-    <description>Tagsync atlasrest keystore file</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>ranger.tagsync.source.atlasrest.username</name>
-    <value>admin</value>
     <description/>
     <on-ambari-upgrade add="true"/>
   </property>
