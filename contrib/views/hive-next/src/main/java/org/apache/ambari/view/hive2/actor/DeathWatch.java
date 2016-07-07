@@ -33,7 +33,7 @@ public class DeathWatch extends HiveActor {
             LoggerFactory.getLogger(DeathWatch.class);
 
     @Override
-    void handleMessage(HiveMessage hiveMessage) {
+    public void handleMessage(HiveMessage hiveMessage) {
         Object message = hiveMessage.getMessage();
         if(message instanceof RegisterActor){
             RegisterActor registerActor = (RegisterActor) message;

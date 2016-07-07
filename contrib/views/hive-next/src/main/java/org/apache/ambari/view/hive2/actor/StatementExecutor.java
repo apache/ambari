@@ -65,7 +65,7 @@ public class StatementExecutor extends HiveActor {
   }
 
   @Override
-  void handleMessage(HiveMessage hiveMessage) {
+  public void handleMessage(HiveMessage hiveMessage) {
     Object message = hiveMessage.getMessage();
     if (message instanceof RunStatement) {
       runStatement((RunStatement) message);

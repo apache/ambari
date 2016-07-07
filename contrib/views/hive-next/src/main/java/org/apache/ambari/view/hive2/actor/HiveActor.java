@@ -43,7 +43,7 @@ public abstract class HiveActor extends UntypedActor {
         }
     }
 
-    abstract void handleMessage(HiveMessage hiveMessage);
+    public abstract void handleMessage(HiveMessage hiveMessage);
 
 
 
