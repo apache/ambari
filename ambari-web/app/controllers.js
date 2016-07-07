@@ -75,6 +75,7 @@ require('controllers/main/admin/highAvailability/rangerAdmin/step2_controller');
 require('controllers/main/admin/highAvailability/rangerAdmin/step3_controller');
 require('controllers/main/admin/highAvailability/rangerAdmin/step4_controller');
 require('controllers/main/admin/stack_and_upgrade_controller');
+require('controllers/main/admin/stack_upgrade_history_controller');
 require('controllers/main/admin/serviceAccounts_controller');
 require('utils/polling');
 require('controllers/main/admin/kerberos');

@@ -201,6 +201,8 @@ require('views/main/admin/stack_upgrade/upgrade_version_box_view');
 require('views/main/admin/stack_upgrade/upgrade_version_column_view');
 require('views/main/admin/stack_upgrade/upgrade_group_view');
 require('views/main/admin/stack_upgrade/upgrade_task_view');
+require('views/main/admin/stack_upgrade/upgrade_history_view');
+require('views/main/admin/stack_upgrade/upgrade_history_details_view');
 require('views/main/admin/stack_upgrade/services_view');
 require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');

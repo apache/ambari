@@ -302,10 +302,36 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    * and make call to get latest status from server
    */
   restoreUpgradeState: function () {
+    var self = this;
     return this.getAllUpgrades().done(function (data) {
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
-      var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
+      var allUpgrades = data.items.sortProperty('Upgrade.request_id');
+      var lastUpgradeData = allUpgrades.pop();
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
+      if (lastUpgradeData){
+        var status = lastUpgradeData.Upgrade.request_status;
+        var lastUpgradeNotFinished = (self.isSuspendedState(status) || self.isRunningState(status));
+        if (lastUpgradeNotFinished){
+          /**
+           * No need to display history if there is only one running or suspended upgrade.
+           * Because UI still needs to provide user the option to resume the upgrade via the Upgrade Wizard UI.
+           * If there is more than one upgrade. Show/Hive the tab based on the status.
+           */
+          var hasFinishedUpgrades = allUpgrades.some(function (item) {
+            var status = item.Upgrade.request_status;
+            if (!self.isRunningState(status)){
+              return true;
+            }
+          }, self);
+          App.set('upgradeHistoryAvailable', hasFinishedUpgrades);
+        } else {
+          //There is at least one finished upgrade. Display it.
+          App.set('upgradeHistoryAvailable', true);
+        }
+      } else {
+        //There is no upgrades at all.
+        App.set('upgradeHistoryAvailable', false);
+      }
 
       //completed upgrade shouldn't be restored
       if (lastUpgradeData && lastUpgradeData.Upgrade.request_status === "COMPLETED") {
@@ -326,6 +352,22 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
       });
     });
+  },
+
+  isRunningState: function(status){
+    if (status) {
+      return "IN_PROGRESS" == status || "PENDING" == status || status.contains("HOLDING");
+    } else {
+      //init state
+      return true;
+    }
+  },
+
+  /**
+   * ABORTED should be handled as SUSPENDED for the lastUpgradeItem
+   * */
+  isSuspendedState: function(status){
+    return "ABORTED" == status;
   },
 
   loadRootService: function () {

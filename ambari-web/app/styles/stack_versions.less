@@ -417,6 +417,75 @@
   }
 }
 
+#stack-upgrade-record-dialog {
+  .details-box {
+    padding: 5px;
+    margin-left: 15px;
+    margin-right: 95px;
+    .button-row {
+      text-align: right;
+      padding: 5px;
+    }
+    input[type="checkbox"] {
+      margin: 0;
+    }
+    .message {
+      line-height: 30px;
+    }
+  }
+  .task-details {
+    .manage-controls a {
+      cursor: pointer;
+      margin-right: 12px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      box-sizing: border-box;
+    }
+  }
+  .task-list {
+    overflow-x: hidden;
+    .progress {
+      margin-bottom: 0;
+    }
+    padding-left: 20px;
+    i {
+      margin-right: 5px;
+    }
+  }
+  .task-list-main-warp i {
+    font-size: 16px;
+  }
+  ul.failed-info-list {
+    max-height: 500px;
+    margin-top: 5px;
+  }
+  .upgrade-options-link {
+    position: absolute;
+    cursor: pointer;
+    right: 10%;
+    top: 13px;
+    width: 100px;
+    a {
+      font-size: 13px;
+    }
+    .icon-cogs {
+      color: #0088cc;
+      margin-right: 3px;
+    }
+  }
+  .upgrade-options-link.disabled {
+    cursor: not-allowed;
+    a, .icon-cogs {
+      color: #808080;
+    }
+    a:hover {
+      text-decoration: none;
+    }
+  }
+}
+
 .repository-list {
   .os-block {
     border-top: 1px solid #dddddd;

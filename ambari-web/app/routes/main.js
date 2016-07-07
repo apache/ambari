@@ -520,6 +520,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         }
       }),
 
+      upgradeHistory: Em.Route.extend({
+        route: '/history',
+        connectOutlets: function (router, context) {
+          router.get('mainAdminStackAndUpgradeController').connectOutlet('mainAdminStackUpgradeHistory');
+        },
+      }),
+
       stackNavigate: function (router, event) {
         var parent = event.view._parentView;
         parent.deactivateChildViews();
