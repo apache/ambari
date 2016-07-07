@@ -34,7 +34,7 @@
                 },
                 {
                   "name": "section-authentication",
-                  "display-name": "LDAP",
+                  "display-name": "LDAP/AD",
                   "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",

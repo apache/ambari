@@ -79,18 +79,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                   "atlas.authentication.method.ldap.base.dn": "",
                   "atlas.authentication.method.ldap.bind.dn": "",
                   "atlas.authentication.method.ldap.bind.password": "",
-                  "atlas.authentication.method.ldap.referral": "ignore",
-                  "atlas.authentication.method.ldap.user.searchfilter": "",
-                  "atlas.authentication.method.ldap.default.role": "ROLE_USER"
+                  "atlas.authentication.method.ldap.user.searchfilter": ""
     }
     ad_props = {"atlas.authentication.method.ldap.ad.domain": "",
                 "atlas.authentication.method.ldap.ad.url": "",
                 "atlas.authentication.method.ldap.ad.base.dn": "",
                 "atlas.authentication.method.ldap.ad.bind.dn": "",
                 "atlas.authentication.method.ldap.ad.bind.password": "",
-                "atlas.authentication.method.ldap.ad.referral": "ignore",
-                "atlas.authentication.method.ldap.ad.user.searchfilter": "(sAMAccountName={0})",
-                "atlas.authentication.method.ldap.ad.default.role": "ROLE_USER"
+                "atlas.authentication.method.ldap.ad.user.searchfilter": "(sAMAccountName={0})"
     }
 
     props_to_require = set()
@@ -98,9 +94,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       props_to_require = set(ldap_props.keys())
     elif auth_type.lower() == "ad":
       props_to_require = set(ad_props.keys())
+    elif auth_type.lower() == "none":
+      pass
 
     for prop in props_to_require:
-      if prop not in application_properties or application_properties[prop] is None or application_properties[prop] == "":
+      if prop not in application_properties or application_properties[prop] is None or application_properties[prop].strip() == "":
         validationItems.append({"config-name": prop,
                                 "item": self.getErrorItem("If authentication type is %s, this property is required." % auth_type)})
     #</editor-fold>
