@@ -50,7 +50,7 @@ CREATE TABLE extensionlink(
   CONSTRAINT PK_extensionlink PRIMARY KEY CLUSTERED (link_id),
   CONSTRAINT FK_extensionlink_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id),
   CONSTRAINT FK_extensionlink_extension_id FOREIGN KEY (extension_id) REFERENCES extension(extension_id),
-  CONSTRAINT UQ_extension_link UNIQUE (stack_id, extension_id);
+  CONSTRAINT UQ_extension_link UNIQUE (stack_id, extension_id));
 
 CREATE TABLE adminresourcetype (
   resource_type_id INTEGER NOT NULL,
