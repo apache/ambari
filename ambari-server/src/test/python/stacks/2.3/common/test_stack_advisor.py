@@ -2110,3 +2110,35 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.getComponentHostNames = return_c6401_hostname
     self.stackAdvisor.recommendLogsearchConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+  def test_validateRangerConfigurationsEnv(self):
+    properties = {
+      "ranger-kafka-plugin-enabled": "Yes",
+      }
+    recommendedDefaults = {
+      "ranger-kafka-plugin-enabled": "No",
+      }
+
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "false",
+          }
+      }
+    }
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "KAFKA"
+            }
+          }
+        ]
+      }
+
+    # Test with ranger plugin enabled, validation fails
+    res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)

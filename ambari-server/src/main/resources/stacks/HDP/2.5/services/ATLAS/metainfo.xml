@@ -62,6 +62,13 @@
         </osSpecific>
       </osSpecifics>
 
+      <configuration-dependencies>
+        <config-type>ranger-atlas-audit</config-type>
+        <config-type>ranger-atlas-plugin-properties</config-type>
+        <config-type>ranger-atlas-policymgr-ssl</config-type>
+        <config-type>ranger-atlas-security</config-type>
+      </configuration-dependencies>
+
       <requiredServices>
         <service>KAFKA</service>
       </requiredServices>
