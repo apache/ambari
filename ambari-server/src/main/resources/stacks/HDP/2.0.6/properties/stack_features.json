@@ -260,6 +260,11 @@
       "name": "ranger_kms_pid_support",
       "description": "Ranger KMS Service support pid generation",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_admin_password_change",
+      "description": "Allow ranger admin credentials to be specified during cluster creation (AMBARI-17000)",
+      "min_version": "2.5.0.0"
     }
   ]
 }
