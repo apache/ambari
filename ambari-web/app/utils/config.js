@@ -323,7 +323,9 @@ App.config = Em.Object.create({
       dependentConfigPattern: null,
       options: null,
       radioName: null,
-      widgetType: null
+      widgetType: null,
+      errorMessage: '',
+      warnMessage: ''
     };
     return Object.keys(coreObject|| {}).length ?
       $.extend(tpl, coreObject) : tpl;
