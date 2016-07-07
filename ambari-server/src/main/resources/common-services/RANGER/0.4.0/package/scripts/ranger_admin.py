@@ -29,7 +29,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger_xml import setup_ranger_audit_solr
+from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change
 from resource_management.libraries.functions import solr_cloud_util
 import upgrade
 import os, errno
@@ -52,6 +52,9 @@ class RangerAdmin(Script):
     if params.xml_configurations_supported:
       from setup_ranger_xml import setup_java_patch
       setup_java_patch()
+
+    if params.stack_supports_ranger_admin_password_change:
+      setup_ranger_admin_passwd_change()
 
   def stop(self, env, upgrade_type=None):
     import params
