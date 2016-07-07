@@ -758,7 +758,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
-      "RANGER": {"admin-properties": self.validateRangerAdminConfigurations}
+      "RANGER": {"admin-properties": self.validateRangerAdminConfigurations,
+                 "ranger-env": self.validateRangerConfigurationsEnv}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -941,6 +942,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "If Ranger Kafka Plugin is enabled."\
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
 
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()) and not 'KERBEROS' in servicesList:
+      validationItems.append({"config-name": "ranger-kafka-plugin-enabled",
+                              "item": self.getWarnItem(
+                                "Ranger Kafka plugin should not be enabled in non-kerberos environment.")})
+
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -951,7 +957,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       yarn_resource_proxy_enabled = yarn_site['yarn.resourcemanager.proxy-user-privileges.enabled']
       if yarn_resource_proxy_enabled.lower() == 'true':
         validationItems.append({"config-name": 'yarn.resourcemanager.proxy-user-privileges.enabled',
-          "item": self.getWarnItem("If Ranger KMS service is installed set yarn.resourcemanager.proxy-user-privileges.enabled "\
+          "item": self.getWarnItem("If Ranger KMS service is installed set yarn.resourcemanager.proxy-user-privileges.enabled " \
           "property value as false under yarn-site"
         )})
 
@@ -970,4 +976,23 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({'config-name':'policymgr_external_url',
                                'item':self.getWarnItem('Ranger External URL should not contain trailing slash "/"')})
     return self.toConfigurationValidationProblems(validationItems,'admin-properties')
+
+  def validateRangerConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
+    ranger_env_properties = properties
+    validationItems = []
+    security_enabled = False
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'KERBEROS' in servicesList:
+      security_enabled = True
+
+    if "ranger-kafka-plugin-enabled" in ranger_env_properties and ranger_env_properties["ranger-kafka-plugin-enabled"].lower() == 'yes' and not security_enabled:
+      validationItems.append({"config-name": "ranger-kafka-plugin-enabled",
+                              "item": self.getWarnItem(
+                                "Ranger Kafka plugin should not be enabled in non-kerberos environment.")})
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "ranger-env")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
