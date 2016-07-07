@@ -20,94 +20,96 @@ var App = require('app');
 
 App.ConfigWithOverrideRecommendationParser = Em.Mixin.create(App.ConfigRecommendationParser, {
 
-	/**
-	 * Method that goes through all configs
-	 * and apply recommendations to overrides when it's needed
-	 *
-	 * @param {Object} recommendationObject
-	 * @param {Object[]} configs
-	 * @param {Object[]} parentProperties
-	 * @param {App.ServiceConfigGroup} configGroup
-	 */
-	updateOverridesByRecommendations: function (recommendationObject, configs, parentProperties, configGroup) {
-		Em.assert('Config groups should be defined and not default', configGroup && configGroup.get('name') && !configGroup.get('isDefault'));
-		this.parseRecommendations(recommendationObject, configs, parentProperties, configGroup,
-			this._updateOverride.bind(this), this._removeOverride.bind(this), this._updateOverrideBoundaries.bind(this));
-	},
+  /**
+   * Method that goes through all configs
+   * and apply recommendations to overrides when it's needed
+   *
+   * @param {Object} recommendationObject
+   * @param {Object[]} configs
+   * @param {Object[]} parentProperties
+   * @param {App.ServiceConfigGroup} configGroup
+   */
+  updateOverridesByRecommendations: function (recommendationObject, configs, parentProperties, configGroup) {
+    Em.assert('Config groups should be defined and not default', configGroup && configGroup.get('name') && !configGroup.get('isDefault'));
+    this.parseRecommendations(recommendationObject, configs, parentProperties, configGroup,
+      this._updateOverride.bind(this), this._removeOverride.bind(this), this._updateOverrideBoundaries.bind(this));
+  },
 
-	/**
-	 * Update override by recommendations
-	 * includes add/update actions
-	 *
-	 * @param config
-	 * @param recommendedValue
-	 * @param parentProperties
-	 * @param configGroup
-	 * @protected
-	 */
-	_updateOverride: function(config, recommendedValue, parentProperties, configGroup) {
-		var updateValue = this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'));
-		var override = config.getOverride(configGroup.get('name'));
-		if (override) {
-			this._updateConfigByRecommendation(override, recommendedValue, parentProperties);
-		} else if (updateValue) {
-			this._addConfigOverrideRecommendation(config, recommendedValue, parentProperties, configGroup);
-		}
-	},
+  /**
+   * Update override by recommendations
+   * includes add/update actions
+   *
+   * @param config
+   * @param recommendedValue
+   * @param parentProperties
+   * @param configGroup
+   * @protected
+   */
+  _updateOverride: function(config, recommendedValue, parentProperties, configGroup) {
+    var updateValue = this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'));
+    var override = config.getOverride(configGroup.get('name'));
+    if (override) {
+      this._updateConfigByRecommendation(override, recommendedValue, parentProperties);
+    } else if (updateValue) {
+      this._addConfigOverrideRecommendation(config, recommendedValue, parentProperties, configGroup);
+    }
+  },
 
-	/**
-	 * Remove override by recommendations
-	 *
-	 * @param property
-	 * @param configs
-	 * @param parentProperties
-	 * @param configGroup
- 	 * @protected
-	 */
-	_removeOverride: function(property, configs, parentProperties, configGroup) {
-		this._removeConfigByRecommendation(property.getOverride(configGroup.get('name')), property.get('overrides') || [], parentProperties);
-	},
+  /**
+   * Remove override by recommendations
+   *
+   * @param property
+   * @param configs
+   * @param parentProperties
+   * @param configGroup
+   * @protected
+   */
+  _removeOverride: function(property, configs, parentProperties, configGroup) {
+    this._removeConfigByRecommendation(property.getOverride(configGroup.get('name')), property.get('overrides') || [], parentProperties);
+  },
 
-	/**
-	 * Add override by recommendations
-	 *
-	 * @param config
-	 * @param recommendedValue
-	 * @param configGroup
-	 * @param parentProperties
-	 * @protected
-	 */
-	_addConfigOverrideRecommendation: function (config, recommendedValue, parentProperties, configGroup) {
-		var popupProperty = this.getRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name')),
-			initialValue = popupProperty ? popupProperty.value : null;
-		var coreObject = {
-			"value": recommendedValue,
-			"recommendedValue": recommendedValue,
-			"initialValue": initialValue,
-			"savedValue": !this.useInitialValue(Em.get(config, 'serviceName')) && !Em.isNone(initialValue) ? initialValue : null,
-			"isEditable": true
-		};
-		var override = App.config.createOverride(config, coreObject, configGroup);
+  /**
+   * Add override by recommendations
+   *
+   * @param config
+   * @param recommendedValue
+   * @param configGroup
+   * @param parentProperties
+   * @protected
+   */
+  _addConfigOverrideRecommendation: function (config, recommendedValue, parentProperties, configGroup) {
+    var popupProperty = this.getRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name')),
+      initialValue = popupProperty ? popupProperty.value : null;
+    var coreObject = {
+      "value": recommendedValue,
+      "recommendedValue": recommendedValue,
+      "initialValue": initialValue,
+      "savedValue": !this.useInitialValue(Em.get(config, 'serviceName')) && !Em.isNone(initialValue) ? initialValue : null,
+      "isEditable": true,
+      "errorMessage": '',
+      "warnMessage": ''
+    };
+    var override = App.config.createOverride(config, coreObject, configGroup);
 
-		this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'),
-			recommendedValue, this._getInitialValue(override), parentProperties);
-	},
+    this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), configGroup.get('name'),
+      recommendedValue, this._getInitialValue(override), parentProperties);
+  },
 
-	/**
-	 * Update override valueAttributes by recommendations
-	 *
-	 * @param {Object} stackProperty
-	 * @param {string} attr
-	 * @param {Number|String|Boolean} value
-	 * @param {String} name
-	 * @param {String} fileName
-	 * @param {App.ServiceConfigGroup} configGroup
-	 * @protected
-	 */
-	_updateOverrideBoundaries: function(stackProperty, attr, value, name, fileName, configGroup) {
-		if (!stackProperty.valueAttributes[configGroup.get('name')]) {
-			stackProperty.valueAttributes[configGroup.get('name')] = {};
-		}
-		Em.set(stackProperty.valueAttributes[configGroup.get('name')], attr, value);
-	}
+  /**
+   * Update override valueAttributes by recommendations
+   *
+   * @param {Object} stackProperty
+   * @param {string} attr
+   * @param {Number|String|Boolean} value
+   * @param {String} name
+   * @param {String} fileName
+   * @param {App.ServiceConfigGroup} configGroup
+   * @protected
+   */
+  _updateOverrideBoundaries: function(stackProperty, attr, value, name, fileName, configGroup) {
+    if (!stackProperty.valueAttributes[configGroup.get('name')]) {
+      stackProperty.valueAttributes[configGroup.get('name')] = {};
+    }
+    Em.set(stackProperty.valueAttributes[configGroup.get('name')], attr, value);
+  }
 });

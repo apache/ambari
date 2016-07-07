@@ -21,7 +21,7 @@ var validator = require('utils/validator');
 
 App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 
-	stepConfigs: [],
+  stepConfigs: [],
 
   modifiedFileNames: [],
 
@@ -36,20 +36,20 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       this.get('modifiedFileNames').push(filename);
   },
 
-	/**
-	 * Method that goes through all configs
-	 * and apply recommendations using callbacks
-	 *
-	 * @param recommendationObject
-	 * @param configs
-	 * @param parentProperties
-	 * @param configGroup
-	 * @param updateCallback
-	 * @param removeCallback
-	 * @param updateBoundariesCallback
-	 */
-	parseRecommendations: function(recommendationObject, configs, parentProperties, configGroup,
-	                               updateCallback, removeCallback, updateBoundariesCallback) {
+  /**
+   * Method that goes through all configs
+   * and apply recommendations using callbacks
+   *
+   * @param recommendationObject
+   * @param configs
+   * @param parentProperties
+   * @param configGroup
+   * @param updateCallback
+   * @param removeCallback
+   * @param updateBoundariesCallback
+   */
+  parseRecommendations: function(recommendationObject, configs, parentProperties, configGroup,
+                                 updateCallback, removeCallback, updateBoundariesCallback) {
 
     App.assertObject(recommendationObject);
     App.assertArray(configs);
@@ -57,25 +57,25 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     App.assertFunction(removeCallback);
     App.assertFunction(updateBoundariesCallback);
 
-		var propertiesToDelete = [];
-		configs.forEach(function (config) {
-			var name = Em.get(config, 'name'), fileName = Em.get(config, 'filename'),
-				recommendations = recommendationObject[App.config.getConfigTagFromFileName(fileName)];
+    var propertiesToDelete = [];
+    configs.forEach(function (config) {
+      var name = Em.get(config, 'name'), fileName = Em.get(config, 'filename'),
+        recommendations = recommendationObject[App.config.getConfigTagFromFileName(fileName)];
 
-			if (recommendations) {
+      if (recommendations) {
 
-				if (recommendations.properties) {
-					var recommendedValue = App.config.formatValue(recommendations.properties[name]);
-					if (!Em.isNone(recommendedValue)) {
-						/** update config **/
-						updateCallback(config, recommendedValue, parentProperties, configGroup);
+        if (recommendations.properties) {
+          var recommendedValue = App.config.formatValue(recommendations.properties[name]);
+          if (!Em.isNone(recommendedValue)) {
+            /** update config **/
+            updateCallback(config, recommendedValue, parentProperties, configGroup);
 
-						delete recommendations.properties[name];
-					}
-				}
+            delete recommendations.properties[name];
+          }
+        }
 
-				if (recommendations.property_attributes) {
-					var propertyAttributes = recommendations.property_attributes[name];
+        if (recommendations.property_attributes) {
+          var propertyAttributes = recommendations.property_attributes[name];
           if (propertyAttributes) {
             var stackProperty = App.configsCollection.getConfigByName(name, fileName);
             for (var attr in propertyAttributes) {
@@ -87,94 +87,98 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
               }
             }
           }
-				}
-			}
-		}, this);
+        }
+      }
+    }, this);
 
-		if (propertiesToDelete.length) {
-			propertiesToDelete.forEach(function (property) {
-				/** remove config **/
-				removeCallback(property, configs, parentProperties, configGroup);
+    if (propertiesToDelete.length) {
+      propertiesToDelete.forEach(function (property) {
+        /** remove config **/
+        removeCallback(property, configs, parentProperties, configGroup);
 
-			}, this);
-		}
-	},
+      }, this);
+    }
+  },
 
-	/**
-	 * Method that goes through all configs
-	 * and apply recommendations to configs when it's needed
-	 *
-	 * @param {Object} recommendationObject
-	 * @param {Object[]} configs
-	 * @param {Object[]} parentProperties
-	 */
-	updateConfigsByRecommendations: function (recommendationObject, configs, parentProperties) {
-		this.parseRecommendations(recommendationObject, configs, parentProperties, null,
-			this._updateConfigByRecommendation.bind(this), this._removeConfigByRecommendation.bind(this), this._updateBoundaries.bind(this));
-	},
+  /**
+   * Method that goes through all configs
+   * and apply recommendations to configs when it's needed
+   *
+   * @param {Object} recommendationObject
+   * @param {Object[]} configs
+   * @param {Object[]} parentProperties
+   */
+  updateConfigsByRecommendations: function (recommendationObject, configs, parentProperties) {
+    this.parseRecommendations(recommendationObject, configs, parentProperties, null,
+      this._updateConfigByRecommendation.bind(this), this._removeConfigByRecommendation.bind(this), this._updateBoundaries.bind(this));
+  },
 
-	/**
-	 * This method goes through all config recommendations
-	 * and trying to add new properties
-	 *
-	 * @param {Object} recommendationObject
-	 * @param {Object[]} parentProperties
-	 */
-	addByRecommendations: function (recommendationObject, parentProperties) {
+  /**
+   * This method goes through all config recommendations
+   * and trying to add new properties
+   *
+   * @param {Object} recommendationObject
+   * @param {Object[]} parentProperties
+   */
+  addByRecommendations: function (recommendationObject, parentProperties) {
     App.assertObject(recommendationObject);
 
-		for (var site in recommendationObject) {
-			var properties = recommendationObject[site].properties;
-			if (properties && Object.keys(properties).length) {
-				var stepConfig = App.config.getStepConfigForProperty(this.get('stepConfigs'), site), configs = [];
-				if (stepConfig) {
-					for (var propertyName in properties) {
-						if (this.allowUpdateProperty(parentProperties, propertyName, site)) {
+    for (var site in recommendationObject) {
+      var properties = recommendationObject[site].properties;
+      if (properties && Object.keys(properties).length) {
+        var stepConfig = App.config.getStepConfigForProperty(this.get('stepConfigs'), site), configs = [];
+        if (stepConfig) {
+          for (var propertyName in properties) {
+            if (this.allowUpdateProperty(parentProperties, propertyName, site)) {
               configs.pushObject(this._createNewProperty(propertyName, site, stepConfig.get('serviceName'), properties[propertyName], parentProperties));
-						}
-					}
+            }
+          }
           if (configs.length) {
             var mergedConfigs = configs.concat(stepConfig.get('configs'));
             stepConfig.set('configs', mergedConfigs);
           }
-				}
-			}
-		}
-	},
+        }
+      }
+    }
+  },
 
-	/**
-	 * Update config based on recommendations
-	 *
-	 * @param {recommendation} config
-	 * @param {String} recommendedValue
-	 * @param {String[]} [parentProperties]
+  /**
+   * Update config based on recommendations
+   *
+   * @param {recommendation} config
+   * @param {String} recommendedValue
+   * @param {String[]} [parentProperties]
    * @returns {recommendation}
-	 * @protected
-	 */
-	_updateConfigByRecommendation: function (config, recommendedValue, parentProperties) {
+   * @protected
+   */
+  _updateConfigByRecommendation: function (config, recommendedValue, parentProperties) {
     App.assertObject(config);
 
-		Em.set(config, 'recommendedValue', recommendedValue);
-		if (this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'))) {
-			Em.set(config, 'value', recommendedValue);
-			this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties);
-		}
-		if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
-			Em.set(config, 'initialValue', recommendedValue);
-		}
+    Em.set(config, 'recommendedValue', recommendedValue);
+    if (this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'))) {
+      Em.setProperties(config, {
+        value: recommendedValue,
+        errorMessage: '',
+        warnMessage: ''
+      });
+      this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties);
+    }
+    if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
+      Em.set(config, 'initialValue', recommendedValue);
+    }
     return config;
-	},
+  },
 
-	/**
-	 * Add config based on recommendations
-	 *
-	 * @param name
-	 * @param fileName
+  /**
+   * Add config based on recommendations
+   *
+   * @param name
+   * @param fileName
    * @param serviceName
-	 * @param recommendedValue
-	 * @param parentProperties
-	 * @protected
-	 */
+   * @param recommendedValue
+   * @param parentProperties
+   * @protected
+   */
   _createNewProperty: function (name, fileName, serviceName, recommendedValue, parentProperties) {
     App.assertExists(name, 'name');
     App.assertExists(fileName, 'fileName');
@@ -209,15 +213,15 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
   },
 
 
-	/**
-	 * Remove config based on recommendations
-	 *
-	 * @param config
-	 * @param configsCollection
-	 * @param parentProperties
-	 * @protected
-	 */
-	_removeConfigByRecommendation: function (config, configsCollection, parentProperties) {
+  /**
+   * Remove config based on recommendations
+   *
+   * @param config
+   * @param configsCollection
+   * @param parentProperties
+   * @protected
+   */
+  _removeConfigByRecommendation: function (config, configsCollection, parentProperties) {
     App.assertObject(config);
     App.assertArray(configsCollection);
 
@@ -225,11 +229,11 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
       this.addModifiedFileName(Em.get(config, 'filename'));
     }
 
-		configsCollection.removeObject(config);
+    configsCollection.removeObject(config);
 
-		this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'),
-			null, this._getInitialValue(config), parentProperties);
-	},
+    this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'),
+      null, this._getInitialValue(config), parentProperties);
+  },
 
   /**
    * Defines if property was defined on initial load or was saved.
@@ -243,31 +247,31 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     return !Em.isNone(Em.get(config, 'savedValue')) && !Em.isNone(Em.get(config, 'initialValue'));
   },
 
-	/**
-	 * Update config valueAttributes by recommendations
-	 *
-	 * @param {Object} stackProperty
-	 * @param {string} attr
-	 * @param {Number|String|Boolean} value
-	 * @param {String} name
-	 * @param {String} fileName
-	 * @protected
-	 */
-	_updateBoundaries: function(stackProperty, attr, value, name, fileName) {
-		if (attr === 'visible') {
-			var p = App.config.findConfigProperty(this.get('stepConfigs'), name, App.config.getOriginalFileName(fileName));
-			if (p) {
-				p.set('isVisible', value);
-			}
-		}
-		if (stackProperty) {
-			if (!Em.get(stackProperty, 'valueAttributes')) {
-				stackProperty.valueAttributes = {};
-			}
-			Em.set(stackProperty.valueAttributes, attr, value);
-		}
+  /**
+   * Update config valueAttributes by recommendations
+   *
+   * @param {Object} stackProperty
+   * @param {string} attr
+   * @param {Number|String|Boolean} value
+   * @param {String} name
+   * @param {String} fileName
+   * @protected
+   */
+  _updateBoundaries: function(stackProperty, attr, value, name, fileName) {
+    if (attr === 'visible') {
+      var p = App.config.findConfigProperty(this.get('stepConfigs'), name, App.config.getOriginalFileName(fileName));
+      if (p) {
+        p.set('isVisible', value);
+      }
+    }
+    if (stackProperty) {
+      if (!Em.get(stackProperty, 'valueAttributes')) {
+        stackProperty.valueAttributes = {};
+      }
+      Em.set(stackProperty.valueAttributes, attr, value);
+    }
     return stackProperty || null;
-	},
+  },
 
   /**
    * Get initial config value that was before recommendations was applied
@@ -285,56 +289,56 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     }
   },
 
-	/**
-	 * Get default config value
-	 * <code>savedValue<code> for installed services
-	 * <code>initialValue<code> for new services
-	 *
-	 * @param configProperty
-	 * @returns {*}
-	 * @protected
-	 */
-	_getInitialValue: function (configProperty) {
-		if (!configProperty) return null;
-		return this.useInitialValue(Em.get(configProperty, 'serviceName')) ?
-			Em.get(configProperty, 'initialValue') : Em.get(configProperty, 'savedValue');
-	},
+  /**
+   * Get default config value
+   * <code>savedValue<code> for installed services
+   * <code>initialValue<code> for new services
+   *
+   * @param configProperty
+   * @returns {*}
+   * @protected
+   */
+  _getInitialValue: function (configProperty) {
+    if (!configProperty) return null;
+    return this.useInitialValue(Em.get(configProperty, 'serviceName')) ?
+      Em.get(configProperty, 'initialValue') : Em.get(configProperty, 'savedValue');
+  },
 
-	/**
-	 * Update initial only when <code>initialValue<code> is used
-	 *
-	 * @param {string} serviceName
-	 * @returns {boolean}
-	 */
-	updateInitialOnRecommendations: function(serviceName) {
-		return this.useInitialValue(serviceName);
-	},
+  /**
+   * Update initial only when <code>initialValue<code> is used
+   *
+   * @param {string} serviceName
+   * @returns {boolean}
+   */
+  updateInitialOnRecommendations: function(serviceName) {
+    return this.useInitialValue(serviceName);
+  },
 
-	/**
-	 * Defines if initialValue of config can be used on current controller
-	 * if not savedValue is used instead
-	 *
-	 * @param {String} serviceName
-	 * @return {boolean}
-	 */
-	useInitialValue: function (serviceName) {
-		return false;
-	},
+  /**
+   * Defines if initialValue of config can be used on current controller
+   * if not savedValue is used instead
+   *
+   * @param {String} serviceName
+   * @return {boolean}
+   */
+  useInitialValue: function (serviceName) {
+    return false;
+  },
 
-	/**
-	 * Defines if recommendation allowed to be applied
-	 *
-	 * @param parentProperties
-	 * @param name
-	 * @param fileName
-	 * @param [configGroup]
-	 * @returns {boolean}
-	 */
-	allowUpdateProperty: function (parentProperties, name, fileName, configGroup) {
-		try {
-			return Em.get(this.getRecommendation(name, fileName, configGroup), 'saveRecommended');
-		} catch (e) {
-			return true;
-		}
-	}
+  /**
+   * Defines if recommendation allowed to be applied
+   *
+   * @param parentProperties
+   * @param name
+   * @param fileName
+   * @param [configGroup]
+   * @returns {boolean}
+   */
+  allowUpdateProperty: function (parentProperties, name, fileName, configGroup) {
+    try {
+      return Em.get(this.getRecommendation(name, fileName, configGroup), 'saveRecommended');
+    } catch (e) {
+      return true;
+    }
+  }
 });
