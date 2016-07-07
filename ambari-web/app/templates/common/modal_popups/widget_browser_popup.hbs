@@ -19,12 +19,14 @@
 <div id="widget-browser-popup">
   {{#if view.isLoaded}}
     <div class="widget-browser-content">
+      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
       <!--Create new widget button-->
         <div class="btn-group pull-right" id="create-widget-button">
           <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
             <i class="icon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
           </button>
         </div>
+      {{/isAuthorized}}
 
       <!--Filters bar: service name filter, status filter here-->
       <ul id="services-filter-bar" class="nav nav-tabs">

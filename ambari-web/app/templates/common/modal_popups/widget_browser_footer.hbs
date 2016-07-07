@@ -17,9 +17,11 @@
 }}
 
 <div class="modal-footer">
+  {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
     <label id="footer-checkbox">
       {{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isShowMineOnly"}} &nbsp;
       {{t dashboard.widgets.browser.footer.checkbox}}
     </label>
+  {{/isAuthorized}}
   <button class="btn btn-success" {{action onPrimary target="view"}}>{{t common.close}}</button>
 </div>
