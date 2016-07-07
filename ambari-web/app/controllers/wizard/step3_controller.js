@@ -205,6 +205,10 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     return (App.get('testMode')) ? true : !this.get('isRegistrationInProgress');
   }.property('isRegistrationInProgress'),
 
+  isNextButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'isSubmitDisabled'),
+
+  isBackButtonDisabled: Em.computed.or('App.router.btnClickInProgress', 'isBackDisabled'),
+
   /**
    * Progress value for "update hosts status" process
    * @type {number}

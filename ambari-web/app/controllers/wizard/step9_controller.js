@@ -114,6 +114,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     return !validStates.contains(this.get('content.cluster.status')) || App.get('router.btnClickInProgress');
   }.property('content.cluster.status'),
 
+  isNextButtonDisabled: Em.computed.or('App.router.nextBtnClickInProgress', 'isSubmitDisabled'),
+
   /**
    * Observer function: Enables previous steps link if install task failed in installer wizard.
    * @method togglePreviousSteps
