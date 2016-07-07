@@ -1,0 +1,247 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+<div class="main">
+  <nav class="navbar navbar-default mb0">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <div class="navbar-brand">
+        <div class="padding0">
+          Workflow Designer
+        </div>
+      </div>
+      <div class="padding0">
+          {{input class="form-control" type="text" id="wf_title" value=workflow.name title="Workflow Name" placeholder="Workflow Name"}}
+        <!--<button class="btn btn-default btn-sm title-btn">{{!-- <i class="fa fa-edit"></i> --}} <strong id="wf_title" class="editable" contenteditable="true">WorkflowTitle</strong></button>-->
+      </div>
+      {{#if workflowFilePath}}
+        <div class="wf-path padding20" title={{workflowFilePath}}>
+            Path:{{ workflowFilePath}}
+        </div>
+      {{/if}}
+      <div class="navbar-brand pull-right paddingtop10">
+        <div class="btn-group" role="group" aria-label="...">
+          <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#ConfirmDialog" title="New Workflow" {{action "conirmCreatingNewWorkflow"}}>
+              <i class="fa fa-file"> New</i>
+          </button>
+          <button  type="button" class="btn btn-default" title="Import workflow" {{action "showFileBrowser"}}>
+              <i class="fa fa-download"> Import</i>
+          </button>
+          <button  id="import-workflow-test" type="button" class="btn btn-default hide" title="Import workflow Test" {{action "importWorkflowTest"}}>
+              <i class="fa fa-download"></i>
+          </button>
+                    <!-- <button type="button" class="btn btn-default" title="Save workflow" {{action "saveWorkflow"}}>
+              <i class="fa fa-floppy-o"></i>
+          </button> -->
+          <button type="button" class="btn btn-primary" title="Submit workflow" {{action "submitWorkflow"}}>
+              <i class="fa fa-upload"> Submit</i>
+          </button>
+          {{#link-to 'dashboard' class="backto-dashboard" }}
+          <button type="button" class="btn btn-default" title="Workflow Dashboard">
+              <i class="fa fa-th"> Dashboard</i>
+          </button>
+          {{/link-to}}
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#kill-node-dialog" title="Create Kill Node" {{action "showCreateKillNode" true}}>
+              <i class="fa fa-ban"></i>
+          </button>
+          <button type="button" class="btn btn-default" title="SLA for Workflow" {{action "showWorkflowSla" true}}>
+            s<i class="fa fa-cog" aria-hidden="true"></i>
+          </button>
+          <button type="button" class="btn btn-default" title="Global Configurations" {{action "showWorkflowGlobalProps"}}>
+            g<i class="fa fa-cog"></i>
+          </button>
+          <button type="button" class="btn btn-default" title="Workflow and Action Versions" {{action "showVersionSettings" true}}>
+            v<i class="fa fa-cog"></i>
+          </button>
+          <button  data-toggle="modal" data-target="#previewModal"  type="button" class="btn btn-default" title="Preview workflow" {{action "previewWorkflow"}}>
+              <i class="fa fa-eye"></i>
+          </button>
+        </div>
+
+          {{help-icon}}
+		{{!--
+          <button id="download" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
+              <i class="fa fa-download"></i>
+          </button>
+          <button id="clone" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
+              <i class="fa fa-clone"></i>
+          </button>
+          <button id="submit" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
+              <i class="fa fa-arrow-up"></i>
+          </button>
+          <button id="run" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
+              <i class="fa fa-play"></i>
+          </button>
+		--}}
+      </div>
+    </div>
+  </div>
+  </nav>
+  <div  id="content" class="panel panel-default designer-main-panel col-xs-20">
+    <div class="panel-body designer-panel designer-canvas">
+    <!--  <div class="wf-buttons btn-group btn-group-sm zoom-buttons" role="group" aria-label="buttons">
+        <button id="zoomout" type="button" class="btn btn-default" {{action "zoomOut"}}>
+          <i class="fa fa-search-minus"> </i>
+        </button>
+        <button id="zoomreset" type="button" class="btn btn-default" {{action "zoomReset"}}>
+          100%
+
+        </button>
+        <button id="zoomin" type="button" class="btn btn-default" {{action "zoomIn"}}>
+          <i class="fa fa-search-plus"> </i>
+        </button>
+
+      </div>-->
+      {{designer-errors errors=errors validationErrors=validationErrors}}
+      <div id="flow-designer">
+        {{#each flattenedNodes as |node|}}
+        <div class="node-wrapper">
+          {{#workflow-node node=node deleteNode="deleteNode" openEditor="openEditor" addBranch="addBranch" addDecisionBranch="addDecisionBranch" onNameChange="nameChanged"}}{{/workflow-node}}
+        </div>
+        {{/each}}
+        <div id="killnodes-container">
+          {{#if workflow.killNodes.length}}
+          <div class="">
+            <label id='kill-nodes-title' class='info' for="">Kill Nodes</label>
+          </div>
+          {{/if}}
+          {{#each workflow.killNodes as |node|}}
+            {{#workflow-node positionRelative=1 node=node deleteNode="deleteNode" openEditor="openEditor" addBranch="addBranch" onNameChange="nameChanged" addNode="addNode"}}{{/workflow-node}}
+          {{/each}}
+        </div>
+      </div>
+      <div id="workflow-actions" class="hidden">
+        {{workflow-actions element=popOverElement addNode="addNode"}}
+      </div>
+      <!-- <div id="killnodes-container" class="panel panel-default">
+        <div class="panel-heading">Kill Nodes</div>
+        <div class="panel-body"> kill node 1</div>
+      </div> -->
+
+    </div>
+  </div>
+</div>
+{{#if showActionEditor}}
+  {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" addKillNode="addKillNode" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes}}
+{{/if}}
+{{#if showingWorkflowConfigProps}}
+  {{workflow-config closeWorkflowSubmitConfigs="closeWorkflowSubmitConfigs" workflowFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" workflowSubmitConfigs=workflowSubmitConfigs}}
+{{/if}}
+{{#if showGlobalConfig}}
+  {{#global-config closeGlobalConfig="closeWorkflowGlobalProps" saveGlobalConfig="saveGlobalConfig" actionModel=globalConfig}}{{/global-config}}
+{{/if}}
+{{#if showingFileBrowser}}
+  {{hdfs-browser closeFileBrowser="closeFileBrowser" selectFileCallback=selectFileCallback filePath=workflowFilePath}}
+{{/if}}
+{{#if showingPreview}}
+  <div id="previewModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Workflow Xml Preview</h4>
+        </div>
+        <div class="modal-body">
+
+          <pre class="preview-xml">{{previewXml}}</pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{/if}}
+
+{{#if showingConfirmationNewWorkflow}}
+  <div id="ConfirmDialog" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Confirm create new workflow</h4>
+        </div>
+        <div class="modal-body">
+        Any unsaved changes may be lost.Do you want to proceed creating new workflow?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" {{action "createNewWorkflow"}} data-dismiss="modal">Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{/if}}
+{{#if showCreateKillNode}}
+  <div id="kill-node-dialog" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Create Kill Node</h4>
+        </div>
+        <div class="modal-body">
+            {{#if createKillnodeError}}
+          <div class="row">
+          <div class="form-group">
+
+              <label class="text-danger control-label col-xs-8">
+              {{createKillnodeError}}
+            </label>
+
+        </div>
+      </div>
+      {{/if}}
+          <div class="row">
+
+            <div class="form-group" id="killNodeName">
+              <label class="control-label col-xs-3"> Kill node name</label>
+              <div class="col-xs-7">
+                {{input class="form-control" type="text" name="kill-node-name" value=killNode.name}}
+              </div>
+            </div>
+          </div>
+          <div class="row padding10">
+            <div class="form-group">
+              <label class="control-label col-xs-3"> Kill message</label>
+              <div class="col-xs-7">
+                {{textarea class="form-control" rows="5" placeholder="kill node message" name="kill-node-message" value=killNode.message}}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" {{action "createKillNode" transition.errorNode}}>Save</button>
+          <button type="button" class="btn btn-default" data-dismiss="modal" {{action "showCreateKillNode" false}}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+{{/if}}
+{{#if showWorkflowSla}}
+  {{#workflow-sla showWorkflowSla="showWorkflowSla" workflowSla=workflow.sla workflowSlaEnabled=workflow.slaEnabled}}{{/workflow-sla}}
+{{/if}}
+{{#if showVersionSettings}}
+  {{version-settings schemaVersions=workflow.schemaVersions showVersionSettings="showVersionSettings" }}
+{{/if}}

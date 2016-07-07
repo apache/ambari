@@ -1,0 +1,123 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+{{!--
+<div id="ba_buttons" class="bulk-actions-buttons btn-group btn-group-sm" role="group" aria-label="buttons">
+<button type="submit" class="btn btn-default">
+<i class="fa fa-pause"></i>
+</button>
+<button type="submit" class="btn btn-default">
+<i class="fa fa-stop"></i>
+</button>
+<button type="submit" class="btn btn-danger">
+<i class="fa fa-trash"></i>
+</button>
+</div> --}}
+<style>
+#dashboard .listing-error{
+  text-align: center;
+}
+</style>
+
+
+<table id="search-table" class="table search-table listing table-striped table-hover table-bordered" cellspacing="0" width="100%">
+  <thead>
+    <tr>
+      <th>
+        {{!--
+        <input id="select_all" type="checkbox" {{action 'selectAll' bubbles=false}} value=""> Select --}}
+      </th>
+      <th>Name</th>
+      <th>Status</th>
+      <th>User</th>
+      <th>Created Time</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th>
+        Action
+        {{#if showBulkAction}}
+        <div id="bulk-action-button" title="Bulk Actions" class="btn-group btn-group btn-group-xs" role="group" aria-label="buttons">
+          <button type="button" id="bulk-action" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;<span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li {{action 'doBulkAction' 'resume'}} class={{toggleResume}}><a href="#"><i class="fa fa-play"></i>Resume</a></li>
+            <li {{action 'doBulkAction' 'suspend'}} class={{toggleSuspend}}><a href="#"><i class="fa fa-pause"></i>Suspend</a></li>
+            <li {{action 'doBulkAction' 'kill'}} class={{toggleKill}}><a href="#"><i class="fa fa-close"></i>Kill</a></li>
+          </ul>
+        </div>
+        <div id="bulk-action-loader" class='loading-container hidden'>
+          {{spin-spinner lines=7 length=3 width=3 radius=3 top=-10 left=150}}
+        </div>
+        {{/if}}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#if jobs.jobs}}
+    {{#each jobs.jobs as |job idx|}}
+    {{#job-row job=job onAction="onAction" showJobDetails="showJobDetails" rowSelected="rowSelected"}}{{/job-row}}
+    {{/each}}
+    {{/if}}
+  </tbody>
+  <!-- {{outlet}} -->
+</table>
+{{#unless jobs.jobs}}
+{{#if jobs.error}}
+<div class="listing-error">
+  <span class="label label-danger">{{jobs.error}}</span>
+</div>
+{{else}}
+<div class="listing-error">
+  <span>No Records</span>
+</div>
+{{/if}}
+
+{{/unless}}
+
+<div class="panel-footer">
+  <div class="row">
+    <div class="pull-right">
+      <div class="info">
+        Showing {{jobs.start}} to {{jobs.end}} of {{jobs.totalValue}} records
+      </div>
+      <div class="pages btn-group btn-group-sm" role="group" aria-label="buttons">
+        {{#if (gt jobs.start 1)}}
+        <button {{action 'prev' jobs.page}} type="button" class="btn btn-default"> Previous </button>
+        {{else}}
+        <button type="button" class="btn btn-default disabled"> Previous </button>
+        {{/if}}
+        <div class="btn-group" role="group">
+          <div class="dropup">
+            <button class="btn btn-default dropdown-toggle page-selector" type="button" data-toggle="dropdown">{{currentPage}}
+              <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                {{#each jobs.pages as |page|}}
+                <li {{action 'page' page.index}}><a href="#">{{page.index}}</a></li>
+                {{/each}}
+              </ul>
+            </div>
+          </div>
+          {{#if (lt jobs.end jobs.totalValue)}}
+          <button {{action 'next' jobs.page}} type="button" class="btn btn-default"> Next </button>
+          {{else}}
+          <button type="button" class="btn btn-default disabled"> Next </button>
+          {{/if}}
+        </div>
+      </div>
+    </div>
+  </div>
