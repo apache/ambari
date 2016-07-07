@@ -165,3 +165,22 @@ class TestFileSystem(TestCase):
 
     mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1")
     self.assertEqual(mount_point, "/hadoop/hdfs/data1")
+
+  @patch.object(Logger, "info")
+  @patch.object(Logger, "error")
+  @patch('resource_management.core.providers.mount.get_mounted')
+  def test_get_mount_point_for_dir_with_mounsts(self, mounted_mock, log_error, log_info):
+      """
+      Testing get_mount_point_for_dir when mounsts are provided.
+      """
+      mounted_mock.return_value = self._get_mount(self.MOUNT_TYPE.SAME_PREFIX_MOUNTS)
+
+      # refresh cached mounts
+      file_system.get_and_cache_mount_points(True)
+
+      mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1")
+      self.assertEqual(mount_point, "/hadoop/hdfs/data1")
+
+      # Should use provided mounts, not fetch via get_and_cache_mount_points
+      mount_point = file_system.get_mount_point_for_dir("/hadoop/hdfs/data1", ["/", "/hadoop"])
+      self.assertEqual(mount_point, "/hadoop")

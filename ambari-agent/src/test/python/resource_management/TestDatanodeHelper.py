@@ -162,3 +162,7 @@ class TestDatanodeHelper(TestCase):
       print args[0]
 
     self.assertEquals(0, log_error.call_count)
+
+  def test_get_mounts_with_multiple_data_dirs(self):
+    self.assertEquals([], mounted_dirs_helper.get_mounts_with_multiple_data_dirs(["/", "/hodoop", "/tmp"], "/hadoop/data,/tmp"))
+    self.assertEquals([("/", ["/hadoop/data", "/tmp"])], mounted_dirs_helper.get_mounts_with_multiple_data_dirs(["/"], "/hadoop/data,/tmp"))
