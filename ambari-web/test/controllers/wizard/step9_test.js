@@ -1853,4 +1853,64 @@ describe('App.InstallerStep9Controller', function () {
 
   });
 
+  describe('#isNextButtonDisabled', function () {
+
+    var cases = [
+      {
+        nextBtnClickInProgress: true,
+        isSubmitDisabled: true,
+        isNextButtonDisabled: true,
+        description: 'button clicked, submit disabled',
+        title: 'next button disabled'
+      },
+      {
+        nextBtnClickInProgress: true,
+        isSubmitDisabled: false,
+        isNextButtonDisabled: true,
+        description: 'button clicked, submit not disabled',
+        title: 'next button disabled'
+      },
+      {
+        nextBtnClickInProgress: false,
+        isSubmitDisabled: true,
+        isNextButtonDisabled: true,
+        description: 'no button clicked, submit disabled',
+        title: 'next button disabled'
+      },
+      {
+        nextBtnClickInProgress: false,
+        isSubmitDisabled: false,
+        isNextButtonDisabled: false,
+        description: 'no button clicked, submit not disabled',
+        title: 'next button enabled'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.description, function () {
+
+        beforeEach(function () {
+          c.reopen({
+            isSubmitDisabled: item.isSubmitDisabled
+          });
+          sinon.stub(App, 'get').withArgs('router.nextBtnClickInProgress').returns(item.nextBtnClickInProgress);
+          c.propertyDidChange('isSubmitDisabled');
+          c.propertyDidChange('App.router.nextBtnClickInProgress');
+        });
+
+        afterEach(function () {
+          App.get.restore();
+        });
+
+        it(item.title, function () {
+          expect(c.get('isNextButtonDisabled')).to.equal(item.isNextButtonDisabled);
+        });
+
+      });
+
+    });
+
+  });
+
 });

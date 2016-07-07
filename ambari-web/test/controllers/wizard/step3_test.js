@@ -3174,4 +3174,122 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
+  describe('#isNextButtonDisabled', function () {
+
+    var cases = [
+      {
+        btnClickInProgress: true,
+        isSubmitDisabled: true,
+        isNextButtonDisabled: true,
+        description: 'button clicked, submit disabled',
+        title: 'next button disabled'
+      },
+      {
+        btnClickInProgress: true,
+        isSubmitDisabled: false,
+        isNextButtonDisabled: true,
+        description: 'button clicked, submit not disabled',
+        title: 'next button disabled'
+      },
+      {
+        btnClickInProgress: false,
+        isSubmitDisabled: true,
+        isNextButtonDisabled: true,
+        description: 'no button clicked, submit disabled',
+        title: 'next button disabled'
+      },
+      {
+        btnClickInProgress: false,
+        isSubmitDisabled: false,
+        isNextButtonDisabled: false,
+        description: 'no button clicked, submit not disabled',
+        title: 'next button enabled'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.description, function () {
+
+        beforeEach(function () {
+          c.set('isSubmitDisabled', item.isSubmitDisabled);
+          sinon.stub(App, 'get').withArgs('router.btnClickInProgress').returns(item.btnClickInProgress);
+          c.propertyDidChange('isSubmitDisabled');
+          c.propertyDidChange('App.router.btnClickInProgress');
+        });
+
+        afterEach(function () {
+          App.get.restore();
+        });
+
+        it(item.title, function () {
+          expect(c.get('isNextButtonDisabled')).to.equal(item.isNextButtonDisabled);
+        });
+
+      });
+
+    });
+
+  });
+
+  describe('#isBackButtonDisabled', function () {
+
+    var cases = [
+      {
+        btnClickInProgress: true,
+        isBackDisabled: true,
+        isBackButtonDisabled: true,
+        description: 'button clicked, stepping back disabled',
+        title: 'back button disabled'
+      },
+      {
+        btnClickInProgress: true,
+        isBackDisabled: false,
+        isBackButtonDisabled: true,
+        description: 'button clicked, stepping back not disabled',
+        title: 'back button disabled'
+      },
+      {
+        btnClickInProgress: false,
+        isBackDisabled: true,
+        isBackButtonDisabled: true,
+        description: 'no button clicked, stepping back disabled',
+        title: 'back button disabled'
+      },
+      {
+        btnClickInProgress: false,
+        isBackDisabled: false,
+        isBackButtonDisabled: false,
+        description: 'no button clicked, stepping back not disabled',
+        title: 'back button enabled'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      describe(item.description, function () {
+
+        beforeEach(function () {
+          c.reopen({
+            isBackDisabled: item.isBackDisabled
+          });
+          sinon.stub(App, 'get').withArgs('router.btnClickInProgress').returns(item.btnClickInProgress);
+          c.propertyDidChange('isBackDisabled');
+          c.propertyDidChange('App.router.btnClickInProgress');
+        });
+
+        afterEach(function () {
+          App.get.restore();
+        });
+
+        it(item.title, function () {
+          expect(c.get('isBackButtonDisabled')).to.equal(item.isBackButtonDisabled);
+        });
+
+      });
+
+    });
+
+  });
+
 });
