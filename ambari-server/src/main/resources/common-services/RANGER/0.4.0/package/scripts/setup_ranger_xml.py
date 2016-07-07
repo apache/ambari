@@ -584,3 +584,11 @@ def setup_ranger_audit_solr():
     shards = params.ranger_solr_shards,
     replication_factor = int(params.replication_factor),
     jaas_file = params.solr_jaas_file)
+
+def setup_ranger_admin_passwd_change():
+  import params
+
+  if params.admin_password != params.default_admin_password:
+    cmd = format('ambari-python-wrap {ranger_home}/db_setup.py -changepassword {admin_username} {default_admin_password!p} {admin_password!p}')
+    Logger.info('Updating admin password')
+    Execute(cmd, environment={'JAVA_HOME': params.java_home, 'RANGER_ADMIN_HOME': params.ranger_home}, user=params.unix_user)
