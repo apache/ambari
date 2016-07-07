@@ -229,7 +229,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
       keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
 
-    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values. 
+    # Irrespective of what hadoop-env has, if Ranger-KMS is installed, we use its values.
     rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
     if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
       rangerKMSServerHostsArray = []
@@ -1134,7 +1134,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           validationItems.append({"config-name" : address_property, "item" :
             self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -1237,8 +1237,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_server2 = properties
-    validationItems = [] 
-    #Adding Ranger Plugin logic here 
+    validationItems = []
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
     hive_env_properties = getSiteProperties(configurations, "hive-env")
     ranger_plugin_enabled = 'hive_security_authorization' in hive_env_properties and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
@@ -1376,7 +1376,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                               "item": self.getWarnItem(
                               "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
 
-    #Adding Ranger Plugin logic here 
+    #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
     prop_name = 'hbase.security.authorization'
@@ -1430,7 +1430,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
 
-    # Validate hbase.security.authentication. 
+    # Validate hbase.security.authentication.
     # Kerberos works only when security enabled.
     if "hbase.security.authentication" in properties:
       hbase_security_kerberos = properties["hbase.security.authentication"].lower() == "kerberos"
@@ -1505,6 +1505,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-storm-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
@@ -1513,6 +1514,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         validationItems.append({"config-name": 'ranger-storm-plugin-enabled',
                                 "item": self.getWarnItem(
                                   "ranger-storm-plugin-properties/ranger-storm-plugin-enabled must correspond ranger-env/ranger-storm-plugin-enabled")})
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()) and not 'KERBEROS' in servicesList:
+      validationItems.append({"config-name": "ranger-storm-plugin-enabled",
+                              "item": self.getWarnItem(
+                                "Ranger Storm plugin should not be enabled in non-kerberos environment.")})
+
     return self.toConfigurationValidationProblems(validationItems, "ranger-storm-plugin-properties")
 
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1546,13 +1552,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ranger-yarn-plugin-properties")
 
   def validateRangerConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    ranger_env_properties = properties
     validationItems = []
-    if "ranger-storm-plugin-enabled" in properties and "ranger-storm-plugin-enabled" in recommendedDefaults and \
-      properties["ranger-storm-plugin-enabled"] != recommendedDefaults["ranger-storm-plugin-enabled"]:
-        validationItems.append({"config-name": "ranger-storm-plugin-enabled",
-                                "item": self.getWarnItem(
-                                  "Ranger Storm plugin should not be enabled in non-kerberos environment.")})
-
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "ranger-storm-plugin-enabled" in ranger_env_properties and ranger_env_properties['ranger-storm-plugin-enabled'].lower() == 'yes' and not 'KERBEROS' in servicesList:
+      validationItems.append({"config-name": "ranger-storm-plugin-enabled",
+                              "item": self.getWarnItem("Ranger Storm plugin should not be enabled in non-kerberos environment.")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-env")
 
   def getMastersWithMultipleInstances(self):
@@ -1573,7 +1578,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def getAffectedConfigs(self, services):
     affectedConfigs = super(HDP22StackAdvisor, self).getAffectedConfigs(services)
 
-    # There are configs that are not defined in the stack but added/removed by 
+    # There are configs that are not defined in the stack but added/removed by
     # stack-advisor. Here we add such configs in order to clear the config
     # filtering down in base class
     configsList = [affectedConfig["type"] + "/" + affectedConfig["name"] for affectedConfig in affectedConfigs]
