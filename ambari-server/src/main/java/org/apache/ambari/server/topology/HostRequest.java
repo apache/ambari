@@ -62,6 +62,7 @@ public class HostRequest implements Comparable<HostRequest> {
   private boolean containsMaster;
   private final long id;
   private boolean isOutstanding = true;
+  private final boolean skipFailure;
 
   private Map<TopologyTask, Map<String, Long>> logicalTaskMap = new HashMap<TopologyTask, Map<String, Long>>();
 
@@ -77,7 +78,7 @@ public class HostRequest implements Comparable<HostRequest> {
   private static PredicateCompiler predicateCompiler = new PredicateCompiler();
 
   public HostRequest(long requestId, long id, long clusterId, String hostname, String blueprintName,
-                     HostGroup hostGroup, Predicate predicate, ClusterTopology topology) {
+                     HostGroup hostGroup, Predicate predicate, ClusterTopology topology, boolean skipFailure) {
     this.requestId = requestId;
     this.id = id;
     this.clusterId = clusterId;
@@ -87,8 +88,8 @@ public class HostRequest implements Comparable<HostRequest> {
     this.predicate = predicate;
     containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
-
-    createTasks();
+    this.skipFailure = skipFailure;
+    createTasks(this.skipFailure);
     LOG.info("HostRequest: Created request for host: " +
         (hostname == null ? "Host Assignment Pending" : hostname));
   }
@@ -103,7 +104,7 @@ public class HostRequest implements Comparable<HostRequest> {
    * @param entity       host request entity
    */
   public HostRequest(long requestId, long id, String predicate,
-                     ClusterTopology topology, TopologyHostRequestEntity entity) {
+                     ClusterTopology topology, TopologyHostRequestEntity entity, boolean skipFailure) {
 
     this.requestId = requestId;
     this.id = id;
@@ -115,6 +116,7 @@ public class HostRequest implements Comparable<HostRequest> {
     this.predicate = toPredicate(predicate);
     containsMaster = hostGroup.containsMasterComponent();
     this.topology = topology;
+    this.skipFailure = skipFailure;
 
     createTasksForReplay(entity);
 
@@ -172,12 +174,16 @@ public class HostRequest implements Comparable<HostRequest> {
     return ! isOutstanding;
   }
 
-  private void createTasks() {
+  public boolean shouldSkipFailure() {
+    return skipFailure;
+  }
+
+  private void createTasks(boolean skipFailure) {
     // high level topology tasks such as INSTALL, START, ...
     topologyTasks.add(new PersistHostResourcesTask());
     topologyTasks.add(new RegisterWithConfigGroupTask());
 
-    InstallHostTask installTask = new InstallHostTask();
+    InstallHostTask installTask = new InstallHostTask(skipFailure);
     topologyTasks.add(installTask);
     logicalTaskMap.put(installTask, new HashMap<String, Long>());
 
@@ -185,7 +191,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     StartHostTask startTask = null;
     if (!skipStartTaskCreate) {
-      startTask = new StartHostTask();
+      startTask = new StartHostTask(skipFailure);
       topologyTasks.add(startTask);
       logicalTaskMap.put(startTask, new HashMap<String, Long>());
     } else {
@@ -213,7 +219,7 @@ public class HostRequest implements Comparable<HostRequest> {
         LOG.info("Skipping create of INSTALL task for {} on {} because host is sysprepped.", component, hostName);
       } else {
         HostRoleCommand logicalInstallTask = context.createAmbariTask(
-          getRequestId(), id, component, hostName, AmbariContext.TaskType.INSTALL);
+          getRequestId(), id, component, hostName, AmbariContext.TaskType.INSTALL, skipFailure);
         logicalTasks.put(logicalInstallTask.getTaskId(), logicalInstallTask);
         logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
       }
@@ -221,7 +227,7 @@ public class HostRequest implements Comparable<HostRequest> {
       // if component isn't a client, add a start task
       if (!skipStartTaskCreate && stack != null && !stack.getComponentInfo(component).isClient()) {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
-            getRequestId(), id, component, hostName, AmbariContext.TaskType.START);
+            getRequestId(), id, component, hostName, AmbariContext.TaskType.START, skipFailure);
         logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);
         logicalTaskMap.get(startTask).put(component, logicalStartTask.getTaskId());
       }
@@ -231,14 +237,14 @@ public class HostRequest implements Comparable<HostRequest> {
   private void createTasksForReplay(TopologyHostRequestEntity entity) {
     topologyTasks.add(new PersistHostResourcesTask());
     topologyTasks.add(new RegisterWithConfigGroupTask());
-    InstallHostTask installTask = new InstallHostTask();
+    InstallHostTask installTask = new InstallHostTask(skipFailure);
     topologyTasks.add(installTask);
     logicalTaskMap.put(installTask, new HashMap<String, Long>());
 
     boolean skipStartTaskCreate = topology.getProvisionAction().equals(INSTALL_ONLY);
 
     if (!skipStartTaskCreate) {
-      StartHostTask startTask = new StartHostTask();
+      StartHostTask startTask = new StartHostTask(skipFailure);
       topologyTasks.add(startTask);
       logicalTaskMap.put(startTask, new HashMap<String, Long>());
     }
@@ -253,7 +259,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
         AmbariContext.TaskType logicalTaskType = getLogicalTaskType(taskType);
         HostRoleCommand task = ambariContext.createAmbariTask(logicalTaskId, getRequestId(), id,
-            component, entity.getHostName(), logicalTaskType);
+            component, entity.getHostName(), logicalTaskType, skipFailure);
 
         logicalTasks.put(logicalTaskId, task);
         Long physicalTaskId = logicalTaskEntity.getPhysicalTaskId();
@@ -482,6 +488,11 @@ public class HostRequest implements Comparable<HostRequest> {
   //todo: extract
   private class InstallHostTask implements TopologyTask {
     private ClusterTopology clusterTopology;
+    private final boolean skipFailure;
+
+    public InstallHostTask(boolean skipFailure) {
+      this.skipFailure = skipFailure;
+    }
 
     @Override
     public Type getType() {
@@ -496,7 +507,7 @@ public class HostRequest implements Comparable<HostRequest> {
     @Override
     public void run() {
       LOG.info("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
-      RequestStatusResponse response = clusterTopology.installHost(hostname);
+      RequestStatusResponse response = clusterTopology.installHost(hostname, skipFailure);
       // map logical install tasks to physical install tasks
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
       for (ShortTaskStatus task : underlyingTasks) {
@@ -527,6 +538,11 @@ public class HostRequest implements Comparable<HostRequest> {
   //todo: extract
   private class StartHostTask implements TopologyTask {
     private ClusterTopology clusterTopology;
+    private final boolean skipFailure;
+
+    public StartHostTask(boolean skipFailure) {
+      this.skipFailure = skipFailure;
+    }
 
     @Override
     public Type getType() {
@@ -541,7 +557,7 @@ public class HostRequest implements Comparable<HostRequest> {
     @Override
     public void run() {
       LOG.info("HostRequest.StartHostTask: Executing START task for host: " + hostname);
-      RequestStatusResponse response = clusterTopology.startHost(hostname);
+      RequestStatusResponse response = clusterTopology.startHost(hostname, skipFailure);
       // map logical install tasks to physical install tasks
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
       for (ShortTaskStatus task : underlyingTasks) {

@@ -36,7 +36,11 @@ public class Setting {
 
   public static final String SETTING_NAME_COMPONENT_SETTINGS = "component_settings";
 
+  public static final String SETTING_NAME_DEPLOYMENT_SETTINGS = "deployment_settings";
+
   public static final String SETTING_NAME_RECOVERY_ENABLED = "recovery_enabled";
+
+  public static final String SETTING_NAME_SKIP_FAILURE = "skip_failure";
 
   public static final String SETTING_NAME_NAME = "name";
 

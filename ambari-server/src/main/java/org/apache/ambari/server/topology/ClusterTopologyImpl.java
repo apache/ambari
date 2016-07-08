@@ -224,9 +224,9 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public RequestStatusResponse installHost(String hostName) {
+  public RequestStatusResponse installHost(String hostName, boolean skipFailure) {
     try {
-      return ambariContext.installHost(hostName, ambariContext.getClusterName(getClusterId()));
+      return ambariContext.installHost(hostName, ambariContext.getClusterName(getClusterId()), skipFailure);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);
@@ -234,7 +234,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   }
 
   @Override
-  public RequestStatusResponse startHost(String hostName) {
+  public RequestStatusResponse startHost(String hostName, boolean skipFailure) {
     try {
       String hostGroupName = getHostGroupForHost(hostName);
       HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
@@ -244,7 +244,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
       Collection<String> installOnlyComponents =
         hostGroup.getComponentNames(ProvisionAction.INSTALL_ONLY);
 
-      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()), installOnlyComponents);
+      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()), installOnlyComponents, skipFailure);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);
