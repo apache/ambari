@@ -299,16 +299,18 @@ public class OperationController extends HiveActor {
   }
 
   private void freeConnector(FreeConnector message) {
-    LOG.info("About to free connector for job {} and user {}", message.getJobId(), message.getUsername());
     ActorRef sender = getSender();
     if (message.isForAsync()) {
+      LOG.info("About to free connector for job {} and user {}", message.getJobId(), message.getUsername());
       Optional<ActorRef> refOptional = removeFromAsyncBusyPool(message.getUsername(), message.getJobId());
       if (refOptional.isPresent()) {
         addToAsyncAvailable(message.getUsername(), refOptional.get());
       }
       return;
     }
+
     // Was a sync job, remove from sync pool
+    LOG.info("About to free sync connector for user {}", message.getUsername());
     Optional<ActorRef> refOptional = removeFromSyncBusyPool(message.getUsername(), sender);
     if (refOptional.isPresent()) {
       addToSyncAvailable(message.getUsername(), refOptional.get());
