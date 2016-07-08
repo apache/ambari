@@ -316,6 +316,7 @@ describe('App.AddServiceController', function() {
       sinon.stub(this.controller, 'setDBProperty', function(key, value) {
         mock.db = value;
       });
+      sinon.stub(App.store, 'commit', Em.K);
       this.mockStackService = sinon.stub(App.StackService, 'find');
       this.mockService = sinon.stub(App.Service, 'find');
     });
@@ -325,6 +326,7 @@ describe('App.AddServiceController', function() {
       this.controller.setDBProperty.restore();
       this.mockStackService.restore();
       this.mockService.restore();
+      App.store.commit.restore();
     });
 
     var tests = [

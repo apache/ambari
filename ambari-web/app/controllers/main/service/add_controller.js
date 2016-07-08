@@ -197,6 +197,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       }, this);
       this.setDBProperty('services', services);
     }
+    App.store.commit();
     this.set('serviceToInstall', null);
     this.set('content.services', stackServices);
     var self = this;
