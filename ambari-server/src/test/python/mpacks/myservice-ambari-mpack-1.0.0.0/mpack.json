@@ -22,7 +22,7 @@
     },
     {
       "name" : "MYSERVICE-1.0.0",
-      "type" : "stack-extension-definition",
+      "type" : "stack-addon-service-definition",
       "source_dir": "custom-services/MYSERVICE/1.0.0",
       "service_name" : "MYSERVICE",
       "service_version" : "1.0.0",
@@ -35,7 +35,7 @@
     },
     {
       "name" : "MYSERVICE-2.0.0",
-      "type" : "stack-extension-definition",
+      "type" : "stack-addon-service-definition",
       "source_dir": "custom-services/MYSERVICE/2.0.0",
       "service_name" : "MYSERVICE",
       "service_version" : "2.0.0",

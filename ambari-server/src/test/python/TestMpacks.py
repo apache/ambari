@@ -61,6 +61,7 @@ def get_configs():
   configs = {
     serverConfiguration.STACK_LOCATION_KEY : "/var/lib/ambari-server/resources/stacks",
     serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
+    serverConfiguration.EXTENSION_PATH_PROPERTY : "/var/lib/ambari-server/resources/extensions",
     serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory,
     serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp"
   }
@@ -199,6 +200,7 @@ class TestMpacks(TestCase):
     os_path_exists_calls = [call('/tmp/mystack.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.0/mpack.json'),
                             call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
                             call('/var/lib/ambari-server/resources/common-services'),
                             call(mpacks_directory),
                             call(mpacks_directory + '/cache'),
@@ -213,7 +215,7 @@ class TestMpacks(TestCase):
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services')]
    """
-    os_path_exists_mock.side_effect = [True, True, False, False, False, False,
+    os_path_exists_mock.side_effect = [True, True, False, True, False, False, False,
                                        False, False, False, False, False, False,
                                        False, False, False, False]
     get_ambari_properties_mock.return_value = configs
@@ -223,6 +225,7 @@ class TestMpacks(TestCase):
 
     stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.0")
 
@@ -283,6 +286,67 @@ class TestMpacks(TestCase):
     self.assertTrue(add_replay_log_mock.called)
 
   @patch("os.path.exists")
+  @patch("shutil.move")
+  @patch("os.mkdir")
+  @patch("ambari_server.setupMpacks.create_symlink")
+  @patch("ambari_server.setupMpacks.get_ambari_version")
+  @patch("ambari_server.setupMpacks.get_ambari_properties")
+  @patch("ambari_server.setupMpacks.purge_stacks_and_mpacks")
+  @patch("ambari_server.setupMpacks.add_replay_log")
+  @patch("ambari_server.setupMpacks.expand_mpack")
+  @patch("ambari_server.setupMpacks.download_mpack")
+  def test_install_extension_mpack(self, download_mpack_mock, expand_mpack_mock, add_replay_log_mock,
+      purge_stacks_and_mpacks_mock, get_ambari_properties_mock, get_ambari_version_mock,
+      create_symlink_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
+    options = self._create_empty_options_mock()
+    options.mpack_path = "/path/to/myextension.tar.gz"
+    options.purge = False
+    download_mpack_mock.return_value = "/tmp/myextension.tar.gz"
+    expand_mpack_mock.return_value = "mpacks/myextension-ambari-mpack-1.0.0.0"
+    get_ambari_version_mock.return_value = "2.4.0.0"
+    """
+    os_path_exists_calls = [call('/tmp/myextension.tar.gz'),
+                            call('mpacks/myextension-ambari-mpack-1.0.0.0/mpack.json'),
+                            call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/common-services'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/cache'),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/extensions/MYEXTENSION')]
+    """
+    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False,
+                                       False, True, False]
+    get_ambari_properties_mock.return_value = configs
+    shutil_move_mock.return_value = True
+
+    install_mpack(options)
+
+    extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
+    mpacks_staging_directory = os.path.join(mpacks_directory, "myextension-ambari-mpack-1.0.0.0")
+    os_mkdir_calls = [
+      call(extensions_directory),
+      call(mpacks_directory),
+      call(mpacks_directory + '/cache'),
+      call(os.path.join(extensions_directory, "MYEXTENSION"))
+    ]
+    create_symlink_calls = [
+      call(os.path.join(mpacks_staging_directory, "extensions/MYEXTENSION"),
+           os.path.join(extensions_directory, "MYEXTENSION"),
+           "1.0", None),
+      call(os.path.join(mpacks_staging_directory, "extensions/MYEXTENSION"),
+           os.path.join(extensions_directory, "MYEXTENSION"),
+           "1.1", None)
+    ]
+
+    self.assertFalse(purge_stacks_and_mpacks_mock.called)
+    os_mkdir_mock.assert_has_calls(os_mkdir_calls)
+    create_symlink_mock.assert_has_calls(create_symlink_calls)
+    self.assertTrue(add_replay_log_mock.called)
+
+  @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("os.symlink")
   @patch("shutil.move")
@@ -309,6 +373,7 @@ class TestMpacks(TestCase):
                             call('mpacks/myservice-ambari-mpack-1.0.0.0/mpack.json'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
                             call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
                             call('/var/lib/ambari-server/resources/common-services'),
                             call(mpacks_directory),
                             call(mpacks_directory + '/cache'),
@@ -321,7 +386,7 @@ class TestMpacks(TestCase):
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services')]
     """
-    os_path_exists_mock.side_effect = [True, True, True, True, True,
+    os_path_exists_mock.side_effect = [True, True, True, True, True, True,
                                        True, True, False, False, True,
                                        True, True, True, True, True]
 
@@ -377,12 +442,14 @@ class TestMpacks(TestCase):
     os_path_exists_calls = [call('/tmp/mystack-1.0.0.1.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
                             call(mpacks_directory),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json'),
                             call('/tmp/mystack-1.0.0.1.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
                             call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
                             call('/var/lib/ambari-server/resources/common-services'),
                             call(mpacks_directory),
                             call(mpacks_directory + '/cache'),
@@ -400,15 +467,16 @@ class TestMpacks(TestCase):
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0/services'),
                             call(mpacks_directory),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json')]
    """
-    os_path_exists_mock.side_effect = [True, True, True, True, True, True,
-                                       True, True, True, True, True, True,
+    os_path_exists_mock.side_effect = [True, True, True, True, True, True, True,
+                                       True, True, True, True, True, True, True,
                                        False, True, True, False, True, True, True,
                                        True, True, True, True, False, False,
-                                       True, True, True, True]
+                                       True, True, True, True, True]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
