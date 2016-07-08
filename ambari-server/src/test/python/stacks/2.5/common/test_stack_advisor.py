@@ -6513,7 +6513,8 @@ class TestHDP25StackAdvisor(TestCase):
         'properties': {
           'ranger-atlas-plugin-enabled':'Yes'
         }
-      }
+      },
+      'atlas-env': {'properties': {}}
     }
     services = {
       "services": [

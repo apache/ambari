@@ -299,6 +299,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
     putAtlasRangerPluginProperty = self.putProperty(configurations, "ranger-atlas-plugin-properties", services)
+    putAtlasEnvProperty = self.putProperty(configurations, "atlas-env", services)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -378,6 +379,26 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       putAtlasApplicationProperty('atlas.authorizer.impl','ranger')
     else:
       putAtlasApplicationProperty('atlas.authorizer.impl','simple')
+
+    #atlas server memory settings
+    if 'atlas-env' in services['configurations']:
+      atlas_server_metadata_size = 50000
+      if 'atlas_server_metadata_size' in services['configurations']['atlas-env']['properties']:
+        atlas_server_metadata_size = int(services['configurations']['atlas-env']['properties']['atlas_server_metadata_size'])
+
+      atlas_server_xmx = 2048
+
+      if 300000 <= atlas_server_metadata_size < 500000:
+        atlas_server_xmx = 1024*5
+      if 500000 <= atlas_server_metadata_size < 1000000:
+        atlas_server_xmx = 1024*10
+      if atlas_server_metadata_size >= 1000000:
+        atlas_server_xmx = 1024*16
+
+      atlas_server_max_new_size = (atlas_server_xmx / 100) * 30
+
+      putAtlasEnvProperty("atlas_server_xmx", atlas_server_xmx)
+      putAtlasEnvProperty("atlas_server_max_new_size", atlas_server_max_new_size)
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendHBASEConfigurations(configurations, clusterData, services, hosts)

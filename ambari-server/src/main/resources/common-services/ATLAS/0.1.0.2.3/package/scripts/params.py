@@ -28,6 +28,7 @@ import status_params
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.expect import expect
 
 # server configurations
 config = Script.get_config()
@@ -35,6 +36,8 @@ stack_root = Script.get_stack_root()
 tmp_dir = Script.get_tmp_dir()
 
 cluster_name = config['clusterName']
+
+java_version = expect("/hostLevelParams/java_version", int)
 
 # security enabled
 security_enabled = status_params.security_enabled
@@ -192,8 +195,8 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 enable_ranger_atlas = False
 
-
-
+atlas_server_xmx = config['configurations']['atlas-env']['atlas_server_xmx']
+atlas_server_max_new_size = config['configurations']['atlas-env']['atlas_server_max_new_size']
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory
