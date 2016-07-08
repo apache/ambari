@@ -292,21 +292,25 @@ limitations under the License.
   <property>
     <name>hive.llap.daemon.yarn.shuffle.port</name>
     <value>15551</value>
+    <description>YARN shuffle port for LLAP-daemon-hosted shuffle.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.execution.mode</name>
     <value>llap</value>
+    <description>Chooses whether query fragments will run in container or in llap</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.execution.mode</name>
     <value>all</value>
+    <description>Chooses which fragments of a query will run in llap</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.io.enabled</name>
     <value>true</value>
+    <description>Whether the LLAP IO layer is enabled.</description>
     <depends-on>
       <property>
         <type>hive-interactive-site</type>
@@ -318,46 +322,71 @@ limitations under the License.
   <property>
     <name>hive.llap.io.use.lrfu</name>
     <value>true</value>
+    <description>Whether ORC low-level cache should use LRFU cache policy instead of default (FIFO).</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.auto.allow.uber</name>
     <value>false</value>
+    <description>Whether or not to allow the planner to run vertices in the AM.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.object.cache.enabled</name>
     <value>true</value>
+    <description>Cache objects (plans, hashtables, etc) in llap</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.tez.input.generate.consistent.splits</name>
     <value>true</value>
+    <description>Whether to generate consistent split locations when generating splits in the AM</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.client.consistent.splits</name>
+    <description>
+      Whether to setup split locations to match nodes on which llap daemons are running,
+      instead of using the locations provided by the split itself.
+    </description>
     <value>true</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.task.scheduler.locality.delay</name>
     <value>-1</value>
+    <description>
+      Amount of time to wait before allocating a request which contains location information,
+      to a location other than the ones requested. Set to -1 for an infinite delay, 0
+      for no delay.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.exec.orc.split.strategy</name>
     <value>HYBRID</value>
+    <description>
+      This is not a user level config. BI strategy is used when the requirement is to spend less time in split generation
+      as opposed to query execution (split generation does not read or cache file footers).
+      ETL strategy is used when spending little more time in split generation is acceptable
+      (split generation reads and caches file footers). HYBRID chooses between the above strategies
+      based on heuristics.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.daemon.service.hosts</name>
     <value>@llap0</value>
+    <description>
+      Explicitly specified hosts to use for LLAP scheduling. Useful for testing. By default,
+      YARN registry is used.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.daemon.allow.permanent.fns</name>
     <value>false</value>
+    <description>Whether LLAP daemon should localize the resources for permanent UDFs.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -437,11 +466,13 @@ limitations under the License.
   <property>
     <name>hive.llap.daemon.memory.per.instance.mb</name>
     <value>250</value>
+    <description>The total amount of memory to use for the executors inside LLAP (in megabytes).</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.daemon.vcpus.per.instance</name>
     <value>${hive.llap.daemon.num.executors}</value>
+    <description>The total number of vcpus to use for the executors inside LLAP.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -491,6 +522,7 @@ limitations under the License.
   <property>
     <name>hive.llap.io.threadpool.size</name>
     <value>2</value>
+    <description>Specify the number of threads to use for low-level IO thread pool.</description>
     <depends-on>
       <property>
         <type>hive-interactive-site</type>
@@ -502,61 +534,93 @@ limitations under the License.
   <property>
     <name>hive.llap.daemon.rpc.port</name>
     <value>15001</value>
+    <description>The LLAP daemon RPC port.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.management.rpc.port</name>
     <value>15004</value>
+    <description>RPC port for LLAP daemon management service.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.daemon.task.scheduler.enable.preemption</name>
     <value>true</value>
+    <description>hive.llap.daemon.task.scheduler.enable.preemption</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.tez.exec.print.summary</name>
     <value>true</value>
+    <description>Display breakdown of execution steps, for every query executed by the shell.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.vectorized.execution.mapjoin.native.enabled</name>
     <value>true</value>
+    <description>
+      This flag should be set to true to enable native (i.e. non-pass through) vectorization
+      of queries using MapJoin.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.vectorized.execution.mapjoin.minmax.enabled</name>
     <value>true</value>
+    <description>
+      This flag should be set to true to enable vector map join hash tables to
+      use max / max filtering for integer join queries using MapJoin.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.vectorized.execution.mapjoin.native.fast.hashtable.enabled</name>
     <value>true</value>
+    <description>
+      This flag should be set to true to enable use of native fast vector map join hash tables in
+      queries using MapJoin.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.mapjoin.hybridgrace.hashtable</name>
     <value>false</value>
+    <description>Whether to use hybrid grace hash join as the join method for mapjoin. Tez only.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.tez.bucket.pruning</name>
     <value>true</value>
+    <description>
+      When pruning is enabled, filters on bucket columns will be processed by
+      filtering the splits against a bitset of included buckets. This needs predicates
+      produced by hive.optimize.ppd and hive.optimize.index.filters.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.optimize.dynamic.partition.hashjoin</name>
     <value>true</value>
+    <description>
+      Whether to enable dynamically partitioned hash join optimization.
+      This setting is also dependent on enabling hive.auto.convert.join
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.daemon.work.dirs</name>
     <value>${yarn.nodemanager.local-dirs}</value>
+    <description>
+      Working directories for the daemon. Needs to be set for a secure cluster, since LLAP may
+      not have access to the default YARN working directories. yarn.nodemanager.local-dirs is
+      used if this is not set
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>hive.llap.zk.sm.connectionString</name>
     <value>localhost:2181</value>
+    <description>ZooKeeper connection string for ZooKeeper SecretManager.</description>
     <depends-on>
       <property>
         <type>zoo.cfg</type>
@@ -568,6 +632,11 @@ limitations under the License.
   <property>
     <name>hive.llap.io.memory.mode</name>
     <value/>
+    <description>
+      LLAP IO memory usage; 'cache' (the default) uses data and metadata cache with a
+      custom off-heap allocator, 'allocator' uses the custom allocator without the caches,
+      'none' doesn't use either (this mode may result in significant performance degradation)
+    </description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
