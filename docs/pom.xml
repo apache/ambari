@@ -401,6 +401,18 @@
             </organization>
         </developer>
         <developer>
+            <id>gnagar</id>
+            <name>Gaurav Nagar</name>
+            <email>gnagar@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>hitesh</id>
             <name>Hitesh Shah</name>
             <email>hitesh@apache.org</email>
@@ -575,6 +587,18 @@
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
+            <id>nitiraj</id>
+            <name>Nitiraj Rathore</name>
+            <email>nitiraj@apache.org</email>
+            <timezone>+5.5</timezone>
+            <roles>
+                <role>Committer</role>
             </roles>
             <organization>
                 Hortonworks
