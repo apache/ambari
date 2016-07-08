@@ -1804,6 +1804,9 @@ def getHeapsizeProperties():
                                  {"config-name": "ams-env",
                                    "property": "metrics_collector_heapsize",
                                    "default": "512"}],
+           "ATLAS_SERVER": [{"config-name": "atlas-env",
+                             "property": "atlas_server_xmx",
+                             "default": "2048"}]
            }
 
 def getMemorySizeRequired(components, configurations):
