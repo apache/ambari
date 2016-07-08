@@ -65,6 +65,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
@@ -343,7 +344,7 @@ public class ClusterInstallWithoutStartTest {
       andReturn(Collections.singletonList(configurationRequest3)).once();
     // INSTALL task expectation
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), anyString(),
-      anyString(), eq(AmbariContext.TaskType.INSTALL))).andReturn(hostRoleCommand).atLeastOnce();
+      anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommand).atLeastOnce();
     expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();

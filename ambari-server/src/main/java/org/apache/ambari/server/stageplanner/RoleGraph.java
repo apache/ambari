@@ -164,6 +164,8 @@ public class RoleGraph {
         origStage.getRequestContext(), origStage.getClusterHostInfo(),
         origStage.getCommandParamsStage(), origStage.getHostParamsStage());
     newStage.setSuccessFactors(origStage.getSuccessFactors());
+    newStage.setSkippable(origStage.isSkippable());
+    newStage.setAutoSkipFailureSupported(origStage.isAutoSkipOnFailureSupported());
     for (RoleGraphNode rgn : stageGraphNodes) {
       for (String host : rgn.getHosts()) {
         newStage.addExecutionCommandWrapper(origStage, host, rgn.getRole());
