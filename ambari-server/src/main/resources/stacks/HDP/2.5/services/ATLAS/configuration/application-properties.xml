@@ -270,4 +270,10 @@
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>atlas.solr.kerberos.enable</name>
+    <value>false</value>
+    <description>Enable kerberized Solr support for Atlas.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
