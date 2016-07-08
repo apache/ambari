@@ -28,7 +28,7 @@ from ambari_commons.inet_utils import download_file
 from ambari_commons.logging_utils import print_info_msg, print_error_msg
 from ambari_commons.os_utils import copy_file
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
-  get_common_services_location, get_mpacks_staging_location, get_server_temp_location
+  get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location
 
 from resource_management.core import sudo
 from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
@@ -150,10 +150,11 @@ def get_mpack_properties():
     print_error_msg("Error getting ambari properties")
     return -1
   stack_location = get_stack_location(properties)
+  extension_location = get_extension_location(properties)
   service_definitions_location = get_common_services_location(properties)
   mpacks_staging_location = get_mpacks_staging_location(properties)
   ambari_version = get_ambari_version(properties)
-  return stack_location, service_definitions_location, mpacks_staging_location
+  return stack_location, extension_location, service_definitions_location, mpacks_staging_location
 
 def _get_mpack_name_version(mpack_path):
   """
@@ -223,7 +224,7 @@ def purge_stacks_and_mpacks(purge_list, replay_mode=False):
   :param replay_mode: Flag to indicate if purging in replay mode
   """
   # Get ambari mpacks config properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
 
   print_info_msg("Purging existing stack definitions and management packs")
 
@@ -257,7 +258,7 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   for file in sorted(os.listdir(artifact_source_dir)):
     if os.path.isfile(os.path.join(artifact_source_dir, file)):
       # Example: /var/lib/ambari-server/resources/stacks/stack_advisor.py
@@ -294,7 +295,7 @@ def process_stack_definition_artifact(artifact, artifact_source_dir, options):
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   stack_name = None
   if "stack_name" in artifact:
     stack_name = artifact.stack_name
@@ -307,7 +308,71 @@ def process_stack_definition_artifact(artifact, artifact_source_dir, options):
   if not stack_version:
     print_error_msg("Must provide stack version for stack-definition artifact!")
     raise FatalException(-1, 'Must provide stack version for stack-definition artifact!')
-  dest_link = os.path.join(stack_location, stack_name, stack_version)
+  stack_dir = os.path.join(stack_location, stack_name)
+  dest_link = os.path.join(stack_dir, stack_version)
+  if (not os.path.exists(stack_dir)):
+    sudo.makedir(stack_dir, 0755)
+  if options.force and os.path.islink(dest_link):
+    sudo.unlink(dest_link)
+  sudo.symlink(artifact_source_dir, dest_link)
+
+def process_extension_definitions_artifact(artifact, artifact_source_dir, options):
+  """
+  Process extension-definitions artifacts
+  Creates references for everything under the artifact_source_dir in the extension_location directory.
+  This links all files, creates the extension name and extension version directories.
+  Under the extension version directory, it creates links for all files and directories other than the
+  services directory.  It creates links from the services directory to each service in the extension version.
+  :param artifact: Artifact metadata
+  :param artifact_source_dir: Location of artifact in the management pack
+  :param options: Command line options
+  """
+  # Get ambari mpack properties
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  if not os.path.exists(extension_location):
+    sudo.makedir(extension_location, 0755)
+  for file in sorted(os.listdir(artifact_source_dir)):
+    if os.path.isfile(os.path.join(artifact_source_dir, file)):
+      # Example: /var/lib/ambari-server/resources/extensions/README.txt
+      create_symlink(artifact_source_dir, extension_location, file, options.force)
+    else:
+      src_extension_dir = os.path.join(artifact_source_dir, file)
+      dest_extension_dir = os.path.join(extension_location, file)
+      if not os.path.exists(dest_extension_dir):
+        sudo.makedir(dest_extension_dir, 0755)
+      for file in sorted(os.listdir(src_extension_dir)):
+        create_symlink(src_extension_dir, dest_extension_dir, file, options.force)
+
+def process_extension_definition_artifact(artifact, artifact_source_dir, options):
+  """
+  Process extension-definition artifact
+  Creates a link from <extension_location>/<extension_name>/<extension_version>
+  to the artifact_source_dir.
+  Ex: resources/extensions/EXT/1.0 -> resources/mpacks/myext/extensions/EXT/1.0
+  :param artifact: Artifact metadata
+  :param artifact_source_dir: Location of artifact in the management pack
+  :param options: Command line options
+  """
+  # Get ambari mpack properties
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  extension_name = None
+  if "extension_name" in artifact:
+    extension_name = artifact.extension_name
+  if not extension_name:
+    print_error_msg("Must provide extension name for extension-definition artifact!")
+    raise FatalException(-1, 'Must provide extension name for extension-definition artifact!')
+  extension_version = None
+  if "extension_version" in artifact:
+    extension_version = artifact.extension_version
+  if not extension_version:
+    print_error_msg("Must provide extension version for extension-definition artifact!")
+    raise FatalException(-1, 'Must provide extension version for extension-definition artifact!')
+  extension_dir = os.path.join(extension_location, extension_name)
+  dest_link = os.path.join(extension_dir, extension_version)
+  if (not os.path.exists(extension_location)):
+    sudo.makedir(extension_location, 0755)
+  if (not os.path.exists(extension_dir)):
+    sudo.makedir(extension_dir, 0755)
   if options.force and os.path.islink(dest_link):
     sudo.unlink(dest_link)
   sudo.symlink(artifact_source_dir, dest_link)
@@ -320,7 +385,7 @@ def process_service_definitions_artifact(artifact, artifact_source_dir, options)
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   for file in sorted(os.listdir(artifact_source_dir)):
     src_service_definitions_dir = os.path.join(artifact_source_dir, file)
     dest_service_definitions_dir = os.path.join(service_definitions_location, file)
@@ -337,7 +402,7 @@ def process_service_definition_artifact(artifact, artifact_source_dir, options):
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   service_name = None
   if "service_name" in artifact:
     service_name = artifact.service_name
@@ -358,21 +423,21 @@ def process_service_definition_artifact(artifact, artifact_source_dir, options):
     sudo.unlink(dest_link)
   sudo.symlink(artifact_source_dir, dest_link)
 
-def process_stack_extension_definitions_artifact(artifact, artifact_source_dir, options):
+def process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options):
   """
-  Process stack-extension-definitions artifact
+  Process stack addon service definitions artifact
   :param artifact: Artifact metadata
   :param artifact_source_dir: Location of artifact in the management pack
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   service_versions_map = None
   if "service_versions_map" in artifact:
     service_versions_map = artifact.service_versions_map
   if not service_versions_map:
-    print_error_msg("Must provide service versions map for stack-extension-definitions artifact!")
-    raise FatalException(-1, 'Must provide service versions map for stack-extension-definition artifact!')
+    print_error_msg("Must provide service versions map for stack-addon-service-definitions artifact!")
+    raise FatalException(-1, 'Must provide service versions map for stack-addon-service-definition artifact!')
   for service_name in sorted(os.listdir(artifact_source_dir)):
     source_service_path = os.path.join(artifact_source_dir, service_name)
     for service_version in sorted(os.listdir(source_service_path)):
@@ -394,27 +459,27 @@ def process_stack_extension_definitions_artifact(artifact, artifact_source_dir, 
                 sudo.unlink(dest_link)
               sudo.symlink(source_service_version_path, dest_link)
 
-def process_stack_extension_definition_artifact(artifact, artifact_source_dir, options):
+def process_stack_addon_service_definition_artifact(artifact, artifact_source_dir, options):
   """
-  Process stack-extension-definition artifact
+  Process stack addon service definition artifact
   :param artifact: Artifact metadata
   :param artifact_source_dir: Location of artifact in the management pack
   :param options: Command line options
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   service_name = None
   if "service_name" in artifact:
     service_name = artifact.service_name
   if not service_name:
-    print_error_msg("Must provide service name for stack-extension-definition artifact!")
-    raise FatalException(-1, 'Must provide service name for stack-extension-definition artifact!')
+    print_error_msg("Must provide service name for stack-addon-service-definition artifact!")
+    raise FatalException(-1, 'Must provide service name for stack-addon-service-definition artifact!')
   applicable_stacks = None
   if "applicable_stacks" in artifact:
     applicable_stacks = artifact.applicable_stacks
   if not applicable_stacks:
-    print_error_msg("Must provide applicable stacks for stack-extension-definition artifact!")
-    raise FatalException(-1, 'Must provide applicable stacks for stack-extension-definition artifact!')
+    print_error_msg("Must provide applicable stacks for stack-addon-service-definition artifact!")
+    raise FatalException(-1, 'Must provide applicable stacks for stack-addon-service-definition artifact!')
   for applicable_stack in applicable_stacks:
     stack_name = applicable_stack.stack_name
     stack_version = applicable_stack.stack_version
@@ -438,7 +503,7 @@ def search_mpacks(mpack_name, max_mpack_version=None):
   :return: List of management pack
   """
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   results = []
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
     staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
@@ -477,7 +542,7 @@ def uninstall_mpack(mpack_name, mpack_version):
   """
   print_info_msg("Uninstalling management pack {0}-{1}".format(mpack_name, mpack_version))
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   found = False
   if os.path.exists(mpacks_staging_location) and os.path.isdir(mpacks_staging_location):
     staged_mpack_dirs = sorted(os.listdir(mpacks_staging_location))
@@ -586,11 +651,13 @@ def _install_mpack(options, replay_mode=False):
     purge_stacks_and_mpacks(options.purge_list.split(","), replay_mode)
 
   # Get ambari mpack properties
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   mpacks_cache_location = os.path.join(mpacks_staging_location, MPACKS_CACHE_DIRNAME)
   # Create directories
   if not os.path.exists(stack_location):
     sudo.makedir(stack_location, 0755)
+  if not os.path.exists(extension_location):
+    sudo.makedir(extension_location, 0755)
   if not os.path.exists(service_definitions_location):
     sudo.makedir(service_definitions_location, 0755)
   if not os.path.exists(mpacks_staging_location):
@@ -618,12 +685,12 @@ def _install_mpack(options, replay_mode=False):
   shutil.move(tmp_root_dir, mpack_staging_dir)
   shutil.move(tmp_archive_path, mpack_archive_path)
 
-  # Process setup steps for all artifacts (stack-definitions, service-definitions, stack-extension-definitions)
-  # in the management pack
+  # Process setup steps for all artifacts (stack-definitions, extension-definitions,
+  # service-definitions, stack-addon-service-definitions) in the management pack
   for artifact in mpack_metadata.artifacts:
     # Artifact name (Friendly name)
     artifact_name = artifact.name
-    # Artifact type (stack-definitions, service-definitions, stack-extension-definitions etc)
+    # Artifact type (stack-definitions, extension-definitions, service-definitions, etc)
     artifact_type = artifact.type
     # Artifact directory with contents of the artifact
     artifact_source_dir = os.path.join(mpack_staging_dir, artifact.source_dir)
@@ -634,14 +701,18 @@ def _install_mpack(options, replay_mode=False):
       process_stack_definitions_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "stack-definition":
       process_stack_definition_artifact(artifact, artifact_source_dir, options)
+    elif artifact.type == "extension-definitions":
+      process_extension_definitions_artifact(artifact, artifact_source_dir, options)
+    elif artifact.type == "extension-definition":
+      process_extension_definition_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "service-definitions":
       process_service_definitions_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "service-definition":
       process_service_definition_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "stack-extension-definitions":
-      process_stack_extension_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "stack-extension-definition":
-      process_stack_extension_definition_artifact(artifact, artifact_source_dir, options)
+    elif artifact.type == "stack-addon-service-definitions":
+      process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options)
+    elif artifact.type == "stack-addon-service-definition":
+      process_stack_addon_service_definition_artifact(artifact, artifact_source_dir, options)
     else:
       print_info_msg("Unknown artifact {0} of type {1}".format(artifact_name, artifact_type))
 
@@ -653,7 +724,7 @@ def get_replay_log_file():
   Helper function to get mpack replay log file path
   :return: mpack replay log file path
   """
-  stack_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
   replay_log_file = os.path.join(mpacks_staging_location, MPACKS_REPLAY_LOG_FILENAME)
   return replay_log_file
 
