@@ -30,6 +30,58 @@ from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Link
 from resource_management.core.logger import Logger
 
+'''
+Only this subset of Atlas application.properties should be written out to each service that has an Atlas hook,
+E.g., Hive, Storm, Sqoop, Falcon.
+The reason for this is that we don't want configs to get out-of-sync between each of these services.
+Assume Atlas application.properties contains props
+
+private_prop_a
+private_prop_b
+private_prop_c
+shared_atlas_hook_prop_d
+shared_atlas_hook_prop_e
+
+Then only shared_atlas_hook_prop_d and shared_atlas_hook_prop_e should be merged with the properties specific to
+Hive, Storm, Sqoop, and Falcon.
+E.g.,
+Hive has,
+specific_hive_atlas_hook_prop_f
+specific_hive_atlas_hook_prop_g
+
+So the atlas-application.properties.xml file that we write for Hive should contain,
+shared_atlas_hook_prop_d
+shared_atlas_hook_prop_e
+specific_hive_atlas_hook_prop_f
+specific_hive_atlas_hook_prop_g
+
+Now, if the user wants to make a global change for Atlas hooks, they can change shared_atlas_hook_prop_d or shared_atlas_hook_prop_e
+in a single place (under the Atlas Configs page).
+If they want to overwrite shared_atlas_hook_prop_d just for Hive, they can add it to hive-atlas-application.properties
+'''
+
+SHARED_ATLAS_HOOK_CONFIGS = set(
+  [
+  "atlas.kafka.zookeeper.connect",
+  "atlas.kafka.bootstrap.servers",
+  "atlas.kafka.zookeeper.session.timeout.ms",
+  "atlas.kafka.zookeeper.connection.timeout.ms",
+  "atlas.kafka.zookeeper.sync.time.ms",
+  "atlas.kafka.hook.group.id",
+  "atlas.notification.create.topics",
+  "atlas.notification.replicas",
+  "atlas.notification.topics",
+  "atlas.notification.kafka.service.principal",
+  "atlas.notification.kafka.keytab.location",
+  "atlas.jaas.KafkaClient.loginModuleName",
+  "atlas.jaas.KafkaClient.loginModuleControlFlag",
+  "atlas.jaas.KafkaClient.option.useKeyTab",
+  "atlas.jaas.KafkaClient.option.storeKey",
+  "atlas.jaas.KafkaClient.option.serviceName",
+  "atlas.jaas.KafkaClient.option.keyTab",
+  "atlas.jaas.KafkaClient.option.principal",
+  "atlas.cluster.name"]
+)
 
 def has_atlas_in_cluster():
   """
@@ -51,7 +103,12 @@ def setup_atlas_hook(service_props, atlas_hook_filepath, owner, group):
   atlas_props = default('/configurations/application-properties', {})
 
   if has_atlas_in_cluster():
-    merged_props = atlas_props.copy()
+    # Take the subset
+    merged_props = {}
+    for prop in SHARED_ATLAS_HOOK_CONFIGS:
+      if prop in atlas_props:
+        merged_props[prop] = atlas_props[prop]
+
     merged_props.update(service_props)
 
     Logger.info(format("Generating Atlas Hook config file {atlas_hook_filepath}"))
@@ -64,6 +121,15 @@ def setup_atlas_hook(service_props, atlas_hook_filepath, owner, group):
 
 def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
   """
+  In HDP 2.3, 2.4, and 2.5.0.0, Sqoop and Storm still relied on the following method to setup Atlas hooks
+  because the RPM for Sqoop and Storm did not bring in any dependencies.
+
+  /usr/hdp/current/storm-*/libext/ should contain symlinks for every jar in /usr/hdp/current/atlas-server/hooks/storm/somejavafile.jar
+  /usr/hdp/current/sqoop-*/lib/    should contain symlinks for every jar in /usr/hdp/current/atlas-server/hooks/sqoop/somejavafile.jar
+
+  In HDP 2.5.x.y, we plan to have the Sqoop and Storm rpms have additional dependencies on some sqoop-atlas-hook and storm-atlas-hook
+  rpms, respectively, that will bring in the necessary jars and create the symlinks.
+
   If atlas is present on this host, then link the jars from
   {stack_root}/current/{hook_name}/lib/name_version.jar -> {jar_source_dir}/name_version.jar
   @param hook_name: one of sqoop, storm

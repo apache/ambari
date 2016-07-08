@@ -21,20 +21,7 @@
     <service>
       <name>ATLAS</name>
       <version>0.7.0.2.5</version>
-      <components>
-        <component>
-          <name>ATLAS_SERVER</name>
-          <cardinality>1+</cardinality>
-        </component>
-      </components>
-
-      <quickLinksConfigurations>
-        <quickLinksConfiguration>
-          <fileName>quicklinks.json</fileName>
-          <default>true</default>
-        </quickLinksConfiguration>
-      </quickLinksConfigurations>
-
+      <extends>common-services/ATLAS/0.7.0.2.5</extends>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
@@ -62,17 +49,12 @@
         </osSpecific>
       </osSpecifics>
 
-      <configuration-dependencies>
+<configuration-dependencies>
         <config-type>ranger-atlas-audit</config-type>
         <config-type>ranger-atlas-plugin-properties</config-type>
         <config-type>ranger-atlas-policymgr-ssl</config-type>
         <config-type>ranger-atlas-security</config-type>
       </configuration-dependencies>
-
-      <requiredServices>
-        <service>KAFKA</service>
-      </requiredServices>
-
     </service>
   </services>
 </metainfo>
