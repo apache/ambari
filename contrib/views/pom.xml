@@ -46,6 +46,7 @@
     <module>zeppelin</module>
     <module>hueambarimigration</module>
     <module>hive-next</module>
+    <module>wfmanager</module>
   </modules>
   <build>
     <pluginManagement>
