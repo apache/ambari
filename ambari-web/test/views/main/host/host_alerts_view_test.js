@@ -99,10 +99,10 @@ describe('App.MainHostAlertsView', function () {
             state: 'WARNING'
           }),
           Em.Object.create({
-            state: 'OTHER'
+            state: 'OK'
           }),
           Em.Object.create({
-            state: 'OK'
+            state: 'OTHER'
           })
         ]
       }
@@ -129,11 +129,18 @@ describe('App.MainHostAlertsView', function () {
       view.set('parentView.controller.content', Em.Object.create({
         hostName: 'host1'
       }));
+      sinon.stub(App.db, 'getSortingStatuses').returns([
+        {
+          name: "state",
+          status: "sorting_asc"
+        }
+      ]);
     });
     afterEach(function() {
       mock.loadAlertInstancesByHost.restore();
       App.router.get.restore();
       App.router.set.restore();
+      App.db.getSortingStatuses.restore();
     });
 
     it("loadAlertInstancesByHost should be called", function() {
