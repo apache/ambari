@@ -96,6 +96,11 @@ public interface Blueprint {
    */
   public String getRecoveryEnabled(String serviceName, String componentName);
 
+  /**
+   * Check if auto skip failure is enabled.
+   * @return true if enabled, otherwise false.
+   */
+  public boolean shouldSkipFailure();
 
   /**
    * Get the stack associated with the blueprint.

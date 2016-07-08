@@ -209,6 +209,20 @@ public class BlueprintImpl implements Blueprint {
   }
 
   @Override
+  public boolean shouldSkipFailure() {
+    if (setting == null) {
+      return false;
+    }
+    Set<HashMap<String, String>> settingValue = setting.getSettingValue(Setting.SETTING_NAME_DEPLOYMENT_SETTINGS);
+    for (Map<String, String> setting : settingValue) {
+      if (setting.containsKey(Setting.SETTING_NAME_SKIP_FAILURE)) {
+        return setting.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true");
+      }
+    }
+    return false;
+  }
+
+  @Override
   public Stack getStack() {
     return stack;
   }

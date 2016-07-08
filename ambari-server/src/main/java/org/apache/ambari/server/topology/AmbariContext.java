@@ -123,8 +123,10 @@ public class AmbariContext {
 
 
   //todo: change return type to a topology abstraction
-  public HostRoleCommand createAmbariTask(long requestId, long stageId, String component, String host, TaskType type) {
-    HostRoleCommand task = hostRoleCommandFactory.create(host, Role.valueOf(component), null, RoleCommand.valueOf(type.name()));
+  public HostRoleCommand createAmbariTask(long requestId, long stageId, String component, String host,
+                                          TaskType type, boolean skipFailure) {
+    HostRoleCommand task = hostRoleCommandFactory.create(
+            host, Role.valueOf(component), null, RoleCommand.valueOf(type.name()), false, skipFailure);
     task.setStatus(HostRoleStatus.PENDING);
     task.setCommandDetail(String.format("Logical Task: %s component %s on host %s", type.name(), component, host));
     task.setTaskId(nextTaskId.getAndIncrement());
@@ -136,7 +138,7 @@ public class AmbariContext {
 
   //todo: change return type to a topology abstraction
   public HostRoleCommand createAmbariTask(long taskId, long requestId, long stageId,
-                                          String component, String host, TaskType type) {
+                                          String component, String host, TaskType type, boolean skipFailure) {
     synchronized (nextTaskId) {
       if (nextTaskId.get() <= taskId) {
         nextTaskId.set(taskId + 1);
@@ -144,7 +146,7 @@ public class AmbariContext {
     }
 
     HostRoleCommand task = hostRoleCommandFactory.create(
-        host, Role.valueOf(component), null, RoleCommand.valueOf(type.name()));
+        host, Role.valueOf(component), null, RoleCommand.valueOf(type.name()), false, skipFailure);
     task.setStatus(HostRoleStatus.PENDING);
     task.setCommandDetail(String.format("Logical Task: %s component %s on host %s",
         type.name(), component, host));
@@ -347,18 +349,18 @@ public class AmbariContext {
     }
   }
 
-  public RequestStatusResponse installHost(String hostName, String clusterName) {
+  public RequestStatusResponse installHost(String hostName, String clusterName, boolean skipFailure) {
     try {
-      return getHostResourceProvider().install(clusterName, hostName);
+      return getHostResourceProvider().install(clusterName, hostName, skipFailure);
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException("INSTALL Host request submission failed: " + e, e);
     }
   }
 
-  public RequestStatusResponse startHost(String hostName, String clusterName, Collection<String> installOnlyComponents) {
+  public RequestStatusResponse startHost(String hostName, String clusterName, Collection<String> installOnlyComponents, boolean skipFailure) {
     try {
-      return getHostComponentResourceProvider().start(clusterName, hostName, installOnlyComponents);
+      return getHostComponentResourceProvider().start(clusterName, hostName, installOnlyComponents, skipFailure);
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException("START Host request submission failed: " + e, e);

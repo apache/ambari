@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 
 import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
+import org.apache.ambari.server.topology.Blueprint;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.expect;
@@ -1548,6 +1549,7 @@ public class RequestResourceProviderTest {
 
 
     ClusterTopology topology = createNiceMock(ClusterTopology.class);
+    Blueprint blueprint = createNiceMock(Blueprint.class);
     expect(topology.getClusterId()).andReturn(2L).anyTimes();
 
     Long clusterId = 2L;
@@ -1566,7 +1568,8 @@ public class RequestResourceProviderTest {
 
     TopologyRequest topologyRequest = createNiceMock(TopologyRequest.class);
     expect(topologyRequest.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
-    expect(topologyRequest.getBlueprint()).andReturn(null).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(blueprint.shouldSkipFailure()).andReturn(true).anyTimes();
 
 
 
@@ -1576,6 +1579,7 @@ public class RequestResourceProviderTest {
     PowerMock.replayAll(
       topologyRequest,
       topology,
+      blueprint,
       managementController,
       clusters);
 

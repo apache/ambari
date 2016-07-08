@@ -185,6 +185,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpInProgre
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.topology.Setting;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -2083,15 +2084,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 Map<String, Map<String, String>> configTags,
                                 RoleCommand roleCommand,
                                 Map<String, String> commandParamsInp,
-                                ServiceComponentHostEvent event
+                                ServiceComponentHostEvent event,
+                                boolean skipFailure
                                 )
                                 throws AmbariException {
 
     String serviceName = scHost.getServiceName();
 
     stage.addHostRoleExecutionCommand(scHost.getHost(),
-        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceName,
-        false, false);
+        Role.valueOf(scHost.getServiceComponentName()), roleCommand, event, cluster, serviceName, false, skipFailure);
 
     String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
@@ -2459,9 +2460,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
           clusterHostInfoJson, "{}", hostParamsJson);
+      boolean skipFailure = false;
+      if (requestProperties.containsKey(Setting.SETTING_NAME_SKIP_FAILURE) && requestProperties.get(Setting.SETTING_NAME_SKIP_FAILURE).equalsIgnoreCase("true")) {
+        skipFailure = true;
+      }
+      stage.setAutoSkipFailureSupported(skipFailure);
+      stage.setSkippable(skipFailure);
 
-      Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<ServiceComponentHost>();
-      Set<String> hostsToForceKerberosOperations = new HashSet<String>();
+      Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<>();
+      Set<String> hostsToForceKerberosOperations = new HashSet<>();
 
       for (String compName : changedScHosts.keySet()) {
         for (State newState : changedScHosts.get(compName).keySet()) {
@@ -2702,7 +2709,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               scHost.setState(State.INSTALLED);
             } else {
               createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                roleCommand, requestParameters, event);
+                roleCommand, requestParameters, event, skipFailure);
             }
 
           }
@@ -2820,7 +2827,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         new TreeMap<String, Map<String, Map<String, String>>>();
 
     createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-                     roleCommand, null, null);
+                     roleCommand, null, null, false);
     ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
 
     // createHostAction does not take a hostLevelParams but creates one

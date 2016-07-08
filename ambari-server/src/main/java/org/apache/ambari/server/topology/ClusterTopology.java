@@ -144,7 +144,7 @@ public interface ClusterTopology {
    * @param hostName  host name
    * @return install response
    */
-  RequestStatusResponse installHost(String hostName);
+  RequestStatusResponse installHost(String hostName, boolean skipFailure);
 
   /**
    * Start the specified host.
@@ -152,7 +152,7 @@ public interface ClusterTopology {
    * @param hostName  host name
    * @return start response
    */
-  RequestStatusResponse startHost(String hostName);
+  RequestStatusResponse startHost(String hostName, boolean skipFailure);
 
   void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
 
