@@ -184,6 +184,7 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 DEFAULT_DB_NAME = "ambari"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
+EXTENSION_PATH_PROPERTY = 'extensions.path'
 COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
 MPACKS_STAGING_PATH_PROPERTY = 'mpacks.staging.path'
 WEBAPP_DIR_PROPERTY = 'webapp.dir'
@@ -374,6 +375,7 @@ class ServerConfigDefaults(object):
     self.DEFAULT_DB_NAME = "ambari"
 
     self.STACK_LOCATION_DEFAULT = ""
+    self.EXTENSION_LOCATION_DEFAULT = ""
     self.COMMON_SERVICES_LOCATION_DEFAULT = ""
     self.MPACKS_STAGING_LOCATION_DEFAULT = ""
     self.SERVER_TMP_DIR_DEFAULT = ""
@@ -444,6 +446,7 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
 
     self.SERVER_RESOURCES_DIR = "resources"
     self.STACK_LOCATION_DEFAULT = "resources\\stacks"
+    self.EXTENSION_LOCATION_DEFAULT = "resources\\extensions"
     self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
     self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
     self.SERVER_TMP_DIR_DEFAULT = "data\\tmp"
@@ -529,6 +532,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
 
     self.SERVER_RESOURCES_DIR = AmbariPath.get("/var/lib/ambari-server/resources")
     self.STACK_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/stacks")
+    self.EXTENSION_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/extensions")
     self.COMMON_SERVICES_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/common-services")
     self.MPACKS_STAGING_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/mpacks")
     self.SERVER_TMP_DIR_DEFAULT = AmbariPath.get("/var/lib/ambari-server/data/tmp")
@@ -1378,6 +1382,15 @@ def get_stack_location(properties):
   if not stack_location:
     stack_location = configDefaults.STACK_LOCATION_DEFAULT
   return stack_location
+
+#
+# Extension location
+#
+def get_extension_location(properties):
+  extension_location = properties[EXTENSION_PATH_PROPERTY]
+  if not extension_location:
+    extension_location = configDefaults.EXTENSION_LOCATION_DEFAULT
+  return extension_location
 
 #
 # Common services location
