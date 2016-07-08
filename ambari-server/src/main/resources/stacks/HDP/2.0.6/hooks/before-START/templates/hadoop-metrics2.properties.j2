@@ -101,8 +101,4 @@ namenode.sink.timeline.metric.rpc.datanode.port={{nn_rpc_dn_port}}
 namenode.sink.timeline.metric.rpc.healthcheck.port={{nn_rpc_healthcheck_port}}
 {% endif %}
 
-# Switch off container metrics
-*.source.filter.class=org.apache.hadoop.metrics2.filter.GlobFilter
-nodemanager.*.source.filter.exclude=*ContainerResource*
-
 {% endif %}
