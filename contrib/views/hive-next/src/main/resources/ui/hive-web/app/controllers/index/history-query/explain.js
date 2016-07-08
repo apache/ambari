@@ -52,8 +52,30 @@ export default Ember.ObjectController.extend({
       url += '?first=true';
     }
 
+    var getExplainResult = function() {
+      var defer = Ember.RSVP.defer();
+      var attempt = 3;
+
+      var getResult = function() {
+        Ember.$.getJSON(url).then(function (json) {
+          defer.resolve(json);
+        }, function (err) {
+          if(err.status === 409 && attempt > 0) {
+            attempt--;
+            Ember.run.later(self, getResult, 3000); // Retry after 3 seconds
+          } else {
+            defer.reject(err);
+          }
+        });
+      };
+      getResult();
+      return defer.promise;
+    };
+
+
+
     this.get('content').reload().then(function () {
-      Ember.$.getJSON(url).then(function (data) {
+      getExplainResult().then(function (data) {
         var explainSet;
 
         //if rows from a previous page read exist, prepend them
