@@ -12,7 +12,8 @@
             "atlas.jaas.KafkaClient.loginModuleControlFlag": "required",
             "atlas.jaas.KafkaClient.option.useKeyTab": "true",
             "atlas.jaas.KafkaClient.option.storeKey": "true",
-            "atlas.jaas.KafkaClient.option.serviceName": "${kafka-env/kafka_user}"
+            "atlas.jaas.KafkaClient.option.serviceName": "${kafka-env/kafka_user}",
+            "atlas.solr.kerberos.enable": "true"
           }
         }
       ],
