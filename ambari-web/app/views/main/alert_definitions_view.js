@@ -39,6 +39,16 @@ App.MainAlertDefinitionsView = App.TableView.extend({
     if (!this.get('controller.showFilterConditionsFirstLoad')) {
       this.clearFilterConditionsFromLocalStorage();
     }
+    // on load alters should be sorted by status
+    var controllerName = this.get('controller.name'),
+      savedSortConditions = App.db.getSortingStatuses(controllerName) || [];
+    if (savedSortConditions.everyProperty('status', 'sorting')) {
+      savedSortConditions.push({
+        name: "summary",
+        status: "sorting_asc"
+      });
+      App.db.setSortingStatuses(controllerName, savedSortConditions);
+    }
     this._super();
   },
 
@@ -79,15 +89,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
   colPropAssoc: ['', 'label', 'summary', 'serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
 
-  sortView: sort.wrapperView.extend({
-    didInsertElement: function () {
-      this._super();
-      // set default sorting to status sorting
-      var statusSortingView = this.get('childViews').findProperty('name', 'summary');
-      this.set('controller.sortingColumn', statusSortingView);
-      this.addSortingObserver(statusSortingView.get('name'))
-    }
-  }),
+  sortView: sort.wrapperView,
 
   /**
    * Define whether initial view rendering has finished
