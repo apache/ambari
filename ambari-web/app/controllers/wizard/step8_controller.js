@@ -1155,7 +1155,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (masterOnAllHosts.length > 0) {
         var compOnAllHosts = false;
         for (var i=0; i < masterOnAllHosts.length; i++) {
-          if (component.component_name == masterOnAllHosts[i]) {
+          if (component == masterOnAllHosts[i]) {
             compOnAllHosts = true;
             break;
           }
@@ -1227,7 +1227,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (slaveOnAllHosts.length > 0) {
           var compOnAllHosts = false;
           for (var i=0; i < slaveOnAllHosts.length; i++) {
-            if (_slave.component_name == slaveOnAllHosts[i]) {
+            if (_slave.componentName == slaveOnAllHosts[i]) {
               // component with ALL cardinality should not
               // registerHostsToComponent in createSlaveAndClientsHostComponents
               compOnAllHosts = true;
