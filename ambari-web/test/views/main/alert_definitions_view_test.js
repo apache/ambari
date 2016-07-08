@@ -60,10 +60,17 @@ describe('App.MainAlertDefinitionsView', function () {
 
     beforeEach(function(){
       sinon.stub(view, 'clearFilterConditionsFromLocalStorage', Em.K);
+      sinon.stub(App.db, 'getSortingStatuses').returns([
+        {
+          name: "summary",
+          status: "sorting_asc"
+        }
+      ]);
     });
 
     afterEach(function(){
       view.clearFilterConditionsFromLocalStorage.restore();
+      App.db.getSortingStatuses.restore();
     });
 
     it('should call clearFilterCondition if controller.showFilterConditionsFirstLoad is false', function () {

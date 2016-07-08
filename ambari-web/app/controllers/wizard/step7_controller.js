@@ -182,10 +182,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property('content.services').cacheable(),
 
   installedServices: function () {
+    var self = this;
     return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
-      return Em.get(item, 'isInstalled');
+      return self.get('installedServiceNames').contains(item.get('serviceName'));
     });
-  }.property(),
+  }.property('installedServiceNames.length'),
 
   /**
    * List of master components
