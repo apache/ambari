@@ -159,6 +159,7 @@ rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.add
 rm_https_port = default('/configurations/yarn-site/yarn.resourcemanager.webapp.https.address', ":8090").split(':')[-1]
 # TODO UPGRADE default, update site during upgrade
 rm_nodes_exclude_path = default("/configurations/yarn-site/yarn.resourcemanager.nodes.exclude-path","/etc/hadoop/conf/yarn.exclude")
+rm_nodes_exclude_dir = os.path.dirname(rm_nodes_exclude_path)
 
 java64_home = config['hostLevelParams']['java_home']
 hadoop_ssl_enabled = default("/configurations/core-site/hadoop.ssl.enabled", False)

@@ -203,10 +203,6 @@ class TestAppTimelineServer(RMFTestCase):
                               action = ['execute'], hdfs_resource_ignore_file='/var/lib/ambari-agent/data/.hdfs_resource_ignore',
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
                               content = Template('yarn.conf.j2'),
                               mode = 0644,
