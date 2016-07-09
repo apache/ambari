@@ -132,10 +132,6 @@ class TestMapReduce2Client(RMFTestCase):
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
     )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-      owner = 'yarn',
-      group = 'hadoop',
-    )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
       mode = 0644,
@@ -299,10 +295,6 @@ class TestMapReduce2Client(RMFTestCase):
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
-    )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-      owner = 'yarn',
-      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
