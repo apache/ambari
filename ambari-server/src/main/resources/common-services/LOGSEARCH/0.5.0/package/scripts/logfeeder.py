@@ -18,7 +18,7 @@ limitations under the License.
 """
 
 import getpass
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script.script import Script
@@ -43,9 +43,10 @@ class LogFeeder(Script):
     import params
     env.set_params(params)
     self.configure(env)
-    Execute(format("{sudo} {logfeeder_dir}/run.sh"),
-            environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')}
-            )
+
+    Execute((format('{logfeeder_dir}/run.sh'),),
+            environment={'LOGFEEDER_INCLUDE': format('{logsearch_logfeeder_conf}/logfeeder-env.sh')},
+            sudo=True)
 
   def stop(self, env, upgrade_type=None):
     import params
