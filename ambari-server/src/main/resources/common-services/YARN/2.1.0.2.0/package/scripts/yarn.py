@@ -285,6 +285,16 @@ def yarn(name=None, config_dir=None):
   )
 
   if name == 'resourcemanager':
+    Directory(params.rm_nodes_exclude_dir,
+         owner=params.yarn_user,
+         group=params.user_group,
+         create_parents=True,
+         cd_access='a',
+    )
+    File(params.rm_nodes_exclude_path,
+         owner=params.yarn_user,
+         group=params.user_group
+    )
     File(params.yarn_job_summary_log,
        owner=params.yarn_user,
        group=params.user_group
@@ -353,11 +363,6 @@ def yarn(name=None, config_dir=None):
                           mode=params.entity_groupfs_active_dir_mode
                           )
     params.HdfsResource(None, action="execute")
-
-  File(params.rm_nodes_exclude_path,
-       owner=params.yarn_user,
-       group=params.user_group
-  )
 
   File(format("{limits_conf_dir}/yarn.conf"),
        mode=0644,
