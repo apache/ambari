@@ -3897,14 +3897,6 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
-      "services":
-        [
-          {
-            "StackServices": {
-              "service_name" : "STORM"
-            }
-          }
-        ],
       "configurations": configurations
     }
     res_expected = []
@@ -3941,6 +3933,14 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
     services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "STORM"
+            }
+          }
+        ],
       "configurations": configurations
     }
     res_expected = []
