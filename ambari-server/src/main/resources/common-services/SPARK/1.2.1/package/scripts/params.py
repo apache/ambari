@@ -95,7 +95,7 @@ spark_history_server_stop = format("{spark_home}/sbin/stop-history-server.sh")
 spark_thrift_server_start = format("{spark_home}/sbin/start-thriftserver.sh")
 spark_thrift_server_stop = format("{spark_home}/sbin/stop-thriftserver.sh")
 spark_logs_dir = format("{spark_home}/logs")
-spark_hadoop_lib_native = format("{stack_root}/current/hadoop-client/lib/native")
+spark_hadoop_lib_native = format("{stack_root}/current/hadoop-client/lib/native:{stack_root}/current/hadoop-client/lib/native/Linux-amd64-64")
 
 spark_submit_cmd = format("{spark_home}/bin/spark-submit")
 spark_smoke_example = "org.apache.spark.examples.SparkPi"
