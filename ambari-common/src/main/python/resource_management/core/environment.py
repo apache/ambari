@@ -147,12 +147,12 @@ class Environment(object):
 
         if resource.not_if is not None and self._check_condition(
           resource.not_if):
-          Logger.info("Skipping %s due to not_if" % resource)
+          Logger.info("Skipping {0} due to not_if".format(resource))
           continue
 
         if resource.only_if is not None and not self._check_condition(
           resource.only_if):
-          Logger.info("Skipping %s due to only_if" % resource)
+          Logger.info("Skipping {0} due to only_if".format(resource))
           continue
 
         for action in resource.action:
@@ -162,7 +162,7 @@ class Environment(object):
             try:
               self.run_action(resource, action)
             except Exception as ex:
-              Logger.info("Skipping failure of %s due to ignore_failures. Failure reason: %s" % (resource, str(ex)))
+              Logger.info("Skipping failure of {0} due to ignore_failures. Failure reason: {1}".format(resource, ex.message))
               pass
 
       # Run delayed actions
