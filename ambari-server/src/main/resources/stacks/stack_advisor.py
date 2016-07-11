@@ -349,7 +349,9 @@ class DefaultStackAdvisor(StackAdvisor):
         if hasattr(serviceAdvisor, className):
           print "ServiceAdvisor implementation for service {0} was loaded".format(serviceName)
           return getattr(serviceAdvisor, className)()
-
+        else:
+          print "Failed to load or create ServiceAdvisor implementation for service {0}: " \
+                "Expecting class name {1} but it was not found.".format(serviceName, className)
       except Exception as e:
         traceback.print_exc()
         print "Failed to load or create ServiceAdvisor implementation for service {0}".format(serviceName)
@@ -1036,3 +1038,17 @@ class DefaultStackAdvisor(StackAdvisor):
   def getHosts(self, componentsList, componentName):
     hostNamesList = [component["hostnames"] for component in componentsList if component["component_name"] == componentName]
     return hostNamesList[0] if len(hostNamesList) > 0 else []
+
+  def isSecurityEnabled(self, services):
+    """
+    Determines if security is enabled by testing the value of cluster-env/security enabled.
+
+    If the property exists and is equal to "true", then is it enabled; otherwise is it assumed to be
+    disabled.
+
+    :param services: the services structure containing the current configurations
+    :return: true if security is enabled; otherwise false
+    """
+    return "cluster-env" in services["configurations"] \
+           and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
+           and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
