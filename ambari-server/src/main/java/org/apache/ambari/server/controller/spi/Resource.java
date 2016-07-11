@@ -19,8 +19,12 @@
 package org.apache.ambari.server.controller.spi;
 
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * The resource object represents a requested resource.  The resource
@@ -185,7 +189,7 @@ public interface Resource {
     /**
      * Map of all registered types.
      */
-    private static Map<String, Type> types = new LinkedHashMap<String, Type>();
+    private static Map<String, Type> types = new ConcurrentHashMap<String, Type>();
 
     /**
      * Ordinal number counter for registering external types.
@@ -442,7 +446,7 @@ public interface Resource {
     }
 
     // register the type by name
-    private static synchronized void setType(String name, Type type) {
+    private static void setType(String name, Type type) {
       types.put(name, type);
     }
 
