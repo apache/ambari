@@ -65,7 +65,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class DBAccessorImpl implements DBAccessor {
   private static final Logger LOG = LoggerFactory.getLogger(DBAccessorImpl.class);
   private final DatabasePlatform databasePlatform;
