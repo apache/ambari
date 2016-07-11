@@ -255,10 +255,6 @@ class TestHiveServerInteractive(RMFTestCase):
     del hive_site_conf['hive.enforce.bucketing']
     del hive_site_conf['hive.enforce.sorting']
 
-    hiveserver2_site_conf = {}
-    hiveserver2_site_conf.update(self.getConfig()['configurations']['hiveserver2-site'])
-    hiveserver2_site_conf.update(self.getConfig()['configurations']['hiveserver2-interactive-site'])
-
     mapred_site_conf = {}
     mapred_site_conf.update(self.getConfig()['configurations']['mapred-site'])
 
@@ -305,14 +301,6 @@ class TestHiveServerInteractive(RMFTestCase):
                                                                        u'javax.jdo.option.ConnectionPassword': u'true'}},
                                   owner='hive',
                                   configurations=hive_site_conf,
-        )
-        self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
-                                  group='hadoop',
-                                  conf_dir=conf_dir,
-                                  mode=0644,
-                                  configuration_attributes={},
-                                  owner='hive',
-                                  configurations=hiveserver2_site_conf,
         )
         self.assertResourceCalled('File', os.path.join(conf_dir, 'hive-env.sh'),
                                   content=InlineTemplate(self.getConfig()['configurations']['hive-interactive-env']['content']),

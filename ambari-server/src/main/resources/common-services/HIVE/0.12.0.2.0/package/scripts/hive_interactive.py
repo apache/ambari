@@ -121,18 +121,6 @@ def hive_interactive(name=None):
             group = params.user_group,
             mode = 0664)
 
-  '''
-
-  '''
-  merged_hiveserver2_interactive_site = {}
-  if 'hiveserver2-site' in params.config['configurations']:
-    merged_hiveserver2_interactive_site.update(params.config['configurations']['hiveserver2-site'])
-    Logger.info("Retrieved 'hiveserver2-site' for merging with 'hiveserver2-interactive-site'.")
-  else:
-    Logger.error("'hiveserver2-site' couldn't be retrieved from passed-in configurations.")
-  merged_hiveserver2_interactive_site.update(params.config['configurations']['hiveserver2-interactive-site'])
-
-
   # Create config files under /etc/hive2/conf and /etc/hive2/conf/conf.server:
   #   hive-site.xml
   #   hive-env.sh
@@ -147,14 +135,6 @@ def hive_interactive(name=None):
                 conf_dir=conf_dir,
                 configurations=merged_hive_interactive_site,
                 configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
-                owner=params.hive_user,
-                group=params.user_group,
-                mode=0644)
-
-      XmlConfig("hiveserver2-site.xml",
-                conf_dir=conf_dir,
-                configurations=merged_hiveserver2_interactive_site,
-                configuration_attributes=params.config['configuration_attributes']['hiveserver2-interactive-site'],
                 owner=params.hive_user,
                 group=params.user_group,
                 mode=0644)
