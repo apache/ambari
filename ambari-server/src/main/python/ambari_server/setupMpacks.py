@@ -194,6 +194,7 @@ def create_symlink(src_dir, dest_dir, file_name, force=False):
   if force and os.path.islink(dest_link):
     sudo.unlink(dest_link)
   sudo.symlink(src_path, dest_link)
+  print_info_msg("Symlink: " + dest_link)
 
 def remove_symlinks(stack_location, service_definitions_location, staged_mpack_dir):
   """
@@ -287,35 +288,6 @@ def process_stack_definitions_artifact(artifact, artifact_source_dir, options):
             else:
               create_symlink(src_stack_version_dir, dest_stack_version_dir, file, options.force)
 
-def process_stack_definition_artifact(artifact, artifact_source_dir, options):
-  """
-  Process stack-definition artifact
-  :param artifact: Artifact metadata
-  :param artifact_source_dir: Location of artifact in the management pack
-  :param options: Command line options
-  """
-  # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  stack_name = None
-  if "stack_name" in artifact:
-    stack_name = artifact.stack_name
-  if not stack_name:
-    print_error_msg("Must provide stack name for stack-definition artifact!")
-    raise FatalException(-1, 'Must provide stack name for stack-definition artifact!')
-  stack_version = None
-  if "stack_version" in artifact:
-    stack_version = artifact.stack_version
-  if not stack_version:
-    print_error_msg("Must provide stack version for stack-definition artifact!")
-    raise FatalException(-1, 'Must provide stack version for stack-definition artifact!')
-  stack_dir = os.path.join(stack_location, stack_name)
-  dest_link = os.path.join(stack_dir, stack_version)
-  if (not os.path.exists(stack_dir)):
-    sudo.makedir(stack_dir, 0755)
-  if options.force and os.path.islink(dest_link):
-    sudo.unlink(dest_link)
-  sudo.symlink(artifact_source_dir, dest_link)
-
 def process_extension_definitions_artifact(artifact, artifact_source_dir, options):
   """
   Process extension-definitions artifacts
@@ -343,40 +315,6 @@ def process_extension_definitions_artifact(artifact, artifact_source_dir, option
       for file in sorted(os.listdir(src_extension_dir)):
         create_symlink(src_extension_dir, dest_extension_dir, file, options.force)
 
-def process_extension_definition_artifact(artifact, artifact_source_dir, options):
-  """
-  Process extension-definition artifact
-  Creates a link from <extension_location>/<extension_name>/<extension_version>
-  to the artifact_source_dir.
-  Ex: resources/extensions/EXT/1.0 -> resources/mpacks/myext/extensions/EXT/1.0
-  :param artifact: Artifact metadata
-  :param artifact_source_dir: Location of artifact in the management pack
-  :param options: Command line options
-  """
-  # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  extension_name = None
-  if "extension_name" in artifact:
-    extension_name = artifact.extension_name
-  if not extension_name:
-    print_error_msg("Must provide extension name for extension-definition artifact!")
-    raise FatalException(-1, 'Must provide extension name for extension-definition artifact!')
-  extension_version = None
-  if "extension_version" in artifact:
-    extension_version = artifact.extension_version
-  if not extension_version:
-    print_error_msg("Must provide extension version for extension-definition artifact!")
-    raise FatalException(-1, 'Must provide extension version for extension-definition artifact!')
-  extension_dir = os.path.join(extension_location, extension_name)
-  dest_link = os.path.join(extension_dir, extension_version)
-  if (not os.path.exists(extension_location)):
-    sudo.makedir(extension_location, 0755)
-  if (not os.path.exists(extension_dir)):
-    sudo.makedir(extension_dir, 0755)
-  if options.force and os.path.islink(dest_link):
-    sudo.unlink(dest_link)
-  sudo.symlink(artifact_source_dir, dest_link)
-
 def process_service_definitions_artifact(artifact, artifact_source_dir, options):
   """
   Process service-definitions artifact
@@ -393,35 +331,6 @@ def process_service_definitions_artifact(artifact, artifact_source_dir, options)
       sudo.makedir(dest_service_definitions_dir, 0755)
     for file in sorted(os.listdir(src_service_definitions_dir)):
       create_symlink(src_service_definitions_dir, dest_service_definitions_dir, file, options.force)
-
-def process_service_definition_artifact(artifact, artifact_source_dir, options):
-  """
-  Process service-definition artifact
-  :param artifact: Artifact metadata
-  :param artifact_source_dir: Location of artifact in the management pack
-  :param options: Command line options
-  """
-  # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  service_name = None
-  if "service_name" in artifact:
-    service_name = artifact.service_name
-  if not service_name:
-    print_error_msg("Must provide service name for service-definition artifact!")
-    raise FatalException(-1, 'Must provide service name for service-definition artifact!')
-  service_version = None
-  if "service_version" in artifact:
-    service_version = artifact.service_version
-  if not service_version:
-    print_error_msg("Must provide service version for service-definition artifact!")
-    raise FatalException(-1, 'Must provide service version for service-definition artifact!')
-  dest_service_definition_dir = os.path.join(service_definitions_location, service_name)
-  if not os.path.exists(dest_service_definition_dir):
-    sudo.makedir(dest_service_definition_dir, 0755)
-  dest_link = os.path.join(dest_service_definition_dir, service_version)
-  if options.force and os.path.islink(dest_link):
-    sudo.unlink(dest_link)
-  sudo.symlink(artifact_source_dir, dest_link)
 
 def process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options):
   """
@@ -458,41 +367,6 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
               if options.force and os.path.islink(dest_link):
                 sudo.unlink(dest_link)
               sudo.symlink(source_service_version_path, dest_link)
-
-def process_stack_addon_service_definition_artifact(artifact, artifact_source_dir, options):
-  """
-  Process stack addon service definition artifact
-  :param artifact: Artifact metadata
-  :param artifact_source_dir: Location of artifact in the management pack
-  :param options: Command line options
-  """
-  # Get ambari mpack properties
-  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
-  service_name = None
-  if "service_name" in artifact:
-    service_name = artifact.service_name
-  if not service_name:
-    print_error_msg("Must provide service name for stack-addon-service-definition artifact!")
-    raise FatalException(-1, 'Must provide service name for stack-addon-service-definition artifact!')
-  applicable_stacks = None
-  if "applicable_stacks" in artifact:
-    applicable_stacks = artifact.applicable_stacks
-  if not applicable_stacks:
-    print_error_msg("Must provide applicable stacks for stack-addon-service-definition artifact!")
-    raise FatalException(-1, 'Must provide applicable stacks for stack-addon-service-definition artifact!')
-  for applicable_stack in applicable_stacks:
-    stack_name = applicable_stack.stack_name
-    stack_version = applicable_stack.stack_version
-    dest_stack_path = os.path.join(stack_location, stack_name)
-    dest_stack_version_path = os.path.join(dest_stack_path, stack_version)
-    dest_stack_services_path = os.path.join(dest_stack_version_path, "services")
-    dest_link = os.path.join(dest_stack_services_path, service_name)
-    if os.path.exists(dest_stack_path) and os.path.exists(dest_stack_version_path):
-      if not os.path.exists(dest_stack_services_path):
-        sudo.makedir(dest_stack_services_path, 0755)
-      if options.force and os.path.islink(dest_link):
-        sudo.unlink(dest_link)
-      sudo.symlink(artifact_source_dir, dest_link)
 
 def search_mpacks(mpack_name, max_mpack_version=None):
   """
@@ -699,20 +573,12 @@ def _install_mpack(options, replay_mode=False):
             artifact_name, artifact_type, artifact_source_dir))
     if artifact.type == "stack-definitions":
       process_stack_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "stack-definition":
-      process_stack_definition_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "extension-definitions":
       process_extension_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "extension-definition":
-      process_extension_definition_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "service-definitions":
       process_service_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "service-definition":
-      process_service_definition_artifact(artifact, artifact_source_dir, options)
     elif artifact.type == "stack-addon-service-definitions":
       process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "stack-addon-service-definition":
-      process_stack_addon_service_definition_artifact(artifact, artifact_source_dir, options)
     else:
       print_info_msg("Unknown artifact {0} of type {1}".format(artifact_name, artifact_type))
 

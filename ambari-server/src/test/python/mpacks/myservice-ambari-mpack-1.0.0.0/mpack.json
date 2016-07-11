@@ -14,35 +14,34 @@
   },
   "artifacts": [
     {
-      "name" : "MYSERVICE-service-definition",
-      "type" : "service-definition",
-      "source_dir" : "common-services/MYSERVICE/1.0.0",
-      "service_name" : "MYSERVICE",
-      "service_version" : "1.0.0"
+      "name" : "MYSERVICE-service-definitions",
+      "type" : "service-definitions",
+      "source_dir" : "common-services"
     },
     {
       "name" : "MYSERVICE-1.0.0",
-      "type" : "stack-addon-service-definition",
-      "source_dir": "custom-services/MYSERVICE/1.0.0",
-      "service_name" : "MYSERVICE",
-      "service_version" : "1.0.0",
-      "applicable_stacks" : [
+      "type" : "stack-addon-service-definitions",
+      "source_dir": "custom-services",
+      "service_versions_map": [
         {
-          "stack_name" : "MYSTACK",
-          "stack_version" : "1.0"
-        }
-      ]
-    },
-    {
-      "name" : "MYSERVICE-2.0.0",
-      "type" : "stack-addon-service-definition",
-      "source_dir": "custom-services/MYSERVICE/2.0.0",
-      "service_name" : "MYSERVICE",
-      "service_version" : "2.0.0",
-      "applicable_stacks" : [
+          "service_name" : "MYSERVICE",
+          "service_version" : "1.0.0",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "MYSTACK",
+              "stack_version" : "1.0"
+            }
+          ]
+        },
         {
-          "stack_name" : "MYSTACK",
-          "stack_version" : "2.0"
+          "service_name" : "MYSERVICE",
+          "service_version" : "2.0.0",
+          "applicable_stacks" : [
+            {
+              "stack_name" : "MYSTACK",
+              "stack_version" : "2.0"
+            }
+          ]
         }
       ]
     }
