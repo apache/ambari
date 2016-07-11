@@ -59,8 +59,8 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs.batch.filespool.dir</name>
-    <value>/var/log/atlas/audit/hdfs/spool</value>
-    <description>/var/log/atlas/audit/hdfs/spool</description>
+    <value>/var/log/hadoop/hdfs/audit/hdfs/spool</value>
+    <description>/var/log/hadoop/hdfs/audit/hdfs/spool</description>
     <on-ambari-upgrade add="true"/>
   </property>
 
