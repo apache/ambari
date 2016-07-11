@@ -140,6 +140,7 @@ full_stack_version = default("/commandParams/version", None)
 
 spark_client_version = get_stack_version('spark-client')
 
+hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 livy_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 
 livy_livyserver_host = None

@@ -22,24 +22,9 @@ set -e
 #e.g. /opt/incubator-zeppelin
 export INSTALL_DIR=$1
 
-#e.g. sandbox.hortonworks.com
-export HIVE_METASTORE_HOST=$2
-
-#e.g. 9083
-export HIVE_METASTORE_PORT=$3
-
-#e.g. 10000
-export HIVE_SERVER_PORT=$4
-
-export ZEPPELIN_HOST=$5
-
-export ZEPPELIN_PORT=$6
-
 #if true, will setup Ambari view and import notebooks
-export SETUP_VIEW=$7
+export SETUP_VIEW=$2
 
-export PACKAGE_DIR=$8
-export java64_home=$9
 
 SETUP_VIEW=`awk '{ print tolower($0) }' <<< "$SETUP_VIEW"`
 echo "SETUP_VIEW is $SETUP_VIEW"
@@ -49,35 +34,16 @@ SetupZeppelin () {
   echo "Setting up zeppelin at $INSTALL_DIR"
   cd $INSTALL_DIR
 
-  rm -rf notebook/*
-
-  if [ "$HIVE_METASTORE_HOST" != "0.0.0.0" ]
-  then
-    echo "Hive metastore detected: $HIVE_METASTORE_HOST. Setting up conf/hive-site.xml"
-    echo "<configuration>" > conf/hive-site.xml
-    echo "<property>" >> conf/hive-site.xml
-    echo "   <name>hive.metastore.uris</name>" >> conf/hive-site.xml
-    echo "   <value>thrift://$HIVE_METASTORE_HOST:$HIVE_METASTORE_PORT</value>" >> conf/hive-site.xml
-    echo "</property>" >> conf/hive-site.xml
-    echo "<property>" >> conf/hive-site.xml
-    echo "   <name>hive.server2.thrift.http.port</name>" >> conf/hive-site.xml
-    echo "   <value>$HIVE_SERVER_PORT</value>" >> conf/hive-site.xml
-    echo "</property>" >> conf/hive-site.xml
-    echo "</configuration>" >> conf/hive-site.xml
-  else
-    echo "HIVE_METASTORE_HOST is $HIVE_METASTORE_HOST: Skipping hive-site.xml setup as Hive does not seem to be installed"
-  fi
-
   if [[ $SETUP_VIEW == "true" ]]
   then
     echo "Importing notebooks"
     mkdir -p notebook
     cd notebook
     wget https://codeload.github.com/hortonworks-gallery/zeppelin-notebooks/zip/master -O notebooks.zip
-    unzip notebooks.zip
+    unzip -o notebooks.zip
 
     if [ -d "zeppelin-notebooks-master" ]; then
-      mv zeppelin-notebooks-master/* .
+      yes | cp -rf zeppelin-notebooks-master/* .
       rm -rf zeppelin-notebooks-master
     fi
 
