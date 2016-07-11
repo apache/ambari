@@ -102,12 +102,16 @@ hive_server_host = None
 hive_metastore_host = '0.0.0.0'
 hive_metastore_port = None
 hive_server_port = None
+hive_zookeeper_quorum = None
+hive_server2_support_dynamic_service_discovery = None
 if 'hive_server_host' in master_configs and len(master_configs['hive_server_host']) != 0:
   hive_server_host = str(master_configs['hive_server_host'][0])
   hive_metastore_host = str(master_configs['hive_metastore_host'][0])
   hive_metastore_port = str(
     get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']))
   hive_server_port = str(config['configurations']['hive-site']['hive.server2.thrift.http.port'])
+  hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
+  hive_server2_support_dynamic_service_discovery = config['configurations']['hive-site']['hive.server2.support.dynamic.service.discovery']
 
 # detect hbase details if installed
 zookeeper_znode_parent = None

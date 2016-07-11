@@ -249,31 +249,38 @@ class Master(Script):
     interpreter_settings = config_data['interpreterSettings']
 
     for notebooks in interpreter_settings:
-        notebook = interpreter_settings[notebooks]
-        if notebook['group'] == 'jdbc':
-            notebook['dependencies'] = []
-            if params.hive_server_host:
-                notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
-                                                     params.hive_server_host + \
-                                                         ':' + params.hive_server_port
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+      notebook = interpreter_settings[notebooks]
+      if notebook['group'] == 'jdbc':
+        notebook['dependencies'] = []
+        if params.hive_server_host:
+          if params.hive_server2_support_dynamic_service_discovery:
+            notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
+                                                 params.hive_zookeeper_quorum + \
+                                                 '/;' + 'serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
+          else:
+            notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
+                                                 params.hive_server_host + \
+                                                     ':' + params.hive_server_port
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
 
-            elif params.zookeeper_znode_parent \
-                    and params.hbase_zookeeper_quorum:
-                notebook['properties']['phoenix.url'] = "jdbc:phoenix:" + \
-                                                        params.hbase_zookeeper_quorum + ':' + \
-                                                        params.zookeeper_znode_parent
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.4.0-HBase-1.0", "local": "false"})
-        elif notebook['group'] == 'livy' and params.livy_livyserver_host:
-            notebook['properties']['livy.spark.master'] = "yarn-cluster"
-            notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
-                                                          ":" + params.livy_livyserver_port
-        elif notebook['group'] == 'spark':
-            notebook['properties']['master'] = "yarn-client"
+        if params.zookeeper_znode_parent \
+                and params.hbase_zookeeper_quorum:
+            notebook['properties']['phoenix.url'] = "jdbc:phoenix:" + \
+                                                    params.hbase_zookeeper_quorum + ':' + \
+                                                    params.zookeeper_znode_parent
+            notebook['dependencies'].append(
+                {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
+      elif notebook['group'] == 'livy' and params.livy_livyserver_host:
+        notebook['properties']['livy.spark.master'] = "yarn-cluster"
+        notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
+                                                      ":" + params.livy_livyserver_port
+      elif notebook['group'] == 'spark':
+        notebook['properties']['master'] = "yarn-client"
     self.set_interpreter_settings(config_data)
 
 if __name__ == "__main__":
