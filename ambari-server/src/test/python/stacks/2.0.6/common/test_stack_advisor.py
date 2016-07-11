@@ -1984,6 +1984,14 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertEquals(self.stack_advisor_impl.getMountPointForDir("hdfs:///hdfs_path", ["/var", "/"]), None)
     self.assertEquals(self.stack_advisor_impl.getMountPointForDir("relative/path", ["/var", "/"]), None)
 
+  def test_parseCardinality(self):
+    self.assertEquals(self.stackAdvisor.parseCardinality("ALL", 5), (5, 5))
+    self.assertEquals(self.stackAdvisor.parseCardinality("2+", 5), (2, 5))
+    self.assertEquals(self.stackAdvisor.parseCardinality("1-3", 5), (1, 3))
+    self.assertEquals(self.stackAdvisor.parseCardinality("3", 5), (3, 3))
+    self.assertEquals(self.stackAdvisor.parseCardinality(None, 5), (None, None))
+    self.assertEquals(self.stackAdvisor.parseCardinality("invalid", 3), (None, None))
+
   def test_getValidatorEqualsToRecommendedItem(self):
     properties = {"property1": "value1"}
     recommendedDefaults = {"property1": "value1"}

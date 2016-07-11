@@ -487,15 +487,9 @@ class DefaultStackAdvisor(StackAdvisor):
     componentName = component["StackServiceComponents"]["component_name"]
     if self.isSlaveComponent(component):
       cardinality = str(component["StackServiceComponents"]["cardinality"])
+      hostsMin, hostsMax = self.parseCardinality(cardinality, len(hostsList))
+      hostsMin, hostsMax = (0 if hostsMin is None else hostsMin, len(hostsList) if hostsMax is None else hostsMax)
       if self.isComponentUsingCardinalityForLayout(componentName) and cardinality:
-        # cardinality types: 1+, 1-2, 1
-        if "+" in cardinality:
-          hostsMin = int(cardinality[:-1])
-        elif "-" in cardinality:
-          nums = cardinality.split("-")
-          hostsMin = int(nums[0])
-        else:
-          hostsMin = int(cardinality)
         if hostsMin > len(hostsForComponent):
           hostsForComponent.extend(freeHosts[0:hostsMin-len(hostsForComponent)])
 
@@ -504,6 +498,10 @@ class DefaultStackAdvisor(StackAdvisor):
         if not hostsForComponent:  # hostsForComponent is empty
           hostsForComponent = hostsList[-1:]
       hostsForComponent = list(set(hostsForComponent))  # removing duplicates
+      if len(hostsForComponent) < hostsMin:
+        hostsForComponent = list(set(hostsList))[0:hostsMin]
+      elif len(hostsForComponent) > hostsMax:
+        hostsForComponent = list(set(hostsList))[0:hostsMax]
     elif self.isClientComponent(component):
       hostsForComponent = freeHosts[0:1]
       if not hostsForComponent:  # hostsForComponent is empty
@@ -1052,3 +1050,23 @@ class DefaultStackAdvisor(StackAdvisor):
     return "cluster-env" in services["configurations"] \
            and "security_enabled" in services["configurations"]["cluster-env"]["properties"] \
            and services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+
+  def parseCardinality(self, cardinality, hostsCount):
+    """
+    Cardinality types: 1+, 1-2, 1, ALL
+    @return: a tuple: (minHosts, maxHosts) or (None, None) if cardinality string is invalid
+    """
+    if not cardinality:
+      return (None, None)
+
+    if "+" in cardinality:
+      return (int(cardinality[:-1]), int(hostsCount))
+    elif "-" in cardinality:
+      nums = cardinality.split("-")
+      return (int(nums[0]), int(nums[1]))
+    elif "ALL" == cardinality:
+      return (int(hostsCount), int(hostsCount))
+    elif cardinality.isdigit():
+      return (int(cardinality),int(cardinality))
+
+    return (None, None)
