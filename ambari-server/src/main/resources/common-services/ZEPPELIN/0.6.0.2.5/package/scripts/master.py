@@ -52,10 +52,7 @@ class Master(Script):
             + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
     # run setup_snapshot.sh
-    Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} "
-                   "{hive_metastore_host} {hive_metastore_port} {hive_server_port} "
-                   "{zeppelin_host} {zeppelin_port} {setup_view} {service_packagedir} "
-                   "{java64_home} >> {zeppelin_log_file}"),
+    Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} {setup_view} >> {zeppelin_log_file}"),
             user=params.zeppelin_user)
 
   def create_zeppelin_dir(self, params):
@@ -135,6 +132,17 @@ class Master(Script):
     File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
+    # copy hive-site.xml
+    hive_site_xml_content = open("/etc/spark/conf/hive-site.xml").read()
+    File(format("{params.conf_dir}/hive-site.xml"), content=hive_site_xml_content,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
+
+    if str(params.hbase_master_hosts[0]):
+      # copy hbase-site.xml
+      hbase_site_xml_content = open("/etc/hbase/conf/hbase-site.xml").read()
+      File(format("{params.conf_dir}/hbase-site.xml"), content=hbase_site_xml_content,
+           owner=params.zeppelin_user, group=params.zeppelin_group)
+
   def stop(self, env):
     import params
     self.create_zeppelin_log_dir(env)
@@ -164,8 +172,7 @@ class Master(Script):
       time.sleep(20)
       self.update_zeppelin_interpreter()
 
-    if params.security_enabled:
-      self.update_kerberos_properties()
+    self.update_kerberos_properties()
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -219,13 +226,28 @@ class Master(Script):
     for notebooks in interpreter_settings:
       notebook = interpreter_settings[notebooks]
       if notebook['group'] == 'livy' and params.livy_livyserver_host:
-        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           notebook['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
           notebook['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['zeppelin.livy.principal'] = ""
+          notebook['properties']['zeppelin.livy.keytab'] = ""
       elif notebook['group'] == 'spark':
-        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           notebook['properties']['spark.yarn.principal'] = params.zeppelin_kerberos_principal
           notebook['properties']['spark.yarn.keytab'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['spark.yarn.principal'] = ""
+          notebook['properties']['spark.yarn.keytab'] = ""
+      elif notebook['group'] == 'jdbc':
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
+          notebook['properties']['zeppelin.jdbc.auth.type'] = "KERBEROS"
+          notebook['properties']['zeppelin.jdbc.principal'] = params.zeppelin_kerberos_principal
+          notebook['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['zeppelin.jdbc.auth.type'] = ""
+          notebook['properties']['zeppelin.jdbc.principal'] = ""
+          notebook['properties']['zeppelin.jdbc.keytab.location'] = ""
 
     self.set_interpreter_settings(config_data)
 
@@ -235,31 +257,38 @@ class Master(Script):
     interpreter_settings = config_data['interpreterSettings']
 
     for notebooks in interpreter_settings:
-        notebook = interpreter_settings[notebooks]
-        if notebook['group'] == 'jdbc':
-            notebook['dependencies'] = []
-            if params.hive_server_host:
-                notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
-                                                     params.hive_server_host + \
-                                                         ':' + params.hive_server_port
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+      notebook = interpreter_settings[notebooks]
+      if notebook['group'] == 'jdbc':
+        notebook['dependencies'] = []
+        if params.hive_server_host:
+          if params.hive_server2_support_dynamic_service_discovery:
+            notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
+                                                 params.hive_zookeeper_quorum + \
+                                                 '/;' + 'serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2'
+          else:
+            notebook['properties']['hive.url'] = 'jdbc:hive2://' + \
+                                                 params.hive_server_host + \
+                                                     ':' + params.hive_server_port
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hive:hive-jdbc:2.0.1", "local": "false"})
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hadoop:hadoop-common:2.7.2", "local": "false"})
+          notebook['dependencies'].append(
+              {"groupArtifactVersion": "org.apache.hive.shims:hive-shims-0.23:2.1.0", "local": "false"})
 
-            elif params.zookeeper_znode_parent \
-                    and params.hbase_zookeeper_quorum:
-                notebook['properties']['phoenix.url'] = "jdbc:phoenix:" + \
-                                                        params.hbase_zookeeper_quorum + ':' + \
-                                                        params.zookeeper_znode_parent
-                notebook['dependencies'].append(
-                    {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.4.0-HBase-1.0", "local": "false"})
-        elif notebook['group'] == 'livy' and params.livy_livyserver_host:
-            notebook['properties']['livy.spark.master'] = "yarn-cluster"
-            notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
-                                                          ":" + params.livy_livyserver_port
-        elif notebook['group'] == 'spark':
-            notebook['properties']['master'] = "yarn-client"
+        if params.zookeeper_znode_parent \
+                and params.hbase_zookeeper_quorum:
+            notebook['properties']['phoenix.url'] = "jdbc:phoenix:" + \
+                                                    params.hbase_zookeeper_quorum + ':' + \
+                                                    params.zookeeper_znode_parent
+            notebook['dependencies'].append(
+                {"groupArtifactVersion": "org.apache.phoenix:phoenix-core:4.7.0-HBase-1.1", "local": "false"})
+      elif notebook['group'] == 'livy' and params.livy_livyserver_host:
+        notebook['properties']['livy.spark.master'] = "yarn-cluster"
+        notebook['properties']['zeppelin.livy.url'] = "http://" + params.livy_livyserver_host +\
+                                                      ":" + params.livy_livyserver_port
+      elif notebook['group'] == 'spark':
+        notebook['properties']['master'] = "yarn-client"
     self.set_interpreter_settings(config_data)
 
 if __name__ == "__main__":

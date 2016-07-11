@@ -20,17 +20,17 @@
     {
       "type":"hbase_master",
       "rowtype":"service",
-      "path":"{{hbase_log_dir}}/hbase-hbase-master-*.log"
+      "path":"{{hbase_log_dir}}/hbase-*-master-*.log"
     },
     {
       "type":"hbase_regionserver",
       "rowtype":"service",
-      "path":"{{hbase_log_dir}}/hbase-hbase-regionserver-*.log"
+      "path":"{{hbase_log_dir}}/hbase-*-regionserver-*.log"
     },
     {
       "type":"hbase_phoenix_server",
       "rowtype":"service",
-      "path":"{{hbase_log_dir}}/phoenix-hbase-server.log"
+      "path":"{{hbase_log_dir}}/phoenix-*-server.log"
     }
 
   ],
