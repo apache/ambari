@@ -52,10 +52,7 @@ class Master(Script):
             + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
     # run setup_snapshot.sh
-    Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} "
-                   "{hive_metastore_host} {hive_metastore_port} {hive_server_port} "
-                   "{zeppelin_host} {zeppelin_port} {setup_view} {service_packagedir} "
-                   "{java64_home} >> {zeppelin_log_file}"),
+    Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} {setup_view} >> {zeppelin_log_file}"),
             user=params.zeppelin_user)
 
   def create_zeppelin_dir(self, params):
@@ -134,6 +131,17 @@ class Master(Script):
     # write out log4j.properties
     File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
+
+    # copy hive-site.xml
+    hive_site_xml_content = open("/etc/spark/conf/hive-site.xml").read()
+    File(format("{params.conf_dir}/hive-site.xml"), content=hive_site_xml_content,
+         owner=params.zeppelin_user, group=params.zeppelin_group)
+
+    if str(params.hbase_master_hosts[0]):
+      # copy hbase-site.xml
+      hbase_site_xml_content = open("/etc/hbase/conf/hbase-site.xml").read()
+      File(format("{params.conf_dir}/hbase-site.xml"), content=hbase_site_xml_content,
+           owner=params.zeppelin_user, group=params.zeppelin_group)
 
   def stop(self, env):
     import params
