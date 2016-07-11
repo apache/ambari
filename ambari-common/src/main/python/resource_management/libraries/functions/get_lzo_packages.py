@@ -30,8 +30,9 @@ from resource_management.libraries.script.script import Script
 def get_lzo_packages(stack_version_unformatted):
   lzo_packages = []
   script_instance = Script.get_instance()
-
-  if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
+  if OSCheck.is_suse_family() and int(OSCheck.get_os_major_version()) >= 12:
+    lzo_packages += ["liblzo2-2", "hadoop-lzo-native"]
+  elif OSCheck.is_redhat_family() or OSCheck.is_suse_family():
     lzo_packages += ["lzo", "hadoop-lzo-native"]
   elif OSCheck.is_ubuntu_family():
     lzo_packages += ["liblzo2-2"]

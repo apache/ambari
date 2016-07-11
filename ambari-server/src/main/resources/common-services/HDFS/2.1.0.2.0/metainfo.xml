@@ -212,7 +212,7 @@
         </osSpecific>
         
         <osSpecific>
-          <osFamily>amazon2015,redhat6,redhat7,suse11,suse12</osFamily>
+          <osFamily>amazon2015,redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
               <name>snappy</name>
@@ -236,6 +236,31 @@
           </packages>
         </osSpecific>
         
+        <osSpecific>
+          <osFamily>suse12</osFamily>
+          <packages>
+            <package>
+              <name>snappy</name>
+            </package>
+            <package>
+              <name>snappy-devel</name>
+            </package>
+            <package>
+              <name>liblzo2-2</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-lzo-native</name>
+              <skipUpgrade>true</skipUpgrade>
+              <condition>should_install_lzo</condition>
+            </package>
+            <package>
+              <name>hadoop-libhdfs</name>
+            </package>
+          </packages>
+        </osSpecific>
+
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
