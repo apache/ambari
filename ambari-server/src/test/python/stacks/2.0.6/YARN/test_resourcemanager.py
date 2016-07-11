@@ -270,8 +270,7 @@ class TestResourceManager(RMFTestCase):
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
     )
     self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        owner = 'yarn',
-        group = 'hadoop',
+        mode = 0755,
         create_parents = True,
         cd_access = 'a',
     )
@@ -440,8 +439,7 @@ class TestResourceManager(RMFTestCase):
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
     )
     self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        owner = 'yarn',
-        group = 'hadoop',
+        mode = 0755,
         create_parents = True,
         cd_access = 'a',
     )
