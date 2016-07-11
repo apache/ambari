@@ -499,7 +499,7 @@ public class PropertyHelper {
         Map<Resource.Type, String> innerMap = new HashMap<Resource.Type, String>();
 
         for (Map.Entry<Resource.InternalType, String> entry1 : entry.getValue().entrySet()) {
-          innerMap.put(Resource.Type.values()[entry1.getKey().ordinal()], entry1.getValue());
+          innerMap.put(Resource.Type.valueOf(entry1.getKey().name()), entry1.getValue());
         }
         returnMap.put(entry.getKey(), innerMap);
       }
