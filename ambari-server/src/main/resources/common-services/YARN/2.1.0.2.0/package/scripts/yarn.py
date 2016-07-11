@@ -287,8 +287,7 @@ def yarn(name=None, config_dir=None):
 
   if name == 'resourcemanager':
     Directory(params.rm_nodes_exclude_dir,
-         owner=params.yarn_user,
-         group=params.user_group,
+         mode=0755,
          create_parents=True,
          cd_access='a',
     )
