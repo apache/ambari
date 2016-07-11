@@ -472,13 +472,11 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(App, "showConfirmationPopup");
       sinon.stub(batchUtils, "restartHostComponents", Em.K);
       sinon.stub(controller, 'checkNnLastCheckpointTime', Em.clb);
-      sinon.stub(controller, "refreshYARNQueueAndRestartComponent", Em.K);
     });
     afterEach(function () {
       App.showConfirmationPopup.restore();
       batchUtils.restartHostComponents.restore();
       controller.checkNnLastCheckpointTime.restore();
-      controller.refreshYARNQueueAndRestartComponent.restore();
     });
 
     it('popup should be displayed', function () {
@@ -498,17 +496,6 @@ describe('App.MainHostDetailsController', function () {
       controller.restartComponent(event);
       expect(controller.checkNnLastCheckpointTime.calledOnce).to.equal(true);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
-    });
-
-    it('restart HIVE_SERVER_INTERACTIVE, should call restartComponentAndRefreshYARNQueuet', function () {
-      var event = {
-        context: Em.Object.create({
-          componentName: 'HIVE_SERVER_INTERACTIVE'
-        })
-      };
-      var confirmPopup = controller.restartComponent(event);
-      confirmPopup.onPrimary();
-      expect(controller.refreshYARNQueueAndRestartComponent.calledOnce).to.be.true;
     });
   });
 
