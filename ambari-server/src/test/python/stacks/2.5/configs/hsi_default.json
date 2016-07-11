@@ -366,6 +366,10 @@
             "ipc.client.connection.maxidletime": "30000",
             "ipc.client.connect.max.retries": "50"
         },
+        "hiveserver2-site": {
+            "c" : "d",
+            "a" : "e"
+        },
         "hive-site": {
             "hive.enforce.sorting": "true",
             "javax.jdo.option.ConnectionPassword": "!`\"' 1",
@@ -406,15 +410,18 @@
             "hive.exec.scratchdir" : "/custompath/tmp/hive",
             "hive.exec.post.hooks" : "a, org.apache.atlas.hive.hook.HiveHook,org.apache.atlas.hive.hook.HiveHook , b , org.apache.atlas.hive.hook.HiveHook ,org.apache.hadoop.hive.ql.hooks.ATSHook"
         },
+        "hiveserver2-interactive-site": {
+            "a" : "b"
+        },
         "hive-interactive-env": {
-          "content" : "con\ntent",
-          "enable_hive_interactive" : "true",
-          "hive_server_interactive_host" : "c6401.ambari.apache.org",
-          "llap_queue_capacity" : "0",
-          "num_llap_nodes" : "1",
-          "num_retries_for_checking_llap_status" : 2,
-          "llap_heap_size":"280",
-          "llap_log_level":"INFO"
+            "content" : "con\ntent",
+            "enable_hive_interactive" : "true",
+            "hive_server_interactive_host" : "c6401.ambari.apache.org",
+            "llap_queue_capacity" : "0",
+            "num_llap_nodes" : "1",
+            "num_retries_for_checking_llap_status" : 2,
+            "llap_heap_size":"280",
+            "llap_log_level":"INFO"
         },
         "hive-interactive-site": {
             "hive.enforce.sorting": "true",
@@ -1040,6 +1047,7 @@
           "hive.optimize.bucketmapjoin.sortedmerge": "true"
         }
       },
+      "hiveserver2-interactive-site": {},
       "hive-interactive-site": {
         "final": {
           "javax.jdo.option.ConnectionPassword": "true",
