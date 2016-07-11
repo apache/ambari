@@ -42,6 +42,20 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <required>false</required>
     <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
   </parameter>
+  <parameter>
+    <name>timeline.http.auth.type</name>
+    <description>Authentication used for the timeline server HTTP endpoint. Supported values are: simple / kerberos / #AUTHENTICATION_HANDLER_CLASSNAME#. Defaults to simple.</description>
+    <label>Timeline HTTP Auth</label>
+    <required>false</required>
+    <cluster-config>yarn-site/yarn.timeline-service.http-authentication.type</cluster-config>
+  </parameter>
+  <parameter>
+    <name>hadoop.http.auth.type</name>
+    <description>Defines authentication used for RM HTTP endpoint. Supported values are: simple | kerberos | #AUTHENTICATION_HANDLER_CLASSNAME#. Default to simple.</description>
+    <label>RM HTTP Auth</label>
+    <required>false</required>
+    <cluster-config>core-site/hadoop.http.authentication.type</cluster-config>
+  </parameter>
 
   <!-- The status resource exists to show the subset of properties that any user is allowed to see, not just an admin user. -->
   <resource>

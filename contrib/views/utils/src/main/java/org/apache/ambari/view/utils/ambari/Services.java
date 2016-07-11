@@ -55,6 +55,8 @@ public class Services {
   private final static String YARN_TIMELINE_WEBAPP_HTTP_ADDRESS_KEY = "yarn.timeline-service.webapp.address";
   private final static String YARN_TIMELINE_WEBAPP_HTTPS_ADDRESS_KEY = "yarn.timeline-service.webapp.https.address";
   public static final String RM_INFO_API_ENDPOINT = "/ws/v1/cluster/info";
+  public static final String TIMELINE_AUTH_TYPE_PROP_KEY = "timeline.http.auth.type";
+  public static final String HADOOP_HTTP_AUTH_TYPE_KEY = "hadoop.http.auth.type";
 
   private final AmbariApi ambariApi;
   private ViewContext context;
@@ -346,5 +348,19 @@ public class Services {
    */
   private String getDefaultRMPort(String yarnHttpPolicy) {
     return (HTTPS_ONLY.equals(yarnHttpPolicy)) ? YARN_RESOURCEMANAGER_DEFAULT_HTTPS_PORT : YARN_RESOURCEMANAGER_DEFAULT_HTTP_PORT;
+  }
+
+  /**
+   * @return The authentication type for RM. Check: https://hadoop.apache.org/docs/r1.2.1/HttpAuthentication.html
+   */
+  public String getHadoopHttpWebAuthType() {
+    return context.getProperties().get(HADOOP_HTTP_AUTH_TYPE_KEY);
+  }
+
+  /**
+   * @return Authentication used for the timeline server HTTP endpoint. Check: https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/TimelineServer.html
+   */
+  public String getTimelineServerAuthType() {
+    return context.getProperties().get(TIMELINE_AUTH_TYPE_PROP_KEY);
   }
 }

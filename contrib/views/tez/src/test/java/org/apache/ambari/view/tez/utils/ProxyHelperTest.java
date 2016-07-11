@@ -26,6 +26,8 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 public class ProxyHelperTest {
@@ -33,8 +35,8 @@ public class ProxyHelperTest {
   public void shouldBuildURLWithNoQueryParameters() throws Exception {
     ViewContext context = createNiceMock(ViewContext.class);
     ProxyHelper helper = new ProxyHelper(context);
-    assertEquals("http://abc.com/", helper.getProxyUrl("http://abc.com", "", new MultivaluedHashMap<String, String>()));
-    assertEquals("http://abc.com/test/abcd", helper.getProxyUrl("http://abc.com", "test/abcd", new MultivaluedHashMap<String, String>()));
+    assertEquals("http://abc.com/", helper.getProxyUrl("http://abc.com", "", new MultivaluedHashMap<String, String>(), "kerberos"));
+    assertEquals("http://abc.com/test/abcd", helper.getProxyUrl("http://abc.com", "test/abcd", new MultivaluedHashMap<String, String>(), "kerberos"));
   }
 
   @Test
@@ -43,16 +45,27 @@ public class ProxyHelperTest {
     ProxyHelper helper = new ProxyHelper(context);
     MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
     map.putSingle("data", "abcd/efgh");
-    assertEquals("http://abc.com/test/abcd?data=abcd%2Fefgh", helper.getProxyUrl("http://abc.com", "test/abcd", map));
+    assertEquals("http://abc.com/test/abcd?data=abcd%2Fefgh", helper.getProxyUrl("http://abc.com", "test/abcd", map, "kerberos"));
     map.putSingle("data", "abcd efgh");
-    assertEquals("http://abc.com/test/abcd?data=abcd+efgh", helper.getProxyUrl("http://abc.com", "test/abcd", map));
+    assertEquals("http://abc.com/test/abcd?data=abcd+efgh", helper.getProxyUrl("http://abc.com", "test/abcd", map, "kerberos"));
   }
 
   @Test(expected = TezWebAppException.class)
   public void shouldThrowExceptionIfWrongUrl() throws Exception {
     ViewContext context = createNiceMock(ViewContext.class);
     ProxyHelper helper = new ProxyHelper(context);
-    helper.getProxyUrl("####", "", new MultivaluedHashMap<String, String>());
+    helper.getProxyUrl("####", "", new MultivaluedHashMap<String, String>(), "kerberos");
   }
 
+  @Test
+  public void shouldAddUserIfAuthTypeIsSimple() throws Exception {
+    ViewContext context = createNiceMock(ViewContext.class);
+    expect(context.getUsername()).andReturn("admin").anyTimes();
+    ProxyHelper helper = new ProxyHelper(context);
+    MultivaluedMap<String, String> map = new MultivaluedHashMap<>();
+
+    replay(context);
+    assertEquals("http://abc.com/test/abcd?user.name=admin", helper.getProxyUrl("http://abc.com", "test/abcd", map, "simple"));
+    assertEquals("http://abc.com/test/abcd?user.name=admin", helper.getProxyUrl("http://abc.com", "test/abcd", map, null));
+  }
 }

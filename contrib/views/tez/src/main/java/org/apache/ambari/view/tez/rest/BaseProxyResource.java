@@ -61,7 +61,7 @@ public abstract class BaseProxyResource {
     String url = getProxyUrl(endpoint, uriInfo.getQueryParameters());
 
     LOG.debug("Proxying to URL: {}", url);
-    String response = proxyHelper.getResponse(url, new HashMap<String, String>());
+    String response = proxyHelper.getResponse(url, new HashMap<String, String>(), getAuthType());
 
     JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
     if (jsonObject == null) {
@@ -84,4 +84,6 @@ public abstract class BaseProxyResource {
   }
 
   public abstract String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams);
+
+  public abstract String getAuthType();
 }

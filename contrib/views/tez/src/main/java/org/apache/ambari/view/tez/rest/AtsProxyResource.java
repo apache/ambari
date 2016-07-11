@@ -42,6 +42,11 @@ public class AtsProxyResource extends BaseProxyResource {
   @Override
   public String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams) {
     String atsUrl = viewController.getActiveATSUrl();
-    return proxyHelper.getProxyUrl(atsUrl, endpoint, queryParams);
+    return proxyHelper.getProxyUrl(atsUrl, endpoint, queryParams, getAuthType());
+  }
+
+  @Override
+  public String getAuthType() {
+    return viewController.getATSAuthenticationType();
   }
 }
