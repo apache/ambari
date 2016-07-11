@@ -164,8 +164,7 @@ class Master(Script):
       time.sleep(20)
       self.update_zeppelin_interpreter()
 
-    if params.security_enabled:
-      self.update_kerberos_properties()
+    self.update_kerberos_properties()
 
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh restart >> '
             + params.zeppelin_log_file, user=params.zeppelin_user)
@@ -219,13 +218,28 @@ class Master(Script):
     for notebooks in interpreter_settings:
       notebook = interpreter_settings[notebooks]
       if notebook['group'] == 'livy' and params.livy_livyserver_host:
-        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           notebook['properties']['zeppelin.livy.principal'] = params.zeppelin_kerberos_principal
           notebook['properties']['zeppelin.livy.keytab'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['zeppelin.livy.principal'] = ""
+          notebook['properties']['zeppelin.livy.keytab'] = ""
       elif notebook['group'] == 'spark':
-        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab:
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
           notebook['properties']['spark.yarn.principal'] = params.zeppelin_kerberos_principal
           notebook['properties']['spark.yarn.keytab'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['spark.yarn.principal'] = ""
+          notebook['properties']['spark.yarn.keytab'] = ""
+      elif notebook['group'] == 'jdbc':
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
+          notebook['properties']['zeppelin.jdbc.auth.type'] = "KERBEROS"
+          notebook['properties']['zeppelin.jdbc.principal'] = params.zeppelin_kerberos_principal
+          notebook['properties']['zeppelin.jdbc.keytab.location'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['zeppelin.jdbc.auth.type'] = ""
+          notebook['properties']['zeppelin.jdbc.principal'] = ""
+          notebook['properties']['zeppelin.jdbc.keytab.location'] = ""
 
     self.set_interpreter_settings(config_data)
 
