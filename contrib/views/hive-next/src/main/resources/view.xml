@@ -17,7 +17,7 @@
 <view>
     <name>HIVE</name>
     <label>Hive</label>
-    <version>2.0.0</version>
+    <version>1.5.0</version>
     <build>${env.BUILD_NUMBER}</build>
 
     <min-ambari-version>2.0.*</min-ambari-version>

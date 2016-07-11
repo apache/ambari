@@ -328,14 +328,4 @@
             <id-property>id</id-property>
         </entity>
     </persistence>
-
-    <auto-instance>
-        <name>AUTO_HIVE_INSTANCE</name>
-        <label>Hive View</label>
-        <description>This view instance is auto created when the Hive service is added to a cluster.</description>
-        <stack-id>HDP-2.*</stack-id>
-        <services>
-            <service>HIVE</service>
-        </services>
-    </auto-instance>
 </view>
