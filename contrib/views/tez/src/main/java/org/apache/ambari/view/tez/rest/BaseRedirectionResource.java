@@ -54,4 +54,6 @@ public abstract class BaseRedirectionResource {
   }
 
   public abstract String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams);
+
+  public abstract String getAuthType();
 }

@@ -41,6 +41,11 @@ public class RMRedirectResource extends BaseRedirectionResource {
   @Override
   public String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams) {
     String activeRMUrl = viewController.getActiveRMUrl();
-    return proxyHelper.getProxyUrl(activeRMUrl, endpoint, queryParams);
+    return proxyHelper.getProxyUrl(activeRMUrl, endpoint, queryParams, getAuthType());
+  }
+
+  @Override
+  public String getAuthType() {
+    return viewController.getRMAuthenticationType();
   }
 }

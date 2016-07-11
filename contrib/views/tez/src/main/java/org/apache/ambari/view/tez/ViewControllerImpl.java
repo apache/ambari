@@ -96,5 +96,15 @@ public class ViewControllerImpl implements ViewController {
       throw new TezWebAppException(message, ex);
     }
   }
+
+  @Override
+  public String getRMAuthenticationType() {
+    return ambariApi.getServices().getHadoopHttpWebAuthType();
+  }
+
+  @Override
+  public String getATSAuthenticationType() {
+    return ambariApi.getServices().getTimelineServerAuthType();
+  }
 }
 

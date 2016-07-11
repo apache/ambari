@@ -49,12 +49,17 @@ public class ProxyHelper {
   }
 
 
-  public String getResponse(String url, Map<String, String> headers) {
+  public String getResponse(String url, Map<String, String> headers, String authType) {
     LOG.debug("Fetching the result from the URL: {} using proxy", url);
     InputStream inputStream = null;
     try {
+      HttpURLConnection connection;
       URLConnectionProvider provider = viewContext.getURLConnectionProvider();
-      HttpURLConnection connection = provider.getConnectionAsCurrent(url, "GET", (String) null, headers);
+      if(authType == null || authType.equalsIgnoreCase("simple")) {
+        connection = provider.getConnection(url, "GET", (String) null, headers);
+      } else {
+        connection = provider.getConnectionAsCurrent(url, "GET", (String) null, headers);
+      }
 
       if (!(connection.getResponseCode() >= 200 && connection.getResponseCode() < 300)) {
         LOG.error("Failure in fetching results for the URL: {}. Status: {}", url, connection.getResponseCode());
@@ -81,13 +86,16 @@ public class ProxyHelper {
     }
   }
 
-  public String getProxyUrl(String baseUrl, String endPoint, MultivaluedMap<String, String> queryParameters) {
+  public String getProxyUrl(String baseUrl, String endPoint, MultivaluedMap<String, String> queryParameters, String authType) {
     Set<String> keySet = queryParameters.keySet();
     URIBuilder builder;
     try {
       builder = new URIBuilder(baseUrl + "/" + endPoint);
       for(String key: keySet) {
         builder.addParameter(key, queryParameters.getFirst(key));
+      }
+      if(authType == null || authType.equalsIgnoreCase("simple")) {
+        builder.addParameter("user.name", viewContext.getUsername());
       }
       return builder.build().toString();
     } catch (URISyntaxException e) {
