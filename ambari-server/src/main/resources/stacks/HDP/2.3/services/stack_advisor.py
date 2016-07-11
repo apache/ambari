@@ -297,7 +297,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     kafka_broker = getServicesSiteProperties(services, "kafka-broker")
 
-    security_enabled = isSecurityEnabled(services)
+    security_enabled = self.isSecurityEnabled(services)
 
     putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
     putKafkaLog4jProperty = self.putProperty(configurations, "kafka-log4j", services)
