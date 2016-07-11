@@ -404,9 +404,11 @@ class TestMpacks(TestCase):
     os_mkdir_calls = [
       call(os.path.join(common_services_directory, "MYSERVICE"))
     ]
+    create_symlink_calls = [
+      call(os.path.join(mpacks_staging_directory, "common-services/MYSERVICE"),
+           os.path.join(common_services_directory, "MYSERVICE"), "1.0.0", None)
+    ]
     os_symlink_calls = [
-      call(os.path.join(mpacks_staging_directory, "common-services/MYSERVICE/1.0.0"),
-           os.path.join(common_services_directory, "MYSERVICE/1.0.0")),
       call(os.path.join(mpacks_staging_directory, "custom-services/MYSERVICE/1.0.0"),
            os.path.join(stacks_directory, "MYSTACK/1.0/services/MYSERVICE")),
       call(os.path.join(mpacks_staging_directory, "custom-services/MYSERVICE/2.0.0"),
@@ -415,6 +417,7 @@ class TestMpacks(TestCase):
 
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
+    create_symlink_mock.assert_has_calls(create_symlink_calls)
     os_symlink_mock.assert_has_calls(os_symlink_calls)
     self.assertTrue(add_replay_log_mock.called)
 
