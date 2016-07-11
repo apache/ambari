@@ -286,6 +286,8 @@
             <exclude>.hg</exclude>
             <exclude>.hgignore</exclude>
             <exclude>.hgtags</exclude>
+            <exclude>**/.bowerrc</exclude>
+            <exclude>**/robots.txt</exclude>
 
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>

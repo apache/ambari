@@ -94,8 +94,11 @@
             <exclude>**/vendor/**</exclude>
             <exclude>**/public/**</exclude>
             <exclude>**/dist/**</exclude>
+            <exclude>**/robots.txt</exclude>
+            <exclude>**/externaladdons/**</exclude>
             <exclude>**/bower_components/**</exclude>
             <exclude>**/bower/**</exclude>
+            <exclude>**/.bowerrc</exclude>
             <exclude>**/node/**</exclude>
             <exclude>**/runner.js</exclude>
             <exclude>**/assets/javascripts/**</exclude>
