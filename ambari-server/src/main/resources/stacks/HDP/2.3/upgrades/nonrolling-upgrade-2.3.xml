@@ -63,7 +63,6 @@
     </group>
 
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
-      <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
@@ -173,7 +172,6 @@
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
-      <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service-check>false</service-check>
