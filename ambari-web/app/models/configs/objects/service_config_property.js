@@ -270,7 +270,8 @@ App.ServiceConfigProperty = Em.Object.extend({
   init: function () {
     this.setInitialValues();
     this.set('viewClass', App.config.getViewClass(this.get("displayType"), this.get('dependentConfigPattern'), this.get('unit')));
-    this.set('validator', App.config.getValidator(this.get("displayType")));
+    this.set('validateErrors', App.config.getErrorValidator(this.get("displayType")));
+    this.set('validateWarnings', App.config.getWarningValidator(this.get("displayType")));
     this.validate();
   },
 
@@ -345,16 +346,23 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('warnMessage', Em.I18n.t('config.warnMessage.llap_queue_capacity.max'));
       } else {
         this.set('warnMessage', '');
-        this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
+        this.set('errorMessage', this.validateErrors(this.get('value'), this.get('name'), this.get('retypedPassword')));
       }
     } else {
-      this.set('errorMessage', this.validator(this.get('value'), this.get('name'), this.get('retypedPassword')));
+      this.set('errorMessage', this.validateErrors(this.get('value'), this.get('name'), this.get('retypedPassword')));
+    }
+    if (!this.get('widgetType') || ('text-field' === this.get('widgetType'))) {
+      //temp conditions, since other warnings are calculated directly in widget view
+      this.set('warnMessage', this.validateWarnings(this.get('value'), this.get('name'), this.get('filename'),
+        this.get('stackConfigProperty'), this.get('unit')));
     }
   }.observes('value', 'retypedPassword', 'isEditable'),
 
   viewClass: App.ServiceConfigTextField,
 
-  validator: function() { return '' },
+  validateErrors: function() { return '' },
+
+  validateWarnings: function() { return '' },
 
   /**
    * Get override for selected group

@@ -560,12 +560,12 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Returns validator function based on config type
+   * Returns error validator function based on config type
    *
    * @param displayType
    * @returns {Function}
    */
-  getValidator: function (displayType) {
+  getErrorValidator: function (displayType) {
     switch (displayType) {
       case 'checkbox':
       case 'custom':
@@ -623,6 +623,37 @@ App.config = Em.Object.create({
             return validator.isNotTrimmedRight(value) ? Em.I18n.t('errorMessage.config.spaces.trailing') : '';
           }
         };
+    }
+  },
+
+  /**
+   * Returns warning validator function based on config type
+   *
+   * @param displayType
+   * @returns {Function}
+   */
+  getWarningValidator: function(displayType) {
+    switch (displayType) {
+      case 'int':
+      case 'float':
+        return function (value, name, filename, stackConfigProperty, unitLabel) {
+          stackConfigProperty = stackConfigProperty || App.configsCollection.getConfigByName(name, filename);
+          var maximum = Em.get(stackConfigProperty || {}, 'valueAttributes.maximum'),
+            minimum = Em.get(stackConfigProperty || {}, 'valueAttributes.minimum'),
+            min = validator.isValidFloat(minimum) ? parseFloat(minimum) : NaN,
+            max = validator.isValidFloat(maximum) ? parseFloat(maximum) : NaN,
+            val = validator.isValidFloat(value) ? parseFloat(value) : NaN;
+
+          if (!isNaN(val) && !isNaN(max) && val > max) {
+            return Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max + unitLabel);
+          }
+          if (!isNaN(val) && !isNaN(min) && val < min) {
+            return Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min + unitLabel);
+          }
+          return '';
+        };
+      default:
+        return function () { return ''; }
     }
   },
 
