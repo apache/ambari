@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
@@ -79,7 +81,7 @@ public class PhoenixHBaseAccessorTest {
 
     List<String> metricNames = new LinkedList<>();
     List<String> hostnames = new LinkedList<>();
-    Map<String, List<Function>> metricFunctions = new HashMap<>();
+    Multimap<String, List<Function>> metricFunctions = ArrayListMultimap.create();
 
     PowerMock.mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
@@ -128,7 +130,7 @@ public class PhoenixHBaseAccessorTest {
 
     List<String> metricNames = new LinkedList<>();
     List<String> hostnames = new LinkedList<>();
-    Map<String, List<Function>> metricFunctions = new HashMap<>();
+    Multimap<String, List<Function>> metricFunctions = ArrayListMultimap.create();
 
     PowerMock.mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
@@ -178,7 +180,7 @@ public class PhoenixHBaseAccessorTest {
 
     List<String> metricNames = new LinkedList<>();
     List<String> hostnames = new LinkedList<>();
-    Map<String, List<Function>> metricFunctions = new HashMap<>();
+    Multimap<String, List<Function>> metricFunctions = ArrayListMultimap.create();
 
     PowerMock.mockStatic(PhoenixTransactSQL.class);
     PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
