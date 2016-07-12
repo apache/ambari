@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -212,7 +214,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       seriesAggrFunctionInstance = TimelineMetricsSeriesAggregateFunctionFactory.newInstance(func);
     }
 
-    Map<String, List<Function>> metricFunctions =
+    Multimap<String, List<Function>> metricFunctions =
       parseMetricNamesToAggregationFunctions(metricNames);
 
     ConditionBuilder conditionBuilder = new ConditionBuilder(new ArrayList<String>(metricFunctions.keySet()))
@@ -312,8 +314,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
     return metricValues;
   }
 
-  static HashMap<String, List<Function>> parseMetricNamesToAggregationFunctions(List<String> metricNames) {
-    HashMap<String, List<Function>> metricsFunctions = new HashMap<>();
+  static Multimap<String, List<Function>> parseMetricNamesToAggregationFunctions(List<String> metricNames) {
+    Multimap<String, List<Function>> metricsFunctions = ArrayListMultimap.create();
 
     for (String metricName : metricNames){
       Function function = Function.DEFAULT_VALUE_FUNCTION;
@@ -330,10 +332,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         // fallback to VALUE, and fullMetricName
       }
 
-      List<Function> functionsList = metricsFunctions.get(cleanMetricName);
-      if (functionsList == null) {
-        functionsList = new ArrayList<>(1);
-      }
+      List<Function>  functionsList = new ArrayList<>();
       functionsList.add(function);
       metricsFunctions.put(cleanMetricName, functionsList);
     }

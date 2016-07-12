@@ -17,6 +17,8 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -259,9 +261,10 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     Condition condition = new DefaultCondition(
       Collections.singletonList("disk_free"), null, null, null,
       null, null, Precision.SECONDS, null, true);
-    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
-      Collections.singletonMap("disk_free",
-        Collections.singletonList(new Function(Function.ReadFunction.SUM, null))));
+
+    Multimap<String, List<Function>> mmap = ArrayListMultimap.create();
+    mmap.put("disk_free", Collections.singletonList(new Function(Function.ReadFunction.SUM, null)));
+    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition, mmap);
 
     //THEN
     assertEquals(1, timelineMetrics.getMetrics().size());
@@ -380,8 +383,10 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     hBaseAdmin.close();
   }
 
-  private Map<String, List<Function>> singletonValueFunctionMap(String metricName) {
-    return Collections.singletonMap(metricName, Collections.singletonList(new Function()));
+  private Multimap<String, List<Function>> singletonValueFunctionMap(String metricName) {
+    Multimap<String, List<Function>> mmap = ArrayListMultimap.create();
+    mmap.put(metricName, Collections.singletonList(new Function()));
+    return mmap;
   }
 
   @Test
