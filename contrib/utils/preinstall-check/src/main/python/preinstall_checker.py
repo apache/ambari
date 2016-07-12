@@ -520,7 +520,7 @@ def get_ambari_agent_nodes(server_url, user, password):
   @param user: User for Ambari REST API authentication
   @param password: Password for the user used to authenticate the Ambari REST API call
   """
-  url = "{0}/api/v1/hosts".format(server_url)
+  url = "{0}/api/v1/services/AMBARI/components/AMBARI_AGENT".format(server_url)
   hosts = set()
   out, err, ec = execute_curl_command(url, user=user, password=password)
   is_erroneous_response, ec, err = is_erroneous_response_by_server(out)
@@ -529,9 +529,9 @@ def get_ambari_agent_nodes(server_url, user, password):
     return hosts
 
   response = json.loads(out)
-  host_list = response.get('items', [])
+  host_list = response.get('hostComponents', [])
   for item in host_list:
-    host_summary = item.get('Hosts', {})
+    host_summary = item.get('RootServiceHostComponents', {})
     host_name = host_summary.get('host_name', None)
     if host_name:
       hosts.add(host_name)
@@ -912,6 +912,9 @@ def run(options):
     return ec
   agents = get_ambari_agent_nodes(server_url, options.user, options.password)
   logger.info('Total number of agents {0}'.format(len(agents)))
+  if not agents:
+    logger.error('No Ambari Agent registered to the Ambari Server. Install Ambari Agent first.')
+    return CODE_ERROR
 
   if OPERATION_CHECK == options.operation:
     run_host_checks(options, agents, server_url)
