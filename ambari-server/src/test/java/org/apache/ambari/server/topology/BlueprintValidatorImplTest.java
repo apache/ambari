@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
@@ -45,7 +46,7 @@ import static org.easymock.EasyMock.verify;
 /**
  * BlueprintValidatorImpl unit tests.
  */
-public class BlueprintValidatorImplTest{
+public class BlueprintValidatorImplTest {
 
   private final Map<String, HostGroup> hostGroups = new LinkedHashMap<>();
   @Rule
@@ -65,6 +66,9 @@ public class BlueprintValidatorImplTest{
 
   @Mock(type = MockType.NICE)
   private DependencyInfo dependency1;
+
+  @Mock(type = MockType.NICE)
+  private ComponentInfo dependencyComponentInfo;
 
   private final Collection<String> group1Components = new ArrayList<String>();
   private final Collection<String> group2Components = new ArrayList<String>();
@@ -188,10 +192,13 @@ public class BlueprintValidatorImplTest{
     expect(dependency1.getServiceName()).andReturn("service1").anyTimes();
     expect(dependency1.getName()).andReturn("dependency1").anyTimes();
 
+    expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
+    expect(stack.getComponentInfo("component3")).andReturn(dependencyComponentInfo).anyTimes();
+
     expect(group1.addComponent("component1")).andReturn(true).once();
     expect(group1.addComponent("component3")).andReturn(true).once();
 
-    replay(blueprint, stack, group1, group2, dependency1);
+    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
     validator.validateTopology();
@@ -277,7 +284,11 @@ public class BlueprintValidatorImplTest{
     expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
     expect(dependency1.getName()).andReturn("dependency-1").anyTimes();
 
-    replay(blueprint, stack, group1, group2, dependency1);
+
+    expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
+    expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
 
     // WHEN
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
