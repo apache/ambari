@@ -67,7 +67,7 @@ class HostInfo():
       'cpu_intr': cpu_times.irq if hasattr(cpu_times, 'irq') else 0,
       'cpu_sintr': cpu_times.softirq if hasattr(cpu_times, 'softirq') else 0,
       'cpu_steal': cpu_times.steal if hasattr(cpu_times, 'steal') else 0,
-      'boot_time': long(boot_time) if boot_time else 0
+      'boottime': long(boot_time) if boot_time else 0
     }
     if platform.system() != "Windows":
       load_avg = os.getloadavg()
