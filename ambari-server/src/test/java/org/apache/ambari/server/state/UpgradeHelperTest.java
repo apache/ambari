@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
+import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
@@ -1597,7 +1598,58 @@ public class UpgradeHelperTest {
   }
 
   /**
-   * Extend {@link org.apache.ambari.server.stack.MasterHostResolver} in order to overwrite the JMX methods.
+   * Tests that advanced {@link Grouping} instances like {@link StopGrouping}
+   * work with rolling upgrade packs.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRollingUpgradesCanUseAdvancedGroupings() throws Exception {
+    final String clusterName = "c1";
+    final String upgradeFromVersion = "2.1.1";
+    final String upgradeToVersion = "2.2.0";
+    final Direction upgradeDirection = Direction.UPGRADE;
+    final UpgradeType upgradeType = UpgradeType.ROLLING;
+
+    makeCluster();
+
+    // grab the right pack
+    String preferredUpgradePackName = "upgrade_grouping_rolling";
+    UpgradePack upgradePack = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion,
+        upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
+
+    assertEquals(upgradeType, upgradePack.getType());
+
+    // get an upgrade
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21,
+        UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    context.setSupportedServices(Collections.singleton("ZOOKEEPER"));
+    context.setScope(UpgradeScope.COMPLETE);
+
+    List<Grouping> groupings = upgradePack.getGroups(Direction.UPGRADE);
+    assertEquals(2, groupings.size());
+    assertEquals("STOP_ZOOKEEPER", groupings.get(0).name);
+    assertEquals("RESTART_ZOOKEEPER", groupings.get(1).name);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertEquals(2, groups.size());
+
+    assertEquals("STOP_ZOOKEEPER", groups.get(0).name);
+    assertEquals("RESTART_ZOOKEEPER", groups.get(1).name);
+
+    // STOP_ZOOKEEPER GROUP
+    UpgradeGroupHolder group = groups.get(0);
+
+    // Check that the upgrade framework properly expanded the STOP grouping into
+    // STOP tasks
+    assertEquals("Stopping ZooKeeper Server on h1 (Batch 1 of 3)", group.items.get(0).getText());
+  }
+
+  /**
+   * Extend {@link org.apache.ambari.server.stack.MasterHostResolver} in order
+   * to overwrite the JMX methods.
    */
   private class MockMasterHostResolver extends MasterHostResolver {
 
