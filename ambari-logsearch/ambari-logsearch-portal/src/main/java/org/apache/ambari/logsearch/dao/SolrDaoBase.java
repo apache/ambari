@@ -277,16 +277,16 @@ public abstract class SolrDaoBase {
         + aliasNameIn + ", collectionList=" + collectionsCSV
         + ", solrDetail=" + solrDetail + ", response="
         + createResponse);
+        return 0;
       }
+    } 
+    if( collectionToAdd.size() == collectionListIn.size()) {
+      logger.info("Created alias for all collections. alias=" + aliasNameIn + ", collectionsCSV="
+          + collectionsCSV + ", solrDetail=" + solrDetail);        
     } else {
-      if( collectionToAdd.size() == collectionListIn.size()) {
-        logger.info("Created alias for all collections. alias=" + aliasNameIn + ", collectionsCSV="
-            + collectionsCSV + ", solrDetail=" + solrDetail);        
-      } else {
-        logger.info("Created alias for " + collectionToAdd.size() + " out of " + 
-            + collectionListIn.size() + " collections. alias=" + aliasNameIn 
-            + ", collectionsCSV=" + collectionsCSV + ", solrDetail=" + solrDetail);
-      }
+      logger.info("Created alias for " + collectionToAdd.size() + " out of " + 
+          + collectionListIn.size() + " collections. alias=" + aliasNameIn 
+          + ", collectionsCSV=" + collectionsCSV + ", solrDetail=" + solrDetail);
     }
     return collectionToAdd.size();
   }
