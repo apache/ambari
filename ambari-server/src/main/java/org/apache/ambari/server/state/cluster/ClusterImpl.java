@@ -534,7 +534,7 @@ public class ClusterImpl implements Cluster {
             + configGroup.getTag());
       } else {
         clusterConfigGroups.put(configGroup.getId(), configGroup);
-        configHelper.invalidateStaleConfigsCache(getDesiredConfigs());
+        configHelper.invalidateStaleConfigsCache();
       }
 
     } finally {
@@ -646,7 +646,7 @@ public class ClusterImpl implements Cluster {
 
       configGroup.delete();
       clusterConfigGroups.remove(id);
-      configHelper.invalidateStaleConfigsCache(getDesiredConfigs());
+      configHelper.invalidateStaleConfigsCache();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2337,7 +2337,7 @@ public class ClusterImpl implements Cluster {
       ServiceConfigVersionResponse serviceConfigVersionResponse = applyConfigs(
           configs, user, serviceConfigVersionNote);
 
-      configHelper.invalidateStaleConfigsCache(getDesiredConfigs());
+      configHelper.invalidateStaleConfigsCache();
       return serviceConfigVersionResponse;
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -2556,7 +2556,7 @@ public class ClusterImpl implements Cluster {
     try {
       ServiceConfigVersionResponse serviceConfigVersionResponse = applyServiceConfigVersion(
           serviceName, version, user, note);
-      configHelper.invalidateStaleConfigsCache(getDesiredConfigs());
+      configHelper.invalidateStaleConfigsCache();
       return serviceConfigVersionResponse;
     } finally {
       clusterGlobalLock.writeLock().unlock();

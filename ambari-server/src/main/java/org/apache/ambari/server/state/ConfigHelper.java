@@ -33,7 +33,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.annotations.TransactionalLock;
@@ -465,7 +464,7 @@ public class ConfigHelper {
    *
    * @param sch
    *          the SCH to calcualte config staleness for (not {@code null}).
-   * @param requestDesiredConfigs
+   * @param desiredConfigs
    *          the desired configurations for the cluster. Obtaining these can be
    *          expensive and since this method operates on SCH's, it could be
    *          called 10,000's of times when generating cluster/host responses.
@@ -475,44 +474,25 @@ public class ConfigHelper {
    *
    * @return <code>true</code> if the actual configs are stale
    */
-  public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> requestDesiredConfigs)
+  public boolean isStaleConfigs(ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs)
       throws AmbariException {
     Boolean stale = null;
-    Lock readLock = transactionLocks.getLock(LockArea.STALE_CONFIG_CACHE).readLock();
-    readLock.lock();
-    try {
-      // try the cache
-      if (STALE_CONFIGS_CACHE_ENABLED) {
-        stale = staleConfigsCache.getIfPresent(sch);
-      }
 
-      if (stale == null) {
-        /*
-         prefer staleConfigCacheDesiredConfigs(they are supposed to be passed from thread that updated configs) to avoid
-         population staleConfigsCache with stale data in case current thread have stale EL caches(this can happen during
-         parallel requests)
-         */
-        Map<String, DesiredConfig> desiredConfigs = staleConfigCacheDesiredConfigs != null ? staleConfigCacheDesiredConfigs : requestDesiredConfigs;
-        stale = calculateIsStaleConfigs(sch, desiredConfigs);
-        staleConfigsCache.put(sch, stale);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Cache configuration staleness for host {} and component {} as {}",
-              sch.getHostName(), sch.getServiceComponentName(), stale);
-        }
-      }
-      return stale;
-    } finally {
-      readLock.unlock();
+    // try the cache
+    if (STALE_CONFIGS_CACHE_ENABLED) {
+      stale = staleConfigsCache.getIfPresent(sch);
     }
 
+    if (stale == null) {
+      stale = calculateIsStaleConfigs(sch, desiredConfigs);
+      staleConfigsCache.put(sch, stale);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Cache configuration staleness for host {} and component {} as {}",
+            sch.getHostName(), sch.getServiceComponentName(), stale);
+      }
+    }
+    return stale;
   }
-
-  /**
-   * Every request that updates configs or configs-groups must invalidate staleConfigCache and update this filed
-   * with its own updated desiredConfigs(they must be passed form updater request) to avoid any issues with EL caches
-   * during parallel requests.
-   */
-  private Map<String, DesiredConfig> staleConfigCacheDesiredConfigs = null;
 
   /**
    * Invalidates the stale configuration cache for all
@@ -523,13 +503,12 @@ public class ConfigHelper {
    * cluster global locks already acquired.
    *
    * @param hostname
-   * @param desiredConfigs desired cluster configs that will be used for configuration invalidation
    */
-  public void invalidateStaleConfigsCache(String hostname, Map<String, DesiredConfig> desiredConfigs) {
+  public void invalidateStaleConfigsCache(String hostname) {
     try {
       for (Cluster cluster : clusters.getClustersForHost(hostname)) {
         List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
-        Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(serviceComponentHosts, desiredConfigs);
+        Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(serviceComponentHosts);
         cacheInvalidationExecutor.execute(invalidationRunnable);
       }
     } catch (AmbariException e) {
@@ -544,8 +523,8 @@ public class ConfigHelper {
    * performed on a separate thread. This way, it won't interfere with any
    * cluster global locks already acquired.
    */
-  public void invalidateStaleConfigsCache(Map<String, DesiredConfig> desiredConfigs) {
-    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(desiredConfigs);
+  public void invalidateStaleConfigsCache() {
+    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable();
     cacheInvalidationExecutor.execute(invalidationRunnable);
   }
 
@@ -557,8 +536,8 @@ public class ConfigHelper {
    * performed on a separate thread. This way, it won't interfere with any
    * cluster global locks already acquired.
    */
-  public void invalidateStaleConfigsCache(ServiceComponentHost sch, Map<String, DesiredConfig> desiredConfigs) {
-    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(Collections.singletonList(sch), desiredConfigs);
+  public void invalidateStaleConfigsCache(ServiceComponentHost sch) {
+    Runnable invalidationRunnable = new StaleConfigInvalidationRunnable(Collections.singletonList(sch));
     cacheInvalidationExecutor.execute(invalidationRunnable);
   }
 
@@ -1352,15 +1331,13 @@ public class ConfigHelper {
   private final class StaleConfigInvalidationRunnable implements Runnable {
 
     private final List<ServiceComponentHost> m_keysToInvalidate;
-    private final Map<String, DesiredConfig> m_desiredConfigs;
 
     /**
      * Constructor.
      *
      */
-    private StaleConfigInvalidationRunnable(Map<String, DesiredConfig> desiredConfigs) {
+    private StaleConfigInvalidationRunnable() {
       m_keysToInvalidate = null;
-      m_desiredConfigs = desiredConfigs;
     }
 
     /**
@@ -1369,9 +1346,8 @@ public class ConfigHelper {
      * @param keysToInvalidate
      *          the keys to invalidate in the cache.
      */
-    private StaleConfigInvalidationRunnable(List<ServiceComponentHost> keysToInvalidate, Map<String, DesiredConfig> desiredConfigs) {
+    private StaleConfigInvalidationRunnable(List<ServiceComponentHost> keysToInvalidate) {
       m_keysToInvalidate = keysToInvalidate;
-      m_desiredConfigs = desiredConfigs;
     }
 
     /**
@@ -1382,7 +1358,6 @@ public class ConfigHelper {
       ReadWriteLock lock = transactionLocks.getLock(LockArea.STALE_CONFIG_CACHE);
       lock.writeLock().lock();
       try {
-        ConfigHelper.this.staleConfigCacheDesiredConfigs = m_desiredConfigs;
         if (null == m_keysToInvalidate || m_keysToInvalidate.isEmpty()) {
           staleConfigsCache.invalidateAll();
         } else {
