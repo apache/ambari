@@ -151,6 +151,7 @@ class TestAtlasServer(RMFTestCase):
                               content = ''
     )
 
+    self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /logsearch --check-znode --retry 5 --interval 10')
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_basic_configs_0.[0-9]* --config-set basic_configs --retry 30 --interval 5')
     self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_basic_configs_0.[0-9]*',
                                     content=InlineTemplate(self.getConfig()['configurations']['atlas-solrconfig']['content']),
@@ -164,7 +165,6 @@ class TestAtlasServer(RMFTestCase):
                                     action=['delete'],
                                     owner='atlas',
                                     create_parents=True)
-
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --create-collection --collection vertex_index --config-set basic_configs --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --create-collection --collection edge_index --config-set basic_configs --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --create-collection --collection fulltext_index --config-set basic_configs --shards 1 --replication 1 --max-shards 1 --retry 5 --interval 10')

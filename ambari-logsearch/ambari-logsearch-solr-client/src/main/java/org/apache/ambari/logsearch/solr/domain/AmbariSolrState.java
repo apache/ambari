@@ -16,19 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.solr.commands;
+package org.apache.ambari.logsearch.solr.domain;
 
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.solr.common.cloud.ZkConfigManager;
-
-public class CheckConfigZkCommand extends AbstractZookeeperConfigCommand<Boolean> {
-
-  public CheckConfigZkCommand(int maxRetries, int interval) {
-    super(maxRetries, interval);
-  }
-
-  @Override
-  protected Boolean executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
-    return zkConfigManager.configExists(client.getConfigSet());
-  }
+/**
+ * Enum state values for storing security status in unsecure znode
+ */
+public enum AmbariSolrState {
+  SECURE, UNSECURE
 }

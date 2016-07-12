@@ -19,7 +19,7 @@ limitations under the License.
 
 from resource_management.core.exceptions import Fail
 from resource_management.core.source import InlineTemplate, Template
-from resource_management.core.resources.system import Directory, Execute, File
+from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import solr_cloud_util
@@ -78,22 +78,36 @@ def setup_logsearch_solr(name = None):
          owner=params.logsearch_solr_user,
          group=params.user_group
          )
-    zk_cli_prefix = format('export JAVA_HOME={java64_home}; {cloud_scripts}/zkcli.sh -zkhost {zookeeper_quorum}')
-    create_ambari_solr_znode(zk_cli_prefix)
 
+    jaas_file = params.logsearch_solr_jaas_file if params.security_enabled else None
     url_scheme = 'https' if params.logsearch_solr_ssl_enabled else 'http'
-    Execute(format('{zk_cli_prefix}{logsearch_solr_znode} -cmd clusterprop -name urlScheme -val {url_scheme}'),
-            user=params.logsearch_solr_user)
+
+    create_ambari_solr_znode()
 
     if params.security_enabled:
       File(format("{logsearch_solr_jaas_file}"),
            content=Template("logsearch_solr_jaas.conf.j2"),
            owner=params.logsearch_solr_user)
-      security_content = '\'{"authentication":{"class": "org.apache.solr.security.KerberosPlugin"}}\''
-    else:
-      security_content = '\'{}\''
-    Execute(format('{zk_cli_prefix} -cmd put {logsearch_solr_znode}/security.json ') + security_content,
-            user=params.logsearch_solr_user)
+
+    solr_cloud_util.set_cluster_prop(
+      zookeeper_quorum=params.zookeeper_quorum,
+      solr_znode=params.logsearch_solr_znode,
+      java64_home=params.java64_home,
+      user=params.logsearch_solr_user,
+      prop_name="urlScheme",
+      prop_value=url_scheme,
+      jaas_file=jaas_file
+    )
+
+    solr_cloud_util.setup_kerberos_plugin(
+      zookeeper_quorum=params.zookeeper_quorum,
+      solr_znode=params.logsearch_solr_znode,
+      user=params.logsearch_solr_user,
+      jaas_file=jaas_file,
+      java64_home=params.java64_home,
+      secure=params.security_enabled
+    )
+
 
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)
@@ -106,9 +120,10 @@ def setup_logsearch_solr(name = None):
     raise Fail('Nor client or server were selected to install.')
 
 @retry(times=30, sleep_time=5, err_class=Fail)
-def create_ambari_solr_znode(zk_cli_prefix):
+def create_ambari_solr_znode():
   import params
-  Execute(format('{zk_cli_prefix} -cmd makepath {logsearch_solr_znode}'),
-          not_if=format("{zk_cli_prefix}{logsearch_solr_znode} -cmd list"),
-          user=params.logsearch_solr_user
-          )
+  solr_cloud_util.create_znode(
+    zookeeper_quorum=params.zookeeper_quorum,
+    solr_znode=params.logsearch_solr_znode,
+    java64_home=params.java64_home,
+    user=params.logsearch_solr_user)
