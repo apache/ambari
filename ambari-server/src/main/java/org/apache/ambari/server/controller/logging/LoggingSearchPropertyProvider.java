@@ -54,7 +54,10 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
   @Inject
   private LogSearchDataRetrievalService logSearchDataRetrievalService;
 
+  private LoggingRequestHelperFactory loggingRequestHelperFactory;
+  
   public LoggingSearchPropertyProvider() {
+    loggingRequestHelperFactory = new LoggingRequestHelperFactoryImpl();
   }
 
   @Override
@@ -66,49 +69,51 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
       final String hostName = (String) resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "host_name"));
       final String clusterName = (String) resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
 
+      if (!logSearchServerRunning(clusterName)) {
+        continue;
+      }
+
       // query the stack definitions to find the correct component name (stack name mapped to LogSearch-defined name)
       final String mappedComponentNameForLogSearch =
         getMappedComponentNameForSearch(clusterName, componentName, ambariManagementController);
 
       if (mappedComponentNameForLogSearch != null) {
-        HostComponentLoggingInfo loggingInfo =
-          new HostComponentLoggingInfo();
+        // send query to obtain logging metadata
+        Set<String> logFileNames =
+          logSearchDataRetrievalService.getLogFileNames(mappedComponentNameForLogSearch, hostName, clusterName);
 
+        if ((logFileNames != null) && (!logFileNames.isEmpty())) {
+          HostComponentLoggingInfo loggingInfo = new HostComponentLoggingInfo();
+          loggingInfo.setComponentName(mappedComponentNameForLogSearch);
+          List<LogFileDefinitionInfo> listOfFileDefinitions =
+            new LinkedList<LogFileDefinitionInfo>();
 
-        // if LogSearch service is available
-        if (logSearchDataRetrievalService != null) {
-          // send query to obtain logging metadata
-          Set<String> logFileNames =
-            logSearchDataRetrievalService.getLogFileNames(mappedComponentNameForLogSearch, hostName, clusterName);
-
-          if ((logFileNames != null) && (!logFileNames.isEmpty())) {
-            loggingInfo.setComponentName(mappedComponentNameForLogSearch);
-            List<LogFileDefinitionInfo> listOfFileDefinitions =
-              new LinkedList<LogFileDefinitionInfo>();
-
-            for (String fileName : logFileNames) {
-              // generate the URIs that can be used by clients to obtain search results/tail log results/etc
-              final String searchEngineURI = ambariManagementController.getAmbariServerURI(getFullPathToSearchEngine(clusterName));
-              final String logFileTailURI = logSearchDataRetrievalService.getLogFileTailURI(searchEngineURI, mappedComponentNameForLogSearch, hostName, clusterName);
-              // all log files are assumed to be service types for now
-              listOfFileDefinitions.add(new LogFileDefinitionInfo(fileName, LogFileType.SERVICE, searchEngineURI, logFileTailURI));
-            }
-
-            loggingInfo.setListOfLogFileDefinitions(listOfFileDefinitions);
-
-            LOG.debug("Adding logging info for component name = " + componentName + " on host name = " + hostName);
-            // add the logging metadata for this host component
-            resource.setProperty("logging", loggingInfo);
-          } else {
-            Utils.logErrorMessageWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
-              "Error occurred while making request to LogSearch service, unable to populate logging properties on this resource");
+          for (String fileName : logFileNames) {
+            // generate the URIs that can be used by clients to obtain search results/tail log results/etc
+            final String searchEngineURI = ambariManagementController.getAmbariServerURI(getFullPathToSearchEngine(clusterName));
+            final String logFileTailURI = logSearchDataRetrievalService.getLogFileTailURI(searchEngineURI, mappedComponentNameForLogSearch, hostName, clusterName);
+            // all log files are assumed to be service types for now
+            listOfFileDefinitions.add(new LogFileDefinitionInfo(fileName, LogFileType.SERVICE, searchEngineURI, logFileTailURI));
           }
+
+          loggingInfo.setListOfLogFileDefinitions(listOfFileDefinitions);
+
+          LOG.debug("Adding logging info for component name = " + componentName + " on host name = " + hostName);
+          // add the logging metadata for this host component
+          resource.setProperty("logging", loggingInfo);
+        } else {
+          Utils.logErrorMessageWithCounter(LOG, errorLogCounterForLogSearchConnectionExceptions,
+            "Error occurred while making request to LogSearch service, unable to populate logging properties on this resource");
         }
       }
 
     }
 
     return resources;
+  }
+
+  private boolean logSearchServerRunning(String clusterName) {
+    return loggingRequestHelperFactory.getHelper(ambariManagementController, clusterName) != null;
   }
 
   private String getMappedComponentNameForSearch(String clusterName, String componentName, AmbariManagementController controller) {
@@ -157,6 +162,10 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
   protected void setLogSearchDataRetrievalService(LogSearchDataRetrievalService logSearchDataRetrievalService) {
     this.logSearchDataRetrievalService = logSearchDataRetrievalService;
+  }
+
+  protected void setLoggingRequestHelperFactory(LoggingRequestHelperFactory loggingRequestHelperFactory) {
+    this.loggingRequestHelperFactory = loggingRequestHelperFactory;
   }
 
 }
