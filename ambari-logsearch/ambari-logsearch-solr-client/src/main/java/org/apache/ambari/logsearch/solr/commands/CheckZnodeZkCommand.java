@@ -20,23 +20,26 @@ package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientException;
-import org.apache.solr.common.cloud.ZkConfigManager;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.SolrZooKeeper;
+import org.apache.zookeeper.KeeperException;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+public class CheckZnodeZkCommand extends AbstractZookeeperRetryCommand<Boolean> {
 
-public class UploadConfigZkCommand extends AbstractZookeeperConfigCommand<String> {
+  private String znode;
 
-  public UploadConfigZkCommand(int maxRetries, int interval) {
+  public CheckZnodeZkCommand(int maxRetries, int interval, String znode) {
     super(maxRetries, interval);
+    this.znode = znode;
   }
 
   @Override
-  protected String executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
-    Path configDir = Paths.get(client.getConfigDir());
-    String configSet = client.getConfigSet();
-    zkConfigManager.uploadConfigDir(configDir, configSet);
-    return configSet;
+  protected Boolean executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
+    try {
+      return zkClient.exists(this.znode, false);
+    } catch (KeeperException e) {
+      throw new AmbariSolrCloudClientException("Exception during checking znode, " +
+        "Check zookeeper servers are running (n+1/2) or zookeeper quorum has established or not.", e);
+    }
   }
 }

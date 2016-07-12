@@ -160,7 +160,7 @@
   </property>
   <property>
     <name>logsearch_solr_minmem</name>
-    <value>512</value>
+    <value>1024</value>
     <display-name>Log Search Solr Minimum Heap Size</display-name>
     <description>Solr minimum heap size e.g.512m</description>
     <value-attributes>
@@ -174,7 +174,7 @@
   </property>
   <property>
     <name>logsearch_solr_maxmem</name>
-    <value>1024</value>
+    <value>2048</value>
     <display-name>Log Search Solr Maximum Heap Size</display-name>
     <description>Solr maximum heap size e.g. 512m</description>
     <value-attributes>

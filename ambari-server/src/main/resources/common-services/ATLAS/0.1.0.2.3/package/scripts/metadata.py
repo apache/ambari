@@ -20,10 +20,12 @@ limitations under the License.
 
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import StaticFile, InlineTemplate
-from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
-from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions import solr_cloud_util
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.template_config import TemplateConfig
 
 
 def metadata(type='server'):
@@ -107,18 +109,19 @@ def metadata(type='server'):
 
     if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
       solr_cloud_util.setup_solr_client(params.config)
+      check_znode()
+      jaasFile=params.atlas_jaas_file if params.security_enabled else None
+      upload_conf_set('basic_configs', jaasFile)
 
-      upload_conf_set('basic_configs')
-
-      create_collection('vertex_index', 'basic_configs')
-      create_collection('edge_index', 'basic_configs')
-      create_collection('fulltext_index', 'basic_configs')
+      create_collection('vertex_index', 'basic_configs', jaasFile)
+      create_collection('edge_index', 'basic_configs', jaasFile)
+      create_collection('fulltext_index', 'basic_configs', jaasFile)
 
     if params.security_enabled:
         TemplateConfig(format(params.atlas_jaas_file),
                          owner=params.metadata_user)
 
-def upload_conf_set(config_set):
+def upload_conf_set(config_set, jaasFile):
   import params
 
   solr_cloud_util.upload_configuration_to_zk(
@@ -130,12 +133,12 @@ def upload_conf_set(config_set):
       java64_home=params.java64_home,
       user=params.metadata_user,
       solrconfig_content=InlineTemplate(params.metadata_solrconfig_content),
+      jaas_file=jaasFile,
       retry=30, interval=5)
 
-def create_collection(collection, config_set):
+def create_collection(collection, config_set, jaasFile):
   import params
 
-  jaasFile=params.atlas_jaas_file if params.security_enabled else None
   solr_cloud_util.create_collection(
       zookeeper_quorum=params.zookeeper_quorum,
       solr_znode=params.logsearch_solr_znode,
@@ -146,3 +149,12 @@ def create_collection(collection, config_set):
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
       replication_factor = params.logsearch_solr_replication_factor)
+
+@retry(times=10, sleep_time=5, err_class=Fail)
+def check_znode():
+  import params
+  solr_cloud_util.check_znode(
+    zookeeper_quorum=params.zookeeper_quorum,
+    solr_znode=params.logsearch_solr_znode,
+    java64_home=params.java64_home,
+    user=params.metadata_user)

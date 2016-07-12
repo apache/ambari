@@ -19,22 +19,29 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
+import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientException;
 import org.apache.solr.common.cloud.ZkConfigManager;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class DownloadConfigZkCommand extends AbstractZookeeperRetryCommand<String> {
+public class DownloadConfigZkCommand extends AbstractZookeeperConfigCommand<String> {
 
   public DownloadConfigZkCommand(int maxRetries, int interval) {
     super(maxRetries, interval);
   }
 
   @Override
-  protected String executeZkCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
+  protected String executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
     Path configDir = Paths.get(client.getConfigDir());
     String configSet = client.getConfigSet();
-    zkConfigManager.downloadConfigDir(configSet, configDir);
-    return configDir.toString();
+    try {
+      zkConfigManager.downloadConfigDir(configSet, configDir);
+      return configDir.toString();
+    } catch (IOException e){
+      throw new AmbariSolrCloudClientException("Error downloading configuration set, check Solr Znode has started or not " +
+        "(starting Solr (for Log Search) is responsible to create the Znode)" ,e);
+    }
   }
 }

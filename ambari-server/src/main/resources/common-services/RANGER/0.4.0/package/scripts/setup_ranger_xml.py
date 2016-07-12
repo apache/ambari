@@ -26,6 +26,7 @@ from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.resources.modify_properties_file import ModifyPropertiesFile
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.core.utils import PasswordString
@@ -556,12 +557,13 @@ def create_core_site_xml(conf_dir):
 
 def setup_ranger_audit_solr():
   import params
-
+  jaas_file = params.solr_jaas_file if params.security_enabled else None
   if params.security_enabled and params.stack_supports_ranger_kerberos:
     File(format("{solr_jaas_file}"),
       content=Template("ranger_solr_jass_conf.j2"),
       owner=params.unix_user
     )
+  check_znode()
 
   solr_cloud_util.upload_configuration_to_zk(
     zookeeper_quorum = params.zookeeper_quorum,
@@ -571,6 +573,7 @@ def setup_ranger_audit_solr():
     tmp_dir = params.tmp_dir,
     java64_home = params.java_home,
     user = params.unix_user,
+    jaas_file=jaas_file,
     retry=30, interval=5)
 
   solr_cloud_util.create_collection(
@@ -591,3 +594,12 @@ def setup_ranger_admin_passwd_change():
     cmd = format('ambari-python-wrap {ranger_home}/db_setup.py -changepassword {admin_username} {default_admin_password!p} {admin_password!p}')
     Logger.info('Updating admin password')
     Execute(cmd, environment={'JAVA_HOME': params.java_home, 'RANGER_ADMIN_HOME': params.ranger_home}, user=params.unix_user)
+
+@retry(times=10, sleep_time=5, err_class=Fail)
+def check_znode():
+  import params
+  solr_cloud_util.check_znode(
+    zookeeper_quorum=params.zookeeper_quorum,
+    solr_znode=params.solr_znode,
+    java64_home=params.java_home,
+    user=params.unix_user)

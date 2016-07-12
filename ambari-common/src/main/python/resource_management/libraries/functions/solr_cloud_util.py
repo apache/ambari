@@ -23,11 +23,16 @@ from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.shell import as_user
 from resource_management.core.source import StaticFile, InlineTemplate
 
-__all__ = ["upload_configuration_to_zk", "create_collection"]
+__all__ = ["upload_configuration_to_zk", "create_collection", "setup_kerberos", "set_cluster_prop",
+           "setup_kerberos_plugin", "create_znode", "check_znode", "create_sasl_users"]
 
-def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home):
+def __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, separated_znode=False):
   solr_cli_prefix = format('export JAVA_HOME={java64_home} ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh ' \
-                           '--zookeeper-connect-string {zookeeper_quorum}{solr_znode}')
+                           '--zookeeper-connect-string {zookeeper_quorum}')
+  if separated_znode:
+    solr_cli_prefix+=format(' --znode {solr_znode}')
+  else:
+    solr_cli_prefix+=format('{solr_znode}')
   return solr_cli_prefix
 
 def __append_flags_if_exists(command, flagsDict):
@@ -38,7 +43,7 @@ def __append_flags_if_exists(command, flagsDict):
 
 
 def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_set_dir, tmp_dir,
-                         java64_home, user, retry = 5, interval = 10, solrconfig_content = None):
+                         java64_home, user, retry = 5, interval = 10, solrconfig_content = None, jaas_file=None):
   """
   Upload configuration set to zookeeper with solrCloudCli.sh
   At first, it tries to download configuration set if exists into a temporary location, then upload that one to
@@ -52,6 +57,8 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
           only_if=as_user(format("{solr_cli_prefix} --check-config --config-set {config_set} --retry {retry} --interval {interval}"), user),
           user=user
           )
+  appendableDict = {}
+  appendableDict["--jaas-file"] = jaas_file
 
   if solrconfig_content is not None:
       File(format("{tmp_config_set_dir}/solrconfig.xml"),
@@ -59,15 +66,15 @@ def upload_configuration_to_zk(zookeeper_quorum, solr_znode, config_set, config_
        owner=user,
        only_if=format("test -d {tmp_config_set_dir}")
       )
-
-      Execute(format(
-        '{solr_cli_prefix} --upload-config --config-dir {tmp_config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
+      upload_tmp_config_cmd = format('{solr_cli_prefix} --upload-config --config-dir {tmp_config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}')
+      upload_tmp_config_cmd = __append_flags_if_exists(upload_tmp_config_cmd, appendableDict)
+      Execute(upload_tmp_config_cmd,
         user=user,
         only_if=format("test -d {tmp_config_set_dir}")
       )
-
-  Execute(format(
-    '{solr_cli_prefix} --upload-config --config-dir {config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}'),
+  upload_config_cmd = format('{solr_cli_prefix} --upload-config --config-dir {config_set_dir} --config-set {config_set} --retry {retry} --interval {interval}')
+  upload_config_cmd = __append_flags_if_exists(upload_config_cmd, appendableDict)
+  Execute(upload_config_cmd,
     user=user,
     not_if=format("test -d {tmp_config_set_dir}")
   )
@@ -100,7 +107,6 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   create_collection_cmd = format('{solr_cli_prefix} --create-collection --collection {collection} --config-set {config_set} '\
                                  '--shards {shards} --replication {replication_factor} --max-shards {max_shards} --retry {retry} '\
                                  '--interval {interval} --no-sharding')
-
   appendableDict = {}
   appendableDict["--router-name"] = router_name
   appendableDict["--router-field"] = router_field
@@ -114,8 +120,63 @@ def create_collection(zookeeper_quorum, solr_znode, collection, config_set, java
   create_collection_cmd = __append_flags_if_exists(create_collection_cmd, appendableDict)
   create_collection_cmd = format(create_collection_cmd, key_store_password_param=key_store_password, trust_store_password_param=trust_store_password)
 
-
   Execute(create_collection_cmd, user=user)
+
+def setup_kerberos(zookeeper_quorum, solr_znode, copy_from_znode, java64_home, user, secure=False, jaas_file=None):
+  """
+  Copy all unsecured (or secured) Znode content to a secured (or unsecured) Znode,
+  and restrict the world permissions there.
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  setup_kerberos_cmd = format('{solr_cli_prefix} --setup-kerberos --copy-from-znode {copy_from_znode}')
+  if secure and jaas_file is not None:
+    setup_kerberos_cmd+=format(' --secure --jaas-file {jaas_file}')
+  Execute(setup_kerberos_cmd, user=user)
+
+def check_znode(zookeeper_quorum, solr_znode, java64_home, user, retry = 5, interval = 10):
+  """
+  Check znode exists or not, throws exception if does not accessible.
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  check_znode_cmd = format('{solr_cli_prefix} --check-znode --retry {retry} --interval {interval}')
+  Execute(check_znode_cmd, user=user)
+
+def create_znode(zookeeper_quorum, solr_znode, java64_home, user, retry = 5 , interval = 10):
+  """
+  Create znode if does not exists, throws exception if zookeeper is not accessible.
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  create_znode_cmd = format('{solr_cli_prefix} --create-znode --retry {retry} --interval {interval}')
+  Execute(create_znode_cmd, user=user)
+
+def setup_kerberos_plugin(zookeeper_quorum, solr_znode, java64_home, user, secure=False, jaas_file = None):
+  """
+  Set Kerberos plugin on the Solr znode in security.json, if secure is False, then clear the security.json
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  setup_kerberos_plugin_cmd = format('{solr_cli_prefix} --setup-kerberos-plugin')
+  if secure and jaas_file is not None:
+    setup_kerberos_plugin_cmd+=format(' --jaas-file {jaas_file} --secure')
+  Execute(setup_kerberos_plugin_cmd, user=user)
+
+def set_cluster_prop(zookeeper_quorum, solr_znode, prop_name, prop_value, java64_home, user = None, jaas_file = None):
+  """
+  Set a cluster property on the Solr znode in clusterprops.json
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home)
+  set_cluster_prop_cmd = format('{solr_cli_prefix} --cluster-prop --property-name {prop_name} --property-value {prop_value}')
+  if jaas_file is not None:
+    set_cluster_prop_cmd+=format(' --jaas-file {jaas_file}')
+  Execute(set_cluster_prop_cmd, user=user)
+
+def create_sasl_users(zookeeper_quorum, solr_znode, jaas_file, java64_home, user, sasl_users=[]):
+  """
+  Add list of sasl users to a znode
+  """
+  solr_cli_prefix = __create_solr_cloud_cli_prefix(zookeeper_quorum, solr_znode, java64_home, True)
+  sasl_users_str = ",".join(str(x) for x in sasl_users)
+  create_sasl_users_cmd = format('{solr_cli_prefix} --create-sasl-users --jaas-file {jaas_file} --sasl-users {sasl_users_str}')
+  Execute(create_sasl_users_cmd, user=user)
 
 def setup_solr_client(config, user = None, group = None, custom_log4j = True, custom_log_location = None, log4jcontent = None):
     solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user'] if user is None else user

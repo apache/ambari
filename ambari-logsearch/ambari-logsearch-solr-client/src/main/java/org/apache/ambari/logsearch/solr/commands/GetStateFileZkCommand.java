@@ -19,24 +19,25 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientException;
-import org.apache.solr.common.cloud.ZkConfigManager;
+import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.SolrZooKeeper;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+public class GetStateFileZkCommand extends AbstractStateFileZkCommand {
+  private String unsecureZnode;
 
-public class UploadConfigZkCommand extends AbstractZookeeperConfigCommand<String> {
-
-  public UploadConfigZkCommand(int maxRetries, int interval) {
+  public GetStateFileZkCommand(int maxRetries, int interval, String unsecureZnode) {
     super(maxRetries, interval);
+    this.unsecureZnode = unsecureZnode;
   }
 
   @Override
-  protected String executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
-    Path configDir = Paths.get(client.getConfigDir());
-    String configSet = client.getConfigSet();
-    zkConfigManager.uploadConfigDir(configDir, configSet);
-    return configSet;
+  protected AmbariSolrState executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
+    AmbariSolrState result = AmbariSolrState.UNSECURE;
+    String stateFile = String.format("%s/%s", unsecureZnode, AbstractStateFileZkCommand.STATE_FILE);
+    if (zkClient.exists(stateFile, true)) {
+      result = getStateFromJson(client, stateFile);
+    }
+    return result;
   }
 }

@@ -19,24 +19,24 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientException;
-import org.apache.solr.common.cloud.ZkConfigManager;
+import org.apache.ambari.logsearch.solr.domain.AmbariSolrState;;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+public abstract class AbstractStateFileZkCommand extends AbstractZookeeperRetryCommand<AmbariSolrState>{
 
-public class UploadConfigZkCommand extends AbstractZookeeperConfigCommand<String> {
+  public static final String STATE_FILE = "ambari-solr-state.json";
+  public static final String STATE_FIELD = "ambari_solr_security_state";
 
-  public UploadConfigZkCommand(int maxRetries, int interval) {
+  public AbstractStateFileZkCommand(int maxRetries, int interval) {
     super(maxRetries, interval);
   }
 
-  @Override
-  protected String executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
-    Path configDir = Paths.get(client.getConfigDir());
-    String configSet = client.getConfigSet();
-    zkConfigManager.uploadConfigDir(configDir, configSet);
-    return configSet;
+  public AmbariSolrState getStateFromJson(AmbariSolrCloudClient client, String fileName) throws Exception {
+    byte[] data = client.getSolrZkClient().getData(fileName, null, null, true);
+    String input = new String(data);
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.readValue(input.getBytes(), JsonNode.class);
+    return AmbariSolrState.valueOf(rootNode.get(STATE_FIELD).asText());
   }
 }
