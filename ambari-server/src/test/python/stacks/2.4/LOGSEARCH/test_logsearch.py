@@ -107,6 +107,8 @@ class TestLogSearch(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['logsearch-audit_logs-solrconfig']['content'])
                               )
 
+    self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /logsearch --check-znode --retry 5 --interval 10',
+                              user = "solr")
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_hadoop_logs_0.[0-9]* --config-set hadoop_logs --retry 30 --interval 5')
     self.assertResourceCalledRegexp('^File$', '^/tmp/solr_config_hadoop_logs_0.[0-9]*',
                                     content=InlineTemplate(self.getConfig()['configurations']['logsearch-service_logs-solrconfig']['content']),
