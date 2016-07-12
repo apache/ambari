@@ -54,17 +54,15 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
-import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapperBuilder;
-import org.apache.ambari.server.state.stack.upgrade.StartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.StartTask;
-import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.StopTask;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeFunction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -291,20 +289,14 @@ public class UpgradeHelper {
 
       // Attempt to get the function of the group, during a NonRolling Upgrade
       Task.Type functionName = null;
+      if (group instanceof UpgradeFunction) {
+        functionName = ((UpgradeFunction) group).getFunction();
+      }
+
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
       if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
         group.performServiceCheck = false;
-
-        if (RestartGrouping.class.isInstance(group)) {
-          functionName = ((RestartGrouping) group).getFunction();
-        }
-        if (StartGrouping.class.isInstance(group)) {
-          functionName = ((StartGrouping) group).getFunction();
-        }
-        if (StopGrouping.class.isInstance(group)) {
-          functionName = ((StopGrouping) group).getFunction();
-        }
       }
 
       StageWrapperBuilder builder = group.getBuilder();
@@ -352,34 +344,37 @@ public class UpgradeHelper {
 
           Service svc = cluster.getService(service.serviceName);
 
+          // if a function name is present, build the tasks dynamically;
+          // otherwise use the tasks defined in the upgrade pack processing
           ProcessingComponent pc = null;
-          if (upgradePack.getType() == UpgradeType.ROLLING) {
+          if (null == functionName) {
             pc = allTasks.get(service.serviceName).get(component);
-          } else if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
-            if (null != functionName) {
-              // Construct a processing task on-the-fly if it is a "stop" group.
-              if (functionName == Type.STOP) {
+          } else {
+            // Construct a processing task on-the-fly if it is a "stop" group.
+            if (functionName == Type.STOP) {
+              pc = new ProcessingComponent();
+              pc.name = component;
+              pc.tasks = new ArrayList<>();
+              pc.tasks.add(new StopTask());
+            } else {
+              // For Start and Restart, make a best attempt at finding
+              // Processing Components.
+              // If they don't exist, make one on the fly.
+              if (allTasks.containsKey(service.serviceName)
+                  && allTasks.get(service.serviceName).containsKey(component)) {
+                pc = allTasks.get(service.serviceName).get(component);
+              } else {
+                // Construct a processing task on-the-fly so that the Upgrade
+                // Pack is less verbose.
                 pc = new ProcessingComponent();
                 pc.name = component;
                 pc.tasks = new ArrayList<>();
-                pc.tasks.add(new StopTask());
-              } else {
-                // For Start and Restart, make a best attempt at finding Processing Components.
-                // If they don't exist, make one on the fly.
-                if (allTasks.containsKey(service.serviceName) && allTasks.get(service.serviceName).containsKey(component)) {
-                  pc = allTasks.get(service.serviceName).get(component);
-                } else {
-                  // Construct a processing task on-the-fly so that the Upgrade Pack is less verbose.
-                  pc = new ProcessingComponent();
-                  pc.name = component;
-                  pc.tasks = new ArrayList<>();
 
-                  if (functionName == Type.START) {
-                    pc.tasks.add(new StartTask());
-                  }
-                  if (functionName == Type.RESTART) {
-                    pc.tasks.add(new RestartTask());
-                  }
+                if (functionName == Type.START) {
+                  pc.tasks.add(new StartTask());
+                }
+                if (functionName == Type.RESTART) {
+                  pc.tasks.add(new RestartTask());
                 }
               }
             }

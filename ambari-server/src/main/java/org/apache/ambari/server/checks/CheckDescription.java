@@ -263,7 +263,13 @@ public enum CheckDescription {
       "Hive Server Port Change",
       new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-        "In order to support rolling upgrades, the Hive server is required to change its port. Applications and users which use a URL that includes the port will no longer be able to connect after Hive has upgraded. If this behavior is not desired, then the port can be restored to its original value after the upgrade has been finalized.").build());
+        "In order to support rolling upgrades, the Hive server is required to change its port. Applications and users which use a URL that includes the port will no longer be able to connect after Hive has upgraded. If this behavior is not desired, then the port can be restored to its original value after the upgrade has been finalized.").build()),
+  
+  SERVICES_STORM_ROLLING_WARNING(PrereqCheckType.SERVICE,
+      "Storm Downtime During Upgrade",
+      new ImmutableMap.Builder<String, String>()
+      .put(AbstractCheckDescriptor.DEFAULT,
+        "Storm does not support rolling upgrades on this version of the stack. If you proceed, you will be required to stop all running topologies before Storm is restarted.").build());  
 
 
   private PrereqCheckType m_type;

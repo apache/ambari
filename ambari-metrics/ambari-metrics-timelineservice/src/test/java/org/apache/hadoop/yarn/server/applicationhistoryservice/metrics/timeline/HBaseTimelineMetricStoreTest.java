@@ -17,21 +17,21 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import com.google.common.collect.Multimap;
 import junit.framework.Assert;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function.ReadFunction.AVG;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function.ReadFunction.SUM;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function.PostProcessingFunction.RATE;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HBaseTimelineMetricStoreTest {
 
@@ -44,24 +44,48 @@ public class HBaseTimelineMetricStoreTest {
     //giwen
     List<String> metricNames = Arrays.asList(
       MEM_METRIC + "._avg",
+      MEM_METRIC + "._sum",
       MEM_METRIC + "._rate._avg",
       BYTES_IN_METRIC,
       BYTES_NOT_AFUNCTION_METRIC);
 
     //when
-    HashMap<String, List<Function>> mfm =
+    Multimap<String, List<Function>> multimap =
       HBaseTimelineMetricStore.parseMetricNamesToAggregationFunctions(metricNames);
 
     //then
-    assertThat(mfm).hasSize(3)
-      .containsKeys(MEM_METRIC, BYTES_IN_METRIC, BYTES_NOT_AFUNCTION_METRIC);
+    Assert.assertEquals(multimap.keySet().size(), 3);
+    Assert.assertTrue(multimap.containsKey(MEM_METRIC));
+    Assert.assertTrue(multimap.containsKey(BYTES_IN_METRIC));
+    Assert.assertTrue(multimap.containsKey(BYTES_NOT_AFUNCTION_METRIC));
+
+    List<List<Function>> metricEntry = (List<List<Function>>) multimap.get(MEM_METRIC);
+    HashMap<String, List<Function>> mfm = new HashMap<String, List<Function>>();
+    mfm.put(MEM_METRIC, metricEntry.get(0));
 
     assertThat(mfm.get(MEM_METRIC)).containsOnly(
-      new Function(AVG, null),
+      new Function(AVG, null));
+
+    mfm = new HashMap<String, List<Function>>();
+    mfm.put(MEM_METRIC, metricEntry.get(1));
+    assertThat(mfm.get(MEM_METRIC)).containsOnly(
+      new Function(SUM, null));
+
+    mfm = new HashMap<String, List<Function>>();
+    mfm.put(MEM_METRIC, metricEntry.get(2));
+    assertThat(mfm.get(MEM_METRIC)).containsOnly(
       new Function(AVG, RATE));
+
+    metricEntry = (List<List<Function>>) multimap.get(BYTES_IN_METRIC);
+    mfm = new HashMap<String, List<Function>>();
+    mfm.put(BYTES_IN_METRIC, metricEntry.get(0));
 
     assertThat(mfm.get(BYTES_IN_METRIC))
       .contains(Function.DEFAULT_VALUE_FUNCTION);
+
+    metricEntry = (List<List<Function>>) multimap.get(BYTES_NOT_AFUNCTION_METRIC);
+    mfm = new HashMap<String, List<Function>>();
+    mfm.put(BYTES_NOT_AFUNCTION_METRIC, metricEntry.get(0));
 
     assertThat(mfm.get(BYTES_NOT_AFUNCTION_METRIC))
       .contains(Function.DEFAULT_VALUE_FUNCTION);

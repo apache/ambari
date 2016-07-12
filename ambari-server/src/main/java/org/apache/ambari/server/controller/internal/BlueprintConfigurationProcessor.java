@@ -2129,60 +2129,6 @@ public class BlueprintConfigurationProcessor {
   }
 
   /**
-   * Custom PropertyUpdater that handles the updating of the Atlas HA related properties.
-   */
-  private static class AtlasHAPropertyUpdater extends MultipleHostTopologyUpdater {
-
-    public AtlasHAPropertyUpdater() {
-      super("ATLAS_SERVER");
-    }
-
-    @Override
-    public String updateForClusterCreate(String propertyName, String origValue, Map<String,
-        Map<String, String>> properties, ClusterTopology topology) {
-
-      int serverId = 1;
-
-      StringBuilder sb = new StringBuilder();
-
-      Collection<String> hosts = topology.getHostAssignmentsForComponent("ATLAS_SERVER");
-
-      switch (propertyName) {
-        case "atlas.server.address.id1":
-
-          Map<String, String> applicationProperties = properties.get("application-properties");
-
-          Boolean ssl_enabled = Boolean.parseBoolean(applicationProperties.get("atlas.enableTLS"));
-
-          String port = ssl_enabled ? applicationProperties.get("atlas.server.https.port") :
-              applicationProperties.get("atlas.server.http.port");
-
-          for (String host : hosts) {
-
-            if (serverId > 1) {
-              sb.append("\n").append("atlas.server.address.id").append(serverId).append("=");
-            }
-            sb.append(host).append(":").append(port);
-            ++serverId;
-          }
-          break;
-        case "atlas.server.ids":
-
-          while (serverId <= hosts.size()) {
-            if (serverId > 1) {
-              sb.append(",");
-            }
-            sb.append("id" + serverId++);
-          }
-          break;
-        default:
-          return origValue;
-      }
-      return sb.toString();
-    }
-  }
-
-  /**
    * Custom PropertyUpdater that handles the parsing and updating of the
    * "templeton.hive.properties" configuration property for WebHCat.
    * This particular configuration property uses a format of
@@ -2660,9 +2606,6 @@ public class BlueprintConfigurationProcessor {
 
     // ATLAS
     atlasPropsMap.put("atlas.server.bind.address", new SingleHostTopologyUpdater("ATLAS_SERVER"));
-    PropertyUpdater atlasHAUpdater = new AtlasHAPropertyUpdater();
-    atlasPropsMap.put("atlas.server.ids", atlasHAUpdater);
-    atlasPropsMap.put("atlas.server.address.id1", atlasHAUpdater);
     atlasPropsMap.put("atlas.kafka.bootstrap.servers", new MultipleHostTopologyUpdater("KAFKA_BROKER"));
     atlasPropsMap.put("atlas.kafka.zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.graph.index.search.solr.zookeeper-url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER", ',', false, true, true));
