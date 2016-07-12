@@ -6646,9 +6646,7 @@ class TestHDP25StackAdvisor(TestCase):
             "atlas.audit.hbase.zookeeper.quorum": "",
             "atlas.graph.storage.hostname": "",
             "atlas.kafka.bootstrap.servers": "",
-            "atlas.kafka.zookeeper.connect": "",
-            'atlas.server.address.id1': "",
-            'atlas.server.ids': ""
+            "atlas.kafka.zookeeper.connect": ""
           }
         },
         "logsearch-solr-env": {

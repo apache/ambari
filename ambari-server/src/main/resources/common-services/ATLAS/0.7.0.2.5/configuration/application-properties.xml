@@ -21,34 +21,6 @@
 -->
 <configuration supports_final="false">
 
-  <!-- HA properties -->
-  <property>
-    <name>atlas.server.ha.enabled</name>
-    <value>false</value>
-    <description>Atlas high availability feature toggle.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>atlas.server.ids</name>
-    <value>{{server_ids}}</value>
-    <description>List of Atlas server ids for HA feature.</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <visible>false</visible>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>atlas.server.address.id1</name>
-    <value>{{server_hosts}}</value>
-    <description>Mapping of Atlas server ids to hosts.</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <visible>false</visible>
-    </value-attributes>
-    <on-ambari-upgrade add="false"/>
-  </property>
-
   <!-- Misc properties -->
   <property>
     <name>atlas.audit.hbase.zookeeper.quorum</name>

@@ -24,31 +24,63 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
-import status_params
+# Local Imports
+from status_params import *
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
 
+
+def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
+  """
+  Return a dictionary of additional configs to merge if Atlas HA is enabled.
+  :param atlas_hosts: List of hostnames that contain Atlas
+  :param metadata_port: Port number
+  :param is_atlas_ha_enabled: None, True, or False
+  :return: Dictionary with additional configs to merge to application-properties if HA is enabled.
+  """
+  additional_props = {}
+  if atlas_hosts is None or len(atlas_hosts) == 0 or metadata_port is None:
+    return additional_props
+
+  # Sort to guarantee each host sees the same values, assuming restarted at the same time.
+  atlas_hosts = sorted(atlas_hosts)
+
+  # E.g., id1,id2,id3,...,idn
+  _server_id_list = ["id" + str(i) for i in range(1, len(atlas_hosts) + 1)]
+  atlas_server_ids = ",".join(_server_id_list)
+  additional_props["atlas.server.ids"] = atlas_server_ids
+
+  i = 0
+  for curr_hostname in atlas_hosts:
+    id = _server_id_list[i]
+    prop_name = "atlas.server.address." + id
+    prop_value = curr_hostname + ":" + metadata_port
+    additional_props[prop_name] = prop_value
+    i += 1
+
+  # This may override the existing property
+  if i == 1 or (i > 1 and is_atlas_ha_enabled is False):
+    additional_props["atlas.server.ha.enabled"] = "false"
+  elif i > 1:
+    additional_props["atlas.server.ha.enabled"] = "true"
+
+  return additional_props
+  
 # server configurations
 config = Script.get_config()
 stack_root = Script.get_stack_root()
-tmp_dir = Script.get_tmp_dir()
 
 cluster_name = config['clusterName']
 
 java_version = expect("/hostLevelParams/java_version", int)
-
-# security enabled
-security_enabled = status_params.security_enabled
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
   atlas_jaas_principal = _atlas_principal_name.replace('_HOST',_hostname_lowercase)
   atlas_keytab_path = config['configurations']['application-properties']['atlas.authentication.keytab']
-
-stack_name = status_params.stack_name
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
@@ -66,8 +98,6 @@ metadata_stop_script = format("{metadata_bin}/atlas_stop.py")
 
 # metadata local directory structure
 log_dir = config['configurations']['atlas-env']['metadata_log_dir']
-conf_dir = status_params.conf_dir # "/etc/metadata/conf"
-conf_file = status_params.conf_file
 
 # service locations
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOME' in os.environ else '/etc/hadoop/conf'
@@ -75,11 +105,8 @@ hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOM
 # some commands may need to supply the JAAS location when running as atlas
 atlas_jaas_file = format("{conf_dir}/atlas_jaas.conf")
 
-# user and status
-metadata_user = status_params.metadata_user
+# user
 user_group = config['configurations']['cluster-env']['user_group']
-pid_dir = status_params.pid_dir
-pid_file = format("{pid_dir}/atlas.pid")
 
 # metadata env
 java64_home = config['hostLevelParams']['java_home']
@@ -105,6 +132,18 @@ metadata_host = config['hostname']
 application_properties = dict(config['configurations']['application-properties'])
 application_properties['atlas.server.bind.address'] = metadata_host
 
+# Atlas HA should populate
+# atlas.server.ids = id1,id2,...,idn
+# atlas.server.address.id# = host#:port
+atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+# User should not have to modify this property, but still allow overriding it to False if multiple Atlas servers exist
+# This can be None, True, or False
+is_atlas_ha_enabled = default("/configurations/application-properties/atlas.server.ha.enabled", None)
+additional_ha_props = configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled)
+for k,v in additional_ha_props.iteritems():
+  application_properties[k] = v
+
+
 metadata_env_content = config['configurations']['atlas-env']['content']
 
 metadata_opts = config['configurations']['atlas-env']['metadata_opts']
@@ -125,7 +164,6 @@ smoke_test_password = 'smoke'
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
-kinit_path_local = status_params.kinit_path_local
 
 security_check_status_file = format('{log_dir}/security_check.status')
 if security_enabled:
@@ -135,26 +173,6 @@ else:
 
 # hbase
 hbase_conf_dir = "/etc/hbase/conf"
-
-# atlas HA
-atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
-
-id = 1
-server_ids = ""
-server_hosts = ""
-first_id = True
-for host in atlas_hosts:
-  server_id = "id" + str(id)
-  server_host = host + ":" + metadata_port
-  if first_id:
-    server_ids = server_id
-    server_hosts = server_host
-  else:
-    server_ids += "," + server_id
-    server_hosts += "\n" + "atlas.server.address." + server_id + "=" + server_host
-
-  id += 1
-  first_id = False
 
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')
@@ -200,7 +218,6 @@ atlas_server_max_new_size = config['configurations']['atlas-env']['atlas_server_
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory
-  hadoop_bin_dir = status_params.hadoop_bin_dir
   namenode_host = set(default("/clusterHostInfo/namenode_host", []))
   has_namenode = not len(namenode_host) == 0
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None

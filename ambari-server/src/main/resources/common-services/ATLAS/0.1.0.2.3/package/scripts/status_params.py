@@ -28,15 +28,16 @@ from resource_management.libraries.functions import stack_select
 
 config = Script.get_config()
 
-conf_file = config['configurations']['atlas-env']['metadata_conf_file']
+conf_file = default("/configurations/atlas-env/metadata_conf_file", "atlas-application.properties")
 conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-pid_dir = config['configurations']['atlas-env']['metadata_pid_dir']
+pid_dir = default("/configurations/atlas-env/metadata_pid_dir", "/var/run/atlas")
 pid_file = format("{pid_dir}/atlas.pid")
-metadata_user = config['configurations']['atlas-env']['metadata_user']
+
+metadata_user = default("/configurations/atlas-env/metadata_user", None)
 
 # Security related/required params
 hostname = config['hostname']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+security_enabled = default("/configurations/cluster-env/security_enabled", None)
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()
 
