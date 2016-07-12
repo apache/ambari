@@ -526,10 +526,7 @@ def ranger_credential_helper(lib_path, alias_key, alias_value, file_path):
   import params
 
   java_bin = format('{java_home}/bin/java')
-  jceks_scheme = 'jceks'
-  if params.stack_supports_localjceks:
-    jceks_scheme = 'localjceks'
-  file_path = format('{jceks_scheme}://file{file_path}')
+  file_path = format('jceks://file{file_path}')
   cmd = (java_bin, '-cp', lib_path, 'org.apache.ranger.credentialapi.buildks', 'create', alias_key, '-value', PasswordString(alias_value), '-provider', file_path)
   Execute(cmd, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)
 

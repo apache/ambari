@@ -318,7 +318,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0775
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'localjceks://file/etc/ranger/kms/rangerkms.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
@@ -330,7 +330,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0640
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'localjceks://file/etc/ranger/kms/rangerkms.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
@@ -643,7 +643,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0775
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'localjceks://file/etc/ranger/kms/rangerkms.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.jdbc.password', '-value', 'rangerkms01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
@@ -655,7 +655,7 @@ class TestRangerKMS(RMFTestCase):
       mode = 0640
     )
 
-    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'localjceks://file/etc/ranger/kms/rangerkms.jceks'),
+    self.assertResourceCalled('Execute', ('/usr/jdk64/jdk1.7.0_45/bin/java', '-cp', '/usr/hdp/current/ranger-kms/cred/lib/*', 'org.apache.ranger.credentialapi.buildks', 'create', 'ranger.ks.masterkey.password', '-value', 'StrongPassword01', '-provider', 'jceks://file/etc/ranger/kms/rangerkms.jceks'),
       environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
       logoutput=True,
       sudo=True
