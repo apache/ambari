@@ -38,6 +38,9 @@
     <check>org.apache.ambari.server.checks.AtlasPresenceCheck</check>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
 
+    <!-- Specific to HDP 2.5, Storm is not rolling -->
+    <check>org.apache.ambari.server.checks.StormShutdownWarning</check>
+
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <!--TODO: is it required? -->
@@ -386,8 +389,44 @@
       </service>
     </group>
 
-    <group name="STORM" title="Storm">
+    <!-- Storm package names changed causing an incompatibility between versions; we must
+    shut all daemons down before deleting ZooKeeper/local data. -->
+    <group xsi:type="cluster" name="STOP_STORM_WARNING" title="Deactivate Storm Topologies">
+      <direction>UPGRADE</direction>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <execute-stage service="STORM" component="NIMBUS" title="Deactivate Storm Topologies">
+        <task xsi:type="manual">
+          <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+        </task>
+      </execute-stage>
+    </group>
+
+    <group xsi:type="stop" name="STOP_STORM" title="Stop Storm Services">
+      <direction>UPGRADE</direction>
       <skippable>true</skippable>
+      <service-check>false</service-check>
+      <service name="STORM">
+        <component>NIMBUS</component>
+        <component>SUPERVISOR</component>
+        <component>STORM_UI_SERVER</component>
+        <component>DRPC_SERVER</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="RESTART_STORM" title="Restart Storm Services">
+      <skippable>true</skippable>
+      <service name="STORM">
+        <component>NIMBUS</component>
+        <component>SUPERVISOR</component>
+        <component>STORM_UI_SERVER</component>
+        <component>DRPC_SERVER</component>
+      </service>
+    </group>
+
+    <group xsi:type="stop" name="STOP_STORM" title="Stop Storm Services">
+      <direction>DOWNGRADE</direction>
+      <skippable>true</skippable>
+      <service-check>false</service-check>
       <service name="STORM">
         <component>NIMBUS</component>
         <component>SUPERVISOR</component>
@@ -904,10 +943,6 @@
     <service name="STORM">
       <component name="NIMBUS">
         <pre-upgrade>
-          <task xsi:type="manual">
-            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
-          </task>
-
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db" />
           <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
 
@@ -948,10 +983,6 @@
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="manual">
-            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
-          </task>
-
           <task xsi:type="execute" summary="Removing local Storm data">
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
