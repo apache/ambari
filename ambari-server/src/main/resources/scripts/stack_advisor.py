@@ -41,6 +41,7 @@ STACK_ADVISOR_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, '../stacks/stack_ad
 STACK_ADVISOR_DEFAULT_IMPL_CLASS = 'DefaultStackAdvisor'
 STACK_ADVISOR_IMPL_PATH_TEMPLATE = os.path.join(SCRIPT_DIRECTORY, './../stacks/{0}/{1}/services/stack_advisor.py')
 STACK_ADVISOR_IMPL_CLASS_TEMPLATE = '{0}{1}StackAdvisor'
+STACK_ADVISOR_BASE_MODULES = os.path.join(SCRIPT_DIRECTORY, '../stacks/{0}/{1}/stack-advisor')
 
 
 class StackAdvisorException(Exception):
@@ -91,6 +92,11 @@ def main(argv=None):
   parentVersions = []
   if "stack_hierarchy" in services["Versions"]:
     parentVersions = services["Versions"]["stack_hierarchy"]["stack_versions"]
+
+  versions = [stackVersion]
+  versions.extend(parentVersions)
+
+  sys.path.append(STACK_ADVISOR_BASE_MODULES.format(stackName, versions[-1]))
 
   stackAdvisor = instantiateStackAdvisor(stackName, stackVersion, parentVersions)
 

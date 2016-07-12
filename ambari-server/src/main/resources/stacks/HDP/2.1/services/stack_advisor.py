@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from stack_advisor_206 import *
+
 class HDP21StackAdvisor(HDP206StackAdvisor):
 
   def getServiceConfigurationRecommenderDict(self):

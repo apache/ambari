@@ -24,17 +24,23 @@ import fnmatch
 import math
 import socket
 
-# Local Imports
-from resource_management.core.logger import Logger
-
-
-DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
+from stack_advisor_22 import *
 
 class HDP23StackAdvisor(HDP22StackAdvisor):
 
-  def __init__(self):
-    super(HDP23StackAdvisor, self).__init__()
-    Logger.initialize_logger()
+  def createComponentLayoutRecommendations(self, services, hosts):
+    parentComponentLayoutRecommendations = super(HDP23StackAdvisor, self).createComponentLayoutRecommendations(services, hosts)
+
+    # remove HAWQSTANDBY on a single node
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    if len(hostsList) == 1:
+      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+      if "HAWQ" in servicesList:
+        components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
+        components = [ component for component in components if component["name"] != 'HAWQSTANDBY' ]
+        parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
+
+    return parentComponentLayoutRecommendations
 
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
