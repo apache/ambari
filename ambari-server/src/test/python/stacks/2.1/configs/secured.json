@@ -910,7 +910,10 @@
             "tag": "version1389972945450"
         }
     }, 
-    "commandId": "9-1", 
+    "commandId": "9-1",
+    "availableServices" : {
+      "STORM" : "0.9.1"
+    },
     "clusterHostInfo": {
         "ambari_server_host": [
             "c6401.ambari.apache.org"

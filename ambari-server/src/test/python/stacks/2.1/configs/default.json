@@ -922,7 +922,10 @@
             "tag": "version1"
         }
     }, 
-    "commandId": "7-1", 
+    "commandId": "7-1",
+    "availableServices" : {
+        "STORM" : "0.9.1"
+    },
     "clusterHostInfo": {
         "ambari_server_host": [
             "c6401.ambari.apache.org"
