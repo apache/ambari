@@ -70,7 +70,7 @@
   </property>
   <property>
     <name>storm.zookeeper.session.timeout</name>
-    <value>20000</value>
+    <value>30000</value>
     <description>The session timeout for clients to ZooKeeper.</description>
     <value-attributes>
       <type>int</type>
@@ -208,7 +208,7 @@
   </property>
   <property>
     <name>nimbus.monitor.freq.secs</name>
-    <value>120</value>
+    <value>10</value>
     <description>
       How often nimbus should wake up to check heartbeats and do reassignments. Note
        that if a machine ever goes down Nimbus will immediately wake up and take action.
