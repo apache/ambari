@@ -245,7 +245,8 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         }
 
         // dependent components from the stack definitions are only added if related services are explicitly added to the blueprint!
-        if (!blueprint.getServices().contains(dependency.getServiceName())) {
+        boolean isClientDependency = stack.getComponentInfo(dependency.getComponentName()).isClient();
+        if (isClientDependency && !blueprint.getServices().contains(dependency.getServiceName())) {
           LOGGER.debug("The service [{}] for component [{}] is missing from the blueprint [{}], skipping dependency",
               dependency.getServiceName(), dependency.getComponentName(), blueprint.getName());
           continue;
