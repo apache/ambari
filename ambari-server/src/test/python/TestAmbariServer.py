@@ -1934,9 +1934,17 @@ class TestAmbariServer(TestCase):
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
+    p.communicate.return_value = ("active\nactive", "err")
     p.returncode = 0
     self.assertEqual("RedHat7FirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
+    p.communicate.return_value = ("inactive\nactive", "err")
+    p.returncode = 3
+    self.assertTrue(firewall_obj.check_firewall())
+    p.communicate.return_value = ("active\ninactive", "err")
+    p.returncode = 3
+    self.assertTrue(firewall_obj.check_firewall())
+    p.communicate.return_value = ("inactive\ninactive", "err")
     p.returncode = 3
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
