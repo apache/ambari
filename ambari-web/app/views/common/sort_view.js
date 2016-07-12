@@ -330,15 +330,16 @@ var fieldView = Em.View.extend({
    */
   click: function (event) {
     var wrapperView = this.get('parentView');
-    var currentObserverProperty = this.get('controller.sortingColumn.name');
     wrapperView.sort(this, (this.get('status') !== 'sorting_desc'));
 
     // add observer for sorting property key to apply sorting if some value will be changed
-    if (currentObserverProperty) {
-      wrapperView.removeSortingObserver(currentObserverProperty);
+    if (wrapperView.addSortingObserver && wrapperView.removeSortingObserver) {
+      var currentObserverProperty = this.get('controller.sortingColumn.name');
+      if (currentObserverProperty) {
+        wrapperView.removeSortingObserver(currentObserverProperty);
+      }
+      wrapperView.addSortingObserver(this.get('name'));
     }
-
-    wrapperView.addSortingObserver(this.get('name'));
     this.get('controller').set('sortingColumn', this);
   }
 });
