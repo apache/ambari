@@ -2309,7 +2309,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     execCmd.setRoleParams(roleParams);
     
-    execCmd.setAvailableServices(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()).keySet());
+    execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
       LOG.info("AmbariManagementControllerImpl.createHostAction: created ExecutionCommand for host {}, role {}, roleCommand {}, and command ID {}, with cluster-env tags {}",

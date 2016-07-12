@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -112,7 +113,7 @@ public class ExecutionCommand extends AgentCommand {
   private Set<String> localComponents = new HashSet<String>();
 
   @SerializedName("availableServices")
-  private Set<String> availableServices = new HashSet<String>();
+  private Map<String, String> availableServices = new HashMap<>();
 
   public String getCommandId() {
     return commandId;
@@ -264,12 +265,16 @@ public class ExecutionCommand extends AgentCommand {
     this.localComponents = localComponents;
   }
 
-  public Set<String> getAvailableServices() {
+  public Map<String, String> getAvailableServices() {
     return availableServices;
   }
 
-  public void setAvailableServices(Set<String> availableServices) {
-    this.availableServices = availableServices;
+  public void setAvailableServicesFromServiceInfoMap(Map<String, ServiceInfo> serviceInfoMap) {
+    Map<String, String> serviceVersionMap = new HashMap<>();
+    for (Map.Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
+      serviceVersionMap.put(entry.getKey(), entry.getValue().getVersion());
+    }
+    this.availableServices = serviceVersionMap;
   }
 
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
