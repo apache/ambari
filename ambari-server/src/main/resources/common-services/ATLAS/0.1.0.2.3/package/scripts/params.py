@@ -89,8 +89,8 @@ credential_provider = format( "jceks://file@{conf_dir}/atlas-site.jceks")
 
 # command line args
 ssl_enabled = default("/configurations/application-properties/atlas.enableTLS", False)
-http_port = default("/configurations/application-properties/atlas.server.http.port", 21000)
-https_port = default("/configurations/application-properties/atlas.server.https.port", 21443)
+http_port = default("/configurations/application-properties/atlas.server.http.port", "21000")
+https_port = default("/configurations/application-properties/atlas.server.https.port", "21443")
 if ssl_enabled:
   metadata_port = https_port
   metadata_protocol = 'https'
