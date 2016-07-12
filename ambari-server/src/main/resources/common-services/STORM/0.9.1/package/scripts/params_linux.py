@@ -194,7 +194,6 @@ metric_collector_legacy_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink
 
 jar_jvm_opts = ''
 
-
 ########################################################
 ############# Atlas related params #####################
 ########################################################
@@ -203,8 +202,11 @@ storm_atlas_application_properties = default('/configurations/storm-atlas-applic
 
 if has_atlas_in_cluster():
   atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
-  atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
-  jar_jvm_opts += '-Datlas.conf=' + atlas_conf_dir
+
+  # Only append /etc/atlas/conf to classpath if on HDP 2.4.*
+  if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
+    atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else '/etc/atlas/conf'
+    jar_jvm_opts += '-Datlas.conf=' + atlas_conf_dir
 #endregion
 
 

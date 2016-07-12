@@ -247,6 +247,12 @@
       "min_version": "2.5.0.0"
     },
     {
+      "name": "atlas_conf_dir_in_path",
+      "description": "Prepend the Atlas conf dir (/etc/atlas/conf) to the classpath of Storm and Falcon",
+      "min_version": "2.3.0.0",
+      "max_version": "2.4.99.99"
+    },
+    {
       "name": "atlas_upgrade_support",
       "description": "Atlas supports express and rolling upgrades",
       "min_version": "2.5.0.0"

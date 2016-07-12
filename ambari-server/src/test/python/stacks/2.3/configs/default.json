@@ -336,17 +336,20 @@
             "c6401.ambari.apache.org",
             "c6402.ambari.apache.org"
         ],
-      "knox_gateway_hosts": [
-        "jaimin-knox-1.c.pramod-thangali.internal"
-      ],
-      "kafka_broker_hosts": [
-        "c6401.ambari.apache.org"
-      ],
-      "logsearch_solr_hosts": [
-        "c6401.ambari.apache.org"
-      ],
-       "zookeeper_hosts": [
+        "knox_gateway_hosts": [
+          "jaimin-knox-1.c.pramod-thangali.internal"
+        ],
+        "kafka_broker_hosts": [
+          "c6401.ambari.apache.org"
+        ],
+        "logsearch_solr_hosts": [
+          "c6401.ambari.apache.org"
+        ],
+        "zookeeper_hosts": [
          "c6401.ambari.apache.org"
+        ],
+        "atlas_server_hosts": [
+          "c6401.ambari.apache.org"
         ]
 
 }
