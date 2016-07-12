@@ -137,7 +137,7 @@ class Master(Script):
     File(format("{params.conf_dir}/hive-site.xml"), content=hive_site_xml_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
-    if str(params.hbase_master_hosts[0]):
+    if len(params.hbase_master_hosts) > 0:
       # copy hbase-site.xml
       hbase_site_xml_content = open("/etc/hbase/conf/hbase-site.xml").read()
       File(format("{params.conf_dir}/hbase-site.xml"), content=hbase_site_xml_content,
@@ -248,6 +248,15 @@ class Master(Script):
           notebook['properties']['zeppelin.jdbc.auth.type'] = ""
           notebook['properties']['zeppelin.jdbc.principal'] = ""
           notebook['properties']['zeppelin.jdbc.keytab.location'] = ""
+      elif notebook['group'] == 'sh':
+        if params.zeppelin_kerberos_principal and params.zeppelin_kerberos_keytab and params.security_enabled:
+          notebook['properties']['zeppelin.shell.auth.type'] = "KERBEROS"
+          notebook['properties']['zeppelin.shell.principal'] = params.zeppelin_kerberos_principal
+          notebook['properties']['zeppelin.shell.keytab.location'] = params.zeppelin_kerberos_keytab
+        else:
+          notebook['properties']['zeppelin.shell.auth.type'] = ""
+          notebook['properties']['zeppelin.shell.principal'] = ""
+          notebook['properties']['zeppelin.shell.keytab.location'] = ""
 
     self.set_interpreter_settings(config_data)
 
