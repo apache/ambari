@@ -51,6 +51,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
@@ -383,6 +385,36 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertTrue(helper.isTopologyRefreshRequired("START", "c2", "HDFS"));
     Assert.assertTrue(helper.isTopologyRefreshRequired("RESTART", "c2", "HDFS"));
     Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c2", "HDFS"));
+  }
+
+  @Test
+  public void testAvailableServicesMapContainsVersions() throws Exception {
+
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put(REQUEST_CONTEXT_PROPERTY, "Refresh YARN Capacity Scheduler");
+        put("command", "REFRESHQUEUES");
+      }
+    };
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "REFRESHQUEUES",
+            new HashMap<String, String>() {
+              {
+                put("forceRefreshConfigTags", "capacity-scheduler");
+              }
+            }, false);
+    actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
+    EasyMock.replay(hostRoleCommand, actionManager);
+
+    ambariManagementController.createAction(actionRequest, requestProperties);
+    StackId stackId = clusters.getCluster("c1").getDesiredStackVersion();
+    Map<String, ServiceInfo> services = ambariManagementController.getAmbariMetaInfo().getServices(stackId.getStackName(), stackId.getStackVersion());
+    Request request = requestCapture.getValue();
+    Stage stage = request.getStages().iterator().next();
+    List<ExecutionCommandWrapper> commands = stage.getExecutionCommands("c1-c6401");
+    ExecutionCommand command = commands.get(0).getExecutionCommand();
+    for (String service : services.keySet()) {
+      Assert.assertEquals(command.getAvailableServices().get(service), services.get(service).getVersion());
+    }
   }
 
   private void createClusterFixture(String clusterName, String stackVersion, String hostPrefix) throws AmbariException, AuthorizationException {

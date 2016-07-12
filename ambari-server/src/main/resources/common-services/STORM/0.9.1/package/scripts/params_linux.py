@@ -341,6 +341,8 @@ if has_ranger_admin:
 namenode_hosts = default("/clusterHostInfo/namenode_host", [])
 has_namenode = not len(namenode_hosts) == 0
 
+availableServices = config['availableServices']
+
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if has_namenode else None
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
