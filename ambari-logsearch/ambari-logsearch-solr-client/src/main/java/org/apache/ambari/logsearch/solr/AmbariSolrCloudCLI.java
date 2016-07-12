@@ -37,19 +37,31 @@ public class AmbariSolrCloudCLI {
 
   private static final Logger LOG = LoggerFactory.getLogger(AmbariSolrCloudCLI.class);
 
-  private static final int ZK_CLIENT_TIMEOUT = 10000;
-  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 10000;
+  private static final int ZK_CLIENT_TIMEOUT = 15000;
+  private static final int ZK_CLIENT_CONNECT_TIMEOUT = 15000;
   private static final String CREATE_COLLECTION_COMMAND = "create-collection";
   private static final String UPLOAD_CONFIG_COMMAND = "upload-config";
   private static final String DOWNLOAD_CONFIG_COMMAND = "download-config";
   private static final String CONFIG_CHECK_COMMAND = "check-config";
   private static final String CREATE_SHARD_COMMAND = "create-shard";
+  private static final String CREATE_ZNODE = "create-znode";
+  private static final String SET_CLUSTER_PROP = "cluster-prop";
+  private static final String SETUP_KERBEROS = "setup-kerberos";
+  private static final String SETUP_KERBEROS_PLUGIN = "setup-kerberos-plugin";
+  private static final String CREATE_SASL_USERS = "create-sasl-users";
+  private static final String CHECK_ZNODE = "check-znode";
   private static final String CMD_LINE_SYNTAX =
     "\n./solrCloudCli.sh --create-collection -z host1:2181,host2:2181/ambari-solr -c collection -cs conf_set"
       + "\n./solrCloudCli.sh --upload-config -z host1:2181,host2:2181/ambari-solr -d /tmp/myconfig_dir -cs config_set"
       + "\n./solrCloudCli.sh --download-config -z host1:2181,host2:2181/ambari-solr -cs config_set -d /tmp/myonfig_dir"
       + "\n./solrCloudCli.sh --check-config -z host1:2181,host2:2181/ambari-solr -cs config_set"
-      + "\n./solrCloudCli.sh --create-shard -z host1:2181,host2:2181/ambari-solr -c collection -sn myshard\n";
+      + "\n./solrCloudCli.sh --create-shard -z host1:2181,host2:2181/ambari-solr -c collection -sn myshard"
+      + "\n./solrCloudCli.sh --create-znode -z host1:2181,host2:2181 -zn /ambari-solr"
+      + "\n./solrCloudCli.sh --check-znode -z host1:2181,host2:2181 -zn /ambari-solr"
+      + "\n./solrCloudCli.sh --cluster-prop -z host1:2181,host2:2181/ambari-solr -cpn urlScheme -cpn http"
+      + "\n./solrCloudCli.sh --create-sasl-users -z host1:2181,host2:2181 -zn /ambari-solr -csu logsearch,atlas,ranger"
+      + "\n./solrCloudCli.sh --setup-kerberos -z host1:2181,host2:2181 --secure -zn /ambari-solr-secure -cfz /ambari-solr-unsecure -jf /etc/path/my_jaas.conf"
+      + "\n./solrCloudCli.sh --setup-kerberos-plugin -z host1:2181,host2:2181 -zn /ambari-solr\n";
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -82,9 +94,39 @@ public class AmbariSolrCloudCLI {
       .desc("Check configuration exists in Zookeeper (command)")
       .build();
 
+    final Option checkZnodeOption = Option.builder("chz")
+      .longOpt(CHECK_ZNODE)
+      .desc("Check znode exists in Zookeeper (command)")
+      .build();
+
     final Option createShardOption = Option.builder("csh")
       .longOpt(CREATE_SHARD_COMMAND)
       .desc("Create shard in Solr (command)")
+      .build();
+
+    final Option setClusterPropOption = Option.builder("cp")
+      .longOpt(SET_CLUSTER_PROP)
+      .desc("Set cluster property (command)")
+      .build();
+
+    final Option createZnodeOption = Option.builder("cz")
+      .longOpt(CREATE_ZNODE)
+      .desc("Create Znode (command)")
+      .build();
+
+    final Option setupKerberosPluginOption = Option.builder("skp")
+      .longOpt(SETUP_KERBEROS_PLUGIN)
+      .desc("Setup kerberos plugin in security.json (command)")
+      .build();
+
+    final Option setupKerberosOption = Option.builder("sk")
+      .longOpt(SETUP_KERBEROS)
+      .desc("Setup kerberos (command)")
+      .build();
+
+    final Option createSaslUsersOption = Option.builder("csu")
+      .longOpt(CREATE_SASL_USERS)
+      .desc("Create sasl users")
       .build();
 
     final Option shardNameOption = Option.builder("sn")
@@ -101,9 +143,16 @@ public class AmbariSolrCloudCLI {
 
     final Option zkConnectStringOption = Option.builder("z")
       .longOpt("zookeeper-connect-string")
-      .desc("Zookeeper quorum [and a Znode]")
+      .desc("Zookeeper quorum [and Znode (optional)]")
       .numberOfArgs(1)
       .argName("host:port,host:port[/ambari-solr]")
+      .build();
+
+    final Option znodeOption = Option.builder("zn")
+      .longOpt("znode")
+      .desc("Zookeeper ZNode")
+      .numberOfArgs(1)
+      .argName("/ambari-solr")
       .build();
 
     final Option collectionOption = Option.builder("c")
@@ -229,6 +278,39 @@ public class AmbariSolrCloudCLI {
       .argName("trust store type")
       .build();
 
+    final Option propNameOption = Option.builder("cpn")
+      .longOpt("property-name")
+      .desc("Cluster property name")
+      .numberOfArgs(1)
+      .argName("cluster prop name")
+      .build();
+
+    final Option propValueOption = Option.builder("cpv")
+      .longOpt("property-value")
+      .desc("Cluster property value")
+      .numberOfArgs(1)
+      .argName("cluster prop value")
+      .build();
+
+    final Option copyFromZnodeOption = Option.builder("cfz")
+      .longOpt("copy-from-znode")
+      .desc("Copy-from-znode")
+      .numberOfArgs(1)
+      .argName("/ambari-solr-secure")
+      .build();
+
+    final Option saslUsersOption = Option.builder("su")
+      .longOpt("sasl-users")
+      .desc("Sasl users (comma separated list)")
+      .numberOfArgs(1)
+      .argName("atlas,ranger,logsearch-solr")
+      .build();
+
+    final Option secureOption = Option.builder("sec")
+      .longOpt("secure")
+      .desc("Flag for enable/disable kerberos (with --setup-kerberos or --setup-kerberos-plugin)")
+      .build();
+
     options.addOption(helpOption);
     options.addOption(retryOption);
     options.addOption(intervalOption);
@@ -255,7 +337,18 @@ public class AmbariSolrCloudCLI {
     options.addOption(trustStoreLocationOption);
     options.addOption(trustStorePasswordOption);
     options.addOption(trustStoreTypeOption);
-
+    options.addOption(setClusterPropOption);
+    options.addOption(propNameOption);
+    options.addOption(propValueOption);
+    options.addOption(createZnodeOption);
+    options.addOption(znodeOption);
+    options.addOption(setupKerberosOption);
+    options.addOption(secureOption);
+    options.addOption(copyFromZnodeOption);
+    options.addOption(createSaslUsersOption);
+    options.addOption(saslUsersOption);
+    options.addOption(checkZnodeOption);
+    options.addOption(setupKerberosPluginOption);
 
     try {
       CommandLineParser cmdLineParser = new DefaultParser();
@@ -281,9 +374,28 @@ public class AmbariSolrCloudCLI {
       } else if (cli.hasOption("chc")) {
         command = CONFIG_CHECK_COMMAND;
         validateRequiredOptions(cli, command, zkConnectStringOption, configSetOption);
+      } else if (cli.hasOption("cp")) {
+        command = SET_CLUSTER_PROP;
+        validateRequiredOptions(cli, command, zkConnectStringOption, propNameOption, propValueOption);
+      } else if (cli.hasOption("cz")) {
+        command = CREATE_ZNODE;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption);
+      } else if (cli.hasOption("sk")) {
+        command = SETUP_KERBEROS;
+        validateRequiredOptions(cli, command, zkConnectStringOption, copyFromZnodeOption);
+      } else if (cli.hasOption("csu")){
+        command = CREATE_SASL_USERS;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption, jaasFileOption);
+      } else if (cli.hasOption("chz")){
+        command = CHECK_ZNODE;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption);
+      } else if (cli.hasOption("skp")) {
+        command = SETUP_KERBEROS_PLUGIN;
+        validateRequiredOptions(cli, command, zkConnectStringOption, znodeOption);
       } else {
         List<String> commands = Arrays.asList(CREATE_COLLECTION_COMMAND, CREATE_SHARD_COMMAND, UPLOAD_CONFIG_COMMAND,
-          DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND);
+          DOWNLOAD_CONFIG_COMMAND, CONFIG_CHECK_COMMAND, SET_CLUSTER_PROP, CREATE_ZNODE, SETUP_KERBEROS,
+          CHECK_ZNODE, CREATE_SASL_USERS, SETUP_KERBEROS_PLUGIN);
         helpFormatter.printHelp(CMD_LINE_SYNTAX, options);
         exit(1, String.format("One of the supported commands is required (%s)", StringUtils.join(commands, "|")));
       }
@@ -308,7 +420,12 @@ public class AmbariSolrCloudCLI {
       String trustStoreLocation = cli.hasOption("tsl") ? cli.getOptionValue("tsl") : null;
       String trustStorePassword = cli.hasOption("tsp") ? cli.getOptionValue("tsp") : null;
       String trustStoreType = cli.hasOption("tst") ? cli.getOptionValue("tst") : null;
-
+      String clusterPropName = cli.hasOption("cpn") ? cli.getOptionValue("cpn") : null;
+      String clusterPropValue = cli.hasOption("cpv") ? cli.getOptionValue("cpv") : null;
+      String znode = cli.hasOption("zn") ? cli.getOptionValue("zn") : null;
+      boolean isSecure = cli.hasOption("sec");
+      String copyFromZnode = cli.hasOption("cfz") ? cli.getOptionValue("cfz") : null;
+      String saslUsers = cli.hasOption("su") ? cli.getOptionValue("su") : null;
 
       AmbariSolrCloudClientBuilder clientBuilder = new AmbariSolrCloudClientBuilder()
         .withZkConnectString(zkConnectString)
@@ -329,7 +446,13 @@ public class AmbariSolrCloudCLI {
         .withKeyStoreType(keyStoreType)
         .withTrustStoreLocation(trustStoreLocation)
         .withTrustStorePassword(trustStorePassword)
-        .withTrustStoreType(trustStoreType);
+        .withTrustStoreType(trustStoreType)
+        .withClusterPropName(clusterPropName)
+        .withClusterPropValue(clusterPropValue)
+        .withZnode(znode)
+        .withCopyFromZnode(copyFromZnode)
+        .withSecure(isSecure)
+        .withSaslUsers(saslUsers);
 
       AmbariSolrCloudClient solrCloudClient = null;
       switch (command) {
@@ -361,9 +484,40 @@ public class AmbariSolrCloudCLI {
         case CREATE_SHARD_COMMAND:
           solrCloudClient = clientBuilder
             .withSolrCloudClient()
-            .withSolrZkClient(ZK_CLIENT_TIMEOUT, ZK_CLIENT_CONNECT_TIMEOUT)
             .build();
           solrCloudClient.createShard(shardName);
+          break;
+        case SET_CLUSTER_PROP:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.setClusterProp();
+          break;
+        case CREATE_ZNODE:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.createZnode();
+          break;
+        case SETUP_KERBEROS:
+          solrCloudClient = clientBuilder.build();
+          if (solrCloudClient.isSecure()) {
+            solrCloudClient.enableKerberos();
+          } else {
+            solrCloudClient.disableKerberos();
+          }
+          break;
+        case CREATE_SASL_USERS:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.addSaslUsers();
+          break;
+        case CHECK_ZNODE:
+          solrCloudClient = clientBuilder.build();
+          boolean znodeExists = solrCloudClient.isZnodeExists(znode);
+          if (!znodeExists) {
+            exit(1, String.format("'%s' znode does not exist. Solr is responsible to create the ZNode, " +
+              "check Solr started successfully or not", znode));
+          }
+          break;
+        case SETUP_KERBEROS_PLUGIN:
+          solrCloudClient = clientBuilder.build();
+          solrCloudClient.setupKerberosPlugin();
           break;
         default:
           throw new AmbariSolrCloudClientException(String.format("Not found command: '%s'", command));

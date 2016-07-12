@@ -47,6 +47,12 @@ public class AmbariSolrCloudClientBuilder {
   SolrZkClient solrZkClient;
   boolean splitting;
   String jaasFile;
+  String znode;
+  String saslUsers;
+  String propName;
+  String propValue;
+  boolean secure;
+  String copyFromZnode;
 
   public AmbariSolrCloudClient build() {
     return new AmbariSolrCloudClient(this);
@@ -167,6 +173,36 @@ public class AmbariSolrCloudClientBuilder {
     if (trustStoreType != null) {
       System.setProperty(TRUSTSTORE_TYPE_ARG, trustStoreType);
     }
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withSaslUsers(String saslUsers) {
+    this.saslUsers = saslUsers;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withZnode(String znode) {
+    this.znode = znode;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withClusterPropName(String clusterPropName) {
+    this.propName = clusterPropName;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withClusterPropValue(String clusterPropValue) {
+    this.propValue = clusterPropValue;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withSecure(boolean isSecure) {
+    this.secure = isSecure;
+    return this;
+  }
+
+  public AmbariSolrCloudClientBuilder withCopyFromZnode(String copyFromZnode) {
+    this.copyFromZnode = copyFromZnode;
     return this;
   }
 

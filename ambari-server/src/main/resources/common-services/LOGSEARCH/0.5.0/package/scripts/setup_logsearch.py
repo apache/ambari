@@ -115,7 +115,7 @@ def setup_logsearch():
 
 def upload_conf_set(config_set, solrconfig_content = None):
   import params
-
+  jaas_file = params.logsearch_jaas_file if params.security_enabled else None
   solr_cloud_util.upload_configuration_to_zk(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.logsearch_solr_znode,
@@ -125,4 +125,5 @@ def upload_conf_set(config_set, solrconfig_content = None):
     java64_home=params.java64_home,
     user=params.logsearch_solr_user,
     solrconfig_content= solrconfig_content,
+    jaas_file=jaas_file,
     retry=30, interval=5)

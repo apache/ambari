@@ -19,24 +19,26 @@
 package org.apache.ambari.logsearch.solr.commands;
 
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientException;
+import org.apache.solr.common.cloud.SolrZkClient;
+import org.apache.solr.common.cloud.SolrZooKeeper;
 import org.apache.solr.common.cloud.ZkConfigManager;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+public abstract class AbstractZookeeperConfigCommand<RESPONSE> extends AbstractZookeeperRetryCommand<RESPONSE> {
 
-public class UploadConfigZkCommand extends AbstractZookeeperConfigCommand<String> {
-
-  public UploadConfigZkCommand(int maxRetries, int interval) {
+  public AbstractZookeeperConfigCommand(int maxRetries, int interval) {
     super(maxRetries, interval);
   }
 
+  protected abstract RESPONSE executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client)
+    throws Exception;
+
   @Override
-  protected String executeZkConfigCommand(ZkConfigManager zkConfigManager, AmbariSolrCloudClient client) throws Exception {
-    Path configDir = Paths.get(client.getConfigDir());
-    String configSet = client.getConfigSet();
-    zkConfigManager.uploadConfigDir(configDir, configSet);
-    return configSet;
+  protected RESPONSE executeZkCommand(AmbariSolrCloudClient client, SolrZkClient zkClient, SolrZooKeeper solrZooKeeper) throws Exception {
+    ZkConfigManager zkConfigManager = createZkConfigManager(zkClient);
+    return executeZkConfigCommand(zkConfigManager, client);
+  }
+
+  protected ZkConfigManager createZkConfigManager(SolrZkClient zkClient) {
+    return new ZkConfigManager(zkClient);
   }
 }
