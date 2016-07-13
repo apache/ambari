@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
 from ams import ams
 from ams_service import ams_service
 from status import check_service_status
