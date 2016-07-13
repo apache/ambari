@@ -20,7 +20,7 @@
     },
     {
       "name" : "MICROSOFT_R-custom-services",
-      "type" : "stack-extension-definitions",
+      "type" : "stack-addon-service-definitions",
       "source_dir": "custom-services",
       "service_versions_map": [
         {
