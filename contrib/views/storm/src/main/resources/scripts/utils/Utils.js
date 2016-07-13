@@ -26,59 +26,25 @@ define(['require',
     var Utils = {};
 
     Utils.getStormHostDetails = function() {
-        var url = location.pathname + 'proxy?url=';
+        var url;
+        var urlParts = location.pathname.split('/');
+        var apiUrl = '/api/v1/'+urlParts[1]+'/'+urlParts[2]+'/versions/'+urlParts[3]+'/instances/'+urlParts[4];
         $.ajax({
-            url: '/api/v1/clusters/',
+            url: apiUrl,
             cache: false,
             type: 'GET',
             async: false,
-            success: function(response) {
-                var result = JSON.parse(response);
-                if (_.isArray(result.items) && result.items.length) {
-                    var flag = false;
-                    _.each(result.items, function(object) {
-                        if (!flag) {
-                            $.ajax({
-                                url: object.href,
-                                type: 'GET',
-                                async: false,
-                                success: function(res) {
-                                    var config = JSON.parse(res);
-                                    var hostname;
-                                    _.each(config.alerts, function(obj) {
-                                        if (obj.Alert.service_name === "STORM" && obj.Alert.definition_name === "storm_webui") {
-                                            hostname = obj.Alert.host_name;
-                                        }
-                                    });
-                                    if (_.isUndefined(hostname) || hostname == "") {
-                                        console.log("Error detected while fetching storm hostname and port number");
-                                    } else {
-                                        var obj = _.findWhere(config.service_config_versions, { "service_name": "STORM" });
-                                        if (!_.isUndefined(obj)) {
-                                            var stormConfig = _.findWhere(obj.configurations, { "type": "storm-site" });
-                                            if (!_.isUndefined(stormConfig)) {
-                                                flag = true;
-                                                url += 'http://' + hostname + ':' + stormConfig.properties['ui.port'];
-                                            } else {
-                                                console.log("Error detected while fetching storm hostname and port number");
-                                            }
-                                        } else {
-                                            console.log("Error detected while fetching storm hostname and port number");
-                                        }
-                                    }
-                                },
-                                error: function(res) {
-                                    console.log("Error detected while fetching storm hostname and port number");
-                                }
-                            });
-                        }
-                    });
+            dataType: 'json',
+            success: function(response){
+                var props = response.ViewInstanceInfo.properties;
+                if(props['storm.host'] && props['storm.port']){
+                    url = "http://"+props['storm.host']+":"+props['storm.port'];
                 } else {
-                    console.log("Currently, no service is configured in ambari");
+                    Utils.notifyError("Failed to get storm hostname and port.");
                 }
             },
-            error: function(error) {
-                console.log("Error detected while fetching storm hostname and port number");
+            error: function(error){
+                Utils.notifyError("Failed to get storm hostname and port.");
             }
         });
         return url;

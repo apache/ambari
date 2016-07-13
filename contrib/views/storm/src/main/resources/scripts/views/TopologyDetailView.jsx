@@ -28,12 +28,14 @@ define([
 	'jsx!containers/TopologyConfiguration',
 	'jsx!containers/TopologyDetailGraph',
 	'jsx!components/Breadcrumbs',
+	'jsx!components/SearchLogs',
+	'jsx!components/BarChart',
 	'jsx!views/RebalanceView',
 	'bootbox',
 	'x-editable',
 	'bootstrap',
 	'bootstrap-switch'
-	],function(Table, Pagination, Utils, React, ReactDOM, BaseCollection, VTopology, BaseModel, TopologyConfiguration, TopologyDetailGraph, Breadcrumbs, RebalanceView, bootbox, XEditable){
+	],function(Table, Pagination, Utils, React, ReactDOM, BaseCollection, VTopology, BaseModel, TopologyConfiguration, TopologyDetailGraph, Breadcrumbs, SearchLogs, BarChart, RebalanceView, bootbox, XEditable){
 	'use strict';
 
 	return React.createClass({
@@ -45,6 +47,7 @@ define([
 			this.model = new VTopology({'id': this.props.id});
 			this.spoutCollection = new BaseCollection();
 			this.boltCollection = new BaseCollection();
+			this.lagCollection = new BaseCollection();
 			this.systemFlag = false;
 			this.windowSize = ':all-time';
 			this.initializeData();
@@ -52,7 +55,10 @@ define([
 				model: this.model,
 				graphData: {},
 				logLevels: {},
-				rebalanceModalOpen: false
+				rebalanceModalOpen: false,
+				lagData: [],
+				hideKafkaLagBox: false,
+				workerHostPort: ''
 			};
 		},
 		componentWillMount: function(){
@@ -73,6 +79,12 @@ define([
 					this.debugAction(state);
 				}.bind(this)
 			});
+			$("#lag-graph").hide();
+			$("#kafkaSpout").bootstrapSwitch({
+		    	onSwitchChange: function() {
+		    		$('#lag-graph, #lag-table').slideToggle();
+		    	}
+		    });
 			$('[data-rel="tooltip"]').tooltip();
 			$('.loader').hide();
 		},
@@ -107,6 +119,9 @@ define([
 			if(this.state.rebalanceModalOpen){
 				$('#modal-rebalance').modal("show");
 			}
+			if(this.refs.barChart){
+				ReactDOM.findDOMNode(document.getElementById('lag-graph')).appendChild(this.refs.barChart.legendsEl)
+			}
 			$('.loader').hide();
 		},
 		initializeData: function(){
@@ -128,6 +143,8 @@ define([
 			});
 			this.initializeGraphData();
 			this.initializeLogConfig();
+			this.initializeLagData();
+			this.initializeWorkerData();
 		},
 		initializeGraphData: function(){
 			this.model.getGraphData({
@@ -164,6 +181,63 @@ define([
 					Utils.notifyError("Error occured in fetching log configuration data.");
 				}
 			});
+		},
+
+		initializeLagData: function(){
+			this.model.getTopologyLag({
+				id: this.model.get('id'),
+				success: function(model, response){
+					if(response.error){
+						Utils.notifyError(response.error);
+					} else {
+						if(model && model.length){
+							var result = JSON.parse(model[0].spoutLagResult);
+							for(var i = 0; i < result.length; i++){
+								result[i]['spoutId'] = model[0].spoutId;
+								result[i]['spoutType'] = model[0].spoutType;
+							}
+							this.resetLagCollection(result);
+						} else {
+							this.setState({hideKafkaLagBox : true});
+						}
+					}
+				}.bind(this)
+			})
+		},
+		initializeWorkerData: function(){
+			this.model.getWorkerHost({
+				id: this.model.get('id'),
+				success: function(model, response){
+					if(response.error){
+						Utils.notifyError(response.error);
+					} else {
+						var workerHostPortArr = model.hostPortList;
+						var result = '';
+						for(var i = 0; i < workerHostPortArr.length; i++){
+							result += workerHostPortArr[i].host+':'+workerHostPortArr[i].port
+							if(i !== workerHostPortArr.length - 1){
+								result += ', \n';
+							}
+						}
+						this.setState({'workerHostPort': result})
+					}
+				}.bind(this)
+			})
+		},
+		resetLagCollection: function(model){
+			this.lagCollection.reset(model);
+			this.setState({"lagData": model});
+		},
+		getLagColums: function(){
+			var self = this;
+			return [
+				{name: 'spoutId', title: 'Id', tooltip:'Id'},
+				{name: 'topic', title: 'Topic', tooltip:'Topic'},
+				{name: 'partition', title: 'Partition', tooltip:'Partition'},
+				{name: 'logHeadOffset', title: 'Latest Offset', tooltip:'Latest Offset'},
+				{name: 'consumerCommittedOffset', title: 'Spout Committed Offset', tooltip:'Spout Committed Offset'},
+				{name: 'lag', title: 'Lag', tooltip:'Lag'},
+			];
 		},
 		resetLogCollection: function(model) {
 			this.collection.reset();
@@ -262,7 +336,7 @@ define([
 						model: React.PropTypes.object.isRequired
 					},
 					render: function(){
-						if(this.props.model.get('errorTime') != 0) {
+						if(this.props.model.get('errorTime') && this.props.model.get('errorTime') != 0) {
 							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
@@ -323,7 +397,7 @@ define([
 						model: React.PropTypes.object.isRequired
 					},
 					render: function(){
-						if(this.props.model.get('errorTime') != 0) {
+						if(this.props.model.get('errorTime') && this.props.model.get('errorTime') != 0) {
 							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
@@ -574,6 +648,7 @@ define([
 			return (
 				<div>
 					<Breadcrumbs links={this.getLinks()} />
+					<SearchLogs id={this.model.get('id')}/>
 					<div className="row">
 						<div className="col-sm-12">
 							<div className="box filter">
@@ -626,22 +701,69 @@ define([
 						</div>
 					</div>
 					<div className="row">
-						<div className="col-sm-4">
+						<div className="col-sm-5">
 							<div className="summary-tile">
 								<div className="summary-title">Topology Summary</div>
-								<div className="summary-body">
-									<p><strong>ID: </strong>{this.state.model.get('id')}</p>
-									<p><strong>Owner: </strong>{this.state.model.get('owner')}</p>
-									<p><strong>Status: </strong>{this.state.model.get('status')}</p>
-									<p><strong>Uptime: </strong>{this.state.model.get('uptime')}</p>
-									<p><strong>Workers: </strong>{this.state.model.get('workersTotal')}</p>
-									<p><strong>Executors: </strong>{this.state.model.get('executorsTotal')}</p>
-									<p><strong>Tasks: </strong>{this.state.model.get('tasksTotal')}</p>
-									<p><strong>Memory: </strong>{this.state.model.get('assignedTotalMem')}</p>
+								<div className="summary-body form-horizontal">
+									<div className="form-group">
+										<label className="col-sm-4 control-label">ID:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('id')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Owner:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('owner')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Status:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('status')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Uptime:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('uptime')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Workers:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('workersTotal')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Executors:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('executorsTotal')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Tasks:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('tasksTotal')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Memory:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static">{this.state.model.get('assignedTotalMem')}</p>
+										</div>
+									</div>
+									<div className="form-group">
+										<label className="col-sm-4 control-label">Worker-Host:Port:</label>
+										<div className="col-sm-8">
+										<p className="form-control-static preformatted">{this.state.workerHostPort}</p>
+										</div>
+									</div>
+
 								</div>
 							</div>
 						</div>
-						<div className="col-sm-8">
+						<div className="col-sm-7">
 							<div className="stats-tile">
 								<div className="stats-title">Topology Stats</div>
 								<div className="stats-body">
@@ -669,6 +791,59 @@ define([
 							<TopologyDetailGraph model={this.state.model} graphData={this.state.graphData}/>
 						</div>
 					</div>
+					{this.state.hideKafkaLagBox ? null : 
+						<div className="row">
+							<div className="col-sm-12">
+								<div className="box">
+									<div className="box-header">
+										<h4>Kafka Spout Lag</h4>
+										<div className="box-control">
+											<input 
+												id="kafkaSpout" 
+												type="checkbox" 
+												data-size="mini" 
+												data-off-color="success" 
+												data-off-text="Table" 
+												data-on-color="info" 
+												data-on-text="Graph" />
+										</div>
+									</div>
+									<div className="box-body">
+										<div className="row">
+											<div className="col-sm-12">
+												<div id="lag-graph" className="displayNone">
+													{this.lagCollection.length > 0 ? 
+													<BarChart
+														ref="barChart"
+														width={window != window.parent ? 1100 : 1300}
+														height={400}
+														xAttr="spoutId-partition"
+														yAttr="count"
+														data={this.lagCollection.toJSON().map(function(d){
+															return {
+																'Latest Offset': d.logHeadOffset,
+																'Spout Committed Offset': d.consumerCommittedOffset,
+																'spoutId-partition': d.spoutId+'-'+d.partition
+															};
+														})}
+													/>
+													: null}
+												</div>
+												<div id="lag-table">
+													<Table 
+														className="table table-striped table-bordered" 
+														collection={this.lagCollection} 
+														emptyText="No Data Found." 
+														columns={this.getLagColums()} 
+													/>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					}
 					<div className="row">
 						<div className="col-sm-12">
 							{this.spouts}
