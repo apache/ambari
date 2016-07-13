@@ -380,7 +380,7 @@ class CheckHost(Script):
           Execute(chmod_cmd, not_if = format("test -e {java_exec}"), sudo = True)
           Execute(install_cmd, not_if = format("test -e {java_exec}"))
           File(format("{java_home}/bin/java"), mode=0755, cd_access="a")
-          Directory(java_home, user=getpass.getuser(), recursive_ownership=True)
+          Directory(java_home, owner=getpass.getuser(), recursive_ownership=True)
           Execute(('chmod', '-R', '755', java_home), sudo = True)
         except Exception, e:
           message = "Error installing java.\n" + str(e)
