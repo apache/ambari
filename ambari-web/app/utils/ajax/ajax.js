@@ -2302,7 +2302,7 @@ var urls = {
   'request.post': {
     'real': "/clusters/{clusterName}/requests",
     'mock': "",
-    'format': function () {
+    'format': function (data) {
       return {
         type: 'POST',
         data: JSON.stringify(data.data)
