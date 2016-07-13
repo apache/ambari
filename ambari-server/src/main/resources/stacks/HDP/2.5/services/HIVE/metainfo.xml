@@ -107,6 +107,7 @@
             <config-type>hive-log4j2</config-type>
             <config-type>hive-site</config-type>
             <config-type>hive-interactive-site</config-type>
+            <config-type>tez-interactive-site</config-type>
             <config-type>hiveserver2-interactive-site</config-type>
             <config-type>hive-interactive-env</config-type>
             <config-type>llap-cli-log4j2</config-type>
