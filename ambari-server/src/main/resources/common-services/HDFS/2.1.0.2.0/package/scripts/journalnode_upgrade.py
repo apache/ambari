@@ -89,23 +89,33 @@ def hdfs_roll_edits():
   Execute(command, user=params.hdfs_user, tries=1)
 
 
-def ensure_jns_have_new_txn(nodes, last_txn_id):
+def ensure_jns_have_new_txn(nodelist, last_txn_id):
   """
-  :param nodes: List of Journalnodes
+  :param nodelist: List of Journalnodes
   :param last_txn_id: Integer of last transaction id
   :return: Return true on success, false otherwise
   """
   import params
+
+  jn_uri = default("/configurations/hdfs-site/dfs.namenode.shared.edits.dir", None)
+
+  if jn_uri is None:
+    raise Fail("No JournalNode URI found at hdfs-site/dfs.namenode.shared.edits.dir")
+
+  nodes = []
+  for node in nodelist:
+    if node in jn_uri:
+      nodes.append(node)
 
   num_of_jns = len(nodes)
   actual_txn_ids = {}
   jns_updated = 0
 
   if params.journalnode_address is None:
-    raise Fail("Could not retrieve Journal node address")
+    raise Fail("Could not retrieve JournalNode address")
 
   if params.journalnode_port is None:
-    raise Fail("Could not retrieve Journalnode port")
+    raise Fail("Could not retrieve JournalNode port")
 
   time_out_secs = 3 * 60
   step_time_secs = 10
@@ -113,7 +123,7 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
 
   protocol = "https" if params.https_only else "http"
 
-  Logger.info("Checking if all Journalnodes are updated.")
+  Logger.info("Checking if all JournalNodes are updated.")
   for i in range(iterations):
     Logger.info('Try %d out of %d' % (i+1, iterations))
     for node in nodes:
@@ -131,10 +141,10 @@ def ensure_jns_have_new_txn(nodes, last_txn_id):
       if data:
         actual_txn_ids[node] = int(data)
         if actual_txn_ids[node] >= last_txn_id:
-          Logger.info("Journalnode %s has a higher transaction id: %s" % (node, str(data)))
+          Logger.info("JournalNode %s has a higher transaction id: %s" % (node, str(data)))
           jns_updated += 1
         else:
-          Logger.info("Journalnode %s is still on transaction id: %s" % (node, str(data)))
+          Logger.info("JournalNode %s is still on transaction id: %s" % (node, str(data)))
 
     Logger.info("Sleeping for %d secs" % step_time_secs)
     time.sleep(step_time_secs)
