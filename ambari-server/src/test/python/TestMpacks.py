@@ -187,7 +187,8 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.purge_stacks_and_mpacks")
   @patch("ambari_server.setupMpacks.expand_mpack")
   @patch("ambari_server.setupMpacks.download_mpack")
-  def test_install_stack_mpack(self, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
+  @patch("ambari_server.setupMpacks.run_os_command")
+  def test_install_stack_mpack(self, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                      add_replay_log_mock, get_ambari_properties_mock, get_ambari_version_mock,
                                      create_symlink_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()
@@ -196,9 +197,12 @@ class TestMpacks(TestCase):
     download_mpack_mock.return_value = "/tmp/mystack.tar.gz"
     expand_mpack_mock.return_value = "mpacks/mystack-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
+    run_os_command_mock.return_value = (0, "", "")
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     """
     os_path_exists_calls = [call('/tmp/mystack.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.0/mpack.json'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.0/hooks/before_install.py'),
                             call('/var/lib/ambari-server/resources/stacks'),
                             call('/var/lib/ambari-server/resources/extensions'),
                             call('/var/lib/ambari-server/resources/common-services'),
@@ -213,11 +217,12 @@ class TestMpacks(TestCase):
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1/services'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services')]
-   """
-    os_path_exists_mock.side_effect = [True, True, False, True, False, False, False,
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/hooks/after_install.py')]
+    """
+    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False, False,
                                        False, False, False, False, False, False,
-                                       False, False, False, False]
+                                       False, False, False, False, True]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -228,6 +233,17 @@ class TestMpacks(TestCase):
     extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.0")
+
+    run_os_command_calls = [
+      call([
+        "/usr/bin/ambari-python-wrap",
+        "mpacks/mystack-ambari-mpack-1.0.0.0/hooks/before_install.py"
+      ]),
+      call([
+        "/usr/bin/ambari-python-wrap",
+        mpacks_directory + "/mystack-ambari-mpack-1.0.0.0/hooks/after_install.py"
+      ])
+    ]
 
     os_mkdir_calls = [
       call(stacks_directory),
@@ -281,6 +297,7 @@ class TestMpacks(TestCase):
     ]
 
     self.assertTrue(purge_stacks_and_mpacks_mock.called)
+    run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
     self.assertTrue(add_replay_log_mock.called)
@@ -432,7 +449,8 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.purge_stacks_and_mpacks")
   @patch("ambari_server.setupMpacks.expand_mpack")
   @patch("ambari_server.setupMpacks.download_mpack")
-  def test_upgrade_stack_mpack(self, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
+  @patch("ambari_server.setupMpacks.run_os_command")
+  def test_upgrade_stack_mpack(self, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
                                get_ambari_version_mock, create_symlink_mock, os_mkdir_mock, shutil_move_mock,
                                os_path_exists_mock):
@@ -441,9 +459,12 @@ class TestMpacks(TestCase):
     download_mpack_mock.side_effect = ["/tmp/mystack-1.0.0.1.tar.gz", "/tmp/mystack-1.0.0.1.tar.gz"]
     expand_mpack_mock.side_effect = ["mpacks/mystack-ambari-mpack-1.0.0.1", "mpacks/mystack-ambari-mpack-1.0.0.1"]
     get_ambari_version_mock.return_value = "2.4.0.0"
+    run_os_command_mock.return_value = (0, "", "")
+    mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     """
     os_path_exists_calls = [call('/tmp/mystack-1.0.0.1.tar.gz'),
                             call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.1/hook/before_upgrade.py'),
                             call(mpacks_directory),
                             call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
@@ -473,13 +494,13 @@ class TestMpacks(TestCase):
                             call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json')]
-   """
-    os_path_exists_mock.side_effect = [True, True, True, True, True, True, True,
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/hooks/after_upgrade.py')]
+    """
+    os_path_exists_mock.side_effect = [True, True, True, True, True, True, True, True,
                                        True, True, True, True, True, True, True,
                                        False, True, True, False, True, True, True,
                                        True, True, True, True, False, False,
-                                       True, True, True, True, True]
+                                       True, True, True, True, True, True]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -490,6 +511,16 @@ class TestMpacks(TestCase):
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.1")
 
+    run_os_command_calls = [
+      call([
+        "/usr/bin/ambari-python-wrap",
+        "mpacks/mystack-ambari-mpack-1.0.0.1/hooks/before_upgrade.py"
+      ]),
+      call([
+        "/usr/bin/ambari-python-wrap",
+        mpacks_directory +  "/mystack-ambari-mpack-1.0.0.1/hooks/after_upgrade.py"
+      ])
+    ]
 
     os_mkdir_calls = [
       call(os.path.join(common_services_directory, "SERVICEC")),
@@ -551,6 +582,7 @@ class TestMpacks(TestCase):
     ]
 
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
+    run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
     uninstall_mpack_mock.assert_has_calls([call("mystack-ambari-mpack", "1.0.0.0")])

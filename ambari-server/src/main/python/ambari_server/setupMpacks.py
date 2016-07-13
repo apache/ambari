@@ -26,7 +26,7 @@ import ast
 from ambari_commons.exceptions import FatalException
 from ambari_commons.inet_utils import download_file
 from ambari_commons.logging_utils import print_info_msg, print_error_msg
-from ambari_commons.os_utils import copy_file
+from ambari_commons.os_utils import copy_file, run_os_command
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
   get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location
 
@@ -40,6 +40,20 @@ MPACKS_CACHE_DIRNAME = "cache"
 STACK_DEFINITIONS_RESOURCE_NAME = "stack-definitions"
 SERVICE_DEFINITIONS_RESOURCE_NAME = "service-definitions"
 MPACKS_RESOURCE_NAME = "mpacks"
+
+BEFORE_INSTALL_HOOK_NAME = "before-install"
+BEFORE_UPGRADE_HOOK_NAME = "before-upgrade"
+AFTER_INSTALL_HOOK_NAME = "after-install"
+AFTER_UPGRADE_HOOK_NAME = "after-upgrade"
+
+PYTHON_HOOK_TYPE = "python"
+SHELL_HOOK_TYPE = "shell"
+
+STACK_DEFINITIONS_ARTIFACT_NAME = "stack-definitions"
+SERVICE_DEFINITIONS_ARTIFACT_NAME = "service-definitions"
+EXTENSION_DEFINITIONS_ARTIFACT_NAME = "extension-definitions"
+STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME = "stack-addon-service-definitions"
+
 
 class _named_dict(dict):
   """
@@ -345,8 +359,9 @@ def process_stack_addon_service_definitions_artifact(artifact, artifact_source_d
   if "service_versions_map" in artifact:
     service_versions_map = artifact.service_versions_map
   if not service_versions_map:
-    print_error_msg("Must provide service versions map for stack-addon-service-definitions artifact!")
-    raise FatalException(-1, 'Must provide service versions map for stack-addon-service-definition artifact!')
+    msg = "Must provide service versions map for " + STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME  +" artifact!"
+    print_error_msg(msg)
+    raise FatalException(-1, msg)
   for service_name in sorted(os.listdir(artifact_source_dir)):
     source_service_path = os.path.join(artifact_source_dir, service_name)
     for service_version in sorted(os.listdir(source_service_path)):
@@ -487,7 +502,7 @@ def validate_mpack_prerequisites(mpack_metadata):
     raise FatalException(-1, "Prerequisites for management pack {0}-{1} failed!".format(
             mpack_metadata.name, mpack_metadata.version))
 
-def _install_mpack(options, replay_mode=False):
+def _install_mpack(options, replay_mode=False, is_upgrade=False):
   """
   Install management pack
   :param options: Command line options
@@ -519,6 +534,13 @@ def _install_mpack(options, replay_mode=False):
   # Skip validation in replay mode
   if not replay_mode:
     validate_mpack_prerequisites(mpack_metadata)
+
+  if is_upgrade:
+    # Execute pre upgrade hook
+    _execute_hook(mpack_metadata, BEFORE_UPGRADE_HOOK_NAME, tmp_root_dir)
+  else:
+    # Execute pre install hook
+    _execute_hook(mpack_metadata, BEFORE_INSTALL_HOOK_NAME, tmp_root_dir)
 
   # Purge previously installed stacks and management packs
   if options.purge and options.purge_list:
@@ -571,19 +593,45 @@ def _install_mpack(options, replay_mode=False):
 
     print_info_msg("Processing artifact {0} of type {1} in {2}".format(
             artifact_name, artifact_type, artifact_source_dir))
-    if artifact.type == "stack-definitions":
+    if artifact.type == STACK_DEFINITIONS_ARTIFACT_NAME:
       process_stack_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "extension-definitions":
+    elif artifact.type == EXTENSION_DEFINITIONS_ARTIFACT_NAME:
       process_extension_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "service-definitions":
+    elif artifact.type == SERVICE_DEFINITIONS_ARTIFACT_NAME:
       process_service_definitions_artifact(artifact, artifact_source_dir, options)
-    elif artifact.type == "stack-addon-service-definitions":
+    elif artifact.type == STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME:
       process_stack_addon_service_definitions_artifact(artifact, artifact_source_dir, options)
     else:
       print_info_msg("Unknown artifact {0} of type {1}".format(artifact_name, artifact_type))
 
   print_info_msg("Management pack {0}-{1} successfully installed!".format(mpack_name, mpack_version))
-  return mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
+  return mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path
+
+def _execute_hook(mpack_metadata, hook_name, base_dir):
+  if "hooks" in mpack_metadata:
+    hooks = mpack_metadata["hooks"]
+    for hook in hooks:
+      if hook_name == hook.name:
+        hook_script = os.path.join(base_dir, hook.script)
+        if os.path.exists(hook_script):
+          print_info_msg("Executing {0} hook script : {1}".format(hook_name, hook_script))
+          command = []
+          if hook.type == PYTHON_HOOK_TYPE:
+            command = ["/usr/bin/ambari-python-wrap", hook_script]
+          elif hook.type == SHELL_HOOK_TYPE:
+            command = ["/bin/bash", hook_script]
+          else:
+            raise FatalException("Malformed management pack. Unknown hook type for {0} hook script".format(hook_name))
+          (returncode, stdoutdata, stderrdata) = run_os_command(command)
+          if returncode != 0:
+            msg = "Failed to execute {0} hook. Failed with error code {0}".format(hook_name, returncode)
+            print_error_msg(msg)
+            print_error_msg(stderrdata)
+            raise FatalException(msg)
+          else:
+            print_info_msg(stdoutdata)
+        else:
+          raise FatalException("Malformed management pack. Missing {0} hook script {1}".format(hook_name, hook_script))
 
 def get_replay_log_file():
   """
@@ -617,7 +665,11 @@ def install_mpack(options, replay_mode=False):
   # Force install when replaying logs
   if replay_mode:
     options.force = True
-  (mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode)
+  (mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode)
+
+  # Execute post install hook
+  _execute_hook(mpack_metadata, AFTER_INSTALL_HOOK_NAME, mpack_staging_dir)
+
   if not replay_mode:
     add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
 
@@ -646,10 +698,13 @@ def upgrade_mpack(options, replay_mode=False):
 
   # Force install new management pack version
   options.force = True
-  (mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode)
+  (mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode, is_upgrade=True)
 
   # Uninstall old management packs
   uninstall_mpacks(mpack_name, mpack_version)
+
+  # Execute post upgrade hook
+  _execute_hook(mpack_metadata, AFTER_UPGRADE_HOOK_NAME, mpack_staging_dir)
 
   print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
   if not replay_mode:

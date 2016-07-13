@@ -138,9 +138,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
         },
         success: 'validationSuccess',
         error: 'validationError'
-      }).complete(function() {
-        dfd.resolve();
-      });
+      }).done(dfd.resolve).fail(dfd.reject);
     });
     return dfd.promise();
   },
