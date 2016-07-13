@@ -32,8 +32,6 @@ class Master(Script):
   def install(self, env):
     import params
     env.set_params(params)
-
-    Execute('chmod a+x ' + os.path.join(params.service_packagedir, "scripts/setup_snapshot.sh"))
     self.install_packages(env)
 
     # create the pid and zeppelin dirs
@@ -50,10 +48,6 @@ class Master(Script):
 
     Execute('echo spark_version:' + params.spark_version + ' detected for spark_home: '
             + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
-
-    # run setup_snapshot.sh
-    Execute(format("{service_packagedir}/scripts/setup_snapshot.sh {zeppelin_dir} {setup_view} >> {zeppelin_log_file}"),
-            user=params.zeppelin_user)
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
