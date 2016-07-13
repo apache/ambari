@@ -408,7 +408,7 @@
       </service>
     </group>
 
-    <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+    <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
@@ -515,6 +515,18 @@
       </service>
     </group>
 
+
+    <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>HIVE</service>
+        <service>SPARK</service>
+        <service>SLIDER</service>
+        <service>OOZIE</service>
+      </priority>
+    </group>
+
     <group xsi:type="restart" name="FALCON" title="Falcon">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -591,6 +603,19 @@
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_CLIENT</component>
       </service>
+    </group>
+
+    <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>FALCON</service>
+        <service>KAFKA</service>
+        <service>KNOX</service>
+        <service>STORM</service>
+        <service>FLUME</service>
+        <service>ACCUMULO</service>
+      </priority>
     </group>
 
     <!--

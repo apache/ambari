@@ -585,6 +585,7 @@ public class UpgradeCatalog240Test {
     Method addSliderClientConfig = UpgradeCatalog240.class.getDeclaredMethod("addSliderClientConfig");
     Method updateRequestScheduleEntityUserIds = UpgradeCatalog240.class.getDeclaredMethod("updateRequestScheduleEntityUserIds");
     Method updateRecoveryConfigurationDML = UpgradeCatalog240.class.getDeclaredMethod("updateRecoveryConfigurationDML");
+    Method removeAtlasMetaserverAlert = UpgradeCatalog240.class.getDeclaredMethod("removeAtlasMetaserverAlert");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -629,6 +630,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(addSliderClientConfig)
             .addMockedMethod(updateRequestScheduleEntityUserIds)
             .addMockedMethod(updateRecoveryConfigurationDML)
+            .addMockedMethod(removeAtlasMetaserverAlert)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -668,6 +670,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.addSliderClientConfig();
     upgradeCatalog240.updateRequestScheduleEntityUserIds();
     upgradeCatalog240.updateRecoveryConfigurationDML();
+    upgradeCatalog240.removeAtlasMetaserverAlert();
 
     replay(upgradeCatalog240, dbAccessor);
 

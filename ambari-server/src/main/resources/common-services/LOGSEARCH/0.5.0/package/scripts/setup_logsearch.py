@@ -17,9 +17,11 @@ limitations under the License.
 
 """
 
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions import solr_cloud_util
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.decorator import retry
 from resource_management.core.source import InlineTemplate, Template
 
 
@@ -97,6 +99,7 @@ def setup_logsearch():
          content=Template("logsearch_jaas.conf.j2"),
          owner=params.logsearch_user
          )
+  check_znode()
 
   upload_conf_set(format('{logsearch_solr_collection_service_logs}'),
                   solrconfig_content=InlineTemplate(params.logsearch_service_logs_solrconfig_content)
@@ -127,3 +130,12 @@ def upload_conf_set(config_set, solrconfig_content = None):
     solrconfig_content= solrconfig_content,
     jaas_file=jaas_file,
     retry=30, interval=5)
+
+@retry(times=30, sleep_time=5, err_class=Fail)
+def check_znode():
+  import params
+  solr_cloud_util.check_znode(
+    zookeeper_quorum=params.zookeeper_quorum,
+    solr_znode=params.logsearch_solr_znode,
+    java64_home=params.java64_home,
+    user=params.logsearch_solr_user)
