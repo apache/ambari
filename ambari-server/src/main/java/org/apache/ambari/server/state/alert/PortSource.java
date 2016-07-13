@@ -25,7 +25,7 @@ import com.google.gson.annotations.SerializedName;
  * Equality checking for instances of this class should be executed on every
  * member to ensure that reconciling stack differences is correct.
  */
-public class PortSource extends Source {
+public class PortSource extends ParameterizedSource {
 
   @SerializedName("uri")
   private String m_uri = null;

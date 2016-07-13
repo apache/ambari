@@ -29,8 +29,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.stack_features import check_stack_feature 
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-
 from zookeeper import zookeeper
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class ZookeeperClient(Script):
   def configure(self, env):

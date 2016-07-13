@@ -26,6 +26,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from hive import hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class HiveClient(Script):
   def install(self, env):

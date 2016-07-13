@@ -27,7 +27,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from hbase import hbase
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class HbaseClient(Script):
   def install(self, env):

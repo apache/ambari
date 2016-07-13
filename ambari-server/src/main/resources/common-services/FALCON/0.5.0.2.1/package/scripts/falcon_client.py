@@ -25,6 +25,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class FalconClient(Script):
   def configure(self, env):
