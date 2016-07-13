@@ -298,9 +298,39 @@ class TestJournalnode(RMFTestCase):
     urlopen_mock.assert_called
     urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
 
+
+    # Check the case where there is a journalnode installed but NOT part of the quorum.
+    url_stream_mock = MagicMock()
+    url_stream_mock.read.side_effect = (num_journalnodes * [namenode_jmx, journalnode_jmx])
+    urlopen_mock = MagicMock(return_value = url_stream_mock)
+    curl_krb_request_mock = MagicMock(side_effect=(num_journalnodes * [(namenode_jmx, "", 1), (journalnode_jmx, "", 1)]))
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/journalnode-upgrade.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    # add one more host that is not part of the hdfs-site/dfs.namenode.shared.edits.dir property
+    json_content['clusterHostInfo']['journalnode_hosts'] = ['c6406.ambari.apache.org',
+      'c6407.ambari.apache.org', 'c6408.ambari.apache.org', 'c6409.ambari.apache.org' ]
+
+    with patch.object(utils, "curl_krb_request", curl_krb_request_mock):
+      with patch.object(urllib2, "urlopen", urlopen_mock):
+       with patch.object(NamenodeHAState, "get_address", get_address_mock):
+         self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/journalnode.py",
+           classname = "JournalNode", command = "post_upgrade_restart",
+           config_dict = json_content,
+           checked_call_mocks = [(0, str(namenode_status_active)), (0, str(namenode_status_standby))],
+           stack_version = self.UPGRADE_STACK_VERSION,
+           target = RMFTestCase.TARGET_COMMON_SERVICES )
+
+    # ensure that the mock was called with the http-style version of the URL
+    urlopen_mock.assert_called
+    urlopen_mock.assert_called_with("http://c6407.ambari.apache.org:8480/jmx")
+
     url_stream_mock.reset_mock()
     curl_krb_request_mock.reset_mock()
     get_address_mock.reset_mock()
+
 
     # now try with HDFS on SSL
     with patch.object(utils, "curl_krb_request", curl_krb_request_mock):
