@@ -154,7 +154,8 @@ atlas_hook_cp = ""
 if has_atlas_in_cluster():
   atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
 
-  if has_atlas_server_on_host:
+  # Only append /etc/atlas/conf to classpath if on HDP 2.4.* and atlas server is running on this host.
+  if has_atlas_server_on_host and check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
     atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else format('{stack_root}/current/atlas-server/conf')
     atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
     atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep

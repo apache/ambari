@@ -383,6 +383,9 @@
     ],
     "ranger_tagsync_hosts": [
       "c6401.ambari.apache.org"
+    ],
+    "atlas_server_hosts": [
+      "c6401.ambari.apache.org"
     ]
 
   }

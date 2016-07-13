@@ -28,7 +28,7 @@
   </property>
   <property>
     <name>audit_log_level</name>
-    <value>OFF</value>
+    <value>info</value>
     <description>Log level for audit logging</description>
     <on-ambari-upgrade add="true"/>
   </property>

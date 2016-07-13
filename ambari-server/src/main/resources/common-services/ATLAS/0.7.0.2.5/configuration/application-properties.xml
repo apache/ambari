@@ -102,12 +102,6 @@
     <description>Path for the Atlas policy file.</description>
     <on-ambari-upgrade add="false"/>
   </property>
-  <property>
-    <name>atlas.kafka.data</name>
-    <value>{{metadata_home}}/data/kafka</value>
-    <description>The Kafka data directory.</description>
-    <on-ambari-upgrade add="false"/>
-  </property>
 
   <!-- Start: Shared Atlas Hooks that are also written out to configs for Falcon, Storm, Hive, and Sqoop.
   There are several more properties for when Atlas is Kerberized.
@@ -147,12 +141,6 @@
     <name>atlas.kafka.zookeeper.sync.time.ms</name>
     <value>20</value>
     <description></description>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
-    <name>atlas.kafka.entities.group.id</name>
-    <value>entities</value>
-    <description>Kafka group id for the entity topic.</description>
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
@@ -237,6 +225,34 @@
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
   </property>
+
+  <property>
+    <name>atlas.graph.index.search.directory</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.elasticsearch.client-only</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.graph.index.search.elasticsearch.local-mode</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.graph.storage.directory</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
+    <name>atlas.kafka.entities.group.id</name>
+    <description>Kafka group id for the entity topic.</description>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+
   <property>
     <name>atlas.solr.kerberos.enable</name>
     <value>false</value>
