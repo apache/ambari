@@ -333,7 +333,7 @@ App.MainServiceController = Em.ArrayController.extend({
         }
       ]
     };
-
+    
     if (isYARNQueueRefreshRequired) {
       batches = [
         {
@@ -375,7 +375,9 @@ App.MainServiceController = Em.ArrayController.extend({
       App.ajax.send({
         name: 'request.post',
         sender: this,
-        data: ajaxData,
+        data: {
+          data: ajaxData
+        },
         success: 'restartAllRequiredSuccessCallback'
       });
     }
