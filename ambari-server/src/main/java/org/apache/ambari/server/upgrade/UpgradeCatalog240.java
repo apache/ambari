@@ -698,6 +698,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       }});
       put("hive_metastore_process", defaultKeytabVisibilityMap);
       put("hive_server_process", defaultKeytabVisibilityMap);
+      put("zookeeper_server_process", new HashMap<String, String>(){{
+        put("socket.command", "HIDDEN");
+        put("socket.command.response", "HIDDEN");
+      }});
     }};
 
     Map<String, Map<String, String>> reportingPercentMap = new HashMap<String, Map<String, String>>(){{
@@ -838,6 +842,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               clusterID, "hive_webhcat_server_status");
       final AlertDefinitionEntity flumeAgentStatusAlertDefinitionEntity = alertDefinitionDAO.findByName(
               clusterID, "flume_agent_status");
+      final AlertDefinitionEntity zookeeperServerProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
+              clusterID, "zookeeper_server_process");
 
       Map<AlertDefinitionEntity, List<String>> alertDefinitionParams = new HashMap<>();
       checkedPutToMap(alertDefinitionParams, namenodeLastCheckpointAlertDefinitionEntity,
@@ -858,6 +864,9 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               Lists.newArrayList("default.smoke.user", "connection.timeout"));
       checkedPutToMap(alertDefinitionParams, flumeAgentStatusAlertDefinitionEntity,
               Lists.newArrayList("run.directory"));
+      checkedPutToMap(alertDefinitionParams, zookeeperServerProcessAlertDefinitionEntity,
+              Lists.newArrayList("socket.command", "socket.command.response"));
+
 
       Map<Long, AlertDefinitionEntity> definitionsForPropertyUpdates = new HashMap<>();
 
@@ -1323,6 +1332,28 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
       paramsToAdd.add(param);
 
     }
+    if (params.contains("socket.command")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("socket.command"));
+      param.add("display_name", new JsonPrimitive("Socket Command"));
+      param.add("value", new JsonPrimitive("ruok"));
+      param.add("type", new JsonPrimitive("STRING"));
+      param.add("description", new JsonPrimitive("A socket command which queries ZooKeeper to respond with its state. The expected response is imok."));
+      paramsToAdd.add(param);
+
+    }
+    if (params.contains("socket.command.response")) {
+      JsonObject param = new JsonObject();
+      param.add("name", new JsonPrimitive("socket.command.response"));
+      param.add("display_name", new JsonPrimitive("Expected Response"));
+      param.add("value", new JsonPrimitive("imok"));
+      param.add("type", new JsonPrimitive("STRING"));
+      param.add("description", new JsonPrimitive("The expected response to the socket command."));
+      paramsToAdd.add(param);
+
+    }
+
+
 
     if (!parameterExists) {
       parametersJson = new JsonArray();
