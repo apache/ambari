@@ -283,7 +283,7 @@ class TestServiceCheck(RMFTestCase):
       content = StaticFile('hcatSmoke.sh'),
       mode = 0755)
 
-    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare false",
+    self.assertResourceCalled('Execute', "env JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /tmp/hcatSmoke.sh hcatsmoke prepare true",
         logoutput = True,
         path = ['/usr/sbin','/usr/local/bin','/bin','/usr/bin', '/bin:/usr/hdp/current/hadoop-client/bin:/usr/hdp/2.3.0.0-1234/hive/bin'],
         tries = 3,

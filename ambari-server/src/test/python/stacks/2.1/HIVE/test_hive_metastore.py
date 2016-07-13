@@ -190,25 +190,25 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode = 0755,
                               )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               owner = 'hive',
                               group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf',
+                              conf_dir = '/usr/hdp/current/hive-server2/conf',
                               mode = 0644,
                               configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
                                                                      u'mapreduce.jobtracker.staging.root.dir': u'true'}},
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner = 'hive',
                               group = 'hadoop',
                               )
@@ -291,25 +291,25 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode = 0755,
                               )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               owner = 'hive',
                               group = 'hadoop',
                               create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf',
+                              conf_dir = '/usr/hdp/current/hive-server2/conf',
                               mode = 0644,
                               configuration_attributes = {u'final': {u'mapred.healthChecker.script.path': u'true',
                                                                      u'mapreduce.jobtracker.staging.root.dir': u'true'}},
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['mapred-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-default.xml.template',
                               owner = 'hive',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/hive-env.sh.template',
                               owner = 'hive',
                               group = 'hadoop',
                               )
@@ -432,7 +432,7 @@ class TestHiveMetastore(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    get_params_mock.assert_called_with("/etc/hive/conf", {'hive-site.xml': "XML"})
+    get_params_mock.assert_called_with("/usr/hdp/current/hive-server2/conf", {'hive-site.xml': "XML"})
     build_exp_mock.assert_called_with('hive-site', props_value_check, props_empty_check, props_read_check)
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)

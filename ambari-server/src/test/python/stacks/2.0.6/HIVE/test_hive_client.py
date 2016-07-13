@@ -36,34 +36,34 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive',
         mode = 0755
     )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-client/conf',
         owner = 'hive',
         group = 'hadoop',
         create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
-        conf_dir = '/etc/hive/conf',
+        conf_dir = '/usr/hdp/current/hive-client/conf',
         mode = 0644,
         configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-default.xml.template',
         owner = 'hive',
         group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh.template',
         owner = 'hive',
         group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-exec-log4j.properties',
         content = 'log4jproperties\nline2',
         owner = 'hive',
         group = 'hadoop',
         mode = 0644,
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-log4j.properties',
         content = 'log4jproperties\nline2',
         owner = 'hive',
         group = 'hadoop',
@@ -71,13 +71,13 @@ class TestHiveClient(RMFTestCase):
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf',
+                              conf_dir = '/usr/hdp/current/hive-client/conf',
                               mode = 0644,
                               configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
@@ -112,34 +112,34 @@ class TestHiveClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive',
         mode = 0755
     )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-client/conf',
         owner = 'hive',
         group = 'hadoop',
         create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
         group = 'hadoop',
-        conf_dir = '/etc/hive/conf',
+        conf_dir = '/usr/hdp/current/hive-client/conf',
         mode = 0644,
         configuration_attributes = self.getConfig()['configuration_attributes']['mapred-site'],
         owner = 'hive',
         configurations = self.getConfig()['configurations']['mapred-site'],
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-default.xml.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-default.xml.template',
         owner = 'hive',
         group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh.template',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh.template',
         owner = 'hive',
         group = 'hadoop',
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-exec-log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-exec-log4j.properties',
         content = 'log4jproperties\nline2',
         owner = 'hive',
         group = 'hadoop',
         mode = 0644,
     )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-log4j.properties',
         content = 'log4jproperties\nline2',
         owner = 'hive',
         group = 'hadoop',
@@ -147,13 +147,13 @@ class TestHiveClient(RMFTestCase):
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
                               group = 'hadoop',
-                              conf_dir = '/etc/hive/conf',
+                              conf_dir = '/usr/hdp/current/hive-client/conf',
                               mode = 0644,
                               configuration_attributes = self.getConfig()['configuration_attributes']['hive-site'],
                               owner = 'hive',
                               configurations = self.getConfig()['configurations']['hive-site'],
                               )
-    self.assertResourceCalled('File', '/etc/hive/conf/hive-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-client/conf/hive-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
