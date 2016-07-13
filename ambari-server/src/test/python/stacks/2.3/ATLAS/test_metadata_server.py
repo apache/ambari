@@ -83,8 +83,16 @@ class TestMetadataServer(RMFTestCase):
       self.assertResourceCalled('File', '/usr/hdp/current/atlas-server/server/webapp/atlas.war',
           content = StaticFile('/usr/hdp/current/atlas-server/server/webapp/atlas.war'),
       )
+      host_name = u"c6401.ambari.apache.org"
       app_props =  dict(self.getConfig()['configurations']['application-properties'])
-      app_props['atlas.server.bind.address'] = 'c6401.ambari.apache.org'
+      app_props['atlas.server.bind.address'] = host_name
+
+      metadata_protocol = "https" if app_props["atlas.enableTLS"] is True else "http"
+      metadata_port = app_props["atlas.server.https.port"] if metadata_protocol == "https" else app_props["atlas.server.http.port"]
+      app_props["atlas.rest.address"] = u'%s://%s:%s' % (metadata_protocol, host_name, metadata_port)
+      app_props["atlas.server.ids"] = "id1"
+      app_props["atlas.server.address.id1"] = u"%s:%s" % (host_name, metadata_port)
+      app_props["atlas.server.ha.enabled"] = "false"
 
       self.assertResourceCalled('File', '/etc/atlas/conf/atlas-log4j.xml',
                           content=InlineTemplate(
@@ -114,8 +122,8 @@ class TestMetadataServer(RMFTestCase):
       self.assertResourceCalled('PropertiesFile',
                                 '/etc/atlas/conf/application.properties',
                                 properties=app_props,
-                                owner='atlas',
-                                group='hadoop',
+                                owner=u'atlas',
+                                group=u'hadoop',
                                 mode=0644,
       )
       self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr-client',

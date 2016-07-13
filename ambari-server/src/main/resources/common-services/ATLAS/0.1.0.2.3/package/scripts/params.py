@@ -127,14 +127,18 @@ else:
 
 metadata_host = config['hostname']
 
+atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
+metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST"
+metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
+
 # application properties
 application_properties = dict(config['configurations']['application-properties'])
-application_properties['atlas.server.bind.address'] = metadata_host
+application_properties["atlas.server.bind.address"] = metadata_host
+application_properties["atlas.rest.address"] = metadata_server_url
 
 # Atlas HA should populate
 # atlas.server.ids = id1,id2,...,idn
 # atlas.server.address.id# = host#:port
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 # User should not have to modify this property, but still allow overriding it to False if multiple Atlas servers exist
 # This can be None, True, or False
 is_atlas_ha_enabled = default("/configurations/application-properties/atlas.server.ha.enabled", None)
@@ -256,9 +260,6 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   enable_ranger_atlas = config['configurations']['ranger-atlas-plugin-properties']['ranger-atlas-plugin-enabled']
   enable_ranger_atlas = not is_empty(enable_ranger_atlas) and enable_ranger_atlas.lower() == 'yes'
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
-  atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
-  metadata_server_host = atlas_hosts[0]
-  metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
 
   downloaded_custom_connector = None
   driver_curl_source = None

@@ -296,6 +296,11 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>hive.execution.engine</name>
+    <value>tez</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>hive.execution.mode</name>
     <value>llap</value>
     <description>Chooses whether query fragments will run in container or in llap</description>
@@ -461,12 +466,6 @@ limitations under the License.
         <name>tez.am.resource.memory.mb</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.llap.daemon.memory.per.instance.mb</name>
-    <value>250</value>
-    <description>The total amount of memory to use for the executors inside LLAP (in megabytes).</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -642,5 +641,35 @@ limitations under the License.
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!-- Disable ACID -->
+  <property>
+    <name>hive.txn.manager</name>
+    <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.support.concurrency</name>
+    <value>false</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.initiator.on</name>
+    <value>false</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.compactor.worker.threads</name>
+    <value>0</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>hive.exec.dynamic.partition.mode</name>
+    <value>strict</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <!-- End of Disable ACID -->
+
+
 
 </configuration>

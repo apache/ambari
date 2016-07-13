@@ -73,14 +73,18 @@ SHARED_ATLAS_HOOK_CONFIGS = set(
   "atlas.notification.topics",
   "atlas.notification.kafka.service.principal",
   "atlas.notification.kafka.keytab.location",
+  "atlas.cluster.name",
+
+  # Security properties
+  "atlas.kafka.sasl.kerberos.service.name",
+  "atlas.kafka.security.protocol",
   "atlas.jaas.KafkaClient.loginModuleName",
   "atlas.jaas.KafkaClient.loginModuleControlFlag",
   "atlas.jaas.KafkaClient.option.useKeyTab",
   "atlas.jaas.KafkaClient.option.storeKey",
   "atlas.jaas.KafkaClient.option.serviceName",
   "atlas.jaas.KafkaClient.option.keyTab",
-  "atlas.jaas.KafkaClient.option.principal",
-  "atlas.cluster.name"]
+  "atlas.jaas.KafkaClient.option.principal"]
 )
 
 def has_atlas_in_cluster():
