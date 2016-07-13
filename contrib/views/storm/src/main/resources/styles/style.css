@@ -135,6 +135,10 @@ body {
     border-left-color: #1bbb60;
 }
 
+.preformatted {
+  white-space: pre;
+}
+
 /* Boxes */
 .box {
     position: relative;
@@ -167,6 +171,9 @@ body {
 }
 .box .box-header .box-control {
     float: right;
+}
+.box .box-header .box-control .bootstrap-switch {
+  margin: 9px 2px;
 }
 .box .box-header .box-control a {
     display: inline-block;
@@ -317,9 +324,12 @@ body {
 }
 .summary-tile .summary-body strong {
   display: inline-block;
-  width: 100px;
+  width: 120px;
   margin-right: 10px;
   text-align: right;
+}
+.summary-tile .summary-body .form-group {
+  margin-bottom: 0px;
 }
 
 .stats-tile {
@@ -393,7 +403,7 @@ REACT
     z-index: 99;
     line-height: 1;
     font-weight: bold;
-    padding: 5px;
+    padding: 10px;
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
     border-radius: 2px;
@@ -461,6 +471,34 @@ text.id {
 marker {
   fill: grey;
 }
+.axis path, .axis rect {
+    fill: none;
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.axis line {
+    stroke: grey;
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+}
+
+.d3-tip table {
+  margin-top: 8px;
+  width : 100%;
+}
+.d3-tip table tr td {
+  padding: 3px;
+  border: 1px red solid;
+}
+ul.legends {
+  text-align: center;
+}
+ul.legends li.legend{
+  display: inline-block;
+  margin-right: 10px;
+}
 .table-summary {
     font-size: 12px;
     font-weight: 700;
@@ -494,4 +532,28 @@ marker {
   right: 0;
   background: url('../images/loader.gif') rgba(255,255,255,0.75) no-repeat center center;
   z-index: 9;
+}
+.searchbar{
+  margin-top: 15px;
+}
+.searchbar .btn-group{
+  display: flex !important;
+}
+.searchbar .dropdown-toggle{
+  border-radius: 0;
+  margin-left: -1px;
+}
+.searchbar .btn-group .btn {
+    margin-left: -1px;
+}
+.searchbar .dropdown-menu{
+  padding: 10px 15px 5px;
+}
+.searchbar .dropdown-menu input[type="checkbox"]{
+  vertical-align: top;
+  margin-right: 5px;
+}
+.searchbar .open > .dropdown-toggle.btn-default:hover, 
+.searchbar .open > .dropdown-toggle.btn-default:focus{
+  border: 1px solid transparent;
 }
