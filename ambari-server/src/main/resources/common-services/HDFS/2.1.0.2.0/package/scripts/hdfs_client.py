@@ -27,6 +27,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from hdfs import hdfs
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class HdfsClient(Script):
 

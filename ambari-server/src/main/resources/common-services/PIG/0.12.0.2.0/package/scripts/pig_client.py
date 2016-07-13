@@ -29,6 +29,7 @@ from pig import pig
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions.default import default
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class PigClient(Script):
   def configure(self, env):

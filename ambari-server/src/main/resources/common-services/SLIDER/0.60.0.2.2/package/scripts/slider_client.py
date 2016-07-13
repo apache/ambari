@@ -25,6 +25,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from slider import slider
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class SliderClient(Script):
   def status(self, env):

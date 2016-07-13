@@ -26,6 +26,7 @@ from resource_management.core.logger import Logger
 from hive import hive
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class HiveClient(Script):
   def install(self, env):
