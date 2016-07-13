@@ -51,7 +51,7 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
     
     files_output = []
     for f in out_files:
-      files_output.append(f.read().strip('\n'))
+      files_output.append(f.read().decode("utf-8").strip('\n'))
       
     if code:
       all_output = files_output[1] + '\n' + files_output[0]
