@@ -24,10 +24,9 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
-
 from oozie import oozie
 from oozie_service import oozie_service
-
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class OozieClient(Script):
 

@@ -19,6 +19,7 @@ limitations under the License.
 
 from kerberos_common import *
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
+from resource_management.core.exceptions import ClientComponentHasNoStatus
 
 class KerberosClient(KerberosScript):
   def install(self, env):
