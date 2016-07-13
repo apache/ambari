@@ -474,7 +474,7 @@
       </service>
     </group>
 
-    <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+    <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
@@ -530,6 +530,15 @@
       </service>
     </group>
 
+    <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>HIVE</service>
+        <service>OOZIE</service>
+      </priority>
+    </group>
+
     <group xsi:type="restart" name="FALCON" title="Falcon">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -575,6 +584,16 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
+    </group>
+
+    <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>FALCON</service>
+        <service>STORM</service>
+        <service>FLUME</service>
+      </priority>
     </group>
 
     <!--

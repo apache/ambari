@@ -356,11 +356,10 @@
       </service>
     </group>
 
-    <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
+    <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
-        <!-- TODO, for some reason, it flips the order. -->
         <service>HBASE</service>
         <service>MAPREDUCE2</service>
         <service>YARN</service>
@@ -430,6 +429,16 @@
       <service name="OOZIE">
         <component>OOZIE_CLIENT</component>
       </service>
+    </group>
+
+    <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>HIVE</service>
+        <service>SPARK</service>
+        <service>OOZIE</service>
+      </priority>
     </group>
 
     <group xsi:type="restart" name="FALCON" title="Falcon">
@@ -503,6 +512,19 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
+    </group>
+
+    <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+      <priority>
+        <service>FALCON</service>
+        <service>KAFKA</service>
+        <service>KNOX</service>
+        <service>STORM</service>
+        <service>SLIDER</service>
+        <service>FLUME</service>
+      </priority>
     </group>
 
     <!--
