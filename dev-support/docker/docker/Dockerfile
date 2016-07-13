@@ -25,7 +25,7 @@ RUN yum -y install glibc-common
 ENV HOME /root
 
 #Install JAVA
-RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/7u55-b13/jdk-7u55-linux-x64.rpm -O jdk-7u55-linux-x64.rpm
+RUN wget --no-check-certificate --no-cookies --header "Cookie:oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u60-b27/jdk-8u60-linux-x64.rpm -O jdk-8u60-linux-x64.rpm
 RUN rpm -ivh jdk-7u55-linux-x64.rpm
 ENV JAVA_HOME /usr/java/default/
 
