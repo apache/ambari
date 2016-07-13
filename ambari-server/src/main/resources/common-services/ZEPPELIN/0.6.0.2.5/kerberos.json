@@ -9,15 +9,15 @@
         {
           "name": "zeppelin_user",
           "principal": {
-            "value": "zeppelin/${cluster_name}@${realm}",
+            "value": "${zeppelin-env/zeppelin_user}-${cluster_name|toLower()}@${realm}",
             "type" : "user",
             "configuration": "zeppelin-env/zeppelin.server.kerberos.principal",
-            "local_username" : "zeppelin"
+            "local_username" : "${zeppelin-env/zeppelin_user}"
           },
           "keytab": {
             "file": "${keytab_dir}/zeppelin.server.kerberos.keytab",
             "owner": {
-              "name": "zeppelin",
+              "name": "${zeppelin-env/zeppelin_user}",
               "access": "r"
             },
             "group": {
