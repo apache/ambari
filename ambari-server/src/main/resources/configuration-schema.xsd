@@ -69,7 +69,7 @@
   <xs:complexType name="propertyUpgradeBehavior">
     <xs:attribute name="add" type="xs:boolean" use="optional" default="true"/>
     <xs:attribute name="delete" type="xs:boolean" use="optional"/>
-    <xs:attribute name="change" type="xs:boolean" use="optional"/>
+    <xs:attribute name="update" type="xs:boolean" use="optional"/>
   </xs:complexType>
 
   <xs:complexType name="valueAttributesInfo">
