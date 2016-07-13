@@ -38,11 +38,15 @@ define([
 		},
 		initialize: function() {
 			App.baseURL = Utils.getStormHostDetails();
-			// App.baseURL = 'http://c6502:8744';
 			this.showRegions();
+			this.listenTo(this, "route", this.postRouteExecute, this);
 		},
 		showRegions: function() {
 			this.renderFooter();
+			if(window != window.parent){
+				var viewPath = this.getParameterByName("viewpath");
+				location.hash = viewPath ? viewPath : '';
+			}
 		},
 		renderFooter: function(){
 			require(['jsx!views/Footer'], function(Footer){
@@ -55,7 +59,25 @@ define([
 			this.postRouteExecute();
 		},
 		preRouteExecute: function() {},
-		postRouteExecute: function(name, args) {},
+		postRouteExecute: function(name, args) {
+			this.shareUrl();
+		},
+
+		getParameterByName: function(name) {
+			name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+			var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+				results = regex.exec(location.search);
+			return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+		},
+
+		shareUrl : function(){
+			if(window != window.parent){
+				var parentWindow = window.parent;
+				var parentHash = parentWindow.location.hash.split("?")[0];
+				var newurl = parentWindow.location.protocol + "//" + parentWindow.location.host + parentHash + '?viewpath='+encodeURIComponent(location.hash);
+				parentWindow.history.replaceState({path:newurl},'',newurl);
+			}
+		},
 
 		/**
 		 * Define route handlers here

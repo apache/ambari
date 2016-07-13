@@ -24,12 +24,13 @@ define([
 	'collections/BaseCollection',
 	'models/VTopology',
 	'jsx!components/Breadcrumbs',
+	'jsx!components/SearchLogs',
 	'jsx!views/ProfilingView',
 	'utils/Utils',
 	'bootbox',
 	'bootstrap',
 	'bootstrap-switch'
-	],function(Table, Pagination, React, ReactDOM, BaseCollection, VTopology, Breadcrumbs, ProfilingView, Utils, bootbox){
+	],function(Table, Pagination, React, ReactDOM, BaseCollection, VTopology, Breadcrumbs, SearchLogs, ProfilingView, Utils, bootbox){
 	'use strict';
 
 	return React.createClass({
@@ -341,7 +342,7 @@ define([
 						model: React.PropTypes.object.isRequired
 					},
 					render: function(){
-						if(this.props.model.get('errorTime') != 0) {
+						if(this.props.model.get('errorTime') && this.props.model.get('errorTime') != 0) {
 							var d = new Date(this.props.model.get('errorTime') * 1000),
 							date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
 							return (<span>{date}</span>);
@@ -374,6 +375,7 @@ define([
 			return (
 				<div>					
 					<Breadcrumbs links={this.getLinks()} />
+					<SearchLogs id={this.state.componentObj.topologyId}/>
 					<div className="row">
 						<div className="col-sm-12">
 							<div className="box filter">

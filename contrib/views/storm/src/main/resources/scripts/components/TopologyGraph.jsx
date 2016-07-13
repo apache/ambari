@@ -166,8 +166,8 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 						return "images/icon-bolt.png";
 					}
 				})
-				.attr("width", "68px")
-				.attr("height", "68px")
+				.attr("width", "30px")
+				.attr("height", "30px")
                 .on('mouseover', function(d) {
                     this.tip.show(d);
                 }.bind(this))
@@ -177,7 +177,7 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 
             g.append("svg:text")
                 .attr("dx", 18)
-                .attr("dy", 78)
+                .attr("dy", 38)
                 .text(function(d) {
                     return d.id; });
 
@@ -193,12 +193,12 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
                     dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
                     normX = deltaX / dist,
                     normY = deltaY / dist,
-                    sourcePadding = 68,
+                    sourcePadding = 30,
                     targetPadding = 5,
                     sourceX = d.source.x + (sourcePadding * normX),
-                    sourceY = d.source.y + (sourcePadding * normY) + 34,
+                    sourceY = d.source.y + (sourcePadding * normY) + 15,
                     targetX = d.target.x - (targetPadding * normX),
-                    targetY = d.target.y - (targetPadding * normY) + 34;
+                    targetY = d.target.y - (targetPadding * normY) + 15;
                 return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
             });
             

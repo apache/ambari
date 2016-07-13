@@ -79,6 +79,12 @@ define(['require',
     profileHeap: function(options){
       return this.constructor.nonCrudOperation.call(this, Globals.baseURL + '/api/v1/topology/' + options.id  + '/profiling/dumpheap/' + options.hostPort, 'GET', options);
     },
+    getTopologyLag: function(options){
+      return this.constructor.nonCrudOperation.call(this, Globals.baseURL + '/api/v1/topology/' + options.id  + '/lag', 'GET', options);
+    },
+    getWorkerHost: function(options){
+      return this.constructor.nonCrudOperation.call(this, Globals.baseURL + '/api/v1/topology-workers/' + options.id, 'GET', options);
+    },
   }, {});
   return VTopology;
 });

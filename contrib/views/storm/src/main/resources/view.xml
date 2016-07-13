@@ -20,13 +20,18 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <version>0.1.0</version>
   <build>${env.BUILD_NUMBER}</build>
   <description>Ambari view for Apache Storm</description>
-  <auto-instance>
-    <name>STORM_CLUSTER_INSTANCE</name>
-    <label>Storm View</label>
-    <description>Storm View (auto-created)</description>
-    <stack-id>HDP-2.*</stack-id>
-    <services>
-      <service>STORM</service>
-    </services>
-  </auto-instance>
+  <parameter>
+	<name>storm.host</name>
+	<description>Enter the Storm host name for accessing Storm. Host must be accessible from Ambari Server.</description>
+	<label>Storm Hostname</label>
+	<placeholder>storm-host.example.com</placeholder>
+	<required>true</required>
+  </parameter>
+  <parameter>
+	<name>storm.port</name>
+	<description>Enter the Storm port for accessing Storm.</description>
+	<label>Storm Port</label>
+	<placeholder>8744</placeholder>
+	<required>true</required>
+  </parameter>
 </view>
