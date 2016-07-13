@@ -78,7 +78,7 @@ class TestServiceCheck(RMFTestCase):
         content = StaticFile('prepareOozieHdfsDirectories.sh'),
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/tmp/prepareOozieHdfsDirectories.sh /etc/oozie/conf / /etc/hadoop/conf default',
+    self.assertResourceCalled('Execute', '/tmp/prepareOozieHdfsDirectories.sh /etc/oozie/conf / /etc/hadoop/conf c6402.ambari.apache.org:8050 hdfs://c6401.ambari.apache.org:8020 default',
         logoutput = True,
         tries = 3,
         try_sleep = 5,

@@ -72,7 +72,7 @@ class TestOozieServiceCheck(RMFTestCase):
       mode = 0755)
 
     self.assertResourceCalled('Execute',
-      "/tmp/prepareOozieHdfsDirectories.sh /usr/hdp/current/oozie-client/conf examples-dir /usr/hdp/current/hadoop-client/conf default",
+      "/tmp/prepareOozieHdfsDirectories.sh /usr/hdp/current/oozie-client/conf examples-dir /usr/hdp/current/hadoop-client/conf c6402.ambari.apache.org:8050 hdfs://c6401.ambari.apache.org:8020 default",
       tries = 3,
       try_sleep = 5,
       logoutput = True)
