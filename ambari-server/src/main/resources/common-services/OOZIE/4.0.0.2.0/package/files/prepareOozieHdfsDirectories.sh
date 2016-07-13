@@ -23,15 +23,9 @@
 export oozie_conf_dir=$1
 export oozie_examples_dir=$2
 export hadoop_conf_dir=$3
-export QUEUE=$4
-
-function getValueFromField {
-  xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
-  return $?
-}
-
-export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
-export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.defaultFS`
+export JOBTRACKER=$4
+export NAMENODE=$5
+export QUEUE=$6
 
 cd $oozie_examples_dir
 

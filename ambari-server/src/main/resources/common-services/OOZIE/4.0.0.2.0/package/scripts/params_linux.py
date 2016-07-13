@@ -145,6 +145,7 @@ http_principal = config['configurations']['oozie-site']['oozie.authentication.ke
 oozie_site = config['configurations']['oozie-site']
 # Need this for yarn.nodemanager.recovery.dir in yarn-site
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
+yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resourcemanager.address']
 
 if security_enabled and stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
   #older versions of oozie have problems when using _HOST in principal
