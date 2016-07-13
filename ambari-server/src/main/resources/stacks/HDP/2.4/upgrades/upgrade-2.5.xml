@@ -679,6 +679,9 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_add_spark2_yarn_shuffle"/>
         </pre-upgrade>
+
+        <pre-downgrade/>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
