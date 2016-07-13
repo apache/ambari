@@ -408,6 +408,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
     removeStandardDeviationAlerts();
+    removeAtlasMetaserverAlert();
     updateClusterInheritedPermissionsConfig();
     consolidateUserRoles();
     createRolePrincipals();
@@ -2282,6 +2283,27 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         if (null != definition) {
           alertDefinitionDAO.remove(definition);
         }
+      }
+    }
+  }
+
+  /**
+   * Removes the Atlas meta-server alert definition, including all history, notifications and groupings.
+   *
+   * @throws SQLException
+   */
+  void removeAtlasMetaserverAlert() throws SQLException {
+    AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+    String atlas_metastore_alert_name = "metadata_server_process";
+
+    for (final Cluster cluster : clusterMap.values()) {
+      long clusterId = cluster.getClusterId();
+
+      AlertDefinitionEntity definition = alertDefinitionDAO.findByName(clusterId, atlas_metastore_alert_name);
+      if (null != definition) {
+        alertDefinitionDAO.remove(definition);
       }
     }
   }
