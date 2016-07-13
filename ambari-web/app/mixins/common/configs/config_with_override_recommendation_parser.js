@@ -65,7 +65,9 @@ App.ConfigWithOverrideRecommendationParser = Em.Mixin.create(App.ConfigRecommend
    * @protected
    */
   _removeOverride: function(property, configs, parentProperties, configGroup) {
-    this._removeConfigByRecommendation(property.getOverride(configGroup.get('name')), property.get('overrides') || [], parentProperties);
+    var config = property.getOverride(configGroup.get('name'));
+    config = config ? config : property;
+    this._removeConfigByRecommendation(config, property.get('overrides') || [], parentProperties);
   },
 
   /**
