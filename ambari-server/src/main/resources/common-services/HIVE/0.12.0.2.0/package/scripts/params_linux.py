@@ -79,9 +79,13 @@ current_version = default("/hostLevelParams/current_version", None)
 # downgrade_from_version provides the source-version the downgrade is happening from
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
+# determine which version to use for checking stack features; version is the most accurate but
+# may not always be available (especially on first install of the cluster)
+version_for_stack_feature_checks = version if version is not None else stack_version_unformatted
+
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 
 # component ROLE directory (like hive-metastore or hive-server2-hive2)
 component_directory = status_params.component_directory
@@ -99,7 +103,10 @@ hive_user_home_dir = "/home/hive"
 # starting on stacks where HSI is supported, we need to begin using the 'hive2' schematool
 hive_server2_hive2_dir = None
 hive_server2_hive2_lib = None
-if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_unformatted):
+
+version = default("/commandParams/version", None)
+
+if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, version_for_stack_feature_checks):
   # the name of the hiveserver2-hive2 component
   hive_server2_hive2_component = status_params.SERVER_ROLE_DIRECTORY_MAP["HIVE_SERVER_INTERACTIVE"]
 
@@ -179,16 +186,16 @@ tarballs_mode = 0444
 
 purge_tables = "false"
 # Starting from stack version for feature hive_purge_table drop should be executed with purge
-if check_stack_feature(StackFeature.HIVE_PURGE_TABLE, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_PURGE_TABLE, version_for_stack_feature_checks):
   purge_tables = 'true'
 
-if check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, version_for_stack_feature_checks):
   # this is NOT a typo.  Configs for hcatalog/webhcat point to a
   # specific directory which is NOT called 'conf'
   hcat_conf_dir = format('{stack_root}/current/hive-webhcat/etc/hcatalog')
   config_dir = format('{stack_root}/current/hive-webhcat/etc/webhcat')
 
-if check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, stack_version_formatted_major):
+if check_stack_feature(StackFeature.HIVE_METASTORE_SITE_SUPPORT, version_for_stack_feature_checks):
   hive_metastore_site_supported = True
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
@@ -383,7 +390,7 @@ start_metastore_path = format("{tmp_dir}/start_metastore_script")
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 
 if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  if check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, stack_version_formatted_major):
+  if check_stack_feature(StackFeature.HIVE_ENV_HEAPSIZE, version_for_stack_feature_checks):
     hive_heapsize = config['configurations']['hive-env']['hive.heapsize']
   else:
     hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
@@ -602,7 +609,7 @@ if has_hive_interactive:
   pass
 
 # ranger host
-stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']

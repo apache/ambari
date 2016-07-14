@@ -33,7 +33,7 @@
       "title": "New row"
     },
     {
-      "collapse": true,
+      "collapse": false,
       "editable": true,
       "height": "250px",
       "panels": [
@@ -90,7 +90,7 @@
               "metric": "rpc.rpc.RpcProcessingTimeAvgTime",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             },
             {
               "aggregator": "max",
@@ -101,7 +101,7 @@
               "metric": "rpc.rpc.RpcQueueTimeAvgTime",
               "precision": "default",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -171,7 +171,7 @@
               "metric": "rpc.rpc.CallQueueLength",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -241,7 +241,7 @@
               "metric": "rpc.rpc.RpcSlowCalls",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -320,7 +320,8 @@
               "metric": "jvm.JvmMetrics.MemHeapMaxM",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -331,7 +332,8 @@
               "metric": "jvm.JvmMetrics.MemHeapUsedM",
               "precision": "default",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -342,14 +344,15 @@
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",
               "precision": "default",
               "refId": "C",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
           "title": "Heap Mem Usage",
           "tooltip": {
-            "shared": false,
+            "shared": true,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -412,7 +415,8 @@
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -423,14 +427,15 @@
               "metric": "jvm.JvmMetrics.MemNonHeapCommittedM",
               "precision": "default",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
           "title": "NonHeap Mem Usage",
           "tooltip": {
-            "shared": false,
+            "shared": true,
             "value_type": "cumulative"
           },
           "type": "graph",
@@ -502,7 +507,8 @@
               "metric": "jvm.JvmMetrics.GcCount",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -572,7 +578,8 @@
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -651,7 +658,7 @@
               "metric": "jvm.JvmMetrics.LogError",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             },
             {
               "aggregator": "max",
@@ -662,7 +669,7 @@
               "metric": "jvm.JvmMetrics.LogFatal",
               "precision": "default",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -741,7 +748,7 @@
               "metric": "rpc.rpc.RpcAuthorizationFailures",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -811,7 +818,7 @@
               "metric": "rpc.rpc.RpcAuthenticationFailures",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -919,7 +926,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 9,
+  "version": 2,
   "links": [
     {
       "asDropdown": true,

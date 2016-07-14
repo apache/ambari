@@ -33,7 +33,7 @@ class TestHcatClient(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               owner = 'hcat',
                               group = 'hadoop',
                               create_parents = True,
@@ -51,7 +51,7 @@ class TestHcatClient(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
       mode = 0644,
-      conf_dir = '/etc/hive/conf',
+      conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )
@@ -72,7 +72,7 @@ class TestHcatClient(RMFTestCase):
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Directory', '/etc/hive/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/conf',
                               create_parents = True,
                               owner = 'hcat',
                               group = 'hadoop',
@@ -90,7 +90,7 @@ class TestHcatClient(RMFTestCase):
       owner = 'hive',
       group = 'hadoop',
       mode = 0644,
-      conf_dir = '/etc/hive/conf',
+      conf_dir = '/usr/hdp/current/hive-server2/conf',
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )

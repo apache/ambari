@@ -33,7 +33,7 @@
       "title": "New row"
     },
     {
-      "collapse": true,
+      "collapse": false,
       "editable": true,
       "height": "250px",
       "panels": [
@@ -91,7 +91,7 @@
               "qmetric": "resourcemanager",
               "queue": "yarn.NodeManagerMetrics.ContainersRunning",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -161,7 +161,8 @@
               "metric": "yarn.NodeManagerMetrics.ContainersFailed",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -232,7 +233,8 @@
               "metric": "yarn.NodeManagerMetrics.ContainersKilled",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -302,7 +304,8 @@
               "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -381,7 +384,7 @@
               "metric": "yarn.NodeManagerMetrics.AvailableGB",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -455,7 +458,7 @@
               "qmetric": "resourcemanager",
               "queue": "yarn.NodeManagerMetrics.AllocatedGB",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -536,7 +539,8 @@
               "qmetric": "resourcemanager",
               "queue": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
@@ -550,7 +554,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "percentunit",
+            "percent",
             "short"
           ]
         },
@@ -606,7 +610,8 @@
               "metric": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
@@ -620,7 +625,7 @@
           "x-axis": true,
           "y-axis": true,
           "y_formats": [
-            "percentunit",
+            "percent",
             "short"
           ]
         },
@@ -678,7 +683,7 @@
               "qmetric": "resourcemanager",
               "queue": "yarn.NodeManagerMetrics.BadLogDirs",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -748,7 +753,7 @@
               "metric": "yarn.NodeManagerMetrics.BadLocalDirs",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -827,7 +832,7 @@
               "metric": "yarn.NodeManagerMetrics.ContainerLaunchDurationAvgTime",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -906,7 +911,7 @@
               "metric": "rpc.rpc.RpcProcessingTimeAvgTime",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -976,7 +981,7 @@
               "metric": "rpc.rpc.RpcQueueTimeAvgTime",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1046,7 +1051,7 @@
               "metric": "rpc.rpc.CallQueueLength",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1116,7 +1121,7 @@
               "metric": "rpc.rpc.RpcSlowCalls",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1195,7 +1200,7 @@
               "metric": "jvm.JvmMetrics.MemHeapMaxM",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             },
             {
               "aggregator": "max",
@@ -1206,7 +1211,7 @@
               "metric": "jvm.JvmMetrics.MemHeapUsedM",
               "precision": "default",
               "refId": "B",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1276,7 +1281,7 @@
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1345,8 +1350,8 @@
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
               "precision": "minutes",
-              "refId": "A",            
-              "templatedHost": ""
+              "refId": "A",
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1416,7 +1421,7 @@
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1496,7 +1501,7 @@
               "metric": "jvm.JvmMetrics.LogError",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1566,7 +1571,7 @@
               "metric": "jvm.JvmMetrics.LogFatal",
               "precision": "default",
               "refId": "A",
-              "templatedHost": ""
+              "templatedHost": "%"
             }
           ],
           "timeFrom": null,
@@ -1790,7 +1795,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 3,
+  "version": 1,
   "links": [
     {
       "asDropdown": true,

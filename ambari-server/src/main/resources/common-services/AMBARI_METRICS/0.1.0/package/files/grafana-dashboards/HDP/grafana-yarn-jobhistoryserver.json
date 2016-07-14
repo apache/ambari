@@ -82,12 +82,14 @@
           "targets": [
             {
               "aggregator": "max",
+              "alias": "GC Count",
               "app": "jobhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -150,12 +152,14 @@
           "targets": [
             {
               "aggregator": "max",
+              "alias": "GC Time",
               "app": "jobhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,

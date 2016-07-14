@@ -735,9 +735,10 @@
       <component name="WEBHCAT_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_env"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_configuration_paths"/>
         </pre-upgrade>
+
+        <pre-downgrade/>
 
         <upgrade>
           <task xsi:type="restart-task"/>

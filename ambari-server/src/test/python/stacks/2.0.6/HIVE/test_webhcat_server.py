@@ -234,7 +234,7 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/conf',
         cd_access = 'a',
         create_parents = True
     )
@@ -280,7 +280,7 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-webhcat/conf',
         cd_access = 'a',
         create_parents = True
     )
@@ -336,7 +336,7 @@ class TestWebHCatServer(RMFTestCase):
 
     build_exp_mock.assert_called_with('hive-site', hive_props_value_check, hive_props_empty_check, hive_props_read_check)
     # get_params_mock.assert_called_with(status_params.hive_conf_dir, {'hive-site.xml': "XML"})
-    get_params_mock.assert_called_with('/etc/hive-webhcat/conf', {'webhcat-site.xml': "XML"})
+    get_params_mock.assert_called_with('/usr/hdp/current/hive-webhcat/conf', {'webhcat-site.xml': "XML"})
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
     self.assertTrue(cached_kinit_executor_mock.call_count, 2)
     cached_kinit_executor_mock.assert_called_with('/usr/bin/kinit',

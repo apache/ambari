@@ -86,31 +86,27 @@ else:
   # default configuration directories
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
-  webhcat_conf_dir = '/etc/hive-webhcat/conf'
   hive_etc_dir_prefix = "/etc/hive"
   hive_interactive_etc_dir_prefix = "/etc/hive2"
-  hive_conf_dir = "/etc/hive/conf"
-  hive_client_conf_dir = "/etc/hive/conf"
 
   hive_server_conf_dir = "/etc/hive/conf.server"
   hive_server_interactive_conf_dir = "/etc/hive2/conf.server"
 
-  if stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major):
-    webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/conf")
-    hive_conf_dir = format("{stack_root}/current/{component_directory}/conf")
-    hive_client_conf_dir = format("{stack_root}/current/{component_directory}/conf")
+  webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/conf")
+  hive_conf_dir = format("{stack_root}/current/{component_directory}/conf")
+  hive_client_conf_dir = format("{stack_root}/current/{component_directory}/conf")
 
-  if stack_version_formatted_major and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted_major):
+  if check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted_major):
     hive_server_conf_dir = format("{stack_root}/current/{component_directory}/conf/conf.server")
     hive_conf_dir = hive_server_conf_dir
 
-  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
+  if check_stack_feature(StackFeature.HIVE_WEBHCAT_SPECIFIC_CONFIGS, stack_version_formatted_major):
     # this is NOT a typo. Configs for hcatalog/webhcat point to a
     # specific directory which is NOT called 'conf'
     webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/etc/webhcat")
 
   # if stack version supports hive serve interactive
-  if stack_version_formatted_major and check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_formatted_major):
+  if check_stack_feature(StackFeature.HIVE_SERVER_INTERACTIVE, stack_version_formatted_major):
     hive_server_interactive_conf_dir = format("{stack_root}/current/{component_directory_interactive}/conf/conf.server")
 
   hive_config_dir = hive_client_conf_dir
