@@ -55,7 +55,7 @@ class HostInfo():
     cpu_count = self.__host_static_info.get('cpu_num', 1)
     # Since only boot time which is a part of static info is not sent with
     # other payload sending it with cpu stats.
-    boot_time = self.__host_static_info.get('boot_time')
+    boot_time = self.__host_static_info.get('boottime')
 
     result = {
       'cpu_num': int(cpu_count),

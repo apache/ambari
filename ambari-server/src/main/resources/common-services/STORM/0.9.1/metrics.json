@@ -120,67 +120,80 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/bytes_in": {
               "metric": "bytes_in",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/bytes_out": {
               "metric": "bytes_out",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/cpu/cpu_aidle": {
               "metric": "cpu_aidle",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_fifteen": {
               "metric": "load_fifteen",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_five": {
               "metric": "load_five",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_one": {
               "metric": "load_one",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/memory/mem_buffers": {
               "metric": "mem_buffers",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/disk/part_max_used": {
               "metric": "part_max_used",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/pkts_in": {
               "metric": "pkts_in",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/pkts_out": {
               "metric": "pkts_out",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/process/proc_run": {
               "metric": "proc_run",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/process/proc_total": {
               "metric": "proc_total",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/memory/swap_total": {
               "metric": "swap_total",
@@ -441,37 +454,44 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/bytes_in": {
               "metric": "bytes_in",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/bytes_out": {
               "metric": "bytes_out",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/cpu/cpu_aidle": {
               "metric": "cpu_aidle",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_fifteen": {
               "metric": "load_fifteen",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_five": {
               "metric": "load_five",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/load_one": {
               "metric": "load_one",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/memory/mem_buffers": {
               "metric": "mem_buffers",
@@ -481,12 +501,14 @@
             "metrics/disk/part_max_used": {
               "metric": "part_max_used",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/pkts_in": {
               "metric": "pkts_in",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/network/pkts_out": {
               "metric": "pkts_out",
@@ -496,17 +518,20 @@
             "metrics/process/proc_run": {
               "metric": "proc_run",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/process/proc_total": {
               "metric": "proc_total",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/memory/swap_total": {
               "metric": "swap_total",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/storm/supervisor/jvm/memory/heap/committed": {
               "metric": "Supervisor.JVM.Memory.Heap.committed",
