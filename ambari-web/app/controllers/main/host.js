@@ -258,7 +258,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           key: property.key,
           value: filter.value,
           type: property.type,
-          isFilter: true
+          isFilter: true,
+          isComponentRelatedFilter: ([13,15].indexOf(filter.iColumn) != -1)
         };
         if (filter.type === 'string' && sortProperties.someProperty('name', colPropAssoc[filter.iColumn])) {
           if (Em.isArray(filter.value)) {
