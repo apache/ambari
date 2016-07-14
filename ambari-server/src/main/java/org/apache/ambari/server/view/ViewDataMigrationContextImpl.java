@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.view;
 
+import com.google.inject.Binding;
+import com.google.inject.ConfigurationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
@@ -37,8 +39,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeanUtils;
 
+import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+import java.util.WeakHashMap;
 
 /**
  * View data migration context implementation.
@@ -82,6 +87,8 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
     this.currentInstanceDefinition = currentInstanceDefinition;
   }
 
+  private Map<ViewInstanceEntity, DataStoreModule> dataStoreModules = new WeakHashMap<>();
+
   /**
    * Instantiates the data store associated with the instance.
    *
@@ -89,8 +96,12 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
    * @return the data store object associated with view instance
    */
   protected DataStore getDataStore(ViewInstanceEntity instanceDefinition) {
-    Injector originInjector = Guice.createInjector(new DataStoreModule(instanceDefinition));
-    return originInjector.getInstance(DataStoreImpl.class);
+    if (!dataStoreModules.containsKey(instanceDefinition)) {
+      DataStoreModule module = new DataStoreModule(instanceDefinition,"ambari-view-migration");
+      dataStoreModules.put(instanceDefinition, module);
+    }
+    Injector injector = Guice.createInjector(dataStoreModules.get(instanceDefinition));
+    return injector.getInstance(DataStoreImpl.class);
   }
 
   @Override
@@ -220,6 +231,15 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
   @Override
   public Map<String, Map<String, String>> getCurrentInstanceDataByUser() {
     return getInstanceDataByUser(currentInstanceDefinition);
+  }
+
+  public void closeMigration() {
+
+    for (DataStoreModule module : dataStoreModules.values()) {
+      module.close();
+    }
+
+    dataStoreModules.clear();
   }
 
   /**
