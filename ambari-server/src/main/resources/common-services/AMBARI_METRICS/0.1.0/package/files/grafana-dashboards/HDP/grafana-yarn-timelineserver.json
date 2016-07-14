@@ -88,7 +88,8 @@
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTotal",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -151,17 +152,19 @@
           "targets": [
             {
               "aggregator": "max",
+              "alias": "Avg Timeline Entity Data Read time",
               "app": "applicationhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.GetEntitiesTimeAvgTime",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Timeline Entity Data Read time",
+          "title": "Avg Timeline Entity Data Read time",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -233,12 +236,13 @@
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTotal",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Timeline Entity Data Write",
+          "title": "Timeline Entity Data Writes",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -296,17 +300,19 @@
           "targets": [
             {
               "aggregator": "max",
+              "alias": "Avg Timeline Entity Data Write Time",
               "app": "applicationhistoryserver",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.TimelineDataManagerMetrics.PostEntitiesTimeAvgTime",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Timeline Entity Data Write Time",
+          "title": "Avg Timeline Entity Data Write Time",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -379,7 +385,8 @@
               "errors": {},
               "metric": "jvm.JvmMetrics.GcCount",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -448,7 +455,8 @@
               "errors": {},
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -676,7 +684,7 @@
     "list": []
   },
   "schemaVersion": 8,
-  "version": 10,
+  "version": 1,
   "links": [
     {
       "asDropdown": true,

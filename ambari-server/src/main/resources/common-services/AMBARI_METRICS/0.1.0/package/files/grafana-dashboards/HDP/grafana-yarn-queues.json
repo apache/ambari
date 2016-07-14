@@ -33,7 +33,7 @@
       "title": "New row"
     },
     {
-      "collapse": true,
+      "collapse": false,
       "editable": true,
       "height": "250px",
       "panels": [
@@ -88,8 +88,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsRunning",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsRunning",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -159,8 +159,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsPending",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsPending",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -230,9 +230,10 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsCompleted",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsCompleted",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -301,9 +302,10 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsFailed",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsFailed",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -372,9 +374,10 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsKilled",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsKilled",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -443,9 +446,10 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppsSubmitted",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -523,8 +527,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AllocatedContainers",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AllocatedContainers",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -595,8 +599,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.PendingContainers",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.PendingContainers",
+              "qmetric": "",
+              "queue": "",
               "refId": "B"
             }
           ],
@@ -666,9 +670,10 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.default.ReservedContainers",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.default.ReservedContainers",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
@@ -731,20 +736,21 @@
           "targets": [
             {
               "aggregator": "max",
-              "alias": "Total Containers Allocated",
+              "alias": "Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AggregateContainersAllocated",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AggregateContainersAllocated",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Total Containers Allocated",
+          "title": "Containers Allocated",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -802,20 +808,21 @@
           "targets": [
             {
               "aggregator": "max",
-              "alias": "Node Local Containers Allocated",
+              "alias": "Local Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AggregateNodeLocalContainersAllocated",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AggregateNodeLocalContainersAllocated",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Total Node Local Containers Allocated",
+          "title": "Node Local Containers Allocated",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -873,20 +880,21 @@
           "targets": [
             {
               "aggregator": "max",
-              "alias": "Rack Local Containers Allocated",
+              "alias": "Local Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AggregateRackLocalContainersAllocated",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AggregateRackLocalContainersAllocated",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Total Rack Local Containers Allocated",
+          "title": "Rack Local Containers Allocated",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -944,20 +952,21 @@
           "targets": [
             {
               "aggregator": "max",
-              "alias": "OffSwitch Containers Allocated",
+              "alias": "Containers Allocated",
               "app": "resourcemanager",
               "downsampleAggregator": "avg",
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AggregateOffSwitchContainersAllocated",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AggregateOffSwitchContainersAllocated",
-              "refId": "A"
+              "qmetric": "",
+              "queue": "",
+              "refId": "A",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Total OffSwitch Containers Allocated",
+          "title": "OffSwitch Containers Allocated",
           "tooltip": {
             "shared": false,
             "value_type": "cumulative"
@@ -1031,8 +1040,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AllocatedMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AllocatedMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -1103,8 +1112,8 @@
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.PendingMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.PendingMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -1174,8 +1183,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AvailableMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AvailableMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -1245,8 +1254,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.default.ReservedMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.default.ReservedMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -1316,8 +1325,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AMResourceLimitMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AMResourceLimitMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             },
             {
@@ -1328,8 +1337,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.UsedAMResourceMB",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.UsedAMResourceMB",
+              "qmetric": "",
+              "queue": "",
               "refId": "B"
             }
           ],
@@ -1409,8 +1418,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppAttemptFirstContainerAllocationDelayAvgTime",
               "precision": "default",
-              "qmetric": "root.default",
-              "queue": "yarn.QueueMetrics.Queue=root.default.AppAttemptFirstContainerAllocationDelayAvgTime",
+              "qmetric": "",
+              "queue": "",
               "refId": "A"
             }
           ],
@@ -1469,8 +1478,8 @@
       {
         "allFormat": "wildcard",
         "current": {
-          "text": "",
-          "value": ""
+          "text": "All",
+          "value": "*"
         },
         "datasource": null,
         "hideLabel": true,
@@ -1482,7 +1491,7 @@
           {
             "text": "All",
             "value": "*",
-            "selected": false
+            "selected": true
           }
         ],
         "query": "yarnqueues",
@@ -1497,7 +1506,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 36,
+  "version": 1,
   "links": [
     {
       "asDropdown": true,
