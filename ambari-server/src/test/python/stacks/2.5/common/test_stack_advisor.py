@@ -288,16 +288,16 @@ class TestHDP25StackAdvisor(TestCase):
           "hive.llap.daemon.queue.name": {
             "entries": [
               {
-                "value": "default.a.a1",
-                "label": "default.a.a1"
+                "value": "a1",
+                "label": "a1"
               },
               {
-                "value": "default.a.llap",
-                "label": "default.a.llap"
+                "value": "b",
+                "label": "b"
               },
               {
-                "value": "default.b",
-                "label": "default.b"
+                "value": "llap",
+                "label": "llap"
               }
             ]
           }
