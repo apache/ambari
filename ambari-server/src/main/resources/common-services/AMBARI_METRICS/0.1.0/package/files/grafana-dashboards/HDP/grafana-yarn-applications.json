@@ -90,7 +90,8 @@
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.running_1440",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -100,7 +101,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_300",
               "precision": "default",
-              "refId": "B"
+              "refId": "B",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -110,7 +112,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_60",
               "precision": "default",
-              "refId": "C"
+              "refId": "C",
+              "transform": "none"
             },
             {
               "aggregator": "max",
@@ -120,12 +123,13 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.running_0",
               "precision": "default",
-              "refId": "D"
+              "refId": "D",
+              "transform": "none"
             }
           ],
           "timeFrom": null,
           "timeShift": null,
-          "title": "Applications  By Running Time",
+          "title": "Num Apps  By Elapsed Time",
           "tooltip": {
             "shared": true,
             "value_type": "cumulative"
@@ -281,7 +285,8 @@
               "hosts": "",
               "metric": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
               "precision": "default",
-              "refId": "A"
+              "refId": "A",
+              "transform": "diff"
             },
             {
               "aggregator": "max",
@@ -291,7 +296,8 @@
               "errors": {},
               "metric": "yarn.QueueMetrics.Queue=root.AppsCompleted",
               "precision": "default",
-              "refId": "B"
+              "refId": "B",
+              "transform": "diff"
             }
           ],
           "timeFrom": null,
@@ -497,7 +503,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 5,
+  "version": 1,
   "links": [
     {
       "asDropdown": true,

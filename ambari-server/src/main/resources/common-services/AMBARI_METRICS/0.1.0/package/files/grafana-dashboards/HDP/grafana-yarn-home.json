@@ -620,7 +620,7 @@
   },
   "refresh": false,
   "schemaVersion": 8,
-  "version": 5,
+  "version": 0,
   "links": [
     {
       "asDropdown": true,

@@ -33,7 +33,7 @@
       "title": "New row"
     },
     {
-      "collapse": true,
+      "collapse": false,
       "editable": true,
       "height": "200px",
       "panels": [
