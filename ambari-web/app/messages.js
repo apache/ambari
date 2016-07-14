@@ -3070,6 +3070,7 @@ Em.I18n.translations = {
   'config.group.description.default': 'New configuration group created on {0}',
 
   'config.infoMessage.wrong.value.for.widget': 'Configuration value cannot be converted into UI control value',
+  'config.infoMessage.wrong.value.for.combobox.widget': '"{0}" is not available in the list of valid values',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
   'config.warnMessage.llap_queue_capacity.max': 'LLAP will consume entire Yarn queue',

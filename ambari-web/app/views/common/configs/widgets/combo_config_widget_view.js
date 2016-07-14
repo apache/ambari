@@ -96,7 +96,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     if (this.isValueCompatibleWithWidget()) {
       return this.get('content.valuesList').findProperty('configValue', value).get('widgetValue');
     }
-    return null;
+    return value;
   },
 
   /**
@@ -165,10 +165,36 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
      this.setConfigValue({ context: this.get('config.value') });
    },
 
+  /**
+   * switch display of config to widget
+   * @override
+   * @method textBoxToWidget
+   */
+  textBoxToWidget: function() {
+    this.setValue(this.get('config.value'));
+    this.set("config.showAsTextBox", false);
+  },
+
+  /**
+   * Returns <code>true</code> if raw value can be used by widget or widget view is activated.
+   * @override
+   * @returns {Boolean}
+   */
+  isWidgetViewAllowed: true,
+
+  /**
+   * Initialize widget with incompatible value as textbox
+   * @override
+   */
+  initIncompatibleWidgetAsTextBox : function() {
+    this.isValueCompatibleWithWidget();
+  },
+
+
   isValueCompatibleWithWidget: function() {
     var res = this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
     if (!res) {
-      this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.infoMessage.wrong.value.for.widget'));
+      this.updateWarningsForCompatibilityWithWidget(Em.I18n.t('config.infoMessage.wrong.value.for.combobox.widget').format(this.get('config.value')));
       return false;
     }
     this.updateWarningsForCompatibilityWithWidget('');
