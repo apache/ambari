@@ -506,6 +506,24 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       else:  # When Hive Interactive Server is in 'off/removed' state.
         self.checkAndStopLlapQueue(services, configurations, LLAP_QUEUE_NAME)
 
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+    stack_root = "/usr/hdp"
+    if "cluster-env" in services["configurations"] and "stack_root" in services["configurations"]["cluster-env"]["properties"]:
+      stack_root = services["configurations"]["cluster-env"]["properties"]["stack_root"]
+
+    timeline_plugin_classes_values = []
+    timeline_plugin_classpath_values = []
+
+    if "tez-site" in services["configurations"]:
+      timeline_plugin_classes_values.append('org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
+
+    if "spark-defaults" in services["configurations"]:
+      timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
+      timeline_plugin_classpath_values.append(stack_root + "/${hdp.version}/spark/hdpLib/*")
+
+    putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', ",".join(timeline_plugin_classes_values))
+    putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath', ":".join(timeline_plugin_classpath_values))
+
   """
   Entry point for updating Hive's 'LLAP app' configs namely : (1). num_llap_nodes (2). hive.llap.daemon.yarn.container.mb
   (3). hive.llap.daemon.num.executors (4). hive.llap.io.memory.size (5). llap_heap_size (6). slider_am_container_mb,
