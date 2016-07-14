@@ -168,18 +168,23 @@ describe('App.HighAvailabilityProgressPopupController', function () {
     var cases = [
       {
         name: 'background_operations.get_by_request',
+        success: 'onGetHostsSuccess',
         title: 'default background operation polling'
       },
       {
         stageId: 0,
         name: 'common.request.polling',
         stageIdPassed: '0',
+        successCallback: 's',
+        success: 's',
         title: 'polling by stage, stageId = 0'
       },
       {
         stageId: 1,
         name: 'common.request.polling',
         stageIdPassed: 1,
+        successCallback: null,
+        success: 'onGetHostsSuccess',
         title: 'polling by stage'
       }
     ];
@@ -192,7 +197,7 @@ describe('App.HighAvailabilityProgressPopupController', function () {
             requestIds: [1, 2],
             stageId: item.stageId
           });
-          controller.getHosts();
+          controller.getHosts(item.successCallback);
           this.bgArgs = testHelpers.filterAjaxRequests('name', 'background_operations.get_by_request');
           this.pollingArgs = testHelpers.filterAjaxRequests('name', 'common.request.polling');
           this.args = item.name === 'background_operations.get_by_request' ? this.bgArgs : this.pollingArgs;
@@ -216,6 +221,14 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
         it('2nd stageId is valid', function () {
           expect(this.args[1][0].data.stageId).to.eql(item.stageIdPassed);
+        });
+
+        it('success callback for first request', function () {
+          expect(this.args[0][0].success).to.equal(item.success);
+        });
+
+        it('success callback for second request', function () {
+          expect(this.args[1][0].success).to.equal(item.success);
         });
 
       });
@@ -269,12 +282,16 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       sinon.stub(App.HostPopup, 'initPopup');
       sinon.stub(controller, 'isRequestRunning').returns(true);
       sinon.stub(controller, 'addObserver');
+      sinon.stub(controller, 'doPolling');
       sinon.stub(spinner, 'hide');
       controller.setProperties({
         requestIds: [1],
         hostsData: [],
         popupTitle: 'popupTitle',
-        spinnerPopup: spinner
+        spinnerPopup: spinner,
+        progressController: {
+          name: 'mainAdminStackAndUpgradeController'
+        }
       });
       controller.onGetHostsSuccess({});
     });
@@ -284,6 +301,7 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       App.HostPopup.initPopup.restore();
       controller.isRequestRunning.restore();
       controller.addObserver.restore();
+      controller.doPolling.restore();
       spinner.hide.restore();
     });
 
@@ -301,6 +319,10 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
     it("spinnerPopup.hide should be called", function() {
       expect(spinner.hide.calledOnce).to.be.true;
+    });
+
+    it("doPolling should be called", function() {
+      expect(controller.doPolling.calledOnce).to.be.true;
     });
   });
 
