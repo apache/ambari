@@ -27,8 +27,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
-import os
-import shutil
+from resource_management.core.resources.system import Directory
 from resource_management.core.logger import Logger
 from setup_ranger_atlas import setup_ranger_atlas
 
@@ -40,11 +39,11 @@ class MetadataServer(Script):
 
   def install(self, env):
     import params
+    env.set_params(params)
 
-    expanded_atlas = os.path.join(params.expanded_war_dir, "atlas")
-
-    if os.path.exists(expanded_atlas):
-      shutil.rmtree(expanded_atlas)
+    Directory(format("{expanded_war_dir}/atlas"),
+              action = "delete",
+    )
 
     self.install_packages(env)
 
