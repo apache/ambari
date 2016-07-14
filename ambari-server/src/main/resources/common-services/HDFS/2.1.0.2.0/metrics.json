@@ -639,7 +639,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/dfs/FSNamesystem/MissingBlocks": {
               "metric": "dfs.FSNamesystem.MissingBlocks",
@@ -2658,7 +2659,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/dfs/FSNamesystem/MissingBlocks": {
               "metric": "dfs.FSNamesystem.MissingBlocks",
@@ -4240,7 +4242,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/rpc/callQueueLen": {
               "metric": "rpc.rpc.CallQueueLength",
@@ -5096,7 +5099,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/rpc/callQueueLen": {
               "metric": "rpc.rpc.CallQueueLength",
@@ -6494,7 +6498,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/dfs/journalNode/syncs300s90thPercentileLatencyMicros": {
               "metric": "dfs.JournalNode.Syncs300s90thPercentileLatencyMicros",
@@ -7230,7 +7235,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric": true
             },
             "metrics/dfs/journalNode/syncs300s90thPercentileLatencyMicros": {
               "metric": "dfs.JournalNode.Syncs300s90thPercentileLatencyMicros",

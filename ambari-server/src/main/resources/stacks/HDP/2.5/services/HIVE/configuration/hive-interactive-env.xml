@@ -24,7 +24,7 @@
     <name>enable_hive_interactive</name>
     <value>false</value>
     <description>Enable or disable interactive query in this cluster.</description>
-    <display-name>Enable Interactive Query</display-name>
+    <display-name>Enable Interactive Query (Tech Preview)</display-name>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
