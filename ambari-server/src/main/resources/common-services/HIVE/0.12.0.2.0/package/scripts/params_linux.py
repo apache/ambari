@@ -81,7 +81,7 @@ downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
 # determine which version to use for checking stack features; version is the most accurate but
 # may not always be available (especially on first install of the cluster)
-version_for_stack_feature_checks = version if not None else stack_version_unformatted
+version_for_stack_feature_checks = version if version is not None else stack_version_unformatted
 
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
