@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.view.persistence;
 
+import com.google.common.base.Optional;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import org.apache.ambari.server.configuration.Configuration;
@@ -67,11 +68,22 @@ public class DataStoreModule implements Module, SchemaManagerFactory {
    * View persistence unit name.
    */
   private static final String VIEWS_PERSISTENCE_UNIT_NAME = "ambari-views";
+  private Optional<String> puName = Optional.absent();
 
 
   // ----- Constructors ------------------------------------------------------
 
   public DataStoreModule(ViewInstanceEntity viewInstanceEntity) {
+    ViewEntity view = viewInstanceEntity.getViewEntity();
+
+    this.viewInstanceEntity   = viewInstanceEntity;
+    this.classLoader          = new DynamicClassLoader(view.getClassLoader());
+    this.entityManagerFactory = getEntityManagerFactory(view.getAmbariConfiguration());
+    this.jpaDynamicHelper     = new JPADynamicHelper(entityManagerFactory.createEntityManager());
+  }
+
+  public DataStoreModule(ViewInstanceEntity viewInstanceEntity,String puName) {
+    this.puName = Optional.of(puName);
     ViewEntity view = viewInstanceEntity.getViewEntity();
 
     this.viewInstanceEntity   = viewInstanceEntity;
@@ -93,13 +105,17 @@ public class DataStoreModule implements Module, SchemaManagerFactory {
   }
 
 
+  public void close() {
+    entityManagerFactory.close();
+  }
+
   // ----- SchemaManagerFactory ----------------------------------------------
+
 
   @Override
   public SchemaManager getSchemaManager(DatabaseSession session) {
     return new SchemaManager(session);
   }
-
 
   // ----- helper methods ----------------------------------------------------
 
@@ -113,6 +129,7 @@ public class DataStoreModule implements Module, SchemaManagerFactory {
       persistenceMap.put(PersistenceUnitProperties.CLASSLOADER, classLoader);
       persistenceMap.put(PersistenceUnitProperties.WEAVING, "static");
     }
-    return Persistence.createEntityManagerFactory(VIEWS_PERSISTENCE_UNIT_NAME, persistenceMap);
+
+    return Persistence.createEntityManagerFactory(puName.isPresent()?puName.get():VIEWS_PERSISTENCE_UNIT_NAME, persistenceMap);
   }
 }

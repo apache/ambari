@@ -55,18 +55,6 @@ public class ViewDataMigrationUtility {
    * Migrates data from source to target instance
    * @param targetInstanceDefinition target instance entity
    * @param sourceInstanceDefinition source instance entity
-   *
-   * @throws ViewDataMigrationException when view does not support migration or an error during migration occurs.
-   */
-  public void migrateDataOnce(ViewInstanceEntity targetInstanceDefinition, ViewInstanceEntity sourceInstanceDefinition)
-      throws ViewDataMigrationException {
-    ViewDataMigrationContextImpl migrationContext = getViewDataMigrationContext(targetInstanceDefinition, sourceInstanceDefinition);
-  }
-
-  /**
-   * Migrates data from source to target instance
-   * @param targetInstanceDefinition target instance entity
-   * @param sourceInstanceDefinition source instance entity
    * @param migrateOnce cancel if previously migrated
    *
    * @throws ViewDataMigrationException when view does not support migration or an error during migration occurs.
@@ -116,6 +104,8 @@ public class ViewDataMigrationUtility {
     viewRegistry.copyPrivileges(sourceInstanceDefinition, targetInstanceDefinition);
 
     migrationContext.putCurrentInstanceData("upgrade", "upgradedFrom", sourceInstanceDefinition.getViewEntity().getVersion());
+
+    migrationContext.closeMigration();
   }
 
   private boolean isTargetEmpty(ViewDataMigrationContext migrationContext) {

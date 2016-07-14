@@ -46,6 +46,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
         didInsertElement: function() {
           this.set('selectedGroup', this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups')[this.get('serviceName')]);
         },
+        hasGroups: Em.computed.bool('groups.length'),
         serviceName: Em.computed.alias('content.serviceName'),
         selectedGroup: null,
         updateGroup: function() {
@@ -64,6 +65,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
         var selectedGroupName = this.get('selectedConfigGroup.dependentConfigGroups')[serviceName];
         var currentGroupName = this.get('selectedGroups')[serviceName] || "";
         var configGroup = this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configGroups').findProperty('name', selectedGroupName);
+        if (!configGroup) return; //There can be no dependent config group.
         if (selectedGroupName != currentGroupName) {
           /** changing config group for recommendations **/
           configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', selectedGroupName).forEach(function (c) {

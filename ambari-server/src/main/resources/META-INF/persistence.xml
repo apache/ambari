@@ -122,4 +122,16 @@
       <property name="eclipselink.logging.level" value="INFO"/>
     </properties>
   </persistence-unit>
+  <persistence-unit name="ambari-view-migration" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    <exclude-unlisted-classes>false</exclude-unlisted-classes>
+    <properties>
+      <property name="eclipselink.cache.size.default" value="10000" />
+      <property name="eclipselink.jdbc.batch-writing" value="JDBC"/>
+      <property name="eclipselink.weaving" value="static" />
+      <property name="eclipselink.logging.logger" value="org.apache.ambari.server.logging.EclipseLinkLogger"/>
+      <property name="eclipselink.logging.level" value="INFO"/>
+    </properties>
+  </persistence-unit>
+
 </persistence>
