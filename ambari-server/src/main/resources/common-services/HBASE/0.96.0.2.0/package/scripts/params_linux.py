@@ -364,7 +364,7 @@ if has_ranger_admin:
   if stack_supports_ranger_kerberos and security_enabled:
     hbase_ranger_plugin_config['policy.download.auth.users'] = hbase_user
     hbase_ranger_plugin_config['tag.download.auth.users'] = hbase_user
-    hbase_ranger_plugin_config['policy.grant.revoke.auth.users'] = hbase_user
+    hbase_ranger_plugin_config['policy.grantrevoke.auth.users'] = hbase_user
 
   if stack_supports_ranger_kerberos:
     hbase_ranger_plugin_config['ambari.service.check.user'] = policy_user
