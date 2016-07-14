@@ -111,26 +111,26 @@ public class JwtAuthenticationFilter implements Filter {
         if (valid) {
           String userName = jwtToken.getJWTClaimsSet().getSubject();
           User user = users.getUser(userName, UserType.JWT);
+          //fixme temporary solution for LDAP username conflicts, auth ldap users via JWT
+          if (user == null) {
+            user = users.getUser(userName, UserType.LDAP);
+          }
+
           if (user == null) {
 
             //TODO this is temporary check for conflicts, until /users API will change to use user_id instead of name as PK
-            User existingUser = users.getAnyUser(userName);
-            if (existingUser != null && existingUser.getUserType() != UserType.JWT) {
+            User existingUser = users.getUser(userName, UserType.LOCAL);
+            if (existingUser != null) {
 
               LOG.error("Access for JWT user [{}] restricted. Detected conflict with local user ", userName);
-
-              // directly send HTTP status 500 to avoid redirect loop, as jwt token is already confirmed to be valid
-              httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                "Cannot create JWT user: conflict detected");
-
-              //interrupt filter chain
-              return;
             }
 
-            // create user in local database on first login, usually we cannot fetch all users
-            // from external authentication provider (as we do during ldap-sync process)
-            users.createUser(userName, null, UserType.JWT, true, false);
-            user = users.getUser(userName, UserType.JWT);
+            //TODO we temporary expect that LDAP is configured to same server as JWT source
+            httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                    "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
+
+            //interrupt filter chain
+            return;
           }
 
           Collection<AmbariGrantedAuthority> userAuthorities =
