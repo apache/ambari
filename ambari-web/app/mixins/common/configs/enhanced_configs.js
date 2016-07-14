@@ -192,8 +192,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       if (onComplete) {
         onComplete()
       }
-      return null;
     }
+    return $.Deferred().resolve().promise();
   },
 
   getRecommendationsRequest: function (dataToSend, callback) {
