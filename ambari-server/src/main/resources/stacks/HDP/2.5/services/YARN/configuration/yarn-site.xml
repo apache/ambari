@@ -31,12 +31,12 @@
   </property>
   <property>
     <name>yarn.nodemanager.aux-services.spark_shuffle.classpath</name>
-    <value>/usr/hdp/${hdp.version}/spark/aux/*</value>
+    <value>{{stack_root}}/${hdp.version}/spark/aux/*</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.aux-services.spark2_shuffle.classpath</name>
-    <value>/usr/hdp/${hdp.version}/spark2/aux/*</value>
+    <value>{{stack_root}}/${hdp.version}/spark2/aux/*</value>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
