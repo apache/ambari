@@ -421,6 +421,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addSliderClientConfig();
     updateRequestScheduleEntityUserIds();
     updateRecoveryConfigurationDML();
+    updatePigSmokeTestEntityClass();
   }
 
   /**
@@ -2903,5 +2904,15 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  /**
+   * Update somketestentity class for pig view in viewentity table
+   */
+  protected void updatePigSmokeTestEntityClass() throws SQLException {
+    String updateSQL = "UPDATE viewentity " +
+      "SET class_name = 'org.apache.ambari.view.pig.persistence.SmokeTestEntity' " +
+      "WHERE class_name = 'org.apache.ambari.view.pig.persistence.DataStoreStorage$SmokeTestEntity'";
+    dbAccessor.executeUpdate(updateSQL);
   }
 }

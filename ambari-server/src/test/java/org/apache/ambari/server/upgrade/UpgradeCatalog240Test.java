@@ -595,6 +595,9 @@ public class UpgradeCatalog240Test {
     Capture<String> capturedTezViewUpdate = newCapture();
     expect(dbAccessor.executeUpdate(capture(capturedTezViewUpdate))).andReturn(1).once();
 
+    Capture<String> capturedPigSmokeTestEntityUpdate = newCapture();
+    expect(dbAccessor.executeUpdate(capture(capturedPigSmokeTestEntityUpdate))).andReturn(1).once();
+
     UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
             .addMockedMethod(addNewConfigurationsFromXml)
             .addMockedMethod(updateAlerts)
@@ -692,6 +695,12 @@ public class UpgradeCatalog240Test {
     Assert.assertNotNull(capturedTezViewUpdate.getValue());
     Assert.assertEquals("UPDATE viewinstanceproperty SET name = 'yarn.ats.url' where name = 'yarn.timeline-server.url'",
       capturedTezViewUpdate.getValue());
+
+    Assert.assertNotNull(capturedPigSmokeTestEntityUpdate.getValue());
+    Assert.assertEquals("UPDATE viewentity " +
+        "SET class_name = 'org.apache.ambari.view.pig.persistence.SmokeTestEntity' " +
+        "WHERE class_name = 'org.apache.ambari.view.pig.persistence.DataStoreStorage$SmokeTestEntity'",
+      capturedPigSmokeTestEntityUpdate.getValue());
   }
 
   @Test
