@@ -23,6 +23,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.helix.HelixManager;
 import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
+import org.apache.helix.api.id.StateModelDefId;
 import org.apache.helix.participant.StateMachineEngine;
 
 import java.util.HashMap;
@@ -38,13 +39,13 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_DAILY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_HOURLY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_RECORD_MINUTE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.CLUSTER_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.DEFAULT_STATE_MODEL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.METRIC_AGGREGATORS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.STATE_MODEL_NAME;
 
 public class AggregationTaskRunner {
   private final String instanceName;
   private final String zkAddress;
+  private final String clusterName;
   private HelixManager manager;
   private static final Log LOG = LogFactory.getLog(AggregationTaskRunner.class);
   private CheckpointManager checkpointManager;
@@ -80,20 +81,21 @@ public class AggregationTaskRunner {
     PARTITION_AGGREGATION_TYPES.put(METRIC_AGGREGATORS + "_1", HOST);
   }
 
-  public AggregationTaskRunner(String instanceName, String zkAddress) {
+  public AggregationTaskRunner(String instanceName, String zkAddress, String clusterName) {
     this.instanceName = instanceName;
     this.zkAddress = zkAddress;
+    this.clusterName = clusterName;
   }
 
   public void initialize() throws Exception {
-    manager = HelixManagerFactory.getZKHelixManager(CLUSTER_NAME, instanceName,
+    manager = HelixManagerFactory.getZKHelixManager(clusterName, instanceName,
       InstanceType.PARTICIPANT, zkAddress);
 
     OnlineOfflineStateModelFactory stateModelFactory =
       new OnlineOfflineStateModelFactory(instanceName, this);
 
     StateMachineEngine stateMach = manager.getStateMachineEngine();
-    stateMach.registerStateModelFactory(STATE_MODEL_NAME, stateModelFactory);
+    stateMach.registerStateModelFactory(StateModelDefId.from(DEFAULT_STATE_MODEL), stateModelFactory);
     manager.connect();
 
     checkpointManager = new CheckpointManager(manager.getHelixPropertyStore());

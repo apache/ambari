@@ -21,13 +21,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator.AGGREGATOR_TYPE;
 import org.apache.helix.NotificationContext;
+import org.apache.helix.api.StateTransitionHandlerFactory;
+import org.apache.helix.api.TransitionHandler;
+import org.apache.helix.api.id.PartitionId;
 import org.apache.helix.model.Message;
-import org.apache.helix.participant.statemachine.StateModel;
-import org.apache.helix.participant.statemachine.StateModelFactory;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.PARTITION_AGGREGATION_TYPES;
 
-public class OnlineOfflineStateModelFactory extends StateModelFactory<StateModel> {
+public class OnlineOfflineStateModelFactory extends StateTransitionHandlerFactory<TransitionHandler> {
   private static final Log LOG = LogFactory.getLog(OnlineOfflineStateModelFactory.class);
   private final String instanceName;
   private final AggregationTaskRunner taskRunner;
@@ -38,13 +39,13 @@ public class OnlineOfflineStateModelFactory extends StateModelFactory<StateModel
   }
 
   @Override
-  public StateModel createNewStateModel(String resourceName, String partition) {
-    LOG.info("Received request to process partition = " + partition + ", for " +
-      "resource = " + resourceName + ", at " + instanceName);
+  public TransitionHandler createStateTransitionHandler(PartitionId stateUnitKey) {
+    LOG.info("Received request to process partition = " + stateUnitKey.stringify()
+      + ", at " + instanceName);
     return new OnlineOfflineStateModel();
   }
 
-  public class OnlineOfflineStateModel extends StateModel {
+  public class OnlineOfflineStateModel extends TransitionHandler {
     public void onBecomeOnlineFromOffline(Message message, NotificationContext context) {
       String partitionName = message.getPartitionName();
       LOG.info("Received transition to Online from Offline for partition: " + partitionName);

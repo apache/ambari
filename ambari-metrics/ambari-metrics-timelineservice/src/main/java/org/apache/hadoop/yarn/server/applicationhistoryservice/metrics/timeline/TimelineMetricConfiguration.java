@@ -399,4 +399,8 @@ public class TimelineMetricConfiguration {
       return false;
     }
   }
+
+  public boolean isSecurityEnabled() {
+    return hbaseConf.get("hbase.security.authentication", "").equals("kerberos");
+  }
 }
