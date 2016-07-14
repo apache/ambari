@@ -218,7 +218,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/hbase/regionserver/writeRequestsCount": {
               "metric": "regionserver.Server.writeRequestCount",
@@ -1971,7 +1972,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/hbase/regionserver/writeRequestsCount": {
               "metric": "regionserver.Server.writeRequestCount",
@@ -3422,7 +3424,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/rpc/RpcProcessingTime_num_ops": {
               "metric": "master.Master.ProcessCallTime_num_ops",
@@ -6463,7 +6466,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/rpc/RpcProcessingTime_num_ops": {
               "metric": "master.Master.ProcessCallTime_num_ops",

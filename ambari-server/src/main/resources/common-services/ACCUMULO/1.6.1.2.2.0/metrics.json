@@ -861,7 +861,8 @@
             "metrics/boottime": {
               "metric": "boottime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/jvm/logError": {
               "metric": "jvm.JvmMetrics.LogError",
