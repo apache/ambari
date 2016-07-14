@@ -452,6 +452,7 @@ Em.I18n.translations = {
 
 
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
+  'popup.dependent.configs.select.config.group.no.groups': 'No config groups for current service',
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
 
   'popup.dependent.configs.dependencies.config.singular': 'There is {0} configuration change ',
