@@ -201,12 +201,14 @@ public class ViewDataMigrationContextImpl implements ViewDataMigrationContext {
     PersistenceConfig persistence = viewDefinition.getConfiguration().getPersistence();
 
     HashMap<String, Class> classes = new HashMap<>();
-    for (EntityConfig c : persistence.getEntities()) {
-      try {
-        Class entity = viewDefinition.getClassLoader().loadClass(c.getClassName());
-        classes.put(c.getClassName(), entity);
-      } catch (ClassNotFoundException e) {
-        e.printStackTrace();
+    if (persistence != null) {
+      for (EntityConfig c : persistence.getEntities()) {
+        try {
+          Class entity = viewDefinition.getClassLoader().loadClass(c.getClassName());
+          classes.put(c.getClassName(), entity);
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+        }
       }
     }
     return classes;
