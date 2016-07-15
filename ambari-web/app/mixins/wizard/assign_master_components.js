@@ -121,6 +121,20 @@ App.AssignMasterComponents = Em.Mixin.create({
   markSavedComponentsAsInstalled: false,
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  validationInProgress: false,
+
+  /**
+   * run validation call which was skipped
+   * validation should be always ran after last change
+   * @type {boolean}
+   * @default false
+   */
+  runQueuedValidation: false,
+
+  /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
    * Are filtered using <code>mastersToShow</code>
    * @type {Array}
@@ -1134,12 +1148,24 @@ App.AssignMasterComponents = Em.Mixin.create({
   recommendAndValidate: function(callback) {
     var self = this;
 
+    if (this.get('validationInProgress')) {
+      this.set('runQueuedValidation', true);
+      return;
+    }
+
+    this.set('validationInProgress', true);
+
     // load recommendations with partial request
     self.loadComponentsRecommendationsFromServer(function() {
       // For validation use latest received recommendations because it contains current master layout and recommended slave/client layout
       self.validate(self.get('recommendations'), function() {
         if (callback) {
           callback();
+        }
+        self.set('validationInProgress', false);
+        if (self.get('runQueuedValidation')) {
+          self.set('runQueuedValidation', false);
+          self.recommendAndValidate(callback);
         }
       });
     }, true);
