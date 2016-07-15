@@ -446,10 +446,12 @@ describe("App.MainServiceInfoConfigsController", function () {
   describe("#doCancel", function () {
     beforeEach(function () {
       sinon.stub(Em.run, 'once', Em.K);
+      sinon.stub(mainServiceInfoConfigsController, 'loadSelectedVersion');
       sinon.stub(mainServiceInfoConfigsController, 'clearRecommendationsInfo');
     });
     afterEach(function () {
       Em.run.once.restore();
+      mainServiceInfoConfigsController.loadSelectedVersion.restore();
       mainServiceInfoConfigsController.clearRecommendationsInfo.restore();
     });
 

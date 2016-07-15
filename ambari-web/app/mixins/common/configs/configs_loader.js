@@ -140,6 +140,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     this.set('isCompareMode', false);
     this.set('versionLoaded', false);
     version = version || this.get('currentDefaultVersion');
+    this.clearRecommendationsInfo();
     if (version === this.get('currentDefaultVersion') && (!switchToGroup || switchToGroup.get('isDefault'))) {
       this.set('selectedVersion', this.get('currentDefaultVersion'));
       this.loadCurrentVersions();
