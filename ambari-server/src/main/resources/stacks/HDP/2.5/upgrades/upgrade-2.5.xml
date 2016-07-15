@@ -238,6 +238,7 @@
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
         <component>SPARK_THRIFTSERVER</component>
+        <component>LIVY_SERVER</component>
       </service>
     </group>
 
@@ -744,6 +745,11 @@
         </upgrade>
       </component>
       <component name="SPARK_THRIFTSERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+      <component name="LIVY_SERVER">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

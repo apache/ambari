@@ -62,7 +62,20 @@ class LivyServer(Script):
     return "livy-server"
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    pass
+    import params
 
+    env.set_params(params)
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+      Logger.info("Executing Livy Server Stack Upgrade pre-restart")
+      conf_select.select(params.stack_name, "spark", params.version)
+      stack_select.select("livy-server", params.version)
+
+  def get_log_folder(self):
+    import params
+    return params.livy_log_dir
+
+  def get_user(self):
+    import params
+    return params.livy_user
 if __name__ == "__main__":
   LivyServer().execute()

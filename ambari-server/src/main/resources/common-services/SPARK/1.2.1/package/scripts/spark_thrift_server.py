@@ -69,15 +69,15 @@ class SparkThriftServer(Script):
     import params
 
     env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.SPARK_THRIFTSERVER, params.version):
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       Logger.info("Executing Spark Thrift Server Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "spark", params.version)
       stack_select.select("spark-thriftserver", params.version)
-      
+
   def get_log_folder(self):
     import params
     return params.spark_log_dir
-  
+
   def get_user(self):
     import params
     return params.hive_user
