@@ -1012,6 +1012,61 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
       });
 
+      describe('#popup.disablePrimary', function () {
+
+        beforeEach(function() {
+          this.mock = sinon.stub(App, 'get');
+        });
+
+        afterEach(function() {
+          App.get.restore();
+        });
+
+        it('should be disabled if no method is selected', function () {
+          expect(this.popup.get('disablePrimary')).to.be.true;
+        });
+
+        it('should be disabled if preupgradecheck is supproted and isPrecheckFailed is true', function () {
+          this.mock.returns(true);
+          this.popup.set('selectedMethod', Em.Object.create({
+            selected: true,
+            isPrecheckFailed: true,
+            isCheckRequestInProgress: false
+          }));
+
+          expect(this.popup.get('disablePrimary')).to.be.true;
+        });
+
+        it('should be disabled if preupgradecheck is supproted and isCheckRequestInProgress is true', function () {
+          this.popup.set('selectedMethod', Em.Object.create({
+            selected: true,
+            isPrecheckFailed: false,
+            isCheckRequestInProgress: true
+          }));
+          this.mock.returns(true);
+          expect(this.popup.get('disablePrimary')).to.be.true;
+        });
+
+        it('should be enabled with preupgrade check', function () {
+          this.popup.set('selectedMethod', Em.Object.create({
+            selected: true,
+            isPrecheckFailed: false,
+            isCheckRequestInProgress: false
+          }));
+          this.mock.returns(true);
+          expect(this.popup.get('disablePrimary')).to.be.false;
+        });
+
+        it('should be enabled without preupgrade check', function () {
+          this.popup.set('selectedMethod', Em.Object.create({
+            selected: true
+          }));
+          this.mock.returns(false);
+          expect(this.popup.get('disablePrimary')).to.be.false;
+        });
+
+      });
+
     });
 
     describe("NOT show confirmation popup on Downgrade", function() {

@@ -1676,8 +1676,11 @@ public class ViewRegistry {
         }
         persistView(viewDefinition, instanceDefinitions);
 
-        // add auto instance configurations if required
-        addAutoInstanceDefinition(viewDefinition);
+        // auto instances of loaded old views for doing data migration can not be installed
+        if (getDefinition(viewDefinition.getViewName(), viewDefinition.getVersion()) != null) {
+          // add auto instance configurations if required
+          addAutoInstanceDefinition(viewDefinition);
+        }
 
         setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
 

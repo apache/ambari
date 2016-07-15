@@ -29,7 +29,7 @@
             <div {{bindAttr class="method.icon :method-icon"}}></div>
             <div class="method-name">{{method.displayName}}</div>
             <div class="method-description">{{{method.description}}}</div>
-            {{#unless view.isInUpgradeWizard}}
+            {{#if view.showPreUpgradeChecks}}
               {{#if method.isCheckRequestInProgress}}
                 <div class="method-precheck-message checking">
                   {{view App.SpinnerView message="admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking"}}
@@ -46,7 +46,7 @@
                   {{/if}}
                 </div>
               {{/if}}
-            {{/unless}}
+            {{/if}}
         </div>
       </div>
     {{/each}}

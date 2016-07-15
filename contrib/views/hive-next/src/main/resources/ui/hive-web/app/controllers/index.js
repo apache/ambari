@@ -199,7 +199,7 @@ export default Ember.Controller.extend({
     finalQuery = query;
     finalQuery = this.bindQueryParams(finalQuery);
     finalQuery = this.prependGlobalSettings(finalQuery, job);
-
+    finalQuery = this.rearrangeComponents(finalQuery);
     job.set('forcedContent', finalQuery);
 
     if (shouldGetVisualExplain) {
@@ -207,6 +207,25 @@ export default Ember.Controller.extend({
     }
 
     return this.createJob(job, originalModel);
+  },
+
+  /**
+   * Rearranges the files and udfs statements to the starting of the query.
+   */
+  rearrangeComponents: function(query) {
+    var extractedComponents = this.extractComponents(query);
+    var modifiedFinalQuery = '';
+    if (extractedComponents.files.length) {
+      modifiedFinalQuery += extractedComponents.files.join("\n") + "\n\n";
+    }
+
+    if (extractedComponents.udfs.length) {
+      modifiedFinalQuery += extractedComponents.udfs.join("\n") + "\n\n";
+    }
+    var newQueries = extractedComponents.queryString.split(";");
+    newQueries = newQueries.filter(Boolean);
+    modifiedFinalQuery += newQueries.join(";") + ";";
+    return modifiedFinalQuery;
   },
 
   getVisualExplainJson: function (job, originalModel) {
