@@ -91,6 +91,7 @@ public class ConfigHelperTest {
     private ConfigGroupFactory configGroupFactory;
     private ConfigHelper configHelper;
     private AmbariManagementController managementController;
+    private AmbariMetaInfo metaInfo;
 
     @Before
     public void setup() throws Exception {
@@ -104,6 +105,7 @@ public class ConfigHelperTest {
       configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
       configHelper = injector.getInstance(ConfigHelper.class);
       managementController = injector.getInstance(AmbariManagementController.class);
+      metaInfo = injector.getInstance(AmbariMetaInfo.class);
 
       clusterName = "c1";
       clusters.addCluster(clusterName, new StackId("HDP-2.0.6"));
@@ -261,6 +263,49 @@ public class ConfigHelperTest {
         add(clusterRequest);
       }}, null);
     }
+
+    @Test
+    public void testProcessHiddenAttribute()  throws Exception{
+      StackInfo stackInfo = metaInfo.getStack("HDP", "2.0.5");
+      Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<String, Map<String, Map<String, String>>>();
+      configAttributes.put("hive-site", stackInfo.getDefaultConfigAttributesForConfigType("hive-site"));
+
+      Map<String, Map<String, String>> originalConfig_hiveClient = createHiveConfig();
+
+      Map<String, Map<String, String>> expectedConfig_hiveClient = new HashMap<String, Map<String, String>>(){{
+        put("hive-site", new HashMap<String, String>(){{
+          put("javax.jdo.option.ConnectionDriverName", "oracle");
+          put("hive.metastore.warehouse.dir", "/tmp");
+        }});
+      }};
+
+      ConfigHelper.processHiddenAttribute(originalConfig_hiveClient, configAttributes, "HIVE_CLIENT", false);
+      Assert.assertEquals(expectedConfig_hiveClient, originalConfig_hiveClient);
+
+      Map<String, Map<String, String>> originalConfig_hiveServer = createHiveConfig();
+      Map<String, Map<String, String>> expectedConfig_hiveServer = createHiveConfig();
+
+      ConfigHelper.processHiddenAttribute(originalConfig_hiveServer, configAttributes, "HIVE_SERVER", false);
+      Assert.assertEquals(expectedConfig_hiveServer, originalConfig_hiveServer);
+
+      Map<String, Map<String, String>> originalConfig_hiveServer1 = createHiveConfig();
+      Map<String, Map<String, String>> expectedConfig_hiveServer1 = expectedConfig_hiveClient;
+
+      // config download removes hidden properties without respecting of component
+      ConfigHelper.processHiddenAttribute(originalConfig_hiveServer1, configAttributes, "HIVE_SERVER", true);
+      Assert.assertEquals(expectedConfig_hiveServer1, originalConfig_hiveServer1);
+    }
+
+    private Map<String, Map<String, String>> createHiveConfig(){
+      return new HashMap<String, Map<String, String>>(){{
+        put("hive-site", new HashMap<String, String>(){{
+          put("javax.jdo.option.ConnectionDriverName", "oracle");
+          put("javax.jdo.option.ConnectionPassword", "1");
+          put("hive.metastore.warehouse.dir", "/tmp");
+        }});
+      }};
+    }
+
     @Test
     public void testEffectiveTagsForHost() throws Exception {
       final Config config = new ConfigImpl("core-site");

@@ -1322,6 +1322,57 @@ public class ConfigHelper {
   }
 
   /**
+   * Removes properties from configurations that marked as hidden for specified component.
+   * @param configurations cluster configurations
+   * @param attributes configuration attributes
+   * @param componentName component name
+   * @param configDownload indicates if config must be downloaded
+   */
+  public static void processHiddenAttribute(Map<String, Map<String, String>> configurations,
+                                            Map<String, Map<String, Map<String, String>>> attributes,
+                                            String componentName, boolean configDownload){
+    for(Map.Entry<String, Map<String,String>> confEntry : configurations.entrySet()){
+      String configTag = confEntry.getKey();
+      Map<String,String> confProperties = confEntry.getValue();
+      if(attributes.containsKey(configTag)){
+        Map<String, Map<String, String>> configAttributes = attributes.get(configTag);
+        if(configAttributes.containsKey("hidden")){
+          Map<String,String> hiddenProperties = configAttributes.get("hidden");
+          if(hiddenProperties != null) {
+            for (Map.Entry<String, String> hiddenEntry : hiddenProperties.entrySet()) {
+              String propertyName = hiddenEntry.getKey();
+              String components = hiddenEntry.getValue();
+              // hide property if we are downloading config & CONFIG_DOWNLOAD defined,
+              // otherwise - check if we have matching component name
+              if ((configDownload ? components.contains("CONFIG_DOWNLOAD") : components.contains(componentName))
+                  && confProperties.containsKey(propertyName)) {
+                confProperties.remove(propertyName);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Merge one attribute map to another.
+   * @param attributes original map
+   * @param additionalAttributes map with additional attributes
+   */
+  public static void mergeConfigAttributes(Map<String, Map<String, String>> attributes, Map<String, Map<String, String>> additionalAttributes){
+    for(Map.Entry<String, Map<String, String>> attrEntry: additionalAttributes.entrySet()){
+      String attributeName = attrEntry.getKey();
+      Map<String, String> attributeProperties = attrEntry.getValue();
+      if(!attributes.containsKey(attributeName)) {
+        attributes.put(attributeName, attributeProperties);
+      } else {
+        attributes.get(attributeName).putAll(attributeProperties);
+      }
+    }
+  }
+
+  /**
    * Invalidates the {@link ConfigHelper#staleConfigsCache} after acquiring a
    * lock around {@link LockArea#STALE_CONFIG_CACHE}. It is necessary to acquire
    * this lock since the event which caused the config to become stale, such as

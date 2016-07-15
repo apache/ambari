@@ -50,6 +50,7 @@ import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.Service;
@@ -328,14 +329,7 @@ class ActionScheduler implements Runnable {
         //Schedule what we have so far
 
         for (ExecutionCommand cmd : commandsToSchedule) {
-
-          // Hack - Remove passwords from configs
-          if ((cmd.getRole().equals(Role.HIVE_CLIENT.toString()) ||
-                  cmd.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
-                  cmd.getRole().equals(Role.HCAT.toString())) &&
-                  cmd.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
-            cmd.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
-          }
+          ConfigHelper.processHiddenAttribute(cmd.getConfigurations(), cmd.getConfigurationAttributes(), cmd.getRole(), false);
           processHostRole(stage, cmd, commandsToStart, commandsToUpdate);
         }
 
