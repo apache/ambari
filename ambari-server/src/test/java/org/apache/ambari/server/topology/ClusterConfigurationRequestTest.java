@@ -230,7 +230,7 @@ public class ClusterConfigurationRequestTest {
     expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
       (Set.class))).andReturn(true).once();
     expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Set.class), anyBoolean(), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
+      (Map.class), anyObject(Map.class), anyObject(Set.class), anyBoolean(), eq(false))).andReturn(kerberosConfig).once();
 
     Capture<? extends String> captureClusterName = newCapture(CaptureType.ALL);
     Capture<? extends Set<String>> captureUpdatedConfigTypes = newCapture(CaptureType.ALL);

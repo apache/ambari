@@ -222,27 +222,39 @@ public interface KerberosHelper {
       throws AmbariException, KerberosOperationException;
 
   /**
-   * Updates the relevant configurations for the given Service.
+   * Updates the relevant configurations for the components specified in the service filter.
    * <p/>
-   * If the relevant service and its components have Kerberos descriptors, configuration values from
+   * If <code>null</code> is passed in as the service filter, all installed services and components
+   * will be affected.  If an empty map is passed in, no services or components will be affected.
+   * <p/>
+   * If the relevant services and components have Kerberos descriptors, configuration values from
    * the descriptors are used to update the relevant configuration sets.
    *
-   * @param cluster              the relevant Cluster
-   * @param serviceComponentHost the ServiceComponentHost
+   * @param cluster       the relevant Cluster
+   * @param serviceFilter a Map of service names to component names indicating the
+   *                      relevant set of services and components - if null, no
+   *                      filter is relevant; if empty, the filter indicates no
+   *                      relevant services or components
    * @throws AmbariException
    */
-  void configureService(Cluster cluster, ServiceComponentHost serviceComponentHost)
+  void configureServices(Cluster cluster, Map<String, Collection<String>> serviceFilter)
       throws AmbariException, KerberosInvalidConfigurationException;
 
   /**
    * Returns the updates configurations that are expected when the given set of services are configured
    * for Kerberos.
    *
-   * @param cluster                  the cluster
-   * @param existingConfigurations   the cluster's existing configurations
-   * @param services                 the set of services to process
-   * @param kerberosEnabled          true if kerberos is (to be) enabled; otherwise false
-   * @param applyStackAdvisorUpdates true to invoke the stack advisor to validate property updates; false to skip
+   * @param cluster                    the cluster
+   * @param existingConfigurations     the cluster's existing configurations
+   * @param installedServices          the map of services and relevant components to process
+   * @param serviceFilter              a Map of service names to component names indicating the
+   *                                   relevant set of services and components - if null, no
+   *                                   filter is relevant; if empty, the filter indicates no
+   *                                   relevant services or components
+   * @param previouslyExistingServices a set of previously existing service names - null or a subset of installedServices
+   * @param kerberosEnabled            true if kerberos is (to be) enabled; otherwise false
+   * @param applyStackAdvisorUpdates   true to invoke the stack advisor to validate property updates;
+   *                                   false to skip
    * @return a map of configuration updates
    * @throws AmbariException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
@@ -250,8 +262,9 @@ public interface KerberosHelper {
    */
   Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster,
                                                                   Map<String, Map<String, String>> existingConfigurations,
-                                                                  Set<String> services,
-                                                                  boolean serviceAlreadyExists,
+                                                                  Map<String, Set<String>> installedServices,
+                                                                  Map<String, Collection<String>> serviceFilter,
+                                                                  Set<String> previouslyExistingServices,
                                                                   boolean kerberosEnabled,
                                                                   boolean applyStackAdvisorUpdates)
       throws KerberosInvalidConfigurationException, AmbariException;
@@ -348,14 +361,15 @@ public interface KerberosHelper {
    * the cluster and their relevant Kerberos descriptors to determine the rules to be created.
    *
    * @param kerberosDescriptor     the current Kerberos descriptor
-   * @param cluster                the cluster
    * @param realm                  the default realm
+   * @param installedServices      the map of services and relevant components to process
    * @param existingConfigurations a map of the current configurations
    * @param kerberosConfigurations a map of the configurations to update, this where the generated
    *                               auth-to-local values will be stored
    * @throws AmbariException
    */
-  void setAuthToLocalRules(KerberosDescriptor kerberosDescriptor, Cluster cluster, String realm,
+  void setAuthToLocalRules(KerberosDescriptor kerberosDescriptor, String realm,
+                           Map<String, Set<String>> installedServices,
                            Map<String, Map<String, String>> existingConfigurations,
                            Map<String, Map<String, String>> kerberosConfigurations)
       throws AmbariException;
