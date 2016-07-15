@@ -326,33 +326,31 @@ public abstract class AbstractTimelineMetricsSink {
       }
     }
 
-    String configuredCollectors = getConfiguredCollectors();
+    String collectorHosts = getConfiguredCollectors();
     // Reach out to all configured collectors before Zookeeper
-    if (configuredCollectors != null && !configuredCollectors.isEmpty()) {
-      String collectorHosts = getConfiguredCollectors();
-      if (!collectorHosts.isEmpty()) {
-        String[] hosts = collectorHosts.split(",");
-        for (String hostPortStr : hosts) {
-          if (hostPortStr != null && !hostPortStr.isEmpty()) {
-            String[] hostPortPair = hostPortStr.split(":");
-            if (hostPortPair.length < 2) {
-              LOG.warn("Collector port is missing from the configuration.");
-              continue;
+    if (collectorHosts != null && !collectorHosts.isEmpty()) {
+      String[] hosts = collectorHosts.split(",");
+      for (String hostPortStr : hosts) {
+        if (hostPortStr != null && !hostPortStr.isEmpty()) {
+          String[] hostPortPair = hostPortStr.split(":");
+          if (hostPortPair.length < 2) {
+            LOG.warn("Collector port is missing from the configuration.");
+            continue;
+          }
+          String hostStr = hostPortPair[0].trim();
+          String portStr = hostPortPair[1].trim();
+          // Check liveliness and get known instances
+          try {
+            Collection<String> liveHosts = findLiveCollectorHostsFromKnownCollector(hostStr, portStr);
+            // Update live Hosts - current host will already be a part of this
+            for (String host : liveHosts) {
+              allKnownLiveCollectors.add(host);
             }
-            String hostStr = hostPortPair[0].trim();
-            String portStr = hostPortPair[1].trim();
-            // Check liveliness and get known instances
-            try {
-              Collection<String> liveHosts = findLiveCollectorHostsFromKnownCollector(hostStr, portStr);
-              // Update live Hosts - current host will already be a part of this
-              for (String host : liveHosts) {
-                allKnownLiveCollectors.add(host);
-              }
-            } catch (MetricCollectorUnavailableException e) {
-              allKnownLiveCollectors.remove(hostStr);
-              LOG.info("Collector " + hostStr + " is not longer live. Removing " +
-                "it from list of know live collector hosts : " + allKnownLiveCollectors);
-            }
+            break; // Found at least 1 live collector
+          } catch (MetricCollectorUnavailableException e) {
+            LOG.info("Collector " + hostStr + " is not longer live. Removing " +
+              "it from list of know live collector hosts : " + allKnownLiveCollectors);
+            allKnownLiveCollectors.remove(hostStr);
           }
         }
       }
