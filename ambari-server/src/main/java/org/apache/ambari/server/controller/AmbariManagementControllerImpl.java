@@ -833,10 +833,22 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       configs = new HashMap<String, Config>();
     }
 
-    // Configuration attributes are optional. If not present, use empty map
-    Map<String, Map<String, String>> propertiesAttributes = request.getPropertiesAttributes();
-    if (null == propertiesAttributes) {
-      propertiesAttributes = new HashMap<String, Map<String,String>>();
+    // Configuration attributes are optional. If not present, use default(provided by stack), otherwise merge default
+    // with request-provided
+    Map<String, Map<String, String>> requestPropertiesAttributes = request.getPropertiesAttributes();
+
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
+
+    StackId currentStackId = cluster.getCurrentStackVersion();
+    StackInfo currentStackInfo = ambariMetaInfo.getStack(currentStackId.getStackName(), currentStackId.getStackVersion());
+    Map<String, Map<String, String>> defaultConfigAttributes = currentStackInfo.getDefaultConfigAttributesForConfigType(configType);
+
+    if(defaultConfigAttributes != null){
+      ConfigHelper.mergeConfigAttributes(propertiesAttributes, defaultConfigAttributes);
+    }
+    // overwrite default attributes with request attributes
+    if(requestPropertiesAttributes != null){
+      ConfigHelper.mergeConfigAttributes(propertiesAttributes, requestPropertiesAttributes);
     }
 
     if (configs.containsKey(request.getVersionTag())) {
@@ -2867,13 +2879,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    // Hack - Remove passwords from configs
-    if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
-            ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
-            ec.getRole().equals(Role.HCAT.toString())) &&
-        ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
-      ec.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
-    }
+    ConfigHelper.processHiddenAttribute(ec.getConfigurations(), ec.getConfigurationAttributes(), ec.getRole(), false);
 
     // Add attributes
     Map<String, Map<String, Map<String, String>>> configAttributes =
