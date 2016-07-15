@@ -1331,22 +1331,24 @@ public class ConfigHelper {
   public static void processHiddenAttribute(Map<String, Map<String, String>> configurations,
                                             Map<String, Map<String, Map<String, String>>> attributes,
                                             String componentName, boolean configDownload){
-    for(Map.Entry<String, Map<String,String>> confEntry : configurations.entrySet()){
-      String configTag = confEntry.getKey();
-      Map<String,String> confProperties = confEntry.getValue();
-      if(attributes.containsKey(configTag)){
-        Map<String, Map<String, String>> configAttributes = attributes.get(configTag);
-        if(configAttributes.containsKey("hidden")){
-          Map<String,String> hiddenProperties = configAttributes.get("hidden");
-          if(hiddenProperties != null) {
-            for (Map.Entry<String, String> hiddenEntry : hiddenProperties.entrySet()) {
-              String propertyName = hiddenEntry.getKey();
-              String components = hiddenEntry.getValue();
-              // hide property if we are downloading config & CONFIG_DOWNLOAD defined,
-              // otherwise - check if we have matching component name
-              if ((configDownload ? components.contains("CONFIG_DOWNLOAD") : components.contains(componentName))
-                  && confProperties.containsKey(propertyName)) {
-                confProperties.remove(propertyName);
+    if (configurations != null && attributes != null && componentName != null) {
+      for(Map.Entry<String, Map<String,String>> confEntry : configurations.entrySet()){
+        String configTag = confEntry.getKey();
+        Map<String,String> confProperties = confEntry.getValue();
+        if(attributes.containsKey(configTag)){
+          Map<String, Map<String, String>> configAttributes = attributes.get(configTag);
+          if(configAttributes.containsKey("hidden")){
+            Map<String,String> hiddenProperties = configAttributes.get("hidden");
+            if(hiddenProperties != null) {
+              for (Map.Entry<String, String> hiddenEntry : hiddenProperties.entrySet()) {
+                String propertyName = hiddenEntry.getKey();
+                String components = hiddenEntry.getValue();
+                // hide property if we are downloading config & CONFIG_DOWNLOAD defined,
+                // otherwise - check if we have matching component name
+                if ((configDownload ? components.contains("CONFIG_DOWNLOAD") : components.contains(componentName))
+                    && confProperties.containsKey(propertyName)) {
+                  confProperties.remove(propertyName);
+                }
               }
             }
           }
