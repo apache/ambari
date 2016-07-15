@@ -68,11 +68,14 @@ stack_version_formatted = functions.get_stack_version('hadoop-yarn-resourcemanag
 
 stack_supports_ru = stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted_major)
 stack_supports_timeline_state_store = stack_version_formatted_major and check_stack_feature(StackFeature.TIMELINE_STATE_STORE, stack_version_formatted_major)
-stack_supports_ranger_kerberos = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted_major)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade.
 # It cannot be used during the initial Cluser Install because the version is not yet known.
 version = default("/commandParams/version", None)
+
+version_for_stack_feature_checks = version if version is not None else stack_version_formatted_major
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 
 hostname = config['hostname']
 
@@ -354,7 +357,6 @@ cgroups_dir = "/cgroups_test/cpu"
 
 # ***********************  RANGER PLUGIN CHANGES ***********************
 # ranger host
-stack_supports_ranger_audit_db = stack_version_formatted_major and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted_major)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
