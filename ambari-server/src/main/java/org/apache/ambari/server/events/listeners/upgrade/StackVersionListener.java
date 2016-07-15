@@ -111,18 +111,25 @@ public class StackVersionListener {
     // Update host component version value if needed
     try {
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
-      if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
-        processUnknownDesiredVersion(cluster, sc, sch, newVersion);
-      } else if (StringUtils.isNotBlank(newVersion)) {
-        String previousVersion = sch.getVersion();
-        if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
-          // value may be "UNKNOWN" when upgrading from older Ambari versions
-          // or if host component reports it's version for the first time
-          sch.setUpgradeState(UpgradeState.NONE);
-          sch.setVersion(newVersion);
-          bootstrapVersion(cluster, sch);
-        } else if (!StringUtils.equals(previousVersion, newVersion)) { //
-          processComponentVersionChange(cluster, sc, sch, newVersion);
+      if(!sc.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
+          && !UNKNOWN_VERSION.equalsIgnoreCase(newVersion)) {
+        LOG.error("ServiceComponent {0} doesn't advertise version, " +
+                "however ServiceHostComponent {} on host {} advertised version as {}. Skipping version update",
+            sc.getName(), sch.getServiceComponentName(), sch.getHostName(), newVersion);
+      } else {
+        if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
+          processUnknownDesiredVersion(cluster, sc, sch, newVersion);
+        } else if (StringUtils.isNotBlank(newVersion)) {
+          String previousVersion = sch.getVersion();
+          if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
+            // value may be "UNKNOWN" when upgrading from older Ambari versions
+            // or if host component reports it's version for the first time
+            sch.setUpgradeState(UpgradeState.NONE);
+            sch.setVersion(newVersion);
+            bootstrapVersion(cluster, sch);
+          } else if (!StringUtils.equals(previousVersion, newVersion)) { //
+            processComponentVersionChange(cluster, sc, sch, newVersion);
+          }
         }
       }
     } catch (Exception e) {
