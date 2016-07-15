@@ -239,12 +239,33 @@
         padding: 5px;
       }
     }
+
+    ul#dropdown_menu {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      float: left;
+      min-width: 400px;
+      height: 300px;
+      overflow: hidden;
+      overflow-y: scroll;
+      padding: 5px 0;
+      margin: 5px 0;
+    }
+
+    #dropdown_content {
+      height: 300px;
+      overflow: hidden;
+      overflow-y: scroll;
+    }
+
     .dropdown-menu {
       min-width: 400px;
       margin-top: 4px !important;
       font-size: 13px;
       li {
-        line-height: 30px;
+        line-height: 12px;
         .icon-caret-right {
           font-size: 18px;
           margin-right: 20px;
@@ -305,6 +326,33 @@
       }
     }
   }
+
+  #config_version_popup {
+    z-index: 1001;
+    line-height: 20px;
+    padding: 8px;
+    font-size: 13px;
+    .content {
+      padding: 1px 5px 15px 5px;
+      .group {
+        text-align: right;
+        margin-top: -20px;
+      }
+      .date{
+        color: #808080;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .notes{
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: pre-wrap;
+      }
+    }
+    .version-operations-buttons .btn {
+      font-size: 13px;
+    }
+  }
   .stack {
     padding: 1px 10px;
     font-size: 11px;
@@ -360,5 +408,25 @@
   }
   a {
     cursor: pointer;
+  }
+}
+
+.version-in-dropdown [class*="span"] {
+  min-height: 24px;
+}
+
+// Firefox specific styles
+body:not(:-moz-handler-blocked) {
+  #config_history_flow {
+    .version-info-bar {
+      .dropdown-menu {
+        li {
+          line-height: 30px;
+        }
+      }
+    }
+  }
+  .version-in-dropdown [class*="span"] {
+    min-height: 30px;
   }
 }
