@@ -37,8 +37,6 @@
             "drpc.authorizer": "org.apache.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
             "ui.filter": "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
             "storm.principal.tolocal": "org.apache.storm.security.auth.KerberosPrincipalToLocal",
-            "nimbus.impersonation.authorizer": "org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer",
-	     "nimbus.impersonation.acl": "{{{storm_bare_jaas_principal}}: {hosts: ['*'], groups: ['*']}}",
             "supervisor.enable": "true",
             "storm.zookeeper.superACL": "sasl:{{storm_bare_jaas_principal}}",
             "java.security.auth.login.config": "{{conf_dir}}/storm_jaas.conf",
