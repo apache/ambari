@@ -940,6 +940,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           return self.get('upgradeMethods');
         }.property().volatile(),
         isInUpgradeWizard: isInUpgradeWizard,
+        showPreUpgradeChecks: App.get('supports.preUpgradeCheck') && !isInUpgradeWizard,
         versionText: isInUpgradeWizard ? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
         selectMethod: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed') || event.context.get('isPrecheckFailed')) return;
@@ -1015,7 +1016,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       disablePrimary: function () {
         if (isInUpgradeWizard) return false;
         var selectedMethod = this.get('selectedMethod');
-        return (selectedMethod ? (selectedMethod.get('isPrecheckFailed') || selectedMethod.get('isCheckRequestInProgress')) : true);
+        if (selectedMethod) {
+          if (App.get('supports.preUpgradeCheck')) {
+            return selectedMethod.get('isPrecheckFailed') || selectedMethod.get('isCheckRequestInProgress');
+          } else {
+            return false;
+          }
+        } else {
+          return true;
+        }
       }.property('selectedMethod', 'selectedMethod.isPrecheckFailed', 'selectedMethod.isCheckRequestInProgress'),
       onPrimary: function () {
         this.hide();
