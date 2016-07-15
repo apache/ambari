@@ -12,7 +12,10 @@
           "name": "METRICS_COLLECTOR",
           "identities": [
             {
-              "name": "/HDFS/NAMENODE/hdfs"
+              "name": "/HDFS/NAMENODE/hdfs",
+              "when" : {
+                "contains" : ["services", "HDFS"]
+              }
             },
             {
               "name": "ams_hbase_master_hbase",
