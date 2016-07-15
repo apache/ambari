@@ -252,14 +252,13 @@
       # Hive Configuration Directory can be controlled by:
       export HIVE_CONF_DIR={{hive_server_interactive_conf_dir}}
 
-      # Folder containing extra ibraries required for hive compilation/execution can be controlled by:
-      # if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
-      # export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
-      # elif [ -d "/usr/lib/hive-hcatalog/" ]; then
-      # export HIVE_AUX_JARS_PATH=/usr/lib/hive-hcatalog/share/hcatalog/hive-hcatalog-core-*.jar
-      # else
-      # export HIVE_AUX_JARS_PATH=/usr/lib/hcatalog/share/hcatalog/hcatalog-core.jar
-      # fi
+      # Add additional hcatalog jars
+      if [ "${HIVE_AUX_JARS_PATH}" != "" ]; then
+      export HIVE_AUX_JARS_PATH=${HIVE_AUX_JARS_PATH}
+      else
+      export HIVE_AUX_JARS_PATH=/usr/hdp/current/hive-server2-hive2/lib/hive-hcatalog-core.jar
+      fi
+
       export METASTORE_PORT={{hive_metastore_port}}
 
       # Spark assembly contains a conflicting copy of HiveConf from hive-1.2
