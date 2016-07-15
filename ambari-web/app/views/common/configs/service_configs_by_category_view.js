@@ -229,6 +229,10 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * @method filteredCategoryConfigs
    */
   filteredCategoryConfigs: function () {
+    Em.run.once(this, 'collapseCategory');
+  }.observes('categoryConfigs.@each.isHiddenByFilter'),
+
+  collapseCategory: function () {
     $('.popover').remove();
     var filter = this.get('parentView.filter').toLowerCase();
     var filteredResult = this.get('categoryConfigs');
@@ -243,21 +247,16 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         this.set('category.collapsedByDefault', this.get('category.isCollapsed'));
       }
       this.set('category.isCollapsed', !filteredResult.length);
+    } else if (typeof this.get('category.collapsedByDefault') !== 'undefined') {
+      // If user clear filter -- restore defaults
+      this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
+      this.set('category.collapsedByDefault', undefined);
+    } else if (isInitialRendering && !filteredResult.length) {
+      this.set('category.isCollapsed', true);
     }
-    else
-      if (typeof this.get('category.collapsedByDefault') !== 'undefined') {
-        // If user clear filter -- restore defaults
-        this.set('category.isCollapsed', this.get('category.collapsedByDefault'));
-        this.set('category.collapsedByDefault', undefined);
-      }
-      else
-        if (isInitialRendering && !filteredResult.length) {
-          this.set('category.isCollapsed', true);
-        }
-
     var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
     this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
-  }.observes('categoryConfigs', 'parentView.filter', 'parentView.columns.@each.selected'),
+  },
 
   /**
    * sort configs in current category by index
