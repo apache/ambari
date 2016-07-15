@@ -243,8 +243,11 @@ App.QueueAdapter = DS.Adapter.extend({
     },'App: QueueAdapter#findAllTagged ' + tag);
   },
 
-  getNodeLabels:function () {
+  getNodeLabels:function (store) {
     var uri = [_getCapacitySchedulerViewUri(this),'nodeLabels'].join('/');
+    var stackId = store.get('stackId'),
+    stackVersion = stackId.substr(stackId.indexOf('-') + 1);
+
     if (App.testMode)
       uri = uri + ".json";
 
@@ -252,15 +255,25 @@ App.QueueAdapter = DS.Adapter.extend({
       _ajax(uri,'GET').then(function(data) {
         var parsedData = JSON.parse(data), labels;
 
-        if (parsedData && Em.isArray(parsedData.nodeLabels)) {
-          labels = parsedData.nodeLabels;
+        if (stackVersion >= 2.5) {
+          if (parsedData && Em.isArray(parsedData.nodeLabelInfo)) {
+            labels = parsedData.nodeLabelInfo;
+          } else {
+            labels = (parsedData && parsedData.nodeLabelInfo)?[parsedData.nodeLabelInfo]:[];
+          }
+          Ember.run(null, resolve, labels.map(function (label) {
+            return {name:label.name,exclusivity:label.exclusivity};
+          }));
         } else {
-          labels = (parsedData && parsedData.nodeLabels)?[parsedData.nodeLabels]:[];
+          if (parsedData && Em.isArray(parsedData.nodeLabels)) {
+            labels = parsedData.nodeLabels;
+          } else {
+            labels = (parsedData && parsedData.nodeLabels)?[parsedData.nodeLabels]:[];
+          }
+          Ember.run(null, resolve, labels.map(function (label) {
+            return {name:label};
+          }));
         }
-
-        Ember.run(null, resolve, labels.map(function (label) {
-          return {name:label};
-        }));
       }, function(jqXHR) {
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
@@ -282,12 +295,15 @@ App.QueueAdapter = DS.Adapter.extend({
     }.bind(this),'App: QueueAdapter#getPrivilege');
   },
 
-  checkCluster:function () {
+  checkCluster:function (store) {
     var uri = [_getCapacitySchedulerViewUri(this),'cluster'].join('/');
     if (App.testMode)
       uri = uri + ".json";
     return new Ember.RSVP.Promise(function(resolve, reject) {
       _ajax(uri,'GET').then(function(data) {
+        if (data && data.Clusters && data.Clusters.version) {
+          store.set("stackId", data.Clusters.version);
+        }
         Ember.run(null, resolve, data);
       }, function(jqXHR) {
         if (jqXHR.status === 404) {
@@ -331,4 +347,3 @@ App.TagAdapter = App.QueueAdapter.extend({
     }, "App: TagAdapter#findAll " + type);
   }
 });
-
