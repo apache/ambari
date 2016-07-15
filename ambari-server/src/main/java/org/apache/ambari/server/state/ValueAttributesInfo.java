@@ -68,6 +68,9 @@ public class ValueAttributesInfo {
   @XmlElements(@XmlElement(name = "entry"))
   private Collection<ValueEntryInfo> entries;
 
+  @XmlElement(name = "hidden")
+  private String hidden;
+
   @XmlElement(name = "entries_editable")
   private Boolean entriesEditable;
 
@@ -125,6 +128,14 @@ public class ValueAttributesInfo {
 
   public void setEntries(Collection<ValueEntryInfo> entries) {
     this.entries = entries;
+  }
+
+  public String getHidden() {
+    return hidden;
+  }
+
+  public void setHidden(String hidden) {
+    this.hidden = hidden;
   }
 
   public Boolean getEntriesEditable() {
@@ -259,6 +270,8 @@ public class ValueAttributesInfo {
       return false;
     if (overridable != null ? !overridable.equals(that.overridable) : that.overridable != null)
       return false;
+    if (hidden != null ? !hidden.equals(that.overridable) : that.hidden != null)
+      return false;
     if (showPropertyName != null ? !showPropertyName.equals(that.showPropertyName) : that.showPropertyName != null)
       return false;
     if (uiOnlyProperty != null ? !uiOnlyProperty.equals(that.uiOnlyProperty) : that.uiOnlyProperty != null)
@@ -284,6 +297,7 @@ public class ValueAttributesInfo {
   @Override
   public int hashCode() {
     int result = type != null ? type.hashCode() : 0;
+    result = 31 * result + (hidden != null ? hidden.hashCode() : 0);
     result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
     result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
     result = 31 * result + (unit != null ? unit.hashCode() : 0);

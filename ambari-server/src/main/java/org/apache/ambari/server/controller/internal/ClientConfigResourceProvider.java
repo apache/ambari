@@ -264,9 +264,12 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
         }
       }
 
-      // Hack - Remove passwords from configs
-      if (configurations.get(Configuration.HIVE_CONFIG_TAG)!=null) {
-        configurations.get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+      ConfigHelper.processHiddenAttribute(configurations, configurationAttributes, componentName, true);
+
+      for(Map.Entry<String, Map<String, Map<String, String>>> configurationAttributesEntry : configurationAttributes.entrySet()){
+        Map<String, Map<String, String>> attrs = configurationAttributesEntry.getValue();
+        // remove internal attributes like "hidden"
+        attrs.remove("hidden");
       }
 
       // replace passwords on password references

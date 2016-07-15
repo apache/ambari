@@ -117,6 +117,8 @@ App.ApplicationStore = DS.Store.extend({
 
   current_tag: '',
 
+  stackId: '',
+
   hasDeletedQueues:Em.computed.notEmpty('deletedQueues.[]'),
 
   deletedQueues:[],
@@ -287,7 +289,7 @@ App.ApplicationStore = DS.Store.extend({
     var adapter = this.get('defaultAdapter'),
         store = this,
         promise = new Ember.RSVP.Promise(function(resolve, reject) {
-          adapter.getNodeLabels().then(function(data) {
+          adapter.getNodeLabels(store).then(function(data) {
             store.set('isRmOffline',false);
             resolve(data);
           }, function() {
@@ -376,6 +378,6 @@ App.ApplicationStore = DS.Store.extend({
     return this.get('defaultAdapter').getPrivilege();
   },
   checkCluster:function () {
-    return this.get('defaultAdapter').checkCluster();
+    return this.get('defaultAdapter').checkCluster(this);
   }
 });

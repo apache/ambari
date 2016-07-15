@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.common.io.Files;
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -60,6 +61,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean valid = true;
   private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> propertiesTypesCache =
       Collections.synchronizedMap(new HashMap<String, Map<PropertyInfo.PropertyType, Set<String>>>());
+  private Map<String, Map<String, Map<String, String>>> configPropertyAttributes =  null;
   /**
    * Meaning: stores subpath from stack root to exact hooks folder for stack. These hooks are
    * applied to all commands for services in current stack.
@@ -482,6 +484,43 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
       propertiesTypesCache.put(configType, propertiesTypes);
     }
     return propertiesTypesCache.get(configType);
+  }
+
+  /**
+   * Return default config attributes for specified config type.
+   * @param configType config type
+   * @return config attributes
+   */
+  public synchronized Map<String, Map<String, String>> getDefaultConfigAttributesForConfigType(String configType){
+    if(configPropertyAttributes == null){
+      configPropertyAttributes = getDefaultConfigAttributes();
+    }
+    if(configPropertyAttributes.containsKey(configType)){
+      return configPropertyAttributes.get(configType);
+    }
+    return null;
+  }
+
+  private Map<String,  Map<String, Map<String, String>>> getDefaultConfigAttributes(){
+    Map<String,  Map<String, Map<String, String>>> result = new HashMap<>();
+    for(ServiceInfo si : services){
+      for(PropertyInfo pi : si.getProperties())
+      {
+        String propertyConfigType = Files.getNameWithoutExtension(pi.getFilename());
+        String propertyName = pi.getName();
+        String hidden = pi.getPropertyValueAttributes().getHidden();
+        if(hidden != null){
+          if(!result.containsKey(propertyConfigType)){
+            result.put(propertyConfigType, new HashMap<String, Map<String, String>>());
+          }
+          if(!result.get(propertyConfigType).containsKey("hidden")){
+            result.get(propertyConfigType).put("hidden", new HashMap<String, String>());
+          }
+          result.get(propertyConfigType).get("hidden").put(propertyName, hidden);
+        }
+      }
+    }
+    return result;
   }
 
   /**
