@@ -155,6 +155,7 @@ define(['require',
 			this.fetchServiceLogsColumns();
 			this.renderBubbleTableView();
 			this.renderLogLevel();
+			this.renderEventHistory();
 			this.renderHistogram();
 			this.renderDatePicker();
 			//this.renderVSSearch();
@@ -347,7 +348,7 @@ define(['require',
 		},
 		renderEventHistory:function(){
 			var that = this;
-			require(['views/tabs/EventHistoryLayoutView'],function(EventHistoryLayoutView){
+			require(['views/common/EventHistoryLayout'],function(EventHistoryLayoutView){
 				that.REventHistory.show(new EventHistoryLayoutView({
 					vent : that.vent,
 					globalVent:that.globalVent,
@@ -409,7 +410,7 @@ define(['require',
     			formatResult: function(item){
     				return item[textKey];
 				}
-			}).on("change",function(e){
+			}).off("change").on("change",function(e){
 				var data = that.ui[selectTagId].select2("data").map(function(d){return d.type});
 				if(selectTagId === "excludeComponents"){
 					that.vent.trigger("tree:strike:component",data);

@@ -479,10 +479,12 @@ define(['require',
                                'to': that.dateUtil.getMomentObject(that.brushValue[1])
                            });
                        } else {*/
-                    that.vent.trigger("date:setDate", {
-                        'from': that.dateUtil.getMomentObject(that.brushValue[0]),
-                        'to': that.dateUtil.getMomentObject(that.brushValue[1])
-                    });
+                    if (!moment(that.brushValue[0]).isSame(that.brushValue[1])){
+                        that.vent.trigger("date:setDate", {
+                                'from': that.dateUtil.getMomentObject(that.brushValue[0]),
+                                'to': that.dateUtil.getMomentObject(that.brushValue[1])
+                          });          
+                     }
                     /*}*/
 
                 }

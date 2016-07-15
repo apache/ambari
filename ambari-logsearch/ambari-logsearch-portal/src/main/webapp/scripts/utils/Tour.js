@@ -166,9 +166,9 @@ define(['require', 'tour'], function(require, TourJs) {
             $('.tour-step-backdrop:first').find('.finger').css(options.css);
         };
 
-        // var overlay = document.createElement('div');
-        // overlay.setAttribute('class', 'overlayIntro');
-        // $('body').append(overlay);
+        var overlay = document.createElement('div');
+        overlay.setAttribute('class', 'overlayIntro');
+        $('body').append(overlay);
     };
 
     TourJs.bindEvent = function(tour) {
