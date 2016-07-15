@@ -222,7 +222,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<>();
 
   @Inject
-  private static UpgradeDAO s_upgradeDAO = null;
+  protected static UpgradeDAO s_upgradeDAO = null;
 
   @Inject
   private static Provider<AmbariMetaInfo> s_metaProvider = null;
@@ -691,7 +691,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       List<Resource> failedResources = new LinkedList<Resource>();
       if (preUpgradeCheckResources != null) {
         for (Resource res : preUpgradeCheckResources) {
-          String id = (String) res.getPropertyValue((PreUpgradeCheckResourceProvider.UPGRADE_CHECK_ID_PROPERTY_ID));
           PrereqCheckStatus prereqCheckStatus = (PrereqCheckStatus) res.getPropertyValue(
               PreUpgradeCheckResourceProvider.UPGRADE_CHECK_STATUS_PROPERTY_ID);
 
@@ -747,7 +746,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
-  @Transactional
+  /**
+   * Creates the upgrade. All Request/Stage/Task and Upgrade entities will exist
+   * in the database when this method completes.
+   * <p/>
+   * This method itself must not be wrapped in a transaction since it can
+   * potentially make 1000's of database calls while building the entities
+   * before persisting them. This would create a long-lived transaction which
+   * could lead to database deadlock issues. Instead, only the creation of the
+   * actual entities is wrapped in a {@link Transactional} block.
+   *
+   * @param cluster
+   * @param direction
+   * @param pack
+   * @param requestMap
+   * @return
+   * @throws AmbariException
+   * @throws AuthorizationException
+   */
   protected UpgradeEntity createUpgrade(Cluster cluster, Direction direction, UpgradePack pack,
     Map<String, Object> requestMap) throws AmbariException, AuthorizationException  {
 
@@ -978,15 +994,40 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setDowngradeAllowed(pack.isDowngradeAllowed());
 
     req.getRequestStatusResponse();
+    return createUpgradeInsideTransaction(cluster, req, entity);
+  }
 
-    entity.setRequestId(req.getId());
+  /**
+   * Creates the Request/Stage/Task entities and the Upgrade entities inside of
+   * a single transaction. We break this out since the work to get us to this
+   * point could take a very long time and involve many queries to the database
+   * as the commands are being built.
+   *
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param request
+   *          the request to persist with all stages and tasks created in memory
+   *          (not {@code null}).
+   * @param upgradeEntity
+   *          the upgrade to create and associate with the newly created request
+   *          (not {@code null}).
+   * @return the persisted {@link UpgradeEntity} encapsulating all
+   *         {@link UpgradeGroupEntity} and {@link UpgradeItemEntity}.
+   * @throws AmbariException
+   */
+  @Transactional
+  private UpgradeEntity createUpgradeInsideTransaction(Cluster cluster,
+      RequestStageContainer request,
+      UpgradeEntity upgradeEntity) throws AmbariException {
 
-    req.persist();
+    upgradeEntity.setRequestId(request.getId());
 
-    s_upgradeDAO.create(entity);
-    cluster.setUpgradeEntity(entity);
+    request.persist();
 
-    return entity;
+    s_upgradeDAO.create(upgradeEntity);
+    cluster.setUpgradeEntity(upgradeEntity);
+
+    return upgradeEntity;
   }
 
   /**
@@ -1544,7 +1585,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     switch (task.getType()) {
       case SERVER_ACTION:
       case MANUAL: {
-        ServerSideActionTask serverTask = (ServerSideActionTask) task;
+        ServerSideActionTask serverTask = task;
 
         if (null != serverTask.summary) {
           stageText = serverTask.summary;
