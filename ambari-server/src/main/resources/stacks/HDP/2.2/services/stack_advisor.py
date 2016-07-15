@@ -1491,6 +1491,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-kafka-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    security_enabled = self.isSecurityEnabled(services)
     if ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
@@ -1499,6 +1501,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         validationItems.append({"config-name": 'ranger-kafka-plugin-enabled',
                                 "item": self.getWarnItem(
                                   "ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled must correspond ranger-env/ranger-kafka-plugin-enabled")})
+
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'yes') and not security_enabled:
+      validationItems.append({"config-name": "ranger-kafka-plugin-enabled",
+                              "item": self.getWarnItem(
+                              "Ranger Kafka plugin should not be enabled in non-kerberos environment.")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-kafka-plugin-properties")
 
   def validateStormRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1506,6 +1513,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-storm-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    security_enabled = self.isSecurityEnabled(services)
     if ranger_plugin_enabled.lower() == 'yes':
       # ranger-hdfs-plugin must be enabled in ranger-env
       ranger_env = getServicesSiteProperties(services, 'ranger-env')
@@ -1514,7 +1522,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         validationItems.append({"config-name": 'ranger-storm-plugin-enabled',
                                 "item": self.getWarnItem(
                                   "ranger-storm-plugin-properties/ranger-storm-plugin-enabled must correspond ranger-env/ranger-storm-plugin-enabled")})
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()) and not 'KERBEROS' in servicesList:
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()) and not security_enabled:
       validationItems.append({"config-name": "ranger-storm-plugin-enabled",
                               "item": self.getWarnItem(
                                 "Ranger Storm plugin should not be enabled in non-kerberos environment.")})

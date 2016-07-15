@@ -308,6 +308,28 @@
               }
             }
           ]
+        },
+        {
+          "config": "ranger-admin-site/ranger.is.solr.kerberised",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
+          "depends-on": [
+            {
+              "configs":[
+                "ranger-env/xasecure.audit.destination.solr"
+              ],
+              "if": "${ranger-env/xasecure.audit.destination.solr}",
+              "then": {
+                "property_value_attributes": {
+                  "visible": true
+                }
+              },
+              "else": {
+                "property_value_attributes": {
+                  "visible": false
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -386,6 +408,12 @@
       },
       {
         "config": "ranger-ugsync-site/ranger.usersync.group.search.first.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "ranger-admin-site/ranger.is.solr.kerberised",
         "widget": {
           "type": "toggle"
         }

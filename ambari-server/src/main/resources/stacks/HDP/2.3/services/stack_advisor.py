@@ -942,11 +942,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "If Ranger Kafka Plugin is enabled."\
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
 
-    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()) and not 'KERBEROS' in servicesList:
-      validationItems.append({"config-name": "ranger-kafka-plugin-enabled",
-                              "item": self.getWarnItem(
-                                "Ranger Kafka plugin should not be enabled in non-kerberos environment.")})
-
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
   def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -981,11 +976,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     parentValidationProblems = super(HDP23StackAdvisor, self).validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, hosts)
     ranger_env_properties = properties
     validationItems = []
-    security_enabled = False
-
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'KERBEROS' in servicesList:
-      security_enabled = True
+    security_enabled = self.isSecurityEnabled(services)
 
     if "ranger-kafka-plugin-enabled" in ranger_env_properties and ranger_env_properties["ranger-kafka-plugin-enabled"].lower() == 'yes' and not security_enabled:
       validationItems.append({"config-name": "ranger-kafka-plugin-enabled",

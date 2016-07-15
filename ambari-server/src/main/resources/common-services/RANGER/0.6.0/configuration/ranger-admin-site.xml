@@ -322,4 +322,82 @@
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>ranger.is.solr.kerberised</name>
+    <display-name>Kerberos Solr</display-name>
+    <value>false</value>
+    <description/>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.option.principal</name>
+    <value>{{ranger_admin_jaas_principal}}</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.option.keyTab</name>
+    <value>{{ranger_admin_keytab}}</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.loginModuleName</name>
+    <value>com.sun.security.auth.module.Krb5LoginModule</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.loginModuleControlFlag</name>
+    <value>required</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.option.useKeyTab</name>
+    <value>true</value>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.option.storeKey</name>
+    <value>false</value>
+    <description/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>xasecure.audit.jaas.Client.option.serviceName</name>
+    <value>solr</value>
+    <description/>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

@@ -3894,13 +3894,25 @@ class TestHDP22StackAdvisor(TestCase):
         "properties":{
           "ranger-kafka-plugin-enabled":"Yes",
           }
+      },
+      "cluster-env": {
+        "properties": {
+          "security_enabled" : "true"
+        }
       }
     }
     services = {
+      "services":
+      [
+        {
+          "StackServices": {
+           "service_name" : "RANGER"
+          }
+        }
+      ],      
       "configurations": configurations
     }
     res_expected = []
-
     res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
@@ -3911,6 +3923,12 @@ class TestHDP22StackAdvisor(TestCase):
                      'type': 'configuration',
                      'config-name': 'ranger-kafka-plugin-enabled',
                      'level': 'WARN'}]
+
+    # Test to check security_enabled is false
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
+    res_expected.append({'config-type': 'ranger-kafka-plugin-properties', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'})
+    res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
 
     res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
@@ -3930,6 +3948,11 @@ class TestHDP22StackAdvisor(TestCase):
         "properties":{
           "ranger-storm-plugin-enabled":"Yes",
           }
+      },
+      "cluster-env": {
+        "properties": {
+          "security_enabled" : "true"
+        }
       }
     }
     services = {
@@ -3937,14 +3960,13 @@ class TestHDP22StackAdvisor(TestCase):
         [
           {
             "StackServices": {
-              "service_name" : "STORM"
+              "service_name" : "RANGER"
             }
           }
         ],
       "configurations": configurations
     }
     res_expected = []
-
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
@@ -3959,6 +3981,11 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
+    # Test to check security_enabled is false
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "false"
+    res_expected.append({'config-type': 'ranger-storm-plugin-properties', 'message': 'Ranger Storm plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-storm-plugin-enabled', 'level': 'WARN'})
+    res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
 
   def test_recommendRangerConfigurations(self):
     clusterData = {}
