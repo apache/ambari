@@ -86,6 +86,7 @@ version_for_stack_feature_checks = version if version is not None else stack_ver
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 
 # component ROLE directory (like hive-metastore or hive-server2-hive2)
 component_directory = status_params.component_directory
@@ -609,7 +610,6 @@ if has_hive_interactive:
   pass
 
 # ranger host
-stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']

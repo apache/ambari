@@ -521,6 +521,7 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="execute" hosts="all" summary="Stop Ranger Admin">
             <script>scripts/ranger_admin.py</script>

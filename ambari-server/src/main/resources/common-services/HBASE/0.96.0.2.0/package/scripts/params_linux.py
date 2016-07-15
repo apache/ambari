@@ -47,7 +47,6 @@ sudo = AMBARI_SUDO_BINARY
 stack_name = status_params.stack_name
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
 agent_stack_retry_count = expect("/hostLevelParams/agent_stack_retry_count", int)
-
 version = default("/commandParams/version", None)
 component_directory = status_params.component_directory
 etc_prefix_dir = "/etc/hbase"
@@ -55,7 +54,10 @@ etc_prefix_dir = "/etc/hbase"
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
 stack_root = status_params.stack_root
-stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
+
+version_for_stack_feature_checks = version if version is not None else stack_version_formatted
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 
 # hadoop default parameters
 hadoop_bin_dir = stack_select.get_hadoop_dir("bin")
@@ -258,7 +260,6 @@ HdfsResource = functools.partial(
 )
 
 # ranger host
-stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
