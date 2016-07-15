@@ -1637,10 +1637,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         else:
           xasecure_audit_destination_hdfs = services['configurations']['ranger-env']['properties']['xasecure.audit.destination.hdfs']
 
-        if 'xasecure.audit.destination.hdfs.dir' in configurations['ranger-env']['properties']:
-          xasecure_audit_destination_hdfs_dir = configurations['ranger-env']['properties']['xasecure.audit.destination.hdfs.dir']
-        else:
-          xasecure_audit_destination_hdfs_dir = services['configurations']['ranger-env']['properties']['xasecure.audit.destination.hdfs.dir']
+        if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
+          xasecure_audit_destination_hdfs_dir = '{0}/{1}/{2}'.format(services['configurations']['core-site']['properties']['fs.defaultFS'] ,'ranger','audit')
 
         if 'xasecure.audit.destination.solr' in configurations['ranger-env']['properties']:
           xasecure_audit_destination_solr = configurations['ranger-env']['properties']['xasecure.audit.destination.solr']
