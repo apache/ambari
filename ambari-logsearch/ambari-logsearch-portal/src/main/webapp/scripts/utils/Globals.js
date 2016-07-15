@@ -63,7 +63,8 @@ define(['require','App'], function(require, App){
 		eMessage:{label:'Exclude Message'},
 		time:{label:''},
 		includeQuery : {label:"Include Column"},
-		excludeQuery : {label:"Exclude Column"}
+		excludeQuery : {label:"Exclude Column"},
+		dateRangeLabel : {label : "Date Range"}
 	};
 
 	Globals.graphType =  {

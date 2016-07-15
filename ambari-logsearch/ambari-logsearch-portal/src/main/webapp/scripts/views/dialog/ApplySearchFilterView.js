@@ -147,10 +147,8 @@ define(['require',
                      '<i class="fa fa-times"></i></button><strong>Range:</strong>' + (this.createInnerSpan(params, "from")) +
                     '<strong>&nbsp:To:&nbsp:</strong>' + (this.createInnerSpan(params, "to")) +
                     '<br><strong>Level:</strong>' + (this.createInnerSpan(params, "level")) +
-                    '<br><strong>Include Component:</strong>' + (this.createInnerSpan(params, "mustBe")) +
+                    '<br><strong>Include Components:</strong>' + (this.createInnerSpan(params, "mustBe")) +
                     '<br><strong>Exclude Components:</strong>' + (this.createInnerSpan(params, "mustNot")) +
-                    '<br><strong>Include message:</strong>' + (this.createInnerSpan(params, "iMessage")) +
-                    '<br><strong>Exclude message:</strong>' + (this.createInnerSpan(params, "eMessage")) +
                     '<br><strong>Include Columns:</strong>' + (this.createInnerSpan(params, "includeQuery")) +
                     '<br><strong>Exclude Columns:</strong>' + (this.createInnerSpan(params, "excludeQuery")) + '</pre>';
                 
@@ -173,10 +171,10 @@ define(['require',
                 return ((typeString.length == 0) ? ("-") : ((type == "level") ? ((typeString).slice(0, -1)) : (typeString)))
             },
             onApplyClick: function(e) {
-                this.apllyedModel = this.collection.findWhere({
+                this.selectedModel = this.collection.findWhere({
                     id: ""+parseInt($(arguments[0].currentTarget).attr('data-nameId'))
                 });
-                $(this.el).parents().find('#cancelBtn').click();
+                this.trigger("apply:filter",this.selectedModel);
             },
             onDeleteClick: function(e) {
                 var that = this;

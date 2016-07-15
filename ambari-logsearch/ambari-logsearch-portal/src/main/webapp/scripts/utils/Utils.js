@@ -336,11 +336,10 @@ define(['require',
 	 *            params - The params
 	 */
 	Utils.alertPopup = function(params) {
-		if (params.callback == undefined) {
-			bootbox.alert(params.msg);
-		} else {
-			bootbox.alert(params.msg, params.callback);
-		}
+		var obj = _.extend({
+				message : params.msg	
+		},params);
+		bootbox.alert(obj);
 	};
 
 	/**
