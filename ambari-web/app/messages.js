@@ -1816,6 +1816,7 @@ Em.I18n.translations = {
   'services.service.actions.downloadClientConfigs.fail.popup.body.noErrorMessage':'Generation of {0} configurations file has failed. ',
   'services.service.actions.downloadClientConfigs.fail.popup.body.errorMessage':'Generation of {0} configurations file has failed with {1} error: <br /><pre><span class="text-error">{2}</span></pre>',
   'services.service.actions.downloadClientConfigs.fail.popup.body.question':'Do you want to try again?',
+  'services.service.actions.deleteService':'Delete Service',
   'services.service.actions.run.rebalancer':'Run Rebalancer',
   'services.service.actions.run.rebalanceHdfsNodes':'Rebalance HDFS',
   'services.service.actions.run.rebalanceHdfsNodes.title':'HDFS Rebalance',
