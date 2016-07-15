@@ -2300,6 +2300,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> rangerKnoxAuditPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerKafkaAuditPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerStormAuditPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerAtlasAuditPropsMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> zookeeperEnvMap = new HashMap<String, PropertyUpdater>();
 
@@ -2328,6 +2329,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("ranger-knox-audit", rangerKnoxAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-kafka-audit", rangerKafkaAuditPropsMap);
     singleHostTopologyUpdaters.put("ranger-storm-audit", rangerStormAuditPropsMap);
+    singleHostTopologyUpdaters.put("ranger-atlas-audit", rangerAtlasAuditPropsMap);
     singleHostTopologyUpdaters.put("hadoop-env", shHadoopEnvMap);
 
     singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
@@ -2624,7 +2626,8 @@ public class BlueprintConfigurationProcessor {
       rangerHiveAuditPropsMap,
       rangerKnoxAuditPropsMap,
       rangerKafkaAuditPropsMap,
-      rangerStormAuditPropsMap
+      rangerStormAuditPropsMap,
+      rangerAtlasAuditPropsMap
     );
     for (Map<String, PropertyUpdater> rangerAuditPropsMap: configsWithRangerHdfsAuditDirProperty) {
       rangerAuditPropsMap.put("xasecure.audit.destination.hdfs.dir", new OptionalSingleHostTopologyUpdater("NAMENODE"));
