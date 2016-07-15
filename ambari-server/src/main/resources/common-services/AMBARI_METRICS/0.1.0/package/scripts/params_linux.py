@@ -52,5 +52,5 @@ sudo = AMBARI_SUDO_BINARY
 
 dfs_type = default("/commandParams/dfs_type", "")
 
-hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int)
-
+hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int,
+                                             30)
