@@ -88,6 +88,8 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
+version_for_stack_feature_checks = version if version is not None else stack_version_formatted
+
 metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
 metadata_bin = format("{metadata_home}/bin")
 
@@ -207,8 +209,8 @@ for host in zookeeper_hosts:
 
 
 # Atlas Ranger plugin configurations
-stack_supports_atlas_ranger_plugin = stack_version_formatted and check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, stack_version_formatted)
-stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
+stack_supports_atlas_ranger_plugin = check_stack_feature(StackFeature.ATLAS_RANGER_PLUGIN_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 retry_enabled = default("/commandParams/command_retry_enabled", False)
 
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])

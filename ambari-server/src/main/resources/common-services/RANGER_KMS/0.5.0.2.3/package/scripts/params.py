@@ -38,10 +38,14 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-stack_supports_config_versioning =  stack_version_formatted and check_stack_feature(StackFeature.CONFIG_VERSIONING, stack_version_formatted)
-stack_support_kms_hsm = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, stack_version_formatted)
-stack_supports_ranger_kerberos = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, stack_version_formatted)
-stack_supports_pid = stack_version_formatted and check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, stack_version_formatted)
+version_for_stack_feature_checks = version if version is not None else stack_version_formatted
+
+stack_supports_config_versioning = check_stack_feature(StackFeature.CONFIG_VERSIONING, version_for_stack_feature_checks)
+stack_support_kms_hsm = check_stack_feature(StackFeature.RANGER_KMS_HSM_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
+stack_supports_pid = check_stack_feature(StackFeature.RANGER_KMS_PID_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -58,7 +62,6 @@ jdk_location = config['hostLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host
-stack_supports_ranger_audit_db = stack_version_formatted and check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, stack_version_formatted)
 ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts'][0]
 has_ranger_admin = len(ranger_admin_hosts) > 0
 kms_host = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
