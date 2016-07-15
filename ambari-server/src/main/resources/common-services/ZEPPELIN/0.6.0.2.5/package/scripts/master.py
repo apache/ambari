@@ -150,8 +150,8 @@ class Master(Script):
     self.configure(env)
 
     if params.security_enabled:
-        spark_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
-        Execute(spark_kinit_cmd, user=params.zeppelin_user)
+        zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
+        Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
 
     if glob.glob(
             params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar') and os.path.exists(

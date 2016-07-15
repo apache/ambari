@@ -45,6 +45,13 @@ limitations under the License.
                 <enabled>true</enabled>
               </auto-deploy>
             </dependency>
+            <dependency>
+              <name>YARN/YARN_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
           <logs>
             <log>
