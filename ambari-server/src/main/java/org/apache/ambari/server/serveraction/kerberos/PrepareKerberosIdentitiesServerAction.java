@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -158,7 +159,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
   }
 
   /**
-   * Conditionally calls {@link KerberosHelper#setAuthToLocalRules(KerberosDescriptor, Cluster, String, Map, Map)}
+   * Conditionally calls {@link KerberosHelper#setAuthToLocalRules(KerberosDescriptor, String, Map, Map, Map)}
    * if there are ServiceComponentHosts to process
    *
    * @param cluster                cluster instance
@@ -167,7 +168,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
    * @param kerberosConfigurations the Kerberos-specific configuration map
    * @param defaultRealm           the default realm
    * @throws AmbariException
-   * @see KerberosHelper#setAuthToLocalRules(KerberosDescriptor, Cluster, String, Map, Map)
+   * @see KerberosHelper#setAuthToLocalRules(KerberosDescriptor, String, Map, Map, Map)
    */
   protected void processAuthToLocalRules(Cluster cluster, KerberosDescriptor kerberosDescriptor,
                                          List<ServiceComponentHost> schToProcess,
@@ -176,7 +177,19 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       throws AmbariException {
     if (!schToProcess.isEmpty()) {
       actionLog.writeStdOut("Creating auth-to-local rules");
-      kerberosHelper.setAuthToLocalRules(kerberosDescriptor, cluster, defaultRealm,
+
+      Map<String,Set<String>> services = new HashMap<String, Set<String>>();
+      for(ServiceComponentHost sch: schToProcess) {
+        Set<String> components = services.get(sch.getServiceName());
+        if(components == null) {
+          components = new HashSet<String>();
+          services.put(sch.getServiceName(), components);
+        }
+
+        components.add(sch.getServiceComponentName());
+      }
+
+      kerberosHelper.setAuthToLocalRules(kerberosDescriptor, defaultRealm, services,
           kerberosHelper.calculateConfigurations(cluster, null, kerberosDescriptor.getProperties()),
           kerberosConfigurations);
     }

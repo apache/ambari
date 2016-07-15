@@ -2467,6 +2467,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       stage.setAutoSkipFailureSupported(skipFailure);
       stage.setSkippable(skipFailure);
 
+      Collection<ServiceComponentHost> componentsToConfigureForKerberos = new ArrayList<>();
       Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<>();
       Set<String> hostsToForceKerberosOperations = new HashSet<>();
 
@@ -2529,11 +2530,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                     // check if host component already exists, if it exists no need to reset kerberos configs
                     // check if it's blueprint install. If it is, then do not call kerberos.configureService
                     if (!hostComponentAlreadyExists(cluster, scHost) && !("INITIAL_INSTALL".equals(requestProperties.get("phase")))) {
-                      try {
-                        kerberosHelper.configureService(cluster, scHost);
-                      } catch (KerberosInvalidConfigurationException e) {
-                        throw new AmbariException(e.getMessage(), e);
-                      }
+                      componentsToConfigureForKerberos.add(scHost);
                     }
 
                     componentsToEnableKerberos.add(scHost);
@@ -2743,6 +2740,32 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       rg.build(stage);
       requestStages.addStages(rg.getStages());
+
+      if(!componentsToConfigureForKerberos.isEmpty()) {
+        // Build service/component filter to declare what services and compoents are being added
+        // so kerberosHelper.configureServices know which to work on.  Null indicates no filter
+        // and all services and components will be (re)configured, however null will not be
+        // passed in from here.
+        Map<String, Collection<String>> serviceFilter = new HashMap<String, Collection<String>>();
+
+        for (ServiceComponentHost scHost : componentsToConfigureForKerberos) {
+          String serviceName = scHost.getServiceName();
+          Collection<String> componentFilter = serviceFilter.get(serviceName);
+
+          if (componentFilter == null) {
+            componentFilter = new HashSet<String>();
+            serviceFilter.put(serviceName, componentFilter);
+          }
+
+          componentFilter.add(scHost.getServiceComponentName());
+        }
+
+        try {
+          kerberosHelper.configureServices(cluster, serviceFilter);
+        } catch (KerberosInvalidConfigurationException e) {
+          throw new AmbariException(e.getMessage(), e);
+        }
+      }
 
       if (!componentsToEnableKerberos.isEmpty()) {
         Map<String, Collection<String>> serviceFilter = new HashMap<String, Collection<String>>();

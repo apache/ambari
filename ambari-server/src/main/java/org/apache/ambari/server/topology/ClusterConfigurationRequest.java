@@ -182,7 +182,7 @@ public class ClusterConfigurationRequest {
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-        new HashSet<String>(blueprint.getServices()), false, true, false);
+            createServiceComponentMap(blueprint), null, null, true, false);
 
       // ******************************************************************************************
       // Since Kerberos is being enabled, make sure the cluster-env/security_enabled property is
@@ -217,6 +217,29 @@ public class ClusterConfigurationRequest {
     }
 
     return updatedConfigTypes;
+  }
+
+  /**
+   * Create a map of services and the relevant components that are specified in the Blueprint
+   *
+   * @param blueprint the blueprint
+   * @return a map of service names to component names
+   */
+  private Map<String, Set<String>> createServiceComponentMap(Blueprint blueprint) {
+    Map<String, Set<String>> serviceComponents = new HashMap<String, Set<String>>();
+    Collection<String> services = blueprint.getServices();
+
+    if(services != null) {
+      for (String service : services) {
+        Collection<String> components = blueprint.getComponents(service);
+        serviceComponents.put(service,
+            (components == null)
+                ? Collections.<String>emptySet()
+                : new HashSet<String>(blueprint.getComponents(service)));
+      }
+    }
+
+    return serviceComponents;
   }
 
   /**
@@ -280,7 +303,7 @@ public class ClusterConfigurationRequest {
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-          new HashSet<String>(blueprint.getServices()), false, true, false);
+          createServiceComponentMap(blueprint), null, null, true, false);
 
       // retrieve hostgroup for component names extracted from variables like "{clusterHostInfo.(component_name)
       // _host}"
