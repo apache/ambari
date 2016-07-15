@@ -262,6 +262,7 @@ ugsync_policymgr_alias = config["configurations"]["ranger-ugsync-site"]["ranger.
 ugsync_policymgr_keystore = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.policymgr.keystore"]
 
 # ranger solr
+audit_solr_enabled = default('/configurations/ranger-env/xasecure.audit.destination.solr', False)
 ranger_solr_config_set = config['configurations']['ranger-env']['ranger_solr_config_set']
 ranger_solr_collection_name = config['configurations']['ranger-env']['ranger_solr_collection_name']
 ranger_solr_shards = config['configurations']['ranger-env']['ranger_solr_shards']
@@ -298,12 +299,14 @@ solr_jaas_file = None
 if security_enabled:
   if has_ranger_tagsync:
     ranger_tagsync_principal = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.principal']
-    tagsync_jaas_principal = ranger_tagsync_principal.replace('_HOST', current_host.lower())
+    if not is_empty(ranger_tagsync_principal) and ranger_tagsync_principal != '':
+      tagsync_jaas_principal = ranger_tagsync_principal.replace('_HOST', current_host.lower())
     tagsync_keytab_path = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.keytab']
 
   if stack_supports_ranger_kerberos:
     ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
-    ranger_admin_jaas_principal = ranger_admin_principal.replace('_HOST', ranger_host.lower())
+    if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':
+      ranger_admin_jaas_principal = ranger_admin_principal.replace('_HOST', ranger_host.lower())
     ranger_admin_keytab = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.keytab']
 
     if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':

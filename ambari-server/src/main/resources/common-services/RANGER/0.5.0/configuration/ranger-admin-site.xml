@@ -503,6 +503,12 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
+    <depends-on>
+      <property>
+       <type>gateway-site</type>
+       <name>gateway.port</name>
+      </property>
+    </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

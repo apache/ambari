@@ -232,12 +232,12 @@ hms_partition_alias = default("/configurations/dbks-site/ranger.ks.hsm.partition
 hms_partition_passwd = default("/configurations/kms-env/hsm_partition_password", None)
 
 # kms kerberos from stack 2.5 onward
-rangerkms_keytab = config['configurations']['dbks-site']['ranger.ks.kerberos.keytab']
 rangerkms_bare_principal = 'rangerkms'
 
 if stack_supports_ranger_kerberos:
   if security_enabled:
     rangerkms_principal = config['configurations']['dbks-site']['ranger.ks.kerberos.principal']
+    rangerkms_keytab = config['configurations']['dbks-site']['ranger.ks.kerberos.keytab']
     if not is_empty(rangerkms_principal) and rangerkms_principal != '':
       rangerkms_bare_principal = get_bare_principal(rangerkms_principal)
       rangerkms_principal = rangerkms_principal.replace('_HOST', kms_host.lower())

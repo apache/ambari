@@ -86,7 +86,7 @@ class RangerAdmin(Script):
     env.set_params(params)
     self.configure(env, upgrade_type=upgrade_type)
 
-    if params.stack_supports_logsearch_client and params.is_solrCloud_enabled:
+    if params.stack_supports_logsearch_client and params.audit_solr_enabled and params.is_solrCloud_enabled:
       solr_cloud_util.setup_solr_client(params.config, user = params.solr_user, custom_log4j = params.custom_log4j)
       setup_ranger_audit_solr()
 
