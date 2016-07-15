@@ -399,7 +399,7 @@ App.HostComponentActionMap = {
       DELETE_SERVICE: {
         action: 'deleteService',
         context: ctx.get('serviceName'),
-        label: Em.I18n.t('common.delete'),
+        label: Em.I18n.t('services.service.actions.deleteService'),
         cssClass: 'icon-remove'
       },
       IMMEDIATE_STOP_HAWQ_SERVICE: {
