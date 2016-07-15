@@ -217,8 +217,8 @@ has_ranger_admin = not len(ranger_admin_hosts) == 0
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 enable_ranger_atlas = False
 
-atlas_server_xmx = config['configurations']['atlas-env']['atlas_server_xmx']
-atlas_server_max_new_size = config['configurations']['atlas-env']['atlas_server_max_new_size']
+atlas_server_xmx = default("configurations/atlas-env/atlas_server_xmx", 2048)
+atlas_server_max_new_size = default("configurations/atlas-env/atlas_server_max_new_size", 614)
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory

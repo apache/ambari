@@ -77,23 +77,23 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas_server_metadata_size</name>
     <value>50000</value>
     <description>Count of metadata objects that supposed to be processed by atlas instance</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas_server_xmx</name>
     <value>2048</value>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas_server_max_new_size</name>
     <value>614</value>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <!-- metadata-env.sh -->
   <property>
