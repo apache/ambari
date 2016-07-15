@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.persistence.EntityManager;
 
@@ -1387,11 +1388,13 @@ public class UpgradeCatalog240Test {
     Map<String, String> oldPropertiesAmsHbaseSite = new HashMap<String, String>() {
       {
         put("hbase.rpc.timeout", "30000");
+        put("hbase.normalizer.enabled", String.valueOf(true));
       }
     };
     Map<String, String> newPropertiesAmsHbaseSite = new HashMap<String, String>() {
       {
         put("hbase.rpc.timeout", "300000");
+        put("hbase.normalizer.enabled", String.valueOf(false));
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
