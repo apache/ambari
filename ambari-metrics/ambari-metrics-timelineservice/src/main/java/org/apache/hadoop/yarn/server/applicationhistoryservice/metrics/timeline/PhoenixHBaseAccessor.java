@@ -418,10 +418,17 @@ public class PhoenixHBaseAccessor {
         precisionSql += getSplitPointsStr(splitPoints);
       }
       stmt.executeUpdate(precisionSql);
-      stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
+
+      String hostMinuteAggregrateSql = String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_MINUTE_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_MINUTE_TABLE_NAME),
-        compression));
+        compression);
+      splitPoints = metricsConf.get(AGGREGATE_TABLE_SPLIT_POINTS);
+      if (!StringUtils.isEmpty(splitPoints)) {
+        hostMinuteAggregrateSql += getSplitPointsStr(splitPoints);
+      }
+      stmt.executeUpdate(hostMinuteAggregrateSql);
+
       stmt.executeUpdate(String.format(CREATE_METRICS_AGGREGATE_TABLE_SQL,
         METRICS_AGGREGATE_HOURLY_TABLE_NAME, encoding,
         tableTTL.get(METRICS_AGGREGATE_HOURLY_TABLE_NAME),

@@ -200,6 +200,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   public static final String MAPRED_SITE_QUEUE_NAME = "mapreduce.job.queuename";
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
+  private static final String AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY = "hbase.normalizer.enabled";
 
   static {
     // Manually create role order since there really isn't any mechanism for this
@@ -2010,6 +2011,14 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                 "30000".equals(amsHbaseSiteProperties.get(HBASE_RPC_TIMEOUT_PROPERTY))) {
               newProperties.put(HBASE_RPC_TIMEOUT_PROPERTY, String.valueOf(300000));
             }
+
+            if(amsHbaseSiteProperties.containsKey(AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY) &&
+              "true".equals(amsHbaseSiteProperties.get(AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY))) {
+              LOG.info("Disabling " + AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY);
+              newProperties.put(AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY, String.valueOf(false));
+            }
+
+
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }
 

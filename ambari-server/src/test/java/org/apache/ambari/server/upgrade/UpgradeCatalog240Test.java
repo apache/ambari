@@ -1387,11 +1387,13 @@ public class UpgradeCatalog240Test {
     Map<String, String> oldPropertiesAmsHbaseSite = new HashMap<String, String>() {
       {
         put("hbase.rpc.timeout", "30000");
+        put("hbase.normalizer.enabled", String.valueOf(true));
       }
     };
     Map<String, String> newPropertiesAmsHbaseSite = new HashMap<String, String>() {
       {
         put("hbase.rpc.timeout", "300000");
+        put("hbase.normalizer.enabled", String.valueOf(false));
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
