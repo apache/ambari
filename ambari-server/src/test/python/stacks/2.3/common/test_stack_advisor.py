@@ -2146,14 +2146,28 @@ class TestHDP23StackAdvisor(TestCase):
         [
           {
             "StackServices": {
-              "service_name" : "KAFKA"
+              "service_name" : "RANGER"
             }
           }
-        ]
+        ],
+      "configurations": {
+        "cluster-env": {
+          "properties": {
+            "security_enabled" : "false"
+          },
+          "property_attributes": {}
+        }
       }
+    }
 
     # Test with ranger plugin enabled, validation fails
     res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Kafka plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-kafka-plugin-enabled', 'level': 'WARN'}]
+    res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
 
+    # Test for security_enabled is true
+    services['configurations']['cluster-env']['properties']['security_enabled'] = "true"
+    configurations['cluster-env']['properties']['security_enabled'] = "true"
+    res_expected = []
     res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)

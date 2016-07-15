@@ -195,12 +195,12 @@ user_group = config['configurations']['cluster-env']["user_group"]
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+  master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
   regionserver_jaas_princ = config['configurations']['hbase-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   _queryserver_jaas_princ = config['configurations']['hbase-site']['phoenix.queryserver.kerberos.principal']
   if not is_empty(_queryserver_jaas_princ):
     queryserver_jaas_princ =_queryserver_jaas_princ.replace('_HOST',_hostname_lowercase)
 
-master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
 queryserver_keytab_path = config['configurations']['hbase-site']['phoenix.queryserver.keytab.file']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

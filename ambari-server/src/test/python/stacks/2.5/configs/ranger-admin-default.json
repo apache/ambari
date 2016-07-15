@@ -376,7 +376,7 @@
             "ranger-kafka-plugin-enabled": "No", 
             "ranger_privelege_user_jdbc_url": "jdbc:mysql://c6401.ambari.apache.org:3306", 
             "ranger-hive-plugin-enabled": "No", 
-            "xasecure.audit.destination.solr": "false", 
+            "xasecure.audit.destination.solr": "true", 
             "ranger_pid_dir": "/var/run/ranger", 
             "xasecure.audit.destination.hdfs": "true", 
             "admin_username": "admin", 

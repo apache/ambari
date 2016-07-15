@@ -1783,6 +1783,49 @@ var hdp2properties = [
     "category": "MetricCollector",
     "index": 3
   },
+  /*ranger-admin-site*/
+  {
+    "name": "xasecure.audit.jaas.Client.option.principal",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.option.keyTab",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.loginModuleName",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.loginModuleControlFlag",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.option.useKeyTab",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.option.storeKey",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
+  {
+    "name": "xasecure.audit.jaas.Client.option.serviceName",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "SolrKerberosSettings"
+  },
 /************************************************LOGSEARCH******************************************/
   /*logfeeder-properties*/
   {

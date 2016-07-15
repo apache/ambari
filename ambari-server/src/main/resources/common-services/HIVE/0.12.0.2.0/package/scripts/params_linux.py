@@ -634,6 +634,7 @@ policy_user = config['configurations']['ranger-hive-plugin-properties']['policy_
 
 if security_enabled:
   hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
+  hive_keytab = config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
 
 #For curl command in ranger plugin to get db connector
 if has_ranger_admin:
