@@ -101,6 +101,48 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertNoMoreResources()
 
+  def test_start_with_metrics_collector_modern(self):
+    config_file = self.get_src_folder() + "/test/python/stacks/2.1/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content["commandParams"]["version"] = "2.5.0.0-1234"
+    json_content["clusterHostInfo"]["metrics_collector_hosts"] = ["host1", "host2"]
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus.py",
+                       classname = "Nimbus",
+                       command = "start",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+    self.assert_configure_default()
+
+    self.assertResourceCalled('File', '/etc/storm/conf/storm-metrics2.properties',
+                              content = Template('storm-metrics2.properties.j2'),
+                              owner = 'storm',
+                              group = 'hadoop',
+                              )
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action = ['delete'],
+                              )
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action = ['delete'],
+                              )
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if = 'ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              only_if = 'ls /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar',
+                              )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm nimbus > /var/log/storm/nimbus.out 2>&1 &\n echo $! > /var/run/storm/nimbus.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/nimbus.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/nimbus.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/nimbus.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
+    self.assertNoMoreResources()
+
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
     # Bool for the pid file

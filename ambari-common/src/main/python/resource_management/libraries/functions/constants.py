@@ -94,3 +94,4 @@ class StackFeature:
   RANGER_PID_SUPPORT = "ranger_pid_support"
   RANGER_KMS_PID_SUPPORT = "ranger_kms_pid_support"
   RANGER_ADMIN_PASSWD_CHANGE = "ranger_admin_password_change"
+  STORM_METRICS_APACHE_CLASSES = "storm_metrics_apache_classes"

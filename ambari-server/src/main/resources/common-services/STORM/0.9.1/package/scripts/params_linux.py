@@ -49,7 +49,7 @@ sudo = AMBARI_SUDO_BINARY
 cluster_name = config['clusterName']
 
 stack_name = status_params.stack_name
-upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
+upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
 
 agent_stack_retry_on_unavailability = config['hostLevelParams']['agent_stack_retry_on_unavailability']
