@@ -271,6 +271,11 @@
       "name": "ranger_admin_password_change",
       "description": "Allow ranger admin credentials to be specified during cluster creation (AMBARI-17000)",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "storm_metrics_apache_classes",
+      "description": "Metrics sink for Storm that uses Apache class names",
+      "min_version": "2.5.0.0"
     }
   ]
 }
