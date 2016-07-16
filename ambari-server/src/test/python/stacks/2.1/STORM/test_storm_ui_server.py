@@ -73,6 +73,49 @@ class TestStormUiServer(TestStormBase):
     )
     self.assertNoMoreResources()
 
+  def test_start_with_apache_classes(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.5.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
+                       classname = "UiServer",
+                       command = "start",
+                       config_dict=json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    self.assert_configure_default()
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar '
+                                         '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
+                              only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar")
+                              )
+    self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1 &\n echo $! > /var/run/storm/ui.pid',
+        path = ['/usr/bin'],
+        user = 'storm',
+        not_if = "ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1'",
+    )
+    self.assertResourceCalled('File', '/var/run/storm/ui.pid',
+        owner = 'storm',
+        group = 'hadoop',
+    )
+    self.assertNoMoreResources()
+
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
     # Bool for the pid file
