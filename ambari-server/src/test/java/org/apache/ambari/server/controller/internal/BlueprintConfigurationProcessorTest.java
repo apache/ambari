@@ -6392,7 +6392,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6443,6 +6444,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
   @Test
@@ -6456,7 +6458,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6500,6 +6503,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
 
@@ -6514,7 +6518,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6564,6 +6569,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
 
@@ -6578,7 +6584,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6636,6 +6643,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
 
@@ -6650,7 +6658,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6700,6 +6709,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
   @Test
@@ -6713,7 +6723,8 @@ public class BlueprintConfigurationProcessorTest {
       "ranger-hive-audit",
       "ranger-knox-audit",
       "ranger-kafka-audit",
-      "ranger-storm-audit"
+      "ranger-storm-audit",
+      "ranger-atlas-audit"
     );
     Map<String, Map<String, String>> clusterConfigProperties = new HashMap<>();
 
@@ -6770,6 +6781,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-knox-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-kafka-audit", "xasecure.audit.destination.hdfs.dir"));
     assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-storm-audit", "xasecure.audit.destination.hdfs.dir"));
+    assertEquals(expectedAuditHdfsDir, clusterConfig.getPropertyValue("ranger-atlas-audit", "xasecure.audit.destination.hdfs.dir"));
   }
 
   @Test
