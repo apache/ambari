@@ -1381,7 +1381,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected void updateTopologyRequestTable() throws SQLException {
     // Add the sort_order column to the adminpermission table
     dbAccessor.addColumn(TOPOLOGY_REQUEST_TABLE,
-      new DBColumnInfo(PROVISION_ACTION_COL, String.class, null, 255, true));
+      new DBColumnInfo(PROVISION_ACTION_COL, String.class, 255, null, true));
   }
 
   /**
