@@ -60,7 +60,7 @@ def setup_ranger_hive_interactive(upgrade_type = None):
                           params.repo_name, params.hive_ranger_plugin_repo,
                           params.ranger_env, params.ranger_plugin_properties,
                           params.policy_user, params.policymgr_mgr_url,
-                          params.enable_ranger_hive, conf_dict=params.hive_server_conf_dir,
+                          params.enable_ranger_hive, conf_dict=params.hive_server_interactive_conf_dir,
                           component_user=params.hive_user, component_group=params.user_group, cache_service_list=['hive-server2-hive2'],
                           plugin_audit_properties=params.config['configurations']['ranger-hive-audit'], plugin_audit_attributes=params.config['configuration_attributes']['ranger-hive-audit'],
                           plugin_security_properties=params.config['configurations']['ranger-hive-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-hive-security'],
