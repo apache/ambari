@@ -133,13 +133,13 @@
 
           {{#each operatingSystem in selectedStack.operatingSystems}}
             {{#if operatingSystem.isSelected}}
-              <div class="clearfix row-fluid border-bottom">
+              <div {{bindAttr class=":clearfix :row-fluid :border-bottom operatingSystem.osType"}}>
                 <div class="span2 os-type-label">
                   <label>{{operatingSystem.osType}}</label>
                 </div>
                 <div class="span9 repo-name-url">
                   {{#each repository in operatingSystem.repositories}}
-                    <div class="clearfix repo-name-url-inner">
+                    <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
                       <div class="span3">
                         <label class="repo-name-label control-label">{{repository.repoId}}</label>
                       </div>
