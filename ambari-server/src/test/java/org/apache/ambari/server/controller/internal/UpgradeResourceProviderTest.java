@@ -17,11 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -104,8 +104,12 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -117,11 +121,6 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
-import org.junit.runner.RunWith;
-import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * UpgradeResourceDefinition tests.
@@ -1031,7 +1030,6 @@ public class UpgradeResourceProviderTest {
 
 
   @Test
-  @Ignore
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
     StackId oldStack = cluster.getDesiredStackVersion();
@@ -1062,7 +1060,7 @@ public class UpgradeResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test_nonrolling");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
@@ -1074,13 +1072,13 @@ public class UpgradeResourceProviderTest {
     assertEquals(1, upgrades.size());
 
     UpgradeEntity upgrade = upgrades.get(0);
-    assertEquals(5, upgrade.getUpgradeGroups().size());
+    assertEquals(3, upgrade.getUpgradeGroups().size());
 
     UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
-    assertEquals(1, group.getItems().size());
+    assertEquals(2, group.getItems().size());
 
     group = upgrade.getUpgradeGroups().get(0);
-    assertEquals(1, group.getItems().size());
+    assertEquals(2, group.getItems().size());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
 
@@ -1391,6 +1389,44 @@ public class UpgradeResourceProviderTest {
     for (HostRoleCommandEntity task : tasks) {
       assertFalse(task.isFailureAutoSkipped());
     }
+  }
+
+  /**
+   * Tests that an error while commiting the data cleanly rolls back the transaction so that
+   * no request/stage/tasks are created.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testRollback() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    // this will cause a NPE when creating the upgrade, allowing us to test
+    // rollback
+    UpgradeResourceProvider upgradeResourceProvider = createProvider(amc);
+    upgradeResourceProvider.s_upgradeDAO = null;
+
+    try {
+      Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+      upgradeResourceProvider.createResources(request);
+      Assert.fail("Expected a NullPointerException");
+    } catch (NullPointerException npe) {
+      // expected
+    }
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    List<Long> requestIds = requestDao.findAllRequestIds(1, true, cluster.getClusterId());
+    assertEquals(0, requestIds.size());
   }
 
   private String parseSingleMessage(String msgStr){
