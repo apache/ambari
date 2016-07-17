@@ -218,6 +218,159 @@ public class LoggingSearchPropertyProviderTest {
   }
 
   /**
+   * Verifies the following:
+   *
+   *   1. That this PropertyProvider implementation uses
+   *      the expected interfaces to make queries to the LogSearch
+   *      service.
+   *   2. That the PropertyProvider queries the current HostComponent
+   *      resource in order to obtain the correct information to send to
+   *      LogSearch.
+   *   3. That the output of the LogSearch query is properly set on the
+   *      HostComponent resource in the expected structure.
+   *   4. That the proper error-handling is in place in the event that a null
+   *      tail log URI is returned by the retrieval service.
+   *
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testBasicCallWithNullTailLogURIReturned() throws Exception {
+    final String expectedLogFilePath =
+      "/var/log/hdfs/hdfs_namenode.log";
+
+    final String expectedSearchEnginePath = "/api/v1/clusters/clusterone/logging/searchEngine";
+
+    final String expectedAmbariURL = "http://c6401.ambari.apache.org:8080";
+
+    final String expectedStackName = "HDP";
+    final String expectedStackVersion = "2.4";
+    final String expectedComponentName = "NAMENODE";
+    final String expectedServiceName = "HDFS";
+    final String expectedLogSearchComponentName = "hdfs_namenode";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Resource resourceMock =
+      mockSupport.createMock(Resource.class);
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "component_name"))).andReturn(expectedComponentName).atLeastOnce();
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "host_name"))).andReturn("c6401.ambari.apache.org").atLeastOnce();
+    expect(resourceMock.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "cluster_name"))).andReturn("clusterone").atLeastOnce();
+
+    Capture<HostComponentLoggingInfo> captureLogInfo = Capture.newInstance();
+    // expect set method to be called
+    resourceMock.setProperty(eq("logging"), capture(captureLogInfo));
+
+    LogLevelQueryResponse levelQueryResponse =
+      new LogLevelQueryResponse();
+
+    levelQueryResponse.setTotalCount("3");
+    // setup test data for log levels
+    List<NameValuePair> testListOfLogLevels =
+      new LinkedList<NameValuePair>();
+    testListOfLogLevels.add(new NameValuePair("ERROR", "150"));
+    testListOfLogLevels.add(new NameValuePair("WARN", "500"));
+    testListOfLogLevels.add(new NameValuePair("INFO", "2200"));
+
+    levelQueryResponse.setNameValueList(testListOfLogLevels);
+
+    Request requestMock =
+      mockSupport.createMock(Request.class);
+
+    Predicate predicateMock =
+      mockSupport.createMock(Predicate.class);
+
+    AmbariManagementController controllerMock =
+      mockSupport.createMock(AmbariManagementController.class);
+
+    AmbariMetaInfo metaInfoMock =
+      mockSupport.createMock(AmbariMetaInfo.class);
+
+    Clusters clustersMock =
+      mockSupport.createMock(Clusters.class);
+
+    Cluster clusterMock =
+      mockSupport.createMock(Cluster.class);
+
+    StackId stackIdMock =
+      mockSupport.createMock(StackId.class);
+
+    ComponentInfo componentInfoMock =
+      mockSupport.createMock(ComponentInfo.class);
+
+    LogDefinition logDefinitionMock =
+      mockSupport.createMock(LogDefinition.class);
+
+    LogSearchDataRetrievalService dataRetrievalServiceMock =
+      mockSupport.createMock(LogSearchDataRetrievalService.class);
+
+    LoggingRequestHelperFactory loggingRequestHelperFactoryMock =
+      mockSupport.createMock(LoggingRequestHelperFactory.class);
+
+    LoggingRequestHelper loggingRequestHelperMock =
+      mockSupport.createMock(LoggingRequestHelper.class);
+
+    expect(dataRetrievalServiceMock.getLogFileNames(expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(Collections.singleton(expectedLogFilePath)).atLeastOnce();
+    // return null, to simulate the case when the LogSearch service goes down, and the helper object
+    // is not available to continue servicing the request.
+    expect(dataRetrievalServiceMock.getLogFileTailURI(expectedAmbariURL + expectedSearchEnginePath, expectedLogSearchComponentName, "c6401.ambari.apache.org", "clusterone")).andReturn(null).atLeastOnce();
+
+
+    expect(controllerMock.getAmbariServerURI(expectedSearchEnginePath)).
+      andReturn(expectedAmbariURL + expectedSearchEnginePath).atLeastOnce();
+    expect(controllerMock.getAmbariMetaInfo()).andReturn(metaInfoMock).atLeastOnce();
+    expect(controllerMock.getClusters()).andReturn(clustersMock).atLeastOnce();
+    expect(clustersMock.getCluster("clusterone")).andReturn(clusterMock).atLeastOnce();
+    expect(stackIdMock.getStackName()).andReturn(expectedStackName).atLeastOnce();
+    expect(stackIdMock.getStackVersion()).andReturn(expectedStackVersion).atLeastOnce();
+    expect(clusterMock.getCurrentStackVersion()).andReturn(stackIdMock).atLeastOnce();
+    expect(loggingRequestHelperFactoryMock.getHelper(anyObject(AmbariManagementController.class), anyObject(String.class)))
+      .andReturn(loggingRequestHelperMock).atLeastOnce();
+
+    expect(metaInfoMock.getComponentToService(expectedStackName, expectedStackVersion, expectedComponentName)).andReturn(expectedServiceName).atLeastOnce();
+    expect(metaInfoMock.getComponent(expectedStackName, expectedStackVersion, expectedServiceName, expectedComponentName)).andReturn(componentInfoMock).atLeastOnce();
+
+    expect(componentInfoMock.getLogs()).andReturn(Collections.singletonList(logDefinitionMock)).atLeastOnce();
+    expect(logDefinitionMock.getLogId()).andReturn(expectedLogSearchComponentName).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    LoggingSearchPropertyProvider propertyProvider =
+      new LoggingSearchPropertyProvider();
+
+    propertyProvider.setAmbariManagementController(controllerMock);
+    propertyProvider.setLogSearchDataRetrievalService(dataRetrievalServiceMock);
+    propertyProvider.setLoggingRequestHelperFactory(loggingRequestHelperFactoryMock);
+
+    Set<Resource> returnedResources =
+      propertyProvider.populateResources(Collections.singleton(resourceMock), requestMock, predicateMock);
+
+    // verify that the property provider attached
+    // the expected logging structure to the associated resource
+
+    assertEquals("Returned resource set was of an incorrect size",
+      1, returnedResources.size());
+
+    HostComponentLoggingInfo returnedLogInfo =
+      captureLogInfo.getValue();
+
+    assertNotNull("Returned log info should not be null",
+      returnedLogInfo);
+
+    assertEquals("Returned component was not the correct name",
+      "hdfs_namenode", returnedLogInfo.getComponentName());
+
+    assertEquals("Returned list of log file names for this component was incorrect",
+      0, returnedLogInfo.getListOfLogFileDefinitions().size());
+
+    // verify that the log level count information
+    // was not added to the HostComponent resource
+    assertNull(returnedLogInfo.getListOfLogLevels());
+
+    mockSupport.verifyAll();
+  }
+
+  /**
    * Verifies that this property provider implementation will
    * properly handle the case of LogSearch not being deployed in
    * the cluster or available.

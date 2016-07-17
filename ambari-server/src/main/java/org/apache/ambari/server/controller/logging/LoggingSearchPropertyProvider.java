@@ -92,8 +92,10 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
             // generate the URIs that can be used by clients to obtain search results/tail log results/etc
             final String searchEngineURI = ambariManagementController.getAmbariServerURI(getFullPathToSearchEngine(clusterName));
             final String logFileTailURI = logSearchDataRetrievalService.getLogFileTailURI(searchEngineURI, mappedComponentNameForLogSearch, hostName, clusterName);
-            // all log files are assumed to be service types for now
-            listOfFileDefinitions.add(new LogFileDefinitionInfo(fileName, LogFileType.SERVICE, searchEngineURI, logFileTailURI));
+            if (logFileTailURI != null) {
+              // all log files are assumed to be service types for now
+              listOfFileDefinitions.add(new LogFileDefinitionInfo(fileName, LogFileType.SERVICE, searchEngineURI, logFileTailURI));
+            }
           }
 
           loggingInfo.setListOfLogFileDefinitions(listOfFileDefinitions);
