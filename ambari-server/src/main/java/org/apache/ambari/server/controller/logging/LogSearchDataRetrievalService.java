@@ -65,6 +65,9 @@ public class LogSearchDataRetrievalService extends AbstractService {
   @Inject
   private Configuration configuration;
 
+  @Inject
+  private LoggingRequestHelperFactory loggingRequestHelperFactory;
+
   /**
    * A Cache of host+component names to a set of log files associated with
    *  that Host/Component combination.  This data is retrieved from the
@@ -154,18 +157,29 @@ public class LogSearchDataRetrievalService extends AbstractService {
       return result;
     } else {
       // create URI and add to cache before returning
-      LoggingRequestHelper helper =
-        new LoggingRequestHelperFactoryImpl().getHelper(getController(), cluster);
-      String tailFileURI =
-        helper.createLogFileTailURI(baseURI, component, host);
+      if (loggingRequestHelperFactory != null) {
+        LoggingRequestHelper helper =
+          loggingRequestHelperFactory.getHelper(getController(), cluster);
 
-      if (tailFileURI != null) {
-        logFileTailURICache.put(key, tailFileURI);
-        return tailFileURI;
+        if (helper != null) {
+          String tailFileURI =
+            helper.createLogFileTailURI(baseURI, component, host);
+
+          if (tailFileURI != null) {
+            logFileTailURICache.put(key, tailFileURI);
+            return tailFileURI;
+          }
+        }
+      } else {
+        LOG.debug("LoggingRequestHelperFactory not set on the retrieval service, this probably indicates an error in setup of this service.");
       }
     }
 
     return null;
+  }
+
+  protected void setLoggingRequestHelperFactory(LoggingRequestHelperFactory loggingRequestHelperFactory) {
+    this.loggingRequestHelperFactory = loggingRequestHelperFactory;
   }
 
   private void startLogSearchFileNameRequest(String host, String component, String cluster) {
