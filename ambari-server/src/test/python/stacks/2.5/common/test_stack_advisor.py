@@ -556,13 +556,17 @@ class TestHDP25StackAdvisor(TestCase):
     # Expected : 1. Error telling about the current size compared to minimum required size.
     #            2. Error telling about current state can't be STOPPED. Expected : RUNNING.
     #            3. Error telling about config 'hive.server2.enable.doAs' to be false at all times.
+    #            4. Error telling about config 'hive.server2.tez.sessions.per.default.queue' that its consuming more
+    #               than 50% of queue capacity for LLAP.
     services2 = self.load_json("services-normal-his-2-hosts.json")
     res_expected2 = [
       {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' capacity (49%) is less than minimum required "
                                                           "capacity (50%) for LLAP app to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
       {'config-type': 'hive-interactive-site', 'message': "Selected queue 'llap' current state is : 'STOPPED'. It is required to be in "
                                                           "'RUNNING' state for LLAP to run", 'type': 'configuration', 'config-name': 'hive.llap.daemon.queue.name', 'level': 'ERROR'},
-      {'config-type': 'hive-interactive-site', 'message': "Value should be set to 'false' for Hive2.", 'type': 'configuration', 'config-name': 'hive.server2.enable.doAs', 'level': 'ERROR'}
+      {'config-type': 'hive-interactive-site', 'message': "Value should be set to 'false' for Hive2.", 'type': 'configuration', 'config-name': 'hive.server2.enable.doAs', 'level': 'ERROR'},
+      {'config-type': 'hive-interactive-site', 'message': " Reducing the 'Maximum Total Concurrent Queries' (value: 32) is advisable as it is consuming more than 50% of 'llap' queue for "
+                                                          "LLAP.", 'type': 'configuration', 'config-name': 'hive.server2.tez.sessions.per.default.queue', 'level': 'WARN'}
     ]
     res2 = self.stackAdvisor.validateHiveInteractiveSiteConfigurations({}, {}, {}, services2, hosts)
     self.assertEquals(res2, res_expected2)
@@ -3746,7 +3750,6 @@ class TestHDP25StackAdvisor(TestCase):
     }
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
-
     self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '5115')
@@ -4726,7 +4729,6 @@ class TestHDP25StackAdvisor(TestCase):
 
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
-
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.server2.tez.sessions.per.default.queue'], '15')
     self.assertEquals(configurations['hive-interactive-site']['property_attributes']['hive.server2.tez.sessions.per.default.queue'], {'minimum': '1', 'maximum': '32'})
 
@@ -5609,7 +5611,7 @@ class TestHDP25StackAdvisor(TestCase):
                                   "yarn.scheduler.capacity.root.default.a.llap.user-limit-factor=1\n"
                                   "yarn.scheduler.capacity.root.default.a.acl_administer_queue=*\n"
                                   "yarn.scheduler.capacity.root.default.a.acl_submit_applications=*\n"
-                                  "yarn.scheduler.capacity.root.default.a.capacity=0\n"
+                                  "yarn.scheduler.capacity.root.default.a.capacity=20\n"
                                   "yarn.scheduler.capacity.root.default.a.maximum-capacity=0\n"
                                   "yarn.scheduler.capacity.root.default.a.minimum-user-limit-percent=100\n"
                                   "yarn.scheduler.capacity.root.default.a.ordering-policy=fifo\n"
@@ -5619,7 +5621,7 @@ class TestHDP25StackAdvisor(TestCase):
                                   "yarn.scheduler.capacity.root.default.acl_submit_applications=*\n"
                                   "yarn.scheduler.capacity.root.default.b.acl_administer_queue=*\n"
                                   "yarn.scheduler.capacity.root.default.b.acl_submit_applications=*\n"
-                                  "yarn.scheduler.capacity.root.default.b.capacity=100\n"
+                                  "yarn.scheduler.capacity.root.default.b.capacity=80\n"
                                   "yarn.scheduler.capacity.root.default.b.maximum-capacity=100\n"
                                   "yarn.scheduler.capacity.root.default.b.minimum-user-limit-percent=100\n"
                                   "yarn.scheduler.capacity.root.default.b.ordering-policy=fifo\n"
@@ -5643,7 +5645,7 @@ class TestHDP25StackAdvisor(TestCase):
         "hive-interactive-site":
           {
             'properties': {
-              'hive.llap.daemon.queue.name': 'default.b',
+              'hive.llap.daemon.queue.name': 'b',
               'hive.server2.tez.sessions.per.default.queue': '1'
             }
           },
@@ -5689,8 +5691,7 @@ class TestHDP25StackAdvisor(TestCase):
     configurations = {
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
-
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '3')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '10240')
 

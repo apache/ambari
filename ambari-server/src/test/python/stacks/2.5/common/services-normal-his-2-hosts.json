@@ -1050,7 +1050,14 @@
     "hive-interactive-site" : {
       "properties": {
         "hive.llap.daemon.queue.name": "llap",
-        "hive.server2.enable.doAs": "true"
+        "hive.server2.enable.doAs": "true",
+        "hive.llap.daemon.num.executors": "0",
+        "hive.server2.tez.sessions.per.default.queue": "32"
+      }
+    },
+    "hive-interactive-env" : {
+      "properties": {
+        "num_llap_nodes": "0"
       }
     },
     "capacity-scheduler" : {
