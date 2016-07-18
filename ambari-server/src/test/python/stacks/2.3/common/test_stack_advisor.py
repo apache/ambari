@@ -663,7 +663,8 @@ class TestHDP23StackAdvisor(TestCase):
           },
          'atlas.cluster.name': {'delete': 'true'},
          'atlas.rest.address': {'delete': 'true'},
-         'datanucleus.rdbms.datastoreAdapterClassName': {'delete': 'true'}
+         'datanucleus.rdbms.datastoreAdapterClassName': {'delete': 'true'},
+         'hive.tez.container.size': {'maximum': '8192', 'minimum': '256'}
         }
       },
       'hiveserver2-site': {
@@ -919,6 +920,7 @@ class TestHDP23StackAdvisor(TestCase):
         },
         'property_attributes': {
           'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
+          'hive.tez.container.size': {'maximum': '8192', 'minimum': '256'},
           'hive.server2.authentication.pam.services': {'delete': 'true'},
           'hive.server2.custom.authentication.class': {'delete': 'true'},
           'hive.server2.authentication.kerberos.principal': {'delete': 'true'},

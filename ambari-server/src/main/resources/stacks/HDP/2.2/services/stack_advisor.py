@@ -68,10 +68,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+
       # Above is the default calculated 'maximum' values derived purely from hosts.
       # However, there are 'maximum' and other attributes that actually change based on the values
       #  of other configs. We need to update those values.
-      if ("yarn-site" in services["configurations"]):
+
+      # On a first stackadvisor invocation from the UI we have stack defaults in services["configurations"].
+      # So services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] is always 5120 during first recommendation.
+      # Get a value from recommendations instead of services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]
+      # in this case (if 'changed-configurations' are empty).
+      if ('changed-configurations' in services.keys() and services['changed-configurations'] and "yarn-site" in services["configurations"]):
         if ("yarn.nodemanager.resource.memory-mb" in services["configurations"]["yarn-site"]["properties"]):
           putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
           putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
@@ -349,6 +355,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     container_size = min(clusterData['containers'] * clusterData['ramPerContainer'], container_size, yarnMaxAllocationSize)
 
     putHiveSiteProperty("hive.tez.container.size", min(int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]), container_size))
+    putHiveSitePropertyAttribute("hive.tez.container.size", "minimum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
+    putHiveSitePropertyAttribute("hive.tez.container.size", "maximum", int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+
     putHiveSiteProperty("hive.prewarm.enabled", "false")
     putHiveSiteProperty("hive.prewarm.numcontainers", "3")
     putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
