@@ -170,7 +170,7 @@
           </div>
           <div class="" ng-repeat="os in osList">
             <div ng-if="os.selected==true">
-              <div class="clearfix border-bottom">
+              <div class="clearfix border-bottom {{os.OperatingSystems.os_type}}">
                 <!-- show selected os in list table-->
                 <div class="col-sm-2 os-type-label">
                   <label>{{os.OperatingSystems.os_type}}</label>
