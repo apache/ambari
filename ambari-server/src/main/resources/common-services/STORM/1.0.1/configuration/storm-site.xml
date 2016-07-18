@@ -85,7 +85,6 @@
   </property>
   <property>
     <name>nimbus.impersonation.authorizer</name>
-    <value/>
     <description>
       To ensure only authorized users can perform impersonation you should start nimbus with nimbus.impersonation.authorizer set to org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer.
       A storm client may submit requests on behalf of another user. For example, if a userX submits an oozie workflow and as part of workflow execution if user oozie wants to submit a topology on behalf of userX it can do so by leveraging the impersonation feature.In order to submit topology as some other user , you can use StormSubmitter.submitTopologyAs API. Alternatively you can use NimbusClient.getConfiguredClientAs to get a nimbus client as some other user and perform any nimbus action(i.e. kill/rebalance/activate/deactivate) using this client.
@@ -93,7 +92,6 @@
   </property>
   <property>
     <name>nimbus.impersonation.acl</name>
-    <value/>
     <description>
       The ImpersonationAuthorizer uses nimbus.impersonation.acl as the acl to authorize users. Following is a sample nimbus config for supporting impersonation:
       nimbus.impersonation.acl:
