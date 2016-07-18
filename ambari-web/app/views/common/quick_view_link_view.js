@@ -632,8 +632,10 @@ App.QuickViewLinks = Em.View.extend({
             hosts = hosts.concat(this.processYarnHosts(componentHosts));
             break;
           case "SMARTSENSE":
-            hosts = [];
-            break;
+            if(!App.MasterComponent.find().findProperty('componentName', _componentName)) {
+              hosts = [];
+              break;
+            }
           default:
             hosts = hosts.concat(componentHosts);
             if(hosts.length < 1 && this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
