@@ -212,6 +212,11 @@ App.StackService.displayOrder = [
   'ZEPPELIN'
 ];
 
+App.StackService.unSelectByDefault = [
+  'SPARK2'
+];
+
+
 App.StackService.componentsOrderForService = {
   'HAWQ': ['HAWQMASTER', 'HAWQSTANDBY']
 };

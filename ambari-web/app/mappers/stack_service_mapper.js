@@ -115,6 +115,9 @@ App.stackServiceMapper = App.QuickDataMapper.create({
         stackService.is_installable = false;
         stackService.is_selected = false;
       }
+      if (App.StackService.unSelectByDefault.contains(stackService.service_name)) {
+        stackService.is_selected = false;
+      }
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
     App.store.loadMany(this.get('component_model'), stackServiceComponents);
