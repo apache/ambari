@@ -18,6 +18,7 @@
 <configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>capacity-scheduler</name>
+    <description>Enter key=value (one per line) for all properties of capacity-scheduler.xml</description>
     <depends-on>
       <property>
         <type>hive-interactive-env</type>

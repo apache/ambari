@@ -32,6 +32,14 @@
   </property>
   <property>
     <name>nfs.exports.allowed.hosts</name>
+    <description>
+      By default, the export can be mounted by any client. To better control the access,
+      users can update the following property. The value string contains machine name and access privilege,
+      separated by whitespace characters. Machine name format can be single host, wildcards, and IPv4
+      networks.The access privilege uses rw or ro to specify readwrite or readonly access of the machines
+      to exports. If the access privilege is not provided, the default is read-only. Entries are separated
+      by &quot;;&quot;. For example: &quot;192.168.0.0/22 rw ; host*.example.com ; host1.test.org ro;&quot;.
+    </description>
     <value>* rw</value>
     <display-name>Allowed hosts</display-name>
     <on-ambari-upgrade add="true"/>
