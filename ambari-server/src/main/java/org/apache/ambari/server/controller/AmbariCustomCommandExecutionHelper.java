@@ -520,17 +520,21 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, ServiceComponent> serviceComponents =
               cluster.getService(serviceName).getServiceComponents();
 
+      // Filter components without any HOST
+      Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
+      while (serviceComponentNameIterator.hasNext()){
+        String componentToCheck = serviceComponentNameIterator.next();
+         if (serviceComponents.get(componentToCheck).getServiceComponentHosts().isEmpty()){
+           serviceComponentNameIterator.remove();
+         }
+      }
+
       if (serviceComponents.isEmpty()) {
         throw new AmbariException("Components not found, service = "
             + serviceName + ", cluster = " + clusterName);
       }
 
       ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
-      if (serviceComponent.getServiceComponentHosts().isEmpty()) {
-        throw new AmbariException("Hosts not found, component="
-            + serviceComponent.getName() + ", service = "
-            + serviceName + ", cluster = " + clusterName);
-      }
 
       serviceHostComponents = serviceComponent.getServiceComponentHosts();
       candidateHosts = serviceHostComponents.keySet();
