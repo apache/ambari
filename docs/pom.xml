@@ -505,7 +505,6 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
             </organization>
         </developer>
         <developer>
@@ -852,8 +851,7 @@
             <roles>
                 <role>PMC</role>
             </roles>
-            <organization>
-                Hortonworks
+            <organization> 
             </organization>
         </developer>
         <developer>
@@ -877,7 +875,6 @@
                 <role>PMC</role>
             </roles>
             <organization>
-                Hortonworks
             </organization>
         </developer>        
         <developer>
