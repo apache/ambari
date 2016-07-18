@@ -20,6 +20,8 @@ limitations under the License.
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.constants import StackFeature
 
 from livy_service import livy_service
 from setup_livy import setup_livy
