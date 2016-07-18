@@ -163,12 +163,10 @@ export default Ember.ArrayController.extend(FilterableMixin, {
       return column.get('property') === filterProperty;
     });
 
-    var isDateColumn = column.get('caption') === 'columns.date';
-
     if (column) {
+      var isDateColumn = column.get('caption') === 'columns.date';
       column.set('filterValue', filterValue, exactMatch);
       if (isDateColumn) {
-
         return this.updateJobs(filterValue.min, filterValue.max);
       } else {
         this.updateFilters(filterProperty, filterValue, exactMatch);
