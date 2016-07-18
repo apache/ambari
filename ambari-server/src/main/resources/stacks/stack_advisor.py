@@ -674,6 +674,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
       configurations = {}
 
+      # there can be dependencies between service recommendations which require special ordering
+      # for now, make sure custom services (that have service advisors) run after standard ones
+      serviceAdvisors = []
       for service in services["services"]:
         serviceName = service["StackServices"]["service_name"]
         calculation = self.getServiceConfigurationRecommender(serviceName)
@@ -682,7 +685,9 @@ class DefaultStackAdvisor(StackAdvisor):
         else:
           serviceAdvisor = self.getServiceAdvisor(serviceName)
           if serviceAdvisor is not None:
-            serviceAdvisor.getServiceConfigurationRecommendations(configurations, cgClusterSummary, cgServices, cgHosts)
+            serviceAdvisors.append(serviceAdvisor)
+      for serviceAdvisor in serviceAdvisors:
+        serviceAdvisor.getServiceConfigurationRecommendations(configurations, cgClusterSummary, cgServices, cgHosts)
 
       cgRecommendation = {
         "configurations": {},
@@ -745,6 +750,9 @@ class DefaultStackAdvisor(StackAdvisor):
     else:
       configurations = recommendations["recommendations"]["blueprint"]["configurations"]
 
+      # there can be dependencies between service recommendations which require special ordering
+      # for now, make sure custom services (that have service advisors) run after standard ones
+      serviceAdvisors = []
       for service in services["services"]:
         serviceName = service["StackServices"]["service_name"]
         calculation = self.getServiceConfigurationRecommender(serviceName)
@@ -753,7 +761,9 @@ class DefaultStackAdvisor(StackAdvisor):
         else:
           serviceAdvisor = self.getServiceAdvisor(serviceName)
           if serviceAdvisor is not None:
-            serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
+            serviceAdvisors.append(serviceAdvisor)
+      for serviceAdvisor in serviceAdvisors:
+        serviceAdvisor.getServiceConfigurationRecommendations(configurations, clusterSummary, services, hosts)
 
     return recommendations
 

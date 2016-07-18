@@ -182,6 +182,18 @@ class TestHAWQ200ServiceAdvisor(TestCase):
           "hawq_rm_nvcore_limit_perseg": "16",
           "hawq_global_rm_type": "yarn"
         }
+      },
+      "hdfs-site": {
+        "properties": {
+        }
+      },
+      "core-site": {
+        "properties": {
+        }
+      },
+      "cluster-env": {
+        "properties": {
+        }
       }
     }
 
@@ -250,6 +262,33 @@ class TestHAWQ200ServiceAdvisor(TestCase):
         }
       ]
     }
+
+    ## Test that HDFS parameters required by HAWQ are recommended
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.allow.truncate"], "true")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "false")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.local-path-access.user"], "gpadmin")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.client.read.shortcircuit"], "true")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.client.use.legacy.blockreader.local"], "false")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir.perm"], "750")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.handler.count"], "60")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.max.transfer.threads"], "40960")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.namenode.accesstime.precision"], "0")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.namenode.handler.count"], "200")
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.support.append"], "true")
+
+    self.assertEquals(configurations["core-site"]["properties"]["ipc.client.connection.maxidletime"], "3600000")
+    self.assertEquals(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
+
+
+    configurations["cluster-env"]["properties"]["security_enabled"]="false"
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "false")
+
+    configurations["cluster-env"]["properties"]["security_enabled"]="true"
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "true")
+
 
     ## Test if hawq_rm_nvcore_limit_perseg is set correctly
 
