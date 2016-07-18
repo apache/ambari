@@ -95,10 +95,6 @@
         <component>KNOX_GATEWAY</component>
       </service>
 
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-
       <service name="FALCON">
         <component>FALCON_SERVER</component>
       </service>
@@ -209,6 +205,10 @@
         <component>RANGER_KMS_SERVER</component>
       </service>
 
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_SERVER</component>
       </service>
@@ -285,6 +285,15 @@
         <service-check>true</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="KAFKA" title="Kafka">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
       </service>
     </group>
 
@@ -413,6 +422,8 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
+        <service>KAFKA</service>
         <service>HDFS</service>
         <service>YARN</service>
         <service>MAPREDUCE2</service>
@@ -548,15 +559,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="KAFKA" title="Kafka">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <parallel-scheduler/>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="KNOX" title="Knox">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -612,7 +614,6 @@
       <direction>UPGRADE</direction>
       <priority>
         <service>FALCON</service>
-        <service>KAFKA</service>
         <service>KNOX</service>
         <service>STORM</service>
         <service>FLUME</service>
@@ -679,6 +680,14 @@
       </component>
 
       <component name="ZOOKEEPER_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -983,14 +992,6 @@
         </upgrade>
       </component>
       <component name="FALCON_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
