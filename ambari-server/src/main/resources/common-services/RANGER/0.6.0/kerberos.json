@@ -116,8 +116,8 @@
                 "atlas.jaas.KafkaClient.option.useKeyTab": "true",
                 "atlas.jaas.KafkaClient.option.storeKey": "true",
                 "atlas.jaas.KafkaClient.option.serviceName": "kafka",
-                "atlas.jaas.KafkaClient.option.keyTab": "{{tagsync_keytab_path}}",
-                "atlas.jaas.KafkaClient.option.principal": "{{tagsync_jaas_principal}}",
+                "atlas.jaas.KafkaClient.option.keyTab": "${ranger-tagsync-site/ranger.tagsync.kerberos.keytab}",
+                "atlas.jaas.KafkaClient.option.principal": "${ranger-tagsync-site/ranger.tagsync.kerberos.principal}",
                 "atlas.kafka.sasl.kerberos.service.name": "kafka",
                 "atlas.kafka.security.protocol": "PLAINTEXTSASL"
               }
