@@ -119,15 +119,11 @@
                "subsection-name":"general-col2"
             },
             {
-               "config":"hawq-site/default_hash_table_bucket_number",
-               "subsection-name":"resource-management-col2"
-            },
-            {
                "config":"hawq-site/hawq_rm_nvseg_perquery_perseg_limit",
                "subsection-name":"resource-management-col2"
             },
             {
-               "config":"hawq-site/hawq_rm_nvseg_perquery_limit",
+               "config":"hawq-site/default_hash_table_bucket_number",
                "subsection-name":"resource-management-col2"
             },
             {
@@ -194,17 +190,6 @@
             }
          },
          {
-            "config":"hawq-site/default_hash_table_bucket_number",
-            "widget":{
-               "type":"slider",
-               "units": [
-                  {
-                    "unit-name":"int"
-                  }
-               ]
-            }
-         },
-         {
             "config":"hawq-site/hawq_rm_nvseg_perquery_perseg_limit",
             "widget":{
                "type":"slider",
@@ -216,7 +201,7 @@
             }
          },
          {
-            "config":"hawq-site/hawq_rm_nvseg_perquery_limit",
+            "config":"hawq-site/default_hash_table_bucket_number",
             "widget":{
                "type":"slider",
                "units": [

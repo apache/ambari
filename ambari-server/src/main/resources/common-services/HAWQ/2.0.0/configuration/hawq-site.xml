@@ -308,13 +308,13 @@
       The default number of buckets when creating a hash distributed table, if not defined explicitly when creating the table.
       When running a query on a hash dist table, the query resource is fixed and equal to the number of buckets.
       The default set during installation is the number of HAWQ Segments multiplied by 6.
-      Adjust the value when the number of HAWQ Segments changes in the cluster.
+      Adjust the value when the number of HAWQ Segments changes in the cluster. If parameter value is changed, existing Hash distributed tables must be redistributed.
     </description>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
       <maximum>10000</maximum>
-      <increment-step>100</increment-step>
+      <increment-step>1</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -337,7 +337,6 @@
   </property>
   <property>
     <name>hawq_rm_nvseg_perquery_limit</name>
-    <display-name>Virtual Segments Limit per Query (Total)</display-name>
     <value>512</value>
     <description>
       The maximum number of virtual segments per query across the cluster.
@@ -348,7 +347,6 @@
       <type>int</type>
       <minimum>1</minimum>
       <maximum>10000</maximum>
-      <increment-step>100</increment-step>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

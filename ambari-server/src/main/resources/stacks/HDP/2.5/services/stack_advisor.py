@@ -1508,46 +1508,14 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     has_ranger_tagsync = False
-    security_enabled = self.isSecurityEnabled(services)
-    ranger_tagsync_site = getServicesSiteProperties(services, "ranger-tagsync-site")
 
     putTagsyncAppProperty = self.putProperty(configurations, "tagsync-application-properties", services)
-    putTagsyncAppPropertyAttributes = self.putPropertyAttribute(configurations, "tagsync-application-properties")
     putTagsyncSiteProperty = self.putProperty(configurations, "ranger-tagsync-site", services)
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
 
     ranger_tagsync_host = self.__getHostsForComponent(services, "RANGER", "RANGER_TAGSYNC")
     has_ranger_tagsync = len(ranger_tagsync_host) > 0
-
-    if has_ranger_tagsync:
-      tagsync_keytab_path = ''
-      tagsync_principal = ''
-      if ranger_tagsync_site is not None:
-        tagsync_keytab_path = ranger_tagsync_site.get('ranger.tagsync.kerberos.keytab')
-        tagsync_principal = ranger_tagsync_site.get('ranger.tagsync.kerberos.principal')
-        tagsync_principal = tagsync_principal.replace('_HOST', ranger_tagsync_host[0].lower())
-
-      if security_enabled:
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.loginModuleName', 'com.sun.security.auth.module.Krb5LoginModule')
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.loginModuleControlFlag', 'required')
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.option.useKeyTab', 'true')
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.option.storeKey', 'true')
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.option.serviceName', 'kafka')
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.option.keyTab', tagsync_keytab_path)
-        putTagsyncAppProperty('atlas.jaas.KafkaClient.option.principal', tagsync_principal)
-        putTagsyncAppProperty('atlas.kafka.sasl.kerberos.service.name', 'kafka')
-        putTagsyncAppProperty('atlas.kafka.security.protocol', 'PLAINTEXTSASL')
-      else:
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.loginModuleName', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.loginModuleControlFlag', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.option.useKeyTab', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.option.storeKey', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.option.serviceName', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.option.keyTab', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.jaas.KafkaClient.option.principal', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.kafka.sasl.kerberos.service.name', 'delete', 'true')
-        putTagsyncAppPropertyAttributes('atlas.kafka.security.protocol', 'delete', 'true')
 
     if 'ATLAS' in servicesList and has_ranger_tagsync:
       atlas_hosts = self.getHostNamesWithComponent("ATLAS", "ATLAS_SERVER", services)
