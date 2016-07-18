@@ -256,12 +256,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
       scheme = "http"
       metadata_port = "21000"
+      atlas_server_default_https_port = "21443"
+      tls_enabled = "false"
       if 'application-properties' in services['configurations']:
-        tls_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
-        metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.http.port']
+        if 'atlas.enableTLS' in services['configurations']['application-properties']['properties']:
+          tls_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
+        if 'atlas.server.http.port' in services['configurations']['application-properties']['properties']:
+          metadata_port = services['configurations']['application-properties']['properties']['atlas.server.http.port']
         if tls_enabled.lower() == "true":
           scheme = "https"
-          metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.https.port']
+          if 'atlas.server.https.port' in services['configurations']['atlas.server.https.port']['properties']:
+            metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.https.port']
+          else:
+            metadata_port = atlas_server_default_https_port
       putHiveSiteProperty('atlas.rest.address', '{0}://{1}:{2}'.format(scheme, atlas_rest_host, metadata_port))
     else:
       putHiveSitePropertyAttribute('atlas.cluster.name', 'delete', 'true')
