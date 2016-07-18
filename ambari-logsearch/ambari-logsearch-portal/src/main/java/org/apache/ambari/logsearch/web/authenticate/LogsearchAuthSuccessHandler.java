@@ -26,17 +26,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-public class LogsearchAuthSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+public class LogsearchAuthSuccessHandler implements AuthenticationSuccessHandler {
   private static final Logger logger = Logger.getLogger(LogsearchAuthSuccessHandler.class);
 
-  private String HOME_PAGE = "/index.html";
 
   @Override
-  public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                      Authentication authentication) throws ServletException, IOException {
-    logger.debug("Login successfully !!!!!! Redirecting to home page :" + HOME_PAGE);
-    response.sendRedirect(HOME_PAGE);
+  public void onAuthenticationSuccess(HttpServletRequest request,
+      HttpServletResponse response, Authentication authentication)
+      throws ServletException, IOException {
+    response.setStatus(HttpServletResponse.SC_OK);
   }
 }
