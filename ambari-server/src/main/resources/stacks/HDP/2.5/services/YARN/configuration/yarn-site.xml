@@ -32,11 +32,13 @@
   <property>
     <name>yarn.nodemanager.aux-services.spark_shuffle.classpath</name>
     <value>{{stack_root}}/${hdp.version}/spark/aux/*</value>
+    <description>The auxiliary service classpath to use for Spark</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.nodemanager.aux-services.spark2_shuffle.classpath</name>
     <value>{{stack_root}}/${hdp.version}/spark2/aux/*</value>
+    <description>The auxiliary service classpath to use for Spark 2</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

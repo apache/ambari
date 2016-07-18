@@ -210,7 +210,14 @@
   <property>
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
-    <description/>
+    <description>Number of vcores that can be allocated
+      for containers. This is used by the RM scheduler when allocating
+      resources for containers. This is not used to limit the number of
+      CPUs used by YARN containers. If it is set to -1 and
+      yarn.nodemanager.resource.detect-hardware-capabilities is true, it is
+      automatically determined from the hardware in case of Windows and Linux.
+      In other cases, number of vcores is 8 by default.
+    </description>
     <display-name>Number of virtual cores</display-name>
     <value-attributes>
       <type>int</type>
@@ -247,7 +254,11 @@
   <property>
     <name>yarn.node-labels.fs-store.retry-policy-spec</name>
     <value>2000, 500</value>
-    <description/>
+    <description>
+      Retry policy used for FileSystem node label store. The policy is
+      specified by N pairs of sleep-time in milliseconds and number-of-retries
+      &quot;s1,n1,s2,n2,...&quot;.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -292,7 +303,7 @@
   <property>
     <name>yarn.resourcemanager.system-metrics-publisher.dispatcher.pool-size</name>
     <value>10</value>
-    <description/>
+    <description>Number of worker threads that send the yarn system metrics data.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -421,7 +432,9 @@
   <property>
     <name>yarn.node-labels.fs-store.root-dir</name>
     <value>/system/yarn/node-labels</value>
-    <description/>
+    <description>
+      URI for NodeLabelManager.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
@@ -526,6 +539,11 @@
   </property>
   <property>
     <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+    <description>
+      Enable a set of periodic monitors (specified in
+      yarn.resourcemanager.scheduler.monitor.policies) that affect the
+      scheduler.
+    </description>
     <value>false</value>
     <display-name>Pre-emption</display-name>
     <value-attributes>

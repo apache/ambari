@@ -25,6 +25,10 @@
   </property>
   <property>
     <name>yarn.timeline-service.recovery.enabled</name>
+    <description>
+      Enable timeline server to recover state after starting. If
+      true, then yarn.timeline-service.state-store-class must be specified.
+    </description>
     <value>true</value>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -97,24 +101,39 @@
   <!-- advanced ats v1.5 properties-->
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.summary-store</name>
+    <description>Summary storage for ATS v1.5</description>
     <!-- Use rolling leveldb, advanced -->
     <value>org.apache.hadoop.yarn.server.timeline.RollingLevelDBTimelineStore</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.scan-interval-seconds</name>
+    <description>
+      Scan interval for ATS v1.5 entity group file system storage reader.This
+      value controls how frequent the reader will scan the HDFS active directory
+      for application status.
+    </description>
     <!-- Default is 60 seconds, advanced -->
     <value>60</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.cleaner-interval-seconds</name>
+    <description>
+      Scan interval for ATS v1.5 entity group file system storage cleaner.This
+      value controls how frequent the reader will scan the HDFS done directory
+      for stale application data.
+    </description>
     <!-- 3600 is default, advanced -->
     <value>3600</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.retain-seconds</name>
+    <description>
+      How long the ATS v1.5 entity group file system storage will keep an
+      application's data in the done directory.
+    </description>
     <!-- 7 days is default, advanced -->
     <value>604800</value>
     <on-ambari-upgrade add="true"/>

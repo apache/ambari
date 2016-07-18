@@ -21,7 +21,9 @@
   <property>
     <name>hadoop.http.authentication.simple.anonymous.allowed</name>
     <value>true</value>
-    <description/>
+    <description>
+      Indicates if anonymous requests are allowed when using &apos;simple&apos; authentication.
+    </description>
     <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
