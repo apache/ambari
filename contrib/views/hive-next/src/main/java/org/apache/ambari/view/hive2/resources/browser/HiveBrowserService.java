@@ -20,6 +20,8 @@ package org.apache.ambari.view.hive2.resources.browser;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
+import org.apache.ambari.view.hive2.ConnectionFactory;
+import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.apache.ambari.view.hive2.client.ColumnDescription;
 import org.apache.ambari.view.hive2.client.ConnectionConfig;
 import org.apache.ambari.view.hive2.client.Cursor;
@@ -29,8 +31,6 @@ import org.apache.ambari.view.hive2.client.Row;
 import org.apache.ambari.view.hive2.resources.jobs.ResultsPaginationController;
 import org.apache.ambari.view.hive2.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
-import org.apache.ambari.view.hive2.ConnectionFactory;
-import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

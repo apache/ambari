@@ -81,6 +81,19 @@ public class DDLDelegatorImpl implements DDLDelegator {
   }
 
   @Override
+  public List<Row> getTableDescriptionFormatted(ConnectionConfig config, String database, String table) {
+    Optional<Result> rowsFromDB = getRowsFromDB(config, getTableDescriptionStatements(database, table));
+    return rowsFromDB.isPresent() ? rowsFromDB.get().getRows() : null;
+  }
+
+  private String[] getTableDescriptionStatements(String database, String table) {
+    return new String[]{
+      String.format("use %s",database),
+      String.format("describe formatted %s", table)
+    };
+  }
+
+  @Override
   public List<ColumnDescription> getTableDescription(ConnectionConfig config, String database, String table, String like, boolean extended) {
  Optional<Result> resultOptional = getTableDescription(config, database, table, like);
     List<ColumnDescription> descriptions = new ArrayList<>();
