@@ -202,9 +202,12 @@ class TestHiveServerInteractive(RMFTestCase):
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
                               not_if="! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
-                              not_if="! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) )",
-    )
+    self.assertResourceCalled('Execute',
+                              "! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
+                              tries=10,
+                              try_sleep=3,
+                              )
+
     self.assertResourceCalled('Execute',
                               "! (ls /var/run/hive/hive-interactive.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
                               tries=20,
