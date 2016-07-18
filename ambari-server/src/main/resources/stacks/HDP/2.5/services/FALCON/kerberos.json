@@ -1,0 +1,77 @@
+{
+  "services": [
+    {
+      "name": "FALCON",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "falcon-startup.properties": {
+            "*.falcon.authentication.type": "kerberos",
+            "*.falcon.http.authentication.type": "kerberos",
+            "*.dfs.namenode.kerberos.principal": "nn/_HOST@${realm}"
+          }
+        }
+      ],
+      "auth_to_local_properties" : [
+        "falcon-startup.properties/*.falcon.http.authentication.kerberos.name.rules|new_lines_escaped"
+      ],
+      "components": [
+        {
+          "name": "FALCON_SERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "falcon_server",
+              "principal": {
+                "value": "falcon/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal",
+                "local_username" : "${falcon-env/falcon_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/falcon.service.keytab",
+                "owner": {
+                  "name": "${falcon-env/falcon_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "falcon-startup.properties/*.falcon.service.authentication.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/FALCON/FALCON_SERVER/falcon_server",
+              "principal": {
+                "configuration": "falcon-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
+              },
+              "keytab": {
+                "configuration": "falcon-atlas-application.properties/atlas.jaas.KafkaClient.option.keyTab"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "value": "HTTP/_HOST@${realm}",
+                "configuration": "falcon-startup.properties/*.falcon.http.authentication.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "falcon-startup.properties/*.falcon.http.authentication.kerberos.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
