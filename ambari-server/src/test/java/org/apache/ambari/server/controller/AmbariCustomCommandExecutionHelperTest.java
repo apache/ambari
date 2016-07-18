@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -376,6 +377,23 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.fail("Expected an exception since there are no hosts which can run the ZK service check");
   }
 
+  @Test(expected = AmbariException.class)
+  public void testServiceCheckComponentWithEmptyHosts() throws Exception {
+
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+      add(new RequestResourceFilter("FLUME", null, null));
+    }};
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
+    Stage stage = EasyMock.niceMock(Stage.class);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+
+    Assert.fail("Expected an exception since there are no hosts which can run the Flume service check");
+  }
+
+
   @Test
   public void testIsTopologyRefreshRequired() throws Exception {
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
@@ -418,14 +436,19 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createClusterFixture(String clusterName, String stackVersion, String hostPrefix) throws AmbariException, AuthorizationException {
+    String hostC6401 = hostPrefix + "-c6401";
+    String hostC6402 = hostPrefix + "-c6402";
+
     createCluster(clusterName, stackVersion);
-    addHost(hostPrefix + "-c6401", clusterName);
-    addHost(hostPrefix + "-c6402", clusterName);
+
+    addHost(hostC6401, clusterName);
+    addHost(hostC6402, clusterName);
 
     clusters.getCluster(clusterName);
     createService(clusterName, "YARN", null);
     createService(clusterName, "GANGLIA", null);
     createService(clusterName, "ZOOKEEPER", null);
+    createService(clusterName, "FLUME", null);
 
     createServiceComponent(clusterName, "YARN", "RESOURCEMANAGER", State.INIT);
     createServiceComponent(clusterName, "YARN", "NODEMANAGER", State.INIT);
@@ -433,10 +456,14 @@ public class AmbariCustomCommandExecutionHelperTest {
     createServiceComponent(clusterName, "GANGLIA", "GANGLIA_MONITOR", State.INIT);
     createServiceComponent(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostPrefix + "-c6401", null);
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostPrefix + "-c6401", null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostPrefix + "-c6401", State.INIT);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostPrefix + "-c6401", State.INIT);
+    // this component should be not installed on any host
+    createServiceComponent(clusterName, "FLUME", "FLUME_HANDLER", State.INIT);
+
+
+    createServiceComponentHost(clusterName, "YARN", "RESOURCEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
 
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostPrefix + "-c6402", null);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostPrefix + "-c6402", State.INIT);
