@@ -40,6 +40,8 @@
             "supervisor.enable": "true",
             "storm.zookeeper.superACL": "sasl:{{storm_bare_jaas_principal}}",
             "java.security.auth.login.config": "{{conf_dir}}/storm_jaas.conf",
+            "nimbus.impersonation.authorizer": "org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer",
+            "nimbus.impersonation.acl": "{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}",
             "nimbus.admins": "['{{storm_bare_jaas_principal}}']",
             "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
             "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
