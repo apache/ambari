@@ -20,7 +20,43 @@ limitations under the License.
 
 import optparse
 import httplib
+import socket
+import ssl
 
+class TLS1HTTPSConnection(httplib.HTTPSConnection):
+  """
+  Some of python implementations does not work correctly with sslv3 but trying to use it, we need to change protocol to
+  tls1.
+  """
+  def __init__(self, host, port, **kwargs):
+    httplib.HTTPSConnection.__init__(self, host, port, **kwargs)
+
+  def connect(self):
+    sock = socket.create_connection((self.host, self.port), self.timeout)
+    if getattr(self, '_tunnel_host', None):
+      self.sock = sock
+      self._tunnel()
+    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file, ssl_version=ssl.PROTOCOL_TLSv1)
+
+def make_connection(host, port, https):
+  try:
+    conn = httplib.HTTPConnection(host, port) if not https else httplib.HTTPSConnection(host, port)
+    conn.request("GET", "/")
+    return conn.getresponse().status
+  except ssl.SSLError:
+    # got ssl error, lets try to use TLS1 protocol, maybe it will work
+    try:
+      tls1_conn = TLS1HTTPSConnection(host, port)
+      tls1_conn.request("GET", "/")
+      return tls1_conn.getresponse().status
+    except Exception as e:
+      print e
+    finally:
+      tls1_conn.close()
+  except Exception as e:
+    print e
+  finally:
+    conn.close()
 #
 # Main.
 #
@@ -37,14 +73,7 @@ def main():
   https = options.https
 
   for host in hosts:
-    try:
-      conn = httplib.HTTPConnection(host, port) if not https.lower() == "true" else httplib.HTTPSConnection(host, port)
-      # This can be modified to get a partial url part to be sent with request
-      conn.request("GET", "/")
-      httpCode = conn.getresponse().status
-      conn.close()
-    except Exception:
-      httpCode = 404
+    httpCode = make_connection(host, port, https.lower() == "true")
 
     if httpCode != 200:
       print "Cannot access WEB UI on: http://" + host + ":" + port if not https.lower() == "true" else "Cannot access WEB UI on: https://" + host + ":" + port
