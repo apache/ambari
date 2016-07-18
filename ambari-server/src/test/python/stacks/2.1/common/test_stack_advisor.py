@@ -364,7 +364,7 @@ class TestHDP21StackAdvisor(TestCase):
         {
           "Hosts": {
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
@@ -404,7 +404,7 @@ class TestHDP21StackAdvisor(TestCase):
       "hdfs-site": {
         "properties": {
           'dfs.datanode.data.dir': '/hadoop/hdfs/data',
-          'dfs.datanode.du.reserved': '1024'
+          'dfs.datanode.du.reserved': '10240000000'
         }
       }
     }

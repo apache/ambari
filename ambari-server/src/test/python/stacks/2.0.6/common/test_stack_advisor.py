@@ -983,7 +983,7 @@ class TestHDP206StackAdvisor(TestCase):
             "rack_info": "/default-rack",
             "total_mem": 2097152,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
@@ -1000,7 +1000,7 @@ class TestHDP206StackAdvisor(TestCase):
             "rack_info": "/default-rack",
             "total_mem": 1048576,
             "disk_info": [{
-              "size": '8',
+              "size": '800000000',
               "mountpoint": "/"
             }]
           }
@@ -1106,7 +1106,7 @@ class TestHDP206StackAdvisor(TestCase):
                 'hdfs-site':
                   {'properties': 
                      {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
-                      'dfs.datanode.du.reserved': '1024'}},
+                      'dfs.datanode.du.reserved': '10240000000'}},
                 'hive-env':
                   {'properties':
                      {'hive_user': 'hive',
@@ -1162,7 +1162,7 @@ class TestHDP206StackAdvisor(TestCase):
                 'hdfs-site':
                   {'properties': 
                      {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
-                      'dfs.datanode.du.reserved': '1024'}},
+                      'dfs.datanode.du.reserved': '10240000000'}},
                 'hadoop-env':
                   {'properties':
                      {'hdfs_user': 'hdfs1',
@@ -1182,7 +1182,7 @@ class TestHDP206StackAdvisor(TestCase):
     expected["hdfs-site"] = {
       'properties': {
         'dfs.datanode.data.dir': '/hadoop/hdfs/data',
-        'dfs.datanode.du.reserved': '1024',
+        'dfs.datanode.du.reserved': '10240000000',
         'dfs.internal.nameservices': 'mycluster',
         'dfs.ha.namenodes.mycluster': 'nn1,nn2'
       },

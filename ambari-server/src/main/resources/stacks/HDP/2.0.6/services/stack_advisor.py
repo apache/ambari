@@ -307,22 +307,32 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       putHDFSSiteProperty('dfs.datanode.data.dir', dataDirs)
     else:
       dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
-    #dfs.datanode.du.reserved should be set to 10-15% of volume size
-    mountPoints = []
-    mountPointDiskAvailableSpace = [] #kBytes
+
+    # dfs.datanode.du.reserved should be set to 10-15% of volume size
+    # For each host selects maximum size of the volume. Then gets minimum for all hosts.
+    # This ensures that each host will have at least one data dir with available space.
+    reservedSizeRecommendation = 0l #kBytes
     for host in hosts["items"]:
+      mountPoints = []
+      mountPointDiskAvailableSpace = [] #kBytes
       for diskInfo in host["Hosts"]["disk_info"]:
         mountPoints.append(diskInfo["mountpoint"])
         mountPointDiskAvailableSpace.append(long(diskInfo["size"]))
-    maxFreeVolumeSize = 0l #kBytes
-    for dataDir in dataDirs:
-      mp = getMountPointForDir(dataDir, mountPoints)
-      for i in range(len(mountPoints)):
-        if mp == mountPoints[i]:
-          if mountPointDiskAvailableSpace[i] > maxFreeVolumeSize:
-            maxFreeVolumeSize = mountPointDiskAvailableSpace[i]
 
-    putHDFSSiteProperty('dfs.datanode.du.reserved', maxFreeVolumeSize * 1024 / 8) #Bytes
+      maxFreeVolumeSizeForHost = 0l #kBytes
+      for dataDir in dataDirs:
+        mp = getMountPointForDir(dataDir, mountPoints)
+        for i in range(len(mountPoints)):
+          if mp == mountPoints[i]:
+            if mountPointDiskAvailableSpace[i] > maxFreeVolumeSizeForHost:
+              maxFreeVolumeSizeForHost = mountPointDiskAvailableSpace[i]
+
+      if not reservedSizeRecommendation or maxFreeVolumeSizeForHost and maxFreeVolumeSizeForHost < reservedSizeRecommendation:
+        reservedSizeRecommendation = maxFreeVolumeSizeForHost
+
+    if reservedSizeRecommendation:
+      reservedSizeRecommendation = max(reservedSizeRecommendation * 1024 / 8, 1073741824) # At least 1Gb is reserved
+      putHDFSSiteProperty('dfs.datanode.du.reserved', reservedSizeRecommendation) #Bytes
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
