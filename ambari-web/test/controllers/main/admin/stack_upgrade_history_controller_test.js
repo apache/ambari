@@ -92,14 +92,14 @@ describe('App.MainAdminStackUpgradeHistoryController', function() {
           }
         ]};
       controller.loadUpgradeRecordSuccessCallback(data);
-      expect(controller.get('upgradeData') == null).to.be.false;
+      expect(controller.get('upgradeData')).to.be.not.null;
     });
 
     it("data is null", function() {
       var data = null;
       controller.set('upgradeData', null)
       controller.loadUpgradeRecordSuccessCallback(data);
-      expect(controller.get('upgradeData') == null).to.be.true;
+      expect(controller.get('upgradeData')).to.be.null;
     });
   });
 

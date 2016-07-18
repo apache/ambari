@@ -19,7 +19,6 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_history_view');
-var testHelpers = require('test/helpers');
 
 describe('App.MainAdminStackUpgradeHistoryView', function () {
   var view;
@@ -63,32 +62,32 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
 
     it('All should return all records', function(){
       this.mock.returns(records);
-      var filteredResults = view.filterBy('ALL')
-      expect(filteredResults.length == 4).to.be.true
+      var filteredResults = view.filterBy('ALL');
+      expect(filteredResults).to.have.property('length').equal(4);
     });
 
     it('Filter aborted upgrades', function(){
       this.mock.returns(records);
-      var filteredResults = view.filterBy('UPGRADE_ABORTED')
-      expect(filteredResults.length == 1).to.be.true
+      var filteredResults = view.filterBy('UPGRADE_ABORTED');
+      expect(filteredResults).to.have.property('length').equal(1);
     });
 
     it('Filter completed upgrades', function(){
       this.mock.returns(records);
-      var filteredResults = view.filterBy('UPGRADE_COMPLETED')
-      expect(filteredResults.length == 1).to.be.true
+      var filteredResults = view.filterBy('UPGRADE_COMPLETED');
+      expect(filteredResults).to.have.property('length').equal(1);
     });
 
     it('Filter aborted downgrades', function(){
       this.mock.returns(records);
-      var filteredResults = view.filterBy('DOWNGRADE_ABORTED')
-      expect(filteredResults.length == 1).to.be.true
+      var filteredResults = view.filterBy('DOWNGRADE_ABORTED');
+      expect(filteredResults).to.have.property('length').equal(1);
     });
 
     it('Filter completed downgrades', function(){
       this.mock.returns(records);
-      var filteredResults = view.filterBy('DOWNGRADE_COMPLETED')
-      expect(filteredResults.length == 1).to.be.true
+      var filteredResults = view.filterBy('DOWNGRADE_COMPLETED');
+      expect(filteredResults).to.have.property('length').equal(1);
     });
   });
 
@@ -148,8 +147,7 @@ describe('App.MainAdminStackUpgradeHistoryView', function () {
       ]);
       view.selectCategory(event);
     });
-    afterEach(function () {
-    });
+
     it("categories[0].isSelected false", function() {
       expect(view.get('categories')[0].get('isSelected')).to.be.false;
     });

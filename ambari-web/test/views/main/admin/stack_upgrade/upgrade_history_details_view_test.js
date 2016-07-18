@@ -19,7 +19,6 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_history_details_view');
-var testHelpers = require('test/helpers');
 
 describe('App.MainAdminStackUpgradeHistoryDetailsView', function () {
   var view;

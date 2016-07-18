@@ -1427,7 +1427,7 @@ describe('App.InstallerStep7Controller', function () {
         ]
       });
       installerStep7Controller.toggleIssuesFilter();
-      expect(installerStep7Controller.get('selectedService.serviceName')).to.eql('service2');
+      expect(installerStep7Controller.get('selectedService.serviceName')).to.be.equal('service2');
     });
   });
 
