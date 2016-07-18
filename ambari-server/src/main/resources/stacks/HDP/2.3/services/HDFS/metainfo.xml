@@ -27,7 +27,7 @@
           <name>NFS_GATEWAY</name>
           <displayName>NFSGateway</displayName>
           <cardinality>0+</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <category>SLAVE</category>
           <commandScript>
             <script>scripts/nfsgateway.py</script>
