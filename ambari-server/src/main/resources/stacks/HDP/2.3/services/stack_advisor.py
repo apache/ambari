@@ -81,8 +81,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
 
     putTezProperty = self.putProperty(configurations, "tez-site")
-    if "hive-site" in services["configurations"] and "hive.tez.container.size" in services["configurations"]["hive-site"]["properties"]:
-      putTezProperty("tez.task.resource.memory.mb", services["configurations"]["hive-site"]["properties"]["hive.tez.container.size"])
+
+    if "HIVE" in self.getServiceNames(services):
+      if not "hive-site" in configurations:
+        self.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+
+      if "hive-site" in configurations and "hive.tez.container.size" in configurations["hive-site"]["properties"]:
+        putTezProperty("tez.task.resource.memory.mb", configurations["hive-site"]["properties"]["hive.tez.container.size"])
+
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
     taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
