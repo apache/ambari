@@ -22,6 +22,7 @@ import traceback
 
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 
 class HDP25StackAdvisor(HDP24StackAdvisor):
 
@@ -310,10 +311,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "HBASE": self.recommendHBASEConfigurations,
       "HIVE": self.recommendHIVEConfigurations,
       "ATLAS": self.recommendAtlasConfigurations,
-      "RANGER_KMS": self.recommendRangerKMSConfigurations
+      "RANGER_KMS": self.recommendRangerKMSConfigurations,
+      "STORM": self.recommendStormConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    storm_site = getServicesSiteProperties(services, "storm-site")
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
+    if security_enabled:
+      _storm_principal_name = services['configurations']['storm-env']['properties']['storm_principal_name']
+      storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+      storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
+      storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
+      putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
