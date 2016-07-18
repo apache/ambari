@@ -60,7 +60,7 @@ define(['require',
 					"cache-control" : "no-cache"
 				},
 				success : function() {
-					window.location.replace('login.jsp');
+					window.location.replace('login.html');
 				},
 				error : function(jqXHR, textStatus, err ) {
 				}
