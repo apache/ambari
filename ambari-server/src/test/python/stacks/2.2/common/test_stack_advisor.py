@@ -2968,7 +2968,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hdfs-site': {
         'properties': {
-          'dfs.datanode.du.reserved': '1024',
+          'dfs.datanode.du.reserved': '10240000000',
           'dfs.datanode.max.transfer.threads': '16384',
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
@@ -3086,6 +3086,7 @@ class TestHDP22StackAdvisor(TestCase):
                 "configurations": configurations,
                 "ambari-server-properties": {"ambari-server.user":"ambari_user"}
                 }
+    # One host has bigger volume size. Minimum should be used for the calculations of dfs.datanode.du.reserved
     hosts = {
       "items" : [
         {
@@ -3100,7 +3101,7 @@ class TestHDP22StackAdvisor(TestCase):
             "rack_info" : "/default-rack",
             "total_mem" : 2097152,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
@@ -3117,7 +3118,7 @@ class TestHDP22StackAdvisor(TestCase):
             "rack_info" : "/default-rack",
             "total_mem" : 10485760,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000000',
               "mountpoint": "/"
             }]
           }
@@ -3145,7 +3146,7 @@ class TestHDP22StackAdvisor(TestCase):
             "rack_info" : "/default-rack",
             "total_mem" : 2097152,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
@@ -3172,7 +3173,7 @@ class TestHDP22StackAdvisor(TestCase):
             "rack_info" : "/default-rack",
             "total_mem" : 2097152,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
@@ -3201,7 +3202,7 @@ class TestHDP22StackAdvisor(TestCase):
             "rack_info" : "/default-rack",
             "total_mem" : 2097152,
             "disk_info": [{
-              "size": '8',
+              "size": '80000000',
               "mountpoint": "/"
             }]
           }
