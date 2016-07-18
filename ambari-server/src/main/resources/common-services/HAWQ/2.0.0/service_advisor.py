@@ -16,12 +16,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
 import imp
+import math
+import os
 import re
 import socket
 import traceback
-import math
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STACKS_DIR = os.path.join(SCRIPT_DIR, '../../../stacks/')
@@ -171,6 +171,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       else:
         buckets = factor * numSegments
       putHawqSiteProperty('default_hash_table_bucket_number', buckets)
+      putHawqSitePropertyAttribute('default_hash_table_bucket_number', "maximum", numSegments * 16 if 10000 > numSegments * 16 else 10000)
 
     # update YARN RM urls with the values from yarn-site if YARN is installed
     if "YARN" in servicesList and "yarn-site" in services["configurations"]:
