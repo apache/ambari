@@ -20,8 +20,14 @@ package org.apache.ambari.view.hive2.resources.uploads;
 
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
+import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.resources.uploads.CSVParams;
 import org.apache.ambari.view.hive2.BaseService;
+import org.apache.ambari.view.hive2.ConnectionFactory;
+import org.apache.ambari.view.hive2.ConnectionSystem;
+import org.apache.ambari.view.hive2.client.DDLDelegator;
+import org.apache.ambari.view.hive2.client.DDLDelegatorImpl;
+import org.apache.ambari.view.hive2.client.Row;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobController;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
@@ -45,6 +51,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -57,6 +64,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +88,9 @@ public class UploadService extends BaseService {
 
   private final static Logger LOG =
     LoggerFactory.getLogger(UploadService.class);
+
+  @Inject
+  protected ViewContext context;
 
   private AmbariApi ambariApi;
   protected JobResourceManager resourceManager;
@@ -348,22 +360,9 @@ public class UploadService extends BaseService {
 
   private String uploadIntoTable(Reader reader, String databaseName, String tempTableName) {
     try {
-      String basePath = getHiveMetaStoreLocation();
-
-      if (!basePath.endsWith("/")) {
-        basePath = basePath + "/";
-      }
-
-      if (databaseName != null && !databaseName.equals(HIVE_DEFAULT_DB)) {
-        basePath = basePath + databaseName + ".db/";
-      }
-
-      String fullPath = basePath + tempTableName + "/" + tempTableName + ".csv";
-
+      String fullPath = getHiveMetaStoreLocation(databaseName, tempTableName);
       LOG.info("Uploading file into : {}", fullPath);
-
       uploadFile(fullPath, new ReaderInputStream(reader));
-
       return fullPath;
     } catch (WebApplicationException e) {
       LOG.error(getErrorMessage(e), e);
@@ -416,6 +415,40 @@ public class UploadService extends BaseService {
     getResourceManager().saveIfModified(createdJobController);
 
     return job;
+  }
+
+  private String getHiveMetaStoreLocation(String db, String table) {
+    String locationColValue = "Location:";
+    String urlString = null;
+    DDLDelegator delegator = new DDLDelegatorImpl(context, ConnectionSystem.getInstance().getActorSystem(), ConnectionSystem.getInstance().getOperationController(context));
+    List<Row> result = delegator.getTableDescriptionFormatted(ConnectionFactory.create(context), db, table);
+    for (Row row : result) {
+      if (row != null && row.getRow().length > 1 && row.getRow()[0] != null &&  row.getRow()[0].toString().trim().equals(locationColValue)) {
+        urlString = row.getRow()[1] == null ? null : row.getRow()[1].toString();
+        break;
+      }
+    }
+
+    String tablePath = null;
+    if (null != urlString) {
+      try {
+        URI uri = new URI(urlString);
+        tablePath = uri.getPath();
+      } catch (URISyntaxException e) {
+        LOG.debug("Error occurred while parsing as url : ", urlString, e);
+      }
+    } else {
+      String basePath = getHiveMetaStoreLocation();
+      if (!basePath.endsWith("/")) {
+        basePath = basePath + "/";
+      }
+      if (db != null && !db.equals(HIVE_DEFAULT_DB)) {
+        basePath = basePath + db + ".db/";
+      }
+      tablePath = basePath + table;
+    }
+
+    return tablePath + "/" + table ;
   }
 
   private String getHiveMetaStoreLocation() {
