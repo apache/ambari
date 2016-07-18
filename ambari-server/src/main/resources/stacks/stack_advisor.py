@@ -364,7 +364,7 @@ class DefaultStackAdvisor(StackAdvisor):
     stackName = services["Versions"]["stack_name"]
     stackVersion = services["Versions"]["stack_version"]
     hostsList = self.getActiveHosts([host["Hosts"] for host in hosts["items"]])
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    servicesList = self.getServiceNames(services)
 
     layoutRecommendations = self.createComponentLayoutRecommendations(services, hosts)
 
@@ -1070,3 +1070,6 @@ class DefaultStackAdvisor(StackAdvisor):
       return (int(cardinality),int(cardinality))
 
     return (None, None)
+
+  def getServiceNames(self, services):
+    return [service["StackServices"]["service_name"] for service in services["services"]]
