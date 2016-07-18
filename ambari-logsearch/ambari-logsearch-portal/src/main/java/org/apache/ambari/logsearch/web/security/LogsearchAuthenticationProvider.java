@@ -103,6 +103,8 @@ public class LogsearchAuthenticationProvider extends
             // Let's save the first one
             authException = ex;
           }
+        }catch(Exception e){
+          logger.error(e,e.getCause());
         }
       }
       auditRecord.put("result", "denied");

@@ -23,14 +23,17 @@ xsi:schemaLocation="http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
 http://www.springframework.org/schema/security
 http://www.springframework.org/schema/security/spring-security-4.0.xsd">
-
-	<security:http pattern="/login.jsp" security="none" />
-	<security:http pattern="/**/*.css" security="none" />
-	<security:http pattern="/**/jquery.*.js" security="none" />
-	<security:http pattern="/**/*.css.map" security="none" />
-	<security:http pattern="/service/public/**" security="none" />
-	<security:http pattern="/images/**" security="none" />
-	
+  
+    <security:http pattern="/login.html" security="none" />
+    <security:http pattern="/styles/**" security="none" />
+    <security:http pattern="/fonts/**" security="none" />
+    <security:http pattern="/scripts/**" security="none" />
+    <security:http pattern="/libs/**" security="none" />
+    <security:http pattern="/images/**" security="none" />
+    <security:http pattern="/templates/**" security="none" />
+    <security:http pattern="/service/public/**" security="none" />
+    <security:http pattern="/favicon.ico" security="none" />
+  	
 	<security:http disable-url-rewriting="true" use-expressions="true" create-session="always" entry-point-ref="authenticationProcessingFilterEntryPoint">
 		<csrf disabled="true"/> 
 		<security:session-management session-fixation-protection="newSession" />
@@ -48,9 +51,9 @@ http://www.springframework.org/schema/security/spring-security-4.0.xsd">
 		<beans:property name="authenticationSuccessHandler" ref="authSuccessHandler"/>
 		<beans:property name="authenticationFailureHandler"	ref="authFailureHandler"/>
 	</beans:bean>
-
+  
 	<beans:bean id="authenticationProcessingFilterEntryPoint" class="org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint">
-		<beans:constructor-arg index="0" value="/login.jsp"/>
+		<beans:constructor-arg index="0" value="/login.html"/>
 		<beans:property name="forceHttps" value="false"/>
 	</beans:bean>
 

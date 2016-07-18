@@ -433,13 +433,13 @@ define(['require',
 		        }
 		    } catch (e) {}
 		} else if (error.status == 401) {
-		    window.location = 'login.jsp' + window.location.search;
+		    window.location = 'login.html' + window.location.search;
 		    // App.rContent.show(new vError({
 		    // 	status : error.status
 		    // }));
 
 		} else if (error.status == 419) {
-		    window.location = 'login.jsp' + window.location.search;
+		    window.location = 'login.html' + window.location.search;
 
 		} else if (error.status == "0") {
 		    var diffTime = (new Date().getTime() - prevNetworkErrorTime);

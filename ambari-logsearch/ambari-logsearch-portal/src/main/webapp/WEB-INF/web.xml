@@ -50,7 +50,7 @@
 		<servlet-name>REST service</servlet-name>
 		<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
 		<init-param>
-			<param-name>com.sun.jersey.config.property.packages</param-name>
+			<param-name>jersey.config.server.provider.packages</param-name>
 			<param-value>org.apache.ambari.logsearch.rest</param-value>
 		</init-param>
 		<init-param>

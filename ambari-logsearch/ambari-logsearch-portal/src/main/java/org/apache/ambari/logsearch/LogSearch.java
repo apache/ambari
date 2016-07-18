@@ -18,9 +18,11 @@
  */
 package org.apache.ambari.logsearch;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Timer;
 
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
@@ -28,8 +30,18 @@ import org.apache.ambari.logsearch.solr.metrics.SolrMetricsLoader;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
-import org.apache.hadoop.http.HttpServer2;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.webapp.WebAppContext;
+
 
 public class LogSearch {
   private static final Logger logger = Logger.getLogger(LogSearch.class);
@@ -48,67 +60,128 @@ public class LogSearch {
   private static final String HTTP_PROTOCOL = "http";
   private static final String HTTPS_PORT = "61889";
   private static final String HTTP_PORT = "61888";
+  
+  private static final String WEB_RESOURCE_FOLDER = "webapps/app";
+  private static final String ROOT_CONTEXT = "/";
 
+ 
   public static void main(String[] argv) {
-    HttpServer2.Builder builder = new HttpServer2.Builder();
-    builder.setName("app");
-
-    URI logsearchURI = addUri(argv, builder);
-    builder.setFindPort(false);
-    List<String> pathList = new ArrayList<String>();
-    pathList.add("/*");
-    builder.setPathSpec(pathList.toArray(new String[0]));
-    builder.needsClientAuth(false);
+    LogSearch logSearch = new LogSearch();
     Timer timer = new Timer();
     timer.schedule(new ManageStartEndTime(), 0, 40000);
     try {
-      logger.info("Starting logsearch server URI=" + logsearchURI);
-      HttpServer2 server = builder.build();
-      server.start();
       ConfigUtil.initializeApplicationConfig();
-      logger.info(server.toString());
+      logSearch.run(argv);
     } catch (Throwable e) {
       logger.error("Error running logsearch server", e);
     }
-
     SolrMetricsLoader.startSolrMetricsLoaderTasks();
   }
-
-  private static URI addUri(String[] argv, HttpServer2.Builder builder) {
+  
+  public void run(String[] argv) throws Exception {
+    Server server = buildSever(argv);
+    URI webResourceBase = findWebResourceBase(server.getClass()
+        .getClassLoader());
+    WebAppContext context = new WebAppContext();
+    context.setBaseResource(Resource.newResource(webResourceBase));
+    context.setContextPath(ROOT_CONTEXT);
+    context.setParentLoaderPriority(true);
+    server.setHandler(context);
+    server.start();
+    logger
+        .debug("============================Server Dump=======================================");
+    logger.debug(server.dump());
+    logger
+        .debug("==============================================================================");
+    server.join();
+  }
+  
+  public Server buildSever(String argv[]) {
+    Server server = new Server();
+    ServerConnector connector = new ServerConnector(server);
     boolean portSpecified = argv.length > 0;
-    String port = portSpecified ? argv[0] : HTTP_PORT;
-    String protocol = HTTP_PROTOCOL;
+    String protcolProperty = PropertiesUtil.getProperty(LOGSEARCH_PROTOCOL_PROP,HTTP_PROTOCOL);
+    if (StringUtils.isEmpty(protcolProperty)) {
+      protcolProperty = HTTP_PROTOCOL;
+    }
+    String port = null;
+    String keystoreLocation = System.getProperty(KEYSTORE_LOCATION_ARG);
+    String keystorePassword = System.getProperty(KEYSTORE_PASSWORD_ARG);
+    String keystoreType = System.getProperty(KEYSTORE_TYPE_ARG,DEFAULT_KEYSTORE_TYPE);
+    String trustStoreLocation = System.getProperty(TRUSTSTORE_LOCATION_ARG);
+    String trustStorePassword = System.getProperty(TRUSTSTORE_PASSWORD_ARG);
+    String trustStoreType = System.getProperty(TRUSTSTORE_TYPE_ARG,DEFAULT_TRUSTSTORE_TYPE);
+    if (HTTPS_PROTOCOL.equals(protcolProperty) 
+        && !StringUtils.isEmpty(keystoreLocation) && !StringUtils.isEmpty(keystorePassword)) {
+      logger.info("Building https server...........");
+      port = portSpecified ? argv[0] : HTTPS_PORT;
+      checkPort(Integer.parseInt(port));
+      HttpConfiguration https = new HttpConfiguration();
+      https.addCustomizer(new SecureRequestCustomizer());
+      SslContextFactory sslContextFactory = new SslContextFactory();
+      sslContextFactory.setKeyStorePath(keystoreLocation);
+      sslContextFactory.setKeyStorePassword(keystorePassword);
+      sslContextFactory.setKeyStoreType(keystoreType);
+      if (!StringUtils.isEmpty(trustStoreLocation) && !StringUtils.isEmpty(trustStorePassword)) {
+        sslContextFactory.setTrustStorePath(trustStoreLocation);
+        sslContextFactory.setTrustStorePassword(trustStorePassword);
+        sslContextFactory.setTrustStoreType(trustStoreType);
+      }
+      ServerConnector sslConnector = new ServerConnector(server,
+          new SslConnectionFactory(sslContextFactory, "http/1.1"),
+          new HttpConnectionFactory(https));
+      sslConnector.setPort(Integer.parseInt(port));
+      server.setConnectors(new Connector[] { sslConnector });
+    } else {
+      logger.info("Building http server...........");
+      port = portSpecified ? argv[0] : HTTP_PORT;
+      checkPort(Integer.parseInt(port));
+      connector.setPort(Integer.parseInt(port));
+      server.setConnectors(new Connector[] { connector });
+    }
+    URI logsearchURI = URI.create(String.format("%s://0.0.0.0:%s", protcolProperty,
+        port));
+    logger.info("Starting logsearch server URI=" + logsearchURI);
+    return server;
+  }
 
-    String protcolProperty = PropertiesUtil.getProperty(LOGSEARCH_PROTOCOL_PROP);
-    if (HTTPS_PROTOCOL.equals(protcolProperty)) {
-      String keystoreLocation = System.getProperty(KEYSTORE_LOCATION_ARG);
-      String keystorePassword = System.getProperty(KEYSTORE_PASSWORD_ARG);
-      String keystoreType = System.getProperty(KEYSTORE_TYPE_ARG, DEFAULT_KEYSTORE_TYPE);
+  private URI findWebResourceBase(ClassLoader classLoader) {
+    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader()
+        .getResource(WEB_RESOURCE_FOLDER);
+    if (fileCompleteUrl != null) {
+      try {
+        return fileCompleteUrl.toURI().normalize();
+      } catch (URISyntaxException e) {
+        logger.error("Web Resource Folder " + WEB_RESOURCE_FOLDER+ " not found in classpath", e);
+        System.exit(1);
+      }
+    }else{
+      logger.error("Web Resource Folder " + WEB_RESOURCE_FOLDER+ " not found in classpath");
+      System.exit(1);
+    }
+    return null;
+  }
 
-      String trustoreLocation = System.getProperty(TRUSTSTORE_LOCATION_ARG);
-      String trustorePassword = System.getProperty(TRUSTSTORE_PASSWORD_ARG);
-      String truststoreType = System.getProperty(TRUSTSTORE_TYPE_ARG, DEFAULT_TRUSTSTORE_TYPE);
-
-      if (!StringUtils.isEmpty(keystoreLocation) && !StringUtils.isEmpty(keystorePassword)) {
-        builder.keyPassword(keystorePassword);
-        builder.keyStore(keystoreLocation, keystorePassword, keystoreType);
-        
-        if (!StringUtils.isEmpty(trustoreLocation) && !StringUtils.isEmpty(trustorePassword)) {
-          builder.trustStore(trustoreLocation, trustorePassword, truststoreType);
+  private void checkPort(int port) {
+    ServerSocket serverSocket = null;
+    boolean portBusy = false;
+    try {
+      new ServerSocket(port);
+    } catch (IOException ex) {
+      portBusy = true;
+      logger.error(ex.getLocalizedMessage() + " PORT :" + port);
+    } finally {
+      if (serverSocket != null) {
+        try {
+          serverSocket.close();
+        } catch (Exception exception) {
+          // ignore
         }
-
-        protocol = HTTPS_PROTOCOL;
-        if (!portSpecified) {
-          port = HTTPS_PORT;
-        }
-      } else{
-        logger.warn("starting logsearch in with http protocol as keystore location or password was not present");
+      }
+      if (portBusy) {
+        System.exit(1);
       }
     }
-
-    URI logsearchURI = URI.create(String.format("%s://0.0.0.0:%s", protocol, port));
-    builder.addEndpoint(logsearchURI);
-
-    return logsearchURI;
   }
+
 }
