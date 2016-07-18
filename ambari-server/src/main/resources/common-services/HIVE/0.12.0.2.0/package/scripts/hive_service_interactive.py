@@ -87,10 +87,16 @@ def hive_service_interactive(name, action='start', upgrade_type=None):
             not_if = format("! ({process_id_exists_command})")
             )
 
-    wait_time = 5
-    Execute(daemon_hard_kill_cmd,
-            not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )")
-            )
+    # check if stopped the process, otherwise send hard kill command.
+    try:
+      Execute(format("! ({process_id_exists_command})"),
+              tries=10,
+              try_sleep=3,
+              )
+    except:
+      Execute(daemon_hard_kill_cmd,
+              not_if = format("! ({process_id_exists_command}) ")
+              )
 
     # check if stopped the process, else fail the task
     Execute(format("! ({process_id_exists_command})"),
