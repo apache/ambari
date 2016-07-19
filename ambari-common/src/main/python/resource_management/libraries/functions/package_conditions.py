@@ -26,6 +26,18 @@ import os
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.default import default
 
+def _has_applicable_local_component(config, components):
+  if 'role' not in config:
+    return False
+  if config['role'] == 'install_packages':
+    # When installing new stack version for upgrade, all packages on a host are installed by install_packages.
+    # Check if
+    if 'localComponents' not in config:
+      return False
+    return any([component in config['localComponents'] for component in components])
+  else:
+    return config['role'] in components
+
 def should_install_lzo():
   config = Script.get_config()
   io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
@@ -40,32 +52,32 @@ def should_install_phoenix():
 
 def should_install_ams_collector():
   config = Script.get_config()
-  return 'role' in config and config['role'] == "METRICS_COLLECTOR"
+  return _has_applicable_local_component(config, ["METRICS_COLLECTOR"])
 
 def should_install_ams_grafana():
   config = Script.get_config()
-  return 'role' in config and config['role'] == "METRICS_GRAFANA"
+  return _has_applicable_local_component(config, ["METRICS_GRAFANA"])
 
 def should_install_logsearch_solr():
   config = Script.get_config()
-  return 'role' in config and config['role'] == "LOGSEARCH_SOLR"
+  return _has_applicable_local_component(config, ["LOGSEARCH_SOLR"])
 
 def should_install_logsearch_solr_client():
   config = Script.get_config()
-  return 'role' in config and (config['role'] == "LOGSEARCH_SOLR_CLIENT" or config['role'] == 'ATLAS_SERVER' or config['role'] == 'RANGER_ADMIN')
+  return _has_applicable_local_component(config, ['LOGSEARCH_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN'])
 
 def should_install_logsearch_portal():
   config = Script.get_config()
-  return 'role' in config and config['role'] == "LOGSEARCH_SERVER"
+  return _has_applicable_local_component(config, ["LOGSEARCH_SERVER"])
 
 def should_install_mysql():
   config = Script.get_config()
   hive_database = config['configurations']['hive-env']['hive_database']
   hive_use_existing_db = hive_database.startswith('Existing')
 
-  if hive_use_existing_db or 'role' in config and config['role'] != "MYSQL_SERVER":
+  if hive_use_existing_db:
     return False
-  return True
+  return _has_applicable_local_component(config, "MYSQL_SERVER")
 
 def should_install_mysl_connector():
   mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
@@ -78,7 +90,7 @@ def should_install_hive_atlas():
 
 def should_install_kerberos_server():
   config = Script.get_config()
-  return 'role' in config and config['role'] != "KERBEROS_CLIENT"
+  return 'role' in config and not _has_applicable_local_component("KERBEROS_CLIENT")
 
 def should_install_ranger_tagsync():
   config = Script.get_config()
@@ -89,4 +101,4 @@ def should_install_ranger_tagsync():
 
 def should_install_rpcbind():
   config = Script.get_config()
-  return 'role' in config and config['role'] == "NFS_GATEWAY"
+  return _has_applicable_local_component(config, ["NFS_GATEWAY"])
