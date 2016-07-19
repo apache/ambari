@@ -325,8 +325,8 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     // Verify policies are unset
     for (String tableName : PHOENIX_TABLES) {
       HTableDescriptor tableDescriptor = hBaseAdmin.getTableDescriptor(tableName.getBytes());
-
-      Assert.assertFalse("Normalizer disabled by default.", tableDescriptor.isNormalizationEnabled());
+      tableDescriptor.setNormalizationEnabled(true);
+      Assert.assertTrue("Normalizer enabled.", tableDescriptor.isNormalizationEnabled());
       Assert.assertNull("Default compaction policy is null.",
         tableDescriptor.getConfigurationValue(HSTORE_COMPACTION_CLASS_KEY));
 
@@ -364,7 +364,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
         LOG.debug("Table: " + tableName + ", normalizerEnabled = " + normalizerEnabled);
         LOG.debug("Table: " + tableName + ", compactionPolicy = " + compactionPolicy);
         // Best effort for 20 seconds
-        if (!normalizerEnabled || compactionPolicy == null) {
+        if (normalizerEnabled || compactionPolicy == null) {
           Thread.sleep(2000l);
         }
         if (tableName.equals(METRICS_RECORD_TABLE_NAME)) {
@@ -375,7 +375,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
       }
     }
 
-    Assert.assertTrue("Normalizer enabled.", normalizerEnabled);
+    Assert.assertFalse("Normalizer disabled.", normalizerEnabled);
     Assert.assertTrue("Durability Set.", tableDurabilitySet);
     Assert.assertEquals("FIFO compaction policy is set.", FIFO_COMPACTION_POLICY_CLASS, compactionPolicy);
     Assert.assertEquals("Precision TTL value not changed.", String.valueOf(2 * 86400), precisionTtl);

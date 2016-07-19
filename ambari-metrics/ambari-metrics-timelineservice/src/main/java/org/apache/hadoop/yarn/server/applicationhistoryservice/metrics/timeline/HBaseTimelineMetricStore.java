@@ -237,7 +237,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       } else {
         LOG.info("Invalid Input for TopN query. Ignoring TopN Request.");
       }
-    } else if (hostnames != null && hostnames.size() > defaultTopNHostsLimit) {
+    } else if (startTime != null && hostnames != null && hostnames.size() > defaultTopNHostsLimit) {
+      // if (timeseries query AND hostnames passed AND size(hostnames) > limit)
       LOG.info("Requesting data for more than " + defaultTopNHostsLimit +  " Hosts. " +
         "Defaulting to Top " + defaultTopNHostsLimit);
       conditionBuilder.topN(defaultTopNHostsLimit);

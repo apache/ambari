@@ -240,6 +240,9 @@
                       <sources>
                         <source>
                           <location>${collector.dir}/target/lib</location>
+                          <excludes>
+                            <exclude>*tests.jar</exclude>
+                          </excludes>
                         </source>
                         <source>
                           <location>
@@ -257,6 +260,7 @@
                           <excludes>
                             <exclude>bin/**</exclude>
                             <exclude>bin/*</exclude>
+                            <exclude>lib/*tests.jar</exclude>
                           </excludes>
                         </source>
                       </sources>
@@ -770,6 +774,7 @@
                 <data>
                   <src>${collector.dir}/target/lib</src>
                   <type>directory</type>
+                  <excludes>*tests.jar</excludes>
                   <mapper>
                     <type>perm</type>
                     <filemode>644</filemode>
@@ -779,7 +784,7 @@
                 <data>
                   <src>${collector.dir}/target/embedded/${hbase.folder}</src>
                   <type>directory</type>
-                  <excludes>bin/**,bin/*</excludes>
+                  <excludes>bin/**,bin/*,lib/*tests.jar</excludes>
                   <mapper>
                     <type>perm</type>
                     <prefix>/usr/lib/ams-hbase</prefix>

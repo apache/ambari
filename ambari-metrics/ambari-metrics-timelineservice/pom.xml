@@ -124,6 +124,9 @@
               <sources>
                 <source>
                   <location>target/lib</location>
+                  <excludes>
+                  <exclude>*tests.jar</exclude>
+                  </excludes>
                 </source>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
@@ -139,6 +142,7 @@
                   <excludes>
                     <exclude>bin/**</exclude>
                     <exclude>bin/*</exclude>
+                    <exclude>lib/*tests.jar</exclude>
                   </excludes>
                 </source>
               </sources>
@@ -266,12 +270,6 @@
       <artifactId>zookeeper</artifactId>
       <groupId>org.apache.zookeeper</groupId>
       <version>3.4.8</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.phoenix</groupId>
-      <artifactId>phoenix-server</artifactId>
-      <version>${phoenix.version}</version>
     </dependency>
 
     <dependency>
