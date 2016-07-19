@@ -37,6 +37,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries import functions
@@ -80,9 +81,8 @@ current_version = default("/hostLevelParams/current_version", None)
 # downgrade_from_version provides the source-version the downgrade is happening from
 downgrade_from_version = default("/commandParams/downgrade_from_version", None)
 
-# determine which version to use for checking stack features; version is the most accurate but
-# may not always be available (especially on first install of the cluster)
-version_for_stack_feature_checks = version if version is not None else stack_version_unformatted
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
 
 # Upgrade direction
 upgrade_direction = default("/commandParams/upgrade_direction", None)

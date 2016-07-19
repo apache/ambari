@@ -24,9 +24,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import status_params
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions import format
-from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script import Script
@@ -36,6 +34,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
@@ -65,7 +64,9 @@ stack_supports_ru = stack_version_formatted and check_stack_feature(StackFeature
 stack_supports_storm_kerberos = stack_version_formatted and check_stack_feature(StackFeature.STORM_KERBEROS, stack_version_formatted)
 stack_supports_storm_ams = stack_version_formatted and check_stack_feature(StackFeature.STORM_AMS, stack_version_formatted)
 
-version_for_stack_feature_checks = version if version is not None else stack_version_formatted
+# get the correct version to use for checking stack features
+version_for_stack_feature_checks = get_stack_feature_version(config)
+
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
 
