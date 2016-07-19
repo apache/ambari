@@ -18,6 +18,8 @@ limitations under the License.
 
 """
 import os
+
+from resource_management.core import sudo
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
 from resource_management.core.resources.service import Service
@@ -95,7 +97,7 @@ def oozie_service(action = 'start', upgrade_type=None):
         exit(1)
 
       if db_connection_check_command:
-        os.chmod(params.check_db_connection_jar, 0o755)
+        sudo.chmod(params.check_db_connection_jar, 0755)
         Execute( db_connection_check_command, 
                  tries=5, 
                  try_sleep=10,
