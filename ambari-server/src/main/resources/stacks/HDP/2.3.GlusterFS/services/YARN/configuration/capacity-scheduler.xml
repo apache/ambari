@@ -25,7 +25,6 @@
       resources such as Memory, CPU etc. A Java ResourceCalculator class name is expected.
     </description>
     <value>org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator</value>
-    <description/>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
