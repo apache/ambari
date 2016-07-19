@@ -3081,6 +3081,7 @@ Em.I18n.translations = {
   'errorMessage.config.number.float': 'Must be a valid number',
   'errorMessage.config.mail': 'Must be a valid email address',
   'errorMessage.config.user': 'Value is not valid',
+  'errorMessage.config.ldapUrl': 'Must be a valid LDAP url',
   'errorMessage.config.password': 'Passwords do not match',
   'errorMessage.config.directory.heterogeneous': 'dir format is wrong, can be "[{storage type}]/{dir name}"',
   'errorMessage.config.directory.default': 'Must be a slash or drive at the start, and must not contain white spaces',

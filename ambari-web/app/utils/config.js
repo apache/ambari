@@ -614,6 +614,10 @@ App.config = Em.Object.create({
         return function (value) {
           return !validator.isValidDbName(value) ? Em.I18n.t('errorMessage.config.user') : '';
         };
+      case 'ldap_url':
+        return function (value) {
+          return !validator.isValidLdapsURL(value) ? Em.I18n.t('errorMessage.config.ldapUrl') : '';
+        };
       default:
         return function (value, name) {
           if (['javax.jdo.option.ConnectionURL', 'oozie.service.JPAService.jdbc.url'].contains(name)
