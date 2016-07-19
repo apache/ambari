@@ -41,6 +41,7 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 stack_root = Script.get_stack_root()
 
+# Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]

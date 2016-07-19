@@ -28,6 +28,15 @@
             },
             "configuration": "storm-env/storm_keytab"
           }
+        },
+        {
+          "name": "/STORM/storm_components",
+          "principal": {
+            "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
+          },
+          "keytab": {
+            "configuration": "storm-atlas-application.properties/atlas.jaas.KafkaClient.option.keyTab"
+          }
         }
       ],
       "configurations": [
