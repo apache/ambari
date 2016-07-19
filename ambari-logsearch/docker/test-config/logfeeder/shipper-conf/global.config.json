@@ -1,0 +1,11 @@
+{
+  "global":{
+    "add_fields":{
+      "cluster":"cl1"
+    },
+    "source":"file",
+    "tail":"true",
+    "gen_event_md5":"true",
+    "start_position":"beginning"
+  }
+}

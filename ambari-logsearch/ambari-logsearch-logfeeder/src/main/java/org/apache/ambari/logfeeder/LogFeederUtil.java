@@ -87,6 +87,15 @@ public class LogFeederUtil {
     return gson;
   }
 
+  private static ThreadLocal<SimpleDateFormat> dateFormatter = new ThreadLocal<SimpleDateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      SimpleDateFormat sdf = new SimpleDateFormat(SOLR_DATE_FORMAT);
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+      return sdf;
+    }
+  };
+
   /**
    * This method will read the properties from System, followed by propFile
    * and finally from the map
@@ -382,11 +391,18 @@ public class LogFeederUtil {
 
   public static String getDate(String timeStampStr) {
     try {
-      DateFormat sdf = new SimpleDateFormat(SOLR_DATE_FORMAT);
-      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-      Date netDate = (new Date(Long.parseLong(timeStampStr)));
-      return sdf.format(netDate);
+      return dateFormatter.get().format(new Date(Long.parseLong(timeStampStr)));
     } catch (Exception ex) {
+      logger.error(ex);
+      return null;
+    }
+  }
+
+  public static String getActualDateStr() {
+    try {
+      return dateFormatter.get().format(new Date());
+    } catch (Exception ex) {
+      logger.error(ex);
       return null;
     }
   }

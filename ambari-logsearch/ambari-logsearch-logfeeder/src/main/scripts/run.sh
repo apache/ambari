@@ -59,6 +59,11 @@ if [ "$LOGFEEDER_CONF_DIR" = "" ]; then
 
 fi
 
+LOGFEEDER_DEBUG_SUSPEND=${LOGFEEDER_DEBUG_SUSPEND:-n}
+if [ "$LOGFEEDER_DEBUG" = "true" ] && [ ! -z "$LOGFEEDER_DEBUG_PORT" ]; then
+  LOGFEEDER_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGFEEDER_DEBUG_PORT,server=y,suspend=$LOGFEEDER_DEBUG_SUSPEND "
+fi
+
 LOGFEEDER_GC_LOGFILE=`dirname $LOGFILE`/logfeeder_gc.log
 LOGFEEDER_GC_OPTS="-XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$LOGFEEDER_GC_LOGFILE"
 
