@@ -60,11 +60,6 @@ def ams_service(name, action):
       Execute(format("{sudo} rm -rf {hbase_tmp_dir}/*.tmp")
       )
 
-      if not params.is_hbase_distributed and os.path.exists(format("{zookeeper_data_dir}")):
-        Directory(params.zookeeper_data_dir,
-                  action='delete'
-        )
-
       if not params.is_hbase_distributed:
         File(format("{ams_collector_conf_dir}/core-site.xml"),
              action='delete',
