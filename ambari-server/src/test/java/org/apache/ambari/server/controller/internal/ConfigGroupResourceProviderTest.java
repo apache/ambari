@@ -515,7 +515,7 @@ public class ConfigGroupResourceProviderTest {
       }
     });
     expect(managementController.getConfigHelper()).andReturn(configHelper).once();
-    configHelper.invalidateStaleConfigsCache();
+    configHelper.invalidateStaleConfigsCache(null);
     expectLastCall().once();
 
     replay(managementController, clusters, cluster,

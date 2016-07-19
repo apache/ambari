@@ -352,17 +352,9 @@ public class ConfigImpl implements Config {
 
   /**
    * {@inheritDoc}
-   * <p/>
-   * This method will attempt a lock around the
-   * {@link LockArea#STALE_CONFIG_CACHE} in order to ensure that the stale
-   * configuration cache can only be invalidated once this transaction has been
-   * committed. Without this lock, it's possible that the stale config cache
-   * might be invalidated and then re-populated with old data before this
-   * transaction commits.
    */
   @Override
   @Transactional
-  @TransactionalLock(lockArea = LockArea.STALE_CONFIG_CACHE, lockType = LockType.WRITE)
   public void persist(boolean newConfig) {
     cluster.getClusterGlobalLock().writeLock().lock(); //null cluster is not expected, NPE anyway later in code
     try {
