@@ -33,6 +33,21 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     self.YARN_ROOT_DEFAULT_QUEUE_NAME = 'default'
     self.AMBARI_MANAGED_LLAP_QUEUE_NAME = 'llap'
 
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
+    putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
+    if "FALCON_SERVER" in clusterData["components"] :
+      if "falcon-env" in services["configurations"] and "falcon_user" \
+          in services["configurations"]["falcon-env"]["properties"] :
+        falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
+      else :
+        falconUser = 'falcon'
+    oozieUser = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
+    newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
+    services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
+    putOozieEnvProperty("oozie_admin_users", newAdminUsers)
+
+
   def createComponentLayoutRecommendations(self, services, hosts):
     parentComponentLayoutRecommendations = super(HDP25StackAdvisor, self).createComponentLayoutRecommendations(
       services, hosts)
