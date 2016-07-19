@@ -2454,7 +2454,7 @@ public class BlueprintConfigurationProcessor {
       }
     });
 
-    //todo: john - this property should be moved to atlas configuration
+    // TODO AMBARI-17782, remove this property from hive-site only in HDP 2.5 and higher.
     hiveSiteNonTopologyMap.put("atlas.cluster.name", new NonTopologyUpdater() {
       @Override
       public String updateForClusterCreate(String propertyName,
@@ -2490,7 +2490,7 @@ public class BlueprintConfigurationProcessor {
       }
     });
 
-    //todo: john - this property should be removed
+    // TODO AMBARI-17782, remove this property only from HDP 2.5 and higher.
     hiveSiteMap.put("atlas.rest.address", new SingleHostTopologyUpdater("ATLAS_SERVER") {
       @Override
       public String updateForClusterCreate(String propertyName,

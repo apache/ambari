@@ -82,9 +82,7 @@ SHARED_ATLAS_HOOK_CONFIGS = set(
   "atlas.jaas.KafkaClient.loginModuleControlFlag",
   "atlas.jaas.KafkaClient.option.useKeyTab",
   "atlas.jaas.KafkaClient.option.storeKey",
-  "atlas.jaas.KafkaClient.option.serviceName",
-  "atlas.jaas.KafkaClient.option.keyTab",
-  "atlas.jaas.KafkaClient.option.principal"]
+  "atlas.jaas.KafkaClient.option.serviceName"]
 )
 
 def has_atlas_in_cluster():

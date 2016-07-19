@@ -72,6 +72,7 @@ def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
 config = Script.get_config()
 stack_root = Script.get_stack_root()
 
+# Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
 java_version = expect("/hostLevelParams/java_version", int)

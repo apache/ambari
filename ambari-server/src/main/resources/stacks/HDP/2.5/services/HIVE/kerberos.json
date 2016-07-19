@@ -79,6 +79,15 @@
               }
             },
             {
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "principal": {
+                "configuration": "hive-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
+              },
+              "keytab": {
+                "configuration": "hive-atlas-application.properties/atlas.jaas.KafkaClient.option.keyTab"
+              }
+            },
+            {
               "name": "/spnego",
               "principal": {
                 "configuration": "hive-site/hive.server2.authentication.spnego.principal"

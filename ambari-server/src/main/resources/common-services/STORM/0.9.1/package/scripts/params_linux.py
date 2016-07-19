@@ -46,6 +46,7 @@ tmp_dir = Script.get_tmp_dir()
 stack_root = status_params.stack_root
 sudo = AMBARI_SUDO_BINARY
 
+# Needed since this is an Atlas Hook service.
 cluster_name = config['clusterName']
 
 stack_name = status_params.stack_name

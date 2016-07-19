@@ -257,6 +257,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         hooks_value = " "
     putHiveSiteProperty(hooks_property, hooks_value)
 
+    # This is no longer used in HDP 2.5, but still needed in HDP 2.3 and 2.4
     atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
     if include_atlas and atlas_server_host_info:
       atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
