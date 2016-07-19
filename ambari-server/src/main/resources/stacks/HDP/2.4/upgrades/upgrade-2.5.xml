@@ -226,6 +226,7 @@
       <service-check>false</service-check>
       <service name="HDFS">
         <component>DATANODE</component>
+        <component>NFS_GATEWAY</component>
       </service>
 
       <service name="HBASE">
@@ -623,6 +624,12 @@
       </component>
 
       <component name="DATANODE">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+      
+      <component name="NFS_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
