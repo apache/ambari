@@ -218,7 +218,6 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 
   if len(livy_livyserver_hosts) > 0:
-    livy_livyserver_host = livy_livyserver_hosts[0]
     has_livyserver = True
 
   livy_livyserver_port = default('configurations/livy-conf/livy.server.port',8998)

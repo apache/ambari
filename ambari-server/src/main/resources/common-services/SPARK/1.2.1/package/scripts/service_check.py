@@ -39,13 +39,22 @@ class SparkServiceCheck(Script):
       try_sleep=3,
       logoutput=True
     )
-    if params.has_livyserver and params.livy_livyserver_host != "localhost" and params.livy_livyserver_host != "0.0.0.0":
-      Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livy_livyserver_host}:{livy_livyserver_port}/sessions | grep 200"),
-              tries=5,
-              try_sleep=3,
+    if params.has_livyserver:
+      live_livyserver_host = "";
+      for livyserver_host in params.livy_livyserver_hosts:
+        try:
+          Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k http://{livyserver_host}:{livy_livyserver_port}/sessions | grep 200"),
+              tries=3,
+              try_sleep=1,
               logoutput=True,
               user=params.livy_user
               )
+          live_livyserver_host = livyserver_host
+          break
+        except:
+          pass
+      if len(params.livy_livyserver_hosts) > 0 and live_livyserver_host == "":
+        raise Fail(format("Connection to all Livy servers failed"))
 
 if __name__ == "__main__":
   SparkServiceCheck().execute()
