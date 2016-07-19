@@ -374,7 +374,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
         if (Em.isNone(recommended)) {
           stepConfig.get('configs').removeObject(config);
         } else if (Em.isNone(initial)) {
-          this._addConfigByRecommendation(stepConfig.get('configs'), Em.get(p, 'propertyName'), Em.get(p, 'propertyFileName'), recommended);
+          stepConfig.get('configs').pushObject(this._createNewProperty(Em.get(p, 'propertyName'),
+            Em.get(p, 'propertyFileName'),Em.get(p, 'serviceName'), recommended, Em.get(p, 'parentConfigs')));
         } else {
           Em.set(config, 'value', recommended);
         }
