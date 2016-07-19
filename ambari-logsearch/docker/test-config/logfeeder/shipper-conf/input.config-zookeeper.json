@@ -1,0 +1,31 @@
+{
+  "input": [
+    {
+      "type": "zookeeper",
+      "rowtype": "service",
+      "path": "/root/test-logs/zookeeper/zookeeper-test-log.txt"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "zookeeper"
+          ]
+        }
+      },
+      "log4j_format": "%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n",
+      "multiline_pattern": "^(%{TIMESTAMP_ISO8601:logtime})",
+      "message_pattern": "(?m)^%{TIMESTAMP_ISO8601:logtime}%{SPACE}-%{SPACE}%{LOGLEVEL:level}%{SPACE}\\[%{DATA:thread_name}\\@%{INT:line_number}\\]%{SPACE}-%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "logtime": {
+          "map_date": {
+            "date_pattern": "yyyy-MM-dd HH:mm:ss,SSS"
+          }
+        }
+      }
+    }
+  ]
+}

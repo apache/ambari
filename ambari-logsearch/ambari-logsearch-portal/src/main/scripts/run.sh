@@ -46,11 +46,12 @@ fi
 #Temporarily enabling JMX so we can monitor the memory and CPU utilization of the process
 #JMX="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=3098"
 
+LOGSEARCH_DEBUG_SUSPEND=${LOGSEARCH_DEBUG_SUSPEND:-n}
 if [ "$LOGSEARCH_DEBUG" = "true" ] && [ ! -z "$LOGSEARCH_DEBUG_PORT" ]; then
-  LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGSEARCH_DEBUG_PORT,server=y,suspend=n "
+  LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$LOGSEARCH_DEBUG_PORT,server=y,suspend=$LOGSEARCH_DEBUG_SUSPEND "
 fi
 
-if [ $LOGSEARCH_SSL = "true" ]; then
+if [ "$LOGSEARCH_SSL" = "true" ]; then
   LOGSEARCH_JAVA_OPTS="$LOGSEARCH_JAVA_OPTS -Djavax.net.ssl.keyStore=$LOGSEARCH_KEYSTORE_LOCATION -Djavax.net.ssl.keyStoreType=$LOGSEARCH_KEYSTORE_TYPE -Djavax.net.ssl.keyStorePassword=$LOGSEARCH_KEYSTORE_PASSWORD -Djavax.net.ssl.trustStore=$LOGSEARCH_TRUSTSTORE_LOCATION -Djavax.net.ssl.trustStoreType=$LOGSEARCH_TRUSTSTORE_TYPE -Djavax.net.ssl.trustStorePassword=$LOGSEARCH_TRUSTSTORE_PASSWORD"
 fi
 
