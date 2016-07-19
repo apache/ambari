@@ -81,6 +81,8 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
@@ -118,9 +120,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
-/**
+ /**
  * ClusterStackVersionResourceProvider tests.
  */
 public class ClusterStackVersionResourceProviderTest {
@@ -184,10 +188,21 @@ public class ClusterStackVersionResourceProviderTest {
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
+
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -355,6 +370,8 @@ public class ClusterStackVersionResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     RequestStatus status = provider.createResources(request);
     Assert.assertNotNull(status);
@@ -587,8 +604,17 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals(Float.valueOf(0.85f), successFactor);
   }
 
-  @Test
-  public void testCreateResourcesWithRepoDefinition() throws Exception {
+   @Test
+   public void testCreateResourcesWithRepoDefinitionAsAdministrator() throws Exception {
+     testCreateResourcesWithRepoDefinition(TestAuthenticationFactory.createAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesWithRepoDefinitionAsClusterAdministrator() throws Exception {
+     testCreateResourcesWithRepoDefinition(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   private void testCreateResourcesWithRepoDefinition(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -784,6 +810,8 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     RequestStatus status = provider.createResources(request);
     Assert.assertNotNull(status);
 
@@ -797,8 +825,17 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertTrue(executionCommand.getRoleParams().containsKey(KeyNames.PACKAGE_VERSION));
   }
 
-  @Test
-  public void testCreateResourcesWithNonManagedOS() throws Exception {
+   @Test
+   public void testCreateResourcesWithNonManagedOSAsAdministrator() throws Exception {
+     testCreateResourcesWithNonManagedOS(TestAuthenticationFactory.createAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesWithNonManagedOSAsClusterAdministrator() throws Exception {
+     testCreateResourcesWithNonManagedOS(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   private void testCreateResourcesWithNonManagedOS(Authentication authentication) throws Exception {
     JsonArray json = new JsonParser().parse(OS_JSON).getAsJsonArray();
 
     JsonObject jsonObj = json.get(0).getAsJsonObject();
@@ -999,6 +1036,8 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     RequestStatus status = provider.createResources(request);
     Assert.assertNotNull(status);
 
@@ -1014,12 +1053,17 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertEquals("[]", executionCommand.getRoleParams().get("base_urls"));
   }
 
-  /**
-   * Tests manual finalization scenario
-   * @throws Exception
-   */
-  @Test
-  public void testUpdateResources() throws Exception {
+   @Test
+   public void testUpdateResourcesAsAdministrator() throws Exception {
+     testUpdateResources(TestAuthenticationFactory.createAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+     testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   private void testUpdateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
     String clusterName = "Cluster100";
 
@@ -1150,6 +1194,8 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     provider.updateResources(request, null);
 
     // verify
@@ -1158,14 +1204,17 @@ public class ClusterStackVersionResourceProviderTest {
             new StackId(newDesiredStack.getStackName(), newDesiredStack.getStackVersion()));
   }
 
-  /**
-   * Tests manual finalization scenario
-   * @throws Exception
-   */
-  @Test
-  public void testUpdateResourcesWithForce() throws Exception {
+   @Test
+   public void testUpdateResourcesWithForceAsAdministrator() throws Exception {
+     testUpdateResourcesWithForce(TestAuthenticationFactory.createAdministrator());
+   }
 
+   @Test(expected = AuthorizationException.class)
+   public void testUpdateResourcesWithForceAsClusterAdministrator() throws Exception {
+     testUpdateResourcesWithForce(TestAuthenticationFactory.createClusterAdministrator());
+   }
 
+   private void testUpdateResourcesWithForce(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
     String clusterName = "Cluster100";
 
@@ -1297,6 +1346,8 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     provider.updateResources(request, null);
 
     // verify
@@ -1305,8 +1356,17 @@ public class ClusterStackVersionResourceProviderTest {
             new StackId(newDesiredStack.getStackName(), newDesiredStack.getStackVersion()));
   }
 
-  @Test
-  public void testCreateResourcesMixed() throws Exception {
+   @Test
+   public void testCreateResourcesMixedAsAdministrator() throws Exception {
+     testCreateResourcesMixed(TestAuthenticationFactory.createAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesMixedAsClusterAdministrator() throws Exception {
+     testCreateResourcesMixed(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   private void testCreateResourcesMixed(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -1494,6 +1554,8 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     try {
       provider.createResources(request);
       Assert.fail("Expecting the create to fail due to an already installed version");
@@ -1503,8 +1565,17 @@ public class ClusterStackVersionResourceProviderTest {
 
   }
 
-  @Test
-  public void testCreateResourcesExistingUpgrade() throws Exception {
+   @Test
+   public void testCreateResourcesExistingUpgradeAsAdministrator() throws Exception {
+     testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesExistingUpgradeAsClusterAdministrator() throws Exception {
+     testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   private void testCreateResourcesExistingUpgrade(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -1549,6 +1620,8 @@ public class ClusterStackVersionResourceProviderTest {
 
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     try {
       provider.createResources(request);
