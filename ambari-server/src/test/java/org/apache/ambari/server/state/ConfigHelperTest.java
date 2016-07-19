@@ -782,7 +782,7 @@ public class ConfigHelperTest {
       hc2.setDefaultVersionTag("version1");
       schReturn.put("flume-conf", hc2);
       // invalidate cache to test new sch
-      configHelper.invalidateStaleConfigsCache();
+      configHelper.invalidateStaleConfigsCache(null);
       // Cluster level same configs
       Assert.assertFalse(configHelper.isStaleConfigs(sch, null));
 
@@ -802,7 +802,7 @@ public class ConfigHelperTest {
       hc3.setDefaultVersionTag("version1");
       hc3.getConfigGroupOverrides().put(1l, "FLUME1");
       schReturn.put("flume-conf", hc3);
-      configHelper.invalidateStaleConfigsCache();
+      configHelper.invalidateStaleConfigsCache(null);
 
       // version1 and FLUME1 - stale=false
       Assert.assertFalse(configHelper.isStaleConfigs(sch, null));
@@ -811,7 +811,7 @@ public class ConfigHelperTest {
       hc4.setDefaultVersionTag("version1");
       hc4.getConfigGroupOverrides().put(1l, "FLUME2");
       schReturn.put("flume-conf", hc4);
-      configHelper.invalidateStaleConfigsCache();
+      configHelper.invalidateStaleConfigsCache(null);
 
       // version1 and FLUME2 - stale=true
       Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
@@ -820,7 +820,7 @@ public class ConfigHelperTest {
       hc5.setDefaultVersionTag("version3");
       hc5.getConfigGroupOverrides().put(1l, "FLUME1");
       schReturn.put("flume-conf", hc5);
-      configHelper.invalidateStaleConfigsCache();
+      configHelper.invalidateStaleConfigsCache(null);
 
       // version3 and FLUME1 - stale=true
       Assert.assertTrue(configHelper.isStaleConfigs(sch, null));
