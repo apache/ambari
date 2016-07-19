@@ -22,6 +22,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCAT
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,6 +70,7 @@ import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -208,10 +210,14 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   public ClusterStackVersionResourceProvider(
           AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredUpdateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
@@ -280,7 +286,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
 
   @Override
-  public RequestStatus createResources(Request request) throws SystemException,
+  public RequestStatus createResourcesAuthorized(Request request) throws SystemException,
           UnsupportedPropertyException, ResourceAlreadyExistsException,
           NoSuchParentResourceException {
 
@@ -727,7 +733,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    * manual Stack Upgrade
    */
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     try {
@@ -848,7 +854,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   }
 
   @Override
-  public RequestStatus deleteResources(Request request, Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
     throw new SystemException("Method not supported");
