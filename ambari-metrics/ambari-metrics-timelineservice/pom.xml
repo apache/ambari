@@ -124,6 +124,9 @@
               <sources>
                 <source>
                   <location>target/lib</location>
+                  <excludes>
+                  <exclude>*tests.jar</exclude>
+                  </excludes>
                 </source>
                 <source>
                   <location>${project.build.directory}/${project.artifactId}-${project.version}.jar</location>
@@ -139,6 +142,7 @@
                   <excludes>
                     <exclude>bin/**</exclude>
                     <exclude>bin/*</exclude>
+                    <exclude>lib/*tests.jar</exclude>
                   </excludes>
                 </source>
               </sources>
@@ -249,12 +253,6 @@
   </build>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.phoenix</groupId>
-      <artifactId>phoenix-server</artifactId>
-      <version>${phoenix.version}</version>
-    </dependency>
-
     <dependency>
       <groupId>org.apache.phoenix</groupId>
       <artifactId>phoenix-core</artifactId>

@@ -54,4 +54,12 @@
         </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>livy.server.csrf_protection.enabled</name>
+    <value>true</value>
+    <description>
+            Whether to enable csrf protection for livy's rest api.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
