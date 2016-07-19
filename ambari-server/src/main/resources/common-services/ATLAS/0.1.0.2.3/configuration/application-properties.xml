@@ -123,36 +123,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>atlas.http.authentication.enabled</name>
-    <value>false</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.http.authentication.type</name>
-    <value>simple</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.http.authentication.kerberos.principal</name>
-    <value>HTTP/_HOST@EXAMPLE.COM</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.http.authentication.kerberos.keytab</name>
-    <value>/etc/security/keytabs/spnego.service.keytab</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.http.authentication.kerberos.name.rules</name>
-    <value>DEFAULT</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>atlas.notification.embedded</name>
     <value>false</value>
     <description>Indicates whether or not the notification service should be embedded.</description>
@@ -176,12 +146,6 @@
   <property>
     <name>atlas.server.https.port</name>
     <value>21443</value>
-    <description/>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>atlas.http.authentication.type</name>
-    <value>simple</value>
     <description/>
     <on-ambari-upgrade add="true"/>
   </property>
