@@ -22,6 +22,14 @@ limitations under the License.
 import ambari_simplejson as json
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.constants import Direction
+
+# executionCommand for STOP
+_ROLE_COMMAND_STOP = 'STOP'
+
+# executionCommand for a custom command (which could be STOP)
+_ROLE_COMMAND_CUSTOM = 'CUSTOM_COMMAND'
+
 
 def check_stack_feature(stack_feature, stack_version):
   """
@@ -56,4 +64,111 @@ def check_stack_feature(stack_feature, stack_version):
   else:
     raise Fail("Stack features not defined by stack")
         
+  return False
+
+
+def get_stack_feature_version(config):
+  """
+  Uses the specified ConfigDictionary to determine which version to use for stack
+  feature checks.
+
+  Normally, the commandParams/version is the correct value to use as it represent the 4-digit
+  exact stack version/build being upgrade to or downgraded to. However, there are cases where the
+  commands being sent are to stop running services which are on a different stack version from the
+  version being upgraded/downgraded to. As a result, the configurations sent for these specific
+  stop commands do not match commandParams/version.
+  :param config:  a ConfigDictionary instance to extra the hostLevelParams
+                  and commandParams from.
+  :return: the version to use when checking stack features.
+  """
+  from resource_management.libraries.functions.default import default
+
+  if "hostLevelParams" not in config or "commandParams" not in config:
+    raise Fail("Unable to determine the correct version since hostLevelParams and commandParams were not present in the configuration dictionary")
+
+  # should always be there
+  stack_version = config['hostLevelParams']['stack_version']
+
+  # something like 2.4.0.0-1234; represents the version for the command
+  # (or None if this is a cluster install and it hasn't been calculated yet)
+  version = default("/commandParams/version", None)
+
+  # something like 2.4.0.0-1234
+  # (or None if this is a cluster install and it hasn't been calculated yet)
+  current_cluster_version = default("/hostLevelParams/current_version", None)
+
+  # UPGRADE or DOWNGRADE (or None)
+  upgrade_direction = default("/commandParams/upgrade_direction", None)
+
+  # start out with the value that's right 99% of the time
+  version_for_stack_feature_checks = version if version is not None else stack_version
+
+  # if this is not an upgrade, then we take the simple path
+  if upgrade_direction is None:
+    Logger.info(
+      "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2} -> {3}".format(
+        stack_version, version, current_cluster_version, version_for_stack_feature_checks))
+
+    return version_for_stack_feature_checks
+
+  # STOP commands are the trouble maker as they are intended to stop a service not on the
+  # version of the stack being upgrade/downgraded to
+  is_stop_command = _is_stop_command(config)
+  if not is_stop_command:
+    Logger.info(
+      "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2}, upgrade_direction={3} -> {4}".format(
+        stack_version, version, current_cluster_version, upgrade_direction,
+        version_for_stack_feature_checks))
+
+    return version_for_stack_feature_checks
+
+  original_stack = default("/commandParams/original_stack", None)
+  target_stack = default("/commandParams/target_stack", None)
+
+  # something like 2.5.0.0-5678 (or None)
+  downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+
+  # guaranteed to have a STOP command now during an UPGRADE/DOWNGRADE, check direction
+  if upgrade_direction.lower() == Direction.DOWNGRADE.lower():
+    if downgrade_from_version is None:
+      Logger.warning(
+        "Unable to determine the version being downgraded when stopping services, using {0}".format(
+          version_for_stack_feature_checks))
+    else:
+      version_for_stack_feature_checks = downgrade_from_version
+  else:
+    # UPGRADE
+    if current_cluster_version is not None:
+      version_for_stack_feature_checks = current_cluster_version
+    elif original_stack is not None:
+      version_for_stack_feature_checks = original_stack
+    else:
+      version_for_stack_feature_checks = version if version is not None else stack_version
+
+  Logger.info(
+    "Stack Feature Version Info: stack_version={0}, version={1}, current_cluster_version={2}, upgrade_direction={3}, original_stack={4}, target_stack={5}, downgrade_from_version={6}, stop_command={7} -> {8}".format(
+      stack_version, version, current_cluster_version, upgrade_direction, original_stack,
+      target_stack, downgrade_from_version, is_stop_command, version_for_stack_feature_checks))
+
+  return version_for_stack_feature_checks
+
+
+def _is_stop_command(config):
+  """
+  Gets whether this is a STOP command
+  :param config:
+  :return:
+  """
+  from resource_management.libraries.functions.default import default
+
+  # STOP commands are the trouble maker as they are intended to stop a service not on the
+  # version of the stack being upgrade/downgraded to
+  role_command = config["roleCommand"]
+  if role_command == _ROLE_COMMAND_STOP:
+    return True
+
+  custom_command = default("/hostLevelParams/custom_command", None)
+  if role_command == _ROLE_COMMAND_CUSTOM and custom_command == _ROLE_COMMAND_STOP:
+    return True
+
   return False
