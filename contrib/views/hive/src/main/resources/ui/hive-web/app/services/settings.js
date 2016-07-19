@@ -172,8 +172,6 @@ export default Ember.Service.extend({
       asString += "set %@=%@;\n".fmt(setting.get('key.name'), setting.get('value'));
     });
 
-    asString += constants.globalSettings.comment;
-
     return asString;
   },
 
