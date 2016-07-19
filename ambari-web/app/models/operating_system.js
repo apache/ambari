@@ -29,7 +29,7 @@ App.OperatingSystem = DS.Model.extend({
   isSelected: DS.attr('boolean', {defaultValue: true}),
   isDeselected: Em.computed.not('isSelected'),
 
-  isEmpty: Em.computed.someBy('repositories', 'isEmpty', true)
+  isEmpty: Em.computed.everyBy('repositories', 'isEmpty', true)
 });
 
 
