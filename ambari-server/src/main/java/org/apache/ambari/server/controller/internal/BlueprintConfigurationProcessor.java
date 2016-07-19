@@ -215,7 +215,7 @@ public class BlueprintConfigurationProcessor {
           // cluster scoped configuration which also includes all default and BP properties
           Map<String, Map<String, String>> clusterProps = clusterTopology.getConfiguration().getFullProperties();
           Map<String, String> typeMap = clusterProps.get(type);
-          if (typeMap != null && typeMap.containsKey(propertyName)) {
+          if (typeMap != null && typeMap.containsKey(propertyName) && typeMap.get(propertyName) != null) {
             requiredHostGroups.addAll(updater.getRequiredHostGroups(
                 propertyName, typeMap.get(propertyName), clusterProps, clusterTopology));
           }
@@ -266,7 +266,7 @@ public class BlueprintConfigurationProcessor {
 
           // topo cluster scoped configuration which also includes all default and BP properties
           Map<String, String> typeMap = clusterProps.get(type);
-          if (typeMap != null && typeMap.containsKey(propertyName)) {
+          if (typeMap != null && typeMap.containsKey(propertyName) && typeMap.get(propertyName) != null) {
             final String originalValue = typeMap.get(propertyName);
             final String updatedValue =
               updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
