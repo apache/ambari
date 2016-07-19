@@ -1,0 +1,38 @@
+{
+  "output": [
+    {
+      "is_enabled": "true",
+      "comment": "Output to solr for service logs",
+      "destination": "solr",
+      "zk_connect_string": "localhost:9983",
+      "collection": "hadoop_logs",
+      "number_of_shards": "3",
+      "splits_interval_mins": "2",
+      "skip_logtime": "true",
+      "conditions": {
+        "fields": {
+          "rowtype": [
+            "service"
+          ]
+        }
+      }
+    },
+    {
+      "comment": "Output to solr for audit records",
+      "is_enabled": "true",
+      "destination": "solr",
+      "zk_connect_string": "localhost:9983",
+      "collection": "audit_logs",
+      "number_of_shards": "3",
+      "splits_interval_mins": "2",
+      "skip_logtime": "true",
+      "conditions": {
+        "fields": {
+          "rowtype": [
+            "audit"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -158,6 +158,8 @@
             <exclude>README.md</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.log</exclude>
+            <exclude>**/*.txt</exclude>
+            <exclude>**/docker/Profile</exclude>
           </excludes>
         </configuration>
         <executions>

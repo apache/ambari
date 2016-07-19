@@ -59,6 +59,7 @@ public class OutputSolr extends Output {
   private static final int DEFAULT_NUMBER_OF_SHARDS = 1;
   private static final int DEFAULT_SPLIT_INTERVAL = 30;
   private static final int DEFAULT_NUMBER_OF_WORKERS = 1;
+  private static final boolean DEFAULT_SKIP_LOGTIME = false;
 
   private static final int RETRY_INTERVAL = 30;
 
@@ -71,6 +72,7 @@ public class OutputSolr extends Output {
   private int maxBufferSize;
   private boolean isComputeCurrentCollection = false;
   private int lastSlotByMin = -1;
+  private boolean skipLogtime = false;
 
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
@@ -95,6 +97,8 @@ public class OutputSolr extends Output {
     isComputeCurrentCollection = !splitMode.equalsIgnoreCase("none");
     
     numberOfShards = getIntValue("number_of_shards", DEFAULT_NUMBER_OF_SHARDS);
+
+    skipLogtime = getBooleanValue("skip_logtime", DEFAULT_SKIP_LOGTIME);
 
     maxIntervalMS = getIntValue("idle_flush_time_ms", DEFAULT_MAX_INTERVAL_MS);
     workers = getIntValue("workers", DEFAULT_NUMBER_OF_WORKERS);
@@ -243,9 +247,16 @@ public class OutputSolr extends Output {
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     try {
       trimStrValue(jsonObj);
+      useActualDateIfNeeded(jsonObj);
       outgoingBuffer.put(new OutputData(jsonObj, inputMarker));
     } catch (InterruptedException e) {
       // ignore
+    }
+  }
+
+  private void useActualDateIfNeeded(Map<String, Object> jsonObj) {
+    if (skipLogtime) {
+      jsonObj.put("logtime", LogFeederUtil.getActualDateStr());
     }
   }
 
