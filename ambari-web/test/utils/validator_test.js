@@ -480,4 +480,21 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isValidLdapsURL()', function() {
+    var tests = [
+      {m: '"" - invalid', i: '', e: false},
+      {m: '"http://example.com" - invalid', i: 'http://example.com', e: false},
+      {m: '"ldap://example.com" - invalid', i: 'ldap://example.com', e: false},
+      {m: '"ldaps://example.com" - valid', i: 'ldaps://example.com', e: true},
+      {m: '"ldaps://example.com:636" - valid', i: 'ldaps://example.com:636', e: true},
+      {m: '"ldaps://example.com:636/path" - valid', i: 'ldaps://example.com:636/path', e: true},
+      {m: '"ldaps://example.com:6eeee36/path" - valid', i: 'ldaps://example.com:6eee36/path', e: false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidLdapsURL(test.i)).to.equal(test.e);
+      })
+    });
+  });
 });
