@@ -232,34 +232,35 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putHiveSitePropertyAttribute('datanucleus.rdbms.datastoreAdapterClassName', 'delete', 'true')
 
-    # atlas
+    # Atlas
     hooks_property = "hive.exec.post.hooks"
+    atlas_hook_class = "org.apache.atlas.hive.hook.HiveHook"
     if hooks_property in configurations["hive-site"]["properties"]:
       hooks_value = configurations["hive-site"]["properties"][hooks_property]
     else:
-      hooks_value = " "
+      hooks_value = ""
 
-    include_atlas = "ATLAS" in servicesList
-    atlas_hook_class = "org.apache.atlas.hive.hook.HiveHook"
-    if include_atlas and atlas_hook_class not in hooks_value:
-      if hooks_value == " ":
-        hooks_value = atlas_hook_class
-      else:
-        hooks_value = hooks_value + "," + atlas_hook_class
-    if not include_atlas and atlas_hook_class in hooks_value:
-      hooks_classes = []
-      for hook_class in hooks_value.split(","):
-        if hook_class != atlas_hook_class and hook_class != " ":
-          hooks_classes.append(hook_class)
-      if hooks_classes:
-        hooks_value = ",".join(hooks_classes)
-      else:
-        hooks_value = " "
+
+    hive_hooks = [x.strip() for x in hooks_value.split(",")]
+    hive_hooks = [x for x in hive_hooks if x != ""]
+    is_atlas_present_in_cluster = "ATLAS" in servicesList
+
+    if is_atlas_present_in_cluster:
+      # Append atlas hook if not already present.
+      is_atlas_hook_in_config = atlas_hook_class in hive_hooks
+      if not is_atlas_hook_in_config:
+        hive_hooks.append(atlas_hook_class)
+    else:
+      # Remove the atlas hook since Atlas service is not present.
+      hive_hooks = [x for x in hive_hooks if x != atlas_hook_class]
+
+    # Convert hive_hooks back to a csv, unless there are 0 elements, which should be " "
+    hooks_value = " " if len(hive_hooks) == 0 else ",".join(hive_hooks)
     putHiveSiteProperty(hooks_property, hooks_value)
 
     # This is no longer used in HDP 2.5, but still needed in HDP 2.3 and 2.4
     atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
-    if include_atlas and atlas_server_host_info:
+    if is_atlas_present_in_cluster and atlas_server_host_info:
       atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
       scheme = "http"
       metadata_port = "21000"

@@ -563,10 +563,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     timeline_plugin_classes_values = []
     timeline_plugin_classpath_values = []
 
-    if "tez-site" in services["configurations"]:
+    if self.__isServiceDeployed(services, "TEZ"):
       timeline_plugin_classes_values.append('org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
 
-    if "spark-defaults" in services["configurations"]:
+    if self.__isServiceDeployed(services, "SPARK"):
       timeline_plugin_classes_values.append('org.apache.spark.deploy.history.yarn.plugin.SparkATSPlugin')
       timeline_plugin_classpath_values.append(stack_root + "/${hdp.version}/spark/hdpLib/*")
 
@@ -1757,6 +1757,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                               "item": self.getWarnItem("Kerberos Solr (ranger.is.solr.kerberised) should not be enabled in non-kerberos environment.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-admin-site")
+
+  def __isServiceDeployed(self, services, serviceName):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    return serviceName in servicesList
 
   """
   Returns the host(s) on which a requested service's component is hosted.

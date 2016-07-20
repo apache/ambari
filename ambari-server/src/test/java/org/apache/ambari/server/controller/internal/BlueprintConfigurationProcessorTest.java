@@ -5828,18 +5828,111 @@ public class BlueprintConfigurationProcessorTest {
   
   @Test
   public void testAtlasHiveProperties() throws Exception {
+    Map<String, Map<String, String>> properties = getAtlasHivePropertiesForTestCase();
+    validateAtlasHivePropertiesForTestCase(properties);
+  }
+
+  /**
+   * If the Hive Exec Hooks property doesn't contain the Atlas Hook, then add it.
+   * @throws Exception
+   */
+  @Test
+  public void testAtlasHivePropertiesWithHiveHookSpace() throws Exception {
+    Map<String, Map<String, String>> properties = getAtlasHivePropertiesForTestCase();
+
+    Map<String, String> hiveProperties = properties.get("hive-site");
+    hiveProperties.put("hive.exec.post.hooks", " ");
+    properties.put("hive-site", hiveProperties);
+    validateAtlasHivePropertiesForTestCase(properties);
+  }
+
+  /***
+   * If the Atlas Hook already exists, don't append it.
+   * @throws Exception
+   */
+  @Test
+  public void testAtlasHivePropertiesWithAtlasHookAlreadyExist() throws Exception {
+    Map<String, Map<String, String>> properties = getAtlasHivePropertiesForTestCase();
+
+    Map<String, String> hiveProperties = properties.get("hive-site");
+    hiveProperties.put("hive.exec.post.hooks", "org.apache.atlas.hive.hook.HiveHook");
+    properties.put("hive-site", hiveProperties);
+    validateAtlasHivePropertiesForTestCase(properties);
+  }
+
+  /**
+   * Generate sample collection of properties for some of the test cases.
+   * @return Map of sample properties
+   */
+  private Map<String, Map<String, String>> getAtlasHivePropertiesForTestCase() {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
     Map<String, String> atlasProperties = new HashMap<String, String>();
-    properties.put("application-properties", atlasProperties);
     atlasProperties.put("atlas.enableTLS", "false");
     atlasProperties.put("atlas.server.bind.address", "localhost");
     atlasProperties.put("atlas.server.http.port", "21000");
+    properties.put("application-properties", atlasProperties);
+
+    Map<String, String> atlasEnv = new HashMap<String, String>();
+    properties.put("atlas-env", atlasEnv);
+
+    Map<String, String> hiveProperties = new HashMap<String, String>();
+    hiveProperties.put("hive.exec.post.hooks", "");
+    hiveProperties.put("atlas.cluster.name", "primary");
+    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
+    properties.put("hive-site", hiveProperties);
+
+    return properties;
+  }
+
+  /**
+   * For several test cases, validate that org.apache.atlas.hive.hook.HiveHook has the correct value.
+   * @param properties Map of properties to validate
+   * @throws Exception
+   */
+  private void validateAtlasHivePropertiesForTestCase(Map<String, Map<String, String>> properties) throws Exception {
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("ATLAS_SERVER");
+    hgComponents1.add("HIVE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology1 = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology1);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
+    assertEquals("1", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
+    assertEquals("http://host1:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+    assertEquals("host1", clusterConfig.getPropertyValue("application-properties", "atlas.server.bind.address"));
+  }
+
+  @Test
+  public void testAtlasHivePropertiesWithHTTPS() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> atlasProperties = new HashMap<String, String>();
+    properties.put("application-properties", atlasProperties);
+    // use https
+    atlasProperties.put("atlas.enableTLS", "true");
+    atlasProperties.put("atlas.server.bind.address", "localhost");
+    atlasProperties.put("atlas.server.https.port", "99999");
     Map<String, String> atlasEnv = new HashMap<String, String>();
 
     properties.put("atlas-env", atlasEnv);
     Map<String, String> hiveProperties = new HashMap<String, String>();
-    hiveProperties.put("hive.exec.post.hooks", "");
-    hiveProperties.put("atlas.cluster.name", "primary");
+    // default hook registered
+    hiveProperties.put("hive.exec.post.hooks", "foo");
+    // user specified cluster name
+    hiveProperties.put("atlas.cluster.name", "userSpecified");
     hiveProperties.put("atlas.rest.address", "http://localhost:21000");
     properties.put("hive-site", hiveProperties);
 
@@ -5863,10 +5956,9 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
-    assertEquals("1", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
-    assertEquals("http://host1:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
-    assertEquals("host1", clusterConfig.getPropertyValue("application-properties", "atlas.server.bind.address"));
+    assertEquals("foo,org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
+    assertEquals("userSpecified", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
+    assertEquals("https://host1:99999", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
   }
 
   @Test
@@ -5993,51 +6085,6 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("user.Reporter,org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter",
       clusterConfig.getPropertyValue("kafka-broker", "kafka.metrics.reporters"));
 
-  }
-
-  @Test
-  public void testAtlasHiveProperties2() throws Exception {
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> atlasProperties = new HashMap<String, String>();
-    properties.put("application-properties", atlasProperties);
-    // use https
-    atlasProperties.put("atlas.enableTLS", "true");
-    atlasProperties.put("atlas.server.bind.address", "localhost");
-    atlasProperties.put("atlas.server.https.port", "99999");
-    Map<String, String> atlasEnv = new HashMap<String, String>();
-
-    properties.put("atlas-env", atlasEnv);
-    Map<String, String> hiveProperties = new HashMap<String, String>();
-    // default hook registered
-    hiveProperties.put("hive.exec.post.hooks", "foo");
-    // user specified cluster name
-    hiveProperties.put("atlas.cluster.name", "userSpecified");
-    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
-    properties.put("hive-site", hiveProperties);
-
-
-    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
-    Configuration parentClusterConfig = new Configuration(parentProperties,
-        Collections.<String, Map<String, Map<String, String>>>emptyMap());
-    Configuration clusterConfig = new Configuration(properties,
-        Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
-
-
-    Collection<String> hgComponents1 = new HashSet<String>();
-    hgComponents1.add("ATLAS_SERVER");
-    hgComponents1.add("HIVE_SERVER");
-    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
-
-    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
-
-    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
-    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
-
-    configProcessor.doUpdateForClusterCreate();
-
-    assertEquals("foo,org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
-    assertEquals("userSpecified", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
-    assertEquals("https://host1:99999", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
   }
 
   @Test
