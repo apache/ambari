@@ -254,6 +254,21 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
         putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(recommended_mem), unit))
 
+      # Set default hawq_rm_nvseg_perquery_perseg_limit to 6, only if value was less than 6
+      if "hawq_rm_nvseg_perquery_perseg_limit" in hawq_site and int(hawq_site["hawq_rm_nvseg_perquery_perseg_limit"]) < 6:
+        putHawqSiteProperty('hawq_rm_nvseg_perquery_perseg_limit', 6)
+
+      if "hawq_global_rm_type" in hawq_site and "hawq_rm_memory_limit_perseg" in hawq_site:
+        hawq_rm_memory_limit_perseg = hawq_site["hawq_rm_memory_limit_perseg"].strip()
+        unit = hawq_rm_memory_limit_perseg[-2:]
+        value = hawq_rm_memory_limit_perseg[:-2]
+        # For clusters running with hawq_rm_memory_limit_perseg greater than or equal to 1GB but less than 2GB
+        if (unit == "GB" and 1 <= int(value) < 2) or (unit == "MB" and 1024 <= int(value) < 2048):
+          factor = 4 # Since memory is less drop hawq_rm_nvseg_perquery_perseg_limit to 4
+          buckets = min(factor * numSegments, int(hawq_site["default_hash_table_bucket_number"])) if "default_hash_table_bucket_number" in hawq_site else factor * numSegments
+          putHawqSiteProperty('default_hash_table_bucket_number', buckets)
+          putHawqSiteProperty('hawq_rm_nvseg_perquery_perseg_limit', factor)
+
       # Show / Hide properties based on the value of hawq_global_rm_type
       YARN_MODE = True if hawq_site["hawq_global_rm_type"].lower() == "yarn" else False
       yarn_mode_properties_visibility = {
@@ -279,7 +294,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
   def getHAWQYARNPropertyMapping(self):
     return { "hawq_rm_yarn_address": "yarn.resourcemanager.address", "hawq_rm_yarn_scheduler_address": "yarn.resourcemanager.scheduler.address" }
 
-  def getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     siteName = "hawq-site"
     method = self.validateHAWQSiteConfigurations
     items = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
@@ -367,6 +382,15 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         int(hawq_site["default_hash_table_bucket_number"]) > int(hawq_site["hawq_rm_nvseg_perquery_limit"])):
       message = "Default buckets for Hash Distributed tables parameter value should not be greater than the value of Virtual Segments Limit per Query (Total) parameter, currently set to {0}.".format(hawq_site["hawq_rm_nvseg_perquery_limit"])
       validationItems.append({"config-name": "default_hash_table_bucket_number", "item": self.getErrorItem(message)})
+
+    if "hawq_global_rm_type" in hawq_site and "hawq_rm_memory_limit_perseg" in hawq_site:
+      hawq_rm_memory_limit_perseg = hawq_site["hawq_rm_memory_limit_perseg"]
+      unit = hawq_rm_memory_limit_perseg[-2:]
+      value = hawq_rm_memory_limit_perseg[:-2]
+      # For clusters running with hawq_rm_memory_limit_perseg less than 1GB
+      if (unit == "GB" and int(value) < 1) or (unit == "MB" and int(value) < 1024):
+        message = "HAWQ Segment Memory less than 1GB is not sufficient"
+        validationItems.append({"config-name": "hawq_global_rm_type", "item": self.getErrorItem(message)})
 
     return self.toConfigurationValidationProblems(validationItems, "hawq-site")
 

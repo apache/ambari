@@ -86,7 +86,7 @@ class PXF300ServiceAdvisor(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
-  def getConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
+  def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     siteName = "hbase-env"
     method = self.validatePXFHBaseEnvConfigurations
     items = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)

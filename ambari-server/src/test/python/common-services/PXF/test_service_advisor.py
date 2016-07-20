@@ -121,12 +121,12 @@ class TestPXF300ServiceAdvisor(TestCase):
         "level": "WARN"
       }
     ]
-    items = self.serviceAdvisor.getConfigurationsValidationItems(properties, properties, services, None)
+    items = self.serviceAdvisor.getServiceConfigurationsValidationItems(properties, properties, services, None)
     self.assertEquals(items, expected)
 
     # Case 2: No warning should be generated if PXF_PATH is present in hbase-env
     properties = services["configurations"]["hbase-env"]["properties"]["content"] = self.PXF_PATH
-    items = self.serviceAdvisor.getConfigurationsValidationItems(properties, properties, services, None)
+    items = self.serviceAdvisor.getServiceConfigurationsValidationItems(properties, properties, services, None)
     self.assertEquals(items, [])
 
 
