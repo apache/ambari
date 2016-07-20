@@ -38,6 +38,7 @@ http://www.springframework.org/schema/security/spring-security-4.0.xsd">
 		<csrf disabled="true"/> 
 		<security:session-management session-fixation-protection="newSession" />
 		<intercept-url pattern="/**" access="isAuthenticated()"/>       
+        <security:custom-filter ref="krbAuthenticationFilter" after="FIRST" />
 		<security:custom-filter position="FORM_LOGIN_FILTER" ref="logsearchUsernamePasswordAuthenticationFilter"/>
 		<security:custom-filter position="LAST" ref="userContextFormationFilter"/>
 		<security:logout delete-cookies="JSESSIONID" logout-url="/logout.html" success-handler-ref="logsearchLogoutSuccessHandler" />
@@ -46,6 +47,8 @@ http://www.springframework.org/schema/security/spring-security-4.0.xsd">
 
 	<beans:bean id="userContextFormationFilter" class="org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter"/>
 
+    <beans:bean id="krbAuthenticationFilter" class="org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter"/>
+  
 	<beans:bean id="logsearchUsernamePasswordAuthenticationFilter" class="org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter">
 		<beans:property name="authenticationManager" ref="authenticationManager"/>
 		<beans:property name="authenticationSuccessHandler" ref="authSuccessHandler"/>

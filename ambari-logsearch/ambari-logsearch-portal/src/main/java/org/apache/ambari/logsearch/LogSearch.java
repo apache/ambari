@@ -70,7 +70,6 @@ public class LogSearch {
     Timer timer = new Timer();
     timer.schedule(new ManageStartEndTime(), 0, 40000);
     try {
-      ConfigUtil.initializeApplicationConfig();
       logSearch.run(argv);
     } catch (Throwable e) {
       logger.error("Error running logsearch server", e);
@@ -93,6 +92,7 @@ public class LogSearch {
     logger.debug(server.dump());
     logger
         .debug("==============================================================================");
+    ConfigUtil.initializeApplicationConfig();
     server.join();
   }
   
