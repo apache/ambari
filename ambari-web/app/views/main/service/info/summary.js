@@ -198,7 +198,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     if (source.length > data.length) {
       sourceIds.forEach(function(item, index) {
         if (!dataIds.contains(item)) {
-          source.removeAt(index);
+          var sourceItem = source.findProperty('id',item);
+          source.removeObject(sourceItem);
         }
       });
     } else if (source.length < data.length) {
