@@ -44,7 +44,7 @@ App.WidgetPopoverSupport = Em.Mixin.create({
    * @type {string}
    */
   popoverPlacement: function () {
-    return this.get('section.isLastColumn') && this.get('subSection.isLastColumn')? 'left' : 'right';
+    return this.get('section.isLastColumn') && this.get('subSection.isLastColumn') ? 'left' : 'right';
   }.property('section.isLastColumn', 'subSection.isLastColumn'),
 
   initPopover: function () {

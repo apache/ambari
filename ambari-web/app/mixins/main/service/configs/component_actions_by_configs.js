@@ -31,7 +31,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @public
    * @method doConfigActions
    */
-  doConfigActions: function() {
+  doConfigActions: function () {
     var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var configActionComponents = serviceConfigs.filterProperty('configActionComponent');
     this.doComponentDeleteActions(configActionComponents);
@@ -44,7 +44,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @public
    * @method isComponentActionsPresent
    */
-  isComponentActionsPresent: function() {
+  isComponentActionsPresent: function () {
     var serviceConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var configActionComponents = serviceConfigs.filterProperty('configActionComponent');
     return !!(this.getComponentsToDelete(configActionComponents).length + this.getComponentsToAdd(configActionComponents).length);
@@ -57,11 +57,13 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method getComponentsToDelete
    */
-  getComponentsToDelete: function(configActionComponents) {
-    return configActionComponents.filterProperty('configActionComponent.action', 'delete').map(function(item){
+  getComponentsToDelete: function (configActionComponents) {
+    var hostComponents = App.HostComponent.find();
+    return configActionComponents.filterProperty('configActionComponent.action', 'delete').map(function (item) {
       return item.configActionComponent;
-    }).filter(function(_componentToDelete){
-      return  App.HostComponent.find().filterProperty('componentName',_componentToDelete.componentName).someProperty('hostName', _componentToDelete.hostName);
+    }).filter(function (_componentToDelete) {
+      return hostComponents.filterProperty('componentName', _componentToDelete.componentName)
+                           .someProperty('hostName', _componentToDelete.hostName);
     }, this);
   },
 
@@ -72,15 +74,17 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method getComponentsToDelete
    */
-  getComponentsToAdd: function(configActionComponents) {
-    return configActionComponents.filterProperty('configActionComponent.action', 'add').map(function(item){
+  getComponentsToAdd: function (configActionComponents) {
+    var ssc = App.StackServiceComponent.find(),
+        services = App.Service.find();
+    return configActionComponents.filterProperty('configActionComponent.action', 'add').map(function (item) {
       return item.configActionComponent;
-    }).filter(function(_componentToAdd) {
-      var serviceNameForcomponent = App.StackServiceComponent.find().findProperty('componentName',_componentToAdd.componentName).get('serviceName');
+    }).filter(function (_componentToAdd) {
+      var serviceNameForcomponent = ssc.findProperty('componentName', _componentToAdd.componentName).get('serviceName');
       // List of host components to be added should not include ones that are already present in the cluster.
       // Need to do below check from App.Service model as it keeps getting polled and updated on service page.
-      return  !App.Service.find().findProperty('serviceName', serviceNameForcomponent).get('hostComponents').
-               filterProperty('componentName',_componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
+      return !services.findProperty('serviceName', serviceNameForcomponent).get('hostComponents').
+        filterProperty('componentName', _componentToAdd.componentName).someProperty('hostName', _componentToAdd.hostName);
     }, this);
   },
 
@@ -90,16 +94,16 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method {configActionComponents}
    */
-  doComponentDeleteActions: function(configActionComponents) {
+  doComponentDeleteActions: function (configActionComponents) {
     var componentsToDelete = this.getComponentsToDelete(configActionComponents);
     if (componentsToDelete.length) {
       // There is always only one item to delete when doing config actions.
-      var componentToDelete  =  componentsToDelete[0];
+      var componentToDelete = componentsToDelete[0];
       var componentName = componentToDelete.componentName;
       var hostName = componentToDelete.hostName;
-      var displayName = App.StackServiceComponent.find().findProperty('componentName',  componentToDelete.componentName).get('displayName');
+      var displayName = App.StackServiceComponent.find().findProperty('componentName', componentToDelete.componentName).get('displayName');
       var context = Em.I18n.t('requestInfo.stop').format(displayName);
-      var batches =[];
+      var batches = [];
 
       this.setRefreshYarnQueueRequest(batches);
       batches.push(this.getInstallHostComponentsRequest(hostName, componentName, context));
@@ -124,37 +128,23 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method {doComponentAddActions}
    */
-  doComponentAddActions: function(configActionComponents) {
-    var self = this;
+  doComponentAddActions: function (configActionComponents) {
     var componentsToAdd = this.getComponentsToAdd(configActionComponents);
-    var dependentComponents = [];
+
     if (componentsToAdd.length) {
-      componentsToAdd.forEach(function(_component) {
-        var dependencies = App.StackServiceComponent.find(_component.componentName).get('dependencies').filterProperty('scope', 'host').map(function(_dependency){
-          return {
-            componentName: _dependency.componentName,
-            hostName:  _component.hostName,
-            isClient: App.StackServiceComponent.find(_dependency.componentName).get('isClient')
-          }
-        }, this);
-        var dependenciesToInstall =  dependencies.filter(function (_dependencyToAdd) {
-          var isInstalled = App.HostComponent.find().filterProperty('componentName', _dependencyToAdd.componentName).someProperty('hostName', _dependencyToAdd.hostName);
-          var isAddedToInstall =  dependentComponents.filterProperty('componentName',_dependencyToAdd.componentName).someProperty('hostName', _dependencyToAdd.hostName);
-          return !(isInstalled || isAddedToInstall);
-        }, this);
-        dependentComponents = dependentComponents.concat(dependenciesToInstall);
-      }, this);
-      var allComponentsToAdd = componentsToAdd.concat(dependentComponents);
+      var allComponentsToAdd = componentsToAdd.concat(this.getDependentComponents(componentsToAdd));
       var allComponentsToAddHosts = allComponentsToAdd.mapProperty('hostName').uniq();
-      allComponentsToAddHosts.forEach(function(_hostName){
+
+      allComponentsToAddHosts.forEach(function (_hostName) {
         var hostComponents = allComponentsToAdd.filterProperty('hostName', _hostName).mapProperty('componentName').uniq();
-        var masterHostComponents =  allComponentsToAdd.filterProperty('hostName', _hostName).filterProperty('isClient', false).mapProperty('componentName').uniq();
-        var displayNames = masterHostComponents.map(function(item) {
+        var masterHostComponents = allComponentsToAdd.filterProperty('hostName', _hostName).filterProperty('isClient', false).mapProperty('componentName').uniq();
+        var displayNames = masterHostComponents.map(function (item) {
           return App.StackServiceComponent.find().findProperty('componentName', item).get('displayName');
         });
-        var displayStr =  stringUtils.getFormattedStringFromArray(displayNames);
+
+        var displayStr = stringUtils.getFormattedStringFromArray(displayNames);
         var context = Em.I18n.t('requestInfo.start').format(displayStr);
-        var batches =[];
+        var batches = [];
         this.setCreateComponentRequest(batches, hostComponents);
         batches.push(this.getCreateHostComponentsRequest(_hostName, hostComponents));
         batches.push(this.getInstallHostComponentsRequest(_hostName, hostComponents));
@@ -176,13 +166,39 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
   },
 
   /**
+   * @method getDependentComponents
+   * @param {Array} componentsToAdd
+   * @returns {Array}
+   */
+  getDependentComponents: function(componentsToAdd) {
+    var dependentComponents = [];
+
+    componentsToAdd.forEach(function (_component) {
+      var dependencies = App.StackServiceComponent.find(_component.componentName).get('dependencies').filterProperty('scope', 'host').map(function (_dependency) {
+        return {
+          componentName: _dependency.componentName,
+          hostName: _component.hostName,
+          isClient: App.StackServiceComponent.find(_dependency.componentName).get('isClient')
+        }
+      }, this);
+      var dependenciesToInstall = dependencies.filter(function (_dependencyToAdd) {
+        var isInstalled = App.HostComponent.find().filterProperty('componentName', _dependencyToAdd.componentName).someProperty('hostName', _dependencyToAdd.hostName);
+        var isAddedToInstall = dependentComponents.filterProperty('componentName', _dependencyToAdd.componentName).someProperty('hostName', _dependencyToAdd.hostName);
+        return !(isInstalled || isAddedToInstall);
+      }, this);
+      dependentComponents = dependentComponents.concat(dependenciesToInstall);
+    }, this);
+    return dependentComponents;
+  },
+
+  /**
    * Sets order_id for each batch request in the `batches` array
    * @param batches {Array}
    * @private
    * @method {setOrderIdForBatches}
    */
-  setOrderIdForBatches: function(batches) {
-    batches.forEach(function(_batch, index){
+  setOrderIdForBatches: function (batches) {
+    batches.forEach(function (_batch, index) {
       _batch.order_id = index + 1;
     }, this);
   },
@@ -193,18 +209,18 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @param components {String[]}|{String}
    * @return {Object} Deferred promise
    */
-  getCreateHostComponentsRequest: function(hostName, components) {
-    var query =  "Hosts/host_name.in(" + hostName + ")";
+  getCreateHostComponentsRequest: function (hostName, components) {
+    var query = "Hosts/host_name.in(" + hostName + ")";
     components = (Array.isArray(components)) ? components : [components];
-    var hostComponent = components.map(function(_componentName){
+    var hostComponent = components.map(function (_componentName) {
       return {
-        "HostRoles":{
-          "component_name":_componentName
+        "HostRoles": {
+          "component_name": _componentName
         }
       }
     }, this);
 
-    return  {
+    return {
       "type": 'POST',
       "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts",
       "RequestBodyInfo": {
@@ -225,7 +241,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @param context {String} Optional
    * @return {Object}
    */
-  getInstallHostComponentsRequest: function(hostName, components, context) {
+  getInstallHostComponentsRequest: function (hostName, components, context) {
     context = context || Em.I18n.t('requestInfo.installComponents');
     return this.getUpdateHostComponentsRequest(hostName, components, App.HostComponentStatus.stopped, context);
   },
@@ -237,7 +253,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @param context {String} Optional
    * @return {Object}
    */
-  getStartHostComponentsRequest: function(hostName, components, context) {
+  getStartHostComponentsRequest: function (hostName, components, context) {
     context = context || Em.I18n.t('requestInfo.startHostComponents');
     return this.getUpdateHostComponentsRequest(hostName, components, App.HostComponentStatus.started, context);
   },
@@ -253,11 +269,11 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @method {getUpdateHostComponentsRequest}
    * @return {Object}
    */
-  getUpdateHostComponentsRequest: function(hostName, components, desiredState, context) {
+  getUpdateHostComponentsRequest: function (hostName, components, desiredState, context) {
     components = (Array.isArray(components)) ? components : [components];
     var query = "HostRoles/component_name.in(" + components.join(',') + ")";
 
-    return  {
+    return {
       "type": 'PUT',
       "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components",
       "RequestBodyInfo": {
@@ -287,7 +303,7 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @method {getDeleteHostComponentRequest}
    * @return {Object}
    */
-  getDeleteHostComponentRequest: function(hostName, component) {
+  getDeleteHostComponentRequest: function (hostName, component) {
     return {
       "type": 'DELETE',
       "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/hosts/" + hostName + "/host_components/" + component
@@ -301,10 +317,13 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method {setCreateComponentRequest}
    */
-  setCreateComponentRequest: function(batches, hostComponents) {
-    hostComponents.forEach(function(_componentName){
-      var serviceName = App.StackServiceComponent.find().findProperty('componentName',  _componentName).get('serviceName');
-      var serviceComponents = App.Service.find().findProperty('serviceName', serviceName).get('serviceComponents');
+  setCreateComponentRequest: function (batches, hostComponents) {
+    var stackServices = App.StackServiceComponent.find(),
+        services = App.Service.find();
+
+    hostComponents.forEach(function (_componentName) {
+      var serviceName = stackServices.findProperty('componentName', _componentName).get('serviceName');
+      var serviceComponents = services.findProperty('serviceName', serviceName).get('serviceComponents');
       if (!serviceComponents.contains(_componentName)) {
         batches.push({
           "type": 'POST',
@@ -320,25 +339,27 @@ App.ComponentActionsByConfigs = Em.Mixin.create({
    * @private
    * @method {setRefreshYarnQueueRequest}
    */
-  setRefreshYarnQueueRequest: function(batches) {
-    var capacitySchedulerConfigs = this.get('allConfigs').filterProperty('filename', 'capacity-scheduler.xml').filter(function(item){
+  setRefreshYarnQueueRequest: function (batches) {
+    var capacitySchedulerConfigs = this.get('allConfigs')
+                                  .filterProperty('filename', 'capacity-scheduler.xml')
+                                  .filter(function (item) {
       return item.get('value') !== item.get('initialValue');
     });
 
     if (capacitySchedulerConfigs.length) {
       var serviceName = 'YARN';
       var componentName = 'RESOURCEMANAGER';
-      var commandName = 'REFRESHQUEUES';
-      var tag = 'capacity-scheduler';
-      var hostNames = App.Service.find(serviceName).get('hostComponents').filterProperty('componentName', componentName).mapProperty('hostName');
+      var hostNames = App.Service.find(serviceName).get('hostComponents')
+                                                   .filterProperty('componentName', componentName)
+                                                   .mapProperty('hostName');
       batches.push({
         "type": 'POST',
         "uri": App.get('apiPrefix') + "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
             "context": Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
-            "command": commandName,
-            "parameters/forceRefreshConfigTags": tag
+            "command": "REFRESHQUEUES",
+            "parameters/forceRefreshConfigTags": "capacity-scheduler"
           },
           "Requests/resource_filters": [
             {
