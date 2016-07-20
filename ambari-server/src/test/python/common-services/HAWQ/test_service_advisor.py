@@ -180,7 +180,8 @@ class TestHAWQ200ServiceAdvisor(TestCase):
         "properties": {
           "hawq_rm_memory_limit_perseg": "65535MB",
           "hawq_rm_nvcore_limit_perseg": "16",
-          "hawq_global_rm_type": "yarn"
+          "hawq_global_rm_type": "yarn",
+          "default_hash_table_bucket_number": 18
         }
       },
       "hdfs-site": {
@@ -356,6 +357,44 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")
 
+    ## Test if default_hash_table_bucket_number and hawq_rm_nvseg_perquery_perseg_limit are set correctly based on low hawq_rm_memory_limit_perseg
+
+    # Case 1: When hawq_rm_memory_limit_perseg is between 1GB and 2GB
+    # Set hawq_rm_nvseg_perquery_perseg_limit to 4 and default_hash_table_bucket_number as hawq_rm_nvseg_perquery_perseg_limit * numSegments
+    hosts["items"][0]["Hosts"]["total_mem"] = 2097152
+    hosts["items"][1]["Hosts"]["total_mem"] = 2097152
+    hosts["items"][3]["Hosts"]["total_mem"] = 2097152
+    services["configurations"]["hawq-site"]["properties"]["hawq_global_rm_type"] = "none"
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_limit"] = "512"
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "1152MB")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "8")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_perseg_limit"], "4")
+
+    # Case 2: When hawq_rm_memory_limit_perseg > 2GB
+    # Set hawq_rm_nvseg_perquery_perseg_limit to 6 and default_hash_table_bucket_number as hawq_rm_nvseg_perquery_perseg_limit * numSegments
+    hosts["items"][0]["Hosts"]["total_mem"] = 1073741824
+    hosts["items"][1]["Hosts"]["total_mem"] = 2073741824
+    hosts["items"][3]["Hosts"]["total_mem"] = 3073741824
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_limit"] = "512"
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_perseg_limit"] = "4"
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_perseg_limit"], "6")
+
+    # Case 3: When hawq_rm_memory_limit_perseg > 2GB
+    # Set hawq_rm_nvseg_perquery_perseg_limit to 8 and default_hash_table_bucket_number as hawq_rm_nvseg_perquery_perseg_limit * numSegments
+    hosts["items"][0]["Hosts"]["total_mem"] = 1073741824
+    hosts["items"][1]["Hosts"]["total_mem"] = 2073741824
+    hosts["items"][3]["Hosts"]["total_mem"] = 3073741824
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_limit"] = "512"
+    services["configurations"]["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_perseg_limit"] = "8"
+    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"], "730GB")
+    self.assertEqual(configurations["hawq-site"]["properties"]["default_hash_table_bucket_number"], "12")
+    self.assertEqual(configurations["hawq-site"]["properties"]["hawq_rm_nvseg_perquery_perseg_limit"], "8")
+
     ## Test if the properties are set to visible / invisible based on the value of hawq_global_rm_type
 
     # Case 1: When hawq_global_rm_type is yarn
@@ -398,6 +437,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     services["configurations"]["hawq-sysctl-env"]["properties"]["vm.overcommit_memory"] = 2
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     self.assertEqual(configurations["hawq-sysctl-env"]["property_attributes"]["vm.overcommit_ratio"]["visible"], "true")
+
 
   def test_createComponentLayoutRecommendations_hawq_3_Hosts(self):
     """ Test that HAWQSTANDBY is recommended on a 3-node cluster """
@@ -790,11 +830,16 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     hawqSegmentComponent = self.getHosts(componentsList, "HAWQSEGMENT")
 
     # setup default configuration values
-    services["configurations"]["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "24",
-                                                              "hawq_rm_nvseg_perquery_limit": "512",
-                                                              "hawq_rm_yarn_address": "localhost:8032",
-                                                              "hawq_rm_yarn_scheduler_address": "localhost:8030",
-                                                              "hawq_global_rm_type":  "none"}}
+    services["configurations"]["hawq-site"] = {
+      "properties": {
+        "default_hash_table_bucket_number": "24",
+        "hawq_rm_nvseg_perquery_limit": "512",
+        "hawq_rm_yarn_address": "localhost:8032",
+        "hawq_rm_yarn_scheduler_address": "localhost:8030",
+        "hawq_global_rm_type":  "none",
+        "hawq_rm_nvseg_perquery_perseg_limit": "6"
+      }
+    }
 
     services["configurations"]["hdfs-client"] = {"properties": {"output.replace-datanode-on-failure": "true"}}
     services["configurations"]["hawq-sysctl-env"] = {"properties": {}}
@@ -1009,8 +1054,13 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     }
     # setup default configuration values
     configurations = services["configurations"]
-    configurations["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "600",
-                                                  "hawq_rm_nvseg_perquery_limit": "500"}}
+    configurations["hawq-site"] = {
+      "properties": {
+        "default_hash_table_bucket_number": "600",
+        "hawq_rm_nvseg_perquery_limit": "500",
+        "hawq_rm_nvseg_perquery_perseg_limit": "6"
+      }
+    }
     properties = configurations["hawq-site"]["properties"]
     defaults = {}
     hosts = {}
@@ -1026,8 +1076,36 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     self.assertEqual(len(problems), 1)
     self.assertEqual(problems[0], expected)
 
-    configurations["hawq-site"] = {"properties": {"default_hash_table_bucket_number": "500",
-                                                  "hawq_rm_nvseg_perquery_limit": "500"}}
+    configurations["hawq-site"] = {
+      "properties": {
+        "default_hash_table_bucket_number": "500",
+        "hawq_rm_nvseg_perquery_limit": "500"
+      }
+    }
+    properties = configurations["hawq-site"]["properties"]
+    problems = self.serviceAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    configurations["hawq-site"] = {
+      "properties":
+        {
+          "hawq_global_rm_type": "none",
+          "hawq_rm_memory_limit_perseg": "1023MB"
+        }
+    }
+    expected = {
+      'config-type': 'hawq-site',
+      'message': 'HAWQ Segment Memory less than 1GB is not sufficient',
+      'type': 'configuration',
+      'config-name': 'hawq_global_rm_type',
+      'level': 'ERROR'
+    }
+    properties = configurations["hawq-site"]["properties"]
+    problems = self.serviceAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+    configurations["hawq-site"]["properties"]["hawq_rm_memory_limit_perseg"] = "1GB"
     properties = configurations["hawq-site"]["properties"]
     problems = self.serviceAdvisor.validateHAWQSiteConfigurations(properties, defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 0)
