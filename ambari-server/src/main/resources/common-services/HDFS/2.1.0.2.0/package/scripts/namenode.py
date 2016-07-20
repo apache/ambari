@@ -303,7 +303,13 @@ class NameNodeDefault(NameNode):
         Execute(kinit_cmd, user=params.hdfs_user)
 
     def calculateCompletePercent(first, current):
-      return 1.0 - current.bytesLeftToMove/first.bytesLeftToMove
+      # avoid division by zero
+      try:
+        division_result = current.bytesLeftToMove/first.bytesLeftToMove
+      except ZeroDivisionError:
+        Logger.warning("Division by zero. Bytes Left To Move = {0}. Return 1.0".format(first.bytesLeftToMove))
+        return 1.0
+      return 1.0 - division_result
 
 
     def startRebalancingProcess(threshold, rebalance_env):
@@ -324,7 +330,7 @@ class NameNodeDefault(NameNode):
     def handle_new_line(line, is_stderr):
       if is_stderr:
         return
-      
+
       _print('[balancer] %s' % (line))
       pl = parser.parseLine(line)
       if pl:
