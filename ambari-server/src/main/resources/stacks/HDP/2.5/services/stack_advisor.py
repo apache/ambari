@@ -42,10 +42,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
       else :
         falconUser = 'falcon'
-    oozieUser = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-    newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
-    services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
-    putOozieEnvProperty("oozie_admin_users", newAdminUsers)
+      oozieUser = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
+      newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
+      services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
+      putOozieEnvProperty("oozie_admin_users", newAdminUsers)
 
 
   def createComponentLayoutRecommendations(self, services, hosts):
