@@ -58,7 +58,7 @@ AMBARI_LOCATION=$HOME/prj/ambari
 MAVEN_REPOSITORY_LOCATION=$HOME/.m2
 LOGSEARCH_EXPOSED_PORTS="-p 8886:8886 -p 61888:61888 -p 5005:5005 -p 5006:5006"
 LOGSEARCH_ENV_OPTS="-e LOGFEEDER_DEBUG_SUSPEND=n -e LOGSEARCH_DEBUG_SUSPEND=n -e COMPONENT_LOG=logsearch"
-LOGSEARCH_VOLUME_OPTS="-v $AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs -v $AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config "
+LOGSEARCH_VOLUME_OPTS="-v \$AMBARI_LOCATION/ambari-logsearch/docker/test-logs:/root/test-logs -v \$AMBARI_LOCATION/ambari-logsearch/docker/test-config:/root/test-config "
 LOGSEARCH_EXTRA_OPTS=""
 EOF
     echo "Profile has been created. Check it out before starting Log Search. ($sdir/Profile)"
