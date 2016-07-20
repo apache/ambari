@@ -88,10 +88,6 @@ def should_install_hive_atlas():
   has_atlas = len(atlas_hosts) > 0
   return has_atlas
 
-def should_install_kerberos_server():
-  config = Script.get_config()
-  return 'role' in config and not _has_applicable_local_component("KERBEROS_CLIENT")
-
 def should_install_ranger_tagsync():
   config = Script.get_config()
   ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
