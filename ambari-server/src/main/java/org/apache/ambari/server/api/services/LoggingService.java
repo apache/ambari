@@ -72,7 +72,6 @@ public class LoggingService extends BaseService {
   @Path("searchEngine")
   @Produces("text/plain")
   public Response getSearchEngine(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
-    //TODO, fix this cast after testing,RWN
     return handleDirectRequest(uri, MediaType.TEXT_PLAIN_TYPE);
   }
 
@@ -110,43 +109,49 @@ public class LoggingService extends BaseService {
     LoggingRequestHelper requestHelper =
       helperFactory.getHelper(controller, clusterName);
 
-    LogQueryResponse response =
-      requestHelper.sendQueryRequest(enumeratedQueryParameters);
+    if (requestHelper != null) {
+      LogQueryResponse response =
+        requestHelper.sendQueryRequest(enumeratedQueryParameters);
 
-    if (response != null) {
-      ResultSerializer serializer = mediaType == null ? getResultSerializer() : getResultSerializer(mediaType);
+      if (response != null) {
+        ResultSerializer serializer = mediaType == null ? getResultSerializer() : getResultSerializer(mediaType);
 
-      Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
+        Result result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.OK));
 
-      Resource loggingResource = new ResourceImpl(Resource.Type.LoggingQuery);
-      // include the top-level query result properties
-      loggingResource.setProperty("startIndex", response.getStartIndex());
-      loggingResource.setProperty("pageSize", response.getPageSize());
-      loggingResource.setProperty("resultSize", response.getResultSize());
-      loggingResource.setProperty("queryTimeMMS", response.getQueryTimeMS());
-      loggingResource.setProperty("totalCount", response.getTotalCount());
+        Resource loggingResource = new ResourceImpl(Resource.Type.LoggingQuery);
+        // include the top-level query result properties
+        loggingResource.setProperty("startIndex", response.getStartIndex());
+        loggingResource.setProperty("pageSize", response.getPageSize());
+        loggingResource.setProperty("resultSize", response.getResultSize());
+        loggingResource.setProperty("queryTimeMMS", response.getQueryTimeMS());
+        loggingResource.setProperty("totalCount", response.getTotalCount());
 
-      // include the individual responses
-      loggingResource.setProperty("logList", response.getListOfResults());
+        // include the individual responses
+        loggingResource.setProperty("logList", response.getListOfResults());
 
-      result.getResultTree().addChild(loggingResource, "logging");
+        result.getResultTree().addChild(loggingResource, "logging");
 
-      Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(
-        serializer.serialize(result));
+        Response.ResponseBuilder builder = Response.status(result.getStatus().getStatusCode()).entity(
+          serializer.serialize(result));
 
 
-      if (mediaType != null) {
-        builder.type(mediaType);
+        if (mediaType != null) {
+          builder.type(mediaType);
+        }
+
+        RetryHelper.clearAffectedClusters();
+        return builder.build();
       }
-
-      RetryHelper.clearAffectedClusters();
-      return builder.build();
+    } else {
+      LOG.debug("LogSearch is not currently available, an empty response will be returned");
     }
 
+    // return NOT_FOUND, with an error message describing that LogSearch is not running
+    final Response.ResponseBuilder responseBuilder =
+      Response.status(new ResultStatus(ResultStatus.STATUS.NOT_FOUND).getStatusCode());
+    responseBuilder.entity("LogSearch is not currently available.  If LogSearch is deployed in this cluster, please verify that the LogSearch services are running.");
 
-
-    //TODO, add error handling and logging here, RWN
-    return null;
+    return responseBuilder.build();
   }
 
 
