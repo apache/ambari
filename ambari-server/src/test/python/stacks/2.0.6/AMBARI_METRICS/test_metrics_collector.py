@@ -101,9 +101,6 @@ class TestMetricsCollector(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp',
     )
-    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/zookeeper',
-                              action = ['delete']
-    )
 
     self.assertResourceCalled('File', '/etc/ambari-metrics-collector/conf/core-site.xml',
                                 owner = 'ams',
