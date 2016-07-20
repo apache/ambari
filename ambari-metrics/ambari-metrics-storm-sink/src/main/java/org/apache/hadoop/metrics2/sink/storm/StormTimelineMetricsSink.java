@@ -47,6 +47,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
   public static final String CLUSTER_REPORTER_APP_ID = "clusterReporterAppId";
   public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "storm";
+  public static final String METRIC_NAME_PREFIX_KAFKA_OFFSET = "kafkaOffset.";
 
   private String collectorUri;
   private TimelineMetricsCache metricsCache;
@@ -138,8 +139,13 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       List<DataPoint> populatedDataPoints = populateDataPoints(dataPoint);
 
       for (DataPoint populatedDataPoint : populatedDataPoints) {
-        String metricName = createMetricName(taskInfo.srcComponentId, taskInfo.srcWorkerHost,
-            taskInfo.srcWorkerPort, taskInfo.srcTaskId, populatedDataPoint.name);
+        String metricName;
+        if (populatedDataPoint.name.startsWith(METRIC_NAME_PREFIX_KAFKA_OFFSET)) {
+          metricName = createKafkaOffsetMetricName(populatedDataPoint.name);
+        } else {
+          metricName = createMetricName(taskInfo.srcComponentId, taskInfo.srcWorkerHost,
+              taskInfo.srcWorkerPort, taskInfo.srcTaskId, populatedDataPoint.name);
+        }
 
         LOG.debug("populated datapoint: " + metricName + " = " + populatedDataPoint.value);
 
@@ -245,6 +251,32 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     // <topology name>.<component name>.<worker host>.<worker port>.<task id>.<metric name>
     String metricName = "topology." + topologyName + "." + componentId + "." + workerHost + "." + workerPort +
         "." + taskId + "." + attributeName;
+
+    // since '._' is treat as special character (separator) so it should be replaced
+    return metricName.replace('_', '-');
+  }
+
+  private String createKafkaOffsetMetricName(String kafkaOffsetMetricName) {
+    // get rid of "kafkaOffset."
+    // <topic>/<metric name (starts with total)> or <topic>/partition_<partition_num>/<metricName>
+    String tempMetricName = kafkaOffsetMetricName.substring(METRIC_NAME_PREFIX_KAFKA_OFFSET.length());
+
+    String[] slashSplittedNames = tempMetricName.split("/");
+
+    if (slashSplittedNames.length == 1) {
+      // unknown metrics
+      throw new IllegalArgumentException("Unknown metrics for kafka offset metric: " + kafkaOffsetMetricName);
+    }
+
+    String topic = slashSplittedNames[0];
+    String metricName = "topology." + topologyName + ".kafka-topic." + topic;
+    if (slashSplittedNames.length > 2) {
+      // partition level
+      metricName = metricName + "." + slashSplittedNames[1] + "." + slashSplittedNames[2];
+    } else {
+      // topic level
+      metricName = metricName + "." + slashSplittedNames[1];
+    }
 
     // since '._' is treat as special character (separator) so it should be replaced
     return metricName.replace('_', '-');
