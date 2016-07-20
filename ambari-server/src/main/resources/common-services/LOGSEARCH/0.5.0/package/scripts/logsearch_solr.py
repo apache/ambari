@@ -22,6 +22,9 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.script.script import Script
 from setup_logsearch_solr import setup_logsearch_solr
+from logsearch_common import kill_process
+from resource_management.core.logger import Logger
+import sys
 
 class LogsearchSolr(Script):
   def install(self, env):
@@ -50,14 +53,19 @@ class LogsearchSolr(Script):
     import params
     env.set_params(params)
 
-    Execute(format('{solr_bindir}/solr stop -all >> {logsearch_solr_log}'),
-            environment={'SOLR_INCLUDE': format('{logsearch_solr_conf}/logsearch-solr-env.sh')},
-            user=params.logsearch_solr_user,
-            only_if=format("test -f {logsearch_solr_pidfile}")
-            )
-    File(params.logsearch_solr_pidfile,
-         action="delete"
-         )
+    try:
+      Execute(format('{solr_bindir}/solr stop -all >> {logsearch_solr_log}'),
+              environment={'SOLR_INCLUDE': format('{logsearch_solr_conf}/logsearch-solr-env.sh')},
+              user=params.logsearch_solr_user,
+              only_if=format("test -f {logsearch_solr_pidfile}")
+              )
+      
+      File(params.logsearch_solr_pidfile,
+           action="delete"
+           )
+    except:
+      Logger.warning("Could not stop solr:" + str(sys.exc_info()[1]) + "\n Trying to kill it")
+      kill_process(params.logsearch_solr_pidfile, params.logsearch_solr_user, params.logsearch_solr_log_dir);
 
   def status(self, env):
     import status_params
