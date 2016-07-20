@@ -155,10 +155,6 @@
       <outputDirectory>/var/lib/ambari-server/resources/stacks/${stack.distribution}</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>src/main/resources/extensions</directory>
-      <outputDirectory>/var/lib/ambari-server/resources/extensions</outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>src/main/python/ambari_server</directory>
       <outputDirectory>/usr/lib/python2.6/site-packages/ambari_server</outputDirectory>
     </fileSet>
