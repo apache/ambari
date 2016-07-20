@@ -58,7 +58,6 @@ class TestHDP25StackAdvisor(TestCase):
     self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
     self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
 
-
     # setup for 'test_recommendYARNConfigurations'
     self.hosts = {
       "items": [
