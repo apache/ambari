@@ -21,7 +21,7 @@
     <service>
       <name>LOGSEARCH</name>
       <displayName>Log Search</displayName>
-      <comment>Log aggregation, analysis, and visualization for Ambari managed services</comment>
+      <comment>Log aggregation, analysis, and visualization for Ambari managed services. This service is Tech Preview.</comment>
       <version>0.5.0</version>
 
       <components>
