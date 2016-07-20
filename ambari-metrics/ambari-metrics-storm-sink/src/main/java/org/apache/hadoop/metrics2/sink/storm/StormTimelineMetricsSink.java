@@ -40,6 +40,11 @@ import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCach
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
 public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implements IMetricsConsumer {
+  private static final String[] WARN_STRINGS_FOR_TOPOLOGY_OR_COMPONENT_NAME = { ".", "_" };
+
+  // create String manually in order to not rely on Guava Joiner or having our own
+  private static final String JOINED_WARN_STRINGS_FOR_MESSAGE = "\".\", \"_\"";
+
   public static final String CLUSTER_REPORTER_APP_ID = "clusterReporterAppId";
   public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "storm";
 
@@ -90,6 +95,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
     }
     this.topologyName = removeNonce(topologyContext.getStormId());
+    warnIfTopologyNameContainsWarnString(topologyName);
   }
 
   @Override
@@ -206,11 +212,21 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private String createMetricName(String componentId, String workerHost, int workerPort, int taskId,
       String attributeName) {
     // <topology name>.<component name>.<worker host>.<worker port>.<task id>.<metric name>
-    String metricName = topologyName + "." + componentId + "." + workerHost + "." + workerPort +
+    String metricName = "topology." + topologyName + "." + componentId + "." + workerHost + "." + workerPort +
         "." + taskId + "." + attributeName;
 
     // since '._' is treat as special character (separator) so it should be replaced
     return metricName.replace('_', '-');
+  }
+
+  private void warnIfTopologyNameContainsWarnString(String name) {
+    for (String warn : WARN_STRINGS_FOR_TOPOLOGY_OR_COMPONENT_NAME) {
+      if (name.contains(warn)) {
+        LOG.warn("Topology name \"" + name + "\" contains \"" + warn + "\" which can be problematic for AMS.");
+        LOG.warn("Encouraged to not using any of these strings: " + JOINED_WARN_STRINGS_FOR_MESSAGE);
+        LOG.warn("Same suggestion applies to component name.");
+      }
+    }
   }
 
   public void setMetricsCache(TimelineMetricsCache metricsCache) {
