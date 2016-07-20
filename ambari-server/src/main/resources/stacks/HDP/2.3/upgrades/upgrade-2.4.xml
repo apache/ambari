@@ -481,9 +481,9 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
-        <pre-upgrade>
+        <post-upgrade>
           <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-        </pre-upgrade>
+        </post-upgrade>
 
         <!--  no-op to prevent config changes on downgrade -->
         <pre-downgrade/>
