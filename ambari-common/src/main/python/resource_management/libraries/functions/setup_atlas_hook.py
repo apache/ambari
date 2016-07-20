@@ -76,6 +76,7 @@ SHARED_ATLAS_HOOK_CONFIGS = set(
   "atlas.cluster.name",
 
   # Security properties
+  "atlas.authentication.method.kerberos",
   "atlas.kafka.sasl.kerberos.service.name",
   "atlas.kafka.security.protocol",
   "atlas.jaas.KafkaClient.loginModuleName",
