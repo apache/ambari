@@ -137,13 +137,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>port</name>
-    <value>6667</value>
-    <description>Deprecated config in favor of listeners config.</description>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>external.kafka.metrics.exclude.prefix</name>
     <value>kafka.network.RequestMetrics,kafka.server.DelayedOperationPurgatory,kafka.server.BrokerTopicMetrics.BytesRejectedPerSec</value>
     <description>

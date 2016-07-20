@@ -1073,24 +1073,6 @@
       </component>
     </service>
 
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_deprecate_port">
-            <type>kafka-broker</type>
-            <!-- Deprecate "port" property since "listeners" will be added. -->
-            <transfer operation="delete" delete-key="port"/>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
-            <type>kafka-broker</type>
-            <!-- Deprecate "port" property since "listeners" will be added. -->
-            <transfer operation="delete" delete-key="port"/>
-          </definition>
-        </changes>
-      </component>
-    </service>
-
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
         <changes>
