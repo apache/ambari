@@ -158,7 +158,7 @@ class TestMetadataServer(RMFTestCase):
                                 owner='solr',
                                 group='hadoop',
                                 mode=0664,
-                                content = ''
+                                content=''
       )
       self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /logsearch --check-znode --retry 5 --interval 10')
       self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --download-config --config-dir /tmp/solr_config_basic_configs_0.[0-9]* --config-set basic_configs --retry 30 --interval 5')

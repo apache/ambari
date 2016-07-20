@@ -10,7 +10,7 @@
     "ambari_db_rca_password": "mapred",
     "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca",
     "jce_name": "UnlimitedJCEPolicyJDK7.zip",
-    "stack_version": "2.3",
+    "stack_version": "2.5",
     "stack_name": "HDP",
     "ambari_db_rca_driver": "org.postgresql.Driver",
     "jdk_name": "jdk-7u67-linux-x64.tar.gz",
@@ -23,7 +23,7 @@
   "serviceName": "SLIDER",
   "role": "SLIDER",
   "commandParams": {
-    "version": "2.2.1.0-2067",
+    "version": "2.5.0.0-1235",
     "command_timeout": "300",
     "service_package_folder": "OOZIE",
     "script_type": "PYTHON",
@@ -217,8 +217,7 @@
       "metadata_pid_dir": "/var/run/atlas",
       "metadata_log_dir": "/var/log/atlas",
       "metadata_data_dir": "/var/lib/atlas/data",
-      "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp",
-      "metadata_conf_file": "atlas-application.properties"
+      "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp"
     },
     "atlas-log4j": {
       "content": "<property><name>content</name><description>Custom log4j.properties</description><value></value></property>",
