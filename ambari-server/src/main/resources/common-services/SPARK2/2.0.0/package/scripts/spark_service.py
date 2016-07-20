@@ -55,7 +55,7 @@ def spark_service(name, upgrade_type=None, action=None):
     if effective_version:
       effective_version = format_stack_version(effective_version)
 
-    if effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
+    if name == 'jobhistoryserver' and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # create & copy spark2-hdp-yarn-archive.tar.gz to hdfs
       source_dir=params.spark_home+"/jars"
       tmp_archive_file=get_tarball_paths("spark2")[1]
