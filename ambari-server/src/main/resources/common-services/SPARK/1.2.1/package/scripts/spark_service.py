@@ -38,7 +38,7 @@ def spark_service(name, upgrade_type=None, action=None):
     if effective_version:
       effective_version = format_stack_version(effective_version)
 
-    if effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
+    if name == 'jobhistoryserver' and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # copy spark-hdp-assembly.jar to hdfs
       copy_to_hdfs("spark", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       # create spark history directory
