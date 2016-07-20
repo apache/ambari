@@ -2440,16 +2440,34 @@ public class BlueprintConfigurationProcessor {
                                            String origValue,
                                            Map<String, Map<String, String>> properties,
                                            ClusterTopology topology) {
+        String atlasHookClass = "org.apache.atlas.hive.hook.HiveHook";
+        String[] hiveHooks = origValue.split(",");
 
-        if (topology.getBlueprint().getServices().contains("ATLAS")) {
-          String hiveHookClass = "org.apache.atlas.hive.hook.HiveHook";
-          if (origValue == null || origValue.isEmpty()) {
-            return hiveHookClass;
-          } else {
-            return String.format("%s,%s", origValue, hiveHookClass);
+        List<String> hiveHooksClean = new ArrayList<String>();
+        for(String hiveHook : hiveHooks) {
+          if (!StringUtils.isBlank(hiveHook.trim())) {
+            hiveHooksClean.add(hiveHook.trim());
+          }
+        }
+
+        boolean isAtlasInCluster = topology.getBlueprint().getServices().contains("ATLAS");
+
+        // Append atlas hook if not already present.
+        if (isAtlasInCluster) {
+          if (!hiveHooksClean.contains(atlasHookClass)) {
+            hiveHooksClean.add(atlasHookClass);
           }
         } else {
-          return origValue;
+          // Remove the atlas hook since Atlas service is not present.
+          while (hiveHooksClean.contains(atlasHookClass)) {
+            hiveHooksClean.remove(atlasHookClass);
+          }
+        }
+
+        if (!hiveHooksClean.isEmpty()) {
+          return StringUtils.join(hiveHooksClean, ",");
+        } else {
+          return " ";
         }
       }
     });
