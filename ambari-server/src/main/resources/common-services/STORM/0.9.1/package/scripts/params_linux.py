@@ -24,6 +24,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import status_params
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons import yaml_utils
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
@@ -208,9 +209,9 @@ if ams_collector_hosts:
 # Cluster Zookeeper quorum
 zookeeper_quorum = ""
 if storm_zookeeper_servers:
-  for server in storm_zookeeper_servers:
-    zookeeper_quorum += server + ':' + storm_zookeeper_port + ","
-  zookeeper_quorum = zookeeper_quorum[:-1]
+  storm_zookeeper_servers_list = yaml_utils.get_values_from_yaml_array(storm_zookeeper_servers)
+  zookeeper_quorum = (":" + storm_zookeeper_port + ",").join(storm_zookeeper_servers_list)
+  zookeeper_quorum += ":" + storm_zookeeper_port
 
 jar_jvm_opts = ''
 
