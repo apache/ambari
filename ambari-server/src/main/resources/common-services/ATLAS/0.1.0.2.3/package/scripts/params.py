@@ -27,7 +27,6 @@ from resource_management.libraries.functions.default import default
 # Local Imports
 from status_params import *
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.functions.expect import expect
@@ -90,9 +89,6 @@ version = default("/commandParams/version", None)
 # stack version
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-
-# get the correct version to use for checking stack features
-version_for_stack_feature_checks = get_stack_feature_version(config)
 
 metadata_home = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
 metadata_bin = format("{metadata_home}/bin")
