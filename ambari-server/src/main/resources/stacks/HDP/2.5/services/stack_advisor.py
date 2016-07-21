@@ -947,15 +947,17 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   Returns the current LLAP queue capacity percentage value. (llap_queue_capacity)
   """
   def get_llap_cap_percent_slider(self, services, configurations):
+    llap_slider_cap_percentage = 0
     if 'llap_queue_capacity' in services['configurations']['hive-interactive-env']['properties']:
       llap_slider_cap_percentage = float(
         services['configurations']['hive-interactive-env']['properties']['llap_queue_capacity'])
-      if llap_slider_cap_percentage <= 0 :
-        if 'hive-interactive-env' in configurations and \
-            'llap_queue_capacity' in configurations["hive-interactive-env"]["properties"]:
-          llap_slider_cap_percentage = configurations["hive-interactive-env"]["properties"]["llap_queue_capacity"]
-      assert (llap_slider_cap_percentage > 0), "'llap_queue_capacity' is set to 0."
-      return llap_slider_cap_percentage
+      Logger.error("'llap_queue_capacity' not present in services['configurations']['hive-interactive-env']['properties'].")
+    if llap_slider_cap_percentage <= 0 :
+      if 'hive-interactive-env' in configurations and \
+          'llap_queue_capacity' in configurations["hive-interactive-env"]["properties"]:
+        llap_slider_cap_percentage = float(configurations["hive-interactive-env"]["properties"]["llap_queue_capacity"])
+    assert (llap_slider_cap_percentage > 0), "'llap_queue_capacity' is set to : {0}. Should be > 0.".format(llap_slider_cap_percentage)
+    return llap_slider_cap_percentage
 
 
   """
