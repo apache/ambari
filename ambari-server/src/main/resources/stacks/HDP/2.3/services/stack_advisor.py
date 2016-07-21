@@ -92,7 +92,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
     taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
-    putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4))
+    # fit io.sort.mb into tenured regions
+    putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.8 * 0.33))
 
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":

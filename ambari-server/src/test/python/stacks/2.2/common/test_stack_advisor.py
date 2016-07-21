@@ -1203,7 +1203,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.server2.tez.default.queues': "queue1,queue2",
           'hive.server2.tez.initialize.default.sessions': 'false',
           'hive.server2.tez.sessions.per.default.queue': '1',
-          'hive.auto.convert.join.noconditionaltask.size': '268435456',
+          'hive.auto.convert.join.noconditionaltask.size': '214748364',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
           'hive.compute.query.using.stats': 'true',
@@ -1238,7 +1238,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
         },
        'property_attributes': {
-         'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
+         'hive.auto.convert.join.noconditionaltask.size': {'maximum': '644245094'},
          'hive.tez.container.size': {'maximum': '8192', 'minimum': '256'},
          'hive.server2.authentication.pam.services': {'delete': 'true'},
          'hive.server2.custom.authentication.class': {'delete': 'true'},
