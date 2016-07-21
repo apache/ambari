@@ -241,6 +241,17 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         //hosts should be loaded after services in order to properly populate host-component relation in App.cache.services
         updater.updateHost(function () {
           self.set('isHostsLoaded', true);
+          console.time('Overall alerts loading time');
+          updater.updateAlertGroups(function () {
+            updater.updateAlertDefinitions(function () {
+              updater.updateAlertDefinitionSummary(function () {
+                updater.updateUnhealthyAlertInstances(function () {
+                  console.timeEnd('Overall alerts loading time');
+                  self.set('isAlertsLoaded', true);
+                });
+              });
+            });
+          });
         });
         App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function () {
           App.config.loadClusterConfigsFromStack().complete(function () {
@@ -269,19 +280,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
     //force clear filters  for hosts page to load all data
     App.db.setFilterConditions('mainHostController', null);
-
-    // alerts loading doesn't affect overall progress
-    console.time('Overall alerts loading time');
-    updater.updateAlertGroups(function () {
-      updater.updateAlertDefinitions(function () {
-        updater.updateAlertDefinitionSummary(function () {
-          updater.updateUnhealthyAlertInstances(function () {
-            console.timeEnd('Overall alerts loading time');
-            self.set('isAlertsLoaded', true);
-          });
-        });
-      });
-    });
 
     //load cluster-env, used by alert check tolerance // TODO services auto-start
     updater.updateClusterEnv();
