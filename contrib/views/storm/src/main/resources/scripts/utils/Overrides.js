@@ -18,5 +18,13 @@
 
 define(['backbone'], function(Backbone){
 	'use strict';
-	
+	Backbone.ajax = function() {
+		if(!arguments[0].data){
+			var urlPart = arguments[0].url.split('url=')[0];
+		    var stormUrlPart = arguments[0].url.split('url=')[1];
+		    urlPart += 'url=' + encodeURIComponent(stormUrlPart);
+		    arguments[0].url = urlPart;
+		}
+	    return Backbone.$.ajax.apply(Backbone.$, arguments);
+	};
 });
