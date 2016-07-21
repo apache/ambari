@@ -184,9 +184,11 @@ if has_ranger_admin and is_supported_kafka_ranger:
     policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
   xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
   xa_audit_db_flavor = xa_audit_db_flavor.lower() if xa_audit_db_flavor else None
-  xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-  xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+  xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+  xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
+  xa_audit_db_password = ''
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
+    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   xa_db_host = config['configurations']['admin-properties']['db_host']
   repo_name = str(config['clusterName']) + '_kafka'
 

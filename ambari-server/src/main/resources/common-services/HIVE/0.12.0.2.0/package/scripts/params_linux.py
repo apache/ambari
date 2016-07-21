@@ -619,8 +619,8 @@ xml_configurations_supported = config['configurations']['ranger-env']['xml_confi
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
   policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_hive'
 
@@ -716,7 +716,9 @@ if has_ranger_admin:
 
 
   xa_audit_db_is_enabled = False
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+  xa_audit_db_password = ''
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
+    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   if xml_configurations_supported and stack_supports_ranger_audit_db:
     xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.destination.db']

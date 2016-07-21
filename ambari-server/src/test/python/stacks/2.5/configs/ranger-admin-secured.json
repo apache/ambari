@@ -281,6 +281,7 @@
             "ssl.client.keystore.type": "jks"
         }, 
         "ranger-admin-site": {
+            "ranger.is.solr.kerberised": "true",
             "ranger.admin.kerberos.cookie.domain": "{{ranger_host}}", 
             "ranger.kms.service.user.hdfs": "hdfs", 
             "ranger.spnego.kerberos.principal": "HTTP/_HOST@EXAMPLE.COM", 
