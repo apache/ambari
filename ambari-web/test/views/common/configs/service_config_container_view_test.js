@@ -45,7 +45,8 @@ describe('App.ServiceConfigContainerView', function () {
         selectedService: {
           configCategories: [],
           configs: []
-        }
+        },
+        isRecommendedLoaded: true
       }));
       expect(view.get('childViews')).to.have.length(1);
     });
@@ -56,7 +57,8 @@ describe('App.ServiceConfigContainerView', function () {
         selectedService: {
           configCategories: [],
           configs: []
-        }
+        },
+        isRecommendedLoaded: true
       }));
       expect(view.get('childViews.firstObject.controller.name')).to.equal('controller');
     });
@@ -66,7 +68,8 @@ describe('App.ServiceConfigContainerView', function () {
         selectedService: {
           configCategories: [Em.Object.create(), Em.Object.create()],
           configs: []
-        }
+        },
+        isRecommendedLoaded: true
       }));
       expect(view.get('childViews.firstObject.serviceConfigsByCategoryView.childViews')).to.have.length(2);
     });

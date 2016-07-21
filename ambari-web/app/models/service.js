@@ -41,17 +41,17 @@ App.Service = DS.Model.extend({
   masterComponents: DS.hasMany('App.MasterComponent'),
 
   /**
-   * Check master/slave component state of service
+   * Check each host component state of service
    * and general services state to define if it can be removed
    *
    * @type {boolean}
    */
   allowToDelete: function() {
     var workStatus = this.get('workStatus');
-    return App.Service.allowUninstallStates.contains(workStatus)
-      && this.get('slaveComponents').everyProperty('allowToDelete')
-      && this.get('masterComponents').everyProperty('allowToDelete');
-  }.property('slaveComponents.@each.allowToDelete', 'masterComponents.@each.allowToDelete', 'workStatus'),
+    var isDeleteAllowedAtServiceLevel = App.Service.allowDeleteStates.contains(workStatus);
+    var isDeleteAllowedAtComponentLevel = this.get('hostComponents').everyProperty('allowToDelete', true);
+    return isDeleteAllowedAtServiceLevel && isDeleteAllowedAtComponentLevel;
+  }.property('hostComponents.@each.allowToDelete', 'workStatus'),
 
   /**
    * @type {bool}
@@ -205,7 +205,7 @@ App.Service.inProgressStates = [
 /**
  * @type {String[]}
  */
-App.Service.allowUninstallStates = [
+App.Service.allowDeleteStates = [
   App.Service.statesMap.init,
   App.Service.statesMap.install_failed,
   App.Service.statesMap.stopped,
