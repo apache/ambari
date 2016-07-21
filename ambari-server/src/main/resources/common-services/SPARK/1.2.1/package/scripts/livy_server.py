@@ -22,6 +22,13 @@ from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.constants import StackFeature
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
+from resource_management.libraries.providers.hdfs_resource import HdfsResourceProvider
+from resource_management import is_empty
+from resource_management import shell
+from resource_management.libraries.functions.decorator import retry
+from resource_management.core.logger import Logger
 
 from livy_service import livy_service
 from setup_livy import setup_livy
@@ -44,6 +51,10 @@ class LivyServer(Script):
     import params
     env.set_params(params)
 
+    if params.has_ats and params.has_livyserver:
+      Logger.info("Verifying DFS directories where ATS stores time line data for active and completed applications.")
+      self.wait_for_dfs_directories_created([params.entity_groupfs_store_dir, params.entity_groupfs_active_dir])
+
     self.configure(env)
     livy_service('server', upgrade_type=upgrade_type, action='start')
 
@@ -59,6 +70,54 @@ class LivyServer(Script):
 
     check_process_status(status_params.livy_server_pid_file)
 
+  #  TODO move out and compose with similar method in resourcemanager.py
+  def wait_for_dfs_directories_created(self, dirs):
+    import params
+
+    ignored_dfs_dirs = HdfsResourceProvider.get_ignored_resources_list(params.hdfs_resource_ignore_file)
+
+    if params.security_enabled:
+      Execute("{kinit_path_local} -kt {livy_kerberos_keytab} {livy_kerberos_principal};",
+              user=params.livy_user
+              )
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+              user=params.hdfs_user
+              )
+
+    for dir_path in dirs:
+      self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
+
+
+  @retry(times=8, sleep_time=20, backoff_factor=1, err_class=Fail)
+  def wait_for_dfs_directory_created(self, dir_path, ignored_dfs_dirs):
+    import params
+
+
+    if not is_empty(dir_path):
+      dir_path = HdfsResourceProvider.parse_path(dir_path)
+
+      if dir_path in ignored_dfs_dirs:
+        Logger.info("Skipping DFS directory '" + dir_path + "' as it's marked to be ignored.")
+        return
+
+      Logger.info("Verifying if DFS directory '" + dir_path + "' exists.")
+
+      dir_exists = None
+
+      if WebHDFSUtil.is_webhdfs_available(params.is_webhdfs_enabled, params.default_fs):
+        # check with webhdfs is much faster than executing hdfs dfs -test
+        util = WebHDFSUtil(params.hdfs_site, params.hdfs_user, params.security_enabled)
+        list_status = util.run_command(dir_path, 'GETFILESTATUS', method='GET', ignore_status_codes=['404'], assertable_result=False)
+        dir_exists = ('FileStatus' in list_status)
+      else:
+        # have to do time expensive hdfs dfs -d check.
+        dfs_ret_code = shell.call(format("hdfs --config {hadoop_conf_dir} dfs -test -d " + dir_path), user=params.livy_user)[0]
+        dir_exists = not dfs_ret_code #dfs -test -d returns 0 in case the dir exists
+
+      if not dir_exists:
+        raise Fail("DFS directory '" + dir_path + "' does not exist !")
+      else:
+        Logger.info("DFS directory '" + dir_path + "' exists.")
 
   def get_component_name(self):
     return "livy-server"
