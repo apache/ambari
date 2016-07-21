@@ -28,11 +28,11 @@ function _getCapacitySchedulerViewUri(adapter) {
     return "/data";
 
   var parts = window.location.pathname.match(/[^\/]*/g).filterBy('').removeAt(0),
-      view = parts[0],
-      version = parts[1],
-      instance = parts[2];
-  if (parts.length == 2) { // version is not present
-    instance = parts[1];
+      view = parts[parts.length - 3],
+      version = parts[parts.length - 2],
+      instance = parts[parts.length - 1];
+  if (!/^(\d+\.){2,3}\d+$/.test(parts[parts.length - 2])) { // version is not present
+    instance = parts[parts.length - 2];
     version = '';
   }
 
@@ -77,7 +77,7 @@ function _ajax(url, type, hash) {
 
 App.ConfigAdapter = DS.Adapter.extend({
   defaultSerializer:'config',
-  namespace: 'api/v1',
+  namespace: 'api/v1'.replace(/^\//, ''),
   findQuery : function(store, type, query){
     var adapter = this;
     var uri = [_getCapacitySchedulerViewUri(this),'getConfig'].join('/') + "?siteName=" + query.siteName + "&configName="+ query.configName;
@@ -99,7 +99,7 @@ App.ConfigAdapter = DS.Adapter.extend({
 App.QueueAdapter = DS.Adapter.extend({
   defaultSerializer:'queue',
   PREFIX: "yarn.scheduler.capacity",
-  namespace: 'api/v1',
+  namespace: 'api/v1'.replace(/^\//, ''),
   queues: [],
 
   createRecord: function(store, type, record) {
