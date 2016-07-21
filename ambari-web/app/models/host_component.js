@@ -158,7 +158,16 @@ App.HostComponent = DS.Model.extend({
 
   componentTextStatus: function () {
     return App.HostComponentStatus.getTextStatus(this.get("workStatus"));
-  }.property('workStatus', 'isDecommissioning')
+  }.property('workStatus', 'isDecommissioning'),
+
+  /**
+   * Check if hostComponent is in a valid state in which it can be deleted
+   * @type {boolean}
+   */
+  allowToDelete: function() {
+    var workStatus = this.get('workStatus');
+    return App.HostComponent.allowDeleteStates.contains(workStatus);
+  }.property('workStatus')
 });
 
 App.HostComponent.FIXTURES = [];
@@ -268,6 +277,16 @@ App.HostComponentStatus = {
     return ret;
   }
 };
+
+/**
+ * @type {String[]}
+ */
+App.HostComponent.allowDeleteStates = [
+  App.HostComponentStatus.init,
+  App.HostComponentStatus.install_failed,
+  App.HostComponentStatus.stopped,
+  App.HostComponentStatus.unknown
+];
 
 App.HostComponentActionMap = {
   getMap: function(ctx) {

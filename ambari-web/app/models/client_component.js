@@ -29,27 +29,6 @@ App.ClientComponent = DS.Model.extend({
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
 
-  /**
-   * Defines if all components are in 'INSTALLED' state
-   *
-   * @type {boolean}
-   */
-  allStopped: Em.computed.equalProperties('installedCount', 'totalCount'),
-
-  /**
-   * No stated and no installed component
-   *
-   * @type {boolean}
-   */
-  noOneInstalled: Em.computed.and('!installedCount', '!startedCount'),
-
-  /**
-   * Determines if component may be deleted
-   *
-   * @type {boolean}
-   */
-  allowToDelete: Em.computed.or('allStopped', 'noOneInstalled'),
-
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();
   }.property('componentName'),
