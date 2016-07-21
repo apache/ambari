@@ -147,6 +147,7 @@
         <task xsi:type="manual">
           <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
+        <task xsi:type="server_action" summary="Fix oozie admin users" class="org.apache.ambari.server.serveraction.upgrades.FixOozieAdminUsers"/>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Backup Hive Metastore">

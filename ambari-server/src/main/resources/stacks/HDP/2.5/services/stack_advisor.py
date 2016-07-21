@@ -36,32 +36,46 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
     putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
-    if not "FALCON_SERVER" in clusterData["components"] :
-      print "Falcon is not part of the installation"
-      return
 
     if not "oozie-env" in services["configurations"] :
-      print "No oozie env in configurations"
+      Logger.info("No oozie configurations available")
       return
 
-    if "falcon-env" in services["configurations"] and "falcon_user" \
-        in services["configurations"]["falcon-env"]["properties"] :
-      falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
-      print "Falcon user from configuration " + falconUser
-    else :
-      falconUser = 'falcon'
-      print "Defaulting falcon user to " + falconUser
+    falconUser = 'falcon'
+
+    if "falcon-env" in services["configurations"] :
+      if "falcon_user" in services["configurations"]["falcon-env"]["properties"] :
+        falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
+        Logger.info("Falcon user from configuration: %s " % falconUser)
+
+    Logger.info("Falcon user : %s" % falconUser)
+
+    oozieUser = 'oozie'
 
     if "oozie_user" \
       in services["configurations"]["oozie-env"]["properties"] :
       oozieUser = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-      print "Oozie user from configuration " + oozieUser
-    else :
-      oozieUser = 'oozie'
-      print "Defaulting oozie user to " + oozieUser
+      Logger.info("Oozie user from configuration %s" % oozieUser)
 
-    newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
-    print "Setting new  oozie admin user to " + newAdminUsers
+    Logger.info("Oozie user %s" % oozieUser)
+
+    if "oozie_admin_users" \
+            in services["configurations"]["oozie-env"]["properties"] :
+      currentAdminUsers =  services["configurations"]["oozie-env"]["properties"]["oozie_admin_users"]
+      Logger.info("Oozie admin users from configuration %s" % currentAdminUsers)
+    else :
+      currentAdminUsers = "{0}, oozie-admin".format(oozieUser)
+      Logger.info("Setting default oozie admin users to %s" % currentAdminUsers)
+
+
+    if falconUser in currentAdminUsers :
+      Logger.info("Falcon user %s already member of  oozie admin users " % falconUser)
+      return
+
+    newAdminUsers = "{0},{1}".format(currentAdminUsers, falconUser)
+
+    Logger.info("new oozie admin users : %s" % newAdminUsers)
+
     services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
     putOozieEnvProperty("oozie_admin_users", newAdminUsers)
 
