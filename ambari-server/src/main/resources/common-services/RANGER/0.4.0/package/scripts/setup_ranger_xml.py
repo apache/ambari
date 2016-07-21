@@ -558,12 +558,14 @@ def create_core_site_xml(conf_dir):
 
 def setup_ranger_audit_solr():
   import params
-  jaas_file = params.solr_jaas_file if params.security_enabled else None
-  if params.security_enabled and params.stack_supports_ranger_kerberos:
-    File(format("{solr_jaas_file}"),
-      content=Template("ranger_solr_jass_conf.j2"),
-      owner=params.unix_user
-    )
+
+  if params.security_enabled and params.stack_supports_ranger_kerberos and params.is_solr_kerberos_enabled:
+    if params.solr_jaas_file is not None:
+      File(format("{solr_jaas_file}"),
+        content=Template("ranger_solr_jass_conf.j2"),
+        owner=params.unix_user
+      )
+
   check_znode()
 
   solr_cloud_util.upload_configuration_to_zk(
@@ -574,7 +576,7 @@ def setup_ranger_audit_solr():
     tmp_dir = params.tmp_dir,
     java64_home = params.java_home,
     user = params.unix_user,
-    jaas_file=jaas_file,
+    jaas_file=params.solr_jaas_file,
     retry=30, interval=5)
 
   solr_cloud_util.create_collection(

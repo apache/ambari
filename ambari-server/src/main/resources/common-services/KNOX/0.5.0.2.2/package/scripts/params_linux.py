@@ -37,6 +37,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.stack_features import get_stack_feature_version
 from resource_management.libraries.functions.constants import StackFeature
+from resource_management.libraries.functions import is_empty
 
 # server configurations
 config = Script.get_config()
@@ -263,8 +264,8 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
   policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_knox'
 
@@ -282,7 +283,9 @@ jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if has_ranger_admin:
   enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+  xa_audit_db_password = ''
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
+    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   previous_jdbc_jar_name= None

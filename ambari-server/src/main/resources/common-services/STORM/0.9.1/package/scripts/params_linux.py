@@ -39,6 +39,7 @@ from resource_management.libraries.functions.stack_features import get_stack_fea
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.expect import expect
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
+from resource_management.libraries.functions import is_empty
 
 # server configurations
 config = Script.get_config()
@@ -241,8 +242,8 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
   policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
-xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_storm'
 
@@ -266,7 +267,9 @@ java_share_dir = '/usr/share/java'
 
 if has_ranger_admin:
   enable_ranger_storm = (config['configurations']['ranger-storm-plugin-properties']['ranger-storm-plugin-enabled'].lower() == 'yes')
-  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+  xa_audit_db_password = ''
+  if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
+    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
   repo_config_password = unicode(config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
   xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   previous_jdbc_jar_name = None
