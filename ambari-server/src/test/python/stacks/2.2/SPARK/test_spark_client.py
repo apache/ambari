@@ -51,6 +51,7 @@ class TestSparkClient(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
+
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
