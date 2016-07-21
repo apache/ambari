@@ -61,7 +61,7 @@ define(['react',
             var searchArchivedLogsEl = document.getElementById('searchArchivedLogs');
             var deepSearchEl = document.getElementById('deepSearch');
 
-            var url = App.baseURL+'/';
+            var url = App.baseURL.split('?url=')[1]+'/';
             if(deepSearchEl.checked == true){
                 url += "deep_search_result.html";
             }else{

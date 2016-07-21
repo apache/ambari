@@ -116,8 +116,8 @@ define([
 				window: this.windowSize,
 				sys: this.systemFlag,
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.setState({"componentObj": model});
 					}
@@ -489,8 +489,8 @@ define([
 			    			debugType: 'enable',
 			    			percent: result,
 			    			success: function(model, response){
-			    				if(response.error){
-									Utils.notifyError(response.error);
+			    				if(response.error || model.error){
+									Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 								} else {
 									this.initializeData();
 			    					Utils.notifySuccess("Debugging enabled successfully.");
@@ -512,8 +512,8 @@ define([
 		    			debugType: 'disable',
 		    			percent: '0',
 		    			success: function(model, response){
-		    				if(response.error){
-								Utils.notifyError(response.error);
+		    				if(response.error || model.error){
+								Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 							} else {
 								this.initializeData();
 		    					Utils.notifySuccess("Debugging disabled successfully.");

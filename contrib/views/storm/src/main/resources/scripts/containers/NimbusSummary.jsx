@@ -39,8 +39,8 @@ define(['react',
 			this.collection = new VNimbusList();
 			this.collection.fetch({
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						var result = [];
 						if(!_.isArray(response.nimbuses)){

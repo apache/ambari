@@ -130,8 +130,8 @@ define([
 				window: this.windowSize,
 				sys: this.systemFlag,
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.model.set(model);
 						this.setState({"model": this.model});
@@ -151,8 +151,8 @@ define([
 				id: this.model.get('id'),
 				window: this.windowSize,
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						if(_.isString(model)){
 							model = JSON.parse(model);
@@ -171,8 +171,8 @@ define([
 			this.model.getLogConfig({
 				id: this.model.get('id'),
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.resetLogCollection(model);
 					}
@@ -187,8 +187,8 @@ define([
 			this.model.getTopologyLag({
 				id: this.model.get('id'),
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						if(model && model.length){
 							var result = JSON.parse(model[0].spoutLagResult);
@@ -208,8 +208,8 @@ define([
 			this.model.getWorkerHost({
 				id: this.model.get('id'),
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						var workerHostPortArr = model.hostPortList;
 						var result = '';
@@ -451,8 +451,8 @@ define([
 				data: JSON.stringify(dataObj),
 				contentType: "application/json",
               	success: function(model, response, options){
-              		if(response.error){
-						Utils.notifyError(response.error);
+              		if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.resetLogCollection(model);
               			Utils.notifySuccess("Log configuration added successfully.");
@@ -487,8 +487,8 @@ define([
 				data: JSON.stringify(dataObj),
 				contentType: "application/json",
               	success: function(model, response, options){
-              		if(response.error){
-						Utils.notifyError(response.error);
+              		if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.resetLogCollection(model);
               			Utils.notifySuccess("Log configuration applied successfully.");
@@ -520,8 +520,8 @@ define([
 				data: JSON.stringify(dataObj),
 				contentType: "application/json",
               	success: function(model, response, options){
-              		if(response.error){
-						Utils.notifyError(response.error);
+              		if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.resetLogCollection(model);
               			Utils.notifySuccess("Log configuration cleared successfully.");
@@ -870,8 +870,8 @@ define([
 		    		this.model.activateTopology({
 		    			id: this.model.get('id'),
 		    			success: function(model, response){
-		    				if(response.error){
-								Utils.notifyError(response.error);
+		    				if(response.error || model.error){
+								Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 							} else {
 								this.initializeData();
 		    					Utils.notifySuccess("Topology activated successfully.")
@@ -892,8 +892,8 @@ define([
 		    		this.model.deactivateTopology({
 		    			id: this.model.get('id'),
 		    			success: function(model, response){
-		    				if(response.error){
-								Utils.notifyError(response.error);
+		    				if(response.error || model.error){
+								Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 							} else {
 								this.initializeData();
 		    					Utils.notifySuccess("Topology deactivated successfully.")
@@ -933,8 +933,8 @@ define([
 			    			id: this.model.get('id'),
 			    			waitTime: result,
 			    			success: function(model, response){
-			    				if(response.error){
-									Utils.notifyError(response.error);
+			    				if(response.error || model.error){
+									Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 								} else {
 									this.initializeData();
 			    					Utils.notifySuccess("Topology killed successfully.")
@@ -976,8 +976,8 @@ define([
 			    			debugType: 'enable',
 			    			percent: result,
 			    			success: function(model, response){
-			    				if(response.error){
-									Utils.notifyError(response.error);
+			    				if(response.error || model.error){
+									Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 								} else {
 									this.initializeData();
 			    					Utils.notifySuccess("Debugging enabled successfully.")
@@ -998,8 +998,8 @@ define([
 		    			debugType: 'disable',
 		    			percent: '0',
 		    			success: function(model, response){
-		    				if(response.error){
-								Utils.notifyError(response.error);
+		    				if(response.error || model.error){
+								Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 							} else {
 								this.initializeData();
 		    					Utils.notifySuccess("Debugging disabled successfully.")
