@@ -88,11 +88,8 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("configurationTags")
   private Map<String, Map<String, String>> configurationTags;
 
-  @SerializedName("forceRefreshConfigTags")
-  private Set<String> forceRefreshConfigTags = new HashSet<String>();
-
   @SerializedName("forceRefreshConfigTagsBeforeExecution")
-  private Set<String> forceRefreshConfigTagsBeforeExecution = new HashSet<String>();
+  private boolean forceRefreshConfigTagsBeforeExecution = false;
 
   @SerializedName("commandParams")
   private Map<String, String> commandParams = new HashMap<String, String>();
@@ -233,27 +230,16 @@ public class ExecutionCommand extends AgentCommand {
   public void setConfigurations(Map<String, Map<String, String>> configurations) {
     this.configurations = configurations;
   }
-  /**
-   * @return Returns the set of config-types that have to be propagated to actual-config of component of given custom command, if command is successfully finished.
-   */
-  public Set<String> getForceRefreshConfigTags() {
-    return forceRefreshConfigTags;
-  }
-
-  public void setForceRefreshConfigTags(Set<String> forceRefreshConfigTags) {
-    this.forceRefreshConfigTags = forceRefreshConfigTags;
-  }
 
   /**
-   * Comma separated list of config-types whose tags have be refreshed
-   * at runtime before being executed. If all config-type tags have to be
-   * refreshed, "*" can be specified.
+   * Gets whether configuration tags shoudl be refreshed right before the
+   * command is scheduled.
    */
-  public Set<String> getForceRefreshConfigTagsBeforeExecution() {
+  public boolean getForceRefreshConfigTagsBeforeExecution() {
     return forceRefreshConfigTagsBeforeExecution;
   }
 
-  public void setForceRefreshConfigTagsBeforeExecution(Set<String> forceRefreshConfigTagsBeforeExecution) {
+  public void setForceRefreshConfigTagsBeforeExecution(boolean forceRefreshConfigTagsBeforeExecution) {
     this.forceRefreshConfigTagsBeforeExecution = forceRefreshConfigTagsBeforeExecution;
   }
 
@@ -274,7 +260,7 @@ public class ExecutionCommand extends AgentCommand {
     for (Map.Entry<String, ServiceInfo> entry : serviceInfoMap.entrySet()) {
       serviceVersionMap.put(entry.getKey(), entry.getValue().getVersion());
     }
-    this.availableServices = serviceVersionMap;
+    availableServices = serviceVersionMap;
   }
 
   public Map<String, Map<String, Map<String, String>>> getConfigurationAttributes() {
@@ -379,7 +365,6 @@ public class ExecutionCommand extends AgentCommand {
     String AMBARI_DB_RCA_USERNAME = "ambari_db_rca_username";
     String AMBARI_DB_RCA_PASSWORD = "ambari_db_rca_password";
     String COMPONENT_CATEGORY = "component_category";
-    String REFRESH_ADITIONAL_COMPONENT_TAGS = "forceRefreshConfigTags";
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
     String NOT_MANAGED_HDFS_PATH_LIST = "not_managed_hdfs_path_list";
@@ -393,9 +378,8 @@ public class ExecutionCommand extends AgentCommand {
     String LOG_OUTPUT = "log_output";
 
     /**
-     * Comma separated list of config-types whose tags have be refreshed
-     * at runtime before being executed. If all config-type tags have to be
-     * refreshed, "*" can be specified.
+     * A boolean indicating whether configuration tags should be refreshed
+     * before sending the command.
      */
     String REFRESH_CONFIG_TAGS_BEFORE_EXECUTION = "forceRefreshConfigTagsBeforeExecution";
 

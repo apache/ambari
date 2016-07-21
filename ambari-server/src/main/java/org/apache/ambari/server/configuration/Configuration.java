@@ -2634,7 +2634,7 @@ public class Configuration {
    * @return the location of the template file, or {@code null} if not defined.
    */
   public String getAlertTemplateFile() {
-    return properties.getProperty(ALERT_TEMPLATE_FILE);
+    return StringUtils.strip(properties.getProperty(ALERT_TEMPLATE_FILE));
   }
 
   /**

@@ -28,7 +28,6 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TY
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -369,6 +368,10 @@ public class AmbariActionExecutionHelper {
 
     // create tasks for each host
     for (String hostName : targetHosts) {
+      // ensure that any tags that need to be refreshed are extracted from the
+      // context and put onto the execution command
+      Map<String, String> actionParameters = actionContext.getParameters();
+
       stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionContext.getActionName()),
           RoleCommand.ACTIONEXECUTE,
           new ServiceComponentHostOpInProgressEvent(actionContext.getActionName(), hostName,
@@ -401,10 +404,22 @@ public class AmbariActionExecutionHelper {
       execCmd.setConfigurations(new TreeMap<String, Map<String, String>>());
       execCmd.setConfigurationAttributes(new TreeMap<String, Map<String, Map<String, String>>>());
 
-      // !!! ensure that the config tags are added to this command so that the
-      // configurations can be populated from the tags before the command is
-      // sent
-      Map<String, Map<String, String>> configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+      // if the command should fetch brand new configuration tags before
+      // execution, then we don't need to fetch them now
+      if (null != actionParameters && !actionParameters.isEmpty()) {
+        if (actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)) {
+          execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+        }
+      }
+
+      // when building complex orchestration ahead of time (such as when
+      // performing ugprades), fetching configuration tags can take a very long
+      // time - if it's not needed, then don't do it
+      Map<String, Map<String, String>> configTags = new TreeMap<String, Map<String, String>>();
+      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
+        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+      }
+
       execCmd.setConfigurationTags(configTags);
 
       execCmd.setCommandParams(commandParams);
@@ -431,7 +446,7 @@ public class AmbariActionExecutionHelper {
         roleParams = new TreeMap<String, String>();
       }
 
-      roleParams.putAll(actionContext.getParameters());
+      roleParams.putAll(actionParameters);
 
       SecretReference.replaceReferencesWithPasswords(roleParams, cluster);
 
@@ -446,19 +461,6 @@ public class AmbariActionExecutionHelper {
       }
 
       execCmd.setRoleParams(roleParams);
-
-      // ensure that any tags that need to be refreshed are extracted from the
-      // context and put onto the execution command
-      Map<String, String> actionParameters = actionContext.getParameters();
-      if (null != actionParameters && !actionParameters.isEmpty()) {
-        if (actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)) {
-          String[] split = StringUtils.split(
-              actionParameters.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
-          Set<String> configsToRefresh = new HashSet<String>(Arrays.asList(split));
-
-          execCmd.setForceRefreshConfigTagsBeforeExecution(configsToRefresh);
-        }
-      }
 
       if (null != cluster) {
         // Generate localComponents

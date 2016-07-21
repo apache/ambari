@@ -523,8 +523,7 @@ class ActionScheduler implements Runnable {
 
   private boolean isStageHasBackgroundCommandsOnly(Stage s, String host) {
     for (ExecutionCommandWrapper c : s.getExecutionCommands(host)) {
-      if(c.getExecutionCommand().getCommandType() != AgentCommandType.BACKGROUND_EXECUTION_COMMAND)
-      {
+      if (c.getCommandType() != AgentCommandType.BACKGROUND_EXECUTION_COMMAND) {
         return false;
       }
     }
