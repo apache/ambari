@@ -71,6 +71,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * Class to assist with upgrading a cluster.
@@ -749,12 +750,21 @@ public class UpgradeHelper {
   }
 
   /**
-   * Transitions all affected components to upgrading state. Transition is performed
-   * only for components that advertise their version. Service component desired
-   * version is set to one passed as an argument
-   * @param version desired version (like 2.2.1.0-1234) for upgrade
-   * @param targetServices targets for upgrade
+   * Transitions all affected components to {@link UpgradeState#IN_PROGRESS}.
+   * Transition is performed only for components that advertise their version.
+   * Additionally sets the service component desired version to the specified
+   * argument.
+   * <p/>
+   * Because this iterates over all of the components on every host and updates
+   * the upgrade state individually, we wrap this method inside of a transaction
+   * to prevent 1000's of transactions from being opened and committed.
+   *
+   * @param version
+   *          desired version (like 2.2.1.0-1234) for upgrade
+   * @param targetServices
+   *          targets for upgrade
    */
+  @Transactional
   public void putComponentsToUpgradingState(String version,
                                             Map<Service, Set<ServiceComponent>> targetServices) throws AmbariException {
     // TODO: generalize method?

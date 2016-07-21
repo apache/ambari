@@ -35,8 +35,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.annotations.TransactionalLock;
-import org.apache.ambari.annotations.TransactionalLock.LockArea;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -590,9 +588,9 @@ public class ConfigHelper {
     return result;
   }
 
-  public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType, Cluster cluster) throws AmbariException {
+  public Set<String> getPropertyValuesWithPropertyType(StackId stackId, PropertyType propertyType,
+      Cluster cluster, Map<String, DesiredConfig> desiredConfigs) throws AmbariException {
     StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     Map<String, Config> actualConfigs = new HashMap<>();
     Set<String> result = new HashSet<String>();
 
@@ -1417,7 +1415,7 @@ public class ConfigHelper {
     public void run() {
       staleConfigCacheLock.writeLock().lock();
       try {
-        ConfigHelper.this.staleConfigCacheDesiredConfigs = m_desiredConfigs;
+        staleConfigCacheDesiredConfigs = m_desiredConfigs;
         if (null == m_keysToInvalidate || m_keysToInvalidate.isEmpty()) {
           staleConfigsCache.invalidateAll();
         } else {

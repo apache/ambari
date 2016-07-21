@@ -148,7 +148,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1", "REFRESHQUEUES",
         new HashMap<String, String>() {
           {
-            put("forceRefreshConfigTags", "capacity-scheduler");
+            put("forceRefreshConfigTagsBeforeExecution", "true");
           }
         }, false);
     actionRequest.getResourceFilters().add(new RequestResourceFilter("YARN", "RESOURCEMANAGER", Collections.singletonList("c1-c6401")));
@@ -169,11 +169,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertEquals(1, commands.size());
 
     ExecutionCommand command = commands.get(0).getExecutionCommand();
-
-    Assert.assertNotNull(command.getForceRefreshConfigTags());
-    Assert.assertEquals(1, command.getForceRefreshConfigTags().size());
-    Assert.assertEquals("capacity-scheduler",
-        command.getForceRefreshConfigTags().iterator().next());
+    Assert.assertEquals(true, command.getForceRefreshConfigTagsBeforeExecution());
   }
 
   @Test

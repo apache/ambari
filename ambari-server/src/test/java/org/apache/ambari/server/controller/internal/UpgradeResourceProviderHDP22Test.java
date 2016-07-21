@@ -18,9 +18,9 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -66,7 +66,6 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -78,23 +77,20 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gson.Gson;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * UpgradeResourceDefinition tests.
@@ -110,81 +106,22 @@ public class UpgradeResourceProviderHDP22Test {
   private Clusters clusters;
   private OrmTestHelper helper;
   private AmbariManagementController amc;
-  private ConfigHelper configHelper;
   private StackDAO stackDAO;
   private TopologyManager topologyManager;
 
   private static final String configTagVersion1 = "version1";
   private static final String configTagVersion2 = "version2";
-  @SuppressWarnings("serial")
-  private static final Map<String, String> configTagVersion1Properties = new HashMap<String, String>() {
-    {
-      put("hive.server2.thrift.port", "10000");
-    }
-  };
 
-  private static final Map<String, String> configTagVersion2Properties = new HashMap<String, String>() {
-    {
-      put("hive.server2.thrift.port", "10010");
-    }
-  };
+  private static final Map<String, String> configTagVersion1Properties = new ImmutableMap.Builder<String, String>().put(
+      "hive.server2.thrift.port", "10000").build();
 
-  @SuppressWarnings({ "serial", "unchecked" })
+  private static final Map<String, String> configTagVersion2Properties = new ImmutableMap.Builder<String, String>().put(
+      "hive.server2.thrift.port", "10010").build();
+
   @Before
   public void before() throws Exception {
-    // setup the config helper for placeholder resolution
-    configHelper = EasyMock.createNiceMock(ConfigHelper.class);
-
-    expect(configHelper.getPlaceholderValueFromDesiredConfigurations(EasyMock.anyObject(Cluster.class), EasyMock.eq("{{foo/bar}}"))).andReturn(
-        "placeholder-rendered-properly").anyTimes();
-
-    expect(configHelper.getDefaultProperties(EasyMock.anyObject(StackId.class), EasyMock.anyObject(Cluster.class))).andReturn(
-        new HashMap<String, Map<String, String>>()).anyTimes();
-
-    expect(configHelper.getEffectiveConfigAttributes(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
-        new HashMap<String, Map<String, Map<String, String>>>()).anyTimes();
-
-    expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
-      {
-        put("hive-site", new HashMap<String, String>() {
-          {
-            put("tag", configTagVersion1);
-          }
-        });
-      }
-    }).times(3);
-
-    expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
-      {
-        put("hive-site", new HashMap<String, String>() {
-          {
-            put("tag", configTagVersion2);
-          }
-        });
-      }
-    }).times(2);
-
-    expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
-        new HashMap<String, Map<String, String>>() {
-          {
-            put("hive-site", configTagVersion1Properties);
-          }
-        }).times(1);
-
-    expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
-        new HashMap<String, Map<String, String>>() {
-          {
-            put("hive-site", configTagVersion2Properties);
-          }
-        }).times(2);
-
-    expect(configHelper.getMergedConfig(EasyMock.anyObject(Map.class),
-        EasyMock.anyObject(Map.class))).andReturn(new HashMap<String, String>()).anyTimes();
-
-    EasyMock.replay(configHelper);
-
     // create an injector which will inject the mocks
-    injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule()).with(new MockModule()));
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
 
     injector.getInstance(GuiceJpaInitializer.class);
 
@@ -270,10 +207,6 @@ public class UpgradeResourceProviderHDP22Test {
   public void after() {
     injector.getInstance(PersistService.class).stop();
     injector = null;
-  }
-
-  private void setupConfigHelper() {
-
   }
 
   /**
@@ -374,8 +307,8 @@ public class UpgradeResourceProviderHDP22Test {
       String executionCommandJson = new String(ece.getCommand());
       Map<String, Object> commandMap = gson.<Map<String, Object>> fromJson(executionCommandJson, Map.class);
 
-      // ensure that the latest tag is being used and that "*" is forcing a
-      // refresh - this is absolutely required for upgrades
+      // ensure that the latest tag is being used - this is absolutely required
+      // for upgrades
       Set<String> roleCommandsThatMustHaveRefresh = new HashSet<String>();
       roleCommandsThatMustHaveRefresh.add("SERVICE_CHECK");
       roleCommandsThatMustHaveRefresh.add("RESTART");
@@ -385,15 +318,10 @@ public class UpgradeResourceProviderHDP22Test {
       if (roleCommandsThatMustHaveRefresh.contains(roleCommand)) {
         assertTrue(commandMap.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION));
         Object object = commandMap.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION);
-        assertTrue(object instanceof List);
-
-        @SuppressWarnings("unchecked")
-        List<String> tags = (List<String>) commandMap.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION);
-        assertEquals(1, tags.size());
-        assertEquals("*", tags.get(0));
+        assertTrue(Boolean.valueOf(object.toString()));
 
         ExecutionCommandWrapperFactory ecwFactory = injector.getInstance(ExecutionCommandWrapperFactory.class);
-        ExecutionCommandWrapper executionCommandWrapper = ecwFactory.createFromJson(executionCommandJson); 
+        ExecutionCommandWrapper executionCommandWrapper = ecwFactory.createFromJson(executionCommandJson);
         ExecutionCommand executionCommand = executionCommandWrapper.getExecutionCommand();
         Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
         assertEquals(configTagVersion2, configurationTags.get("hive-site").get("tag"));
@@ -409,18 +337,5 @@ public class UpgradeResourceProviderHDP22Test {
    */
   private UpgradeResourceProvider createProvider(AmbariManagementController amc) {
     return new UpgradeResourceProvider(amc);
-  }
-
-  /**
-   *
-   */
-  private class MockModule implements Module {
-    /**
-   *
-   */
-    @Override
-    public void configure(Binder binder) {
-      binder.bind(ConfigHelper.class).toInstance(configHelper);
-    }
   }
 }
