@@ -338,7 +338,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "HIVE": self.recommendHIVEConfigurations,
       "ATLAS": self.recommendAtlasConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
-      "STORM": self.recommendStormConfigurations
+      "STORM": self.recommendStormConfigurations,
+      "OOZIE": self.recommendOozieConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
