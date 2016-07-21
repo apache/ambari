@@ -5142,8 +5142,9 @@ class TestHDP25StackAdvisor(TestCase):
 
 
   # Test 28: (1). only 'default' queue exists at root level in capacity-scheduler, and
-  #          'capacity-scheduler' configs are passed-in as single "/n" separated string  and
+  #          'capacity-scheduler' configs are passed-in as single "/n" separated string,
   #          (2). configuration change detected for 'enable_hive_interactive'
+  #          (3). 'llap_queue_capacity' is passed in as 0, so that it can be read from configurations.
   #         Expected : Configurations values recommended for llap related configs.
   def test_recommendYARNConfigurations_five_node_manager_llap_configs_updated_4(self):
     # 3 node managers and yarn.nodemanager.resource.memory-mb": "204800"
@@ -5243,7 +5244,7 @@ class TestHDP25StackAdvisor(TestCase):
           {
             'properties': {
               'enable_hive_interactive': 'true',
-              'llap_queue_capacity':'50'
+              'llap_queue_capacity':'0' # Intentionally kept '0' so as to read it from configurations.
             }
           },
         "hive-interactive-site":
@@ -5295,17 +5296,16 @@ class TestHDP25StackAdvisor(TestCase):
     configurations = {
     }
 
-
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, self.hosts)
 
-    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '2')
+    self.assertEqual(configurations['hive-interactive-env']['properties']['num_llap_nodes'], '1')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '204800')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.yarn.container.mb'], '151552')
 
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.daemon.num.executors'], '3')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.threadpool.size'], '3')
 
-    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '201728')
+    self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.memory.size'], '148480')
     self.assertEqual(configurations['hive-interactive-site']['properties']['hive.llap.io.enabled'], 'true')
 
     self.assertEqual(configurations['hive-interactive-env']['properties']['llap_heap_size'], '2457')
