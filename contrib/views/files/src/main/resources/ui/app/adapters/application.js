@@ -21,15 +21,18 @@ import Ember from 'ember';
 
 export default DS.RESTAdapter.extend({
   namespace: Ember.computed(function() {
-    var parts = window.location.pathname.match(/\/[^\/]*/g);
-    var view = parts[1];
-    var version = '/versions' + parts[2];
-    var instance = parts[3];
-    if (parts.length === 4) { // version is not present
-      instance = parts[2];
+    var parts = window.location.pathname.split('/').filter(function(i) {
+      return i !== "";
+    });
+    var view = parts[parts.length - 3];
+    var version = '/versions/' + parts[parts.length - 2];
+    var instance = parts[parts.length - 1];
+
+    if (!/^(\d+\.){2,3}\d+$/.test(parts[parts.length - 2])) { // version is not present
+      instance = parts[parts.length - 2];
       version = '';
     }
-    return 'api/v1/views' + view + version + '/instances' + instance + '/resources/files/fileops';
+    return 'api/v1/views/' + view + version + '/instances/' + instance + '/resources/files/fileops';
   }),
 
   headers: {

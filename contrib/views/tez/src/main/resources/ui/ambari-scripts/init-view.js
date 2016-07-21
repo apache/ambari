@@ -19,16 +19,29 @@
 var PATH_PARAM_NAME = "viewPath";
 
 /**
+ * Returns view name, version and instance name from location.pathname
+ *
+ * @return {String[]} [view name, version, instance name]
+ */
+function getViewInfoFromPathname() {
+  return location.pathname.split('/').filter(function(i) {
+    return i !== "";
+  }).filter(function(i, index, arr) {
+    return index >= arr.length - 3;
+  });
+};
+
+/**
  * Constructs URL for fetching Ambari view instance parameters.
  * @return {String}
  */
 function getStatusURL() {
-  var urlParts = location.pathname.split('/');
+  var urlParts = getViewInfoFromPathname();
 
   return "/api/v1/views/%@/versions/%@/instances/%@/resources/status".fmt(
-    urlParts[2],
-    urlParts[3],
-    urlParts[4]
+    urlParts[0],
+    urlParts[1],
+    urlParts[2]
   );
 }
 
@@ -176,11 +189,12 @@ function getConfigs(parameters) {
       "//" +
       window.location.hostname +
       (window.location.port ? ':' + window.location.port: ''),
-      urlParts = location.pathname.split('/'),
-      resourcesPrefix = 'api/v1/views/%@/versions/%@/instances/%@/resources/'.fmt(
-        urlParts[2],
-        urlParts[3],
-        urlParts[4]
+      urlParts = getViewInfoFromPathname(),
+      // .replace() call is necessary to work properly behind the proxy
+      resourcesPrefix = '/api/v1/views/%@/versions/%@/instances/%@/resources/'.replace(/^\//, '').fmt(
+        urlParts[0],
+        urlParts[1],
+        urlParts[2]
       );
 
   parameters = parameters || {};
