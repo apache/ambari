@@ -273,7 +273,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
           metadata_port = services['configurations']['application-properties']['properties']['atlas.server.http.port']
         if tls_enabled.lower() == "true":
           scheme = "https"
-          if 'atlas.server.https.port' in services['configurations']['atlas.server.https.port']['properties']:
+          if 'atlas.server.https.port' in services['configurations']['application-properties']['properties']:
             metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.https.port']
           else:
             metadata_port = atlas_server_default_https_port
