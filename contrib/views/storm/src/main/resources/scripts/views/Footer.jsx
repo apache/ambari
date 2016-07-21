@@ -30,8 +30,8 @@ define(['react', 'react-dom', 'models/VCluster', 'utils/Utils'], function(React,
 			this.model = new VCluster();
 			this.model.fetch({
 				success: function(model, response){
-					if(response.error){
-						Utils.notifyError(response.error);
+					if(response.error || model.error){
+						Utils.notifyError(response.error || model.error+'('+model.errorMessage.split('(')[0]+')');
 					} else {
 						this.setState({version: model.get('stormVersion')});
 					}

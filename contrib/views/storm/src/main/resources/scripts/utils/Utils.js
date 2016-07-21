@@ -26,7 +26,7 @@ define(['require',
     var Utils = {};
 
     Utils.getStormHostDetails = function() {
-        var url;
+        var url = location.pathname+'proxy?url=';
         var urlParts = location.pathname.split('/');
         var apiUrl = '/api/v1/'+urlParts[1]+'/'+urlParts[2]+'/versions/'+urlParts[3]+'/instances/'+urlParts[4];
         $.ajax({
@@ -38,7 +38,7 @@ define(['require',
             success: function(response){
                 var props = response.ViewInstanceInfo.properties;
                 if(props['storm.host'] && props['storm.port']){
-                    url = "http://"+props['storm.host']+":"+props['storm.port'];
+                    url += "http://"+props['storm.host']+":"+props['storm.port'];
                 } else {
                     Utils.notifyError("Failed to get storm hostname and port.");
                 }
