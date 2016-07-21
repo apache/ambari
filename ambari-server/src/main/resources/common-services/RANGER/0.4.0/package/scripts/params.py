@@ -298,7 +298,10 @@ for host in zookeeper_hosts:
   index += 1
   if index < len(zookeeper_hosts):
     zookeeper_quorum += ","
+
+# solr kerberised
 solr_jaas_file = None
+is_solr_kerberos_enabled = default('/configurations/ranger-admin-site/ranger.is.solr.kerberised', False)
 
 if security_enabled:
   if has_ranger_tagsync:
@@ -308,18 +311,16 @@ if security_enabled:
     tagsync_keytab_path = config['configurations']['ranger-tagsync-site']['ranger.tagsync.kerberos.keytab']
 
   if stack_supports_ranger_kerberos:
+    ranger_admin_keytab = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.keytab']
     ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
     if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':
       ranger_admin_jaas_principal = ranger_admin_principal.replace('_HOST', ranger_host.lower())
-    ranger_admin_keytab = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.keytab']
-
-    if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':
-      if stack_supports_logsearch_client and is_solrCloud_enabled:
+      if stack_supports_logsearch_client and is_solrCloud_enabled and is_solr_kerberos_enabled:
         solr_jaas_file = format('{ranger_home}/conf/ranger_solr_jass.conf')
         solr_kerberos_principal = ranger_admin_jaas_principal
         solr_kerberos_keytab = ranger_admin_keytab
-    else:
-      solr_jaas_file = None
+      else:
+        solr_jaas_file = None
 
 # logic to create core-site.xml if hdfs not installed
 if stack_supports_ranger_kerberos and not has_namenode:
@@ -327,12 +328,17 @@ if stack_supports_ranger_kerberos and not has_namenode:
     'hadoop.security.authentication': 'kerberos' if security_enabled else 'simple'
   }
 
-  realm = 'EXAMPLE.COM'
   if security_enabled:
-    ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
+    realm = 'EXAMPLE.COM'
+    ranger_admin_bare_principal = 'rangeradmin'
+    ranger_usersync_bare_principal = 'rangerusersync'
+    ranger_tagsync_bare_principal = 'rangertagsync'
+
     ranger_usersync_principal = config['configurations']['ranger-ugsync-site']['ranger.usersync.kerberos.principal']
-    ranger_admin_bare_principal = get_bare_principal(ranger_admin_principal)
-    ranger_usersync_bare_principal = get_bare_principal(ranger_usersync_principal)
+    if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':
+      ranger_admin_bare_principal = get_bare_principal(ranger_admin_principal)
+    if not is_empty(ranger_usersync_principal) and ranger_usersync_principal != '':
+      ranger_usersync_bare_principal = get_bare_principal(ranger_usersync_principal)
     realm = config['configurations']['kerberos-env']['realm']
 
     rule_dict = [
@@ -341,7 +347,8 @@ if stack_supports_ranger_kerberos and not has_namenode:
     ]
 
     if has_ranger_tagsync:
-      ranger_tagsync_bare_principal = get_bare_principal(ranger_tagsync_principal)
+      if not is_empty(ranger_tagsync_principal) and ranger_tagsync_principal != '':
+        ranger_tagsync_bare_principal = get_bare_principal(ranger_tagsync_principal)
       rule_dict.append({'principal': ranger_tagsync_bare_principal, 'user': 'rangertagsync'})
 
     core_site_auth_to_local_property = ''

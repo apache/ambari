@@ -34,6 +34,7 @@ from resource_management.libraries.functions.get_not_managed_resources import ge
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries import functions
+from resource_management.libraries.functions import is_empty
 
 import status_params
 
@@ -404,9 +405,11 @@ if has_ranger_admin:
     if 'admin-properties' in config['configurations'] and 'policymgr_external_url' in config['configurations']['admin-properties'] and policymgr_mgr_url.endswith('/'):
       policymgr_mgr_url = policymgr_mgr_url.rstrip('/')
     xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
-    xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-    xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-    xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password']) if stack_supports_ranger_audit_db else None
+    xa_audit_db_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
+    xa_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
+    xa_audit_db_password = ''
+    if not is_empty(config['configurations']['admin-properties']['audit_db_password']) and stack_supports_ranger_audit_db:
+      xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
     xa_db_host = config['configurations']['admin-properties']['db_host']
     repo_name = str(config['clusterName']) + '_yarn'
 
