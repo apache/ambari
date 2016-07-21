@@ -59,17 +59,16 @@ appender.console.type = Console
 appender.console.name = console
 appender.console.target = SYSTEM_ERR
 appender.console.layout.type = PatternLayout
-# appender.console.layout.pattern = %d{yy/MM/dd HH:mm:ss} [%t]: %p %c{2}: %m%n
 appender.console.layout.pattern = %p %c{2}: %m%n
 
 # daily rolling file appender
-appender.DRFA.type = RollingFile
+appender.DRFA.type = RollingRandomAccessFile
 appender.DRFA.name = DRFA
 appender.DRFA.fileName = ${sys:hive.log.dir}/${sys:hive.log.file}
 # Use %pid in the filePattern to append process-id@host-name to the filename if you want separate log files for different CLI session
 appender.DRFA.filePattern = ${sys:hive.log.dir}/${sys:hive.log.file}.%d{yyyy-MM-dd}
 appender.DRFA.layout.type = PatternLayout
-appender.DRFA.layout.pattern = %d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n
+appender.DRFA.layout.pattern = %d{ISO8601} %5p [%t] %c{2}: %m%n
 appender.DRFA.policies.type = Policies
 appender.DRFA.policies.time.type = TimeBasedTriggeringPolicy
 appender.DRFA.policies.time.interval = 1
@@ -97,8 +96,9 @@ logger.HadoopConf.level = ERROR
 
 # root logger
 rootLogger.level = ${sys:hive.log.level}
-rootLogger.appenderRefs = root
+rootLogger.appenderRefs = root, DRFA
 rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}
+rootLogger.appenderRef.DRFA.ref = DRFA
   </value>
     <value-attributes>
       <type>content</type>
