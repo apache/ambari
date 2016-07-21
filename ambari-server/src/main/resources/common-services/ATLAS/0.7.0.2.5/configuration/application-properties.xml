@@ -201,6 +201,11 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>atlas.authentication.method</name>
+    <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>atlas.lineage.hive.table.schema.query.hive_table</name>
     <deleted>true</deleted>
     <on-ambari-upgrade add="false"/>
