@@ -364,7 +364,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
 
     container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
-    container_size_bytes = int(container_size)*1024*1024
+    container_size_bytes = int(int(container_size)*0.8*1024*1024) # Xmx == 80% of container
     # Memory
     putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(round(container_size_bytes/3)))
     putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
