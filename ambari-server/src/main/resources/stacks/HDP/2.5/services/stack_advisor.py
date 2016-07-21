@@ -36,16 +36,34 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
   def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor,self).recommendOozieConfigurations(configurations, clusterData, services, hosts)
     putOozieEnvProperty = self.putProperty(configurations, "oozie-env", services)
-    if "FALCON_SERVER" in clusterData["components"] :
-      if "falcon-env" in services["configurations"] and "falcon_user" \
-          in services["configurations"]["falcon-env"]["properties"] :
-        falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
-      else :
-        falconUser = 'falcon'
+    if not "FALCON_SERVER" in clusterData["components"] :
+      print "Falcon is not part of the installation"
+      return
+
+    if not "oozie-env" in services["configurations"] :
+      print "No oozie env in configurations"
+      return
+
+    if "falcon-env" in services["configurations"] and "falcon_user" \
+        in services["configurations"]["falcon-env"]["properties"] :
+      falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
+      print "Falcon user from configuration " + falconUser
+    else :
+      falconUser = 'falcon'
+      print "Defaulting falcon user to " + falconUser
+
+    if "oozie_user" \
+      in services["configurations"]["oozie-env"]["properties"] :
       oozieUser = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-      newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
-      services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
-      putOozieEnvProperty("oozie_admin_users", newAdminUsers)
+      print "Oozie user from configuration " + oozieUser
+    else :
+      oozieUser = 'oozie'
+      print "Defaulting oozie user to " + oozieUser
+
+    newAdminUsers = "{0},oozie-admin,{1}".format(oozieUser, falconUser)
+    print "Setting new  oozie admin user to " + newAdminUsers
+    services["forced-configurations"].append({"type" : "oozie-env", "name" : "oozie_admin_users"})
+    putOozieEnvProperty("oozie_admin_users", newAdminUsers)
 
 
   def createComponentLayoutRecommendations(self, services, hosts):
