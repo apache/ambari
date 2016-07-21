@@ -287,9 +287,11 @@
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+        <task xsi:type="server_action" summary="Fix oozie admin users" class="org.apache.ambari.server.serveraction.upgrades.FixOozieAdminUsers"/>
       </execute-stage>
 
-      <!--FALCON-->
+
+    <!--FALCON-->
       <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon">
         <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
       </execute-stage>

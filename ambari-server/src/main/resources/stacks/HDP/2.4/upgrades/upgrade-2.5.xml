@@ -862,6 +862,8 @@
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
+          <task xsi:type="server_action" summary="Fixing Oozie admin users"
+                class="org.apache.ambari.server.serveraction.upgrades.FixOozieAdminUsers"/>
         </pre-upgrade>
 
         <pre-downgrade>
