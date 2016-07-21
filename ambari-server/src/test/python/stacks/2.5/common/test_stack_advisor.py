@@ -6705,6 +6705,58 @@ class TestHDP25StackAdvisor(TestCase):
     self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+  def test_validationAtlasConfigs(self):
+    servicesInfo = [
+      {
+        "name": "ATLAS",
+        "components": []
+      }
+    ]
+    services = self.prepareServices(servicesInfo)
+    services["configurations"] = {"application-properties": {"properties": {"atlas.graph.storage.backend": "hbase",
+                                                                            "atlas.authentication.method.ldap.type": "",
+                                                                            "atlas.graph.index.search.backend": "",
+                                                                            "atlas.kafka.bootstrap.servers": "",
+                                                                            "atlas.kafka.zookeeper.connect": "",
+                                                                            "atlas.graph.storage.hostname": "",
+                                                                            "atlas.audit.hbase.zookeeper.quorum": ""
+                                                                            }}}
+    hosts = self.prepareHosts([])
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+    expectedItems = [
+      {'message': 'If KAFKA is not installed then the Kafka bootstrap servers configuration must be specified.',
+       'level': 'ERROR'},
+      {'message': 'If KAFKA is not installed then the Kafka zookeeper quorum configuration must be specified.',
+       'level': 'ERROR'},
+      {
+        'message': 'Atlas is not configured to use the HBase installed in this cluster. If you would like Atlas to use another HBase instance, please configure this property and HBASE_CONF_DIR variable in atlas-env appropriately.',
+        'level': 'ERROR'},
+      {'message': 'If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.',
+       'level': 'ERROR'}
+    ]
+    self.assertValidationResult(expectedItems, result)
+    services["configurations"]["hbase-site"] = {"properties": {"hbase.zookeeper.quorum": "h1",}}
+    services["configurations"]["application-properties"]["properties"]["atlas.kafka.bootstrap.servers"] = "test"
+    services["configurations"]["application-properties"]["properties"]["atlas.kafka.zookeeper.connect"] = "test"
+    expectedItems = [
+      {'message': 'If HBASE is not installed then the hbase zookeeper quorum configuration must be specified.',
+       'level': 'ERROR'},
+      {'message': 'If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.',
+       'level': 'ERROR'}
+    ]
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+    self.assertValidationResult(expectedItems, result)
+    services["configurations"]["application-properties"]["properties"]["atlas.graph.storage.hostname"] = "h1"
+    expectedItems = [
+      {
+        'message': 'Atlas is configured to use the HBase installed in this cluster. If you would like Atlas to use another HBase instance, please configure this property and HBASE_CONF_DIR variable in atlas-env appropriately.',
+        'level': 'WARN'},
+      {'message': 'If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.',
+       'level': 'ERROR'}
+    ]
+    result = self.stackAdvisor.validateConfigurations(services, hosts)
+    self.assertValidationResult(expectedItems, result)
+
   def test_phoenixQueryServerSecureConfigsAppendProxyuser(self):
     self.maxDiff = None
     phoenix_query_server_hosts = ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]

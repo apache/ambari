@@ -153,6 +153,17 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                                 "item": self.getErrorItem(
                                     "If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.")})
 
+    elif application_properties['atlas.graph.storage.backend'] == 'hbase' and 'hbase-site' not in services[
+      'configurations']:
+      if not application_properties['atlas.graph.storage.hostname']:
+        validationItems.append({"config-name": "atlas.graph.storage.hostname",
+                                "item": self.getErrorItem(
+                                  "Atlas is not configured to use the HBase installed in this cluster. If you would like Atlas to use another HBase instance, please configure this property and HBASE_CONF_DIR variable in atlas-env appropriately.")})
+      if not application_properties['atlas.audit.hbase.zookeeper.quorum']:
+        validationItems.append({"config-name": "atlas.audit.hbase.zookeeper.quorum",
+                                "item": self.getErrorItem(
+                                  "If HBASE is not installed then the audit hbase zookeeper quorum configuration must be specified.")})
+
     validationProblems = self.toConfigurationValidationProblems(validationItems, "application-properties")
     return validationProblems
 
