@@ -116,13 +116,6 @@
       </service>
     </group>
 
-    <group name="KAFKA" title="Kafka">
-      <skippable>true</skippable>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
-
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
@@ -373,6 +366,13 @@
       </exclude>
     </group>
 
+    <group name="KAFKA" title="Kafka">
+      <skippable>true</skippable>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+    </group>
+
     <group name="KNOX" title="Knox">
       <skippable>true</skippable>
       <service name="KNOX">
@@ -478,22 +478,6 @@
         </upgrade>
       </component>
     </service>
-
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <post-upgrade>
-          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-        </post-upgrade>
-
-        <!--  no-op to prevent config changes on downgrade -->
-        <pre-downgrade/>
-
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
-    </service>
-
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
@@ -860,6 +844,20 @@
         </upgrade>
       </component>
       <component name="FALCON_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <post-upgrade>
+          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
+        </post-upgrade>
+
+        <pre-downgrade/>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
