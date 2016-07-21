@@ -338,14 +338,17 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "HIVE": self.recommendHIVEConfigurations,
       "ATLAS": self.recommendAtlasConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
-      "STORM": self.recommendStormConfigurations
+      "STORM": self.recommendStormConfigurations,
+      "OOZIE": self.recommendOozieConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     storm_site = getServicesSiteProperties(services, "storm-site")
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
     security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
     if security_enabled:
       _storm_principal_name = services['configurations']['storm-env']['properties']['storm_principal_name']
@@ -353,6 +356,22 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       storm_nimbus_impersonation_acl = storm_site["nimbus.impersonation.acl"]
       storm_nimbus_impersonation_acl.replace('{{storm_bare_jaas_principal}}', storm_bare_jaas_principal)
       putStormSiteProperty('nimbus.impersonation.acl', storm_nimbus_impersonation_acl)
+    rangerPluginEnabled = ''
+    if 'ranger-storm-plugin-properties' in configurations and 'ranger-storm-plugin-enabled' in  configurations['ranger-storm-plugin-properties']['properties']:
+      rangerPluginEnabled = configurations['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
+    elif 'ranger-storm-plugin-properties' in services['configurations'] and 'ranger-storm-plugin-enabled' in services['configurations']['ranger-storm-plugin-properties']['properties']:
+      rangerPluginEnabled = services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
+
+    storm_authorizer_class = 'org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer'
+    ranger_authorizer_class = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
+    # Cluster is kerberized
+    if security_enabled:
+      if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+        putStormSiteProperty('nimbus.authorizer',ranger_authorizer_class)
+      elif rangerPluginEnabled and (rangerPluginEnabled.lower() == 'No'.lower()) and (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == ranger_authorizer_class):
+        putStormSiteProperty('nimbus.authorizer', storm_authorizer_class)
+    else:
+      putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
 
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)

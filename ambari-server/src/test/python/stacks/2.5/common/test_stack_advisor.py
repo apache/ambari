@@ -7461,6 +7461,88 @@ class TestHDP25StackAdvisor(TestCase):
     self.assertEquals(self.stackAdvisor.get_phoenix_query_server_hosts(services, hosts),
         phoenix_query_server_hosts)
 
+  def test_recommendStormConfigurations(self):
+    configurations = {}
+    clusterData = {}
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "STORM",
+              "service_version" : "1.0.1.0.0"
+            }
+          },
+          {
+            "StackServices": {
+              "service_name": "RANGER",
+              "service_version": "0.6.0"
+
+            },
+            "components": [
+              {
+                "StackServiceComponents": {
+                  "component_name": "RANGER_ADMIN",
+                  "hostnames": ["host1"]
+                }
+              }
+            ]
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.5"
+      },
+      "configurations": {
+        "storm-site": {
+          "properties": {
+            "nimbus.authorizer" : "org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer",
+            "nimbus.impersonation.acl" :"{{{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}"
+            },
+          "property_attributes": {}
+        },
+        "storm-env": {
+          "properties":{
+            "storm_principal_name": "storm_user@ECAMPLE.COM"
+          },
+        },
+        "ranger-storm-plugin-properties": {
+          "properties": {
+            "ranger-storm-plugin-enabled": "No"
+          }
+        }
+      }
+    }
+
+    # Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin being enabled in kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['storm-site']['properties']['nimbus.authorizer'] = ''
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
+    services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'No'
+    services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
+    services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
+
+
 """
 Given a comma-separated string, split the items, sort them, and re-join the elements
 back into a comma-separated string
