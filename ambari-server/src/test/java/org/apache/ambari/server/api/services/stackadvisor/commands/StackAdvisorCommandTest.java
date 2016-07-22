@@ -241,6 +241,24 @@ public class StackAdvisorCommandTest {
   }
 
   @Test
+  public void testPopulateCommandType() throws Exception {
+    File file = mock(File.class);
+    String recommendationsArtifactsLifetime = "1w";
+    StackAdvisorRunner stackAdvisorRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo ambariMetaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorCommand<TestResource> cmd = new TestStackAdvisorCommand(file, recommendationsArtifactsLifetime, "test", 1,
+      stackAdvisorRunner, ambariMetaInfo);
+    ObjectNode objectNode = (ObjectNode) cmd.mapper.readTree("{\"Versions\": " +
+      "{\"stack_name\": \"stack\", \"stack_version\":\"1.0.0\"}}");
+
+    cmd.populateCommandType(objectNode);
+
+    JsonNode commandType = objectNode.get("stack-advisor-command-type");
+    assertNotNull(commandType);
+    assertEquals(StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT.toString(), commandType.getTextValue());
+  }
+
+  @Test
   public void testPopulateStackHierarchy_noParents() throws Exception {
     File file = mock(File.class);
     String recommendationsArtifactsLifetime = "1w";
