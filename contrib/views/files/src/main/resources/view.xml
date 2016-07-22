@@ -80,6 +80,22 @@
         <cluster-config>fake</cluster-config>
     </parameter>
     <parameter>
+        <name>webhdfs.ha.namenode.https-address.nn1</name>
+        <description>WebHDFS Https address for first name node.
+            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode HTTPS (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.https-address.nn2</name>
+        <description>WebHDFS Https address for second name node.
+            Value of hdfs-site/dfs.namenode.https-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode HTTPS (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
         <name>webhdfs.client.failover.proxy.provider</name>
         <description>The Java class that HDFS clients use to contact the Active NameNode
             Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property</description>
