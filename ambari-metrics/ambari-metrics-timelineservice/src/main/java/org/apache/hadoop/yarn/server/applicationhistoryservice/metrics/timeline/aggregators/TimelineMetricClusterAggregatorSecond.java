@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.PostProcessingUtil;
@@ -26,7 +27,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,7 +40,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 /**
  * Aggregates a metric across all hosts in the cluster. Reads metrics from
@@ -97,7 +96,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
-    Condition condition = new DefaultCondition(null, null, null, null, startTime,
+    Condition condition = new DefaultCondition(null, null, null, null, startTime - serverTimeShiftAdjustment,
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
@@ -163,7 +162,7 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
    * timeline.metrics.cluster.aggregator.minute.timeslice.interval
    * Normalize value by averaging them within the interval
    */
-  private void processAggregateClusterMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
+  protected void processAggregateClusterMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
                                               TimelineMetric metric, List<Long[]> timeSlices) {
     // Create time slices
     Map<TimelineClusterMetric, Double> clusterMetrics = sliceFromTimelineMetric(metric, timeSlices);
@@ -301,6 +300,17 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
     } else {
       //For other metrics, ok to do only interpolation
 
+      Double defaultNextSeenValue = null;
+      if (MapUtils.isEmpty(timeSliceValueMap) && MapUtils.isNotEmpty(timelineMetric.getMetricValues())) {
+        //If no value was found within the start_time based slices, but the metric has value in the server_time range,
+        // use that.
+
+        LOG.debug("No value found within range for metric : " + timelineMetric.getMetricName());
+        Map.Entry<Long,Double> firstEntry  = timelineMetric.getMetricValues().firstEntry();
+        defaultNextSeenValue = firstEntry.getValue();
+        LOG.debug("Found a data point outside timeslice range: " + new Date(firstEntry.getKey()) + ": " + defaultNextSeenValue);
+      }
+
       for (int sliceNum = 0; sliceNum < timeSlices.size(); sliceNum++) {
         Long[] timeSlice = timeSlices.get(sliceNum);
 
@@ -321,6 +331,10 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
           while (nextSeenValue == null && index < timeSlices.size()) {
             nextTimeSlice = timeSlices.get(index++);
             nextSeenValue = timeSliceValueMap.get(nextTimeSlice[1]);
+          }
+
+          if (nextSeenValue == null) {
+            nextSeenValue = defaultNextSeenValue;
           }
 
           Double interpolatedValue = PostProcessingUtil.interpolate(timeSlice[1],
