@@ -141,9 +141,9 @@ public class ProvisionClusterRequestTest {
     assertEquals(1, clusterScopedAttributes.size());
     Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
     assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("property1");
+    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
     assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("attribute1"));
+    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
   @Test
@@ -181,9 +181,9 @@ public class ProvisionClusterRequestTest {
     assertEquals(1, group2Attributes.size());
     Map<String, Map<String, String>> group2Type1Attributes = group2Attributes.get("foo-type");
     assertEquals(1, group2Type1Attributes.size());
-    Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("hostGroup2Prop10");
+    Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("attribute1");
     assertEquals(1, group2Type1Prop1Attributes.size());
-    assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("attribute1"));
+    assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("hostGroup2Prop10"));
 
     // cluster scoped configuration
     Configuration clusterScopeConfiguration = provisionClusterRequest.getConfiguration();
@@ -197,9 +197,9 @@ public class ProvisionClusterRequestTest {
     assertEquals(1, clusterScopedAttributes.size());
     Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
     assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("property1");
+    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
     assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("attribute1"));
+    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
   @Test
@@ -251,9 +251,9 @@ public class ProvisionClusterRequestTest {
     assertEquals(1, group2Attributes.size());
     Map<String, Map<String, String>> group2Type1Attributes = group2Attributes.get("foo-type");
     assertEquals(1, group2Type1Attributes.size());
-    Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("hostGroup2Prop10");
+    Map<String, String> group2Type1Prop1Attributes = group2Type1Attributes.get("attribute1");
     assertEquals(1, group2Type1Prop1Attributes.size());
-    assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("attribute1"));
+    assertEquals("attribute1Prop10-value", group2Type1Prop1Attributes.get("hostGroup2Prop10"));
 
     // cluster scoped configuration
     Configuration clusterScopeConfiguration = provisionClusterRequest.getConfiguration();
@@ -267,9 +267,9 @@ public class ProvisionClusterRequestTest {
     assertEquals(1, clusterScopedAttributes.size());
     Map<String, Map<String, String>> clusterScopedTypeAttributes = clusterScopedAttributes.get("someType");
     assertEquals(1, clusterScopedTypeAttributes.size());
-    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("property1");
+    Map<String, String> clusterScopedTypePropertyAttributes = clusterScopedTypeAttributes.get("attribute1");
     assertEquals(1, clusterScopedTypePropertyAttributes.size());
-    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("attribute1"));
+    assertEquals("someAttributePropValue", clusterScopedTypePropertyAttributes.get("property1"));
   }
 
   @Test(expected= InvalidTopologyTemplateException.class)

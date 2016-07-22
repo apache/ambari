@@ -114,7 +114,7 @@ public class ConfigurationFactory {
       if (BlueprintFactory.PROPERTIES_PROPERTY_ID.equals(propertyNameTokens[1])) {
         configuration.setProperty(type, propertyNameTokens[2], propertyValue);
       } else if (BlueprintFactory.PROPERTIES_ATTRIBUTES_PROPERTY_ID.equals(propertyNameTokens[1])) {
-        configuration.setAttribute(type, propertyNameTokens[2], propertyNameTokens[3], propertyValue);
+        configuration.setAttribute(type, propertyNameTokens[3], propertyNameTokens[2], propertyValue);
       }
     }
   }
