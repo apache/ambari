@@ -297,7 +297,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configValidationGlobalMessage: [],
       submitButtonClicked: false,
       isSubmitDisabled: true,
-      isRecommendedLoaded: false
+      isRecommendedLoaded: false,
+      initialRecommendations: []
     });
     this.get('stepConfigs').clear();
     this.set('filter', '');
@@ -568,10 +569,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   completeConfigLoading: function() {
-    this.clearRecommendationsByServiceName(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    this.clearRecommendationsByServiceName(App.StackService.find().filter(function (s) {
+      return s.get('isSelected') && !s.get('isInstalled');
+    }).mapProperty('serviceName'));
+    this.saveInitialRecommendations();
+    this.set('isRecommendedLoaded', true);
     console.timeEnd('loadConfigRecommendations execution time: ');
     console.timeEnd('wizard loadStep: ');
-    this.set('isRecommendedLoaded', true);
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }

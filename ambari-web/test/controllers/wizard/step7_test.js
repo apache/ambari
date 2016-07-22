@@ -997,7 +997,7 @@ describe('App.InstallerStep7Controller', function () {
               isSelected: false
             });
           },
-          filterProperty: function () {
+          filter: function () {
             return [];
           }
         }
