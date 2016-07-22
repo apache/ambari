@@ -185,10 +185,6 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
-hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore"
-
-ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
-has_ats = len(ats_host) > 0
 
 dfs_type = default("/commandParams/dfs_type", "")
 
@@ -222,13 +218,6 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
 
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 
-  # ats 1.5 properties
-  entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
-  entity_groupfs_active_dir_mode = 01777
-  entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
-  entity_groupfs_store_dir_mode = 0700
-  is_webhdfs_enabled = hdfs_site['dfs.webhdfs.enabled']
-
   if len(livy_livyserver_hosts) > 0:
     has_livyserver = True
 
@@ -242,7 +231,7 @@ import functools
 HdfsResource = functools.partial(
   HdfsResource,
   user=hdfs_user,
-  hdfs_resource_ignore_file = hdfs_resource_ignore_file,
+  hdfs_resource_ignore_file = "/var/lib/ambari-agent/data/.hdfs_resource_ignore",
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
