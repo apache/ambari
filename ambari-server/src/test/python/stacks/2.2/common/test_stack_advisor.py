@@ -1235,7 +1235,8 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.enabled': 'true',
           'hive.vectorized.execution.reduce.enabled': 'false',
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
-          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
+          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory',
+          'hive.metastore.uris' : 'thrift://c6402.ambari.apache.org:9083'
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '644245094'},
@@ -1341,6 +1342,33 @@ class TestHDP22StackAdvisor(TestCase):
               "dependencies": []
             }
           ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/HIVE",
+          "StackServices": {
+            "service_name": "HIVE",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "HIVE_METASTORE",
+                "display_name": "HiveServer2",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": [
+                  "c6402.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            }
+            ,
+          ],
         },
       ],
       "configurations": {

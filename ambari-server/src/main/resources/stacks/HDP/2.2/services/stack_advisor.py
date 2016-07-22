@@ -309,6 +309,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveSiteProperty("hive.enforce.bucketing", "false")
       putHiveSiteProperty("hive.exec.dynamic.partition.mode", "strict")
 
+    hiveMetastoreHost = self.getHostWithComponent("HIVE", "HIVE_METASTORE", services, hosts)
+    if hiveMetastoreHost is not None and len(hiveMetastoreHost) > 0:
+      putHiveSiteProperty("hive.metastore.uris", "thrift://" + hiveMetastoreHost["Hosts"]["host_name"] + ":9083")
+
     # ATS
     putHiveEnvProperty("hive_timeline_logging_enabled", "true")
 
