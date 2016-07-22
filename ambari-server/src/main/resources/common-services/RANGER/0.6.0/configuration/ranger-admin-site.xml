@@ -69,7 +69,7 @@
   </property>
   <property>
     <name>ranger.spnego.kerberos.principal</name>
-    <value/>
+    <value>*</value>
     <description/>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
