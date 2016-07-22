@@ -55,12 +55,16 @@ public class ConfigurationBuilder {
   public static final String HA_NAMENODES_CLUSTER_PROPERTY  = "dfs.ha.namenodes.%s";
   public static final String NAMENODE_RPC_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.rpc-address.nn1";
   public static final String NAMENODE_RPC_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.rpc-address.nn2";
-
   public static final String NAMENODE_RPC_NN_CLUSTER_PROPERTY   = "dfs.namenode.rpc-address.%s.%s";
+
   public static final String NAMENODE_HTTP_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.http-address.nn1";
   public static final String NAMENODE_HTTP_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.http-address.nn2";
-
   public static final String NAMENODE_HTTP_NN_CLUSTER_PROPERTY   = "dfs.namenode.http-address.%s.%s";
+
+  public static final String NAMENODE_HTTPS_NN1_INSTANCE_PROPERTY = "webhdfs.ha.namenode.https-address.nn1";
+  public static final String NAMENODE_HTTPS_NN2_INSTANCE_PROPERTY = "webhdfs.ha.namenode.https-address.nn2";
+  public static final String NAMENODE_HTTPS_NN_CLUSTER_PROPERTY   = "dfs.namenode.https-address.%s.%s";
+
   public static final String FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY = "webhdfs.client.failover.proxy.provider";
   public static final String FAILOVER_PROXY_PROVIDER_CLUSTER_PROPERTY  = "dfs.client.failover.proxy.provider.%s";
 
@@ -203,12 +207,16 @@ public class ConfigurationBuilder {
                         NAMENODE_RPC_NN1_INSTANCE_PROPERTY);
     copyClusterProperty(String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[0]),
                         NAMENODE_HTTP_NN1_INSTANCE_PROPERTY);
+    copyClusterProperty(String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[0]),
+      NAMENODE_HTTPS_NN1_INSTANCE_PROPERTY);
 
     //NN2
     copyClusterProperty(String.format(NAMENODE_RPC_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
                         NAMENODE_RPC_NN2_INSTANCE_PROPERTY);
     copyClusterProperty(String.format(NAMENODE_HTTP_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
                         NAMENODE_HTTP_NN2_INSTANCE_PROPERTY);
+    copyClusterProperty(String.format(NAMENODE_HTTPS_NN_CLUSTER_PROPERTY, nameservice, namenodes[1]),
+      NAMENODE_HTTPS_NN2_INSTANCE_PROPERTY);
 
     copyClusterProperty(String.format(FAILOVER_PROXY_PROVIDER_CLUSTER_PROPERTY, nameservice),
                         FAILOVER_PROXY_PROVIDER_INSTANCE_PROPERTY);
