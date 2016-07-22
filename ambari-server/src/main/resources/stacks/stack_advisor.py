@@ -298,6 +298,12 @@ class StackAdvisor(object):
     """
     pass
 
+class ActionType:
+  RECOMMEND_COMPONENT_LAYOUT_ACTION = 'recommend-component-layout'
+  VALIDATE_COMPONENT_LAYOUT_ACTION = 'validate-component-layout'
+  RECOMMEND_CONFIGURATIONS = 'recommend-configurations'
+  RECOMMEND_CONFIGURATION_DEPENDENCIES = 'recommend-configuration-dependencies'
+  VALIDATE_CONFIGURATIONS = 'validate-configurations'
 
 class DefaultStackAdvisor(StackAdvisor):
   """
@@ -312,7 +318,6 @@ class DefaultStackAdvisor(StackAdvisor):
     self.services = None
     # Dictionary that maps serviceName or componentName to serviceAdvisor
     self.serviceAdvisorsDict = {}
-
 
   def getActiveHosts(self, hosts):
     """ Filters the list of specified hosts object and returns
@@ -987,13 +992,13 @@ class DefaultStackAdvisor(StackAdvisor):
       config[configType]["properties"] = {}
     def appendProperty(key, value):
       # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
+      if self.isPropertyInChangedConfigs(configType, key, changedConfigs):
         config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
       else:
         config[configType]["properties"][key] = str(value)
     return appendProperty
 
-  def __isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
+  def isPropertyInChangedConfigs(self, configType, propertyName, changedConfigs):
     for changedConfig in changedConfigs:
       if changedConfig['type']==configType and changedConfig['name']==propertyName:
         return True
@@ -1016,7 +1021,7 @@ class DefaultStackAdvisor(StackAdvisor):
 
     def updatePropertyWithCallback(key, value, callback):
       # If property exists in changedConfigs, do not override, use user defined property
-      if self.__isPropertyInChangedConfigs(configType, key, changedConfigs):
+      if self.isPropertyInChangedConfigs(configType, key, changedConfigs):
         config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
       else:
         # Give the callback an empty string if the mapping doesn't exist
@@ -1083,3 +1088,6 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getServiceNames(self, services):
     return [service["StackServices"]["service_name"] for service in services["services"]]
+
+  def getActionType(self, services):
+    return services.get("stack-advisor-command-type", ActionType.RECOMMEND_CONFIGURATIONS)

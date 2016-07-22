@@ -98,6 +98,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
   private static final String AMBARI_SERVER_CONFIGURATIONS_PROPERTY = "ambari-server-properties";
+  private static final String STACK_ADVISOR_COMMAND_TYPE_PROPERTY = "stack-advisor-command-type";
 
   private File recommendationsDir;
   private String recommendationsArtifactsLifetime;
@@ -163,6 +164,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       populateConfigurations(root, request);
       populateConfigGroups(root, request);
       populateAmbariServerInfo(root);
+      populateCommandType(root);
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
       // should not happen
@@ -181,6 +183,10 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       JsonNode serverPropertiesNode = mapper.convertValue(serverProperties, JsonNode.class);
       root.put(AMBARI_SERVER_CONFIGURATIONS_PROPERTY, serverPropertiesNode);
     }
+  }
+
+  protected void populateCommandType(ObjectNode root) throws StackAdvisorException {
+    root.put(STACK_ADVISOR_COMMAND_TYPE_PROPERTY, getCommandType().toString());
   }
 
   private void populateConfigurations(ObjectNode root,
