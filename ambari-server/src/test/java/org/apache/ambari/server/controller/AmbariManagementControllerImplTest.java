@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import javax.persistence.RollbackException;
-import junit.framework.Assert;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
@@ -59,6 +57,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.HostNotFoundException;
@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo;
@@ -118,6 +119,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 /**
  * AmbariManagementControllerImpl unit tests
@@ -1992,8 +1995,11 @@ public class AmbariManagementControllerImplTest {
     RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
     ConfigHelper configHelper = createNiceMock(ConfigHelper.class);
 
+    Map<String, DesiredConfig> desiredConfigs = new HashMap<>();
+
     expect(cluster.getClusterName()).andReturn(clusterName);
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(cluster.getDesiredConfigs()).andReturn(desiredConfigs);
     expect(stackId.getStackName()).andReturn(SOME_STACK_NAME).anyTimes();
     expect(stackId.getStackVersion()).andReturn(SOME_STACK_VERSION).anyTimes();
     expect(configuration.getMySQLJarName()).andReturn(MYSQL_JAR);
@@ -2009,8 +2015,9 @@ public class AmbariManagementControllerImplTest {
     expect(clusterVersionDAO.findByClusterAndStateCurrent(clusterName)).andReturn(clusterVersionEntity).anyTimes();
     expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
-    expect(configHelper.getPropertyValuesWithPropertyType(stackId, PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH,
-        cluster)).andReturn(notManagedHdfsPathSet);
+    expect(configHelper.getPropertyValuesWithPropertyType(stackId,
+        PropertyInfo.PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs)).andReturn(
+            notManagedHdfsPathSet);
 
     replay(manager, clusters, cluster, injector, stackId, configuration, clusterVersionDAO, clusterVersionEntity,
         repositoryVersionEntity, configHelper);

@@ -18,6 +18,33 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +81,7 @@ import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.CustomCommandDefinition;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
@@ -82,33 +110,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_COUNT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AGENT_STACK_RETRY_ON_UNAVAILABILITY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_HOME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JCE_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.NOT_MANAGED_HDFS_PATH_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
 /**
  * Helper class containing logic to process custom command execution requests .
@@ -338,17 +339,29 @@ public class AmbariCustomCommandExecutionHelper {
           new TreeMap<String, Map<String, String>>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes =
           new TreeMap<String, Map<String, Map<String, String>>>();
-      Map<String, Map<String, String>> configTags =
-          managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+      Map<String, Map<String, String>> configTags = new TreeMap<String, Map<String, String>>();
+
+      ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
+          componentName).getExecutionCommand();
+
+      // if the command should fetch brand new configuration tags before
+      // execution, then we don't need to fetch them now
+      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+        execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+      }
+
+      // when building complex orchestration ahead of time (such as when
+      // performing ugprades), fetching configuration tags can take a very long
+      // time - if it's not needed, then don't do it
+      if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
+        configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostName);
+      }
 
       HostRoleCommand cmd = stage.getHostRoleCommand(hostName, componentName);
       if (cmd != null) {
         cmd.setCommandDetail(commandDetail);
         cmd.setCustomCommandName(commandName);
       }
-
-      ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostName,
-          componentName).getExecutionCommand();
 
       //set type background
       if(customCommandDefinition != null && customCommandDefinition.isBackground()){
@@ -358,14 +371,6 @@ public class AmbariCustomCommandExecutionHelper {
       execCmd.setConfigurations(configurations);
       execCmd.setConfigurationAttributes(configurationAttributes);
       execCmd.setConfigurationTags(configTags);
-
-      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
-        execCmd.setForceRefreshConfigTags(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)));
-      }
-
-      if(actionExecutionContext.getParameters() != null && actionExecutionContext.getParameters().containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
-        execCmd.setForceRefreshConfigTagsBeforeExecution(parseAndValidateComponentsMapping(actionExecutionContext.getParameters().get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)));
-      }
 
       execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
 
@@ -378,15 +383,17 @@ public class AmbariCustomCommandExecutionHelper {
       hostLevelParams.put(STACK_NAME, stackId.getStackName());
       hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
-      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
+      Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+      
+      Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
       String userList = gson.toJson(userSet);
       hostLevelParams.put(USER_LIST, userList);
 
-      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster);
+      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredConfigs);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
 
-      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
+      Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
       String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
       hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
@@ -458,28 +465,22 @@ public class AmbariCustomCommandExecutionHelper {
   private void applyCustomCommandBackendLogic(Cluster cluster, String serviceName, String componentName, String commandName, String hostname) throws AmbariException {
     switch (commandName) {
       case "RESTART":
-        LOG.info("Updating desired state on RESTART for the service [{}], service component [{}]", serviceName, componentName);
-        cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHost(hostname).setDesiredState(State.STARTED);
+        ServiceComponentHost serviceComponentHost = cluster.getService(
+            serviceName).getServiceComponent(componentName).getServiceComponentHost(hostname);
+
+        State currentDesiredState = serviceComponentHost.getDesiredState();
+        if (currentDesiredState != State.STARTED) {
+          LOG.info("Updating desired state to {} on RESTART for {}/{} because it was {}",
+              State.STARTED, serviceName, componentName, currentDesiredState);
+
+          serviceComponentHost.setDesiredState(State.STARTED);
+        }
+
         break;
       default:
         LOG.debug("No backend operations needed for the custom command: {}", commandName);
         break;
     }
-  }
-
-  /**
-   * Splits the passed comma separated value and returns it as set.
-   *
-   * @param commaSeparatedTags  separated list
-   *
-   * @return set of items or null
-   */
-  private Set<String> parseAndValidateComponentsMapping(String commaSeparatedTags) {
-    Set<String> retVal = null;
-    if(commaSeparatedTags != null && !commaSeparatedTags.trim().isEmpty()){
-      Collections.addAll(retVal = new HashSet<String>(), commaSeparatedTags.split(","));
-    }
-    return retVal;
   }
 
   private void findHostAndAddServiceCheckAction(final ActionExecutionContext actionExecutionContext,
@@ -606,18 +607,27 @@ public class AmbariCustomCommandExecutionHelper {
         new TreeMap<String, Map<String, String>>();
     Map<String, Map<String, Map<String, String>>> configurationAttributes =
         new TreeMap<String, Map<String, Map<String, String>>>();
-    Map<String, Map<String, String>> configTags =
-        managementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    Map<String, Map<String, String>> configTags = new TreeMap<String, Map<String, String>>();
 
     ExecutionCommand execCmd = stage.getExecutionCommandWrapper(hostname,
         smokeTestRole).getExecutionCommand();
 
+    // if the command should fetch brand new configuration tags before
+    // execution, then we don't need to fetch them now
+    if(actionParameters != null && actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
+      execCmd.setForceRefreshConfigTagsBeforeExecution(true);
+    }
+
+    // when building complex orchestration ahead of time (such as when
+    // performing ugprades), fetching configuration tags can take a very long
+    // time - if it's not needed, then don't do it
+    if (!execCmd.getForceRefreshConfigTagsBeforeExecution()) {
+      configTags = managementController.findConfigurationTagsWithOverrides(cluster, hostname);
+    }
+
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
-    if(actionParameters != null && actionParameters.containsKey(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)){
-      execCmd.setForceRefreshConfigTagsBeforeExecution(parseAndValidateComponentsMapping(actionParameters.get(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION)));
-    }
 
     // Generate cluster host info
     execCmd.setClusterHostInfo(
@@ -631,15 +641,15 @@ public class AmbariCustomCommandExecutionHelper {
     Map<String, String> commandParams = new TreeMap<String, String>();
 
     //Propagate HCFS service type info
-    Iterator<Service> it = cluster.getServices().values().iterator();
-    while(it.hasNext()) {
-        ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-        LOG.info("Iterating service type Instance in addServiceCheckAction:: " + serviceInfoInstance.getName());
-        if(serviceInfoInstance.getServiceType() != null) {
-            LOG.info("Adding service type info in addServiceCheckAction:: " + serviceInfoInstance.getServiceType());
-            commandParams.put("dfs_type",serviceInfoInstance.getServiceType());
-            break;
-        }
+    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
+    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+      if (serviceInfoInstance.getServiceType() != null) {
+        LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
+            serviceInfoInstance.getName());
+
+        commandParams.put("dfs_type", serviceInfoInstance.getServiceType());
+        break;
+      }
     }
 
     String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
@@ -993,10 +1003,6 @@ public class AmbariCustomCommandExecutionHelper {
           extraParams.put(componentName, requestParams.get(componentName));
         }
 
-        if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
-          actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
-        }
-
         // If command should be retried upon failure then add the option and also the default duration for retry
         if (requestParams.containsKey(KeyNames.COMMAND_RETRY_ENABLED)) {
           extraParams.put(KeyNames.COMMAND_RETRY_ENABLED, requestParams.get(KeyNames.COMMAND_RETRY_ENABLED));
@@ -1186,17 +1192,16 @@ public class AmbariCustomCommandExecutionHelper {
       clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
 
       //Propogate HCFS service type info to command params
-      Iterator<Service> it = cluster.getServices().values().iterator();
-      while(it.hasNext()) {
-          ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-          LOG.info("Iterating service type Instance in getCommandJson:: " + serviceInfoInstance.getName());
-          if(serviceInfoInstance.getServiceType() != null) {
-              LOG.info("Adding service type info in getCommandJson:: " + serviceInfoInstance.getServiceType());
-              commandParamsStage.put("dfs_type",serviceInfoInstance.getServiceType());
-              break;
-          }
-      }
+      Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
+      for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
+        if (serviceInfoInstance.getServiceType() != null) {
+          LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
+              serviceInfoInstance.getName());
 
+          commandParamsStage.put("dfs_type", serviceInfoInstance.getServiceType());
+          break;
+        }
+      }
     }
 
     String hostParamsStageJson = StageUtils.getGson().toJson(hostParamsStage);
@@ -1229,7 +1234,8 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(AGENT_STACK_RETRY_ON_UNAVAILABILITY, configs.isAgentStackRetryOnInstallEnabled());
     hostLevelParams.put(AGENT_STACK_RETRY_COUNT, configs.getAgentStackRetryOnInstallCount());
 
-    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster);
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    Set<String> notManagedHdfsPathSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     hostLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
 
