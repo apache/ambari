@@ -366,7 +366,8 @@ def setup_usersync(upgrade_type=None):
     group = params.unix_group,
     cd_access = 'a',
     create_parents=True,
-    mode=0755
+    mode=0755,
+    recursive_ownership = True
   )
 
   File(format('{ranger_ugsync_conf}/ranger-usersync-env-logdir.sh'),

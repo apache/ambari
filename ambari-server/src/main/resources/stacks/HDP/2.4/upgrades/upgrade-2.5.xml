@@ -603,6 +603,7 @@
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_namenode_ha_adjustments"/>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db" />
         </pre-upgrade>
 

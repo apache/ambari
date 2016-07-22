@@ -103,7 +103,8 @@ class TestRangerUsersync(RMFTestCase):
       group='ranger',
       create_parents = True,
       cd_access = 'a',
-      mode = 0755
+      mode = 0755,
+      recursive_ownership = True
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/ranger-usersync-env-logdir.sh',
