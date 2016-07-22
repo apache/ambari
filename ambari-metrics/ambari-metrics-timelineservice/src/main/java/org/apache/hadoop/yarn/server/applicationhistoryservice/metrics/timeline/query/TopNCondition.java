@@ -150,7 +150,9 @@ public class TopNCondition extends DefaultCondition{
   public static boolean isTopNHostCondition(List<String> metricNames, List<String> hostnames) {
     // Case 1 : 1 Metric, H hosts
     // Select Top N or Bottom N host series based on 1 metric (max/avg/sum)
-    return (metricNames.size() == 1 && CollectionUtils.isNotEmpty(hostnames));
+    // Hostnames cannot be empty
+    // Only 1 metric allowed, without wildcards
+    return (CollectionUtils.isNotEmpty(hostnames) && metricNames.size() == 1 && !metricNamesHaveWildcard(metricNames));
 
   }
 
@@ -163,7 +165,10 @@ public class TopNCondition extends DefaultCondition{
   public static boolean isTopNMetricCondition(List<String> metricNames, List<String> hostnames) {
     // Case 2 : M Metric names or Regex, 1 or No host
     // Select Top N or Bottom N metric series based on metric values(max/avg/sum)
-    return (metricNames.size() > 1 && (hostnames == null || hostnames.size() <= 1));
+    // MetricNames cannot be empty
+    // No host (aggregate) or 1 host allowed, without wildcards
+    return (CollectionUtils.isNotEmpty(metricNames) && (hostnames == null || hostnames.size() <= 1) &&
+      !hostNamesHaveWildcard(hostnames));
   }
 
   public Integer getTopN() {
