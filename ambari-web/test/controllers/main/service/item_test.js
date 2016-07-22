@@ -1375,6 +1375,7 @@ describe('App.MainServiceItemController', function () {
       });
       this.allowUninstallServices = sinon.stub(mainServiceItemController, 'allowUninstallServices');
       this.mockService = sinon.stub(App.Service, 'find');
+      this.mockRangerPluginEnabled = sinon.stub(mainServiceItemController, 'isRangerPluginEnabled');
       sinon.stub(App, 'showConfirmationPopup');
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
@@ -1394,12 +1395,24 @@ describe('App.MainServiceItemController', function () {
       App.ModalPopup.show.restore();
       App.format.role.restore();
       mainServiceItemController.kerberosDeleteWarning.restore();
+      this.mockRangerPluginEnabled.restore();
     });
 
     it("Kerberos delete should show specific warning", function() {
       mainServiceItemController.deleteService('KERBEROS');
       expect(mainServiceItemController.kerberosDeleteWarning.
         calledWith(Em.I18n.t('services.service.delete.popup.header'))).to.be.true;
+    });
+
+    it("RANGER delete should show specific warning", function() {
+      this.mockRangerPluginEnabled.returns(true);
+      mainServiceItemController.deleteService('RANGER');
+      expect(App.ModalPopup.show.calledWith({
+        secondary: null,
+        header: Em.I18n.t('services.service.delete.popup.header'),
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.popup.ranger')
+      })).to.be.true;
     });
 
     it("only one service installed", function() {
@@ -1749,6 +1762,35 @@ describe('App.MainServiceItemController', function () {
       mainServiceItemController.saveConfigs();
       expect(mainServiceItemController.putChangedConfigurations.calledWith([{}], 'confirmServiceDeletion')).to.be.true;
       expect(mainServiceItemController.confirmServiceDeletion.called).to.be.false;
+    });
+  });
+
+  describe("#isRangerPluginEnabled()", function () {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create();
+      this.mock = sinon.stub(App.router, 'get');
+    });
+
+    afterEach(function() {
+      this.mock.restore();
+    });
+
+    it("should return false", function() {
+      this.mock.returns([Em.Object.create({
+        isDisplayed: true,
+        status: 'Disabled'
+      })]);
+      expect(mainServiceItemController.isRangerPluginEnabled()).to.be.false;
+    });
+
+    it("should return true", function() {
+      this.mock.returns([Em.Object.create({
+        isDisplayed: true,
+        status: 'Enabled'
+      })]);
+      expect(mainServiceItemController.isRangerPluginEnabled()).to.be.true;
     });
   });
 });

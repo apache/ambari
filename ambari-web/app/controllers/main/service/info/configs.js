@@ -520,6 +520,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
     if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+      App.router.get('mainServiceInfoSummaryController').updateRangerPluginsStatus();
       this.setVisibilityForRangerProperties(selectedService);
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));

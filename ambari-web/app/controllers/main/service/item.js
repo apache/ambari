@@ -1250,6 +1250,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       this.kerberosDeleteWarning(popupHeader);
       return;
     }
+    if (serviceName === 'RANGER' && this.isRangerPluginEnabled()) {
+      App.ModalPopup.show({
+        secondary: null,
+        header: popupHeader,
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.popup.ranger')
+      });
+      return;
+    }
 
     if (App.Service.find().get('length') === 1) {
       //at least one service should be installed
@@ -1302,6 +1311,14 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         App.router.transitionTo('main.admin.adminKerberos.index');
       }
     });
+  },
+
+  /**
+   * @returns {Boolean}
+   */
+  isRangerPluginEnabled: function() {
+    return App.router.get('mainServiceInfoSummaryController.rangerPlugins')
+          .filterProperty('isDisplayed').someProperty('status', 'Enabled');
   },
 
   /**
