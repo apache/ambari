@@ -1136,19 +1136,24 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # During a recommendation request, we should get updated 'maximum's from recommendations
-    # During a validation request, update from services.
+    # With no 'changed-configurations', we should get updated 'maximum's from recommendations
+    # Else update from services.
     #
     # On a first stackadvisor invocation from the UI we have stack defaults in services["configurations"].
     # So services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] is always 5120 during first recommendation.
-
-    # Test validate-configurations:
-    services.pop("changed-configurations", None)
-    services["stack-advisor-command-type"] = 'validate-configurations'
+    # Get a value from recommendations instead of services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]
+    # in this case (if 'changed-configurations' are empty).
+    #
+    # Test not empty 'changed-configurations':
+    services["changed-configurations"] = [
+      {
+        "type": "yarn-env",
+        "name": "min_user_id"
+      }
+    ]
+    services.pop("configurations", None)
     services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321', "yarn.nodemanager.resource.cpu-vcores": '9'}},
                                   "yarn-env": {"properties": {"min_user_id": "500"}}}
-
-    # Expected recommendations from 'servicess'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
@@ -1230,7 +1235,8 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.enabled': 'true',
           'hive.vectorized.execution.reduce.enabled': 'false',
           'hive.security.metastore.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider',
-          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory'
+          'hive.security.authorization.manager': 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory',
+          'hive.metastore.uris' : 'thrift://c6402.ambari.apache.org:9083'
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '644245094'},
@@ -1336,6 +1342,33 @@ class TestHDP22StackAdvisor(TestCase):
               "dependencies": []
             }
           ]
+        },
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/HIVE",
+          "StackServices": {
+            "service_name": "HIVE",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "HIVE_METASTORE",
+                "display_name": "HiveServer2",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": [
+                  "c6402.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            }
+            ,
+          ],
         },
       ],
       "configurations": {
