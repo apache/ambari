@@ -1136,19 +1136,24 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
-    # During a recommendation request, we should get updated 'maximum's from recommendations
-    # During a validation request, update from services.
+    # With no 'changed-configurations', we should get updated 'maximum's from recommendations
+    # Else update from services.
     #
     # On a first stackadvisor invocation from the UI we have stack defaults in services["configurations"].
     # So services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"] is always 5120 during first recommendation.
-
-    # Test validate-configurations:
-    services.pop("changed-configurations", None)
-    services["stack-advisor-command-type"] = 'validate-configurations'
+    # Get a value from recommendations instead of services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]
+    # in this case (if 'changed-configurations' are empty).
+    #
+    # Test not empty 'changed-configurations':
+    services["changed-configurations"] = [
+      {
+        "type": "yarn-env",
+        "name": "min_user_id"
+      }
+    ]
+    services.pop("configurations", None)
     services["configurations"] = {"yarn-site": {"properties": {"yarn.nodemanager.resource.memory-mb": '4321', "yarn.nodemanager.resource.cpu-vcores": '9'}},
                                   "yarn-env": {"properties": {"min_user_id": "500"}}}
-
-    # Expected recommendations from 'servicess'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '9'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '9'
     expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-mb"]["maximum"] = '4321'
