@@ -318,6 +318,10 @@
       </execute-stage>
 
       <!-- HDFS -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode HA">
+        <task xsi:type="configure" id="hdp_2_5_0_0_namenode_ha_adjustments"/>
+      </execute-stage>
+
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for Hdfs Namenode">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hdfs_audit_db"/>
       </execute-stage>
