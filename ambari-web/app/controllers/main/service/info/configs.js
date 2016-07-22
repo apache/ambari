@@ -317,9 +317,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       return null;
     }
     var hash = {};
-    this.get('selectedService.configs').forEach(function (config) {
+    var sortedProperties = this.get('selectedService.configs').slice().sort(function(a, b) {
+      if (a.get('id') > b.get('id')) return -1;
+      if (a.get('id') < b.get('id')) return 1;
+      return 0;
+    });
+    sortedProperties.forEach(function (config) {
       if (config.isRequiredByAgent) {
-        hash[config.get('name')] = {
+        hash[config.get('id')] = {
           value: App.config.formatPropertyValue(config),
           overrides: [],
           isFinal: config.get('isFinal')
@@ -328,7 +333,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         if (!config.get('overrides.length')) return;
 
         config.get('overrides').forEach(function (override) {
-          hash[config.get('name')].overrides.push(App.config.formatPropertyValue(override));
+          hash[config.get('id')].overrides.push(App.config.formatPropertyValue(override));
         });
       }
     });
