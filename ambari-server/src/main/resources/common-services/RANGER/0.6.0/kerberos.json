@@ -56,9 +56,6 @@
             },
             {
               "name": "/spnego",
-              "principal": {
-                "configuration": "ranger-admin-site/ranger.spnego.kerberos.principal"
-              },
               "keytab": {
                 "configuration": "ranger-admin-site/ranger.spnego.kerberos.keytab"
               }
