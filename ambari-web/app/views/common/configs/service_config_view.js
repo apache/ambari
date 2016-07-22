@@ -87,7 +87,7 @@ App.ServiceConfigView = Em.View.extend({
    * @method updateFilterCounters
    */
   updateFilterCounters: function() {
-    if (this.get('controller.selectedService.configs')) {
+    if (this.get('controller.selectedService.configs') && this.get('state') !== 'destroyed') {
       var categories = this.get('controller.selectedService.configCategories').mapProperty('name');
       var configsToShow = this.get('controller.selectedService.configs').filter(function(config) {
         return config.get('isHiddenByFilter') == false && categories.contains(config.get('category')) && config.get('isVisible');
@@ -259,7 +259,7 @@ App.ServiceConfigView = Em.View.extend({
    * @method filterEnhancedConfigs
    */
   filterEnhancedConfigs: function () {
-    if (!this.get('controller.selectedService')) return true;
+    if (!this.get('controller.selectedService') || this.get('state') === 'destroyed') return true;
     var self = this;
 
     var serviceConfigs = this.get('controller.selectedService.configs').filterProperty('isVisible', true);
