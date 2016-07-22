@@ -361,6 +361,24 @@
       </execute-stage>
     </group>
 
+    <!--
+    Invoke "hdp-select set all" to change any components we may have missed
+    that are installed on the hosts but not known by Ambari.
+    -->
+    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
+      <scope>COMPLETE</scope>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
+      <execute-stage title="Update stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>
+    </group>
+
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
@@ -504,7 +522,7 @@
         <service>HBASE</service>
       </priority>
     </group>
-
+    
     <group xsi:type="restart" name="HIVE_MASTERS" title="Hive Masters">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -590,7 +608,7 @@
         <service>SPARK</service>
       </priority>
     </group>
-
+    
     <group xsi:type="restart" name="FALCON" title="Falcon">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -678,7 +696,6 @@
       </service>
     </group>
 
-
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
@@ -691,23 +708,6 @@
         <service>FLUME</service>
         <service>ACCUMULO</service>
       </priority>
-    </group>
-
-    <!--
-    Invoke "hdp-select set all" to change any components we may have missed
-    that are installed on the hosts but not known by Ambari.
-    -->
-    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
-      <scope>COMPLETE</scope>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-
-      <execute-stage title="Update stack to {{version}}">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
