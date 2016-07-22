@@ -96,6 +96,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       type: 'ranger-kafka-plugin-properties',
       propertyName: 'ranger-kafka-plugin-enabled',
       valueForEnable: 'Yes'
+    },
+    {
+      serviceName: 'NIFI',
+      type: 'ranger-nifi-plugin-properties',
+      propertyName: 'ranger-nifi-plugin-enabled',
+      valueForEnable: 'Yes'
     }
   ],
 
