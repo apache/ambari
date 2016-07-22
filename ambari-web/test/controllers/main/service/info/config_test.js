@@ -54,12 +54,12 @@ describe("App.MainServiceInfoConfigsController", function () {
         msg: "properties only used for ui purpose should be excluded from hash",
         configs: [
           Em.Object.create({
-            name: "hive.llap.daemon.task.scheduler.enable.preemption",
+            id: "hive.llap.daemon.task.scheduler.enable.preemption",
             isRequiredByAgent: true,
             isFinal: false
           }),
           Em.Object.create({
-            name: "ambari.copy.hive.llap.daemon.num.executors",
+            id: "ambari.copy.hive.llap.daemon.num.executors",
             isRequiredByAgent: false,
             isFinal: false
           })
@@ -76,7 +76,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         mainServiceInfoConfigsController.set('selectedService', {configs: t.configs});
         var stackDrivenConfig = t.configs.findProperty('isRequiredByAgent');
         var configs = {};
-        configs[stackDrivenConfig.name] = {
+        configs[stackDrivenConfig.id] = {
           value: stackDrivenConfig.value,
           overrides: [],
           isFinal: stackDrivenConfig.isFinal
