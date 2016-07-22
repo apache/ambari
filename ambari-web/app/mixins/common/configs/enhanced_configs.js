@@ -43,6 +43,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   recommendationsConfigs: null,
 
   /**
+   * list of recommendations that should be applied without any config changes
+   *
+   * @type {Object[]}
+   */
+  initialRecommendations: [],
+
+  /**
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
@@ -273,8 +280,18 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   loadRecommendationsSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.dataToSend.changed_configurations);
     if (this.isConfigHasInitialState()) {
+      /** clearing all recommendations info **/
       this.undoRedoRecommended(this.get('recommendations'), false);
       this.clearAllRecommendations();
+
+      /**
+       * resetting recommendations to initial state
+       * this case can be present when installed services depends on new added service on ADW
+       **/
+      this.undoRedoRecommended(this.get('initialRecommendations'), true);
+      this.get('initialRecommendations').forEach(function (r) {
+        this.get('recommendations').pushObject(r);
+      }, this);
     }
     this.set("recommendationsConfigs", Em.get(data, "resources.0.recommendations.blueprint.configurations"));
   },
@@ -393,7 +410,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       }
     }, this);
   },
-
+  
+  saveInitialRecommendations: function() {
+    this.get('recommendations').forEach(function (r) {
+      this.get('initialRecommendations').pushObject(r);
+    }, this);
+  },
+  
   /**
    * disable saving recommended value for current config
    * @param config
