@@ -44,8 +44,8 @@ public class DefaultCondition implements Condition {
   private static final Log LOG = LogFactory.getLog(DefaultCondition.class);
 
   public DefaultCondition(List<String> metricNames, List<String> hostnames, String appId,
-                   String instanceId, Long startTime, Long endTime, Precision precision,
-                   Integer limit, boolean grouped) {
+                          String instanceId, Long startTime, Long endTime, Precision precision,
+                          Integer limit, boolean grouped) {
     this.metricNames = metricNames;
     this.hostnames = hostnames;
     this.appId = appId;
@@ -112,7 +112,7 @@ public class DefaultCondition implements Condition {
 
   public String getAppId() {
     if (appId != null && !appId.isEmpty()) {
-      if (!(appId.equals("HOST") || appId.equals("FLUME_HANDLER")) ) {
+      if (!(appId.equals("HOST") || appId.equals("FLUME_HANDLER"))) {
         return appId.toLowerCase();
       } else {
         return appId;
@@ -233,7 +233,7 @@ public class DefaultCondition implements Condition {
         }
       }
 
-      if (metricsIn.length()>0) {
+      if (metricsIn.length() > 0) {
         sb.append("(METRIC_NAME IN (");
         sb.append(metricsIn);
         sb.append(")");
@@ -312,5 +312,25 @@ public class DefaultCondition implements Condition {
       ", orderBy=" + orderByColumns +
       ", noLimit=" + noLimit +
       '}';
+  }
+
+  protected static boolean metricNamesHaveWildcard(List<String> metricNames) {
+    for (String name : metricNames) {
+      if (name.contains("%")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected static boolean hostNamesHaveWildcard(List<String> hostnames) {
+    if (hostnames == null)
+      return false;
+    for (String name : hostnames) {
+      if (name.contains("%")) {
+        return true;
+      }
+    }
+    return false;
   }
 }
