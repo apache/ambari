@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Route.extend(App.RouterRedirections, {
   route: '/main',
@@ -342,7 +341,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
       exitRoute: function (router, context, callback) {
         var controller = router.get('mainAlertDefinitionDetailsController');
-        if (controller.get('isEditing')) {
+        if (App.router.get('clusterController.isLoaded') && controller.get('isEditing')) {
           controller.showSavePopup(callback);
         } else {
           callback();
