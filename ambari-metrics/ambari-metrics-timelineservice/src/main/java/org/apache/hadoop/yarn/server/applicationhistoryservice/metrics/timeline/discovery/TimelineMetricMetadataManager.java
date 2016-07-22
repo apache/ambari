@@ -25,6 +25,8 @@ import org.apache.hadoop.metrics2.sink.timeline.MetadataException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -108,6 +110,10 @@ public class TimelineMetricMetadataManager {
 
   public Map<TimelineMetricMetadataKey, TimelineMetricMetadata> getMetadataCache() {
     return METADATA_CACHE;
+  }
+
+  public TimelineMetricMetadata getMetadataCacheValue(TimelineMetricMetadataKey key) {
+    return METADATA_CACHE.get(key);
   }
 
   public Map<String, Set<String>> getHostedAppsCache() {
