@@ -21,6 +21,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 
 import java.util.ArrayList;
@@ -47,11 +50,13 @@ public class TimelineMetricAppAggregator {
   private final List<String> appIdsToAggregate;
   private final Map<String, Set<String>> hostedAppsMap;
   Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics;
+  TimelineMetricMetadataManager metadataManagerInstance;
 
   public TimelineMetricAppAggregator(TimelineMetricMetadataManager metadataManager,
                                      Configuration metricsConf) {
     appIdsToAggregate = getAppIdsForHostAggregation(metricsConf);
     hostedAppsMap = metadataManager.getHostedAppsCache();
+    metadataManagerInstance = metadataManager;
     LOG.info("AppIds configured for aggregation: " + appIdsToAggregate);
   }
 
@@ -122,27 +127,45 @@ public class TimelineMetricAppAggregator {
       return;
     }
 
+    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID);
     Set<String> apps = hostedAppsMap.get(hostname);
     for (String appId : apps) {
-      // Add a new cluster aggregate metric if none exists
-      TimelineClusterMetric appTimelineClusterMetric =
-        new TimelineClusterMetric(clusterMetric.getMetricName(),
-          appId,
-          clusterMetric.getInstanceId(),
-          clusterMetric.getTimestamp(),
-          clusterMetric.getType()
-        );
+      if (appIdsToAggregate.contains(appId)) {
 
-      MetricClusterAggregate clusterAggregate = aggregateClusterMetrics.get(appTimelineClusterMetric);
+        appKey.setAppId(appId);
+        TimelineMetricMetadata appMetadata = metadataManagerInstance.getMetadataCacheValue(appKey);
+        if (appMetadata == null) {
+          TimelineMetricMetadataKey key = new TimelineMetricMetadataKey(clusterMetric.getMetricName(), HOST_APP_ID);
+          TimelineMetricMetadata hostMetricMetadata = metadataManagerInstance.getMetadataCacheValue(key);
 
-      if (clusterAggregate == null) {
-        clusterAggregate = new MetricClusterAggregate(metricValue, 1, null, metricValue, metricValue);
-        aggregateClusterMetrics.put(appTimelineClusterMetric, clusterAggregate);
-      } else {
-        clusterAggregate.updateSum(metricValue);
-        clusterAggregate.updateNumberOfHosts(1);
-        clusterAggregate.updateMax(metricValue);
-        clusterAggregate.updateMin(metricValue);
+          if (hostMetricMetadata != null) {
+            TimelineMetricMetadata timelineMetricMetadata = new TimelineMetricMetadata(clusterMetric.getMetricName(),
+              appId, hostMetricMetadata.getUnits(), hostMetricMetadata.getType(), hostMetricMetadata.getSeriesStartTime(),
+              hostMetricMetadata.isSupportsAggregates());
+            metadataManagerInstance.putIfModifiedTimelineMetricMetadata(timelineMetricMetadata);
+          }
+        }
+
+        // Add a new cluster aggregate metric if none exists
+        TimelineClusterMetric appTimelineClusterMetric =
+          new TimelineClusterMetric(clusterMetric.getMetricName(),
+            appId,
+            clusterMetric.getInstanceId(),
+            clusterMetric.getTimestamp(),
+            clusterMetric.getType()
+          );
+
+        MetricClusterAggregate clusterAggregate = aggregateClusterMetrics.get(appTimelineClusterMetric);
+
+        if (clusterAggregate == null) {
+          clusterAggregate = new MetricClusterAggregate(metricValue, 1, null, metricValue, metricValue);
+          aggregateClusterMetrics.put(appTimelineClusterMetric, clusterAggregate);
+        } else {
+          clusterAggregate.updateSum(metricValue);
+          clusterAggregate.updateNumberOfHosts(1);
+          clusterAggregate.updateMax(metricValue);
+          clusterAggregate.updateMin(metricValue);
+        }
       }
 
     }

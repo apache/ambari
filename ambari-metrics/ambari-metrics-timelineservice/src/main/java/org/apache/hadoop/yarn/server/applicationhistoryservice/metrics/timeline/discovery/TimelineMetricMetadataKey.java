@@ -34,6 +34,10 @@ public class TimelineMetricMetadataKey {
     return appId;
   }
 
+  public void setAppId(String appId) {
+    this.appId = appId;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
