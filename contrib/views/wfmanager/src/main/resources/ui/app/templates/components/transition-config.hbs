@@ -15,49 +15,40 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-  <!-- <label class="control-label col-xs-2">Select an ok to node</label>
+<div class="form-group">
+  <label class="control-label col-xs-2">Error To<span class="requiredField">&nbsp;*</span></label>
   <div class=" col-xs-7">
-    <select onchange={{okNodeHandler}} name="ok-node" value={{okNode}} class="form-control">
-      {{!--#each okNodesList as |okNode|--}}
-        <option value={{okNode}}>{{okNode}}</option>
-      {{!--/each--}}
+    <select onchange={{action "onSelectChange" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
+      <optgroup label="Kill Nodes"></optgroup>
+      {{#each killNodes as |node index|}}
+      <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
+      {{/each}}
+      <optgroup label="Other Nodes"></optgroup>
+      {{#each descendantNodes as |node index|}}
+      <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
+      {{/each}}
     </select>
-  </div> -->
-  <div class="form-group">
-    <label class="control-label col-xs-2">Error To<span class="requiredField">&nbsp;*</span></label>
-    <div class=" col-xs-7">
-      <select onchange={{action "onSelectChange" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
-        <optgroup label="Kill Nodes"></optgroup>
-        {{#each killNodes as |node index|}}
-          <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
-        {{/each}}
-        <optgroup label="Other Nodes"></optgroup>
-        {{#each descendantNodes as |node index|}}
-          <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
-        {{/each}}
-        <!-- <option value="createNew">Create New</option> -->
-      </select>
-      {{field-error error=errors.errorNode.name}}
-    </div>
+    {{field-error error=errors.errorNode.name}}
   </div>
-  <div class="form-group margin0">
-    <label class="control-label col-xs-2">Ok To</label>
-    <div class=" col-xs-7 paddingClass">
-      {{okToNode.name}}
-    </div>
+</div>
+<div class="form-group margin0">
+  <label class="control-label col-xs-2">Ok To</label>
+  <div class=" col-xs-7 paddingClass">
+    {{okToNode.name}}
   </div>
+</div>
 
-  {{#if (eq selectedKillNode 'createNew')}}
-  <div class="form-group" id="killNodeName">
-    <label class="control-label col-xs-2"> Kill node name</label>
-    <div class=" col-xs-7">
-      {{input class="form-control" type="text" name="kill-node-name" value=transition.errorNode.name}}
-    </div>
+{{#if (eq selectedKillNode 'createNew')}}
+<div class="form-group" id="killNodeName">
+  <label class="control-label col-xs-2"> Kill node name</label>
+  <div class=" col-xs-7">
+    {{input class="form-control" type="text" name="kill-node-name" value=transition.errorNode.name}}
   </div>
-  <div class="form-group">
-    <label class="control-label col-xs-2"> Kill message</label>
-    <div class=" col-xs-7">
-      {{textarea class="form-control" rows="5" placeholder="kill node message" name="kill-node-message" value=transition.errorNode.message}}
-    </div>
+</div>
+<div class="form-group">
+  <label class="control-label col-xs-2"> Kill message</label>
+  <div class=" col-xs-7">
+    {{textarea class="form-control" rows="5" placeholder="kill node message" name="kill-node-message" value=transition.errorNode.message}}
   </div>
-  {{/if}}
+</div>
+{{/if}}

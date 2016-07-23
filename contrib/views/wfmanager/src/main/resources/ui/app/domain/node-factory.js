@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
@@ -21,10 +21,10 @@ import {Node} from '../domain/node';
 import {idGen} from '../domain/id-gen';
 var NodeFactory= Ember.Object.extend({
   createStartNode(){
-     return this.createNode({id:'node-start', type:'start',name:"Start"});
+    return this.createNode({id:'node-start', type:'start',name:"Start"});
   },
   createEndNode(name){
-     return this.createNode({id:'node-end', type:'end', name:name});
+    return this.createNode({id:'node-end', type:'end', name:name});
   },
   createKillNode(name,message){
     return this.createNode({id:this.generateNodeId(), type:"kill", name:name,killMessage:message});
@@ -56,7 +56,6 @@ var NodeFactory= Ember.Object.extend({
     return decisionNode;
   },
   generateDecisionNodeWithoutJoinPlaceHolder(target){
-  //  var decisionNode=this.createEmptyDecisionNode("decision" + this.generateName());
     var decisionNode=this.createEmptyDecisionNode("decision");
     var leftPlaceholder =this.createPlaceholderNode(target) ;
     decisionNode.addTransitionTo(leftPlaceholder,"default");
@@ -113,11 +112,9 @@ var NodeFactory= Ember.Object.extend({
   },
   generateNodeId(){
     return idGen.generateNodeId();
-    //return "node_"+(this.idCount++);
   },
   generateName(){
     return idGen.generateNodeName();
-    //return this.nameCount++;
   }
 });
 export{NodeFactory};

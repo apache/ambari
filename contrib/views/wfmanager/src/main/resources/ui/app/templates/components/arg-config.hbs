@@ -19,7 +19,9 @@
   {{#each args as |arg index|}}
     <div class="form-group">
       {{#if (eq index 0)}}
-        <label class="control-label col-xs-2">{{title}}</label>
+        
+        <label class="control-label col-xs-2">{{#unless hideLabel}}{{title}}{{/unless}}</label>
+        
       {{else}}
         <label class="control-label col-xs-2"></label>
       {{/if}}
@@ -35,7 +37,7 @@
     {{#if args}}
       <label class="control-label col-xs-2"></label>
     {{else}}
-      <label class="control-label col-xs-2">{{title}}</label>
+      <label class="control-label col-xs-2">{{#unless hideLabel}}{{title}}{{/unless}}</label>
     {{/if}}
     <div class=" col-xs-7">
       {{input type="text" class="form-control" value=arg placeholder=title}}

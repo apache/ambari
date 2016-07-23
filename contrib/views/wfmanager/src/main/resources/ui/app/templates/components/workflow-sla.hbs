@@ -24,12 +24,12 @@
       </div>
       <div class="modal-body">
         <form class="form-horizontal" id="action_properties">
-          {{#sla-info slaInfo=slaInfo register="register" slaEnabled=workflowSlaEnabled}}{{/sla-info}}
+          {{#sla-info slaInfo=slaInfo register="register" slaEnabled=workflowSlaEnabled register="register"}}{{/sla-info}}
         </form>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" {{action "saveWorkflowSla"}} data-dismiss="modal">Save</button>
+        <button type="button" class="btn btn-primary" {{action "saveWorkflowSla"}}>Save</button>
       </div>
     </div>
   </div>

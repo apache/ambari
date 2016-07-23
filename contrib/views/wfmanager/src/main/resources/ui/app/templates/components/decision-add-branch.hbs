@@ -16,8 +16,8 @@
 * limitations under the License.
 }}
 <a data-placement="bottom" data-toggle="popover" data-container="body" data-placement="right"
-  type="button" data-html="true">
-  {{yield}}
+type="button" data-html="true">
+{{yield}}
 </a>
 
 <div id="selector-content" style="display:none" class="decision-add-branch-popover">
@@ -28,15 +28,16 @@
       <div class="bs-example">
         <form class="form-horizontal">
           <div class="form-group">
-            <label for="inputPassword" class="control-label col-xs-4">Condition</label>
+            <label for="inputPassword" class="control-label col-xs-4">Condition<span class="requiredField">&nbsp;*</span></label>
             <div class="col-xs-7">
               {{input type="text" class="form-control" value=condition}}
+              {{field-error error=errors.condition}}
             </div>
           </div>
           <div class="form-group">
-            <label for="inputPassword" class="control-label col-xs-4">Select target Node</label>
+            <label for="inputPassword" class="control-label col-xs-4">Select target Node<span class="requiredField">&nbsp;*</span></label>
             <div class="col-xs-7">
-              <select onchange={{action "onTargetNodeChange" value="target.value"}} name="select-node" class="form-control">
+              <select id="target-node-select" onchange={{action "onTargetNodeChange" value="target.value"}} name="select-node" class="form-control">
                 <option value="">Select</option>
                 {{#each descendantNodes as |node index|}}
                 <option value={{node.id}} selected={{eq node.name currentNode.errorNode.name}}>{{node.name}}</option>
@@ -45,37 +46,19 @@
                 <option value={{node.id}} selected={{eq node.name currentNode.errorNode.name}}>{{node.name}}</option>
                 {{/each}}
               </select>
+              {{field-error error=errors.targetNode}}
             </div>
           </div>
         </form>
       </div>
-
-
-
-      <!--div>
-      <label>Condition</label>
-      {{input type="text" value=condition}}
-    </div>
-    <div>
-      <label>Select target Node</label>
-      <select onchange={{action "onTargetNodeChange" value="target.value"}} name="select-node" class="form-control">
-        <option value="">Select</option>
-        {{#each descendantNodes as |node index|}}
-        <option value={{node.id}} selected={{eq node.name currentNode.errorNode.name}}>{{node.name}}</option>
-        {{/each}}
-        {{#each killNodes as |node index|}}
-        <option value={{node.id}} selected={{eq node.name currentNode.errorNode.name}}>{{node.name}}</option>
-        {{/each}}
-      </select>
-    </div-->
-    <hr class="hrClass"/>
-    <div class="form-group">
-      <label for="inputPassword" class="control-label col-xs-3"></label>
-      <div class="col-xs-6 pull-right">
-        <button type="button" {{action "save"}} class="btn btn-primary" data-dismiss="modal">Save</button>
-        <button type="button" {{action "cancel"}} data-dismiss="modal" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      <hr class="hrClass"/>
+      <div class="form-group">
+        <label for="inputPassword" class="control-label col-xs-3"></label>
+        <div class="col-xs-6 pull-right">
+          <button type="button" {{action "save"}} class="btn btn-primary" data-dismiss="modal">Save</button>
+          <button type="button" {{action "cancel"}} data-dismiss="modal" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </div>

@@ -17,6 +17,7 @@
 }}
 <div id="nameValuePair">
   {{#each configuration.property as |property index|}}
+  {{#if (not property.static)}}
   <div class="form-group">
     {{#if (eq index 0)}}
       <label class="control-label col-xs-2">Name</label>
@@ -38,6 +39,7 @@
       <input class="form-control btn btn-danger" type="button" {{action "deleteProperty" index}} value="-">
     </div>
   </div>
+  {{/if}}
   {{/each}}
   <div class="form-group">
     {{#if configuration.property}}

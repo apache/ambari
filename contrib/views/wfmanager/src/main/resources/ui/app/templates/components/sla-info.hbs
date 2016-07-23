@@ -15,21 +15,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div class="form-group">
-  <label class="control-label col-xs-24">{{input type="checkbox" checked=slaEnabled}}Enable SLA</label>
-</div>
 <div class="panel panel-default">
   <div class="panel-heading" id="sla-accordion" data-toggle="collapse" data-parent="#sla-accordion" data-target="#slaCollapse">
-    <h4 class="panel-title">
-      SLA<i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
-    </h4>
+      SLA <span class="grayed">({{if slaEnabled "Enabled" "Disabled"}})</span>
+      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
     </div>
-    <div id="slaCollapse" class="panel-collapse collapse">
+    <div id="slaCollapse" class="panel-collapse collapse panel-body">
       <div class="form-group">
-        <label class="control-label col-xs-2 padding10">Nominal Time</label>
+      <label class="control-label col-xs-2">Enabled</label>
+      <span class="col-xs-2 paddingtop7">{{input type="checkbox" checked=slaEnabled}}</span>
+    </div>
+      <div class="form-group">
+        <label class="control-label col-xs-2 padding10">Nominal Time<span class="requiredField">&nbsp;*</span></label>
         <div class="col-xs-3 padding10">
-          {{input type="text" id="nominalTime" class="form-control" value=slaInfo.nominalTime placeholder="Nominal Time"}}
+          {{input type="text" id="nominalTime" title="Date in UTC Format" class="form-control" value=nominalTime placeholder="Nominal Time"}}
         </div>
+        {{field-error error=errors.nominalTime}}
       </div>
       <div class="form-group">
         <label class="control-label col-xs-2">Should Start</label>
@@ -37,26 +38,27 @@
           {{input class="form-control" type="text" value=slaInfo.shouldStart.time placeholder="Should Start"}}
         </div>
         <div class="col-xs-2">
-          <select class="form-control" name="time-unit" onchange={{action (mut slaInfo.shouldStart.unit) value="target.value"}}>
-            <option value="">Select Unit</option>
-            <option value="MINUTES">Minutes</option>
-            <option value="HOURS">Hours</option>
-            <option value="DAYS">Days</option>
+          <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.shouldStart.unit) value="target.value"}}>
+            {{#each timeUnitOptions as |timeUnit|}}
+              <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.shouldStart.unit}}>{{timeUnit.displayName}}</option>
+            {{/each}}
           </select>
+          {{field-error error=errors.shouldStart.unit}}
         </div>
       </div>
       <div class="form-group">
-        <label class="control-label col-xs-2">Should End</label>
+        <label class="control-label col-xs-2">Should End<span class="requiredField">&nbsp;*</span></label>
         <div class="col-xs-3">
           {{input class="form-control" type="text" value=slaInfo.shouldEnd.time placeholder="Should End"}}
+          {{field-error error=errors.shouldEnd.time}}
         </div>
         <div class="col-xs-2">
-          <select class="form-control" name="time-unit" onchange={{action (mut slaInfo.shouldEnd.unit) value="target.value"}}>
-            <option value="">Select Unit</option>
-            <option value="MINUTES">Minutes</option>
-            <option value="HOURS">Hours</option>
-            <option value="DAYS">Days</option>
+          <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.shouldEnd.unit) value="target.value"}}>
+            {{#each timeUnitOptions as |timeUnit|}}
+              <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.shouldEnd.unit}}>{{timeUnit.displayName}}</option>
+            {{/each}}
           </select>
+          {{field-error error=errors.shouldEnd.unit}}
         </div>
       </div>
       <div class="form-group">
@@ -65,29 +67,25 @@
           {{input class="form-control" type="text" value=slaInfo.maxDuration.time placeholder="Max Duration"}}
         </div>
         <div class="col-xs-2">
-          <select class="form-control" name="time-unit" onchange={{action (mut slaInfo.maxDuration.unit) value="target.value"}}>
-            <option value="">Select Unit</option>
-            <option value="MINUTES">Minutes</option>
-            <option value="HOURS">Hours</option>
-            <option value="DAYS">Days</option>
+          <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.maxDuration.unit) value="target.value"}}>
+            {{#each timeUnitOptions as |timeUnit|}}
+              <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.maxDuration.unit}}>{{timeUnit.displayName}}</option>
+            {{/each}}
           </select>
+          {{field-error error=errors.maxDuration.unit}}
         </div>
       </div>
       <div class="form-group">
         <label class="control-label col-xs-2">Alert Events</label>
-        <label class="control-label col-xs-2">
-          {{input type="checkbox"}}Start Miss
-        </label>
-        <label class="control-label col-xs-2">
-          {{input type="checkbox"}}End Miss
-        </label>
-        <label class="control-label col-xs-3">
-          {{input type="checkbox"}}Duration Miss
-        </label>
+        {{#each alertEvents as |event|}}
+        <div class="paddingtop7 col-xs-2">
+          {{input type="checkbox" checked=event.alertEnabled}}{{event.displayName}}
+        </div>
+        {{/each}}
       </div>
       <div class="form-group">
         <label class="control-label col-xs-2">Alert Emails</label>
-        <div class="col-xs-3">
+        <div class="col-xs-5">
           {{input type="text" class="form-control" name="name" value=slaInfo.alertContact placeholder="Comma seperated Email IDs"}}
         </div>
       </div>

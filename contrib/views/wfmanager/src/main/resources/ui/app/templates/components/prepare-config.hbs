@@ -49,7 +49,7 @@
       <label class="control-label col-xs-2">Prepare</label>
     {{/if}}
     <div class=" col-xs-2">
-      <select class="form-control" onchange={{action "onPrepareTypeChange" value="target.value"}}>
+      <select class="form-control" id="prepare-type-select" onchange={{action "onPrepareTypeChange" value="target.value"}}>
         <option value="mkdir">mkdir</option>
         <option value="delete">delete</option>
       </select>

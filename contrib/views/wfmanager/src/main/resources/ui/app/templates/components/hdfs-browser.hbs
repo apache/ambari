@@ -33,7 +33,7 @@
                       <button type="button" class="btn btn-default" {{action "createFolder"}} disabled={{isFilePathInvalid}}>Create Folder</button>
                   </span>
                   {{#unless uploadSelected}}
-                    <span class="">
+                    <span class="hide">
                       <button type="button" class="btn btn-default" {{action "uploadSelect"}} disabled={{isFilePathInvalid}}>Upload File</button>
                     </span>
                   {{/unless}}

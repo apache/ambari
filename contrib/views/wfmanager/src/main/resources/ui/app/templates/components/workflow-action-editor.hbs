@@ -36,31 +36,31 @@
               {{/if}}
               {{#if (eq nodeType 'action')}}
                 {{#if (eq actionType 'java')}}
-                  {{#java-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/java-action}}
+                  {{#java-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/java-action}}
                 {{else if (eq actionType 'hive')}}
-                  {{#hive-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/hive-action}}
+                  {{#hive-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/hive-action}}
                 {{else if (eq actionType 'sqoop')}}
-                  {{#sqoop-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/sqoop-action}}
+                  {{#sqoop-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/sqoop-action}}
                 {{else if (eq actionType 'pig')}}
-                  {{#pig-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/pig-action}}
+                  {{#pig-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials credentials=credentials}}{{/pig-action}}
                 {{else if (eq actionType 'shell')}}
-                  {{#shell-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/shell-action}}
+                  {{#shell-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/shell-action}}
                 {{else if (eq actionType 'spark')}}
-                  {{#spark-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/spark-action}}
+                  {{#spark-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/spark-action}}
                 {{else if (eq actionType 'hive2')}}
-                  {{#hive2-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/hive2-action}}
+                  {{#hive2-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/hive2-action}}
                 {{else if (eq actionType 'map-reduce')}}
-                  {{#map-red-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/map-red-action}}
+                  {{#map-red-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/map-red-action}}
                 {{else if (eq actionType 'distcp')}}
-                  {{#distcp-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/distcp-action}}
+                  {{#distcp-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/distcp-action}}
                 {{else if (eq actionType 'ssh')}}
-                  {{#ssh-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/ssh-action}}
+                  {{#ssh-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/ssh-action}}
                 {{else if (eq actionType 'email')}}
                   {{#email-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/email-action}}
                 {{else if (eq actionType 'fs')}}
-                  {{#fs-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/fs-action}}
+                  {{#fs-action actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/fs-action}}
                 {{else if (eq actionType 'sub-workflow')}}
-                  {{#sub-workflow actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode}}{{/sub-workflow}}
+                  {{#sub-workflow actionModel=actionModel transition=transition killNodes=killNodes openFileBrowser="openFileBrowser" register="registerChild" addKillNode="addKillNode" currentNode=currentNode credentials=credentials}}{{/sub-workflow}}
               {{/if}}
               {{/if}}
               {{#if (eq nodeType 'kill')}}

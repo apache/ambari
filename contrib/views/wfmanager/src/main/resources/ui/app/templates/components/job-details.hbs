@@ -50,8 +50,16 @@
             <li {{action 'getErrorLog'}} role="presentation"><a href="#jobErrorLog" aria-controls="jobErrorLog" role="tab" data-toggle="tab">Error Log</a></li>
             <li {{action 'getAuditLog'}} role="presentation"><a href="#jobAuditLog" aria-controls="jobAuditLog" role="tab" data-toggle="tab">Audit Log</a></li>
             <li {{action 'getJobDag'}} role="presentation"><a href="#jobDag" aria-controls="jobDag" role="tab" data-toggle="tab">DAG</a></li>
+            <li role="presentation" class="pull-right">
+                {{#link-to 'design' (query-params appPath=model.appPath) class="backto-designer" }}
+                    <button type="button" class="btn btn-success" title="Back" >
+                       Edit Workflow
+                    </button>
+                {{/link-to}}
+            </li>            
           </ul>
-        </div>
+          
+      </div>
       {{/workflow-job-details}}
     {{else if (eq model.jobType "coords")}}
       {{#coord-job-details model=model getJobLog="getJobLog" id=id getCoordActionReruns="getCoordActionReruns" showWorkflow="showWorkflow"}}

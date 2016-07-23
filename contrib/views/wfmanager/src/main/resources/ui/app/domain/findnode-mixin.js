@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 var FindNodeMixin= Ember.Mixin.create({
@@ -63,27 +63,27 @@ var FindNodeMixin= Ember.Mixin.create({
     for(var i =0; i< nxtPath.length; i++){
       currNode = nxtPath[i];
       do {
-         if(this.insertUniqueNodes(currNode, nodes) && currNode){
+        if(this.insertUniqueNodes(currNode, nodes) && currNode){
           nodes.push(currNode);
-         }
-         var nodesList = currNode.getTargets();
-         if(nodesList.length > 1){
-           for(var j=0; j<nodesList.length; j++) {
+        }
+        var nodesList = currNode.getTargets();
+        if(nodesList.length > 1){
+          for(var j=0; j<nodesList.length; j++) {
             if(nodesList[j].getTargets().length>1){
               var tmp = this.getDesendantNodes(nodesList[j]);
               if(tmp.length){
                 nodes = nodes.concat(tmp);
               }
             } else if(this.insertUniqueNodes(nodesList[j], nodes) && nodesList[j]){
-                nodes.push(nodesList[j]);
-                currNode = nodesList[j];
-             } else {
-                currNode = nodesList[j];
-             }
-           }
-         } else {
-             currNode = nodesList[0];
-         }
+              nodes.push(nodesList[j]);
+              currNode = nodesList[j];
+            } else {
+              currNode = nodesList[j];
+            }
+          }
+        } else {
+          currNode = nodesList[0];
+        }
       } while(currNode && currNode.get("id") && currNode.get("id") !== "node-end");
     }
     if(!ignoreEndNode && currNode){
@@ -92,12 +92,12 @@ var FindNodeMixin= Ember.Mixin.create({
     return nodes;
   },
   insertUniqueNodes(currNode, nodes){
-         if(nodes.indexOf(currNode) > -1){
-         } else {
-           if (!( currNode.isKillNode() || currNode.isPlaceholder() || currNode.isJoinNode() || currNode.isDecisionEnd())){
-              return true;
-           }
-         }
+    if(nodes.indexOf(currNode) > -1){
+    } else {
+      if (!( currNode.isKillNode() || currNode.isPlaceholder() || currNode.isJoinNode() || currNode.isDecisionEnd())){
+        return true;
+      }
+    }
   },
 });
 export{FindNodeMixin};

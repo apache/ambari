@@ -18,40 +18,41 @@
 <div class="panel panel-default">
   <div class="panel-heading">General</div>
 
-    <div class="form-group padding10">
-      <label for="inputPassword" class="control-label col-xs-2">exec<span class="requiredField">&nbsp;*</span></label>
-      <div class="col-xs-7">
-        <div class="input-group">
-          {{input type="text" class="form-control" name="exec" value=actionModel.exec placeholder="/usr/bin/python"}}
-          <span class="input-group-btn">
-            <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.exec"}}>Browse</button>
-          </span>
-        </div>
-        {{#field-error error=errors.actionModel.exec}}{{/field-error}}
+  <div class="form-group padding10">
+    <label for="inputPassword"  title="Command or the path of the Shell command to execute" class="control-label col-xs-2">exec<span class="requiredField">&nbsp;*</span></label>
+    <div class="col-xs-7">
+      <div class="input-group">
+        {{input type="text" class="form-control" name="exec" title="Command or the path of the Shell command to execute" value=actionModel.exec placeholder="Script path or shell command"}}
+        <span class="input-group-btn">
+          <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.exec"}}>Browse</button>
+        </span>
       </div>
+      {{#field-error error=errors.actionModel.exec}}{{/field-error}}
     </div>
+  </div>
 
 
-        {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
+  {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
 
 
-        {{#arg-config args=actionModel.envVar register="register" title="Environment Variable"}}{{/arg-config}}
+  {{#arg-config args=actionModel.envVar register="register" title="Environment Variable"}}{{/arg-config}}
 
 
 
 </div>
 
-    <div class="panel panel-default">
-      <div class="panel-heading">Transition</div>
-      <div class="panel-body handlerPanel">
-        {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
-      </div>
-    </div>
+<div class="panel panel-default">
+  <div class="panel-heading">Transition</div>
+  <div class="panel-body handlerPanel">
+    {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
+  </div>
+</div>
+{{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
+
 <div class="panel panel-default">
   <div class="panel-heading" id="accordion" data-toggle="collapse" data-parent="#accordion" data-target="#collapseOne">
-    <h4 class="panel-title">
       Advanced Properties
-      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i></h4>
+      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
     </div>
     <div id="collapseOne" class="panel-collapse collapse">
       <br/>
@@ -71,9 +72,9 @@
             </div>
           </div>
 
-              {{#file-config files=actionModel.files openFileBrowser="openFileBrowser" register="register" title="File"}}{{/file-config}}
+          {{#file-config files=actionModel.files openFileBrowser="openFileBrowser" register="register" title="File"}}{{/file-config}}
 
-              {{#file-config files=actionModel.archives openFileBrowser="openFileBrowser" register="register" title="Archive"}}{{/file-config}}
+          {{#file-config files=actionModel.archives openFileBrowser="openFileBrowser" register="register" title="Archive"}}{{/file-config}}
 
           {{#prepare-config prepare=actionModel.prepare openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config}}
 
@@ -97,3 +98,4 @@
       </div>
     </div>
   </div>
+  {{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

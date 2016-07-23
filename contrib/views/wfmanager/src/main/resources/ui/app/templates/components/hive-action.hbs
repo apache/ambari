@@ -59,11 +59,11 @@
     {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
   </div>
 </div>
+{{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
 <div class="panel panel-default">
   <div class="panel-heading" id="accordion" data-toggle="collapse" data-parent="#accordion" data-target="#collapseOne">
-    <h4 class="panel-title">
       Advanced Properties
-      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i></h4>
+      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
     </div>
     <div id="collapseOne" class="panel-collapse collapse">
       <br/>
@@ -96,4 +96,4 @@
       </div>
     </div>
   </div>
-{{#sla-info slaInfo=actionModel.slaInfo collapsable=false register="register"}}{{/sla-info}}
+  {{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

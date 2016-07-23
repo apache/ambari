@@ -18,5 +18,8 @@
 import Ember from 'ember';
 
 export default Ember.Route.extend({
-
+xmlAppPath : null,
+beforeModel: function(transition){
+      this.set("xmlAppPath", transition.queryParams.appPath);
+  }
 });

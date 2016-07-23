@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
@@ -36,10 +36,14 @@ var WorkflowImporter= Ember.Object.extend({
     var workflowAppJson=workflowJson["workflow-app"];
     var workflowVersion=CommonUtils.extractSchemaVersion(workflowAppJson._xmlns);
     workflow.schemaVersions.setCurrentWorkflowVersion(workflowVersion);
+    if (workflowAppJson.info && workflowAppJson.info.__prefix==="sla") {
+      workflow.slaEnabled=true;
+      this.workflowMapper.handleSLAImport(workflow,workflowAppJson.info);
+    }
+    this.workflowMapper.handleCredentialImport(workflow,workflowAppJson.credentials);
+    this.workflowMapper.handleParametersImport(workflow,workflowAppJson.parameters);
     var nodeMap=this.setupNodeMap(workflowAppJson,workflow);
     this.setupTransitions(workflowAppJson,nodeMap);
-    console.log("node map==",nodeMap);
-    console.log("imported worfkow=",nodeMap.get("start").node);
     workflow.set("startNode",nodeMap.get("start").node);
     this.populateKillNodes(workflow,nodeMap);
     return workflow;
@@ -54,22 +58,22 @@ var WorkflowImporter= Ember.Object.extend({
     workflow.set("name",workflowAppJson["_name"]);
     var nodeMap=new Map();
     Object.keys(workflowAppJson).forEach(function (key) {
-        var nodeHandler=self.workflowMapper.getNodeHandler(key);
-        if (nodeHandler){
-          if (Ember.isArray(workflowAppJson[key])){
-              workflowAppJson[key].forEach(function(jsonObj){
-                var node=nodeHandler.handleImportNode(key,jsonObj,workflow);
-                nodeMap.set(jsonObj._name,{json:jsonObj,node:node});
-              });
+      var nodeHandler=self.workflowMapper.getNodeHandler(key);
+      if (nodeHandler){
+        if (Ember.isArray(workflowAppJson[key])){
+          workflowAppJson[key].forEach(function(jsonObj){
+            var node=nodeHandler.handleImportNode(key,jsonObj,workflow);
+            nodeMap.set(jsonObj._name,{json:jsonObj,node:node});
+          });
+        }else{
+          var node=nodeHandler.handleImportNode(key,workflowAppJson[key],workflow);
+          if (!workflowAppJson[key]._name){
+            nodeMap.set(key,{json:workflowAppJson[key],node:node});
           }else{
-              var node=nodeHandler.handleImportNode(key,workflowAppJson[key],workflow);
-              if (!workflowAppJson[key]._name){
-                nodeMap.set(key,{json:workflowAppJson[key],node:node});
-              }else{
-                nodeMap.set(workflowAppJson[key]._name,{json:workflowAppJson[key],node:node});
-              }
+            nodeMap.set(workflowAppJson[key]._name,{json:workflowAppJson[key],node:node});
           }
         }
+      }
     });
     return nodeMap;
   },
@@ -106,10 +110,9 @@ var WorkflowImporter= Ember.Object.extend({
     return names;
   },
   populateKillNodes(workflow,nodeMap){
-    // if (this.containsDefaultKillNode(nodeMap)){
-    //   workflow.resetKillNodes();
-    // }
-    workflow.resetKillNodes();
+    if (this.containsKillNode(nodeMap)){
+      workflow.resetKillNodes();
+    }
     nodeMap.forEach(function(entry,key){
       var node=entry.node;
       if (node.isKillNode()){
@@ -117,15 +120,15 @@ var WorkflowImporter= Ember.Object.extend({
       }
     });
   },
-  containsDefaultKillNode(nodeMap){
-    var containsDefaultKillNode=false;
+  containsKillNode(nodeMap){
+    var containsKillNode=false;
     nodeMap.forEach(function(entry,key){
       var node=entry.node;
-      if (node.isDefaultKillNode()){
-        containsDefaultKillNode=true;
+      if (node.isKillNode()){
+        containsKillNode=true;
       }
     });
-    return containsDefaultKillNode;
+    return containsKillNode;
   }
 });
 export {WorkflowImporter};

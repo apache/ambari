@@ -28,12 +28,12 @@
     <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Application<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
-              <div class="input-group">
+        <div class="input-group">
 
-        {{input type="text" class="form-control" name="class" value=actionModel.jar placeholder="jar/python"}}
-        <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.jar"}}>Browse</button>
-        </span>
+          {{input type="text" class="form-control" name="class" value=actionModel.jar placeholder="jar/python"}}
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.jar"}}>Browse</button>
+          </span>
         </div>
         {{#field-error error=errors.actionModel.jar}}{{/field-error}}
       </div>
@@ -42,21 +42,18 @@
     <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Class</label>
       <div class="col-xs-7">
-              <div class="input-group">
-        {{input type="text" class="form-control" name="class" value=actionModel.class placeholder="org.apache.spark.examples.mllib.JavaALS"}}
-        <span class="input-group-btn">
-          <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.class"}}>Browse</button>
-        </span>
+        <div class="input-group">
+          {{input type="text" class="form-control" name="class" value=actionModel.class placeholder="org.apache.spark.examples.mllib.JavaALS"}}
         </div>
-        </div>
+      </div>
     </div>
     {{/if}}
     <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Runs On<span class="requiredField">&nbsp;*</span></label>
       {{#each mastersList as |master|}}
-        <div class="col-xs-2">
-          <input type="radio" name="master" value={{master.value}} onchange={{action "onMasterChange" value="target"}}> {{master.displayName}}
-        </div>
+      <div class="col-xs-2">
+        <input type="radio" name="master" value={{master.value}} onchange={{action "onMasterChange" value="target"}}> {{master.displayName}}
+      </div>
       {{/each}}
       <div class="col-xs-2">
         <div class="col-xs-1">
@@ -69,7 +66,7 @@
       {{#field-error error=errors.actionModel.master}}{{/field-error}}
     </div>
     <div class="form-group">
-      <label for="inputEmail" class="control-label col-xs-2">Spark Opts</label>
+      <label for="inputEmail" class="control-label col-xs-2">Spark Options</label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" name="class" value=actionModel.sparkOpts placeholder="spark opts"}}
       </div>
@@ -77,46 +74,47 @@
     {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}
   </div>
 </div>
-    <div class="panel panel-default">
-      <div class="panel-heading">Transition</div>
-      <div class="panel-body handlerPanel">
-        {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
-      </div>
-    </div>
+<div class="panel panel-default">
+  <div class="panel-heading">Transition</div>
+  <div class="panel-body handlerPanel">
+    {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
+  </div>
+</div>
+{{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
 <div class="panel panel-default">
   <div class="panel-heading" id="accordion" data-toggle="collapse" data-parent="#accordion" data-target="#collapseOne">
-    <h4 class="panel-title">
-      Advanced Properties
-      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i></h4>
-    </div>
-    <div id="collapseOne" class="panel-collapse collapse">
-      <br/>
-      <div class=" panel panel-default">
-        <div class="panel-body handlerPanel">
-          <div class="form-group">
-            <label for="inputEmail" class="control-label col-xs-2">Job tracker</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Job tracker"}}
-            </div>
-            {{field-error error=errors.actionModel.jobTracker}}
+    Advanced Properties
+    <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
+  </div>
+  <div id="collapseOne" class="panel-collapse collapse">
+    <br/>
+    <div class=" panel panel-default">
+      <div class="panel-body handlerPanel">
+        <div class="form-group">
+          <label for="inputEmail" class="control-label col-xs-2">Job tracker</label>
+          <div class="col-xs-7">
+            {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Job tracker"}}
           </div>
-          <div class="form-group">
-            <label for="inputPassword" class="control-label col-xs-2">Name node</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control"  name="name-node" value=actionModel.nameNode validations="required,noWhitespace" placeholder="Name node"}}
-            </div>
-          </div>
-          {{#file-config files=actionModel.files openFileBrowser="openFileBrowser" register="register" title="File"}}{{/file-config}}
-          {{#file-config files=actionModel.archives openFileBrowser="openFileBrowser" register="register" title="Archive"}}{{/file-config}}
-          {{#prepare-config prepare=actionModel.prepare openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config}}
-          {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
+          {{field-error error=errors.actionModel.jobTracker}}
         </div>
+        <div class="form-group">
+          <label for="inputPassword" class="control-label col-xs-2">Name node</label>
+          <div class="col-xs-7">
+            {{input type="text" class="form-control"  name="name-node" value=actionModel.nameNode validations="required,noWhitespace" placeholder="Name node"}}
+          </div>
+        </div>
+        {{#file-config files=actionModel.files openFileBrowser="openFileBrowser" register="register" title="File"}}{{/file-config}}
+        {{#file-config files=actionModel.archives openFileBrowser="openFileBrowser" register="register" title="Archive"}}{{/file-config}}
+        {{#prepare-config prepare=actionModel.prepare openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config}}
+        {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
       </div>
-      <div class=" panel panel-default">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body handlerPanel">
-          {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
-        </div>
+    </div>
+    <div class=" panel panel-default">
+      <div class="panel-heading">Configuration</div>
+      <div class="panel-body handlerPanel">
+        {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
       </div>
     </div>
   </div>
+</div>
+{{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

@@ -17,7 +17,6 @@
 }}
 <div class="modal fade" id="configureWorkfowModal" role="dialog">
   <div class="modal-dialog">
-    <!-- Modal content-->
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -74,7 +73,10 @@
                 {{#each configMap as |prop|}}
                   <div class="row form-group">
                     <div class="col-xs-3">
-                      <label class="control-label" for="{{prop}}">{{prop.name}}</label><span class="requiredField">&nbsp;*</span>
+                      <label class="control-label" for="{{prop}}">{{prop.name}}</label>
+                      {{#if prop.isRequired}}
+                        <span class="requiredField">&nbsp;*</span>
+                      {{/if}}
                     </div>
                     <div class="col-xs-8">
                       {{input class="form-control" type="text" value=prop.value}}

@@ -16,58 +16,28 @@
 * limitations under the License.
 }}
 
-
-
-<!-- <nav class="navbar navbar-default">
-<div class="container-fluid">
-      <div class="navbar-header">
-        <span>Workflow Dashboard</span>
+<div class="text-left form-inline search-bar pb5">
+  <div class="form-group">
+    <div id="search-bar" class="input-group input-group-sm">
+      <div class="input-group-btn">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{displayType}} <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+          <li {{action 'search' 'wf'}}><a href="#">Workflows</a></li>
+          <li {{action 'search' 'coords'}}><a href="#">Coordinators</a></li>
+          <li {{action 'search' 'bundles'}}><a href="#">Bundles</a></li>
+        </ul>
       </div>
-      <ul class="nav navbar-nav navbar-right">
-        <li>
-            <div id="create-new-button" class="btn-group btn-group btn-group-sm" role="group" aria-label="buttons">
-              <button type="button" {{action "launchDesign"}} class="btn btn-primary">
-                  <i class="fa fa-sitemap"></i> Create Workflow
-              </button>
-              {{!--
-              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu">
-                  <li>
-                      <a><i class="fa fa-history"></i> Coordinator </a>
-                  </li>
-                  <li>
-                      <a> <i class="fa fa-cubes"></i> Bundle </a>
-                  </li>
-              </ul> --}}
-          </div>
-    </li>
-  </ul>
+      <input id="search-field" type="text" class="form-control" data-role="tagsinput" placeholder="Start typing to filter" aria-describedby="basic-addon1">
+      <div class="search-icon"><i class="fa fa-search"></i></div>
+    </div>
   </div>
-</nav> -->
-    <div class="text-left form-inline search-bar pb5">
-      <div class="form-group">
-        <div id="search-bar" class="input-group input-group-sm">
-          <div class="input-group-btn">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{displayType}} <span class="caret"></span></button>
-            <ul class="dropdown-menu">
-              <li {{action 'search' 'wf'}}><a href="#">Workflows</a></li>
-              <li {{action 'search' 'coords'}}><a href="#">Coordinators</a></li>
-              <li {{action 'search' 'bundles'}}><a href="#">Bundles</a></li>
-            </ul>
-          </div>
-          <input id="search-field" type="text" class="form-control" data-role="tagsinput" placeholder="Start typing to filter" aria-describedby="basic-addon1">
-          <div class="search-icon"><i class="fa fa-search"></i></div>
-        </div>
-      </div>
-      <div class='form-group date-picker'>
-        <input type='text' class="form-control" value={{startDate}} id='startDate' title="Nominal Start Date" placeholder="Nominal Start Date" {{action 'onClear' 'start' on="change"}}/>
-      </div>
-      <div class='form-group date-picker'>
-        <input type='text' class="form-control" value={{endDate}} id='endDate' title="Nominal End Date" placeholder="Nominal End Date" {{action 'onClear' 'end' on="change"}}/>
-      </div>
-      <div class="form-group">
-        <span class="fa fa-refresh fa-1 pointer btn btn-default" title="Refresh" {{action 'refresh'}} aria-hidden="true"></span>
-      </div>
+  <div class='form-group date-picker'>
+    <input type='text' class="form-control" value={{startDate}} id='startDate' title="Nominal Start Date" placeholder="Nominal Start Date" {{action 'onClear' 'start' on="change"}}/>
+  </div>
+  <div class='form-group date-picker'>
+    <input type='text' class="form-control" value={{endDate}} id='endDate' title="Nominal End Date" placeholder="Nominal End Date" {{action 'onClear' 'end' on="change"}}/>
+  </div>
+  <div class="form-group">
+    <span class="fa fa-refresh fa-1 pointer btn btn-default" title="Refresh" {{action 'refresh'}} aria-hidden="true"></span>
+  </div>
 </div>

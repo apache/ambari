@@ -24,7 +24,6 @@ export default ViewerConfig.extend({
   collapseIcon: 'fa fa-chevron-down',
 
   listDirectoryUrl(pathParams) {
-  //  return `/api/v1/views/FILES/versions/1.0.0/instances/files/resources/files/fileops/listdir?${pathParams}`;
-      return   Ember.ENV.FILE_API_URL+`/fileops/listdir?${pathParams}`;
+    return   Ember.ENV.FILE_API_URL+`/fileops/listdir?${pathParams}`;
   }
 });

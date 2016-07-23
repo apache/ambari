@@ -19,8 +19,6 @@
   <input id="{{job.id}}" name="{{job.appName}}"  data-status ="{{job.status}}" class="cbox" type="checkbox" value="" {{action 'rowSelected' job.status on="change"}}>
 </td>
 <td {{action 'showJobDetails' job.id}} class="pointer"> {{job.appName}}</td>
-{{!--
-<td> {{job.appName}} </td> --}}
 <td class="{{job.status}}"> {{job.status}} </td>
 <td> {{job.user}}</td>
 <td title="{{job.createdTime}}"> {{date-helper job.createdTime}} </td>
@@ -55,15 +53,6 @@
       <button type="button" class="btn btn-default" data-status="{{job.status}}">
         <i class="fa fa-pause">  </i>
       </button>
-      {{!-- {{/if}}
-      {{#if (eq job.status "RUNNING")}}
-      <button {{action 'doAction' 'stop' job.id}} type="button" class="btn btn-default isOn" data-status="{{job.status}}">
-        <i class="fa fa-stop">  </i>
-      </button>
-      {{else}}
-      <button {{action 'doAction' 'stop' job.id}} type="button" class="btn btn-default" data-status="{{job.status}}">
-        <i class="fa fa-stop">  </i>
-      </button> --}}
       {{/if}}
       {{#if (or (eq job.status "FAILED") (eq job.status "KILLED"))}}
       <button {{action 'doAction' 'rerun' job.id}} type="button" class="btn btn-default isOn">

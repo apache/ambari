@@ -18,12 +18,12 @@
 <div class="panel panel-default">
   <div class="panel-heading">General</div>
   <div class="panel-body">
-
-      <div class="form-group">
-            <label for="inputPassword" class="control-label col-xs-2">Java opts</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control" value=actionModel.javaOpts name="java-opts" placeholder="Java opts"}}
-            </div>
+    {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
+    <div class="form-group">
+      <label for="inputPassword" class="control-label col-xs-2">Java opts</label>
+      <div class="col-xs-7">
+        {{input type="text" class="form-control" value=actionModel.javaOpts name="java-opts" placeholder="Java opts"}}
+      </div>
     </div>
   </div>
 </div>
@@ -33,38 +33,38 @@
     {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
   </div>
 </div>
+{{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
 <div class="panel panel-default">
   <div class="panel-heading" id="accordion" data-toggle="collapse" data-parent="#accordion" data-target="#collapseOne">
-    <h4 class="panel-title">
-      Advanced Properties
-      <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i></h4>
-    </div>
-    <div id="collapseOne" class="panel-collapse collapse">
-      <br/>
-      <div class=" panel panel-default">
-        <div class="panel-body handlerPanel">
-          <div class="form-group">
-            <label for="inputEmail" class="control-label col-xs-2">Resource Manager</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Resource Manager"}}
-            </div>
-            {{field-error error=errors.actionModel.jobTracker}}
+    Advanced Properties
+    <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
+  </div>
+  <div id="collapseOne" class="panel-collapse collapse">
+    <br/>
+    <div class=" panel panel-default">
+      <div class="panel-body handlerPanel">
+        <div class="form-group">
+          <label for="inputEmail" class="control-label col-xs-2">Resource Manager</label>
+          <div class="col-xs-7">
+            {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Resource Manager"}}
           </div>
-          <div class="form-group">
-            <label for="inputPassword" class="control-label col-xs-2">Name node</label>
-            <div class="col-xs-7">
-              {{input type="text" class="form-control"  name="name-node" value=actionModel.nameNode validations="required,noWhitespace" placeholder="Name node"}}
-            </div>
-          </div>
-          {{#prepare-config prepare=actionModel.prepare openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config}}
-          {{#arg-config args=actionModel.args register="register" title="arg"}}{{/arg-config}}
+          {{field-error error=errors.actionModel.jobTracker}}
         </div>
+        <div class="form-group">
+          <label for="inputPassword" class="control-label col-xs-2">Name node</label>
+          <div class="col-xs-7">
+            {{input type="text" class="form-control"  name="name-node" value=actionModel.nameNode validations="required,noWhitespace" placeholder="Name node"}}
+          </div>
+        </div>
+        {{#prepare-config prepare=actionModel.prepare openFileBrowser="openFileBrowser" register="register"}}{{/prepare-config}}
       </div>
-      <div class=" panel panel-default">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body handlerPanel">
-          {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
-        </div>
+    </div>
+    <div class=" panel panel-default">
+      <div class="panel-heading">Configuration</div>
+      <div class="panel-body handlerPanel">
+        {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
       </div>
     </div>
   </div>
+</div>
+{{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

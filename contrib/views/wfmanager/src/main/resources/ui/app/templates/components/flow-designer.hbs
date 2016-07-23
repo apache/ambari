@@ -18,7 +18,6 @@
 <div class="main">
   <nav class="navbar navbar-default mb0">
   <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
       <div class="navbar-brand">
         <div class="padding0">
@@ -27,7 +26,6 @@
       </div>
       <div class="padding0">
           {{input class="form-control" type="text" id="wf_title" value=workflow.name title="Workflow Name" placeholder="Workflow Name"}}
-        <!--<button class="btn btn-default btn-sm title-btn">{{!-- <i class="fa fa-edit"></i> --}} <strong id="wf_title" class="editable" contenteditable="true">WorkflowTitle</strong></button>-->
       </div>
       {{#if workflowFilePath}}
         <div class="wf-path padding20" title={{workflowFilePath}}>
@@ -45,9 +43,6 @@
           <button  id="import-workflow-test" type="button" class="btn btn-default hide" title="Import workflow Test" {{action "importWorkflowTest"}}>
               <i class="fa fa-download"></i>
           </button>
-                    <!-- <button type="button" class="btn btn-default" title="Save workflow" {{action "saveWorkflow"}}>
-              <i class="fa fa-floppy-o"></i>
-          </button> -->
           <button type="button" class="btn btn-primary" title="Submit workflow" {{action "submitWorkflow"}}>
               <i class="fa fa-upload"> Submit</i>
           </button>
@@ -57,60 +52,65 @@
           </button>
           {{/link-to}}
         </div>
-
         <div class="btn-group">
-          <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#kill-node-dialog" title="Create Kill Node" {{action "showCreateKillNode" true}}>
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Settings
+            <span class="caret"></span></button>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="javascript:void(0)" title="Global Configurations" {{action "showWorkflowGlobalProps"}}>
+                    Global Configurations
+              </a>
+              </li>
+              <li><a href="javascript:void(0)" title="Workflow Credentials Configuration" {{action "showCredentials" true}}>
+                    Workflow Credentials
+              </a></li>
+              <li><a href="javascript:void(0)" title="SLA for Workflow" {{action "showWorkflowSla" true}}>
+                    SLA for Workflow
+                  </a>
+              </li>
+              <li><a href="javascript:void(0)" title="Workflow Parameters Configuration" {{action "showParameterSettings" true}}>
+                    Workflow Parameters
+              </a></li>
+              <li><a href="javascript:void(0)" title="Workflow and Action Versions" {{action "showVersionSettings" true}}>
+                    Workflow and Action Versions
+                  </a>
+                </li>
+            </ul>
+          </div>
+        </div>
+        <div class="btn-group">
+         <button type="button" class="btn btn-default"  data-toggle="modal" data-target="#kill-node-dialog" title="Create Kill Node" {{action "showCreateKillNode" true}}>
               <i class="fa fa-ban"></i>
           </button>
-          <button type="button" class="btn btn-default" title="SLA for Workflow" {{action "showWorkflowSla" true}}>
-            s<i class="fa fa-cog" aria-hidden="true"></i>
-          </button>
-          <button type="button" class="btn btn-default" title="Global Configurations" {{action "showWorkflowGlobalProps"}}>
-            g<i class="fa fa-cog"></i>
-          </button>
-          <button type="button" class="btn btn-default" title="Workflow and Action Versions" {{action "showVersionSettings" true}}>
-            v<i class="fa fa-cog"></i>
-          </button>
+
           <button  data-toggle="modal" data-target="#previewModal"  type="button" class="btn btn-default" title="Preview workflow" {{action "previewWorkflow"}}>
               <i class="fa fa-eye"></i>
           </button>
         </div>
-
-          {{help-icon}}
-		{{!--
-          <button id="download" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
-              <i class="fa fa-download"></i>
-          </button>
-          <button id="clone" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
-              <i class="fa fa-clone"></i>
-          </button>
-          <button id="submit" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
-              <i class="fa fa-arrow-up"></i>
-          </button>
-          <button id="run" type="button" class="btn btn-default" {{action "selectWorflowFile"}}>
-              <i class="fa fa-play"></i>
-          </button>
-		--}}
+        {{help-icon}}
       </div>
     </div>
   </div>
   </nav>
   <div  id="content" class="panel panel-default designer-main-panel col-xs-20">
     <div class="panel-body designer-panel designer-canvas">
-    <!--  <div class="wf-buttons btn-group btn-group-sm zoom-buttons" role="group" aria-label="buttons">
-        <button id="zoomout" type="button" class="btn btn-default" {{action "zoomOut"}}>
-          <i class="fa fa-search-minus"> </i>
-        </button>
-        <button id="zoomreset" type="button" class="btn btn-default" {{action "zoomReset"}}>
-          100%
-
-        </button>
-        <button id="zoomin" type="button" class="btn btn-default" {{action "zoomIn"}}>
-          <i class="fa fa-search-plus"> </i>
-        </button>
-
-      </div>-->
       {{designer-errors errors=errors validationErrors=validationErrors}}
+
+      {{#if isWorkflowImporting}}
+      <div id="loader">
+          <div id="alert"class="alert alert-info alert-dismissible" role="alert">
+           Importing workflow.Please wait...
+          </div>
+      </div>
+      {{/if}}
+      {{#unless isImportingSuccess}}
+      <div id="loader">
+          <div id="alert"class="alert alert-danger alert-dismissible" role="alert">
+          There is some problem while importing.Please try again.
+          </div>
+      </div>
+      {{/unless}}
       <div id="flow-designer">
         {{#each flattenedNodes as |node|}}
         <div class="node-wrapper">
@@ -131,16 +131,11 @@
       <div id="workflow-actions" class="hidden">
         {{workflow-actions element=popOverElement addNode="addNode"}}
       </div>
-      <!-- <div id="killnodes-container" class="panel panel-default">
-        <div class="panel-heading">Kill Nodes</div>
-        <div class="panel-body"> kill node 1</div>
-      </div> -->
-
     </div>
   </div>
 </div>
 {{#if showActionEditor}}
-  {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" addKillNode="addKillNode" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes}}
+  {{workflow-action-editor actionType=currentAction closeActionEditor="closeActionEditor" addKillNode="addKillNode" actionModel=currentNode.domain nodeType=currentNode.type currentNode=currentNode killNodes=workflow.killNodes credentials=workflow.credentials}}
 {{/if}}
 {{#if showingWorkflowConfigProps}}
   {{workflow-config closeWorkflowSubmitConfigs="closeWorkflowSubmitConfigs" workflowFilePath=workflowFilePath openFileBrowser="openFileBrowser" closeFileBrowser="closeFileBrowser" workflowSubmitConfigs=workflowSubmitConfigs}}
@@ -154,7 +149,6 @@
 {{#if showingPreview}}
   <div id="previewModal" class="modal fade" role="dialog">
     <div class="modal-dialog">
-      <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -175,8 +169,6 @@
 {{#if showingConfirmationNewWorkflow}}
   <div id="ConfirmDialog" class="modal fade" role="dialog">
     <div class="modal-dialog">
-
-      <!-- Modal content-->
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -244,4 +236,10 @@
 {{/if}}
 {{#if showVersionSettings}}
   {{version-settings schemaVersions=workflow.schemaVersions showVersionSettings="showVersionSettings" }}
+{{/if}}
+{{#if showCredentials}}
+  {{#workflow-credentials showCredentials="showCredentials" workflowCredentials=workflow.credentials}}{{/workflow-credentials}}
+{{/if}}
+{{#if showParameterSettings}}
+  {{#workflow-parameters closeWorkFlowParam="closeWorkFlowParam" saveWorkFlowParam="saveWorkFlowParam" parameters=parameters}}{{/workflow-parameters}}
 {{/if}}

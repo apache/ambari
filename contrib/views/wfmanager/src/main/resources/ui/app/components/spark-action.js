@@ -1,26 +1,26 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import EmberValidations from 'ember-validations';
 import Constants from '../utils/constants';
 
 export default Ember.Component.extend(EmberValidations,{
-  initialize : function(){
+  setup : function(){
     if(this.get('actionModel.jobXml') === undefined){
       this.set("actionModel.jobXml", Ember.A([]));
     }
@@ -40,9 +40,14 @@ export default Ember.Component.extend(EmberValidations,{
       this.set("actionModel.configuration",{});
       this.set("actionModel.configuration.property", Ember.A([]));
     }
-    this.sendAction('register','sparkAction', this);
     this.set('mastersList',Ember.copy(Constants.sparkMasterList));
+    this.sendAction('register','sparkAction', this);
   }.on('init'),
+  initialize : function(){
+    this.on('fileSelected',function(fileName){
+      this.set(this.get('filePathModel'), fileName);
+    }.bind(this));
+  }.on('didInsertElement'),
   rendered : function(){
     if(this.get('actionModel.master')){
       var master = Constants.sparkMasterList.findBy('value',this.get('actionModel.master'));
@@ -64,25 +69,25 @@ export default Ember.Component.extend(EmberValidations,{
     }
   }),
   validations : {
-     'actionModel.master': {
-       presence: {
-         'message' : 'You need to provide a value for Runs on (Master)'
-       }
-     },
-     'actionModel.jar': {
-       presence: {
-         'message' : 'You need to provide a value for Application'
-       },
-       format : {
-         'with' : /\.jar$|\.py$/i,
-         'message' : 'You need to provide a .jar or .py file'
-       }
-     },
-     'actionModel.sparkName': {
-       presence: {
-         'message' : 'You need to provide a value for Name'
-       }
-     }
+    'actionModel.master': {
+      presence: {
+        'message' : 'You need to provide a value for Runs on (Master)'
+      }
+    },
+    'actionModel.jar': {
+      presence: {
+        'message' : 'You need to provide a value for Application'
+      },
+      format : {
+        'with' : /\.jar$|\.py$/i,
+        'message' : 'You need to provide a .jar or .py file'
+      }
+    },
+    'actionModel.sparkName': {
+      presence: {
+        'message' : 'You need to provide a value for Name'
+      }
+    }
   },
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){

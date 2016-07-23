@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import CommonUtils from "../utils/common-utils";
@@ -36,36 +36,17 @@ var ActionJobHandler=Ember.Object.extend(MappingMixin,{
       var schemaVersion=this.schemaVersions.getActionVersion(this.get("actionType"));
       if (this.get("nameSpace")){
         var schema=this.get("nameSpace");
-          if (schemaVersion){
-            schema=CommonUtils.extractSchema(schema)+":"+schemaVersion;
-          }
-          nodeObj[this.get("actionType")]["_xmlns"]=schema;
+        if (schemaVersion){
+          schema=CommonUtils.extractSchema(schema)+":"+schemaVersion;
+        }
+        nodeObj[this.get("actionType")]["_xmlns"]=schema;
       }
     }
-    // var errors=this.validate(nodeDomain);
-    // if (errors){
-    //   errors.forEach(function(error){
-    //       this.workflowContext.addError(error);
-    //   });
-    // }
     this.handleMapping(nodeDomain,actionObj,this.mapping,nodeName);
   },
   validate(nodeDomain){
     //overwrite in implmentations and return array of errors object.
   },
-  // handlePrepare(node,nodeObj){
-  //   console.log("handle prep called");
-  //   if (node.prepare && node.prepare.length>0){
-  //     var prepareObjs={};
-  //     nodeObj["prepare"]=prepareObjs;
-  //     node.prepare.forEach(function(prep){
-  //       if (!prepareObjs[prep.type]){
-  //         prepareObjs[prep.type]=[];
-  //       }
-  //       prepareObjs[prep.type].push({"_path":prep.path});
-  //     });
-  //   }
-  // },
   handleImport(actionNode,json){
     this.handleImportMapping(actionNode,json,this.mapping);
   }
@@ -98,18 +79,18 @@ var PigActionJobHandler=ActionJobHandler.extend({
   actionType:"pig",
   mapping:null,
   init(){
-      this.mapping=[
-        {xml:"job-tracker",domain:"jobTracker"},
-        {xml:"name-node",domain:"nameNode"},
-        {xml:"prepare",customHandler:this.prepareMapper},
-        {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
-        {xml:"configuration",customHandler:this.configurationMapper},
-        {xml:"script",domain:"script",mandatory:true},
-        {xml:"param",domain:"param",domainProperty:"value",occurs:"many"},
-        {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
-        {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
-        {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
-      ];
+    this.mapping=[
+      {xml:"job-tracker",domain:"jobTracker"},
+      {xml:"name-node",domain:"nameNode"},
+      {xml:"prepare",customHandler:this.prepareMapper},
+      {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
+      {xml:"configuration",customHandler:this.configurationMapper},
+      {xml:"script",domain:"script",mandatory:true},
+      {xml:"param",domain:"param",domainProperty:"value",occurs:"many"},
+      {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
+      {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
+      {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
+    ];
   }
 });
 var HiveActionJobHandler=ActionJobHandler.extend({
@@ -117,19 +98,19 @@ var HiveActionJobHandler=ActionJobHandler.extend({
   nameSpace:"uri:oozie:hive-action:0.6",
   mapping:null,
   init(){
-      this.mapping=[
-        {xml:"job-tracker",domain:"jobTracker"},
-        {xml:"name-node",domain:"nameNode"},
-        {xml:"prepare",customHandler:this.prepareMapper},
-        {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
-        {xml:"configuration",customHandler:this.configurationMapper},
-        {xml:"script",domain:"script"},
-        {xml:"query",domain:"query"},
-        {xml:"param",domain:"params",domainProperty:"value",occurs:"many"},
-        {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
-        {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
-        {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
-      ];
+    this.mapping=[
+      {xml:"job-tracker",domain:"jobTracker"},
+      {xml:"name-node",domain:"nameNode"},
+      {xml:"prepare",customHandler:this.prepareMapper},
+      {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
+      {xml:"configuration",customHandler:this.configurationMapper},
+      {xml:"script",domain:"script"},
+      {xml:"query",domain:"query"},
+      {xml:"param",domain:"params",domainProperty:"value",occurs:"many"},
+      {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
+      {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
+      {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
+    ];
   },
   validate(nodeDomain){
     if (Ember.isBlank(nodeDomain.script) && Ember.isBlank(nodeDomain.query)){
@@ -142,21 +123,21 @@ var Hive2ActionJobHandler=ActionJobHandler.extend({
   nameSpace:"uri:oozie:hive2-action:0.2",
   mapping:null,
   init(){
-      this.mapping=[
-        {xml:"job-tracker",domain:"jobTracker"},
-        {xml:"name-node",domain:"nameNode"},
-        {xml:"prepare",customHandler:this.prepareMapper},
-        {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
-        {xml:"configuration",customHandler:this.configurationMapper},
-        {xml:"jdbc-url",domain:"jdbc-url",mandatory:true},
-        {xml:"password",domain:"password"},
-        {xml:"script",domain:"script"},
-        {xml:"query",domain:"query"},
-        {xml:"param",domain:"params",domainProperty:"value",occurs:"many"},
-        {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
-        {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
-        {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
-      ];
+    this.mapping=[
+      {xml:"job-tracker",domain:"jobTracker"},
+      {xml:"name-node",domain:"nameNode"},
+      {xml:"prepare",customHandler:this.prepareMapper},
+      {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
+      {xml:"configuration",customHandler:this.configurationMapper},
+      {xml:"jdbc-url",domain:"jdbc-url",mandatory:true},
+      {xml:"password",domain:"password"},
+      {xml:"script",domain:"script"},
+      {xml:"query",domain:"query"},
+      {xml:"param",domain:"params",domainProperty:"value",occurs:"many"},
+      {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
+      {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
+      {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
+    ];
   },
   validate(nodeDomain){
     if (Ember.isBlank(nodeDomain.script) && Ember.isBlank(nodeDomain.query)){
@@ -170,17 +151,17 @@ var SqoopActionJobHandler=ActionJobHandler.extend({
   nameSpace:"uri:oozie:sqoop-action:0.4",
   mapping:null,
   init(){
-      this.mapping=[
-        {xml:"job-tracker",domain:"jobTracker"},
-        {xml:"name-node",domain:"nameNode"},
-        {xml:"prepare",customHandler:this.prepareMapper},
-        {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
-        {xml:"configuration",customHandler:this.configurationMapper},
-        {xml:"command",domain:"command"},
-        {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
-        {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
-        {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
-      ];
+    this.mapping=[
+      {xml:"job-tracker",domain:"jobTracker"},
+      {xml:"name-node",domain:"nameNode"},
+      {xml:"prepare",customHandler:this.prepareMapper},
+      {xml:"job-xml",domain:"jobXml",occurs:"many",domainProperty:"value"},
+      {xml:"configuration",customHandler:this.configurationMapper},
+      {xml:"command",domain:"command"},
+      {xml:"argument",domain:"args",occurs:"many",domainProperty:"value"},
+      {xml:"file",domain:"files",occurs:"many",domainProperty:"value"},
+      {xml:"archive",domain:"archives",occurs:"many",domainProperty:"value"}
+    ];
   },
   validate(nodeDomain){
     if (Ember.isBlank(nodeDomain.command) && nodeDomain.args.length<1){
@@ -246,7 +227,7 @@ var SubWFActionJobHandler=ActionJobHandler.extend({
       {xml:"app-path",domain:"appPath",mandatory:true},
       {xml:"propagate-configuration",domain:"propagate-configuration", ignoreValue:true},
       {xml:"configuration",customHandler:this.configurationMapper}
-       ];
+    ];
   }
 });
 var DistCpJobHandler=ActionJobHandler.extend({
@@ -261,7 +242,7 @@ var DistCpJobHandler=ActionJobHandler.extend({
       {xml:"configuration",customHandler:this.configurationMapper},
       {xml:"java-opts",domain:"javaOpts"},
       {xml:"arg",domain:"args",occurs:"many",domainProperty:"value"},
-       ];
+    ];
   },
 
 });
@@ -338,9 +319,93 @@ var FSActionJobHandler=ActionJobHandler.extend({
       {xml:"configuration",customHandler:this.configurationMapper}
     ];
   },
-
+  handle(nodeDomain,nodeObj,nodeName){
+    this._super(nodeDomain,nodeObj,nodeName);
+    if (!nodeDomain.fsOps){
+      return;
+    }
+    nodeDomain.fsOps.forEach(function(fsop){
+      if (!nodeObj.fs[fsop.type]){
+        nodeObj.fs[fsop.type]=[];
+      }
+      switch (fsop.type) {
+        case "delete":
+        nodeObj.fs["delete"].push({"_path":fsop.settings.path});
+        break;
+        case "mkdir":
+        nodeObj.fs["mkdir"].push({"_path":fsop.settings.path});
+        break;
+        case "move":
+        nodeObj.fs["move"].push({"_source":fsop.settings.source,"_target":fsop.settings.target});
+        break;
+        case "touchz":
+        nodeObj.fs["touchz"].push({"_path":fsop.settings.path});
+        break;
+        case "chmod":
+        var conf={"_path":fsop.settings.path,"_permissions":fsop.settings.permissions,"_dir-files":fsop.settings.dirfiles};
+        if (fsop.settings.recursive){
+          conf["recursive"]="";
+        }
+        nodeObj.fs["chmod"].push(conf);
+        break;
+        case "chgrp":
+        var conf={"_path":fsop.settings.path,"_group":fsop.settings.group,"_dir-files":fsop.settings.dirfiles};
+        if (fsop.settings.recursive){
+          conf["recursive"]="";
+        }
+        nodeObj.fs["chgrp"].push(conf);
+        break;
+        default:
+      }
+    });
+  },
   handleImport(actionNode,json){
     this._super(actionNode,json);
+    var commandKeys=["delete","mkdir","move","chmod","touchz","chgrp"];
+    var fsOps=actionNode.domain.fsOps=[];
+    Object.keys(json).forEach(function(key){
+      if (commandKeys.contains(key)){
+        var fileOpsJson=null;
+        if (!Ember.isArray(json[key])){
+          fileOpsJson=[json[key]];
+        }else{
+          fileOpsJson=json[key];
+        }
+        fileOpsJson.forEach(function (fileOpJson) {
+          var fsConf={};
+          fsOps.push(fsConf);
+          fsConf.type=key;
+          var settings=fsConf.settings={};
+          switch (key) {
+            case "delete":
+            settings.path=fileOpJson._path;
+            break;
+            case "mkdir":
+            settings.path=fileOpJson._path;
+            break;
+            case "touchz":
+            settings.path=fileOpJson._path;
+            break;
+            case "move":
+            settings.source=fileOpJson._source;
+            settings.target=fileOpJson._target;
+            break;
+            case "chmod":
+            settings.path=fileOpJson._path;
+            settings.permissions=fileOpJson._permissions;
+            settings.dirfiles=fileOpJson["_dir-files"];
+            settings.recursive=fileOpJson["recursive"]?true:false;
+            break;
+            case "chgrp":
+            settings.path=fileOpJson._path;
+            settings.group=fileOpJson._group;
+            settings.dirfiles=fileOpJson["_dir-files"];
+            settings.recursive=fileOpJson["recursive"]?true:false;
+            break;
+          }
+        });
+      }
+    });
   }
 });
 export{ActionJobHandler,JavaActionJobHandler,PigActionJobHandler,HiveActionJobHandler,SqoopActionJobHandler,ShellActionJobHandler, EmailActionJobHandler,SparkActionJobHandler,MapRedActionJobHandler, Hive2ActionJobHandler, SubWFActionJobHandler, DistCpJobHandler, SshActionJobHandler, FSActionJobHandler};

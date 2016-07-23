@@ -41,20 +41,14 @@
       <i class="fa fa-cog node_properties" title="Edit" {{action "openEditor"}}></i>
       <i class="fa fa-trash-o" title="Delete" {{action "deleteNode"}}></i>
     </div>
-    <!-- {{! <div class="node_actions node_bottom decisionSplit">
-      <i class="fa fa-plus" {{action "addBranch"}}></i>
-    </div>}}-->
-     <!-- <div class="node_bottom_actions node_bottom decisionSplit">
-
-      </div> -->
-
   {{else if (eq node.type 'fork')}}
     <div class="node_actions node_left forkAction">
       <i class="fa fa-code-fork" title="Add Branch" {{action "addBranch"}}></i>
       <i class="fa fa-trash-o" title="Delete" {{action "deleteNode"}}></i>
     </div>
-    <!-- <div class="node_bottom_actions node_bottom forkSplit">
-    </div> -->
+    <div class="fork_node_data">
+      {{input required pattern="([a-zA-Z_]([\-_a-zA-Z0-9])*){1,39}" name="actionName" data-toggle="tooltip" title=node.name classBinding="node.errors:error:editable" class="editable" value=node.name placeholder="Action Name"}}
+    </div>
   {{else if (eq node.type 'action')}}
     <div class="node_actions node_left">
       <i class="fa fa-cog node_properties" title="Edit" {{action "openEditor"}}></i>

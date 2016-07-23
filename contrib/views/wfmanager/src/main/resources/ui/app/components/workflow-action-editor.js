@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import EmberValidations from 'ember-validations';
@@ -21,22 +21,22 @@ import Constants from '../utils/constants';
 import {SlaInfo} from '../domain/sla-info';
 
 export default Ember.Component.extend(EmberValidations, Ember.Evented,{
-    actionIcons : {
-      "hive": "server",
-      "hive2": "server",
-      "pig": "product-hunt",
-      "sqoop": "database",
-      "hdfs": "copy",
-      "java": "code",
-      "shell": "terminal",
-      "distcp": "clone",
-      "map-reduce": "cubes",
-      "spark": "star",
-      "ssh": "terminal",
-      "sub-workflow":"share-alt-square",
-      "stream": "exchange",
-      "email": "envelop",
-      "fs":"folder-o"
+  actionIcons : {
+    "hive": "server",
+    "hive2": "server",
+    "pig": "product-hunt",
+    "sqoop": "database",
+    "hdfs": "copy",
+    "java": "code",
+    "shell": "terminal",
+    "distcp": "clone",
+    "map-reduce": "cubes",
+    "spark": "star",
+    "ssh": "terminal",
+    "sub-workflow":"share-alt-square",
+    "stream": "exchange",
+    "email": "envelope",
+    "fs":"folder-o"
   },
   clonedActionModel : {},
   showingFileBrowser : false,
@@ -55,7 +55,7 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
       return  this.get('nodeType');
     }
   }),
-    icon : Ember.computed('actionIcons', 'actionType',function(){
+  icon : Ember.computed('actionIcons', 'actionType',function(){
     return this.get('actionIcons')[this.get('actionType')];
   }),
   saveClicked : false,
@@ -66,9 +66,9 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
   }.on('willDestroyElement'),
   setUp : function () {
     var errorNode = Ember.Object.extend(Ember.Copyable).create({
-        name : "",
-        isNew : false,
-        message : ""
+      name : "",
+      isNew : false,
+      message : ""
     });
     var errorNodeOfCurrentNode = this.get('currentNode').get('errorNode');
     if(errorNodeOfCurrentNode){
@@ -104,7 +104,6 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
     this.on('fileSelected',function(fileName){
       this.set(this.get('filePathModel'), fileName);
     }.bind(this));
-    //this.set('clonedActionModel',Ember.copy(this.get('actionModel')));
   }.on('didInsertElement'),
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
@@ -129,7 +128,7 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
         });
         validationPromises.push(validationDeferred.promise);
       });
-      Promise.all(validationPromises).then(function(){
+      Ember.RSVP.Promise.all(validationPromises).then(function(){
         deferred.resolve(true);
       }).catch(function(e){
         deferred.reject(e);
@@ -144,6 +143,15 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
       }
     });
   },
+  processStaticProps(){
+    this.get('childComponents').forEach((childComponent)=>{
+      if(childComponent.get('hasStaticProps')){
+        childComponent.get('staticProps').forEach((property)=>{
+          this.get(property.belongsTo).push({name:property.name,value:property.value});
+        });
+      }
+    });
+  },
   actions : {
     closeEditor (){
       this.sendAction('close');
@@ -152,15 +160,14 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
       var isFormValid = this.validateChildrenComponents();
       isFormValid.promise.then(function(){
         this.validate().then(function(){
-            this.processMultivaluedComponents();
-            this.$('#action_properties_dialog').modal('hide');
-            this.sendAction('addKillNode', this.get('transition.errorNode'));
-            this.set('saveClicked', true);
+          this.processMultivaluedComponents();
+          this.processStaticProps();
+          this.$('#action_properties_dialog').modal('hide');
+          this.sendAction('addKillNode', this.get('transition.errorNode'));
+          this.set('saveClicked', true);
         }.bind(this)).catch(function(e){
-          console.error(e);
         }.bind(this));
       }.bind(this)).catch(function (e) {
-        console.log("error", e);
       });
 
     },

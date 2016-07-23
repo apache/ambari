@@ -18,37 +18,39 @@
 <div class="panel panel-default">
   <div class="panel-heading">General</div>
   <div class="panel-body">
-      <div class="form-group padding10">
-        <label class="control-label col-xs-2">App Path<span class="requiredField">&nbsp;*</span></label>
-        <div class="col-xs-7">
-          <div class="input-group">
-            {{input type="text" class="form-control" validations="required" name="appPath" value=actionModel.appPath placeholder="app path"}}
-            <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.appPath"}}>Browse</button>
-            </span>
-          </div>
-          {{#field-error error=errors.actionModel.appPath}}{{/field-error}}
+    <div class="form-group padding10">
+      <label class="control-label col-xs-2">App Path<span class="requiredField">&nbsp;*</span></label>
+      <div class="col-xs-7">
+        <div class="input-group">
+          {{input type="text" class="form-control" validations="required" name="appPath" value=actionModel.appPath placeholder="app path"}}
+          <span class="input-group-btn">
+            <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.appPath"}}>Browse</button>
+          </span>
         </div>
-      </div>
-
-  </div>
-</div>
-      <div class=" panel panel-default">
-        <div class="panel-heading">Configuration</div>
-        <div class="panel-body handlerPanel">
-          {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
-        </div>
-      </div>
-      <div class="panel panel-default">
-      <div class="panel-heading">Transition</div>
-      <div class="panel-body handlerPanel">
-        {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
+        {{#field-error error=errors.actionModel.appPath}}{{/field-error}}
       </div>
     </div>
-      <div class="form-group">
-        <div class="col-xs-10">
-          <div class="checkbox">
-            <label title="indicates that the workflow job configuration should be propagated to the child workflow">{{input type="checkbox" name="propagate-configuration" checked=actionModel.propagate-configuration}}Propagate configuration</label>
-          </div>
+    <div class="form-group">
+      <label class="control-label col-xs-2">Propagate configuration</label>
+      <div class="col-xs-10">
+        <div class="checkbox">
+          <label title="indicates that the workflow job configuration should be propagated to the child workflow">{{input type="checkbox" name="propagate-configuration" checked=actionModel.propagate-configuration}}</label>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+<div class=" panel panel-default">
+  <div class="panel-heading">Configuration</div>
+  <div class="panel-body handlerPanel">
+    {{#name-value-config configuration=actionModel.configuration register="register"}}{{/name-value-config}}
+  </div>
+</div>
+<div class="panel panel-default">
+  <div class="panel-heading">Transition</div>
+  <div class="panel-body handlerPanel">
+    {{#transition-config transition=transition killNodes=killNodes currentNode=currentNode register="register"}}{{/transition-config}}
+  </div>
+</div>
+{{#action-credential-config credentials=credentials actionCredentials=actionModel.credentials}}{{/action-credential-config}}
+{{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

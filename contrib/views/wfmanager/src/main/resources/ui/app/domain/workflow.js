@@ -1,19 +1,19 @@
 /*
- *    Licensed to the Apache Software Foundation (ASF) under one or more
- *    contributor license agreements.  See the NOTICE file distributed with
- *    this work for additional information regarding copyright ownership.
- *    The ASF licenses this file to You under the Apache License, Version 2.0
- *    (the "License"); you may not use this file except in compliance with
- *    the License.  You may obtain a copy of the License at
- *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
+*    Licensed to the Apache Software Foundation (ASF) under one or more
+*    contributor license agreements.  See the NOTICE file distributed with
+*    this work for additional information regarding copyright ownership.
+*    The ASF licenses this file to You under the Apache License, Version 2.0
+*    (the "License"); you may not use this file except in compliance with
+*    the License.  You may obtain a copy of the License at
+*
+*        http://www.apache.org/licenses/LICENSE-2.0
+*
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
 
 import Ember from 'ember';
 import Constants from '../utils/constants';
@@ -27,22 +27,24 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   name:"",
   startNode:null,
   globalSetting:null,
+  parameters: null,
   usePlaceholders: true,
   killNodes : null,
   nodeVisitor : null,
   nodeFactory:NodeFactory.create({}),
   schemaVersions:SchemaVersions.create({}),
   sla : SlaInfo.create({}),
+  credentials : Ember.A([]),
   initialize(){
-      this.nodeVisitor=NodeVisitor.create({});
-      var src =this.nodeFactory.createStartNode();
-      var dest =this.nodeFactory.createEndNode("end");
-      this.set("startNode", src);
-      this.set("killNodes",Ember.A([]));
-      this.set("globalSetting",null);
-      this.set("name","");
-      this.appendDefaultKillNode();
-      src.addTransitionTo(dest);
+    this.nodeVisitor=NodeVisitor.create({});
+    var src =this.nodeFactory.createStartNode();
+    var dest =this.nodeFactory.createEndNode("end");
+    this.set("startNode", src);
+    this.set("killNodes",Ember.A([]));
+    this.set("globalSetting",null);
+    this.set("name","");
+    this.appendDefaultKillNode();
+    src.addTransitionTo(dest);
   },
   appendDefaultKillNode(){
     this.createKillNode(Constants.defaultKillNodeName,"${wf:errorMessage(wf:lastErrorNode())}");
@@ -51,11 +53,11 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     var killNode=this.nodeFactory.createKillNode(name,message);
     this.get("killNodes").pushObject(killNode);
   },
-  resetKillNodes(){//TODO refactor
-      this.set("killNodes",Ember.A([]));
+  resetKillNodes(){
+    this.set("killNodes",Ember.A([]));
   },
   resetWorfklow(){
-    //idGen.reset();
+    //TODO idGen.reset();
     this.initialize();
   },
   findCommonTargetNodeId(node){
@@ -63,22 +65,22 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     for(var i =0; i< decPath.length; i++){
       var currNode = decPath[i];
       do {
-         if(nodeIds.hasOwnProperty(currNode.get("id"))){
+        if(nodeIds.hasOwnProperty(currNode.get("id"))){
           nodeIds[currNode.get("id")] = nodeIds[currNode.get("id")] + 1;
-         } else {
-           nodeIds[currNode.get("id")] = 1;
-         }
-         if(currNode.get("id") === "node-end"){
-           break;
-         }
-         currNode = currNode.getTargets()[0];
+        } else {
+          nodeIds[currNode.get("id")] = 1;
+        }
+        if(currNode.get("id") === "node-end"){
+          break;
+        }
+        currNode = currNode.getTargets()[0];
       } while(currNode && currNode.get("id"));
     }
     for(var j in nodeIds){
-       if(tempId < nodeIds[j]){
-         targ = j;
-         tempId = nodeIds[j];
-       }
+      if(tempId < nodeIds[j]){
+        targ = j;
+        tempId = nodeIds[j];
+      }
     }
     return targ;
   },
@@ -119,8 +121,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
   },
   addDecisionBranch(settings){
     if (!settings.targetNode){
-        console.error("target node cant be empty");
-        return;
+      return;
     }
     var sourceNode=settings.sourceNode;
     var insertNodeOnPath=settings.newNodeType?true:false;
@@ -130,7 +131,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
         var placeholderNode=this.nodeFactory.createPlaceholderNode(target) ;
         sourceNode.addTransitionTo(placeholderNode,settings.condition);
       }else{
-         sourceNode.addTransitionTo(target,settings.condition);
+        sourceNode.addTransitionTo(target,settings.condition);
       }
     }else{
     }
@@ -145,7 +146,6 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
       generatedNode = this.nodeFactory.createKillNode(settings.name);
       source.deleteCurrentKillNode();
     }else{
-      //todo show proper killnode name...
       generatedNode = this.nodeFactory.createActionNode(type);
       generatedNode.addTransitionTo(target);
     }
@@ -164,6 +164,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     }
     var generatedNode=this.generatedNode(computedTarget,type);
     transition.targetNode=generatedNode;
+    return generatedNode;
   },
   deleteKillNode(node){
     let killNodes = this.get("killNodes");
@@ -219,10 +220,10 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
         var joinNode=self.findJoinNode(tran.getSourceNode());
         if (joinNode===target){
           if (tran.getSourceNode().getOkTransitionCount()>2){
-             tran.getSourceNode().removeTransition(tran);
+            tran.getSourceNode().removeTransition(tran);
           }else{
-             var placeholderNode=self.nodeFactory.createPlaceholderNode(target);
-             tran.targetNode=placeholderNode;
+            var placeholderNode=self.nodeFactory.createPlaceholderNode(target);
+            tran.targetNode=placeholderNode;
           }
         }else{
           tran.targetNode=target;
