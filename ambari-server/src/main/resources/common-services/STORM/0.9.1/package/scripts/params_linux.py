@@ -143,6 +143,8 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
+  _ambari_principal_name = config['configurations']['cluster-env']['ambari_principal_name']
+  ambari_bare_jaas_principal = get_bare_principal(_ambari_principal_name)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
 
   if stack_supports_storm_kerberos:
@@ -150,6 +152,7 @@ if security_enabled:
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
     storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
+    ambari_bare_jaas_principal = get_bare_principal(_ambari_principal_name)
     _nimbus_principal_name = config['configurations']['storm-env']['nimbus_principal_name']
     nimbus_jaas_principal = _nimbus_principal_name.replace('_HOST', _hostname_lowercase)
     nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)

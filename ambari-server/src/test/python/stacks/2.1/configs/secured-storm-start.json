@@ -339,7 +339,8 @@
             "kerberos_domain": "EXAMPLE.COM", 
             "kinit_path_local": "/usr/bin", 
             "user_group": "hadoop", 
-            "smokeuser": "ambari-qa"
+            "smokeuser": "ambari-qa",
+            "ambari_principal_name": "ambari-server"
         }
     }, 
     "configurationTags": {
