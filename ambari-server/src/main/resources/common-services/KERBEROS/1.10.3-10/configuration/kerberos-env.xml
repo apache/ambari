@@ -86,7 +86,6 @@
     </description>
     <value/>
     <value-attributes>
-      <type>host</type>
       <visible>false</visible>
       <overridable>false</overridable>
       <type>ldap_url</type>
