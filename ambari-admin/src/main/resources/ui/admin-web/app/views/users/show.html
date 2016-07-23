@@ -53,7 +53,7 @@
       <label for="password" class="col-sm-2 control-label">{{'users.password' | translate}}</label>
       <div class="col-sm-10">
         <div ng-switch="user.ldap_user">
-          <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.password}'}}">{{'users.changePassword'}}</button>
+          <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.password}'}}">{{'users.changePassword' | translate}}</button>
           <a href ng-click="openChangePwdDialog()" ng-switch-when="false" class="btn btn-default changepassword">{{'users.changePassword' | translate}}</a>
         </div>
           
