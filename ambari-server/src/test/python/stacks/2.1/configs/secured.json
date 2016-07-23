@@ -607,7 +607,8 @@
             "kerberos_domain": "EXAMPLE.COM",
             "user_group": "hadoop",
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
-            "kinit_path_local": "/usr/bin"
+            "kinit_path_local": "/usr/bin",
+            "ambari_principal_name": "ambari-server"
         },
         "hadoop-env": {
             "namenode_opt_maxnewsize": "200m",

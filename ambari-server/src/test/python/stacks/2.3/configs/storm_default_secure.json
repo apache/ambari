@@ -191,7 +191,8 @@
             "kerberos_domain": "EXAMPLE.COM",
             "user_group": "hadoop",
             "smokeuser": "ambari-qa",
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab"
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
+            "ambari_principal_name": "ambari-server"
         }
     }, 
     "configurationTags": {
