@@ -201,21 +201,31 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           if not oozie_user in users and oozie_user is not None:
             users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
 
+    hive_user = None
     if "HIVE" in servicesList:
-      hive_user = None
       webhcat_user = None
       if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"] \
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
         hiveServerHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
+        hiveServerInteractiveHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER_INTERACTIVE", services, hosts)
         webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
 
         if hiveServerHosts is not None:
           hiveServerHostsNameList = []
           for hiveServerHost in hiveServerHosts:
             hiveServerHostsNameList.append(hiveServerHost["Hosts"]["host_name"])
-          hiveServerHostsNames = ",".join(hiveServerHostsNameList)
+          # Append Hive Server Interactive host as well, as it is Hive2/HiveServer2 component.
+          if hiveServerInteractiveHosts:
+            for hiveServerInteractiveHost in hiveServerInteractiveHosts:
+              hiveServerInteractiveHostName = hiveServerInteractiveHost["Hosts"]["host_name"]
+              if hiveServerInteractiveHostName not in hiveServerHostsNameList:
+                hiveServerHostsNameList.append(hiveServerInteractiveHostName)
+                Logger.info("Appended (if not exiting), Hive Server Interactive Host : '{0}', to Hive Server Host List : '{1}'".format(hiveServerInteractiveHostName, hiveServerHostsNameList))
+
+          hiveServerHostsNames = ",".join(hiveServerHostsNameList)  # includes Hive Server interactive host also.
+          Logger.info("Hive Server and Hive Server Interactive (if enabled) Host List : {0}".format(hiveServerHostsNameList))
           if not hive_user in users and hive_user is not None:
             users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
 
@@ -260,8 +270,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
     for user_name, user_properties in users.iteritems():
+      if hive_user and hive_user == user_name:
+        if "propertyHosts" in user_properties:
+          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
         putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
 

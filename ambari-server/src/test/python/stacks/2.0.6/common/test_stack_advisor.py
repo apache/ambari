@@ -1005,9 +1005,27 @@ class TestHDP206StackAdvisor(TestCase):
             }]
           }
         },
+        {
+          "href": "/api/v1/hosts/host3",
+          "Hosts": {
+            "cpu_count": 1,
+            "host_name": "c6403.ambari.apache.org",
+            "os_arch": "x86_64",
+            "os_type": "centos6",
+            "ph_cpu_count": 1,
+            "public_host_name": "public.c6403.ambari.apache.org",
+            "rack_info": "/default-rack",
+            "total_mem": 1048576,
+            "disk_info": [{
+              "size": '800000000',
+              "mountpoint": "/"
+            }]
+          }
+        },
       ]}
 
-    services = {
+
+    services1 = {
       "services": [
         {
           "StackServices": {
@@ -1037,6 +1055,22 @@ class TestHDP206StackAdvisor(TestCase):
             "stack_name": "HDP",
             "stack_version": "2.0.6",
             "hostnames": ["c6401.ambari.apache.org","c6402.ambari.apache.org"]
+          }},
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": [],
+              "display_name": "Hive Server Interactive",
+              "is_client": "false",
+              "is_master": "true",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.0.6",
+              "hostnames": ["c6403.ambari.apache.org"]
           }},
           {
           "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/WEBHCAT_SERVER",
@@ -1097,7 +1131,7 @@ class TestHDP206StackAdvisor(TestCase):
                       'hadoop.proxyuser.webhcat.groups': '*',
                       'hadoop.proxyuser.hdfs.groups': '*',
                       'hadoop.proxyuser.hdfs.hosts': '*',
-                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org,c6403.ambari.apache.org',
                       'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
                       'hadoop.proxyuser.falcon.groups': '*'}},
                 'falcon-env':
@@ -1119,8 +1153,149 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_opt_maxnewsize': '256',
                       'namenode_opt_newsize': '256'}}}
 
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
+    # and Hive Server Interactive Host (installed on different host compared to HiveServer).
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services1, hosts)
     self.assertEquals(configurations, expected)
+
+
+
+
+
+    services2 = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          }, "components": []
+        },
+        {
+          "StackServices": {
+            "service_name": "FALCON"
+          }, "components": []
+        },
+        {
+          "StackServices": {
+            "service_name": "HIVE"
+          }, "components": [{
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/HIVE_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "HIVE_SERVER",
+            "custom_commands": [],
+            "display_name": "Hive Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org","c6402.ambari.apache.org"]
+          }},
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/HIVE_SERVER_INTERACTIVE",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1",
+              "component_category": "MASTER",
+              "component_name": "HIVE_SERVER_INTERACTIVE",
+              "custom_commands": [],
+              "display_name": "Hive Server Interactive",
+              "is_client": "false",
+              "is_master": "true",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.0.6",
+              "hostnames": ["c6402.ambari.apache.org"]
+            }},
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/WEBHCAT_SERVER",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1",
+              "component_category": "MASTER",
+              "component_name": "WEBHCAT_SERVER",
+              "custom_commands": [],
+              "display_name": "WebHCat Server",
+              "is_client": "false",
+              "is_master": "true",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.0.6",
+              "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+            }}]
+        },
+        {
+          "StackServices": {
+            "service_name": "OOZIE"
+          }, "components": [{
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/OOZIE_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "OOZIE_SERVER",
+            "custom_commands": [],
+            "display_name": "Oozie Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+          }, }]
+        }],
+      "configurations": configurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
+    expected = {'oozie-env':
+                  {'properties':
+                     {'oozie_user': 'oozie'}},
+                'core-site':
+                  {'properties':
+                     {'hadoop.proxyuser.ambari_user.groups': '*',
+                      'hadoop.proxyuser.ambari_user.hosts': ambariHostName,
+                      'hadoop.proxyuser.oozie.groups': '*',
+                      'hadoop.proxyuser.hive.groups': '*',
+                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.falcon.hosts': '*',
+                      'hadoop.proxyuser.webhcat.groups': '*',
+                      'hadoop.proxyuser.hdfs.groups': '*',
+                      'hadoop.proxyuser.hdfs.hosts': '*',
+                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+                      'hadoop.proxyuser.falcon.groups': '*'}},
+                'falcon-env':
+                  {'properties':
+                     {'falcon_user': 'falcon'}},
+                'hdfs-site':
+                  {'properties':
+                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.du.reserved': '10240000000'}},
+                'hive-env':
+                  {'properties':
+                     {'hive_user': 'hive',
+                      'webhcat_user': 'webhcat'}},
+                'hadoop-env':
+                  {'properties':
+                     {'hdfs_user': 'hdfs',
+                      'namenode_heapsize': '1024',
+                      'proxyuser_group': 'users',
+                      'namenode_opt_maxnewsize': '256',
+                      'namenode_opt_newsize': '256'}}}
+
+    # Apart from testing other HDFS recommendations, also tests 'hadoop.proxyuser.hive.hosts' config value which includes both HiveServer
+    # and Hive Server Interactive Host (installed on same host compared to HiveServer).
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services2, hosts)
+    self.assertEquals(configurations, expected)
+
+
+
+
+
+
 
     configurations["hadoop-env"]["properties"]['hdfs_user'] = "hdfs1"
 
@@ -1128,8 +1303,79 @@ class TestHDP206StackAdvisor(TestCase):
                               "name":"hdfs_user",
                               "old_value":"hdfs"}]
 
-    services["changed-configurations"] = changedConfigurations
-    services['configurations'] = configurations
+    services3 = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          }, "components": []
+        },
+        {
+          "StackServices": {
+            "service_name": "FALCON"
+          }, "components": []
+        },
+        {
+          "StackServices": {
+            "service_name": "HIVE"
+          }, "components": [{
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/HIVE_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "HIVE_SERVER",
+            "custom_commands": [],
+            "display_name": "Hive Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org","c6402.ambari.apache.org"]
+          }},
+          {
+            "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/WEBHCAT_SERVER",
+            "StackServiceComponents": {
+              "advertise_version": "true",
+              "cardinality": "1",
+              "component_category": "MASTER",
+              "component_name": "WEBHCAT_SERVER",
+              "custom_commands": [],
+              "display_name": "WebHCat Server",
+              "is_client": "false",
+              "is_master": "true",
+              "service_name": "HIVE",
+              "stack_name": "HDP",
+              "stack_version": "2.0.6",
+              "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+            }}]
+        },
+        {
+          "StackServices": {
+            "service_name": "OOZIE"
+          }, "components": [{
+          "href": "/api/v1/stacks/HDP/versions/2.0.6/services/HIVE/components/OOZIE_SERVER",
+          "StackServiceComponents": {
+            "advertise_version": "true",
+            "cardinality": "1",
+            "component_category": "MASTER",
+            "component_name": "OOZIE_SERVER",
+            "custom_commands": [],
+            "display_name": "Oozie Server",
+            "is_client": "false",
+            "is_master": "true",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.0.6",
+            "hostnames": ["c6401.ambari.apache.org", "c6402.ambari.apache.org"]
+          }, }]
+        }],
+      "configurations": configurations,
+      "changed-configurations" : changedConfigurations,
+      "ambari-server-properties": {"ambari-server.user":"ambari_user"}
+    }
+
 
     expected = {'oozie-env':
                   {'properties':
@@ -1171,13 +1417,13 @@ class TestHDP206StackAdvisor(TestCase):
                       'namenode_opt_maxnewsize': '256',
                       'namenode_opt_newsize': '256'}}}
 
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)
 
     # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
     configurations["hdfs-site"]["properties"]['dfs.internal.nameservices'] = "mycluster"
     configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
-    services['configurations'] = configurations
+    services3['configurations'] = configurations
 
     expected["hdfs-site"] = {
       'properties': {
@@ -1192,7 +1438,7 @@ class TestHDP206StackAdvisor(TestCase):
         }
       }
     }
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services3, hosts)
     self.assertEquals(configurations, expected)
 
 
