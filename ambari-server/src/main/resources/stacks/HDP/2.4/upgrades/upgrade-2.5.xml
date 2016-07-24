@@ -485,6 +485,15 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Ranger Kerberos Keytab Check">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.KerberosKeytabsAction">
+          <summary>Ranger Kerberos Keytab Check</summary>
+          <message>Please follow below steps to complete upgrade in kerberos environment</message>
+          <message>-- If keytabs are managed by Ambari, Perform Regenerate Keytabs for missing components to get Ranger keytabs and restart Ranger components.</message>
+          <message>-- If keytabs are managed manually, create the required ranger keytabs in the locations specified in ranger config and restart Ranger components.</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Hive Server Port Change">
         <task xsi:type="manual">
           <message>If there are users or applications using URLS that specify the Hive Server port number, they will now fail to connect. You can restore the port back to its original value after the upgrade has been finalized.</message>
@@ -535,13 +544,6 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property" />
 
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
-
-          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.KerberosKeytabsAction">
-            <summary>Ranger Kerberos Keytab Check</summary>
-            <message>Please follow below steps to complete upgrade in kerberos environment</message>
-            <message>-- If keytabs are managed by Ambari, Perform Regenerate Keytabs for missing components to get Ranger keytabs and restart ranger components.</message>
-            <message>-- If keytabs are managed manually, create the required ranger keytabs in the locations specified in ranger config and restart ranger components.</message>
-          </task>
 
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_admin.py</script>
