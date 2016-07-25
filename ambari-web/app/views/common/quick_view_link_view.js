@@ -746,6 +746,9 @@ App.QuickViewLinks = Em.View.extend({
     if ('HTTP_ONLY' === protocolType) {
       return 'http';
     }
+
+    protocolType = protocolType.toLowerCase();
+
     var count = 0;
     var checks = Em.get(protocolConfig, 'checks');
     if (!checks) {
@@ -760,6 +763,7 @@ App.QuickViewLinks = Em.View.extend({
         count++;
       }
     }, this);
+
     return count ? this.reverseType(protocolType) : protocolType;
   },
 

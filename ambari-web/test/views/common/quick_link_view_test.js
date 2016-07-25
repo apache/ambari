@@ -657,7 +657,7 @@ describe('App.QuickViewLinks', function () {
         ],
         quickLinksConfig: {
           protocol:{
-            type:"https",
+            type:"HTTPS",
             checks:
               [
                 {
@@ -737,7 +737,7 @@ describe('App.QuickViewLinks', function () {
         configProperties: [{type: 'ranger-site', properties: {'http.enabled': 'true'}}],
         quickLinksConfig: {
           protocol:{
-            type:"https",
+            type:"HTTPS",
             checks:
               [
                 {
