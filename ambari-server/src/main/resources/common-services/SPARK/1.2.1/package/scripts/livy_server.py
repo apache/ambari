@@ -31,6 +31,7 @@ from resource_management import shell
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import conf_select, stack_select
 
 from livy_service import livy_service
 from setup_livy import setup_livy
