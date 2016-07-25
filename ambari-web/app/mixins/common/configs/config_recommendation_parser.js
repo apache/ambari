@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var validator = require('utils/validator');
 
 App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 
@@ -81,7 +80,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
             for (var attr in propertyAttributes) {
               if (attr === 'delete' && this.allowUpdateProperty(parentProperties, name, fileName)) {
                 propertiesToDelete.push(config);
-              } else if ((attr === 'visible') || stackProperty) {
+              } else if (attr === 'visible' || stackProperty) {
                 /** update config boundaries **/
                 updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
               }
@@ -161,6 +160,9 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         errorMessage: '',
         warnMessage: ''
       });
+      if (!Em.isNone(recommendedValue)) {
+        Em.set(config, 'isVisible', true);
+      }
       this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties);
     }
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
