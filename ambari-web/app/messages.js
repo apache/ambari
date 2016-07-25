@@ -1852,6 +1852,7 @@ Em.I18n.translations = {
   'services.service.delete.progressPopup.message': 'Deleting {0}...',
   'services.service.delete.service.success.confirmation': 'Service {0} was successfully deleted',
   'services.service.delete.service.success.confirmation.plural': 'Services {0} were successfully deleted',
+  'services.service.delete.popup.warning.ranger_kms': '<b>Ranger KMS should not be deleted if encryption zones (EZ) and keys are being managed by the service. Otherwise data in the EZ will not be accessible.</b>',
 
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',
