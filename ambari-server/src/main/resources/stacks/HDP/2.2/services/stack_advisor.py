@@ -26,6 +26,7 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
+
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def getServiceConfigurationRecommenderDict(self):
@@ -41,10 +42,28 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "STORM": self.recommendStormConfigurations,
       "KNOX": self.recommendKnoxConfigurations,
       "RANGER": self.recommendRangerConfigurations,
-      "LOGSEARCH" : self.recommendLogsearchConfigurations
+      "LOGSEARCH" : self.recommendLogsearchConfigurations,
+      "SPARK": self.recommendSparkConfigurations,
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+
+  def recommendSparkConfigurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    putSparkProperty = self.putProperty(configurations, "spark-defaults", services)
+    putSparkProperty("spark.yarn.queue", self.recommendYarnQueue(services))
+
+    # add only if spark supports this config
+    if "configurations" in services and "spark-thrift-sparkconf" in services["configurations"]:
+      putSparkThriftSparkConf = self.putProperty(configurations, "spark-thrift-sparkconf", services)
+      putSparkThriftSparkConf("spark.yarn.queue", self.recommendYarnQueue(services))
+
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
@@ -960,7 +979,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "STORM": {"ranger-storm-plugin-properties": self.validateStormRangerPluginConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "TEZ": {"tez-site": self.validateTezConfigurations},
-      "RANGER": {"ranger-env": self.validateRangerConfigurationsEnv}
+      "RANGER": {"ranger-env": self.validateRangerConfigurationsEnv},
+      "SPARK": {"spark-defaults": self.validateSparkDefaults,
+                "spark-thrift-sparkconf": self.validateSparkThriftSparkConf}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -1366,6 +1387,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
     configurationValidationProblems.extend(parentValidationProblems)
     return configurationValidationProblems
+
+  def validateSparkDefaults(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [
+      {
+        "config-name": 'spark.yarn.queue',
+        "item": self.validatorYarnQueue(properties, recommendedDefaults, 'spark.yarn.queue', services)
+      }
+    ]
+    return self.toConfigurationValidationProblems(validationItems, "spark-defaults")
+
+  def validateSparkThriftSparkConf(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [
+      {
+        "config-name": 'spark.yarn.queue',
+        "item": self.validatorYarnQueue(properties, recommendedDefaults, 'spark.yarn.queue', services)
+      }
+    ]
+    return self.toConfigurationValidationProblems(validationItems, "spark-thrift-sparkconf")
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = properties

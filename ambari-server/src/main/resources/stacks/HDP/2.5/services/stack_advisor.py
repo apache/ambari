@@ -105,7 +105,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
       "YARN": {"yarn-site": self.validateYarnConfigurations},
       "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations,
-                "ranger-admin-site": self.validateRangerAdminConfigurations}
+                "ranger-admin-site": self.validateRangerAdminConfigurations},
+      "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
+                 "spark2-thrift-sparkconf": self.validateSpark2ThriftSparkConf}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -197,6 +199,24 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "application-properties")
     return validationProblems
+
+  def validateSpark2Defaults(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [
+      {
+        "config-name": 'spark.yarn.queue',
+        "item": self.validatorYarnQueue(properties, recommendedDefaults, 'spark.yarn.queue', services)
+      }
+    ]
+    return self.toConfigurationValidationProblems(validationItems, "spark2-defaults")
+
+  def validateSpark2ThriftSparkConf(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [
+      {
+        "config-name": 'spark.yarn.queue',
+        "item": self.validatorYarnQueue(properties, recommendedDefaults, 'spark.yarn.queue', services)
+      }
+    ]
+    return self.toConfigurationValidationProblems(validationItems, "spark2-thrift-sparkconf")
 
   def validateYarnConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     parentValidationProblems = super(HDP25StackAdvisor, self).validateYARNConfigurations(properties, recommendedDefaults, configurations, services, hosts)
@@ -370,10 +390,24 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "ATLAS": self.recommendAtlasConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "OOZIE": self.recommendOozieConfigurations
+      "OOZIE": self.recommendOozieConfigurations,
+      "SPARK2": self.recommendSpark2Configurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
+
+  def recommendSpark2Configurations(self, configurations, clusterData, services, hosts):
+    """
+    :type configurations dict
+    :type clusterData dict
+    :type services dict
+    :type hosts dict
+    """
+    putSparkProperty = self.putProperty(configurations, "spark2-defaults", services)
+    putSparkThriftSparkConf = self.putProperty(configurations, "spark2-thrift-sparkconf", services)
+
+    putSparkProperty("spark.yarn.queue", self.recommendYarnQueue(services))
+    putSparkThriftSparkConf("spark.yarn.queue", self.recommendYarnQueue(services))
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
