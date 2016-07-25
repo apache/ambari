@@ -98,6 +98,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       valueForEnable: 'Yes'
     },
     {
+      serviceName: 'ATLAS',
+      type: 'ranger-atlas-plugin-properties',
+      propertyName: 'ranger-atlas-plugin-enabled',
+      valueForEnable: 'Yes'
+    },
+    {
       serviceName: 'NIFI',
       type: 'ranger-nifi-plugin-properties',
       propertyName: 'ranger-nifi-plugin-enabled',
