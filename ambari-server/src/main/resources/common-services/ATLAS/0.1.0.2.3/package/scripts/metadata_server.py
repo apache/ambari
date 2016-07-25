@@ -63,6 +63,7 @@ class MetadataServer(Script):
 
   def start(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
     self.configure(env)
 
@@ -71,7 +72,7 @@ class MetadataServer(Script):
 
     if params.stack_supports_atlas_ranger_plugin:
       Logger.info('Atlas plugin is enabled, configuring Atlas plugin.')
-      setup_ranger_atlas(upgrade_type = upgrade_type)
+      setup_ranger_atlas(upgrade_type=upgrade_type)
     else:
       Logger.info('Atlas plugin is not supported or enabled.')
 
@@ -86,6 +87,7 @@ class MetadataServer(Script):
 
   def stop(self, env, upgrade_type=None):
     import params
+
     env.set_params(params)
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh; {params.metadata_stop_script}')
 
@@ -101,6 +103,7 @@ class MetadataServer(Script):
 
   def status(self, env):
     import status_params
+
     env.set_params(status_params)
     check_process_status(status_params.pid_file)
 
@@ -109,6 +112,7 @@ class MetadataServer(Script):
 
     env.set_params(status_params)
 
+    file_name_key = 'applicaton'
     props_value_check = {'atlas.authentication.method': 'kerberos',
                          'atlas.http.authentication.enabled': 'true',
                          'atlas.http.authentication.type': 'kerberos'}
@@ -118,7 +122,19 @@ class MetadataServer(Script):
                          'atlas.http.authentication.kerberos.keytab']
     props_read_check = ['atlas.authentication.keytab',
                         'atlas.http.authentication.kerberos.keytab']
-    atlas_site_expectations = build_expectations('application',
+
+    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, status_params.version_for_stack_feature_checks):
+      file_name_key = 'atlas-application'
+      props_value_check = {'atlas.authentication.method.kerberos': 'true',
+                           'atlas.solr.kerberos.enable': 'true'}
+      props_empty_check = ['atlas.authentication.principal',
+                           'atlas.authentication.keytab',
+                           'atlas.authentication.method.kerberos.principal',
+                           'atlas.authentication.method.kerberos.keytab']
+      props_read_check = ['atlas.authentication.keytab',
+                          'atlas.authentication.method.kerberos.keytab']
+
+    atlas_site_expectations = build_expectations(file_name_key,
                                                  props_value_check,
                                                  props_empty_check,
                                                  props_read_check)
@@ -129,24 +145,34 @@ class MetadataServer(Script):
     security_params = get_params_from_filesystem(status_params.conf_dir,
                                                  {status_params.conf_file: FILE_TYPE_PROPERTIES})
     result_issues = validate_security_config_properties(security_params, atlas_expectations)
+
     if not result_issues:  # If all validations passed successfully
       try:
         # Double check the dict before calling execute
-        if ( 'application' not in security_params
-             or 'atlas.authentication.keytab' not in security_params['application']
-             or 'atlas.authentication.principal' not in security_params['application']):
+        if ( file_name_key not in security_params
+             or 'atlas.authentication.keytab' not in security_params[file_name_key]
+             or 'atlas.authentication.principal' not in security_params[file_name_key]):
           self.put_structured_out({"securityState": "UNSECURED"})
           self.put_structured_out(
             {"securityIssuesFound": "Atlas service keytab file or principal are not set property."})
           return
 
-        if ( 'application' not in security_params
-             or 'atlas.http.authentication.kerberos.keytab' not in security_params['application']
-             or 'atlas.http.authentication.kerberos.principal' not in security_params['application']):
-          self.put_structured_out({"securityState": "UNSECURED"})
-          self.put_structured_out(
-            {"securityIssuesFound": "HTTP Authentication keytab file or principal are not set property."})
-          return
+        if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, status_params.version_for_stack_feature_checks):
+          if ( file_name_key not in security_params
+               or 'atlas.authentication.method.kerberos.keytab' not in security_params[file_name_key]
+               or 'atlas.authentication.method.kerberos.principal' not in security_params[file_name_key]):
+            self.put_structured_out({"securityState": "UNSECURED"})
+            self.put_structured_out(
+              {"securityIssuesFound": "Method Authentication keytab file or principal are not set property."})
+            return
+        else:
+          if ( file_name_key not in security_params
+               or 'atlas.http.authentication.kerberos.keytab' not in security_params[file_name_key]
+               or 'atlas.http.authentication.kerberos.principal' not in security_params[file_name_key]):
+            self.put_structured_out({"securityState": "UNSECURED"})
+            self.put_structured_out(
+              {"securityIssuesFound": "HTTP Authentication keytab file or principal are not set property."})
+            return
 
         self.put_structured_out({"securityState": "SECURED_KERBEROS"})
       except Exception as e:
@@ -161,11 +187,14 @@ class MetadataServer(Script):
 
   def get_log_folder(self):
     import params
+
     return params.log_dir
 
   def get_user(self):
     import params
+
     return params.metadata_user
+
 
 if __name__ == "__main__":
   MetadataServer().execute()
