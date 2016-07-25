@@ -197,9 +197,14 @@ public class ClusterStackVersionResourceProviderTest {
     testCreateResources(TestAuthenticationFactory.createAdministrator());
   }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testCreateResourcesAsClusterAdministrator() throws Exception {
     testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesAsClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator());
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
@@ -609,9 +614,14 @@ public class ClusterStackVersionResourceProviderTest {
      testCreateResourcesWithRepoDefinition(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testCreateResourcesWithRepoDefinitionAsClusterAdministrator() throws Exception {
      testCreateResourcesWithRepoDefinition(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesWithRepoDefinitionAsClusterOperator() throws Exception {
+     testCreateResourcesWithRepoDefinition(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testCreateResourcesWithRepoDefinition(Authentication authentication) throws Exception {
@@ -829,9 +839,14 @@ public class ClusterStackVersionResourceProviderTest {
      testCreateResourcesWithNonManagedOS(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testCreateResourcesWithNonManagedOSAsClusterAdministrator() throws Exception {
      testCreateResourcesWithNonManagedOS(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesWithNonManagedOSAsClusterOperator() throws Exception {
+     testCreateResourcesWithNonManagedOS(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testCreateResourcesWithNonManagedOS(Authentication authentication) throws Exception {
@@ -1057,9 +1072,14 @@ public class ClusterStackVersionResourceProviderTest {
      testUpdateResources(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testUpdateResourcesAsClusterAdministrator() throws Exception {
      testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testUpdateResourcesAsClusterOperator() throws Exception {
+     testUpdateResources(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testUpdateResources(Authentication authentication) throws Exception {
@@ -1208,9 +1228,14 @@ public class ClusterStackVersionResourceProviderTest {
      testUpdateResourcesWithForce(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testUpdateResourcesWithForceAsClusterAdministrator() throws Exception {
      testUpdateResourcesWithForce(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testUpdateResourcesWithForceAsClusterOperator() throws Exception {
+     testUpdateResourcesWithForce(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testUpdateResourcesWithForce(Authentication authentication) throws Exception {
@@ -1360,9 +1385,14 @@ public class ClusterStackVersionResourceProviderTest {
      testCreateResourcesMixed(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testCreateResourcesMixedAsClusterAdministrator() throws Exception {
      testCreateResourcesMixed(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesMixedAsClusterOperator() throws Exception {
+     testCreateResourcesMixed(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testCreateResourcesMixed(Authentication authentication) throws Exception {
@@ -1568,9 +1598,14 @@ public class ClusterStackVersionResourceProviderTest {
      testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createAdministrator());
    }
 
-   @Test(expected = AuthorizationException.class)
+   @Test
    public void testCreateResourcesExistingUpgradeAsClusterAdministrator() throws Exception {
      testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createClusterAdministrator());
+   }
+
+   @Test(expected = AuthorizationException.class)
+   public void testCreateResourcesExistingUpgradeAsClusterOperator() throws Exception {
+     testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createClusterOperator());
    }
 
    private void testCreateResourcesExistingUpgrade(Authentication authentication) throws Exception {
