@@ -1178,6 +1178,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           continue;
         }
 
+        // get current stack default configurations on install
+        Map<String, String> configurationTypeDefaultConfigurations = oldStackDefaultConfigurationsByType.get(
+            configurationType);
+
+        // NPE sanity for current stack defaults
+        if (null == configurationTypeDefaultConfigurations) {
+          configurationTypeDefaultConfigurations = Collections.emptyMap();
+        }
+
         // get the existing configurations
         Map<String, String> existingConfigurations = currentClusterConfig.getProperties();
 
@@ -1214,27 +1223,49 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           if (newDefaultConfigurations.containsKey(existingConfigurationKey)) {
             String newDefaultConfigurationValue = newDefaultConfigurations.get(
                 existingConfigurationKey);
+
             if (!StringUtils.equals(existingConfigurationValue, newDefaultConfigurationValue)) {
               // the new default is different from the existing cluster value;
               // only override the default value if the existing value differs
               // from the original stack
-              Map<String, String> configurationTypeDefaultConfigurations = oldStackDefaultConfigurationsByType.get(
-                  configurationType);
-              if (null != configurationTypeDefaultConfigurations) {
-                String oldDefaultValue = configurationTypeDefaultConfigurations.get(
-                    existingConfigurationKey);
-                if (!StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
-                  // at this point, we've determined that there is a difference
-                  // between default values between stacks, but the value was
-                  // also customized, so keep the customized value
-                  newDefaultConfigurations.put(existingConfigurationKey,
-                      existingConfigurationValue);
-                }
+              String oldDefaultValue = configurationTypeDefaultConfigurations.get(
+                  existingConfigurationKey);
+
+              if (!StringUtils.equals(existingConfigurationValue, oldDefaultValue)) {
+                // at this point, we've determined that there is a difference
+                // between default values between stacks, but the value was
+                // also customized, so keep the customized value
+                newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
               }
             }
           } else {
             // there is no entry in the map, so add the existing key/value pair
             newDefaultConfigurations.put(existingConfigurationKey, existingConfigurationValue);
+          }
+        }
+
+        /*
+        for every new configuration which does not exist in the existing
+        configurations, see if it was present in the current stack
+
+        stack 2.x has foo-site/property (on-ambari-upgrade is false)
+        stack 2.y has foo-site/property
+        the current cluster (on 2.x) does not have it
+
+        In this case, we should NOT add it back as clearly stack advisor has removed it
+        */
+        Iterator<Map.Entry<String, String>> newDefaultConfigurationsIterator = newDefaultConfigurations.entrySet().iterator();
+        while( newDefaultConfigurationsIterator.hasNext() ){
+          Map.Entry<String, String> newConfigurationEntry = newDefaultConfigurationsIterator.next();
+          String newConfigurationPropertyName = newConfigurationEntry.getKey();
+          if (configurationTypeDefaultConfigurations.containsKey(newConfigurationPropertyName)
+              && !existingConfigurations.containsKey(newConfigurationPropertyName)) {
+            LOG.info(
+                "The property {}/{} exists in both {} and {} but is not part of the current set of configurations and will therefore not be included in the configuration merge",
+                configurationType, newConfigurationPropertyName, currentStackId, targetStackId);
+
+            // remove the property so it doesn't get merged in
+            newDefaultConfigurationsIterator.remove();
           }
         }
       }
