@@ -56,6 +56,7 @@ public class ActionQueue {
    * Adds command to queue for given hostname
    * @param hostname - hostname of node
    * @param cmd - command to add to queue
+   * @throws NullPointerException - if hostname is {@code}null{@code}
    */
   public void enqueue(String hostname, AgentCommand cmd) {
     Queue<AgentCommand> q = getQueue(hostname);
