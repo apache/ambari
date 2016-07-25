@@ -19,6 +19,7 @@ limitations under the License.
 '''
 
 from stacks.utils.RMFTestCase import *
+from mock.mock import MagicMock, call, patch
 
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
@@ -189,3 +190,44 @@ class TestAtlasServer(RMFTestCase):
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 
+  @patch("resource_management.libraries.functions.security_commons.build_expectations")
+  @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
+  @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")
+  @patch("resource_management.libraries.functions.security_commons.cached_kinit_executor")
+  @patch("resource_management.libraries.script.Script.put_structured_out")
+  def test_security_status(self, put_structured_out_mock, cached_kinit_executor_mock, validate_security_config_mock, get_params_mock, build_exp_mock):
+
+    security_params = {
+      'atlas-application': {
+        'atlas.authentication.keytab': '/etc/security/keytabs/atlas.service.keytab',
+        'atlas.authentication.method.file': 'true',
+        'atlas.authentication.method.kerberos': 'true',
+        'atlas.authentication.method.kerberos.keytab': '/etc/security/keytabs/spnego.service.keytab',
+        'atlas.authentication.method.kerberos.principal': 'HTTP/_HOST@EXAMPLE.COM',
+        'atlas.authentication.principal': 'atlas/_HOST@EXAMPLE.COM'
+      }
+    }
+    result_issues = []
+    props_value_check = {'atlas.authentication.method.kerberos': 'true',
+                         'atlas.solr.kerberos.enable': 'true'}
+    props_empty_check = ['atlas.authentication.principal',
+                         'atlas.authentication.keytab',
+                         'atlas.authentication.method.kerberos.principal',
+                         'atlas.authentication.method.kerberos.keytab']
+    props_read_check = ['atlas.authentication.keytab',
+                        'atlas.authentication.method.kerberos.keytab']
+
+    get_params_mock.return_value = security_params
+    validate_security_config_mock.return_value = result_issues
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
+                       classname = "MetadataServer",
+                       command = "security_status",
+                       config_file="default.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    build_exp_mock.assert_called_with('atlas-application', props_value_check, props_empty_check, props_read_check)
+    put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
+
+    self.assertNoMoreResources()
