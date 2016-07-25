@@ -233,6 +233,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   }.observes('categoryConfigs.@each.isHiddenByFilter'),
 
   collapseCategory: function () {
+    if (this.get('state') === 'destroyed') return;
     $('.popover').remove();
     var filter = this.get('parentView.filter').toLowerCase();
     var filteredResult = this.get('categoryConfigs');
