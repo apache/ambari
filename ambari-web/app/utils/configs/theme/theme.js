@@ -26,26 +26,15 @@ App.configTheme = Em.Object.create({
    * @param {Array} configs
    */
   resolveConfigThemeConditions: function (configs) {
-    var self = this;
     App.ThemeCondition.find().forEach(function (configCondition) {
       var _configs = Em.A(configCondition.get('configs'));
       if (configCondition.get("resource") === 'config' && _configs.length > 0) {
-        var isConditionTrue = self.calculateConfigCondition(configCondition.get("if"), configs);
+        var isConditionTrue = this.calculateConfigCondition(configCondition.get("if"), configs);
         var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
         if (configCondition.get('id')) {
           var valueAttributes = action.property_value_attributes;
           if (valueAttributes && !Em.none(valueAttributes.visible)) {
-            var themeResource;
-            if (configCondition.get('type') === 'subsection') {
-              themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
-            } else if (configCondition.get('type') === 'subsectionTab') {
-              themeResource = App.SubSectionTab.find().findProperty('name', configCondition.get('name'));
-            } else if (configCondition.get('type') === 'config') {
-              //simulate section wrapper for condition type "config"
-              themeResource = Em.Object.create({
-                configProperties: [App.config.configId(configCondition.get('configName'), configCondition.get('fileName'))]
-              });
-            }
+            var themeResource = this.getThemeResource(configCondition);
             if (themeResource) {
               themeResource.get('configProperties').forEach(function (_configId) {
                 configs.forEach(function (item) {
@@ -55,7 +44,7 @@ App.configTheme = Em.Object.create({
                     if (configCondition.get('type') === 'config' && item.hiddenBySection) return false;
                     item.hiddenBySection = !valueAttributes.visible;
                   }
-                });
+                }, this);
               }, this);
             }
           }
@@ -64,32 +53,43 @@ App.configTheme = Em.Object.create({
     }, this);
   },
 
-  getConfigThemeActions: function(configs, storedConfigs) {
+  /**
+   *
+   * @param {App.ThemeCondition} configCondition
+   * @returns {?Em.Object}
+   */
+  getThemeResource: function (configCondition) {
+    var themeResource = null;
+
+    if (configCondition.get('type') === 'subsection') {
+      themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
+    } else if (configCondition.get('type') === 'subsectionTab') {
+      themeResource = App.SubSectionTab.find().findProperty('name', configCondition.get('name'));
+    } else if (configCondition.get('type') === 'config') {
+      //simulate section wrapper for condition type "config"
+      themeResource = Em.Object.create({
+        configProperties: [App.config.configId(configCondition.get('configName'), configCondition.get('fileName'))]
+      });
+    }
+    return themeResource;
+  },
+
+  /**
+   *
+   * @param {Array} configs
+   * @param {?Array} storedConfigs
+   * @returns {{add: Array, delete: Array}}
+   */
+  getConfigThemeActions: function (configs, storedConfigs) {
     //config actions for changed configs should be only effective
-    var configActions = App.ConfigAction.find().filter(function(item){
-      var isAnyConfigAbsent = false;
-      var configChanged = false;
-      item.get("configs").forEach(function(_config){
-        var config = configs.filterProperty('filename',_config.fileName).findProperty('name', _config.configName);
-        if (!config) {
-          isAnyConfigAbsent = true;
-        } else {
-          configChanged = configChanged || config.get('value') != (config.get('savedValue') || config.get('recommendedValue'));
-          var storedConfig = storedConfigs.filterProperty('filename',_config.fileName).findProperty('name', _config.configName);
-          if (storedConfig) {
-            configChanged = configChanged || config.get('value') != storedConfig.value;
-          }
-        }
-      }, this);
-      return !isAnyConfigAbsent && configChanged;
-    }, this);
+    var configActions = this.getConfigActions(configs, storedConfigs);
 
     var componentsToAdd = [];
     var componentsToDelete = [];
-    configActions.forEach(function(_action){
+    configActions.forEach(function (_action) {
       var isConditionTrue = this.calculateConfigCondition(_action.get('if'), configs);
       var action = isConditionTrue ? _action.get("then") : _action.get("else");
-      switch(action) {
+      switch (action) {
         case 'add':
           componentsToAdd.push(_action.get('hostComponent'));
           break;
@@ -99,26 +99,50 @@ App.configTheme = Em.Object.create({
       }
     }, this);
 
-    var configThemeActions = {
+    return {
       add: componentsToAdd,
       delete: componentsToDelete
     };
-
-    return configThemeActions;
   },
 
   /**
    *
+   * @param {Array} configs
+   * @param {Array} storedConfigs
+   * @returns {Array}
+   */
+  getConfigActions: function (configs, storedConfigs) {
+    return App.ConfigAction.find().filter(function (item) {
+      var isAnyConfigAbsent = false;
+      var configChanged = false;
+      item.get("configs").forEach(function (_config) {
+        var config = configs.filterProperty('filename', _config.fileName).findProperty('name', _config.configName);
+        if (!config) {
+          isAnyConfigAbsent = true;
+        } else {
+          configChanged = configChanged || config.get('value') !== (config.get('savedValue') || config.get('recommendedValue'));
+          var storedConfig = storedConfigs.filterProperty('filename', _config.fileName).findProperty('name', _config.configName);
+          if (storedConfig) {
+            configChanged = configChanged || config.get('value') !== storedConfig.value;
+          }
+        }
+      }, this);
+      return !isAnyConfigAbsent && configChanged;
+    }, this);
+  },
+
+  /**
+   * ifStatement format: ${site-name/config-name}
    * @param {string} ifStatement
    * @param {Array} serviceConfigs
    * @returns {boolean}
    */
-  calculateConfigCondition: function(ifStatement, serviceConfigs) {
+  calculateConfigCondition: function (ifStatement, serviceConfigs) {
     // Split `if` statement if it has logical operators
     var ifStatementRegex = /(&&|\|\|)/;
     var IfConditions = ifStatement.split(ifStatementRegex);
     var allConditionResult = [];
-    IfConditions.forEach(function(_condition){
+    IfConditions.forEach(function (_condition) {
       var condition = _condition.trim();
       if (condition === '&&' || condition === '||') {
         allConditionResult.push(_condition);

@@ -213,6 +213,7 @@ var files = [
   'test/utils/configs/modification_handlers/modification_handler_test',
   'test/utils/configs/modification_handlers/misc_test',
   'test/utils/load_timer_test',
+  'test/utils/configs/theme/theme_test',
   'test/views/common/chart/linear_time_test',
   'test/views/common/configs/widgets/combo_config_widget_view_test',
   'test/views/common/configs/widgets/config_widget_view_test',
