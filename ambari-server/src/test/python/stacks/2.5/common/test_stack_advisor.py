@@ -361,6 +361,36 @@ class TestHDP25StackAdvisor(TestCase):
     self.expected_visibility_false = {'visible': 'false'}
     self.expected_visibility_true = {'visible': 'true'}
 
+  def test_recommendSPARK2Configurations(self):
+    configurations = {}
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK2"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "spark2-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      },
+      "spark2-thrift-sparkconf": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSpark2Configurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
 
   def load_json(self, filename):
     file = os.path.join(self.testDirectory, filename)
@@ -7542,6 +7572,28 @@ class TestHDP25StackAdvisor(TestCase):
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
 
+  def test_validateSpark2Defaults(self):
+    properties = {}
+    recommendedDefaults = {
+      "spark.yarn.queue": "default",
+    }
+    configurations = {}
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name": "SPARK"
+            }
+          }
+        ]
+    }
+
+    # Test with ranger plugin enabled, validation fails
+    res_expected = [{'config-type': 'spark2-defaults', 'message': 'Value should be set', 'type': 'configuration', 'config-name': 'spark.yarn.queue', 'level': 'ERROR'}]
+
+    res = self.stackAdvisor.validateSpark2Defaults(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
 
 """
 Given a comma-separated string, split the items, sort them, and re-join the elements

@@ -910,6 +910,32 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+  def test_recommendSPARKConfigurations(self):
+    configurations = {}
+    services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "SPARK"
+        },
+      }
+    ]
+    clusterData = {
+      "cpu": 4,
+      "containers": 5,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "spark-defaults": {
+        "properties": {
+          "spark.yarn.queue": "default"
+        }
+      }
+    }
+
+    self.stackAdvisor.recommendSparkConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
   def test_recommendYARNConfigurationAttributes(self):
     configurations = {
       "yarn-env": {
@@ -4104,4 +4130,27 @@ class TestHDP22StackAdvisor(TestCase):
     res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Storm plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-storm-plugin-enabled', 'level': 'WARN'}]
 
     res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateSparkDefaults(self):
+    properties = {}
+    recommendedDefaults = {
+      "spark.yarn.queue": "default",
+    }
+    configurations = {}
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name": "SPARK"
+            }
+          }
+        ]
+    }
+
+    # Test with ranger plugin enabled, validation fails
+    res_expected = [{'config-type': 'spark-defaults', 'message': 'Value should be set', 'type': 'configuration', 'config-name': 'spark.yarn.queue', 'level': 'ERROR'}]
+
+    res = self.stackAdvisor.validateSparkDefaults(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
