@@ -196,7 +196,8 @@ describe('App.ConfigRecommendationParser', function() {
           'value': 'recommendedValue',
           'initialValue': 'recommendedValue',
           'errorMessage': '',
-          'warnMessage': ''
+          'warnMessage': '',
+          'isVisible': true
         }
       },
       {
@@ -208,7 +209,8 @@ describe('App.ConfigRecommendationParser', function() {
           'value': 'recommendedValue',
           'initialValue': null,
           'errorMessage': '',
-          'warnMessage': ''
+          'warnMessage': '',
+          'isVisible': true
         }
       },
       {
