@@ -518,7 +518,19 @@
             <organization>
                 IBM                
             </organization>            
-        </developer>        
+        </developer>
+        <developer>
+            <id>lavjain</id>
+            <name>Lav Jain</name>
+            <email>lavjain@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Pivotal
+            </organization>
+        </developer>
         <developer>
             <id>mahadev</id>
             <name>Mahadev Konar</name>
@@ -705,7 +717,7 @@
             <email>rlevas@apache.org</email>
             <timezone>-8</timezone>
             <roles>
-                <role>Committer</role>
+                <role>PMC</role>
             </roles>
             <organization>
                 Hortonworks
