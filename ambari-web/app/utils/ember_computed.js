@@ -652,6 +652,37 @@ computed.someBy = function (collectionKey, propertyName, neededValue) {
 };
 
 /**
+ * A computed property that returns true of some collection's item has property with needed value
+ * Needed value is stored in the another property
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: [{a: 1}, {a: 2}, {a: 3}],
+ *  p2: Em.computed.someByKey('p1', 'a', 'v1'),
+ *  v1: 1
+ * });
+ * console.log(o.get('p2')); // true
+ * o.set('p1.0.a', 2);
+ * console.log(o.get('p2')); // false
+ * </pre>
+ *
+ * @method someByKey
+ * @param {string} collectionKey
+ * @param {string} propertyName
+ * @param {string} neededValueKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.someByKey = function (collectionKey, propertyName, neededValueKey) {
+  return computed(collectionKey + '.@each.' + propertyName, neededValueKey, function () {
+    var collection = smartGet(this, collectionKey);
+    if (!collection) {
+      return false;
+    }
+    var neededValue = smartGet(this, neededValueKey);
+    return collection.someProperty(propertyName, neededValue);
+  });
+};
+
+/**
  * A computed property that returns true of all collection's items have property with needed value
  * <pre>
  * var o = Em.Object.create({
@@ -675,6 +706,37 @@ computed.everyBy = function (collectionKey, propertyName, neededValue) {
     if (!collection) {
       return false;
     }
+    return collection.everyProperty(propertyName, neededValue);
+  });
+};
+
+/**
+ * A computed property that returns true of all collection's items have property with needed value
+ * Needed value is stored in the another property
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: [{a: 1}, {a: 1}, {a: 1}],
+ *  p2: Em.computed.everyByKey('p1', 'a', 'v1'),
+ *  v1: 1
+ * });
+ * console.log(o.get('p2')); // true
+ * o.set('p1.0.a', 2);
+ * console.log(o.get('p2')); // false
+ * </pre>
+ *
+ * @method everyByKey
+ * @param {string} collectionKey
+ * @param {string} propertyName
+ * @param {string} neededValueKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.everyByKey = function (collectionKey, propertyName, neededValueKey) {
+  return computed(collectionKey + '.@each.' + propertyName, neededValueKey, function () {
+    var collection = smartGet(this, collectionKey);
+    if (!collection) {
+      return false;
+    }
+    var neededValue = smartGet(this, neededValueKey);
     return collection.everyProperty(propertyName, neededValue);
   });
 };
@@ -735,6 +797,38 @@ computed.filterBy = function (collectionKey, propertyName, neededValue) {
 };
 
 /**
+ * A computed property that returns array with collection's items that have needed property value
+ * Needed value is stored in the another property
+ *
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: [{a: 1}, {a: 2}, {a: 3}],
+ *  p2: Em.computed.filterByKey('p1', 'a', 'v1'),
+ *  v1: 2
+ * });
+ * console.log(o.get('p2')); // [{a: 2}]
+ * o.set('p1.0.a', 2);
+ * console.log(o.get('p2')); // [{a: 2}, {a: 2}]
+ * </pre>
+ *
+ * @method filterByKey
+ * @param {string} collectionKey
+ * @param {string} propertyName
+ * @param {string} neededValueKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.filterByKey = function (collectionKey, propertyName, neededValueKey) {
+  return computed(collectionKey + '.@each.' + propertyName, neededValueKey, function () {
+    var collection = smartGet(this, collectionKey);
+    if (!collection) {
+      return [];
+    }
+    var neededValue = smartGet(this, neededValueKey);
+    return collection.filterProperty(propertyName, neededValue);
+  });
+};
+
+/**
  * A computed property that returns first collection's item that has needed property value
  * <pre>
  * var o = Em.Object.create({
@@ -758,6 +852,37 @@ computed.findBy = function (collectionKey, propertyName, neededValue) {
     if (!collection) {
       return null;
     }
+    return collection.findProperty(propertyName, neededValue);
+  });
+};
+
+/**
+ * A computed property that returns first collection's item that has needed property value
+ * Needed value is stored in the another property
+ * <pre>
+ * var o = Em.Object.create({
+ *  p1: [{a: 1, b: 1}, {a: 2, b: 2}, {a: 3, b: 3}],
+ *  p2: Em.computed.findByKey('p1', 'a', 'v1'),
+ *  v1: 2
+ * });
+ * console.log(o.get('p2')); // [{a: 2, b: 2}]
+ * o.set('p1.0.a', 2);
+ * console.log(o.get('p2')); // [{a: 2, b: 1}]
+ * </pre>
+ *
+ * @method findByKey
+ * @param {string} collectionKey
+ * @param {string} propertyName
+ * @param {string} neededValueKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.findByKey = function (collectionKey, propertyName, neededValueKey) {
+  return computed(collectionKey + '.@each.' + propertyName, neededValueKey, function () {
+    var collection = smartGet(this, collectionKey);
+    if (!collection) {
+      return null;
+    }
+    var neededValue = smartGet(this, neededValueKey);
     return collection.findProperty(propertyName, neededValue);
   });
 };

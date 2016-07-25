@@ -410,7 +410,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
       expect(config.get('recommendedValue')).to.be.equal('host1');
     });
 
-    it("config should be set", function() {
+    it("config should be set (loadConfigRecommendations is called once)", function() {
       expect(mock.loadConfigRecommendations.calledOnce).to.be.true;
     });
   });
