@@ -2503,6 +2503,37 @@ public class TestActionScheduler {
 
   }
 
+  @Test
+  public void testAbortAmbariServerAction() {
+    UnitOfWork unitOfWork = EasyMock.createMock(UnitOfWork.class);
+    ActionDBAccessor db = EasyMock.createMock(ActionDBAccessor.class);
+    ActionQueue aq = new ActionQueue();
+    Clusters fsm = EasyMock.createMock(Clusters.class);
+    Configuration conf = new Configuration(new Properties());
+    HostEntity hostEntity1 = new HostEntity();
+    hostEntity1.setHostName("h1");
+    hostDAO.merge(hostEntity1);
+
+    EasyMock.replay(db);
+
+    ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
+        new HostsMap((String) null),
+        unitOfWork, null, conf);
+
+    HostRoleCommand hrc1 = hostRoleCommandFactory.create("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
+    hrc1.setStatus(HostRoleStatus.COMPLETED);
+    HostRoleCommand hrc3 = hostRoleCommandFactory.create(null, Role.AMBARI_SERVER_ACTION, null, RoleCommand.CUSTOM_COMMAND);
+    hrc3.setStatus(HostRoleStatus.IN_PROGRESS);
+    HostRoleCommand hrc4 = hostRoleCommandFactory.create("h1", Role.FLUME_HANDLER, null, RoleCommand.EXECUTE);
+    hrc4.setStatus(HostRoleStatus.PENDING);
+
+    List<HostRoleCommand> hostRoleCommands = Arrays.asList(hrc1, hrc3, hrc4);
+
+    scheduler.cancelHostRoleCommands(hostRoleCommands, "foo");
+
+    EasyMock.verify(db);
+  }
+
   /**
    * Tests that command failures in skippable stages do not cause the request to
    * be aborted.

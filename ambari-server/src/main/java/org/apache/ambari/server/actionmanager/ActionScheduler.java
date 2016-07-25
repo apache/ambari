@@ -1038,18 +1038,21 @@ class ActionScheduler implements Runnable {
    */
   void cancelHostRoleCommands(Collection<HostRoleCommand> hostRoleCommands, String reason) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
-      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED) {
-        // Dequeue all tasks that have been already scheduled for sending to agent
-        actionQueue.dequeue(hostRoleCommand.getHostName(),
-                hostRoleCommand.getExecutionCommandWrapper().
-                        getExecutionCommand().getCommandId());
-      }
-      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
-            hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
-        CancelCommand cancelCommand = new CancelCommand();
-        cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
-        cancelCommand.setReason(reason);
-        actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+      // There are no server actions in actionQueue
+      if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
+        if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED) {
+          // Dequeue all tasks that have been already scheduled for sending to agent
+          actionQueue.dequeue(hostRoleCommand.getHostName(),
+              hostRoleCommand.getExecutionCommandWrapper().
+              getExecutionCommand().getCommandId());
+        }
+        if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
+              hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
+          CancelCommand cancelCommand = new CancelCommand();
+          cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
+          cancelCommand.setReason(reason);
+          actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+        }
       }
 
       if (hostRoleCommand.getStatus().isHoldingState()) {
@@ -1069,12 +1072,15 @@ class ActionScheduler implements Runnable {
   }
   void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
-      if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
-            hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
-        CancelCommand cancelCommand = new CancelCommand();
-        cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
-        cancelCommand.setReason("");
-        actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+      // There are no server actions in actionQueue
+      if (!Role.AMBARI_SERVER_ACTION.equals(hostRoleCommand.getRole())) {
+        if (hostRoleCommand.getStatus() == HostRoleStatus.QUEUED ||
+              hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
+          CancelCommand cancelCommand = new CancelCommand();
+          cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
+          cancelCommand.setReason("");
+          actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
+        }
       }
     }
   }
