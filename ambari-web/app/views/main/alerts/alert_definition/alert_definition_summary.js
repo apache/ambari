@@ -46,20 +46,22 @@ App.AlertDefinitionSummary = Em.View.extend({
         count: '',
         maintenanceCount: ''
       };
-      if (summary[state].count) {
-        var count = shortState;
-        if (showCounts) {
-          count += ' (' + summary[state].count + ')';
+      if (summary[state]) {
+        if (summary[state].count) {
+          var count = shortState;
+          if (showCounts) {
+            count += ' (' + summary[state].count + ')';
+          }
+          _stateSummary.count = count;
         }
-        _stateSummary.count = count;
-      }
-      // add status with maintenance mode icon
-      if (summary[state].maintenanceCount) {
-        var maintenanceCount = shortState;
-        if (showCounts) {
-          maintenanceCount += ' (' + summary[state].maintenanceCount + ')';
+        // add status with maintenance mode icon
+        if (summary[state].maintenanceCount) {
+          var maintenanceCount = shortState;
+          if (showCounts) {
+            maintenanceCount += ' (' + summary[state].maintenanceCount + ')';
+          }
+          _stateSummary.maintenanceCount = maintenanceCount;
         }
-        _stateSummary.maintenanceCount = maintenanceCount;
       }
       ret.push(_stateSummary);
     });
