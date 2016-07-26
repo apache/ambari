@@ -200,50 +200,65 @@ describe('App.Service', function () {
     Em.A([
       {
         m: 'may be deleted (1)',
-        hostComponents: [Em.Object.create({allowToDelete: true})],
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'INIT',
         e: true
       },
       {
         m: 'may be deleted (2)',
-        hostComponents: [Em.Object.create({allowToDelete: true})],
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'INSTALL_FAILED',
         e: true
       },
       {
         m: 'may be deleted (3)',
-        hostComponents: [Em.Object.create({allowToDelete: true})],
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'INSTALLED',
         e: true
       },
       {
         m: 'may be deleted (4)',
-        hostComponents: [Em.Object.create({allowToDelete: true})],
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'UNKNOWN',
         e: true
       },
       {
         m: 'deleting is not allowed (1)',
-        hostComponents: [Em.Object.create({allowToDelete: false})],
+        slaveComponents: [{allowToDelete: false}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'UNKNOWN',
         e: false
       },
       {
         m: 'deleting is not allowed (2)',
-        hostComponents: [Em.Object.create({allowToDelete: false})],
+        slaveComponents: [{allowToDelete: false}],
+        masterComponents: [{allowToDelete: false}],
         workStatus: 'UNKNOWN',
         e: false
       },
       {
         m: 'deleting is not allowed (3)',
-        hostComponents: [Em.Object.create({allowToDelete: true})],
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: false}],
+        workStatus: 'UNKNOWN',
+        e: false
+      },
+      {
+        m: 'deleting is not allowed (4)',
+        slaveComponents: [{allowToDelete: true}],
+        masterComponents: [{allowToDelete: true}],
         workStatus: 'STARTED',
         e: false
       }
     ]).forEach(function (test) {
       it(test.m, function () {
         this.stub.withArgs('workStatus').returns(test.workStatus);
-        this.stub.withArgs('hostComponents').returns(test.hostComponents);
+        this.stub.withArgs('slaveComponents').returns(test.slaveComponents);
+        this.stub.withArgs('masterComponents').returns(test.masterComponents);
         expect(Em.get(service, 'allowToDelete')).to.be.equal(test.e);
       });
     });
