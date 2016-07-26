@@ -95,13 +95,14 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
       actionLog.writeStdOut(String.format("Processing %d components", schCount));
     }
 
+    Map<String, Set<String>> propertiesToBeRemoved = new HashMap<>();
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory,
-      kerberosConfigurations, null, null, true, "true".equalsIgnoreCase(getCommandParameterValue(commandParameters,
+      kerberosConfigurations, null, propertiesToBeRemoved, true, "true".equalsIgnoreCase(getCommandParameterValue(commandParameters,
         KerberosServerAction.INCLUDE_AMBARI_IDENTITY)));
 
     if ("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
       processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
-      processConfigurationChanges(dataDirectory, kerberosConfigurations, null);
+      processConfigurationChanges(dataDirectory, kerberosConfigurations, propertiesToBeRemoved);
     }
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
