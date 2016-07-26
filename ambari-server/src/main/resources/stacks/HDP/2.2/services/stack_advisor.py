@@ -104,11 +104,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
           putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', services["configurations"]["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
 
-      kerberos_authentication_enabled = False
-      if "core-site" in services["configurations"] and "hadoop.security.authentication" in services["configurations"]["core-site"]["properties"]:
-        if services["configurations"]["core-site"]["properties"]["hadoop.security.authentication"].lower() == "kerberos" :
-          kerberos_authentication_enabled = True
-          putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
+      kerberos_authentication_enabled = self.isSecurityEnabled(services)
+      if kerberos_authentication_enabled:
+        putYarnProperty('yarn.nodemanager.container-executor.class',
+                        'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
 
       if "yarn-env" in services["configurations"] and "yarn_cgroups_enabled" in services["configurations"]["yarn-env"]["properties"]:
         yarn_cgroups_enabled = services["configurations"]["yarn-env"]["properties"]["yarn_cgroups_enabled"].lower() == "true"
