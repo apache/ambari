@@ -69,6 +69,32 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertNoMoreResources()
 
+  def test_install_hbase_master_with_version(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/hbase_with_phx.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.1-1234'
+    # the json file is not a "well formed" install command
+    json_content['roleCommand'] = 'INSTALL'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['package_list'] = "[{\"name\":\"hbase_${stack_version}\",\"condition\":\"\",\"skipUpgrade\":false}]"
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
+                       classname = "HbaseMaster",
+                       command = "install",
+                       config_dict = json_content,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       try_install=True,
+                       checked_call_mocks = [(0, "OK.", "")],
+    )
+
+    # only assert that the correct package is trying to be installed
+    self.assertResourceCalled('Package', 'hbase_2_3_0_1_1234',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
+
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                    classname = "HbaseMaster",
