@@ -454,7 +454,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (!ignoreVersionNote) {
       desired_config.service_config_version_note = serviceConfigNote || "";
     }
-    var attributes = { final: {} };
+    var attributes = { final: {}, password: {}, user: {}, group: {}, text: {}, additional_user_property: {}, not_managed_hdfs_path: {}, value_from_property_file: {} };
     if (Em.isArray(properties)) {
       properties.forEach(function(property) {
 
@@ -466,11 +466,16 @@ App.ConfigsSaverMixin = Em.Mixin.create({
           if (Em.get(property, 'isFinal')) {
             attributes.final[Em.get(property, 'name')] = "true";
           }
+          if (Em.get(property,'propertyType') != null) {
+            Em.get(property,'propertyType').map(function(propType) {
+              attributes[propType.toLowerCase()][Em.get(property,'name')] = "true";
+            });
+          }
         }
       }, this);
     }
 
-    if (Object.keys(attributes.final).length) {
+    if (Object.keys(attributes.final).length || Object.keys(attributes.password).length) {
       desired_config.properties_attributes = attributes;
     }
     return desired_config;

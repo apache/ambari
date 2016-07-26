@@ -313,6 +313,7 @@ Em.I18n.translations = {
   'common.timezone': 'Timezone',
   'common.loading.eclipses': 'Loading...',
   'common.optional': 'Optional',
+  'common.propertyType': 'Property Type',
   'common.running': 'Running',
   'common.stopped': 'Stopped',
   'common.enter': 'Enter',

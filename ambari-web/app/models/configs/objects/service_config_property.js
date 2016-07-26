@@ -95,6 +95,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   rightSideLabel: false,
 
   /**
+   * type of property
+   * @type {String[]}
+   * @default empty array
+   */
+  propertyType: [],
+
+  /**
    * Text to be shown as placeholder
    * By default savedValue is shown as placeholder
    * @type {String}

@@ -224,6 +224,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   private static final String BASE_LOG_DIR = "/tmp/ambari";
 
+  private static final String PASSWORD = "password";
+
   private final Clusters clusters;
 
   private final ActionManager actionManager;
@@ -810,6 +812,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Map<String, String> requestProperties = request.getProperties();
 
+    // Configuration attributes are optional. If not present, use default(provided by stack), otherwise merge default
+    // with request-provided
+    Map<String, Map<String, String>> requestPropertiesAttributes = request.getPropertiesAttributes();
+
+    if (requestPropertiesAttributes != null && requestPropertiesAttributes.containsKey(PASSWORD)) {
+      for (Map.Entry<String, String> requestEntry : requestPropertiesAttributes.get(PASSWORD).entrySet()) {
+        String passwordProperty = requestEntry.getKey();
+        if(requestProperties.containsKey(passwordProperty) && requestEntry.getValue().equals("true")) {
+          String passwordPropertyValue = requestProperties.get(passwordProperty);
+          if (!SecretReference.isSecret(passwordPropertyValue)) {
+            continue;
+          }
+          SecretReference ref = new SecretReference(passwordPropertyValue, cluster);
+          String refValue = ref.getValue();
+          requestProperties.put(passwordProperty, refValue);
+        }
+      }
+    }
+
     Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(request.getType());
     if(propertiesTypes.containsKey(PropertyType.PASSWORD)) {
       for(String passwordProperty : propertiesTypes.get(PropertyType.PASSWORD)) {
@@ -832,10 +853,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (null == configs) {
       configs = new HashMap<String, Config>();
     }
-
-    // Configuration attributes are optional. If not present, use default(provided by stack), otherwise merge default
-    // with request-provided
-    Map<String, Map<String, String>> requestPropertiesAttributes = request.getPropertiesAttributes();
 
     Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String,String>>();
 
@@ -1531,6 +1548,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (request.getDesiredConfig() != null) {
       for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
+        Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
 
         // processing password properties
         if(requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
@@ -1540,8 +1558,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (Entry<String, String> property : requestConfigProperties.entrySet()) {
             String propertyName = property.getKey();
             String propertyValue = property.getValue();
-            if (propertiesTypes.containsKey(PropertyType.PASSWORD) &&
-                propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) {
+            if ((propertiesTypes.containsKey(PropertyType.PASSWORD) &&
+                propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) ||
+                (requestConfigAttributes != null && requestConfigAttributes.containsKey(PASSWORD) &&
+                requestConfigAttributes.get(PASSWORD).containsKey(propertyName) &&
+                requestConfigAttributes.get(PASSWORD).get(propertyName).equals("true"))) {
               if (SecretReference.isSecret(propertyValue)) {
                 SecretReference ref = new SecretReference(propertyValue, cluster);
                 requestConfigProperties.put(propertyName, ref.getValue());
@@ -1549,7 +1570,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             }
           }
         }
-        Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
+
         Config clusterConfig = cluster.getDesiredConfigByType(desiredConfig.getType());
         Map<String, String> clusterConfigProperties = null;
         Map<String,Map<String,String>> clusterConfigAttributes = null;
