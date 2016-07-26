@@ -70,6 +70,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Binder;
@@ -1645,6 +1646,95 @@ public class UpgradeHelperTest {
     // Check that the upgrade framework properly expanded the STOP grouping into
     // STOP tasks
     assertEquals("Stopping ZooKeeper Server on h1 (Batch 1 of 3)", group.items.get(0).getText());
+  }
+
+  @Test
+  public void testOrchestrationNoServerSideOnDowngrade() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    StackId stackId2 = new StackId("HDP-2.2.0");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId2,"2.2.0");
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      host.persist();
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // !!! add storm
+    c.addService(serviceFactory.createNew(c, "STORM"));
+
+    Service s = c.getService("STORM");
+    ServiceComponent sc = s.addServiceComponent("NIMBUS");
+    ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
+    ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
+
+    UpgradePack upgradePack = new UpgradePack() {
+      @Override
+      public List<Grouping> getGroups(Direction direction) {
+
+        Grouping g = new Grouping();
+
+        OrderService orderService = new OrderService();
+        orderService.serviceName = "STORM";
+        orderService.components = Collections.singletonList("NIMBUS");
+
+        g.name = "GROUP1";
+        g.title = "Nimbus Group";
+        g.services.add(orderService);
+
+        return Lists.newArrayList(g);
+      }
+
+      @Override
+      public Map<String, Map<String, ProcessingComponent>> getTasks() {
+        ManualTask mt = new ManualTask();
+        mt.messages = Lists.newArrayList("My New Message");
+
+        ProcessingComponent pc = new ProcessingComponent();
+        pc.name = "NIMBUS_MESSAGE";
+        pc.preTasks = Lists.<Task>newArrayList(mt);
+
+        return Collections.singletonMap("STORM", Collections.singletonMap("NIMBUS", pc));
+      }
+
+    };
+
+    MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
+    UpgradeContext context = new UpgradeContext(resolver, stackId, stackId2, "2.2.0", Direction.UPGRADE, UpgradeType.NON_ROLLING);
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertEquals(1, groups.size());
+
+    sch1.setVersion("2.1.1");
+    sch2.setVersion("2.1.1");
+    resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
+    context = new UpgradeContext(resolver, stackId2, stackId, "2.1.1", Direction.DOWNGRADE, UpgradeType.NON_ROLLING);
+    groups = m_upgradeHelper.createSequence(upgradePack, context);
+
+    assertTrue(groups.isEmpty());
   }
 
   /**
