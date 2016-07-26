@@ -30,6 +30,7 @@ from resource_management.core.source import InlineTemplate
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons import OSConst
+from ambari_commons.constants import SERVICE
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -83,4 +84,4 @@ def hcat():
   # Generate atlas-application.properties.xml file
   if has_atlas_in_cluster():
     atlas_hook_filepath = os.path.join(params.hive_config_dir, params.atlas_hook_filename)
-    setup_atlas_hook(params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
+    setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

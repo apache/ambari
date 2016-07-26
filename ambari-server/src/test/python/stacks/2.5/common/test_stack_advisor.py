@@ -672,12 +672,18 @@ class TestHDP25StackAdvisor(TestCase):
   def test_recommendYARNConfigurations_create_llap_queue_1(self):
 
     services = {
+        "Versions": {
+          "parent_stack_version": "2.4",
+          "stack_name": "HDP",
+          "stack_version": "2.5",
+          "stack_hierarchy": {
+            "stack_name": "HDP",
+            "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+          }
+        },
       "services": [{
         "StackServices": {
           "service_name": "YARN",
-        },
-        "Versions": {
-          "stack_version": "2.5"
         },
         "components": [
           {
@@ -5549,7 +5555,13 @@ class TestHDP25StackAdvisor(TestCase):
           "service_name": "YARN",
         },
         "Versions": {
-          "stack_version": "2.5"
+          "parent_stack_version": "2.4",
+          "stack_name": "HDP",
+          "stack_version": "2.5",
+          "stack_hierarchy": {
+            "stack_name": "HDP",
+            "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+          }
         },
         "components": [
           {
@@ -5756,7 +5768,13 @@ class TestHDP25StackAdvisor(TestCase):
           "service_name": "YARN",
         },
         "Versions": {
-          "stack_version": "2.5"
+          "parent_stack_version": "2.4",
+          "stack_name": "HDP",
+          "stack_version": "2.5",
+          "stack_hierarchy": {
+            "stack_name": "HDP",
+            "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+          }
         },
         "components": [
           {
@@ -5964,12 +5982,18 @@ class TestHDP25StackAdvisor(TestCase):
   #                    'hive.server2.tez.default.queues' value getting set to value of 'hive.llap.daemon.queue.name' (llap).
   def test_recommendHIVEConfigurations_for_llap_queue_prop_attributes_1(self):
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [{
         "StackServices": {
           "service_name": "YARN",
-        },
-        "Versions": {
-          "stack_version": "2.5"
         },
         "components": [
           {
@@ -6140,12 +6164,18 @@ class TestHDP25StackAdvisor(TestCase):
   #                    'hive.server2.tez.default.queues' value getting set to value of 'hive.llap.daemon.queue.name' (llap).
   def test_recommendHIVEConfigurations_for_llap_queue_prop_attributes_2(self):
     services= {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [{
         "StackServices": {
           "service_name": "YARN",
-        },
-        "Versions": {
-          "stack_version": "2.5"
         },
         "components": [
           {
@@ -6330,12 +6360,18 @@ class TestHDP25StackAdvisor(TestCase):
   #                    'hive.server2.tez.default.queues' value getting set to value of 'hive.llap.daemon.queue.name' (default).
   def test_recommendHIVEConfigurations_for_llap_queue_prop_attributes_3(self):
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [{
         "StackServices": {
           "service_name": "YARN",
-        },
-        "Versions": {
-          "stack_version": "2.5"
         },
         "components": [
           {
@@ -6531,7 +6567,8 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.graph.storage.hostname": "c6401.ambari.apache.org",
           "atlas.kafka.bootstrap.servers": "c6401.ambari.apache.org:6667",
           "atlas.kafka.zookeeper.connect": "c6401.ambari.apache.org",
-          'atlas.authorizer.impl':'ranger'
+          "atlas.authorizer.impl": "ranger",
+          "atlas.rest.address": "http://c6401.ambari.apache.org:21000"
         }
       },
       "logsearch-solr-env": {
@@ -6547,6 +6584,15 @@ class TestHDP25StackAdvisor(TestCase):
       'atlas-env': {'properties': {}}
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.2/services/LOGSEARCH",
@@ -6829,6 +6875,15 @@ class TestHDP25StackAdvisor(TestCase):
       "hbaseRam": 4096,
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
@@ -6953,6 +7008,15 @@ class TestHDP25StackAdvisor(TestCase):
       "hbaseRam": 4096,
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
@@ -7080,6 +7144,15 @@ class TestHDP25StackAdvisor(TestCase):
       "hbaseRam": 4096,
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
@@ -7196,7 +7269,19 @@ class TestHDP25StackAdvisor(TestCase):
                       "capacity-scheduler":{"properties":{
                         "capacity-scheduler": "yarn.scheduler.capacity.root.queues=ndfqueue\n" +
                                               "yarn.scheduler.capacity.root.ndfqueue.queues=ndfqueue1,ndfqueue2\n"}}}
-    services = {"configurations": configurations, "services": [], "ambari-server-properties": {}}
+    services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
+      "configurations": configurations,
+      "services": [],
+      "ambari-server-properties": {}}
     clusterData = {
       "containers" : 5,
       "ramPerContainer": 256,
@@ -7299,6 +7384,15 @@ class TestHDP25StackAdvisor(TestCase):
       "hbaseRam": 4096,
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",
@@ -7417,6 +7511,15 @@ class TestHDP25StackAdvisor(TestCase):
       "hbaseRam": 4096,
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.4",
+        "stack_name": "HDP",
+        "stack_version": "2.5",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.4", "2.3", "2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.4/services/HBASE",

@@ -5800,8 +5800,6 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> hiveProperties = new HashMap<String, String>();
     hiveProperties.put("hive.exec.post.hooks", "");
-    hiveProperties.put("atlas.cluster.name", "primary");
-    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
     properties.put("hive-site", hiveProperties);
 
 
@@ -5823,7 +5821,8 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("http://localhost:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
   }
   
   @Test
@@ -5878,8 +5877,6 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> hiveProperties = new HashMap<String, String>();
     hiveProperties.put("hive.exec.post.hooks", "");
-    hiveProperties.put("atlas.cluster.name", "primary");
-    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
     properties.put("hive-site", hiveProperties);
 
     return properties;
@@ -5910,8 +5907,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     assertEquals("org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
-    assertEquals("1", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
-    assertEquals("http://host1:21000", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
     assertEquals("host1", clusterConfig.getPropertyValue("application-properties", "atlas.server.bind.address"));
   }
 
@@ -5931,9 +5928,6 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> hiveProperties = new HashMap<String, String>();
     // default hook registered
     hiveProperties.put("hive.exec.post.hooks", "foo");
-    // user specified cluster name
-    hiveProperties.put("atlas.cluster.name", "userSpecified");
-    hiveProperties.put("atlas.rest.address", "http://localhost:21000");
     properties.put("hive-site", hiveProperties);
 
 
@@ -5957,8 +5951,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     assertEquals("foo,org.apache.atlas.hive.hook.HiveHook", clusterConfig.getPropertyValue("hive-site", "hive.exec.post.hooks"));
-    assertEquals("userSpecified", clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
-    assertEquals("https://host1:99999", clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.cluster.name"));
+    assertEquals(null, clusterConfig.getPropertyValue("hive-site", "atlas.rest.address"));
   }
 
   @Test
@@ -7681,7 +7675,6 @@ public class BlueprintConfigurationProcessorTest {
     Long clusterId = topology.getClusterId();
 
     Map<String, String> hiveSiteProps = new HashMap<String, String>();
-    hiveSiteProps.put("atlas.cluster.name", String.valueOf(clusterId));
     hiveSiteProps.put("hive.exec.post.hooks", someString);
     properties.put("hive-site", hiveSiteProps);
 
@@ -7696,11 +7689,9 @@ public class BlueprintConfigurationProcessorTest {
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
-    String atlasClusterName = properties.get("hive-site").get("atlas.cluster.name");
     String hiveExecPostHooks = properties.get("hive-site").get("hive.exec.post.hooks");
     String kafkaMetricsReporters = properties.get("kafka-broker").get("kafka.metrics.reporters");
     String metricsReporterRegister = properties.get("storm-site").get("metrics.reporter.register");
-    assertEquals("primary", atlasClusterName);
     assertEquals(someString, hiveExecPostHooks);
     assertEquals(someString, kafkaMetricsReporters);
     assertEquals(someString, metricsReporterRegister);

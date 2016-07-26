@@ -109,4 +109,12 @@
     </description>
     <on-ambari-upgrade add="false"/>
   </property>
+
+  <!-- Deleted configs. -->
+  <property>
+    <name>atlas.cluster.name</name>
+    <value>{{cluster_name}}</value>
+    <on-ambari-upgrade add="false"/>
+    <deleted>true</deleted>
+  </property>
 </configuration>

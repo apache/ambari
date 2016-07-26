@@ -22,3 +22,31 @@ AMBARI_SUDO_BINARY = "ambari-sudo.sh"
 
 UPGRADE_TYPE_ROLLING = "rolling"
 UPGRADE_TYPE_NON_ROLLING = "nonrolling"
+
+
+class SERVICE:
+  """
+  Constants for service names to avoid hardcoding strings.
+  """
+
+  ATLAS = "ATLAS"
+  FALCON = "FALCON"
+  FLUME = "FLUME"
+  HAWQ = "HAWQ"
+  HDFS = "HDFS"
+  HIVE = "HIVE"
+  KAFKA = "KAFKA"
+  KNOX = "KNOX"
+  MAHOUT = "MAHOUT"
+  OOZIE = "OOZIE"
+  PIG = "PIG"
+  PXF = "PXF"
+  RANGER = "RANGER"
+  SLIDER = "SLIDER"
+  SPARK = "SPARK"
+  SQOOP = "SQOOP"
+  STORM = "STORM"
+  TEZ = "TEZ"
+  YARN = "YARN"
+  ZEPPELIN = "ZEPPELIN"
+  ZOOKEEPER = "ZOOKEEPER"

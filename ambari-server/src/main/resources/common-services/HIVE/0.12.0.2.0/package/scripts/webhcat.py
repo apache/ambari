@@ -31,6 +31,7 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from ambari_commons import OSConst
+from ambari_commons.constants import SERVICE
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -145,4 +146,4 @@ def webhcat():
   if has_atlas_in_cluster():
     # WebHCat uses a different config dir than the rest of the daemons in Hive.
     atlas_hook_filepath = os.path.join(params.config_dir, params.atlas_hook_filename)
-    setup_atlas_hook(params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)
+    setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.hive_user, params.user_group)

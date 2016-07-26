@@ -438,12 +438,51 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
 
+  def constructAtlasRestAddress(self, services, hosts):
+    """
+    :param services: Collection of services in the cluster with configs
+    :param hosts: Collection of hosts in the cluster
+    :return: The suggested property for atlas.rest.address if it is valid, otherwise, None
+    """
+    atlas_rest_address = None
+    services_list = [service["StackServices"]["service_name"] for service in services["services"]]
+    is_atlas_in_cluster = "ATLAS" in services_list
+
+    atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
+    if is_atlas_in_cluster and atlas_server_host_info:
+      atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
+
+      scheme = "http"
+      metadata_port = "21000"
+      atlas_server_default_https_port = "21443"
+      tls_enabled = "false"
+      if 'application-properties' in services['configurations']:
+        if 'atlas.enableTLS' in services['configurations']['application-properties']['properties']:
+          tls_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
+        if 'atlas.server.http.port' in services['configurations']['application-properties']['properties']:
+          metadata_port = str(services['configurations']['application-properties']['properties']['atlas.server.http.port'])
+
+        if str(tls_enabled).lower() == "true":
+          scheme = "https"
+          if 'atlas.server.https.port' in services['configurations']['application-properties']['properties']:
+            metadata_port = str(services['configurations']['application-properties']['properties']['atlas.server.https.port'])
+          else:
+            metadata_port = atlas_server_default_https_port
+      atlas_rest_address = '{0}://{1}:{2}'.format(scheme, atlas_rest_host, metadata_port)
+      Logger.info("Constructing atlas.rest.address=%s" % atlas_rest_address)
+    return atlas_rest_address
+
   def recommendAtlasConfigurations(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
     putAtlasRangerPluginProperty = self.putProperty(configurations, "ranger-atlas-plugin-properties", services)
     putAtlasEnvProperty = self.putProperty(configurations, "atlas-env", services)
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # Generate atlas.rest.address since the value is always computed
+    atlas_rest_address = self.constructAtlasRestAddress(services, hosts)
+    if atlas_rest_address is not None:
+      putAtlasApplicationProperty("atlas.rest.address", atlas_rest_address)
 
     if "LOGSEARCH" in servicesList and 'logsearch-solr-env' in services['configurations']:
 
@@ -468,8 +507,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     else:
       putAtlasApplicationProperty('atlas.graph.index.search.solr.zookeeper-url', "")
 
+    # Kafka section
     if "KAFKA" in servicesList and 'kafka-broker' in services['configurations']:
-
       kafka_hosts = self.getHostNamesWithComponent("KAFKA", "KAFKA_BROKER", services)
 
       if 'port' in services['configurations']['kafka-broker']['properties']:
