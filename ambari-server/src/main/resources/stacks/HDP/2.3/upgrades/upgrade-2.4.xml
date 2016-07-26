@@ -853,10 +853,6 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
-        <post-upgrade>
-          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-        </post-upgrade>
-
         <pre-downgrade/>
 
         <upgrade>

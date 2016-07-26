@@ -551,11 +551,6 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"/>
       </execute-stage>
 
-      <!-- KAFKA  -->
-      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
-        <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-      </execute-stage>
-
     </group>
 
     <!--

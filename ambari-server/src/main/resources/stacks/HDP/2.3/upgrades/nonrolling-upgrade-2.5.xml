@@ -354,11 +354,6 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_falcon_server_adjust_services_property"/>
       </execute-stage>
 
-      <!-- KAFKA  -->
-      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
-        <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-      </execute-stage>
-
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db"/>
       </execute-stage>
