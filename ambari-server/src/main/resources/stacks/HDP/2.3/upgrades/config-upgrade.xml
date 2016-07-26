@@ -389,12 +389,6 @@
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_kafka_broker_deprecate_port">
-            <type>kafka-broker</type>
-            <!-- Deprecate "port" property since "listeners" will be added. -->
-            <transfer operation="delete" delete-key="port"/>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db">
             <type>ranger-kafka-audit</type>
             <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
@@ -405,7 +399,6 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
-
         </changes>
       </component>
     </service>
