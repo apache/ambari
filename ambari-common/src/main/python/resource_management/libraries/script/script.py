@@ -360,6 +360,17 @@ class Script(object):
 
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
 
+    # The cluster effective version comes down when the version is known after the initial
+    # install.  In that case we should not be guessing which version when invoking INSTALL, but
+    # use the supplied version to build the package_version
+    effective_version = default("commandParams/version", None)
+    role_command = default("roleCommand", None)
+
+    if (package_version is None or '*' in package_version) \
+        and effective_version is not None and 'INSTALL' == role_command:
+      package_version = effective_version.replace('.', package_delimiter).replace('-', package_delimiter)
+      Logger.info("Version {0} was provided as effective cluster version.  Using package version {1}".format(effective_version, package_version))
+
     if package_version:
       stack_version_package_formatted = package_version
       if OSCheck.is_ubuntu_family():
