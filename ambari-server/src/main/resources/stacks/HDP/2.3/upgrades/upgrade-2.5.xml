@@ -549,6 +549,7 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_sso_property" />
 
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
+          <task xsi:type="server_action" summary="Configuring Ranger Alerts" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction"/>
 
           <task xsi:type="execute" hosts="all">
             <script>scripts/ranger_admin.py</script>
