@@ -238,6 +238,7 @@
     },
     "application-properties": {
       "atlas.cluster.name" : "c2",
+      "atlas.rest.address": "http://c6401.ambari.apache.org:21000",
       "atlas.graph.storage.backend": "berkeleyje",
       "atlas.graph.storage.directory": "data/berkley",
       "atlas.graph.index.search.backend": "solr5",

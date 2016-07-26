@@ -763,6 +763,15 @@
 
     <service name="SQOOP">
       <component name="SQOOP">
+        <pre-upgrade>
+          <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_sqoop_atlas_configs" />
+
+          <!-- If cluster is Kerberized, add configs to sqoop-atlas-application.properties,
+          which will be written to the local file system if Atlas is present. -->
+          <task xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs" />
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -940,6 +949,9 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db" />
           <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
+
+          <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
+          <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs" />
 
           <task xsi:type="execute" hosts="any" summary="Removing Storm data from ZooKeeper">
             <script>scripts/storm_upgrade.py</script>

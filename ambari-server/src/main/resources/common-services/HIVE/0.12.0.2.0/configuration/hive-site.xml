@@ -446,6 +446,7 @@ limitations under the License.
     </depends-on>
     <on-ambari-upgrade add="false"/>
   </property>
+  <!-- This property is removed in HDP 2.5 and higher. -->
   <property>
     <name>atlas.rest.address</name>
     <value>http://localhost:21000</value>

@@ -16,15 +16,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+# Python Imports
 import os
 import re
 import fnmatch
 import math
 import socket
 
+# Local Imports
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.version import compare_versions
+
+
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
 
 class HDP23StackAdvisor(HDP22StackAdvisor):
+
+  def __init__(self):
+    super(HDP23StackAdvisor, self).__init__()
+    Logger.initialize_logger()
 
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
@@ -201,7 +212,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
     else:
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
-
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
