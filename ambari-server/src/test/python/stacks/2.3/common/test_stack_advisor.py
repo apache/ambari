@@ -682,6 +682,15 @@ class TestHDP23StackAdvisor(TestCase):
       }
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.2",
+        "stack_name": "HDP",
+        "stack_version": "2.3",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.2/services/YARN",
@@ -949,6 +958,15 @@ class TestHDP23StackAdvisor(TestCase):
       }
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.2",
+        "stack_name": "HDP",
+        "stack_version": "2.3",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.2/services/YARN",
@@ -1176,6 +1194,15 @@ class TestHDP23StackAdvisor(TestCase):
       }
     }
     services = {
+      "Versions": {
+        "parent_stack_version": "2.2",
+        "stack_name": "HDP",
+        "stack_version": "2.3",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.2", "2.1", "2.0.6"]
+        }
+      },
       "services": [
         {
           "href": "/api/v1/stacks/HDP/versions/2.2/services/YARN",
@@ -1432,9 +1459,15 @@ class TestHDP23StackAdvisor(TestCase):
     clusterData = {}
     # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
     services = {
-      "Versions" : {
-        "stack_version" : "2.3",
-        },
+      "Versions": {
+        "parent_stack_version": "2.2",
+        "stack_name": "HDP",
+        "stack_version": "2.3",
+        "stack_hierarchy": {
+          "stack_name": "HDP",
+          "stack_versions": ["2.2", "2.1", "2.0.6"]
+        }
+      },
       "services":  [
         {
           "StackServices": {

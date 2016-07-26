@@ -20,20 +20,11 @@
  */
 -->
 <configuration>
-  <!-- This property was valid in HDP 2.3 and 2.4, but removed in HDP 2.5 -->
+  <!-- Deleted properties. -->
   <property>
     <name>atlas.cluster.name</name>
     <value>{{cluster_name}}</value>
-    <depends-on>
-      <property>
-        <type>application-properties</type>
-        <name>atlas.cluster.name</name>
-      </property>
-    </depends-on>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>sqoop.job.data.publish.class</name>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
+    <deleted>true</deleted>
   </property>
 </configuration>

@@ -29,6 +29,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Link
 from resource_management.core.logger import Logger
+from ambari_commons.constants import SERVICE
 
 '''
 Only this subset of Atlas application.properties should be written out to each service that has an Atlas hook,
@@ -76,15 +77,23 @@ SHARED_ATLAS_HOOK_CONFIGS = set(
   "atlas.cluster.name",
 
   # Security properties
+  "atlas.jaas.KafkaClient.option.serviceName",
   "atlas.authentication.method.kerberos",
   "atlas.kafka.sasl.kerberos.service.name",
   "atlas.kafka.security.protocol",
   "atlas.jaas.KafkaClient.loginModuleName",
-  "atlas.jaas.KafkaClient.loginModuleControlFlag",
-  "atlas.jaas.KafkaClient.option.useKeyTab",
-  "atlas.jaas.KafkaClient.option.storeKey",
-  "atlas.jaas.KafkaClient.option.serviceName"]
+  "atlas.jaas.KafkaClient.loginModuleControlFlag"
+  ]
 )
+
+SHARED_ATLAS_HOOK_SECURITY_CONFIGS_FOR_NON_CLIENT_SERVICE = set(
+  [
+    "atlas.jaas.KafkaClient.option.useKeyTab",
+    "atlas.jaas.KafkaClient.option.storeKey"
+  ]
+)
+
+NON_CLIENT_SERVICES = [SERVICE.HIVE, SERVICE.STORM, SERVICE.FALCON]
 
 def has_atlas_in_cluster():
   """
@@ -94,9 +103,10 @@ def has_atlas_in_cluster():
   atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
   return len(atlas_hosts) > 0
 
-def setup_atlas_hook(service_props, atlas_hook_filepath, owner, group):
+def setup_atlas_hook(service_name, service_props, atlas_hook_filepath, owner, group):
   """
   Generate the atlas-application.properties.xml file by merging the service_props with the Atlas application-properties.
+  :param service_name: Service Name to identify if it is a client-only service, which will generate slightly different configs.
   :param service_props: Atlas configs specific to this service that must be merged.
   :param atlas_hook_filepath: Config file to write, e.g., /etc/falcon/conf/atlas-application.properties.xml
   :param owner: File owner
@@ -108,7 +118,11 @@ def setup_atlas_hook(service_props, atlas_hook_filepath, owner, group):
   if has_atlas_in_cluster():
     # Take the subset
     merged_props = {}
-    for prop in SHARED_ATLAS_HOOK_CONFIGS:
+    shared_props = SHARED_ATLAS_HOOK_CONFIGS.copy()
+    if service_name in NON_CLIENT_SERVICES:
+      shared_props = shared_props.union(SHARED_ATLAS_HOOK_SECURITY_CONFIGS_FOR_NON_CLIENT_SERVICE)
+
+    for prop in shared_props:
       if prop in atlas_props:
         merged_props[prop] = atlas_props[prop]
 

@@ -37,6 +37,32 @@
       </component>
     </service>
 
+    <service name="SQOOP">
+      <component name="SQOOP">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_sqoop_atlas_configs">
+            <type>sqoop-site</type>
+            <transfer operation="delete" delete-key="atlas.cluster.name" />
+          </definition>
+
+          <!-- Add these configs if the cluster is Kerberized.
+          Will only be written to the local file system if Atlas is present. -->
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs">
+            <condition type="cluster-env" key="security_enabled" value="true">
+              <type>sqoop-atlas-application.properties</type>
+              <key>atlas.jaas.KafkaClient.option.useTicketCache</key>
+              <value>true</value>
+            </condition>
+            <condition type="cluster-env" key="security_enabled" value="true">
+              <type>sqoop-atlas-application.properties</type>
+              <key>atlas.jaas.KafkaClient.option.renewTicket</key>
+              <value>true</value>
+            </condition>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
@@ -75,6 +101,13 @@
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.jdbc.driver" />
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_hive_atlas_configs">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="atlas.rest.address" />
+            <transfer operation="delete" delete-key="atlas.hook.hive.minThreads" />
+            <transfer operation="delete" delete-key="atlas.hook.hive.maxThreads" />
           </definition>
 
         </changes>
@@ -253,7 +286,13 @@
             <replace key="storm.principal.tolocal" find="backtype.storm.security.auth.KerberosPrincipalToLocal"
                      replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
             <set key="client.jartransformer.class" value="org.apache.storm.hack.StormShadeTransformer" />
-          </definition>          
+          </definition>
+
+          <!-- All of these configs are present in Atlas' application.properties file instead and then copied to the hook's atlas-application.properties file. -->
+          <definition xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs">
+            <type>storm-site</type>
+            <transfer operation="delete" delete-key="atlas.cluster.name" />
+          </definition>
         </changes>
       </component>
     </service>

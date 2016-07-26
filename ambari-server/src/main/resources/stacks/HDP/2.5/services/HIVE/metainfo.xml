@@ -242,6 +242,7 @@
       </osSpecifics>
       <configuration-dependencies>
         <config-type>application-properties</config-type>
+        <config-type>hive-atlas-application.properties</config-type>
       </configuration-dependencies>
     </service>
   </services>

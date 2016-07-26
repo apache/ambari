@@ -34,6 +34,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
 from resource_management.libraries.functions import get_user_call_output
+from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
 
 from ambari_commons import OSConst
@@ -114,7 +115,7 @@ def falcon(type, action = None, upgrade_type=None):
     # Generate atlas-application.properties.xml file
     if has_atlas_in_cluster():
       atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
-      setup_atlas_hook(params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
+      setup_atlas_hook(SERVICE.FALCON, params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
 
   if type == 'server':
     if action == 'config':

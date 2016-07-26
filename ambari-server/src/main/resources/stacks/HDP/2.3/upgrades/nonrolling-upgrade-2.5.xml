@@ -312,6 +312,16 @@
         <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
       </execute-stage>
 
+      <!-- SQOOP -->
+      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop">
+        <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_sqoop_atlas_configs"/>
+
+        <!-- If cluster is Kerberized, add configs to sqoop-atlas-application.properties,
+        which will be written to the local file system if Atlas is present. -->
+        <task xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs" />
+      </execute-stage>
+
       <!-- HIVE -->
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_webhcat_server_update_configuration_paths"/>
@@ -323,6 +333,11 @@
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <!-- Remove Atlas configs that were incorrectly added to hive-site instead of Atlas' application.properties. -->
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_hive_atlas_configs"/>
       </execute-stage>
 
       <!--OOZIE-->
@@ -398,6 +413,11 @@
 
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
+        <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
+        <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs"/>
       </execute-stage>
     </group>
 

@@ -131,12 +131,17 @@ metadata_host = config['hostname']
 
 atlas_hosts = sorted(default('/clusterHostInfo/atlas_server_hosts', []))
 metadata_server_host = atlas_hosts[0] if len(atlas_hosts) > 0 else "UNKNOWN_HOST"
-metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
 
 # application properties
 application_properties = dict(config['configurations']['application-properties'])
 application_properties["atlas.server.bind.address"] = metadata_host
-application_properties["atlas.rest.address"] = metadata_server_url
+
+if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
+  metadata_server_url = application_properties["atlas.rest.address"]
+else:
+  # In HDP 2.3 and 2.4 the property was computed and saved to the local config but did not exist in the database.
+  metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
+  application_properties["atlas.rest.address"] = metadata_server_url
 
 # Atlas HA should populate
 # atlas.server.ids = id1,id2,...,idn

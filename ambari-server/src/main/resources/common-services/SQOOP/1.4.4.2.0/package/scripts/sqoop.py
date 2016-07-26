@@ -27,6 +27,7 @@ from resource_management.core.resources.system import File, Link, Directory
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, setup_atlas_jar_symlinks
+from ambari_commons.constants import SERVICE
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -65,7 +66,7 @@ def sqoop(type=None):
   # Generate atlas-application.properties.xml file and symlink the hook jars
   if has_atlas_in_cluster():
     atlas_hook_filepath = os.path.join(params.sqoop_conf_dir, params.atlas_hook_filename)
-    setup_atlas_hook(params.sqoop_atlas_application_properties, atlas_hook_filepath, params.sqoop_user, params.user_group)
+    setup_atlas_hook(SERVICE.SQOOP, params.sqoop_atlas_application_properties, atlas_hook_filepath, params.sqoop_user, params.user_group)
     setup_atlas_jar_symlinks("sqoop", params.sqoop_lib)
 
 
