@@ -11,10 +11,8 @@
         "source": {
           "type": "WEB",
           "uri": {
-              "http": "{{admin-properties/policymgr_external_url}}/login.jsp",
-              "https": "{{admin-properties/policymgr_external_url}}/login.jsp",
-              "kerberos_keytab": "{{cluster-env/smokeuser_keytab}}",
-              "kerberos_principal": "{{cluster-env/smokeuser_principal_name}}",
+              "http": "{{admin-properties/policymgr_external_url}}",
+              "https": "{{admin-properties/policymgr_external_url}}",
               "https_property": "{{ranger-admin-site/ranger.service.https.attrib.ssl.enabled}}",
               "https_property_value": "true",
               "connection_timeout": 5.0

@@ -377,6 +377,10 @@
         <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation"/>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Configuring Ranger Alerts">
+        <task xsi:type="server_action" summary="Configuring Ranger Alerts" class="org.apache.ambari.server.serveraction.upgrades.RangerWebAlertConfigAction"/>
+      </execute-stage>
+
       <!-- RANGER KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
