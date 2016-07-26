@@ -279,33 +279,54 @@ class CheckHost(Script):
     jdk_location = config['commandParams']['jdk_location']
     java_home = config['commandParams']['java_home']
     db_name = config['commandParams']['db_name']
+    no_jdbc_error_message = None
 
     if db_name == DB_MYSQL:
       jdbc_driver_mysql_name = default("/hostLevelParams/custom_mysql_jdbc_name", None)
-      jdbc_url = jdk_location + jdbc_driver_mysql_name
-      jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
-      jdbc_name = jdbc_driver_mysql_name
+      if not jdbc_driver_mysql_name:
+        no_jdbc_error_message = "The MySQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mysql --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_url = jdk_location + jdbc_driver_mysql_name
+        jdbc_driver_class = JDBC_DRIVER_CLASS_MYSQL
+        jdbc_name = jdbc_driver_mysql_name
     elif db_name == DB_ORACLE:
       jdbc_driver_oracle_name = default("/hostLevelParams/custom_oracle_jdbc_name", None)
-      jdbc_url = jdk_location + jdbc_driver_oracle_name
-      jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
-      jdbc_name = jdbc_driver_oracle_name
+      if not jdbc_driver_oracle_name:
+        no_jdbc_error_message = "The Oracle JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=oracle --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_url = jdk_location + jdbc_driver_oracle_name
+        jdbc_driver_class = JDBC_DRIVER_CLASS_ORACLE
+        jdbc_name = jdbc_driver_oracle_name
     elif db_name == DB_POSTGRESQL:
       jdbc_driver_postgres_name = default("/hostLevelParams/custom_postgres_jdbc_name", None)
-      jdbc_url = jdk_location + jdbc_driver_postgres_name
-      jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
-      jdbc_name = jdbc_driver_postgres_name
+      if not jdbc_driver_postgres_name:
+        no_jdbc_error_message = "The Postgres JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=postgres --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_url = jdk_location + jdbc_driver_postgres_name
+        jdbc_driver_class = JDBC_DRIVER_CLASS_POSTGRESQL
+        jdbc_name = jdbc_driver_postgres_name
     elif db_name == DB_MSSQL:
       jdbc_driver_mssql_name = default("/hostLevelParams/custom_mssql_jdbc_name", None)
-      jdbc_url = jdk_location + jdbc_driver_mssql_name
-      jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
-      jdbc_name = jdbc_driver_mssql_name
+      if not jdbc_driver_mssql_name:
+        no_jdbc_error_message = "The MSSQL JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=mssql --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_url = jdk_location + jdbc_driver_mssql_name
+        jdbc_driver_class = JDBC_DRIVER_CLASS_MSSQL
+        jdbc_name = jdbc_driver_mssql_name
     elif db_name == DB_SQLA:
       jdbc_driver_sqla_name = default("/hostLevelParams/custom_sqlanywhere_jdbc_name", None)
-      jdbc_url = jdk_location + jdbc_driver_sqla_name
-      jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
-      jdbc_name = jdbc_driver_sqla_name
-  
+      if not jdbc_driver_sqla_name:
+        no_jdbc_error_message = "The SQLAnywhere JDBC driver has not been set. Please ensure that you have executed 'ambari-server setup --jdbc-db=sqlanywhere --jdbc-driver=/path/to/jdbc_driver'."
+      else:
+        jdbc_url = jdk_location + jdbc_driver_sqla_name
+        jdbc_driver_class = JDBC_DRIVER_CLASS_SQLA
+        jdbc_name = jdbc_driver_sqla_name
+
+    if no_jdbc_error_message:
+      Logger.warning(no_jdbc_error_message)
+      db_connection_check_structured_output = {"exit_code" : 1, "message": no_jdbc_error_message}
+      return db_connection_check_structured_output
+
     db_connection_url = config['commandParams']['db_connection_url']
     user_name = config['commandParams']['user_name']
     user_passwd = config['commandParams']['user_passwd']
