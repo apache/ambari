@@ -77,7 +77,7 @@ appender.DRFA.strategy.type = DefaultRolloverStrategy
 appender.DRFA.strategy.max = 30
 
 # list of all loggers
-loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX
+loggers = NIOServerCnxn, ClientCnxnSocketNIO, DataNucleus, Datastore, JPOX, Metrics
 
 logger.NIOServerCnxn.name = org.apache.zookeeper.server.NIOServerCnxn
 logger.NIOServerCnxn.level = WARN
@@ -98,6 +98,9 @@ logger.JPOX.level = ERROR
 rootLogger.level = ${sys:hive.log.level}
 rootLogger.appenderRefs = root
 rootLogger.appenderRef.root.ref = ${sys:hive.root.logger}
+
+logger.Metrics.name = com.github.joshelser.dropwizard.metrics.hadoop
+logger.Metrics.level = WARN
   </value>
     <value-attributes>
       <type>content</type>
