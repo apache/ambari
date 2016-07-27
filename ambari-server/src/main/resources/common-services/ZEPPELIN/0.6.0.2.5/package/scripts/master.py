@@ -201,17 +201,12 @@ class Master(Script):
     import params
     import json
 
-    try:
-      interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
-      interpreter_config_file = open(interpreter_config, "w+")
-      interpreter_config_file.write(json.dumps(config_data, indent=2))
-    except IOError:
-      pass
-    finally:
-      try:
-        interpreter_config_file.close()
-      except:
-        pass
+    interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
+    File(interpreter_config,
+         group=params.zeppelin_group,
+         owner=params.zeppelin_user,
+         content=json.dumps(config_data, indent=2)
+         )
 
   def update_kerberos_properties(self):
     import params
