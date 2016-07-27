@@ -168,6 +168,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
     if (this.updateInitialOnRecommendations(Em.get(config, 'serviceName'))) {
       Em.set(config, 'initialValue', recommendedValue);
     }
+    Em.tryInvoke(config, 'validate');
     return config;
   },
 
