@@ -587,6 +587,7 @@ public class UpgradeCatalog240Test {
     Method updateRequestScheduleEntityUserIds = UpgradeCatalog240.class.getDeclaredMethod("updateRequestScheduleEntityUserIds");
     Method updateRecoveryConfigurationDML = UpgradeCatalog240.class.getDeclaredMethod("updateRecoveryConfigurationDML");
     Method removeAtlasMetaserverAlert = UpgradeCatalog240.class.getDeclaredMethod("removeAtlasMetaserverAlert");
+    Method updateRangerHbasePluginProperties = UpgradeCatalog240.class.getDeclaredMethod("updateRangerHbasePluginProperties");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -635,6 +636,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateRequestScheduleEntityUserIds)
             .addMockedMethod(updateRecoveryConfigurationDML)
             .addMockedMethod(removeAtlasMetaserverAlert)
+            .addMockedMethod(updateRangerHbasePluginProperties)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -675,6 +677,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateRequestScheduleEntityUserIds();
     upgradeCatalog240.updateRecoveryConfigurationDML();
     upgradeCatalog240.removeAtlasMetaserverAlert();
+    upgradeCatalog240.updateRangerHbasePluginProperties();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -2367,6 +2370,76 @@ public class UpgradeCatalog240Test {
 
   }
 
+  /**
+   * Test that dfs.nameservices is copied over to dfs.internal.nameservices
+   * @throws Exception
+   */
+  @Test
+  public void testRangerHbasePluginProperertiesUpdateConfigs() throws Exception{
+    Map<String, String> oldRangerHbasePluginPropererties = new HashMap<String, String>() {
+      {
+        put("policy_user", "ambari-qa");
+      }
+    };
+    Map<String, String> newRangerHbasePluginPropererties = new HashMap<String, String>() {
+      {
+        put("policy_user", "cstm-user");
+      }
+    };
+    Map<String, String> hadoopEnvProperties = new HashMap<String, String>() {
+      {
+        put("smokeuser", "cstm-user");
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    final Service service = createStrictMock(Service.class);
+    final Map<String, Service> services = new HashMap<>();
+    services.put("HBASE", service);
+    services.put("RANGER", service);
+    Config mockRangerHbasePluginPropererties = easyMockSupport.createNiceMock(Config.class);
+    Config mockHadoopEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).anyTimes();
+    expect(cluster.getServices()).andReturn(services).once();
+    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(mockHadoopEnv).atLeastOnce();
+    expect(cluster.getDesiredConfigByType("ranger-hbase-plugin-properties")).andReturn(mockRangerHbasePluginPropererties).atLeastOnce();
+    expect(mockRangerHbasePluginPropererties.getProperties()).andReturn(oldRangerHbasePluginPropererties).anyTimes();
+    expect(mockHadoopEnv.getProperties()).andReturn(hadoopEnvProperties).anyTimes();
+
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockRangerHbasePluginPropererties, mockHadoopEnv, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+            .addMockedMethod("createConfiguration")
+            .addMockedMethod("getClusters", new Class[]{})
+            .addMockedMethod("createConfig")
+            .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+            .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+            anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog240(injector2).updateRangerHbasePluginProperties();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newRangerHbasePluginPropererties, updatedProperties).areEqual());
+  }
 
 
   @Test
