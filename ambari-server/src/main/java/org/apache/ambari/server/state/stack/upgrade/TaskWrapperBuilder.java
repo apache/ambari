@@ -55,9 +55,13 @@ public class TaskWrapperBuilder {
     List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
     for (Task t : tasks) {
       if (t.getType().equals(Task.Type.CONFIGURE) || t.getType().equals(Task.Type.MANUAL)) {
-        collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
+        // only add the CONFIGURE/MANUAL task if there are actual hosts for the service/component
+        if (null != hostsType.hosts && !hostsType.hosts.isEmpty()) {
+          collection.add(new TaskWrapper(service, component, Collections.singleton(ambariServerHostname), params, t));
+        }
         continue;
       }
+
       if (t.getType().equals(Task.Type.EXECUTE)) {
         ExecuteTask et = (ExecuteTask) t;
         if (et.hosts == ExecuteHostType.MASTER) {
