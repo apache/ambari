@@ -654,12 +654,12 @@ describe('App.InstallerStep7Controller', function () {
       var isDefault;
       beforeEach(function () {
         isDefault = true;
-        var name = 'n1',
-          config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
+        var id = 'n1',
+          config = Em.Object.create({overrides: null, id: id, flag: 'flag'}),
           overrides = Em.A([
-            Em.Object.create({name: name, value: 'v1'}),
-            Em.Object.create({name: name, value: 'v2'}),
-            Em.Object.create({name: 'n2', value: 'v3'})
+            Em.Object.create({id: id, value: 'v1'}),
+            Em.Object.create({id: id, value: 'v2'}),
+            Em.Object.create({id: 'n2', value: 'v3'})
           ]);
         installerStep7Controller.reopen({
           overrideToAdd: null,
@@ -684,19 +684,19 @@ describe('App.InstallerStep7Controller', function () {
     describe('overrideToAdd exists', function () {
       var isDefault = true;
       beforeEach(function () {
-        var name = 'n1',
-          config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
-          overrides = Em.A([
-            Em.Object.create({name: name, value: 'v1'}),
-            Em.Object.create({name: name, value: 'v2'}),
-            Em.Object.create({name: 'n2', value: 'v3'})
-          ]);
+        var id = 'n1',
+            config = Em.Object.create({overrides: null, id: id, flag: 'flag'}),
+            overrides = Em.A([
+              Em.Object.create({id: id, value: 'v1'}),
+              Em.Object.create({id: id, value: 'v2'}),
+              Em.Object.create({id: 'n2', value: 'v3'})
+            ]);
         installerStep7Controller.reopen({
-          overrideToAdd: Em.Object.create({name: name}),
-          selectedService: {configGroups: [Em.Object.create({name: 'n', properties: []})]},
+          overrideToAdd: Em.Object.create({id: id}),
+          selectedService: {configGroups: [Em.Object.create({id: 'n', properties: []})]},
           selectedConfigGroup: Em.Object.create({
             isDefault: isDefault,
-            name: 'n'
+            id: 'n'
           })
         });
         this.updatedConfig = installerStep7Controller._setOverrides(config, overrides);
@@ -734,8 +734,8 @@ describe('App.InstallerStep7Controller', function () {
       var configGroups = [
         Em.Object.create({
           properties: [
-            {name: 'g1', value: 'v1'},
-            {name: 'g2', value: 'v2'}
+            {id: 'g1', value: 'v1'},
+            {id: 'g2', value: 'v2'}
           ]
         })
       ];
@@ -751,8 +751,8 @@ describe('App.InstallerStep7Controller', function () {
         installerStep7Controller.reopen({
           selectedConfigGroup: Em.Object.create({isDefault: true, name: 'g1'}),
           content: {services: []},
-          selectedService: {configs: Em.A([Em.Object.create({name: 'g1', overrides: [], properties: []}), Em.Object.create({name: 'g2', overrides: []})])},
-          serviceConfigs: {configs: [Em.Object.create({name: 'g1'})]}
+          selectedService: {configs: Em.A([Em.Object.create({id: 'g1', overrides: [], properties: []}), Em.Object.create({id: 'g2', overrides: []})])},
+          serviceConfigs: {configs: [Em.Object.create({id: 'g1'})]}
         });
         installerStep7Controller.switchConfigGroupConfigs();
         this.configs = installerStep7Controller.get('selectedService.configs');
@@ -764,11 +764,11 @@ describe('App.InstallerStep7Controller', function () {
       });
 
       it('g1 has 1 override', function () {
-        expect(this.configs.findProperty('name', 'g1').get('overrides').length).to.equal(1);
+        expect(this.configs.findProperty('id', 'g1').get('overrides').length).to.equal(1);
       });
 
       it('g2 has 1 override', function () {
-        expect(this.configs.findProperty('name', 'g2').get('overrides').length).to.equal(1);
+        expect(this.configs.findProperty('id', 'g2').get('overrides').length).to.equal(1);
       });
 
       it('all configs are editable', function () {

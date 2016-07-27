@@ -1199,9 +1199,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (config.get('group')) return config;
     var selectedGroup = this.get('selectedConfigGroup'),
       overrideToAdd = this.get('overrideToAdd'),
-      configOverrides = overrides.filterProperty('name', config.get('name'));
+      configOverrides = overrides.filterProperty('id', config.get('id'));
     if (!selectedGroup) return config;
-    if (overrideToAdd && overrideToAdd.get('name') === config.get('name')) {
+    if (overrideToAdd && overrideToAdd.get('id') === config.get('id')) {
       var valueForOverride = (config.get('widget') || config.get('displayType') === 'checkbox') ? config.get('value') : '';
       var group = this.get('selectedService.configGroups').findProperty('name', selectedGroup.get('name'));
       var newSCP = App.config.createOverride(config, {value: valueForOverride, recommendedValue: valueForOverride}, group);
