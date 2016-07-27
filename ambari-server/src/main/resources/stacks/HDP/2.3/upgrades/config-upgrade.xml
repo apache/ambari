@@ -303,6 +303,15 @@
             <transfer operation="delete" delete-key="ranger.sso.cookiename" />
             <transfer operation="delete" delete-key="ranger.sso.query.param.originalurl" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
+            <condition type="ranger-env" key="is_solrCloud_enabled" value="true">
+              <type>ranger-env</type>
+              <key>is_external_solrCloud_enabled</key>
+              <value>true</value>
+            </condition>
+          </definition>
+
         </changes>
       </component>
     </service>
