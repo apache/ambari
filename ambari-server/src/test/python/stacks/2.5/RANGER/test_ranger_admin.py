@@ -176,8 +176,8 @@ class TestRangerAdmin(RMFTestCase):
         group = 'hadoop',
         mode = 0664,
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger_solr_jass.conf',
-      content = Template('ranger_solr_jass_conf.j2'),
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger_solr_jaas.conf',
+      content = Template('ranger_solr_jaas_conf.j2'),
       owner = 'ranger',
     )
     self.assertResourceCalledRegexp('^Execute$', '^export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /ambari-solr --check-znode --retry 5 --interval 10')

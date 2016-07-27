@@ -67,4 +67,51 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <property>
+    <name>is_external_solrCloud_enabled</name>
+    <display-name>External SolrCloud</display-name>
+    <value>false</value>
+    <description>Using Externally managed solr cloud ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>is_external_solrCloud_kerberos</name>
+    <display-name>External SolrCloud kerberos</display-name>
+    <value>false</value>
+    <description>Is Externally managed solr cloud kerberos ?</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
 </configuration>

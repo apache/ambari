@@ -13,7 +13,11 @@
       "configurations": [
         {
           "ranger-admin-site": {
-            "ranger.admin.kerberos.cookie.domain": "{{ranger_host}}"
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr"
           }
         }
       ],
@@ -58,6 +62,15 @@
               "name": "/spnego",
               "keytab": {
                 "configuration": "ranger-admin-site/ranger.spnego.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/RANGER/RANGER_ADMIN/rangeradmin",
+              "principal": {
+                "configuration": "ranger-admin-site/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-admin-site/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]

@@ -49,6 +49,16 @@
             "yarn.scheduler.capacity.root.default.acl_administer_jobs": "${yarn-env/yarn_user}",
             "yarn.scheduler.capacity.root.default.acl_submit_applications": "${yarn-env/yarn_user}"
           }
+        },
+        {
+          "ranger-yarn-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
         }
       ],
       "components": [
@@ -160,6 +170,15 @@
               },
               "keytab": {
                 "configuration": "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file"
+              }
+            },
+            {
+              "name": "/YARN/RESOURCEMANAGER/resource_manager_rm",
+              "principal": {
+                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-yarn-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]
