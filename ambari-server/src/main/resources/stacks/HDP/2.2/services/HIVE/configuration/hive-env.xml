@@ -92,6 +92,10 @@ export METASTORE_PORT={{hive_metastore_port}}
   <property>
     <name>hive_exec_orc_storage_strategy</name>
     <display-name>ORC Storage Strategy</display-name>
+    <description>
+      Define the encoding strategy to use while writing data. Changing this will only affect the light weight encoding for integers.
+      This flag will not change the compression level of higher level compression codec (like ZLIB). Possible options are SPEED and COMPRESSION.
+    </description>
     <value>SPEED</value>
     <value-attributes>
       <type>value-list</type>
@@ -132,6 +136,12 @@ export METASTORE_PORT={{hive_metastore_port}}
   <property>
     <name>hive_security_authorization</name>
     <display-name>Choose Authorization</display-name>
+    <description>
+      Authorization mode, default NONE. Options are NONE, Ranger, SQLStdAuth.
+      SQL standard authorization provides grant/revoke functionality at database, table level. 
+      Ranger provides a centralized authorization interface for Hive and provides more granular
+      access control at column level through the Hive plugin.
+    </description>
     <value>None</value>
     <depends-on>
       <property>
