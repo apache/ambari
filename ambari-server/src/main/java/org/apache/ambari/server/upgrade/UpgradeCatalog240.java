@@ -423,6 +423,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateRequestScheduleEntityUserIds();
     updateRecoveryConfigurationDML();
     updatePigSmokeTestEntityClass();
+    updateRangerHbasePluginProperties();
   }
 
   /**
@@ -2847,6 +2848,34 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     if (roleAuthorization != null) {
       roleAuthorization.setAuthorizationName("Add/delete services");
       roleAuthorizationDAO.merge(roleAuthorization);
+    }
+  }
+
+  protected void updateRangerHbasePluginProperties() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("HBASE") && installedServices.contains("RANGER")) {
+            Config rangerHbasePluginProperties = cluster.getDesiredConfigByType("ranger-hbase-plugin-properties");
+            Config clusterEnv = cluster.getDesiredConfigByType("cluster-env");
+
+            if (rangerHbasePluginProperties != null && clusterEnv != null) {
+              String smokeUserName = clusterEnv.getProperties().get("smokeuser");
+              String policyUser = rangerHbasePluginProperties.getProperties().get("policy_user");
+              if (policyUser != null && smokeUserName != null && !policyUser.equals(smokeUserName) && policyUser.equals("ambari-qa")) {
+                updateConfigurationProperties("ranger-hbase-plugin-properties", Collections.singletonMap("policy_user", smokeUserName), true, false);
+              }
+            }
+          }
+        }
+      }
     }
   }
 

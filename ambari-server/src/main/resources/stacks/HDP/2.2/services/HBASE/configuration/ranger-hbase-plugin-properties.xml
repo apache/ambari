@@ -32,6 +32,12 @@
     <name>policy_user</name>
     <value>ambari-qa</value>
     <display-name>Policy user for HBASE</display-name>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger_user</name>
+      </property>
+    </depends-on>
     <description>This user must be system user and also present at Ranger admin portal</description>
     <on-ambari-upgrade add="true"/>
   </property>
