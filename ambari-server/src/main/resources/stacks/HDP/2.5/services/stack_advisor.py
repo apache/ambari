@@ -80,6 +80,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putOozieEnvProperty("oozie_admin_users", newAdminUsers)
 
 
+  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+    # Set the classname for the Falcon hook to 2.5 classname = all other 2.3
+    # stack advisor changes are needed.
+    self.__atlasFalconHookClassName = "org.apache.atlas.falcon.service.AtlasService"
+    super(HDP25StackAdvisor,self).recommendFalconConfigurations(configurations, clusterData, services, hosts)
+
   def createComponentLayoutRecommendations(self, services, hosts):
     parentComponentLayoutRecommendations = super(HDP25StackAdvisor, self).createComponentLayoutRecommendations(
       services, hosts)

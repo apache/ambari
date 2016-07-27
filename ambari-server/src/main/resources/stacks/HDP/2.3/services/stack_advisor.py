@@ -747,6 +747,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
 
   def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
+    #  In 2.5, the classname changed.  The 2.5 stack advisor method will
+    #  call this with attribute set.  2.3 will use the old method name
+    if hasattr(self, "__atlasFalconHookClassName"):
+      atlas_application_class = self.__atlasFalconHookClassName
+    else:
+      atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
     putFalconStartupProperty = self.putProperty(configurations, "falcon-startup.properties", services)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -758,7 +764,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       application_services_value = " "
 
     include_atlas = "ATLAS" in servicesList
-    atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
     if include_atlas and atlas_application_class not in application_services_value:
       if application_services_value == " ":
         application_services_value = atlas_application_class
