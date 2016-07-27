@@ -24,31 +24,22 @@ App.ClientComponent = DS.Model.extend({
   componentName: DS.attr('string'),
   displayName: DS.attr('string'),
   installedCount: DS.attr('number'),
+  installFailedCount: DS.attr('number'),
+  initCount: DS.attr('number'),
+  unknownCount: DS.attr('number'),
   startedCount: DS.attr('number'),
   totalCount: DS.attr('number'),
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
 
   /**
-   * Defines if all components are in 'INSTALLED' state
-   *
-   * @type {boolean}
-   */
-  allStopped: Em.computed.equalProperties('installedCount', 'totalCount'),
-
-  /**
-   * No stated and no installed component
-   *
-   * @type {boolean}
-   */
-  noOneInstalled: Em.computed.and('!installedCount', '!startedCount'),
-
-  /**
    * Determines if component may be deleted
    *
    * @type {boolean}
    */
-  allowToDelete: Em.computed.or('allStopped', 'noOneInstalled'),
+  allowToDelete: function() {
+    return this.get('totalCount') === (this.get('installedCount') + this.get('installFailedCount') + this.get('initCount') + this.get('unknownCount'));
+  }.property('totalCount', 'installedCount', 'installFailedCount', 'initCount', 'unknownCount'),
 
   summaryLabelClassName:function(){
     return 'label_for_'+this.get('componentName').toLowerCase();

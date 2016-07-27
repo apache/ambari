@@ -1270,30 +1270,35 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else if (dependentServices.length > 0) {
       this.dependentServicesWarning(serviceName, dependentServices);
-    } else if (this.allowUninstallServices(serviceNamesToDelete)) {
-      if (serviceName === 'RANGER_KMS') {
-        App.showConfirmationPopup(
-          function() {self.showLastWarning(serviceName, interDependentServices, dependentServicesToDeleteFmt)},
-          Em.I18n.t('services.service.delete.popup.warning.ranger_kms'),
-          null,
-          popupHeader,
-          Em.I18n.t('common.delete'),
-          true
-        );
-      } else {
-        this.showLastWarning(serviceName, interDependentServices, dependentServicesToDeleteFmt);
-      }
     } else {
-      var body = Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName);
-      if (interDependentServices.length) {
-        body += Em.I18n.t('services.service.delete.popup.mustBeStopped.dependent').format(dependentServicesToDeleteFmt)
+      var isServiceInRemovableState = this.allowUninstallServices(serviceNamesToDelete);
+      if (isServiceInRemovableState) {
+        if (serviceName === 'RANGER_KMS') {
+          App.showConfirmationPopup(
+            function () {
+              self.showLastWarning(serviceName, interDependentServices, dependentServicesToDeleteFmt)
+            },
+            Em.I18n.t('services.service.delete.popup.warning.ranger_kms'),
+            null,
+            popupHeader,
+            Em.I18n.t('common.delete'),
+            true
+          );
+        } else {
+          this.showLastWarning(serviceName, interDependentServices, dependentServicesToDeleteFmt);
+        }
+      } else {
+        var body = Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName);
+        if (interDependentServices.length) {
+          body += Em.I18n.t('services.service.delete.popup.mustBeStopped.dependent').format(dependentServicesToDeleteFmt)
+        }
+        App.ModalPopup.show({
+          secondary: null,
+          header: popupHeader,
+          encodeBody: false,
+          body: body
+        });
       }
-      App.ModalPopup.show({
-        secondary: null,
-        header: popupHeader,
-        encodeBody: false,
-        body: body
-      });
     }
   },
 

@@ -18,14 +18,10 @@
 
 package org.apache.ambari.server.state;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -50,11 +46,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 public class ServiceComponentTest {
 
@@ -327,9 +325,12 @@ public class ServiceComponentTest {
         r.getDesiredStackVersion());
     Assert.assertEquals(sc.getDesiredState().toString(),
         r.getDesiredState());
-    Assert.assertEquals(1, r.getTotalCount());
-    Assert.assertEquals(0, r.getStartedCount());
-    Assert.assertEquals(1, r.getInstalledCount());
+    int totalCount = r.getServiceComponentStateCount().get("totalCount");
+    int startedCount = r.getServiceComponentStateCount().get("startedCount");
+    int installedCount = r.getServiceComponentStateCount().get("installedCount");
+    Assert.assertEquals(1, totalCount);
+    Assert.assertEquals(0, startedCount);
+    Assert.assertEquals(1, installedCount);
 
     // TODO check configs
     // r.getConfigVersions()

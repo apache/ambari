@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.state;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.ProvisionException;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -46,12 +46,11 @@ import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.ProvisionException;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServiceComponentImpl implements ServiceComponent {
 
@@ -522,8 +521,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       ServiceComponentResponse r = new ServiceComponentResponse(getClusterId(),
           cluster.getClusterName(), service.getName(), getName(),
           getDesiredStackVersion().getStackId(), getDesiredState().toString(),
-          getTotalCount(), getStartedCount(), getInstalledCount(),
-          isRecoveryEnabled(), displayName);
+          getServiceComponentStateCount(), isRecoveryEnabled(), displayName);
       return r;
     } finally {
       readWriteLock.readLock().unlock();
@@ -808,16 +806,15 @@ public class ServiceComponentImpl implements ServiceComponent {
     return count;
   }
 
-  private int getStartedCount() {
-    return getSCHCountByState(State.STARTED);
-  }
-
-  private int getInstalledCount() {
-    return getSCHCountByState(State.INSTALLED);
-  }
-
-  private int getTotalCount() {
-    return hostComponents.size();
+  private Map <String, Integer> getServiceComponentStateCount() {
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    serviceComponentStateCountMap.put("startedCount", getSCHCountByState(State.STARTED));
+    serviceComponentStateCountMap.put("installedCount", getSCHCountByState(State.INSTALLED));
+    serviceComponentStateCountMap.put("installFailedCount", getSCHCountByState(State.INSTALL_FAILED));
+    serviceComponentStateCountMap.put("initCount", getSCHCountByState(State.INIT));
+    serviceComponentStateCountMap.put("unknownCount", getSCHCountByState(State.UNKNOWN));
+    serviceComponentStateCountMap.put("totalCount", hostComponents.size());
+    return serviceComponentStateCountMap;
   }
 
   // Refresh cached reference after ever setter

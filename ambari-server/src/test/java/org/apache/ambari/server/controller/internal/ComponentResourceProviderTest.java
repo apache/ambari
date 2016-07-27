@@ -18,31 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.Gson;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
@@ -79,11 +56,33 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.gson.Gson;
-import com.google.inject.Injector;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for the component resource provider.
@@ -215,6 +214,13 @@ public class ComponentResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     final ComponentInfo componentInfo1 = createNiceMock(ComponentInfo.class);
     final ComponentInfo componentInfo2 = createNiceMock(ComponentInfo.class);
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    serviceComponentStateCountMap.put("startedCount", 1);
+    serviceComponentStateCountMap.put("installedCount", 0);
+    serviceComponentStateCountMap.put("installFailedCount", 0);
+    serviceComponentStateCountMap.put("initCount", 0);
+    serviceComponentStateCountMap.put("unknownCount", 1);
+    serviceComponentStateCountMap.put("totalCount", 2);
 
     Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
     serviceComponentMap.put("Component101", serviceComponent1);
@@ -235,13 +241,13 @@ public class ComponentResourceProviderTest {
     expect(service.getServiceComponents()).andReturn(serviceComponentMap).anyTimes();
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", 1, 1, 0,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component100", null, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component100 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 1, 0,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 1, 0,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", serviceComponentStateCountMap,
               true /* recovery enabled */, "Component102 Client"));
 
     expect(ambariMetaInfo.getComponent(null, null, null, "Component100")).andReturn(componentInfo1);
@@ -271,6 +277,9 @@ public class ComponentResourceProviderTest {
     propertyIds.add(ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID);
+    propertyIds.add(ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID);
     propertyIds.add(ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID);
 
     Predicate predicate = new PredicateBuilder()
@@ -290,12 +299,18 @@ public class ComponentResourceProviderTest {
       Assert.assertEquals("Cluster100", clusterName);
       Assert.assertEquals("MASTER", resource.getPropertyValue(
           ComponentResourceProvider.COMPONENT_CATEGORY_PROPERTY_ID));
-      Assert.assertEquals(1, resource.getPropertyValue(
+      Assert.assertEquals(2, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_TOTAL_COUNT_PROPERTY_ID));
       Assert.assertEquals(1, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_STARTED_COUNT_PROPERTY_ID));
       Assert.assertEquals(0, resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_INSTALLED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(0, resource.getPropertyValue(
+          ComponentResourceProvider.COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID));
+      Assert.assertEquals(0, resource.getPropertyValue(
+          ComponentResourceProvider.COMPONENT_INIT_COUNT_PROPERTY_ID));
+      Assert.assertEquals(1, resource.getPropertyValue(
+          ComponentResourceProvider.COMPONENT_UNKNOWN_COUNT_PROPERTY_ID));
       Assert.assertEquals(String.valueOf(true), resource.getPropertyValue(
         ComponentResourceProvider.COMPONENT_RECOVERY_ENABLED_ID));
     }
@@ -346,6 +361,14 @@ public class ComponentResourceProviderTest {
     serviceComponentMap.put("Component102", serviceComponent2);
     serviceComponentMap.put("Component103", serviceComponent3);
 
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    serviceComponentStateCountMap.put("startedCount", 0);
+    serviceComponentStateCountMap.put("installedCount", 1);
+    serviceComponentStateCountMap.put("installFailedCount", 0);
+    serviceComponentStateCountMap.put("initCount", 0);
+    serviceComponentStateCountMap.put("unknownCount", 0);
+    serviceComponentStateCountMap.put("totalCount", 1);
+
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -380,13 +403,13 @@ public class ComponentResourceProviderTest {
     expect(component3Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent2.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", 1, 0, 1,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component102", null, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component102 Client"));
     expect(serviceComponent3.convertToResponse()).andReturn(
-      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", 1, 0, 1,
+      new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component103", null, "", serviceComponentStateCountMap,
               false /* recovery not enabled */, "Component103 Client"));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(serviceComponent2.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -656,6 +679,15 @@ public class ComponentResourceProviderTest {
     Map<String, ServiceComponent> serviceComponentMap = new HashMap<String, ServiceComponent>();
     serviceComponentMap.put("Component101", serviceComponent1);
 
+    Map <String, Integer> serviceComponentStateCountMap = new HashMap <String, Integer>();
+    serviceComponentStateCountMap.put("startedCount", 0);
+    serviceComponentStateCountMap.put("installedCount", 1);
+    serviceComponentStateCountMap.put("installFailedCount", 0);
+    serviceComponentStateCountMap.put("initCount", 0);
+    serviceComponentStateCountMap.put("unknownCount", 0);
+    serviceComponentStateCountMap.put("totalCount", 1);
+
+
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
@@ -687,7 +719,7 @@ public class ComponentResourceProviderTest {
     expect(component1Info.getCategory()).andReturn(null);
 
     expect(serviceComponent1.convertToResponse()).andReturn(
-        new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", 1, 0, 1,
+        new ServiceComponentResponse(100L, "Cluster100", "Service100", "Component101", null, "", serviceComponentStateCountMap,
             false /* recovery not enabled */, "Component101 Client"));
     expect(serviceComponent1.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
 

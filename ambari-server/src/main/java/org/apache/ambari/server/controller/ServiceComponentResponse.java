@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 
+import java.util.Map;
+
 public class ServiceComponentResponse {
 
   private Long clusterId; // REF
@@ -37,11 +39,7 @@ public class ServiceComponentResponse {
 
   private String category;
 
-  private int totalCount;
-
-  private int startedCount;
-
-  private int installedCount;
+  Map<String, Integer> serviceComponentStateCount;
 
   private boolean recoveryEnabled;
 
@@ -50,9 +48,7 @@ public class ServiceComponentResponse {
                                   String componentName,
                                   String desiredStackVersion,
                                   String desiredState,
-                                  int totalCount,
-                                  int startedCount,
-                                  int installedCount,
+                                  Map<String, Integer> serviceComponentStateCount,
                                   boolean recoveryEnabled,
                                   String displayName) {
     super();
@@ -63,9 +59,7 @@ public class ServiceComponentResponse {
     this.displayName = displayName;
     this.desiredStackVersion = desiredStackVersion;
     this.desiredState = desiredState;
-    this.totalCount = totalCount;
-    this.startedCount = startedCount;
-    this.installedCount = installedCount;
+    this.serviceComponentStateCount = serviceComponentStateCount;
     this.recoveryEnabled = recoveryEnabled;
   }
 
@@ -179,51 +173,11 @@ public class ServiceComponentResponse {
   }
 
   /**
-   * Get the number of started SCH's
-   * @return number of started SCH's
+   * Get the count of service component for each state
+   * @return number of service component for each state
    */
-  public int getStartedCount() {
-    return startedCount;
-  }
-
-  /**
-   * Set the number of started SCH's
-   * @param startedCount
-   */
-  public void setStartedCount(int startedCount) {
-    this.startedCount = startedCount;
-  }
-
-  /**
-   * Get the number of installed SCH's
-   * @return number of installed SCH's
-   */
-  public int getInstalledCount() {
-    return installedCount;
-  }
-
-  /**
-   * Set the number of installed SCH's
-   * @param installedCount
-   */
-  public void setInstalledCount(int installedCount) {
-    this.installedCount = installedCount;
-  }
-
-  /**
-   * Get the total number of SCH's
-   * @return
-   */
-  public int getTotalCount() {
-    return totalCount;
-  }
-
-  /**
-   * Set the total number of SCH's
-   * @param totalCount
-   */
-  public void setTotalCount(int totalCount) {
-    this.totalCount = totalCount;
+  public Map<String, Integer> getServiceComponentStateCount() {
+    return serviceComponentStateCount;
   }
 
   /**
