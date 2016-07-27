@@ -55,6 +55,16 @@
             "nimbus.supervisor.users": "['{{storm_bare_jaas_principal}}']",
             "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
           }
+        },
+        {
+          "ranger-storm-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
         }
       ],
       "components": [
@@ -93,6 +103,15 @@
                   "access": ""
                 },
                 "configuration": "storm-env/nimbus_keytab"
+              }
+            },
+            {
+              "name": "/STORM/NIMBUS/nimbus_server",
+              "principal": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-storm-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]

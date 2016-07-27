@@ -110,8 +110,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "HIVE": {"hive-interactive-env": self.validateHiveInteractiveEnvConfigurations,
                "hive-interactive-site": self.validateHiveInteractiveSiteConfigurations},
       "YARN": {"yarn-site": self.validateYarnConfigurations},
-      "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations,
-                "ranger-admin-site": self.validateRangerAdminConfigurations},
+      "RANGER": {"ranger-tagsync-site": self.validateRangerTagsyncConfigurations},
       "SPARK2": {"spark2-defaults": self.validateSpark2Defaults,
                  "spark2-thrift-sparkconf": self.validateSpark2ThriftSparkConf}
     }
@@ -1725,14 +1724,18 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       final_kafka_host = ",".join(kafka_host_port)
       putTagsyncAppProperty('atlas.kafka.bootstrap.servers', final_kafka_host)
 
-    if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
-      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
-    else:
-      isSolrCloudEnabled = False
+    is_solr_cloud_enabled = False
+    if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']['ranger-env']['properties']:
+      is_solr_cloud_enabled = services['configurations']['ranger-env']['properties']['is_solrCloud_enabled']  == 'true'
+
+    is_external_solr_cloud_enabled = False
+    if 'ranger-env' in services['configurations'] and 'is_external_solrCloud_enabled' in services['configurations']['ranger-env']['properties']:
+      is_external_solr_cloud_enabled = services['configurations']['ranger-env']['properties']['is_external_solrCloud_enabled']  == 'true'
 
     ranger_audit_zk_port = ''
 
-    if 'LOGSEARCH' in servicesList and zookeeper_host_port and isSolrCloudEnabled:
+    #TODO to change check for LOGSEARCH after implemenation of AMBARI-17822
+    if 'LOGSEARCH' in servicesList and zookeeper_host_port and is_solr_cloud_enabled and not is_external_solr_cloud_enabled:
       zookeeper_host_port = zookeeper_host_port.split(',')
       zookeeper_host_port.sort()
       zookeeper_host_port = ",".join(zookeeper_host_port)
@@ -1743,16 +1746,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
         ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, logsearch_solr_znode)
       putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
-    elif zookeeper_host_port and isSolrCloudEnabled:
+    elif zookeeper_host_port and is_solr_cloud_enabled and is_external_solr_cloud_enabled:
       ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')
       putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
-
-    if 'ranger-admin-site' in services['configurations'] and 'ranger.is.solr.kerberised' in services['configurations']['ranger-admin-site']['properties']:
-      is_solr_kerberised = services['configurations']['ranger-admin-site']['properties']['ranger.is.solr.kerberised'] == 'true'
-    else:
-      is_solr_kerberised = False
 
     ranger_services = [
       {'service_name': 'HDFS', 'audit_file': 'ranger-hdfs-audit'},
@@ -1783,37 +1781,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
               else:
                 rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
               putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
-
-          if is_solr_kerberised:
-            ranger_solr_kerberised = [
-              {'configname': 'xasecure.audit.jaas.Client.loginModuleName'},
-              {'configname': 'xasecure.audit.jaas.Client.loginModuleControlFlag'},
-              {'configname': 'xasecure.audit.jaas.Client.option.useKeyTab'},
-              {'configname': 'xasecure.audit.jaas.Client.option.storeKey'},
-              {'configname': 'xasecure.audit.jaas.Client.option.serviceName'}
-            ]
-
-            for item in ranger_solr_kerberised:
-              if 'ranger-admin-site' in services['configurations'] and item['configname'] in services["configurations"]['ranger-admin-site']["properties"]:
-                if 'ranger-admin-site' in configurations and item['configname'] in configurations['ranger-admin-site']["properties"]:
-                  solrKerberisedProperty = configurations['ranger-admin-site']["properties"][item['configname']]
-                else:
-                  solrKerberisedProperty = services['configurations']['ranger-admin-site']['properties'][item['configname']]
-                putRangerAuditProperty(item['configname'], solrKerberisedProperty)
-
-            putRangerAuditProperty('xasecure.audit.destination.solr.force.use.inmemory.jaas.config', 'true')
-          else:
-            set_solr_kerberised_default = [
-              {'configname': 'xasecure.audit.jaas.Client.loginModuleName', 'default_value': ''},
-              {'configname': 'xasecure.audit.jaas.Client.loginModuleControlFlag', 'default_value': ''},
-              {'configname': 'xasecure.audit.jaas.Client.option.useKeyTab', 'default_value': 'false'},
-              {'configname': 'xasecure.audit.jaas.Client.option.storeKey', 'default_value': 'false'},
-              {'configname': 'xasecure.audit.jaas.Client.option.serviceName', 'default_value': ''},
-              {'configname': 'xasecure.audit.destination.solr.force.use.inmemory.jaas.config', 'default_value': 'false'}
-            ]
-
-            for item in set_solr_kerberised_default:
-              putRangerAuditProperty(item['configname'], item['default_value'])
 
     if "HDFS" in servicesList:
       hdfs_user = None
@@ -1887,18 +1854,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
                                     "Need to Install ATLAS service to set ranger.tagsync.source.atlas as true.")})
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
-
-  def validateRangerAdminConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    ranger_admin_properties = properties
-    validationItems = []
-    security_enabled = self.isSecurityEnabled(services)
-
-    if 'ranger.is.solr.kerberised' in ranger_admin_properties and ranger_admin_properties['ranger.is.solr.kerberised'].lower() == 'true'\
-      and not security_enabled:
-      validationItems.append({"config-name": "ranger.is.solr.kerberised",
-                              "item": self.getWarnItem("Kerberos Solr (ranger.is.solr.kerberised) should not be enabled in non-kerberos environment.")})
-
-    return self.toConfigurationValidationProblems(validationItems, "ranger-admin-site")
 
   def __isServiceDeployed(self, services, serviceName):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

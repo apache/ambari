@@ -559,10 +559,11 @@ def create_core_site_xml(conf_dir):
 def setup_ranger_audit_solr():
   import params
 
-  if params.security_enabled and params.stack_supports_ranger_kerberos and params.is_solr_kerberos_enabled:
+  if params.security_enabled and params.stack_supports_ranger_kerberos:
+
     if params.solr_jaas_file is not None:
       File(format("{solr_jaas_file}"),
-        content=Template("ranger_solr_jass_conf.j2"),
+        content=Template("ranger_solr_jaas_conf.j2"),
         owner=params.unix_user
       )
 
