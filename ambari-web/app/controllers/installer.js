@@ -333,9 +333,12 @@ App.InstallerController = App.WizardController.extend({
     _oses.forEach(function (os) {
       App.OperatingSystem.find().findProperty('id', os.id).set('isSelected', os.is_selected);
     });
-    App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
-      App.stackMapper.deleteRecord(os);
-    });
+    //should delete the record on going to step 2, on going back to step 1, still need the record
+    if (App.router.get('currentState.name') != "step1") {
+      App.OperatingSystem.find().filterProperty('isSelected', false).forEach(function (os) {
+        App.stackMapper.deleteRecord(os);
+      });
+    }
     _stacks.forEach(function (_stack) {
       var stack = App.Stack.find().findProperty('id', _stack.id);
       if (stack) {
