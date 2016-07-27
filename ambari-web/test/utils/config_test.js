@@ -823,45 +823,47 @@ describe('App.config', function () {
     });
   });
 
-  describe('#createHostNameProperty', function() {
-    it('create host property', function() {
+  describe('#createHostNameProperty', function () {
+    it('create host property', function () {
       expect(App.config.createHostNameProperty('service1', 'component1', ['host1'], Em.Object.create({
         isMultipleAllowed: false,
         displayName: 'display name'
       }))).to.eql({
-          "name": 'component1_host',
-          "displayName": 'display name host',
-          "value": ['host1'],
-          "recommendedValue": ['host1'],
-          "description": "The host that has been assigned to run display name",
-          "displayType": "componentHost",
-          "isOverridable": false,
-          "isRequiredByAgent": false,
-          "serviceName": 'service1',
-          "filename": "service1-site.xml",
-          "category": 'component1',
-          "index": 0
-        })
+            "id": 'component1_host__service1-site',
+            "name": 'component1_host',
+            "displayName": 'display name host',
+            "value": ['host1'],
+            "recommendedValue": ['host1'],
+            "description": "The host that has been assigned to run display name",
+            "displayType": "componentHost",
+            "isOverridable": false,
+            "isRequiredByAgent": false,
+            "serviceName": 'service1',
+            "filename": "service1-site.xml",
+            "category": 'component1',
+            "index": 0
+          })
     });
 
-    it('create hosts property', function() {
+    it('create hosts property', function () {
       expect(App.config.createHostNameProperty('service1', 'component1', ['host1'], Em.Object.create({
         isMultipleAllowed: true,
         displayName: 'display name'
       }))).to.eql({
-          "name": 'component1_hosts',
-          "displayName": 'display name host',
-          "value": ['host1'],
-          "recommendedValue": ['host1'],
-          "description": "The hosts that has been assigned to run display name",
-          "displayType": "componentHosts",
-          "isOverridable": false,
-          "isRequiredByAgent": false,
-          "serviceName": 'service1',
-          "filename": "service1-site.xml",
-          "category": 'component1',
-          "index": 0
-        })
+            "id": 'component1_hosts__service1-site',
+            "name": 'component1_hosts',
+            "displayName": 'display name host',
+            "value": ['host1'],
+            "recommendedValue": ['host1'],
+            "description": "The hosts that has been assigned to run display name",
+            "displayType": "componentHosts",
+            "isOverridable": false,
+            "isRequiredByAgent": false,
+            "serviceName": 'service1',
+            "filename": "service1-site.xml",
+            "category": 'component1',
+            "index": 0
+          })
     });
   });
 

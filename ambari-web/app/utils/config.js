@@ -341,8 +341,11 @@ App.config = Em.Object.create({
    */
   createHostNameProperty: function(serviceName, componentName, value, stackComponent) {
     var hostOrHosts = stackComponent.get('isMultipleAllowed') ? 'hosts' : 'host';
+    var name = componentName.toLowerCase() + '_' + hostOrHosts;
+    var filename = serviceName.toLowerCase() + "-site.xml";
     return {
-      "name": componentName.toLowerCase() + '_' + hostOrHosts,
+      "id": App.config.configId(name, filename),
+      "name": name,
       "displayName":  stackComponent.get('displayName') + ' ' + (value.length > 1 ? 'hosts' : 'host'),
       "value": value,
       "recommendedValue": value,
@@ -351,7 +354,7 @@ App.config = Em.Object.create({
       "isOverridable": false,
       "isRequiredByAgent": false,
       "serviceName": serviceName,
-      "filename": serviceName.toLowerCase() + "-site.xml",
+      "filename": filename,
       "category": componentName,
       "index": 0
     }
