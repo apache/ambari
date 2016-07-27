@@ -318,13 +318,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
     }
     var hash = {};
     var sortedProperties = this.get('selectedService.configs').slice().sort(function(a, b) {
-      if (a.get('id') > b.get('id')) return -1;
-      if (a.get('id') < b.get('id')) return 1;
+      var first = a.get('id') || App.config.configId(a.get('name'), a.get('filename'));
+      var second = b.get('id') || App.config.configId(b.get('name'), b.get('filename'));
+      if (first < second) return -1;
+      if (first > second) return 1;
       return 0;
     });
     sortedProperties.forEach(function (config) {
+      var configId = '';
       if (config.isRequiredByAgent) {
-        hash[config.get('id')] = {
+        configId = config.get('id') || App.config.configId(config.get('name'), config.get('filename'));
+        hash[configId] = {
           value: App.config.formatPropertyValue(config),
           overrides: [],
           isFinal: config.get('isFinal')
@@ -333,7 +337,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
         if (!config.get('overrides.length')) return;
 
         config.get('overrides').forEach(function (override) {
-          hash[config.get('id')].overrides.push(App.config.formatPropertyValue(override));
+          hash[configId].overrides.push(App.config.formatPropertyValue(override));
         });
       }
     });
