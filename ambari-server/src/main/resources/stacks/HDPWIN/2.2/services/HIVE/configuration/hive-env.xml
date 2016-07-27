@@ -38,6 +38,10 @@
   <property>
     <name>hive_exec_orc_storage_strategy</name>
     <display-name>ORC Storage Strategy</display-name>
+    <description>
+      Define the encoding strategy to use while writing data. Changing this will only affect the light weight encoding for integers.
+      This flag will not change the compression level of higher level compression codec (like ZLIB). Possible options are SPEED and COMPRESSION.
+    </description>
     <value>SPEED</value>
     <value-attributes>
       <type>value-list</type>

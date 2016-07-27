@@ -1252,7 +1252,9 @@ limitations under the License.
   <property>
     <name>hive.server2.use.SSL</name>
     <value>false</value>
-    <description/>
+    <description>
+      Set this to true for using SSL encryption in HiveServer2.
+    </description>
     <display-name>Use SSL</display-name>
     <value-attributes>
       <type>value-list</type>
