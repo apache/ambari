@@ -2636,7 +2636,7 @@ Em.I18n.translations = {
   'dashboard.widgets.browser.header': 'Widget Browser',
   'dashboard.widgets.browser.menu.shared': 'Shared',
   'dashboard.widgets.browser.menu.mine': 'Mine',
-  'dashboard.widgets.browser.noWidgets': 'No widgets to diaplay',
+  'dashboard.widgets.browser.noWidgets': 'No widgets to display',
   'dashboard.widgets.browser.footer.checkbox': 'Show only my widgets',
   'dashboard.widgets.browser.action.add': 'Add',
   'dashboard.widgets.browser.action.added': 'Added',

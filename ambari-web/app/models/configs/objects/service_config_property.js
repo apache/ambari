@@ -282,6 +282,9 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', this.get('recommendedValue'));
       }
     }
+    if (this.get('value') === null) {
+      this.set('isVisible', false);
+    }
     if (this.get("displayType") === "password") {
       this.set('retypedPassword', this.get('value'));
       this.set('recommendedValue', '');
