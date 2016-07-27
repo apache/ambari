@@ -198,7 +198,7 @@ public class AmbariManagementControllerTest {
   private static final String PROPERTY_NAME = "hbase.regionserver.msginterval";
   private static final String SERVICE_NAME = "HDFS";
   private static final String FAKE_SERVICE_NAME = "FAKENAGIOS";
-  private static final int STACK_VERSIONS_CNT = 15;
+  private static final int STACK_VERSIONS_CNT = 16;
   private static final int REPOS_CNT = 3;
   private static final int STACKS_CNT = 3;
   private static final int STACK_PROPERTIES_CNT = 103;
