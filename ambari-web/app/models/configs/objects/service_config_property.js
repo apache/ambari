@@ -290,6 +290,7 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', this.get('recommendedValue'));
       }
     }
+    this.set('previousValue', this.get('value'));
     if (this.get('value') === null) {
       this.set('isVisible', false);
     }
