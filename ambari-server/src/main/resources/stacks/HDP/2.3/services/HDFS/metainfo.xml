@@ -63,6 +63,9 @@
               <name>hadoop_${stack_version}</name>
             </package>
             <package>
+              <name>hadoop_${stack_version}-client</name>
+            </package>
+            <package>
               <name>snappy</name>
             </package>
             <package>
@@ -92,6 +95,9 @@
           <packages>
             <package>
               <name>hadoop_${stack_version}</name>
+            </package>
+            <package>
+              <name>hadoop_${stack_version}-client</name>
             </package>
             <package>
               <name>snappy</name>
