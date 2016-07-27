@@ -215,6 +215,9 @@
           <osFamily>amazon2015,redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
+              <name>hadoop-client</name>
+            </package>
+            <package>
               <name>snappy</name>
             </package>
             <package>
@@ -240,6 +243,9 @@
           <osFamily>suse12</osFamily>
           <packages>
             <package>
+              <name>hadoop-client</name>
+            </package>
+            <package>
               <name>snappy</name>
             </package>
             <package>
@@ -264,6 +270,9 @@
         <osSpecific>
           <osFamily>debian7,ubuntu12,ubuntu14,ubuntu16</osFamily>
           <packages>
+            <package>
+              <name>hadoop-client</name>
+            </package>
             <package>
               <name>libsnappy1</name>
             </package>
