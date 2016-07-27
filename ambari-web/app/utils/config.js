@@ -477,9 +477,11 @@ App.config = Em.Object.create({
     var identitiesMap = {};
     Em.get(kerberosDescriptor, 'KerberosDescriptor.kerberos_descriptor.services').forEach(function (service) {
       this.parseIdentities(service, identitiesMap);
-      service.components.forEach(function (component) {
-        this.parseIdentities(component, identitiesMap);
-      }, this);
+      if (Array.isArray(service.components)) {
+        service.components.forEach(function (component) {
+          this.parseIdentities(component, identitiesMap);
+        }, this);
+      }
     }, this);
     return identitiesMap;
   },
