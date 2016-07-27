@@ -245,42 +245,86 @@ describe('App.WidgetMixin', function () {
 
   describe("#disableGraph", function () {
     var graph = Em.Object.create({
+        hasData: true,
         _showMessage: Em.K
-      });
-
-    beforeEach(function() {
-      mixinObject.setProperties({
-        childViews: [
-          graph
-        ],
-        graphView: {},
-        metrics: [{name: 'm1'}, {name: 'm2'}],
-        content: {
-          metrics: [{name: 'm2'}]
+      }),
+      cases = [
+        {
+          graphView: null,
+          childViews: [],
+          hasData: true,
+          isExportButtonHidden: false,
+          showMessageCallCount: 0,
+          title: 'no graph'
+        },
+        {
+          graphView: {},
+          childViews: [{}],
+          hasData: true,
+          isExportButtonHidden: false,
+          showMessageCallCount: 0,
+          title: 'no graph view rendered'
+        },
+        {
+          graphView: {},
+          childViews: [
+            {},
+            graph
+          ],
+          hasData: false,
+          isExportButtonHidden: true,
+          showMessageCallCount: 1,
+          title: 'graph view rendered'
         }
+      ];
+
+    cases.forEach(function (item) {
+      describe(item.title, function () {
+        beforeEach(function() {
+          mixinObject.setProperties({
+            isExportButtonHidden: false,
+            childViews: item.childViews,
+            graphView: item.graphView,
+            metrics: [
+              {
+                name: 'm1'
+              },
+              {
+                name: 'm2'
+              }
+            ],
+            content: {
+              metrics: [
+                {
+                  name: 'm2'
+                }
+              ]
+            }
+          });
+          sinon.stub(graph, '_showMessage');
+          mixinObject.disableGraph();
+        });
+
+        afterEach(function() {
+          graph._showMessage.restore();
+        });
+
+        it('hasData', function() {
+          expect(graph.get('hasData')).to.equal(item.hasData);
+        });
+
+        it('isExportButtonHidden', function() {
+          expect(mixinObject.get('isExportButtonHidden')).to.equal(item.isExportButtonHidden);
+        });
+
+        it('_showMessage call count', function() {
+          expect(graph._showMessage.callCount).to.equal(item.showMessageCallCount);
+        });
+
+        it('metrics should be filtered', function() {
+          expect(mixinObject.get('metrics').mapProperty('name')).to.eql(['m1']);
+        });
       });
-      sinon.stub(graph, '_showMessage');
-      mixinObject.disableGraph();
-    });
-
-    afterEach(function() {
-      graph._showMessage.restore();
-    });
-
-    it("hasData should be false", function() {
-      expect(graph.get('hasData')).to.be.false;
-    });
-
-    it("isExportButtonHidden should be true", function() {
-      expect(mixinObject.get('isExportButtonHidden')).to.be.true;
-    });
-
-    it("_showMessage should be called", function() {
-      expect(graph._showMessage.calledWith('info', mixinObject.t('graphs.noData.title'), mixinObject.t('graphs.noDataAtTime.message'))).to.be.true;
-    });
-
-    it("metrics should be filtered", function() {
-      expect(mixinObject.get('metrics').mapProperty('name')).to.be.eql(['m1']);
     });
   });
 

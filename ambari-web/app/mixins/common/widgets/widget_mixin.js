@@ -334,11 +334,11 @@ App.WidgetMixin = Ember.Mixin.create({
         graph.set('hasData', false);
         this.set('isExportButtonHidden', true);
         graph._showMessage('info', this.t('graphs.noData.title'), this.t('graphs.noDataAtTime.message'));
-        this.set('metrics', this.get('metrics').reject(function (item) {
-          return this.get('content.metrics').someProperty('name', item.name);
-        }, this));
       }
     }
+    this.set('metrics', this.get('metrics').reject(function (item) {
+      return this.get('content.metrics').someProperty('name', item.name);
+    }, this));
   },
 
   /**
