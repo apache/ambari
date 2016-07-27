@@ -118,10 +118,7 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.common.collect.Maps;
@@ -814,6 +811,71 @@ public class UpgradeCatalog240Test {
 
     assertEquals("value", falconCapture.getValue().get("property"));
     assertNull(falconCapture.getValue().get("falcon_store_uri"));
+  }
+
+  @Test
+  public void testUpdateHbaseConfigs() throws Exception{
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(
+        AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockCluster = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Injector mockInjector = Guice.createInjector(new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        binder.bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        binder.bind(Clusters.class).toInstance(mockClusters);
+        binder.bind(EntityManager.class).toInstance(entityManager);
+        binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).anyTimes();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockCluster);
+    }}).anyTimes();
+
+    expect(mockCluster.getServices()).andReturn(new HashMap<String, Service>(){{put("HBASE",null);}}).anyTimes();
+    expect(mockCluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+
+    final Config mockHbaseSiteConfigs = easyMockSupport.createNiceMock(Config.class);
+    expect(mockCluster.getDesiredConfigByType("hbase-site")).andReturn(mockHbaseSiteConfigs).atLeastOnce();
+    expect(mockHbaseSiteConfigs.getProperties()).andReturn(new HashMap<String, String>(){{
+      put("hbase.coprocessor.regionserver.classes","{{hbase_coprocessor_regionserver_classes}}");
+      put("hbase.coprocessor.region.classes","{{hbase_coprocessor_region_classes}}");
+    }}).anyTimes();
+
+    final Config mockRangerHbaseConfigs = easyMockSupport.createNiceMock(Config.class);
+    expect(mockCluster.getDesiredConfigByType("ranger-hbase-plugin-properties")).andReturn(mockRangerHbaseConfigs).atLeastOnce();
+    expect(mockRangerHbaseConfigs.getProperties()).andReturn(new HashMap<String, String>(){{
+      put("ranger-hbase-plugin-enabled", "yes");
+    }}).anyTimes();
+
+    final Config mockRangerEnvConfigs = easyMockSupport.createNiceMock(Config.class);
+    expect(mockCluster.getDesiredConfigByType("ranger-env")).andReturn(mockRangerEnvConfigs).atLeastOnce();
+    expect(mockRangerEnvConfigs.getProperties()).andReturn(new HashMap<String, String>(){{
+      put("xml_configurations_supported", "true");
+    }}).anyTimes();
+
+
+
+
+    Capture<Map<String, String>> hbaseCapture =  newCapture();
+    expect(mockAmbariManagementController.createConfig(eq(mockCluster), eq("hbase-site"),
+        capture(hbaseCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).updateHBaseConfigs();
+    easyMockSupport.verifyAll();
+
+    assertEquals("org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor", hbaseCapture.getValue().get("hbase.coprocessor.regionserver.classes"));
+    assertEquals("org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor", hbaseCapture.getValue().get("hbase.coprocessor.region.classes"));
   }
 
   @Test

@@ -2912,45 +2912,99 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
           StackId stackId = cluster.getCurrentStackVersion();
 
           // HBase is installed and Kerberos is enabled
-          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType() && isAtLeastHdp25(stackId)) {
+          if (installedServices.contains("HBASE") && SecurityType.KERBEROS == cluster.getSecurityType()) {
             Config hbaseSite = cluster.getDesiredConfigByType(HBASE_SITE_CONFIG);
+
             if (null != hbaseSite) {
               Map<String, String> hbaseSiteProperties = hbaseSite.getProperties();
-              // Get any existing config properties (they probably don't exist)
-              String principal = hbaseSiteProperties.get(HBASE_SPNEGO_PRINCIPAL_KEY);
-              String keytab = hbaseSiteProperties.get(HBASE_SPNEGO_KEYTAB_KEY);
 
-              final Map<String, String> updatedKerberosProperties = new HashMap<>();
+              // update classes based on krb/ranger availability
+              boolean enableRangerHbase = false;
+              boolean xmlConfigurationsSupported = false;
 
-              // Set the principal for SPNEGO if it's not already set
-              if (null == principal) {
-                final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
-                final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
-                if (null != spnegoDescriptor) {
-                  // Add the SPNEGO config for the principal
-                  KerberosPrincipalDescriptor principalDescriptor = spnegoDescriptor.getPrincipalDescriptor();
-                  if (null != principalDescriptor) {
-                    updatedKerberosProperties.put(HBASE_SPNEGO_PRINCIPAL_KEY, principalDescriptor.getValue());
-                  }
+              Config rangerHbasePluginProperties = cluster.getDesiredConfigByType("ranger-hbase-plugin-properties");
+              if (rangerHbasePluginProperties != null && rangerHbasePluginProperties.getProperties().containsKey("ranger-hbase-plugin-enabled")) {
+                enableRangerHbase = rangerHbasePluginProperties.getProperties().get("ranger-hbase-plugin-enabled").toLowerCase() == "yes";
+              }
+              Config rangerEnv = cluster.getDesiredConfigByType("ranger-env");
+              if (rangerEnv != null && rangerEnv.getProperties().containsKey("xml_configurations_supported")) {
+                xmlConfigurationsSupported = Boolean.parseBoolean(rangerEnv.getProperties().get("xml_configurations_supported"));
+              }
+
+              final Map<String, String> updatedHbaseProperties = new HashMap<>();
+
+              if (hbaseSiteProperties.containsKey("hbase.coprocessor.master.classes") &&
+                  hbaseSiteProperties.get("hbase.coprocessor.master.classes").equals("{{hbase_coprocessor_master_classes}}")) {
+                if (!enableRangerHbase) {
+                  updatedHbaseProperties.put("hbase.coprocessor.master.classes", "org.apache.hadoop.hbase.security.access.AccessController");
+                } else if (xmlConfigurationsSupported) {
+                  updatedHbaseProperties.put("hbase.coprocessor.master.classes", "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+                } else {
+                  updatedHbaseProperties.put("hbase.coprocessor.master.classes", "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
                 }
               }
 
-              // Set the keytab for SPNEGO if it's not already set
-              if (null == keytab) {
-                final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
-                final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
-                if (null != spnegoDescriptor) {
-                  // Add the SPNEGO config for the keytab
-                  KerberosKeytabDescriptor keytabDescriptor = spnegoDescriptor.getKeytabDescriptor();
-                  if (null != keytabDescriptor) {
-                    updatedKerberosProperties.put(HBASE_SPNEGO_KEYTAB_KEY, keytabDescriptor.getFile());
-                  }
+              if (hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes") &&
+                  hbaseSiteProperties.get("hbase.coprocessor.regionserver.classes").equals("{{hbase_coprocessor_regionserver_classes}}")) {
+                if (!enableRangerHbase) {
+                  updatedHbaseProperties.put("hbase.coprocessor.regionserver.classes", "org.apache.hadoop.hbase.security.access.AccessController");
+                } else if (xmlConfigurationsSupported) {
+                  updatedHbaseProperties.put("hbase.coprocessor.regionserver.classes", "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+                } else {
+                  updatedHbaseProperties.put("hbase.coprocessor.regionserver.classes", "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
                 }
               }
 
-              // Update the configuration if we changed anything
-              if (!updatedKerberosProperties.isEmpty()) {
-                updateConfigurationProperties(HBASE_SITE_CONFIG, updatedKerberosProperties, true, false);
+              if (hbaseSiteProperties.containsKey("hbase.coprocessor.region.classes") &&
+                  hbaseSiteProperties.get("hbase.coprocessor.region.classes").equals("{{hbase_coprocessor_region_classes}}")) {
+                if (!enableRangerHbase) {
+                  updatedHbaseProperties.put("hbase.coprocessor.region.classes", "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController");
+                } else if (xmlConfigurationsSupported) {
+                  updatedHbaseProperties.put("hbase.coprocessor.region.classes", "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor");
+                } else {
+                  updatedHbaseProperties.put("hbase.coprocessor.region.classes", "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor");
+                }
+              }
+              updateConfigurationProperties(HBASE_SITE_CONFIG, updatedHbaseProperties, true, false);
+
+
+              if (isAtLeastHdp25(stackId)) {
+                // Get any existing config properties (they probably don't exist)
+                String principal = hbaseSiteProperties.get(HBASE_SPNEGO_PRINCIPAL_KEY);
+                String keytab = hbaseSiteProperties.get(HBASE_SPNEGO_KEYTAB_KEY);
+
+                final Map<String, String> updatedKerberosProperties = new HashMap<>();
+
+                // Set the principal for SPNEGO if it's not already set
+                if (null == principal) {
+                  final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
+                  final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
+                  if (null != spnegoDescriptor) {
+                    // Add the SPNEGO config for the principal
+                    KerberosPrincipalDescriptor principalDescriptor = spnegoDescriptor.getPrincipalDescriptor();
+                    if (null != principalDescriptor) {
+                      updatedKerberosProperties.put(HBASE_SPNEGO_PRINCIPAL_KEY, principalDescriptor.getValue());
+                    }
+                  }
+                }
+
+                // Set the keytab for SPNEGO if it's not already set
+                if (null == keytab) {
+                  final KerberosDescriptor defaultDescriptor = getKerberosDescriptor(cluster);
+                  final KerberosIdentityDescriptor spnegoDescriptor = defaultDescriptor.getIdentity("spnego");
+                  if (null != spnegoDescriptor) {
+                    // Add the SPNEGO config for the keytab
+                    KerberosKeytabDescriptor keytabDescriptor = spnegoDescriptor.getKeytabDescriptor();
+                    if (null != keytabDescriptor) {
+                      updatedKerberosProperties.put(HBASE_SPNEGO_KEYTAB_KEY, keytabDescriptor.getFile());
+                    }
+                  }
+                }
+
+                // Update the configuration if we changed anything
+                if (!updatedKerberosProperties.isEmpty()) {
+                  updateConfigurationProperties(HBASE_SITE_CONFIG, updatedKerberosProperties, true, false);
+                }
               }
             }
           }
