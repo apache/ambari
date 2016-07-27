@@ -176,6 +176,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String SLIDER_SERVICE_NAME = "SLIDER";
 
   private static final String OOZIE_ENV_CONFIG = "oozie-env";
+  protected static final String KAFKA_BROKER_CONFIG = "kafka-broker";
   private static final String SLIDER_CLIENT_CONFIG = "slider-client";
   private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String AMS_SITE = "ams-site";
@@ -393,6 +394,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     addManageUserPersistedDataPermission();
     allowClusterOperatorToManageCredentials();
     updateHDFSConfigs();
+    updateKAFKAConfigs();
     updateHIVEConfigs();
     updateAMSConfigs();
     updateClusterEnv();
@@ -1886,6 +1888,27 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                 updateConfigurationProperties("hadoop-env", Collections.singletonMap("keyserver_port", ""), true, false);
               }
             }
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateKAFKAConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
+
+    for (final Cluster cluster : clusterMap.values()) {
+      Set<String> installedServices = cluster.getServices().keySet();
+
+      if (installedServices.contains("KAFKA") && cluster.getSecurityType() == SecurityType.KERBEROS) {
+        Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER_CONFIG);
+        if (kafkaBroker != null) {
+          String listenersPropertyValue = kafkaBroker.getProperties().get("listeners");
+          if (StringUtils.isNotEmpty(listenersPropertyValue)) {
+            String newListenersPropertyValue = listenersPropertyValue.replaceAll("PLAINTEXT", "PLAINTEXTSASL");
+            updateConfigurationProperties(KAFKA_BROKER_CONFIG, Collections.singletonMap("listeners", newListenersPropertyValue), true, false);
           }
         }
       }
