@@ -295,7 +295,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
       controller.set('tasks', commandsForDB);
       controller.removeUnneededTasks();
-      expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,5,6,8,10,12]);
+      expect(controller.get('tasks').mapProperty('id')).to.eql([1,2,5,6,8,9,10,12]);
     });
 
     it('reassign component is Mysql Server', function () {
