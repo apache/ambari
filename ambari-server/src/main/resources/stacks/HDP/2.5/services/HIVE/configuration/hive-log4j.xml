@@ -114,6 +114,9 @@ log4j.category.JPOX.Enhancer=ERROR,DRFA
 log4j.logger.org.apache.zookeeper.server.NIOServerCnxn=WARN,DRFA
 log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,DRFA
 
+# Silence HadoopMetrics2Reporter INFO logs
+log4j.logger.com.github.joshelser.dropwizard.metrics.hadoop=WARN,DRFA
+
     </value>
     <value-attributes>
       <type>content</type>
