@@ -43,7 +43,7 @@
 
 # Define some default values that can be overridden by system properties
 hive.log.threshold=ALL
-hive.root.logger=INFO,DRFA
+hive.root.logger=INFO,RFA
 hive.log.dir=${java.io.tmpdir}/${user.name}
 hive.log.file=hive.log
 
@@ -77,6 +77,13 @@ log4j.appender.DRFA.layout=org.apache.log4j.PatternLayout
 # Debugging Pattern format
 log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n
 
+# RFA introduction
+log4j.appender.RFA=org.apache.log4j.rolling.RollingFileAppender
+log4j.appender.RFA.File=${hive.log.dir}/${hive.log.file}
+log4j.appender.RFA.rollingPolicy=org.apache.log4j.rolling.TimeBasedRollingPolicy
+log4j.appender.RFA.rollingPolicy.FileNamePattern=${hive.log.dir}/${hive.log.file}-%d{yyyyMMdd}.gz
+log4j.appender.RFA.layout=org.apache.log4j.PatternLayout
+log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t]: %c{2} (%F:%M(%L)) - %m%n
 
 #
 # console
@@ -99,23 +106,23 @@ log4j.appender.console.encoding=UTF-8
 log4j.appender.EventCounter=org.apache.hadoop.hive.shims.HiveEventCounter
 
 
-log4j.category.DataNucleus=ERROR,DRFA
-log4j.category.Datastore=ERROR,DRFA
-log4j.category.Datastore.Schema=ERROR,DRFA
-log4j.category.JPOX.Datastore=ERROR,DRFA
-log4j.category.JPOX.Plugin=ERROR,DRFA
-log4j.category.JPOX.MetaData=ERROR,DRFA
-log4j.category.JPOX.Query=ERROR,DRFA
-log4j.category.JPOX.General=ERROR,DRFA
-log4j.category.JPOX.Enhancer=ERROR,DRFA
+log4j.category.DataNucleus=ERROR,RFA
+log4j.category.Datastore=ERROR,RFA
+log4j.category.Datastore.Schema=ERROR,RFA
+log4j.category.JPOX.Datastore=ERROR,RFA
+log4j.category.JPOX.Plugin=ERROR,RFA
+log4j.category.JPOX.MetaData=ERROR,RFA
+log4j.category.JPOX.Query=ERROR,RFA
+log4j.category.JPOX.General=ERROR,RFA
+log4j.category.JPOX.Enhancer=ERROR,RFA
 
 
 # Silence useless ZK logs
-log4j.logger.org.apache.zookeeper.server.NIOServerCnxn=WARN,DRFA
-log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,DRFA
+log4j.logger.org.apache.zookeeper.server.NIOServerCnxn=WARN,RFA
+log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,RFA
 
 # Silence HadoopMetrics2Reporter INFO logs
-log4j.logger.com.github.joshelser.dropwizard.metrics.hadoop=WARN,DRFA
+log4j.logger.com.github.joshelser.dropwizard.metrics.hadoop=WARN,RFA
 
     </value>
     <value-attributes>
