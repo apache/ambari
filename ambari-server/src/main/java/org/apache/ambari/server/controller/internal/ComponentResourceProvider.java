@@ -17,16 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -61,12 +54,18 @@ import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for component resources.
@@ -85,6 +84,9 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   protected static final String COMPONENT_TOTAL_COUNT_PROPERTY_ID     = "ServiceComponentInfo/total_count";
   protected static final String COMPONENT_STARTED_COUNT_PROPERTY_ID   = "ServiceComponentInfo/started_count";
   protected static final String COMPONENT_INSTALLED_COUNT_PROPERTY_ID = "ServiceComponentInfo/installed_count";
+  protected static final String COMPONENT_INIT_COUNT_PROPERTY_ID      = "ServiceComponentInfo/init_count";
+  protected static final String COMPONENT_UNKNOWN_COUNT_PROPERTY_ID   = "ServiceComponentInfo/unknown_count";
+  protected static final String COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID = "ServiceComponentInfo/install_failed_count";
   protected static final String COMPONENT_RECOVERY_ENABLED_ID         = "ServiceComponentInfo/recovery_enabled";
 
   private static final String TRUE = "true";
@@ -178,9 +180,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       setResourceProperty(resource, COMPONENT_DISPLAY_NAME_PROPERTY_ID, response.getDisplayName(), requestedIds);
       setResourceProperty(resource, COMPONENT_STATE_PROPERTY_ID, response.getDesiredState(), requestedIds);
       setResourceProperty(resource, COMPONENT_CATEGORY_PROPERTY_ID, response.getCategory(), requestedIds);
-      setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getTotalCount(), requestedIds);
-      setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getStartedCount(), requestedIds);
-      setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getInstalledCount(), requestedIds);
+      setResourceProperty(resource, COMPONENT_TOTAL_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("totalCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_STARTED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("startedCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_INSTALLED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installedCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_INSTALL_FAILED_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("installFailedCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_INIT_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("initCount"), requestedIds);
+      setResourceProperty(resource, COMPONENT_UNKNOWN_COUNT_PROPERTY_ID, response.getServiceComponentStateCount().get("unknownCount"), requestedIds);
       setResourceProperty(resource, COMPONENT_RECOVERY_ENABLED_ID, String.valueOf(response.isRecoveryEnabled()), requestedIds);
 
       resources.add(resource);

@@ -63,6 +63,9 @@
         "ServiceComponentInfo/total_count",
         "ServiceComponentInfo/started_count",
         "ServiceComponentInfo/installed_count",
+        "ServiceComponentInfo/install_failed_count",
+        "ServiceComponentInfo/init_count",
+        "ServiceComponentInfo/unknown_count",
         "ServiceComponentInfo/recovery_enabled",
         "params/run_smoke_test",
         "_"

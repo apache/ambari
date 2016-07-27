@@ -31,6 +31,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     display_name: 'ServiceComponentInfo.display_name',
     service_name: 'ServiceComponentInfo.service_name',
     installed_count: 'ServiceComponentInfo.installed_count',
+    install_failed_count: 'ServiceComponentInfo.install_failed_count',
+    init_count: 'ServiceComponentInfo.init_count',
+    unknown_count: 'ServiceComponentInfo.unknown_count',
     started_count: 'ServiceComponentInfo.started_count',
     total_count: 'ServiceComponentInfo.total_count',
     host_names: 'host_names'
@@ -41,6 +44,9 @@ App.componentsStateMapper = App.QuickDataMapper.create({
 
   paths: {
     INSTALLED_PATH: 'ServiceComponentInfo.installed_count',
+    INSTALL_FAILED_PATH: 'ServiceComponentInfo.install_failed_count',
+    INIT_PATH: 'ServiceComponentInfo.init_count',
+    UNKNOWN_PATH: 'ServiceComponentInfo.unknown_count',
     STARTED_PATH: 'ServiceComponentInfo.started_count',
     TOTAL_PATH: 'ServiceComponentInfo.total_count'
   },
