@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.ambari.iop-select</groupId>
+  <artifactId>iop-select</artifactId>
+  <version>4.3.0.0-1234</version>
+  <packaging>rpm</packaging>
+
+  <name>Distribution Select</name>
+  <description>Utility for Distribution Selection</description>
+  
+  <properties>
+    <dist.select.script>iop-select</dist.select.script>
+    <conf.select.script>conf-select</conf.select.script>
+  </properties>
+  
+  <!-- scm connection to git repository for component -->
+  <scm>
+	<connection>scm:git:git@bioss.svl.ibm.com:ambari</connection>
+	<developerConnection>scm:git:git@bioss.svl.ibm.com:ambari</developerConnection>	
+	<tag></tag>
+  </scm>
+  
+  <!-- distribution management definition for open-source snapshot and release repositories -->
+  <distributionManagement>
+	<repository>
+		<id>sdi-biginsights-oss</id>
+		<url>${biginsights.opensource.maven.release.repo}</url>
+		<name>BigInsights open-source releases repository</name>
+	</repository>
+	<snapshotRepository>
+		<id>sdi-biginsights-oss-snapshot</id>
+		<url>${biginsights.opensource.maven.snapshot.repo}</url>
+		<name>BigInsights open-source snapshots repository</name>
+	</snapshotRepository>
+  </distributionManagement>
+
+  <dependencies>
+  </dependencies>
+
+  <build>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1.2</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>generate-rpm</id>
+            <goals>
+              <goal>rpm</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <distribution>BigInsights Ambari</distribution>
+          <group>Application/Collectors</group>
+          <packager>BIGroup</packager>
+          <sourceEncoding>UTF-8</sourceEncoding>
+          <defineStatements>
+            <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+          </defineStatements>
+          <mappings>
+            <mapping>
+              <directory>/usr/bin</directory>
+              <filemode>755</filemode>
+              <directoryIncluded>false</directoryIncluded>
+              <sources>
+                <source>
+                  <location>src/main/py/${dist.select.script}</location>
+                </source>
+                <source>
+                  <location>src/main/py/${conf.select.script}</location>
+                </source>
+              </sources>
+            </mapping>
+          </mappings>
+          <preinstallScriptlet>
+            <script>echo "installing now"</script>
+          </preinstallScriptlet>
+          <postinstallScriptlet>
+            <script>
+              cd /usr/bin; \
+              ln -sf ${dist.select.script} dist-select; \
+              ln -sf dist-select hdp-select; \
+              echo "created link for dist-select to ${dist.select.script}, finished script"
+            </script>
+          </postinstallScriptlet>
+          <preremoveScriptlet>
+            <!--scriptFile>src/main/scripts/preremove</scriptFile>
+            <fileEncoding>utf-8</fileEncoding-->
+          </preremoveScriptlet>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.3.2</version>
+        <executions>
+          <execution>
+            <id>default</id>
+              <goals>
+                <goal>perform</goal>
+              </goals>
+            <configuration>
+              <pomFileName>contrib/stack-select/pom.xml</pomFileName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
