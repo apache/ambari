@@ -56,14 +56,103 @@ describe("App.MainServiceInfoConfigsController", function () {
           Em.Object.create({
             id: "hive.llap.daemon.task.scheduler.enable.preemption",
             isRequiredByAgent: true,
-            isFinal: false
+            isFinal: false,
+            value: ''
           }),
           Em.Object.create({
             id: "ambari.copy.hive.llap.daemon.num.executors",
             isRequiredByAgent: false,
-            isFinal: false
+            isFinal: false,
+            value: ''
           })
-        ]
+        ],
+        result: JSON.stringify({
+          'hive.llap.daemon.task.scheduler.enable.preemption': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          }
+        })
+      },
+      {
+        msg: "properties should be sorted in alphabetical order",
+        configs: [
+          Em.Object.create({
+            id: "b.b",
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: ''
+          }),
+          Em.Object.create({
+            id: "b.a",
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: ''
+          }),
+          Em.Object.create({
+            id: "b.c",
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: ''
+          }),
+          Em.Object.create({
+            id: "a.b",
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: ''
+          })
+        ],
+        result: JSON.stringify({
+          'a.b': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          },
+          'b.a': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          },
+          'b.b': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          },
+          'b.c': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          }
+        })
+      },{
+        msg: "properties without id should be sorted with",
+        configs: [
+          Em.Object.create({
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: '',
+            name: 'name',
+            filename: 'filename'
+          }),
+          Em.Object.create({
+            id: "a",
+            isRequiredByAgent: true,
+            isFinal: false,
+            value: ''
+          })
+        ],
+        result: JSON.stringify({
+          'a': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          },
+          'name__filename': {
+            value: '',
+            overrides: [],
+            isFinal: false
+          }
+        })
       }
     ];
 
@@ -74,14 +163,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     tests.forEach(function (t) {
       it(t.msg, function () {
         mainServiceInfoConfigsController.set('selectedService', {configs: t.configs});
-        var stackDrivenConfig = t.configs.findProperty('isRequiredByAgent');
-        var configs = {};
-        configs[stackDrivenConfig.id] = {
-          value: stackDrivenConfig.value,
-          overrides: [],
-          isFinal: stackDrivenConfig.isFinal
-        };
-        expect(mainServiceInfoConfigsController.getHash()).to.equal(JSON.stringify(configs));
+        expect(mainServiceInfoConfigsController.getHash()).to.equal(t.result);
       });
     });
   });
