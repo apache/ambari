@@ -71,12 +71,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   hostComponents: [],
 
   /**
-   * List of components, that do not need reconfiguration for moving to another host
-   * Reconfigure command will be skipped
-   */
-  componentsWithoutReconfiguration: ['METRICS_COLLECTOR'],
-
-  /**
    * Map with lists of related services.
    * Used to define list of services to stop/start.
    */
@@ -191,6 +185,14 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       configs: {
         'hive-site': {
           'javax.jdo.option.ConnectionURL': 'jdbc:mysql://<replace-value>/hive?createDatabaseIfNotExist=true'
+        }
+      }
+    },
+    {
+      componentName: 'METRICS_COLLECTOR',
+      configs: {
+        'ams-site': {
+          'timeline.metrics.service.webapp.address': '<replace-value>:6188'
         }
       }
     },
@@ -396,10 +398,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       this.removeTasks(['startZooKeeperServers', 'startNameNode']);
     }
 
-    if (this.get('componentsWithoutReconfiguration').contains(componentName)) {
-      this.removeTasks(['reconfigure']);
-    }
-
     if (!this.get('content.reassignComponentsInMM.length')) {
       this.removeTasks(['stopHostComponentsInMaintenanceMode']);
     }
@@ -544,6 +542,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'HIVE_SERVER': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
     'HIVE_METASTORE': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
     'MYSQL_SERVER': ['hive-site'],
+    'METRICS_COLLECTOR': ['ams-site'],
     'HISTORYSERVER': ['mapred-site']
   },
 
