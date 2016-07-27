@@ -45,6 +45,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
     this.initPopover();
     this.addObserver('config.stackConfigProperty.valueAttributes.entries.[]', this, this.updateValuesList);
     this.addObserver('controller.forceUpdateBoundaries', this, this.updateValuesList);
+    this.addObserver('config.value', this, this.isValueCompatibleWithWidget);
   },
 
   /**
