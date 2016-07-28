@@ -152,23 +152,72 @@ describe('App.WidgetWizardStep2Controller', function () {
     var testCases = [
       {
         expression: null,
-        result: false
+        result: false,
+        title: 'no expression'
       },
       {
         expression: Em.Object.create({isInvalid: true}),
-        result: false
+        result: false,
+        title: 'invalid expression, no data array'
       },
       {
         expression: Em.Object.create({isInvalid: false, isEmpty: false}),
-        result: true
+        result: false,
+        title: 'no data array'
       },
       {
         expression: Em.Object.create({isInvalid: false, isEmpty: true}),
-        result: false
+        result: false,
+        title: 'empty expression'
+      },
+      {
+        expression: Em.Object.create({isInvalid: true, data: []}),
+        result: false,
+        title: 'invalid expression, empty data array'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: []}),
+        result: false,
+        title: 'empty data array'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: []}),
+        result: false,
+        title: 'empty expression and data array'
+      },
+      {
+        expression: Em.Object.create({isInvalid: true, data: [{isMetric: false}]}),
+        result: false,
+        title: 'invalid expression, no metrics'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: [{isMetric: false}]}),
+        result: false,
+        title: 'no metrics'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: [{isMetric: false}]}),
+        result: false,
+        title: 'empty expression, no metrics'
+      },
+      {
+        expression: Em.Object.create({isInvalid: true, data: [{isMetric: false}, {isMetric: true}]}),
+        result: false,
+        title: 'invalid expression'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: [{isMetric: false}, {isMetric: true}]}),
+        result: true,
+        title: 'valid expression'
+      },
+      {
+        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: [{isMetric: false}, {isMetric: true}]}),
+        result: false,
+        title: 'empty expression, valid data array'
       }
     ];
     testCases.forEach(function (test) {
-      it("expression = " + test.expression, function () {
+      it(test.title, function () {
         expect(controller.isExpressionComplete(test.expression)).to.equal(test.result);
       });
     });

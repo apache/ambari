@@ -124,7 +124,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @returns {boolean}
    */
   isExpressionComplete: function (expression) {
-    return Boolean(expression && !expression.get('isInvalid') && !expression.get('isEmpty'));
+    return Boolean(expression && !expression.get('isInvalid') && !expression.get('isEmpty')
+      && expression.get('data')&& expression.get('data').someProperty('isMetric'));
   },
 
   /**
