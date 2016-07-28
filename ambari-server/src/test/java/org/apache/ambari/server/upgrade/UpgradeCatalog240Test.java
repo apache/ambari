@@ -56,6 +56,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -116,12 +118,8 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
@@ -131,6 +129,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UpgradeCatalog240Test {
   private static final String CAPACITY_SCHEDULER_CONFIG_TYPE = "capacity-scheduler";
@@ -584,7 +584,6 @@ public class UpgradeCatalog240Test {
     Method updateRecoveryConfigurationDML = UpgradeCatalog240.class.getDeclaredMethod("updateRecoveryConfigurationDML");
     Method removeAtlasMetaserverAlert = UpgradeCatalog240.class.getDeclaredMethod("removeAtlasMetaserverAlert");
     Method updateRangerHbasePluginProperties = UpgradeCatalog240.class.getDeclaredMethod("updateRangerHbasePluginProperties");
-    Method updateKAFKAConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateKAFKAConfigs");
 
     Capture<String> capturedStatements = newCapture(CaptureType.ALL);
 
@@ -634,7 +633,6 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateRecoveryConfigurationDML)
             .addMockedMethod(removeAtlasMetaserverAlert)
             .addMockedMethod(updateRangerHbasePluginProperties)
-            .addMockedMethod(updateKAFKAConfigs)
             .createMock();
 
     Field field = AbstractUpgradeCatalog.class.getDeclaredField("dbAccessor");
@@ -676,7 +674,6 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateRecoveryConfigurationDML();
     upgradeCatalog240.removeAtlasMetaserverAlert();
     upgradeCatalog240.updateRangerHbasePluginProperties();
-    upgradeCatalog240.updateKAFKAConfigs();
 
     replay(upgradeCatalog240, dbAccessor);
 
@@ -1109,63 +1106,6 @@ public class UpgradeCatalog240Test {
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesYarnEnv, updatedProperties).areEqual());
-  }
-
-  @Test
-  public void testUpdateKAFKAConfigs() throws Exception{
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
-    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
-    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-
-    final Config kafkaBroker = easyMockSupport.createNiceMock(Config.class);
-    expect(kafkaBroker.getProperties()).andReturn(new HashMap<String, String>(){{
-      put("listeners", "PLAINTEXT://localhost:PLAINTEXT6667,PLAINTEXTSSL://localhost:6666PLAINTEXT");
-    }}
-    ).anyTimes();
-
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(EntityManager.class).toInstance(entityManager);
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
-      }
-    });
-
-    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
-    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", mockClusterExpected);
-    }}).atLeastOnce();
-    expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(kafkaBroker).atLeastOnce();
-    expect(mockClusterExpected.getSecurityType()).andReturn(SecurityType.KERBEROS);
-    expect(mockClusterExpected.getServices()).andReturn(new HashMap<String, Service>() {
-      {
-        put("KAFKA", null);
-      }
-    }).atLeastOnce();
-
-    UpgradeCatalog240 upgradeCatalog240 = createMockBuilder(UpgradeCatalog240.class)
-            .withConstructor(Injector.class)
-            .withArgs(mockInjector)
-            .addMockedMethod("updateConfigurationProperties", String.class,
-                    Map.class, boolean.class, boolean.class)
-            .createMock();
-
-    Map<String, String> expectedUpdates = new HashMap<>();
-    expectedUpdates.put("listeners", "PLAINTEXTSASL://localhost:PLAINTEXTSASL6667,PLAINTEXTSASLSSL://localhost:6666PLAINTEXTSASL");
-
-    upgradeCatalog240.updateConfigurationProperties("kafka-broker", expectedUpdates,
-            true, false);
-    expectLastCall().once();
-
-    easyMockSupport.replayAll();
-    replay(upgradeCatalog240);
-    upgradeCatalog240.updateKAFKAConfigs();
-    easyMockSupport.verifyAll();
   }
 
   /**
