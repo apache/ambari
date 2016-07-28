@@ -309,10 +309,12 @@
       </execute-stage>
 
       <!-- SQOOP -->
-      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop">
+      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop to remove Atlas Configs">
         <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_sqoop_atlas_configs"/>
+      </execute-stage>
 
+      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop if the cluster is Kerberized">
         <!-- If cluster is Kerberized, add configs to sqoop-atlas-application.properties,
         which will be written to the local file system if Atlas is present. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs" />
