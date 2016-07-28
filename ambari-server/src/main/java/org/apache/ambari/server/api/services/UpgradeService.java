@@ -61,28 +61,25 @@ public class UpgradeService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getUpgrades(String body,
-      @Context HttpHeaders headers,
+  public Response getUpgrades( @Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(null));
   }
 
   @GET
   @Path("{upgradeId}")
   @Produces("text/plain")
-  public Response getUpgradeItem(String body,
-      @Context HttpHeaders headers,
+  public Response getUpgradeItem(@Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("upgradeId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(id));
   }
 
   @PUT
   @Path("{upgradeId}")
   @Produces("text/plain")
-  public Response updateUpgradeItem(String body,
-      @Context HttpHeaders headers,
+  public Response updateUpgradeItem(String body, @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("upgradeId") Long id) {
     return handleRequest(headers, body, ui, Request.Type.PUT,
         createResourceInstance(id));

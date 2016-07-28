@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -104,6 +105,9 @@ public class UpgradePack {
   @XmlTransient
   private Map<String, List<String>> m_orders = null;
 
+  /**
+   * Initialized once by {@link #afterUnmarshal(Unmarshaller, Object)}.
+   */
   @XmlTransient
   private Map<String, Map<String, ProcessingComponent>> m_process = null;
 
@@ -219,6 +223,9 @@ public class UpgradePack {
       return;
     }
     processing.addAll(list);
+
+    // new processing has been created, so rebuild the mappings
+    initializeProcessingComponentMappings();
   }
 
   /**
@@ -390,31 +397,59 @@ public class UpgradePack {
    * @return a map of service_name -> map(component_name -> process).
    */
   public Map<String, Map<String, ProcessingComponent>> getTasks() {
+    return m_process;
+  }
 
-    if (null == m_process) {
-      m_process = new LinkedHashMap<String, Map<String, ProcessingComponent>>();
+  /**
+   * This method is called after all the properties (except IDREF) are
+   * unmarshalled for this object, but before this object is set to the parent
+   * object. This is done automatically by the {@link Unmarshaller}.
+   * <p/>
+   * Currently, this method performs the following post-unmarshal operations:
+   * <ul>
+   * <li>Builds a mapping of service name to a mapping of component name to
+   * {@link ProcessingComponent}</li>
+   * </ul>
+   *
+   * @param unmarshaller
+   *          the unmarshaller used to unmarshal this instance
+   * @param parent
+   *          the parent object, if any, that this will be set on.
+   * @see Unmarshaller
+   */
+  void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+    initializeProcessingComponentMappings();
+  }
 
-      if (processing != null) {
-        for (ProcessingService svc : processing) {
-          if (!m_process.containsKey(svc.name)) {
-            m_process.put(svc.name, new LinkedHashMap<String, ProcessingComponent>());
-          }
+  /**
+   * Builds a mapping of component name to {@link ProcessingComponent} and then
+   * maps those to service name, initializing {@link #m_process} to the result.
+   */
+  private void initializeProcessingComponentMappings() {
+    m_process = new LinkedHashMap<String, Map<String, ProcessingComponent>>();
 
-          Map<String, ProcessingComponent> componentMap = m_process.get(svc.name);
+    if (null == processing || processing.isEmpty()) {
+      return;
+    }
 
-          for (ProcessingComponent pc : svc.components) {
-            if (pc != null) {
-              componentMap.put(pc.name, pc);
-            } else {
-              LOG.warn("ProcessingService {} has null amongst it's values " +
-                "(total {} components)", svc.name, svc.components.size());
-            }
-          }
+    for (ProcessingService svc : processing) {
+      Map<String, ProcessingComponent> componentMap = m_process.get(svc.name);
+
+      // initialize mapping if not present for the given service name
+      if (null == componentMap) {
+        componentMap = new LinkedHashMap<String, ProcessingComponent>();
+        m_process.put(svc.name, componentMap);
+      }
+
+      for (ProcessingComponent pc : svc.components) {
+        if (pc != null) {
+          componentMap.put(pc.name, pc);
+        } else {
+          LOG.warn("ProcessingService {} has null amongst it's values (total {} components)",
+              svc.name, svc.components.size());
         }
       }
     }
-
-    return m_process;
   }
 
   /**

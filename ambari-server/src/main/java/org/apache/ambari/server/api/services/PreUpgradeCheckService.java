@@ -51,15 +51,14 @@ public class PreUpgradeCheckService extends BaseService {
   /**
    * Handles GET /rolling_upgrades_check request.
    *
-   * @param body body
    * @param headers headers
    * @param ui uri info
    * @return information about upgrade checks
    */
   @GET
   @Produces("text/plain")
-  public Response getPreUpgradeChecks(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET, createResource());
+  public Response getPreUpgradeChecks(@Context HttpHeaders headers, @Context UriInfo ui) {
+    return handleRequest(headers, null, ui, Request.Type.GET, createResource());
   }
 
   /**
