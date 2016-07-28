@@ -40,9 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -63,13 +60,15 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.Assert;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * StackManager unit tests.
@@ -145,14 +144,14 @@ public class StackManagerTest {
 
   @Test
   public void testHCFSServiceType() {
-    
+
     StackInfo stack = stackManager.getStack("HDP", "2.2.0.ECS");
     ServiceInfo service = stack.getService("ECS");
     assertEquals(service.getServiceType(),"HCFS");
-    
+
     service = stack.getService("HDFS");
     assertNull(service);
-  }  
+  }
 
   @Test
   public void testGetStack() {
@@ -680,6 +679,26 @@ public class StackManagerTest {
         stack.getKerberosDescriptorFileLocation());
   }
 
+  /**
+   * Tests that {@link UpgradePack} instances are correctly initialized
+   * post-unmarshalling.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradePacksInitializedAfterUnmarshalling() throws Exception {
+    StackInfo stack = stackManager.getStack("HDP", "2.2.0");
+    Map<String, UpgradePack> upgradePacks = stack.getUpgradePacks();
+    for (UpgradePack upgradePack : upgradePacks.values()) {
+      assertNotNull(upgradePack);
+      assertNotNull(upgradePack.getTasks());
+      assertTrue(upgradePack.getTasks().size() > 0);
+
+      // reference equality (make sure it's the same list)
+      assertTrue(upgradePack.getTasks() == upgradePack.getTasks());
+    }
+  }
+
   @Test
   public void testMetricsLoaded() throws Exception {
 
@@ -694,8 +713,9 @@ public class StackManagerTest {
 
     try {
          URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null)
+      if (extensionsURL != null) {
         extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
+      }
     }
     catch (Exception e) {}
 
@@ -758,8 +778,9 @@ public class StackManagerTest {
 
     try {
       URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null)
+      if (extensionsURL != null) {
         extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
+      }
     }
     catch (Exception e) {}
 
@@ -886,8 +907,9 @@ public class StackManagerTest {
 
     try {
          URL extensionsURL = ClassLoader.getSystemClassLoader().getResource("extensions");
-      if (extensionsURL != null)
+      if (extensionsURL != null) {
         extensions = new File(extensionsURL.getPath().replace("test-classes","classes"));
+      }
     }
     catch (Exception e) {}
 
