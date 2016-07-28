@@ -3045,7 +3045,8 @@ class TestHDP22StackAdvisor(TestCase):
           'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
         },
         'property_attributes': {
-          'dfs.datanode.failed.volumes.tolerated': {'maximum': '4'}
+          'dfs.datanode.failed.volumes.tolerated': {'maximum': '4'},
+          'dfs.encryption.key.provider.uri': {'delete': 'true'}
         }
       },
       'ranger-hdfs-plugin-properties': {
@@ -3059,6 +3060,9 @@ class TestHDP22StackAdvisor(TestCase):
           "hadoop.proxyuser.hdfs.groups": "*",
           "hadoop.proxyuser.ambari_user.hosts": ambariHostName,
           "hadoop.proxyuser.ambari_user.groups": "*"
+          },
+        'property_attributes': {
+          'hadoop.security.key.provider.path': {'delete': 'true'}
         }
       }
     }

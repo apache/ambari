@@ -285,6 +285,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerEnvHdfsPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hdfs-plugin-enabled"]
       putHdfsRangerPluginProperty("ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty)
 
+    putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
+    putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
+    if not "RANGER_KMS" in servicesList:
+      putCoreSitePropertyAttribute('hadoop.security.key.provider.path','delete','true')
+      putHdfsSitePropertyAttribute('dfs.encryption.key.provider.uri','delete','true')
+
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 
