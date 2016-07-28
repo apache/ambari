@@ -28,7 +28,7 @@ from resource_management.libraries.functions.file_system import get_mount_point_
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Directory
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.default import default
 
 DIR_TO_MOUNT_HEADER = """
 # This file keeps track of the last known mount-point for each dir.
@@ -89,7 +89,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   Directory(os.path.dirname(history_filename),
               create_parents = True,
               mode=0755,
-   )
+  )
 
   # Get the dirs that Ambari knows about and their last known mount point
   prev_dir_to_mount_point = get_dir_to_mount_from_file(history_filename)
@@ -99,16 +99,16 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
   # If a dir was previously on / and is now mounted on a drive, we should store that too.
   dir_to_mount_point = prev_dir_to_mount_point.copy()
 
-  # This should typically be False for customers, but True the first time.
-  allowed_to_create_any_dir = False
+  # This should typically be True after first DataNode start, but False the first time.
+  history_file_exists = True
 
   if history_filename is None:
-    allowed_to_create_any_dir = True
-    Logger.warning("handle_mounted_dirs is allowed to create any directory since history_file.file property is null.")
+    history_file_exists = False
+    Logger.warning("History_file.file property is null.")
   else:
     if not os.path.exists(history_filename):
-      allowed_to_create_any_dir = True
-      Logger.warning("handle_mounted_dirs is allowed to create any directory since history_file property has file %s and it does not exist." % history_filename)
+      history_file_exists = False
+      Logger.warning("History_file property has file %s and it does not exist." % history_filename)
 
   valid_dirs = []                # dirs that have been normalized
   error_messages = []                 # list of error messages to report at the end
@@ -127,50 +127,36 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
       valid_existing_dirs.append(dir)
 
   used_mounts = set([get_mount_point_for_dir(dir) for dir in valid_existing_dirs])
-  
-  for dir in valid_dirs:
-    if not dir in valid_existing_dirs:
-      may_create_this_dir = allowed_to_create_any_dir
-      last_mount_point_for_dir = None
-      
-      curr_mount_point = get_mount_point_for_dir(dir)
 
-      # This means that create_this_dir will stay false if the directory became unmounted.
-      # In other words, allow creating if it was already on /, or it's currently not on /
-      is_non_root_dir = (curr_mount_point is not None and curr_mount_point != "/")
+  ignore_bad_mounts = default('/configurations/cluster-env/ignore_bad_mounts', False)
+  manage_dirs_on_root = default('/configurations/cluster-env/manage_dirs_on_root', True)
 
-      # Determine if should be allowed to create the dir directory.
-      # Either first time, became unmounted, or was just mounted on a drive
-      if not may_create_this_dir:
-        last_mount_point_for_dir = prev_dir_to_mount_point[dir] if dir in prev_dir_to_mount_point else None
+  for dir_ in valid_dirs:
+    last_mount_point_for_dir = prev_dir_to_mount_point.get(dir_, None) if history_file_exists else None
+    curr_mount_point = get_mount_point_for_dir(dir_)
+    is_non_root_dir = curr_mount_point is not None and curr_mount_point != "/"
+    folder_exists = dir_ in valid_existing_dirs
 
-        if last_mount_point_for_dir is None:
-          may_create_this_dir = (is_non_root_dir or Script.get_config()['configurations']['cluster-env']['create_dirs_on_root'])
+    if not folder_exists and ignore_bad_mounts:
+      Logger.debug("The directory {0} doesn't exist.".format(dir_))
+      Logger.warning("Not creating {0} as cluster-env/ignore_bad_mounts is enabled.".format(dir_))
+      may_manage_this_dir = False
+    else:
+      may_manage_this_dir = _may_manage_folder(dir_, last_mount_point_for_dir, is_non_root_dir, dirs_unmounted, error_messages, manage_dirs_on_root, curr_mount_point)
+
+      if may_manage_this_dir and dir_ not in valid_existing_dirs and curr_mount_point in used_mounts:
+        if default('/configurations/cluster-env/one_dir_per_partition', False):
+          may_manage_this_dir = False
+          Logger.warning("Skipping creation of another directory on the following mount: " + curr_mount_point + " . Please turn off cluster-env/one_dir_per_partition or handle the situation manually.")
         else:
-          may_create_this_dir = (last_mount_point_for_dir == "/" or is_non_root_dir)
+          Logger.warning("Trying to create another directory on the following mount: " + curr_mount_point)
 
-      if may_create_this_dir and Script.get_config()['configurations']['cluster-env']['ignore_bad_mounts']:
-        Logger.warning("Not creating {0} as cluster-env/ignore_bad_mounts is enabled.".format(dir))
-        may_create_this_dir = False
-        
-      if may_create_this_dir and curr_mount_point in used_mounts:
-        message = "Trying to create another directory on the following mount: " + curr_mount_point
-        if Script.get_config()['configurations']['cluster-env']['one_dir_per_partition']:
-          raise Fail(message + " . Please turn off cluster-env/one_dir_per_partition or handle the situation manually.")
-        else:
-          Logger.warning(message)
-          
-      if may_create_this_dir:
-        Logger.info("Forcefully creating directory: {0}".format(dir))
+    if may_manage_this_dir:
+      Logger.info("Forcefully ensuring existence and permissions of the directory: {0}".format(dir_))
+      # Call the function
+      func(dir_)
+      used_mounts.add(curr_mount_point)
 
-        # Call the function
-        func(dir)
-      else:
-        # Additional check that wasn't allowed to create this dir and became unmounted.
-        if last_mount_point_for_dir is not None:
-          dirs_unmounted.add(dir)
-          msg = "Directory {0} does not exist and became unmounted from {1} .".format(dir, last_mount_point_for_dir)
-          error_messages.append(msg)
   pass
 
   # This is set to false during unit tests.
@@ -183,14 +169,12 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
     if os.path.isdir(dir) and dir not in dirs_unmounted:
       curr_mount_point = get_mount_point_for_dir(dir)
       dir_to_mount_point[dir] = curr_mount_point
-      func(dir)
 
   if error_messages and len(error_messages) > 0:
-    header = " ERROR ".join(["*****"] * 6)
+    header = " WARNING ".join(["*****"] * 6)
     header = "\n" + "\n".join([header, ] * 3) + "\n"
     msg = " ".join(error_messages) + \
-          " Please remount the dir(s) and run this command again. To ignore this failure and allow writing to the " \
-          "root partition, either update the contents of {0}, or delete that file.".format(history_filename)
+          " Please ensure that mounts are healthy. If the mount change was intentional, you can update the contents of {0}.".format(history_filename)
     Logger.error(header + msg + header)
 
   dir_to_mount = DIR_TO_MOUNT_HEADER
@@ -198,6 +182,38 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
     dir_to_mount += kv[0] + "," + kv[1] + "\n"
 
   return dir_to_mount
+
+def _may_manage_folder(dir_, last_mount_point_for_dir, is_non_root_dir, dirs_unmounted, error_messages, manage_dirs_on_root, curr_mount_point):
+  may_manage_this_dir = True
+  if last_mount_point_for_dir is None:
+    if is_non_root_dir:
+      may_manage_this_dir = True
+    else:
+      # root mount
+      if manage_dirs_on_root:
+        may_manage_this_dir = True
+      else:
+        Logger.warning("Will not manage the directory {0} since it's on root mount and cluster-env/manage_dirs_on_root == {1}".format(dir_, str(manage_dirs_on_root)))
+        may_manage_this_dir = False
+        # Do not add to the history file:
+        dirs_unmounted.add(dir_)
+  else:
+    Logger.debug("Last mount for {0} in the history file is {1}".format(dir_, str(last_mount_point_for_dir)))
+    if last_mount_point_for_dir == curr_mount_point:
+      if is_non_root_dir or manage_dirs_on_root:
+        Logger.debug("Will manage {0} since it's on the same mount point: {1}".format(dir_, str(last_mount_point_for_dir)))
+        may_manage_this_dir = True
+      else:
+        Logger.warning("Will not manage {0} since it's on the root mount point and cluster-env/manage_dirs_on_root == {1}".format(dir_, str(manage_dirs_on_root)))
+        may_manage_this_dir = False
+    else:
+      may_manage_this_dir = False
+      dirs_unmounted.add(dir_)
+
+      msg = "Directory {0} became unmounted from {1} . Current mount point: {2} .".format(dir_, last_mount_point_for_dir, curr_mount_point)
+      error_messages.append(msg)
+      Logger.warning(msg)
+  return may_manage_this_dir
 
 def get_mounts_with_multiple_data_dirs(mount_points, dirs):
   """
