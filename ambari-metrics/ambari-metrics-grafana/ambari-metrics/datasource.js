@@ -128,6 +128,14 @@ define([
             var alias = target.alias ? target.alias : target.metric;
             if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "hbase-users") {
             alias = alias + ' for ' + target.hbUser; }
+            // Aliases for Storm Topologies and components under a topology.
+            if(!_.isEmpty(templateSrv.variables) && templateSrv.variables[0].query === "topologies" &&
+            !templateSrv.variables[1]) {
+              alias = alias + ' on ' + target.sTopology;
+            }
+            if(!_.isEmpty(templateSrv.variables[1]) && templateSrv.variables[1].name === "component") {
+              alias = alias + ' on ' + target.sTopology + ' for ' + target.sComponent;
+            }
             return function (res) {
               console.log('processing metric ' + target.metric);
               if (!res.metrics[0] || target.hide) {
@@ -263,6 +271,19 @@ define([
             );
           };
 
+          // Storm Topology calls.
+          var getStormData = function(target) {
+            var precision = target.precision === 'default' || typeof target.precision == 'undefined'  ? '' : '&precision='
+            + target.precision;
+            var metricAggregator = target.aggregator === "none" ? '' : '._' + target.aggregator;
+            var metricTransform = !target.transform || target.transform === "none" ? '' : '._' + target.transform;
+            var seriesAggregator = !target.seriesAggregator || target.seriesAggregator === "none" ? '' : '&seriesAggregateFunction=' + target.seriesAggregator;
+            return backendSrv.get(self.url + '/ws/v1/timeline/metrics?metricNames=' + target.sTopoMetric + metricTransform
+                + metricAggregator + '&appId=nimbus&startTime=' + from + '&endTime=' + to + precision + seriesAggregator).then(
+                allHostMetricsData(target)
+            );
+          };
+
           // Time Ranges
           var from = Math.floor(options.range.from.valueOf() / 1000);
           var to = Math.floor(options.range.to.valueOf() / 1000);
@@ -364,6 +385,37 @@ define([
                     return getNnAppIdData(target);
                   }));
               });
+            }
+
+            //Templatized Dashboard for Storm Topologies
+            if (templateSrv.variables[0].query === "topologies" && !templateSrv.variables[1]) {
+              var allTopologies = templateSrv.variables.filter(function(variable) { return variable.query === "topologies";});
+              var selectedTopologies = (_.isEmpty(allTopologies)) ? "" : allTopologies[0].options.filter(function(topo)
+              { return topo.selected; }).map(function(topoName) { return topoName.value; });
+              selectedTopologies = templateSrv._values.topologies.lastIndexOf('}') > 0 ? templateSrv._values.topologies.slice(1,-1) :
+                  templateSrv._values.topologies;
+              var selectedTopology= selectedTopologies.split(',');
+              _.forEach(selectedTopology, function(processTopology) {
+                metricsPromises.push(_.map(options.targets, function(target) {
+                  target.sTopology = processTopology;
+                  target.sTopoMetric = target.metric.replace('*', target.sTopology);
+                  return getStormData(target);
+                }));
+              });
+            }
+
+            //Templatized Dashboards for Storm Components
+            if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
+                templateSrv.variables[1].name === "component") {
+              var selectedTopology = templateSrv._values.topologies;
+              var selectedComponent = templateSrv._values.component;
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.sTopology = selectedTopology;
+                target.sComponent = selectedComponent;
+                target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sComponent);
+                debugger;
+                  return getStormData(target);
+              }));
             }
 
             // To speed up querying on templatized dashboards.
@@ -511,6 +563,58 @@ define([
                   };
                 });
               });
+          }
+          var topologies = {};
+          //Templated Variables for Storm Topologies
+          if(interpolated === "topologies") {
+            return this.initMetricAppidMapping()
+                .then(function () {
+                  var storm = allMetrics["nimbus"];
+                  var extractTopologies = storm.filter(/./.test.bind(new
+                      RegExp("^topology.", 'g')));
+                  _.map(extractTopologies, function(topology){
+                    // Topology naming convention is topology.<topology-name>.component.
+                    topology = topology.split('.').slice(0,3);
+                    if (topologies[topology[1]]){
+                      topologies[topology[1]].push(topology[2]);
+                    } else {
+                      topologies[topology[1]] = [topology[2]];
+                    }
+                  });
+                  return _.map(Object.keys(topologies), function(topologyNames){
+                    return {
+                      text: topologyNames
+                    };
+                  });
+                });
+          }
+          //Templated Variables for Storm Components per Topology
+          if (interpolated.includes("stormComponent")) {
+            var componentName = interpolated.substring(0,interpolated.indexOf('.'));
+            return this.initMetricAppidMapping()
+                .then(function () {
+                  var storm = allMetrics["nimbus"];
+                  var extractTopologies = storm.filter(/./.test.bind(new
+                      RegExp("^topology.", 'g')));
+                  _.map(extractTopologies, function(topology){
+                    topology = topology.split('.').slice(0,3);
+                    if (topologies[topology[1]]){
+                      topologies[topology[1]].push(topology[2]);
+                    } else {
+                      topologies[topology[1]] = [topology[2]];
+                    }
+                  });
+                  // Retrieve unique component names from the list.
+                  var compName = _.uniq(topologies[componentName]);
+                  // Remove "kafka-topic" from the list of components.
+                  var remove = compName.indexOf('kafka-topic');
+                  if (remove > -1) { compName.splice(remove, 1);}
+                  return _.map(compName, function(components){
+                    return {
+                      text: components
+                    };
+                  });
+                });
           }
           // Templated Variable for YARN Queues.
           // It will search the cluster and populate the queues.
