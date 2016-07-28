@@ -27,7 +27,6 @@ import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -137,17 +136,27 @@ public class LogFeederUtil {
     }
 
     if (!propLoaded) {
-      // Properties not yet loaded, let's try from class loader
-      BufferedInputStream fileInputStream = (BufferedInputStream) LogFeeder.class
-        .getClassLoader().getResourceAsStream(propFile);
-      if (fileInputStream != null) {
-        logger.info("Loading properties file " + propFile
-          + " from classpath");
-        props.load(fileInputStream);
-        propLoaded = true;
-      } else {
-        logger.fatal("Properties file not found in classpath. properties file name= "
-          + propFile);
+      BufferedInputStream fileInputStream = null;
+      try {
+        // Properties not yet loaded, let's try from class loader
+        fileInputStream = (BufferedInputStream) LogFeeder.class
+          .getClassLoader().getResourceAsStream(propFile);
+        if (fileInputStream != null) {
+          logger.info("Loading properties file " + propFile
+            + " from classpath");
+          props.load(fileInputStream);
+          propLoaded = true;
+        } else {
+          logger.fatal("Properties file not found in classpath. properties file name= "
+            + propFile);
+        }
+      } finally {
+        if (fileInputStream != null) {
+          try {
+            fileInputStream.close();
+          } catch (IOException e) {
+          }
+        }
       }
     }
 

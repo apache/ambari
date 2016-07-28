@@ -166,7 +166,7 @@ public class LogSearch {
     ServerSocket serverSocket = null;
     boolean portBusy = false;
     try {
-      new ServerSocket(port);
+      serverSocket = new ServerSocket(port);
     } catch (IOException ex) {
       portBusy = true;
       logger.error(ex.getLocalizedMessage() + " PORT :" + port);

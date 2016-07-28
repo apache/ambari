@@ -22,6 +22,7 @@ package org.apache.ambari.logfeeder.output;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
@@ -94,17 +95,27 @@ public class OutputFile extends Output {
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker)
     throws Exception {
     String outStr = null;
-    if (codec.equals("csv")) {
-      CSVPrinter csvPrinter = new CSVPrinter(outWriter, CSVFormat.RFC4180);
-      //TODO:
-    } else {
-      outStr = LogFeederUtil.getGson().toJson(jsonObj);
-    }
-    if (outWriter != null && outStr != null) {
-      statMetric.count++;
+    CSVPrinter csvPrinter = null;
+    try {
+      if (codec.equals("csv")) {
+        csvPrinter = new CSVPrinter(outWriter, CSVFormat.RFC4180);
+        //TODO:
+      } else {
+        outStr = LogFeederUtil.getGson().toJson(jsonObj);
+      }
+      if (outWriter != null && outStr != null) {
+        statMetric.count++;
 
-      outWriter.println(outStr);
-      outWriter.flush();
+        outWriter.println(outStr);
+        outWriter.flush();
+      }
+    } finally {
+      if (csvPrinter != null) {
+        try {
+          csvPrinter.close();
+        } catch (IOException e) {
+        }
+      }
     }
   }
 

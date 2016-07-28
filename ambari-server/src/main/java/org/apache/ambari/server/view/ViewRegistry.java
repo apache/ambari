@@ -18,14 +18,31 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Sets;
-import com.google.common.eventbus.AllowConcurrentEvents;
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.xml.bind.JAXBException;
+
+import java.beans.IntrospectionException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
@@ -105,29 +122,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.inject.Singleton;
-import javax.xml.bind.JAXBException;
-import java.beans.IntrospectionException;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Registry for view and view instance definitions.
@@ -1737,13 +1739,14 @@ public class ViewRegistry {
    */
   private void configureViewLogging(ViewEntity viewDefinition, ClassLoader cl) {
     InputStream viewLog4jStream = cl.getResourceAsStream(VIEW_LOG_FILE);
+    InputStream ambariLog4jStream = null;
     if (null != viewLog4jStream) {
       try {
         Properties viewLog4jConfig = new Properties();
         viewLog4jConfig.load(viewLog4jStream);
         LOG.info("setting up logging for view {} as per property file {}", viewDefinition.getName(), VIEW_LOG_FILE);
 
-        InputStream ambariLog4jStream = cl.getResourceAsStream(AMBARI_LOG_FILE);
+        ambariLog4jStream = cl.getResourceAsStream(AMBARI_LOG_FILE);
         if (null != ambariLog4jStream) {
           Properties ambariLog4jConfig = new Properties();
           ambariLog4jConfig.load(ambariLog4jStream);
@@ -1763,6 +1766,13 @@ public class ViewRegistry {
         PropertyConfigurator.configure(viewLog4jConfig);
       } catch (IOException e) {
         LOG.error("Error occurred while configuring logs for {}", viewDefinition.getName());
+      } finally {
+        if (ambariLog4jStream != null) {
+          try {
+            ambariLog4jStream.close();
+          } catch (IOException e) {
+          }
+        }
       }
     }
   }
@@ -1939,8 +1949,18 @@ public class ViewRegistry {
         ViewEntity viewDefinition = new ViewEntity(viewConfig, configuration, extractedArchiveDirPath);
 
         if (!systemOnly || viewDefinition.isSystem()) {
-          extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
-          return true;
+          ClassLoader classLoader = null;
+          try {
+            classLoader = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
+            return true;
+          } finally {
+            if (classLoader != null && classLoader instanceof ViewClassLoader) {
+              try {
+                ((ViewClassLoader)classLoader).close();
+              } catch (IOException e) {
+              }
+            }
+          }
         }
       }
     }
