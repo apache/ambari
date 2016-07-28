@@ -615,7 +615,7 @@
             "user_group": "hadoop",
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
             "kinit_path_local": "/usr/bin",
-            "create_dirs_on_root": "true",
+            "manage_dirs_on_root": "true",
             "ignore_bad_mounts": "false"
         },
         "hadoop-env": {
