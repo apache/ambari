@@ -24,6 +24,7 @@ from mock.mock import Mock, MagicMock, patch
 
 from resource_management.libraries.functions import mounted_dirs_helper
 from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
 from resource_management import Directory
 from resource_management.libraries.script.script import Script
 
@@ -52,7 +53,7 @@ def fake_create_dir(directory):
   print "Fake function to create directory {0}".format(directory)
 
 
-@patch.object(Script, "get_config", new=MagicMock(return_value={'configurations':{'cluster-env': {'ignore_bad_mounts': False}}}))
+@patch.object(Script, "get_config", new=MagicMock(return_value={'configurations':{'cluster-env': {'ignore_bad_mounts': False, 'manage_dirs_on_root': True, 'one_dir_per_partition': False}}}))
 class TestDatanodeHelper(TestCase):
   """
   Test the functionality of the dfs_datanode_helper.py
@@ -90,9 +91,9 @@ class TestDatanodeHelper(TestCase):
     for (name, args, kwargs) in log_error.mock_calls:
       print args[0]
 
-    log_info.assert_any_call("Forcefully creating directory: /grid/0/data")
-    log_info.assert_any_call("Forcefully creating directory: /grid/1/data")
-    log_info.assert_any_call("Forcefully creating directory: /GRID/2/Data/")
+    log_info.assert_any_call("Forcefully ensuring existence and permissions of the directory: /grid/0/data")
+    log_info.assert_any_call("Forcefully ensuring existence and permissions of the directory: /grid/1/data")
+    log_info.assert_any_call("Forcefully ensuring existence and permissions of the directory: /GRID/2/Data/")
 
     self.assertEquals(0, log_error.call_count)
 
@@ -128,7 +129,10 @@ class TestDatanodeHelper(TestCase):
     error_msg = "".join(error_logs)
 
     self.assertEquals(1, log_error.call_count)
-    self.assertTrue("Directory /grid/2/data does not exist and became unmounted from /dev2" in error_msg)
+    self.assertTrue("Directory /grid/2/data became unmounted from /dev2 . Current mount point: / ."
+                    " Please ensure that mounts are healthy. If the mount change was intentional, you can update the contents of "
+                    "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist." in error_msg)
+
 
   @patch("resource_management.libraries.functions.mounted_dirs_helper.Directory")
   @patch.object(Logger, "info")
@@ -166,3 +170,52 @@ class TestDatanodeHelper(TestCase):
   def test_get_mounts_with_multiple_data_dirs(self):
     self.assertEquals([], mounted_dirs_helper.get_mounts_with_multiple_data_dirs(["/", "/hodoop", "/tmp"], "/hadoop/data,/tmp"))
     self.assertEquals([("/", ["/hadoop/data", "/tmp"])], mounted_dirs_helper.get_mounts_with_multiple_data_dirs(["/"], "/hadoop/data,/tmp"))
+
+  def test_may_manage_folder(self):
+    # root, no history file, manage_dirs_on_root = True
+    # folder should be managed
+    dirs_unmounted=set()
+    self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = True, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set())
+
+    # root, no history file, manage_dirs_on_root = False
+    # folder should not be managed
+    dirs_unmounted=set()
+    self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+
+    # non root, no history file, manage_dirs_on_root = False
+    # folder should be managed
+    dirs_unmounted=set()
+    self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir=None, is_non_root_dir=True, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set())
+
+    # unmounted to root, manage_dirs_on_root = True
+    # folder should not be managed
+    dirs_unmounted=set()
+    self.assertEquals(False, mounted_dirs_helper._may_manage_folder('/grid/0/data', '/grid/0', True, dirs_unmounted, [], False, '/'))
+    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+
+    # unmounted to root, manage_dirs_on_root = False
+    # folder should not be managed
+    dirs_unmounted=set()
+    self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/grid/0/data', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))
+
+    # same mount = root, manage_dirs_on_root = False
+    # folder should not be managed
+    dirs_unmounted=set()
+    self.assertEquals(False, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = False, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set())
+
+    # same mount = root, manage_dirs_on_root = True
+    # folder should be managed
+    dirs_unmounted=set()
+    self.assertEquals(True, mounted_dirs_helper._may_manage_folder(dir_='/grid/0/data', last_mount_point_for_dir='/', is_non_root_dir=False, dirs_unmounted=dirs_unmounted, error_messages = [], manage_dirs_on_root = True, curr_mount_point = '/'))
+    self.assertSetEqual(dirs_unmounted, set())
+
+    # mount changed to non root, manage_dirs_on_root = False
+    # folder should not be managed
+    dirs_unmounted=set()
+    self.assertEquals(False, mounted_dirs_helper._may_manage_folder('/grid/0/data', '/', True, dirs_unmounted, [], False, '/grid/0'))
+    self.assertSetEqual(dirs_unmounted, set(['/grid/0/data']))

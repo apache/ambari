@@ -681,7 +681,7 @@
             "alerts_repeat_tolerance": "1", 
             "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
             "kerberos_domain": "EXAMPLE.COM", 
-            "create_dirs_on_root": "true", 
+            "manage_dirs_on_root": "true",
             "recovery_lifetime_max_count": "1024", 
             "recovery_type": "AUTO_START", 
             "ignore_bad_mounts": "false", 

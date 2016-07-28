@@ -602,7 +602,7 @@
           "metrics_collector_vip_port": "6189",
           "override_uid" : "true",
           "fetch_nonlocal_groups": "true",
-          "create_dirs_on_root": "true",
+          "manage_dirs_on_root": "true",
           "ignore_bad_mounts": "false"
       },
       "hbase-env": {
