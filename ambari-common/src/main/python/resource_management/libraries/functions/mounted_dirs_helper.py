@@ -149,7 +149,7 @@ def handle_mounted_dirs(func, dirs_string, history_filename, update_cache=True):
           may_manage_this_dir = False
           Logger.warning("Skipping creation of another directory on the following mount: " + curr_mount_point + " . Please turn off cluster-env/one_dir_per_partition or handle the situation manually.")
         else:
-          Logger.warning("Trying to create another directory on the following mount: " + curr_mount_point)
+          Logger.warning("Trying to create another directory on the following mount: " + str(curr_mount_point))
 
     if may_manage_this_dir:
       Logger.info("Forcefully ensuring existence and permissions of the directory: {0}".format(dir_))
