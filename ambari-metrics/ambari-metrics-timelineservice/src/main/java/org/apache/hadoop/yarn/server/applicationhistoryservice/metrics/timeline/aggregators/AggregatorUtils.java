@@ -18,9 +18,6 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,6 +26,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  *
@@ -84,12 +84,19 @@ public class AggregatorUtils {
         whitelistedMetrics.add(strLine);
       }
     } catch (IOException ioEx) {
-      LOG.error("Unable to parse metric whitelist file");
+      LOG.error("Unable to parse metric whitelist file", ioEx);
+    } finally {
       if (br != null) {
         try {
           br.close();
         } catch (IOException e) {
-          LOG.error("Unable to close whitelist file reader");
+        }
+      }
+
+      if (fstream != null) {
+        try {
+          fstream.close();
+        } catch (IOException e) {
         }
       }
     }

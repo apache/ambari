@@ -47,11 +47,20 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
     Properties properties = new Properties();
     URL fileCompleteUrl = Thread.currentThread()
         .getContextClassLoader().getResource(LOGSEARCH_PROP_FILE);
+    FileInputStream fileInputStream = null;
     try {
       File file = new File(fileCompleteUrl.toURI());
-      properties.load(new FileInputStream(file.getAbsoluteFile()));
+      fileInputStream = new FileInputStream(file.getAbsoluteFile());
+      properties.load(fileInputStream);
     } catch (IOException | URISyntaxException e) {
       logger.error("error loading prop for protocol config",e);
+    } finally {
+      if (fileInputStream != null) {
+        try {
+          fileInputStream.close();
+        } catch (IOException e) {
+        }
+      }
     }
     for (String key : properties.stringPropertyNames()) {
       String value = properties.getProperty(key);

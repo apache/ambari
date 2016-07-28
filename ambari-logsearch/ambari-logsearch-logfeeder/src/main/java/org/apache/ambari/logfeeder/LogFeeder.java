@@ -23,6 +23,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -136,16 +137,34 @@ public class LogFeeder {
   }
 
   private void loadConfigsUsingClassLoader(String configFileName) throws Exception {
-    BufferedInputStream fileInputStream = (BufferedInputStream) this
-      .getClass().getClassLoader()
-      .getResourceAsStream(configFileName);
-    if (fileInputStream != null) {
-      BufferedReader br = new BufferedReader(new InputStreamReader(
-        fileInputStream));
-      String configData = readFile(br);
-      loadConfigs(configData);
-    } else {
-      throw new Exception("Can't find configFile=" + configFileName);
+    BufferedInputStream fileInputStream = null;
+    BufferedReader br = null;
+    try {
+      fileInputStream = (BufferedInputStream) this
+        .getClass().getClassLoader()
+        .getResourceAsStream(configFileName);
+      if (fileInputStream != null) {
+        br = new BufferedReader(new InputStreamReader(
+          fileInputStream));
+        String configData = readFile(br);
+        loadConfigs(configData);
+      } else {
+        throw new Exception("Can't find configFile=" + configFileName);
+      }
+    } finally {
+      if (br != null) {
+        try {
+          br.close();
+        } catch (IOException e) {
+        }
+      }
+
+      if (fileInputStream != null) {
+        try {
+          fileInputStream.close();
+        } catch (IOException e) {
+        }
+      }
     }
   }
 

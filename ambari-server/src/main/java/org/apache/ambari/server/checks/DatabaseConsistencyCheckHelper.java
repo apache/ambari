@@ -150,6 +150,7 @@ public class DatabaseConsistencyCheckHelper {
     String GET_NOT_MAPPED_CONFIGS_QUERY = "select type_name from clusterconfig where type_name not in (select type_name from clusterconfigmapping)";
     Set<String> nonSelectedConfigs = new HashSet<>();
     ResultSet rs = null;
+    Statement statement = null;
 
     if (connection == null) {
       if (dbAccessor == null) {
@@ -159,7 +160,7 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     try {
-      Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_NOT_MAPPED_CONFIGS_QUERY);
       if (rs != null) {
         while (rs.next()) {
@@ -180,6 +181,14 @@ public class DatabaseConsistencyCheckHelper {
           LOG.error("Exception occurred during result set closing procedure: ", e);
         }
       }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
+        }
+      }
     }
   }
 
@@ -198,6 +207,7 @@ public class DatabaseConsistencyCheckHelper {
             "having sum(selected) > 1";
     Multimap<String, String> clusterConfigTypeMap = HashMultimap.create();
     ResultSet rs = null;
+    Statement statement = null;
 
     if (connection == null) {
       if (dbAccessor == null) {
@@ -207,7 +217,7 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     try {
-      Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_CONFIGS_SELECTED_MORE_THAN_ONCE_QUERY);
       if (rs != null) {
         while (rs.next()) {
@@ -231,6 +241,14 @@ public class DatabaseConsistencyCheckHelper {
           LOG.error("Exception occurred during result set closing procedure: ", e);
         }
       }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
+        }
+      }
     }
   }
 
@@ -245,6 +263,7 @@ public class DatabaseConsistencyCheckHelper {
     String GET_HOSTS_WITHOUT_STATUS_QUERY = "select host_name from hosts where host_id not in (select host_id from hoststate)";
     Set<String> hostsWithoutStatus = new HashSet<>();
     ResultSet rs = null;
+    Statement statement = null;
 
     if (connection == null) {
       if (dbAccessor == null) {
@@ -254,7 +273,7 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     try {
-      Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
       rs = statement.executeQuery(GET_HOSTS_WITHOUT_STATUS_QUERY);
       if (rs != null) {
         while (rs.next()) {
@@ -277,6 +296,14 @@ public class DatabaseConsistencyCheckHelper {
           LOG.error("Exception occurred during result set closing procedure: ", e);
         }
       }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
+        }
+      }
     }
   }
 
@@ -297,6 +324,7 @@ public class DatabaseConsistencyCheckHelper {
     int hostComponentDesiredStateCount = 0;
     int mergedCount = 0;
     ResultSet rs = null;
+    Statement statement = null;
 
     if (connection == null) {
       if (dbAccessor == null) {
@@ -306,7 +334,7 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     try {
-      Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
       rs = statement.executeQuery(GET_HOST_COMPONENT_STATE_COUNT_QUERY);
       if (rs != null) {
@@ -342,6 +370,14 @@ public class DatabaseConsistencyCheckHelper {
           rs.close();
         } catch (SQLException e) {
           LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
         }
       }
     }
@@ -389,6 +425,7 @@ public class DatabaseConsistencyCheckHelper {
     Map<String, Multimap<String, String>> clusterServiceVersionMap = new HashMap<>();
     Map<String, Multimap<String, String>> clusterServiceConfigType = new HashMap<>();
     ResultSet rs = null;
+    Statement statement = null;
 
     if (connection == null) {
       if (dbAccessor == null) {
@@ -402,7 +439,7 @@ public class DatabaseConsistencyCheckHelper {
     }
 
     try {
-      Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+      statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
       rs = statement.executeQuery(GET_SERVICES_WITHOUT_CONFIGS_QUERY);
       if (rs != null) {
@@ -573,6 +610,14 @@ public class DatabaseConsistencyCheckHelper {
           rs.close();
         } catch (SQLException e) {
           LOG.error("Exception occurred during result set closing procedure: ", e);
+        }
+      }
+
+      if (statement != null) {
+        try {
+          statement.close();
+        } catch (SQLException e) {
+          LOG.error("Exception occurred during statement closing procedure: ", e);
         }
       }
     }
