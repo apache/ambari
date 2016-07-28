@@ -186,26 +186,6 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
 
-    # Test 1 for dfs.allow.truncate with no HAWQ and dfs.allow.truncate not set
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertTrue('dfs.allow.truncate' not in configurations['hdfs-site']['properties'])
-
-    # Test 2 for dfs.allow.truncate with HAWQ and dfs.allow.truncate not set
-    services["services"].append({"StackServices" : {"service_name" : "HAWQ"}, "components":[]})
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hdfs-site']['properties']['dfs.allow.truncate'], 'true')
-
-    # Test 3 for dfs.allow.truncate with no HAWQ and dfs.allow.truncate set to false
-    services["services"].remove({"StackServices" : {"service_name" : "HAWQ"}, "components":[]})
-    configurations['hdfs-site']['properties']['dfs.allow.truncate'] = 'false'
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hdfs-site']['properties']['dfs.allow.truncate'], 'false')
-
-    # Test 4 for dfs.allow.truncate with HAWQ and dfs.allow.truncate set to false
-    services["services"].append({"StackServices" : {"service_name" : "HAWQ"}, "components":[]})
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations['hdfs-site']['properties']['dfs.allow.truncate'], 'true')
-
   def test_recommendYARNConfigurations(self):
     configurations = {}
     servicesList = ["YARN"]
@@ -1560,97 +1540,6 @@ class TestHDP23StackAdvisor(TestCase):
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')
-
-  def test_validateHDFSConfigurations(self):
-    properties = {'dfs.datanode.data.dir': '/hadoop/hdfs/data'}
-    recommendedDefaults = {}
-    configurations = {
-      "core-site": {"properties": {}},
-    }
-    services = {
-      "services": [
-        {
-          "StackServices": {
-            "service_name": "HDFS"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "NAMENODE",
-                "hostnames": ["c6401.ambari.apache.org"]
-              }
-            }
-          ]
-        },
-        {
-          "StackServices": {
-            "service_name": "HAWQ"
-          },
-          "components": [
-            {
-              "StackServiceComponents": {
-                "component_name": "HAWQMASTER",
-                "hostnames": ["c6401.ambari.apache.org"]
-              }
-            }
-          ]
-        }
-      ],
-      "configurations": configurations
-    }
-    services["configurations"]["hdfs-site"] = {}
-    services["configurations"]["hdfs-site"]["properties"] = {}
-    hosts = {}
-
-    expected_warning = {
-        'config-type':'hdfs-site',
-        'message':'HAWQ requires dfs.allow.truncate in hdfs-site.xml set to True.',
-        'type':'configuration',
-        'config-name':'dfs.allow.truncate',
-        'level':'WARN'
-    }
-
-    # Test following cases:
-    # when HAWQ is being installed and dfs.allow.truncate is not set at all, warning
-    # when HAWQ is being installed and dfs.allow.truncate is set to True, no warning
-    # when HAWQ is being installed and dfs.allow.truncate is not set to True, warning
-    # when HAWQ is not installed and dfs.allow.truncate is not set at all, no warning
-    # when HAWQ is not installed and dfs.allow.truncate is set to True, no warning
-    # when HAWQ is not installed and dfs.allow.truncate is not set to True, no warning
-    # 1
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 1)
-    self.assertEqual(problems[0], expected_warning)
-
-    # 2
-    services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"] = "True"
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 0)
-
-    # 3
-    services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"] = "false"
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 1)
-    self.assertEqual(problems[0], expected_warning)
-
-    del services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"]
-    servicesElementWithoutHAWQ = [service for service in services["services"] if service["StackServices"]["service_name"] != "HAWQ"]
-    services["services"] = servicesElementWithoutHAWQ
-
-    # 4
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 0)
-
-    # 5
-    services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"] = "True"
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 0)
-
-    # 6
-    services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"] = "false"
-    problems = self.stackAdvisor.validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
-    self.assertEqual(len(problems), 0)
-
 
   def test_recommendRangerKMSConfigurations(self):
     clusterData = {}
