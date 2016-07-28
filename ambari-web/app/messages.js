@@ -1324,8 +1324,9 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step9.task4.title':'Reconfigure HBase',
   'admin.highAvailability.wizard.step9.task5.title':'Reconfigure Accumulo',
   'admin.highAvailability.wizard.step9.task6.title':'Reconfigure HAWQ',
-  'admin.highAvailability.wizard.step9.task7.title':'Delete Secondary NameNode',
-  'admin.highAvailability.wizard.step9.task8.title':'Start All Services',
+  'admin.highAvailability.wizard.step9.task7.title':'Stop NameNodes',
+  'admin.highAvailability.wizard.step9.task8.title':'Delete Secondary NameNode',
+  'admin.highAvailability.wizard.step9.task9.title':'Start All Services',
   'admin.highAvailability.wizard.step9.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.curNameNode': '<b>Current NameNode:</b> ',
