@@ -185,49 +185,18 @@ def execute(configurations={}, parameters={}, host_name=None):
         logger.exception(LOGGER_EXCEPTION_MESSAGE.format(host_name))
         unknown_namenodes.append(value)
 
-  # now that the request is done, determine if this host is the host that
-  # should report the status of the HA topology
-  is_active_namenode = False
-  for active_namenode in active_namenodes:
-    if active_namenode.startswith(host_name):
-      is_active_namenode = True
-
   # there's only one scenario here; there is exactly 1 active and 1 standby
   is_topology_healthy = len(active_namenodes) == 1 and len(standby_namenodes) == 1
 
   result_label = 'Active{0}, Standby{1}, Unknown{2}'.format(str(active_namenodes),
     str(standby_namenodes), str(unknown_namenodes))
 
-  # Healthy Topology:
-  #   - Active NN reports the alert, standby does not
-  #
-  # Unhealthy Topology:
-  #   - Report the alert if this is the first named host
-  #   - Report the alert if not the first named host, but the other host
-  #   could not report its status
   if is_topology_healthy:
-    if is_active_namenode is True:
-      return (RESULT_STATE_OK, [result_label])
-    else:
-      return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
+    # if there is exactly 1 active and 1 standby NN
+    return (RESULT_STATE_OK, [result_label])
   else:
-    # dfs.namenode.rpc-address.service.alias is guaranteed in HA mode
-    first_listed_host_key = 'dfs.namenode.rpc-address.{0}.{1}'.format(
-      name_service, nn_unique_ids[0])
-
-    first_listed_host = ''
-    if first_listed_host_key in hdfs_site:
-      first_listed_host = hdfs_site[first_listed_host_key]
-
-    is_first_listed_host = False
-    if first_listed_host.startswith(host_name):
-      is_first_listed_host = True
-
-    if is_first_listed_host:
-      return (RESULT_STATE_CRITICAL, [result_label])
-    else:
-      # not the first listed host, but the first host might be in the unknown
-      return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
+    # other scenario
+    return (RESULT_STATE_CRITICAL, [result_label])
 
 
 def get_jmx(query, connection_timeout):
