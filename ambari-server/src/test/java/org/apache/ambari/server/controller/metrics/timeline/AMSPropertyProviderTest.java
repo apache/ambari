@@ -68,6 +68,7 @@ import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -137,6 +138,7 @@ public class AMSPropertyProviderTest {
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
     testPopulateResourcesHostBatches();
+    testPopulateResourcesForMultipleComponentsMetric();
   }
 
   @Test
@@ -156,6 +158,7 @@ public class AMSPropertyProviderTest {
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
     testPopulateResourcesHostBatches();
+    testPopulateResourcesForMultipleComponentsMetric();
   }
 
   @Test
@@ -175,6 +178,7 @@ public class AMSPropertyProviderTest {
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
     testPopulateResourcesHostBatches();
+    testPopulateResourcesForMultipleComponentsMetric();
   }
 
   @Test(expected = AuthorizationException.class)
@@ -196,6 +200,7 @@ public class AMSPropertyProviderTest {
     testPopulateResourcesForHostComponentHostMetrics();
     testPopulateResourcesForHostComponentMetricsForMultipleHosts();
     testPopulateResourcesHostBatches();
+    testPopulateResourcesForMultipleComponentsMetric();
   }
 
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
@@ -509,6 +514,58 @@ public class AMSPropertyProviderTest {
     Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
     Assert.assertNotNull("No value for property " + propertyId, val);
     Assert.assertEquals(238, val.length);
+  }
+
+  public void testPopulateResourcesForMultipleComponentsMetric() throws Exception {
+    setUpCommonMocks();
+    TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_COMPONENT_METRICS_FILE_PATH);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+    TimelineMetricCacheProvider cacheProviderMock = EasyMock.createMock(TimelineMetricCacheProvider.class);
+    TimelineMetricCache cacheMock = EasyMock.createMock(TimelineMetricCache.class);
+    expect(cacheProviderMock.getTimelineMetricsCache()).andReturn(cacheMock).anyTimes();
+    Map<String, Map<String, PropertyInfo>> propertyIds =
+            PropertyHelper.getMetricPropertyIds(Resource.Type.Component);
+
+    AMSPropertyProvider propertyProvider = new AMSComponentPropertyProvider(
+            propertyIds,
+            streamProvider,
+            sslConfiguration,
+            cacheProviderMock,
+            metricHostProvider,
+            CLUSTER_NAME_PROPERTY_ID,
+            COMPONENT_NAME_PROPERTY_ID
+    );
+    Set<String> requestedPropertyIds = new HashSet<>(Arrays.asList("metrics/hbase/master", "metrics/cpu/cpu_wio"));
+    Resource resource = new ResourceImpl(Resource.Type.Component);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "METRICS_COLLECTOR");
+    Resource namenodeResource = new ResourceImpl(Resource.Type.Component);
+    namenodeResource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    namenodeResource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    namenodeResource.setProperty(COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
+
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    for (String propertyId : requestedPropertyIds) {
+      temporalInfoMap.put(propertyId, new TemporalInfoImpl(1416528759233L, 1416531129231L, 1L));
+    }
+    Request request = PropertyHelper.getReadRequest(
+            requestedPropertyIds, temporalInfoMap);
+    Set<Resource> resources =
+            propertyProvider.populateResources(new HashSet<>(Arrays.asList(resource, namenodeResource)), request, null);
+    Assert.assertEquals(2, resources.size());
+    Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
+    Assert.assertNotNull(properties);
+    URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 6188, false);
+    uriBuilder.addParameter("metricNames", "cpu_wio");
+    uriBuilder.addParameter("appId", "NAMENODE");
+    uriBuilder.addParameter("startTime", "1416528759233");
+    uriBuilder.addParameter("endTime", "1416531129231");
+    Assert.assertTrue(streamProvider.getAllSpecs().contains(uriBuilder.toString()));
+    List<String> allSpecs = new ArrayList<>(streamProvider.getAllSpecs());
+    Assert.assertEquals(2, allSpecs.size());
   }
 
   public void testPopulateMetricsForEmbeddedHBase() throws Exception {

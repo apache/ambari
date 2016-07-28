@@ -43,6 +43,7 @@ import org.apache.http.client.utils.URIBuilder;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -134,6 +135,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     // Basically a host metric to be returned for a hostcomponent
     private final Set<String> hostComponentHostMetrics = new HashSet<String>();
     private String clusterName;
+    private Map<String, Set<String>> componentMetricMap = new HashMap<>();
 
     private MetricsRequest(TemporalInfo temporalInfo, URIBuilder uriBuilder,
                            String clusterName) {
@@ -211,7 +213,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
         TimelineMetrics timelineMetrics = new TimelineMetrics();
 
-        Set<String> nonHostComponentMetrics = new HashSet<String>(metrics.keySet());
+        Set<String> nonHostComponentMetrics = componentMetricMap.get(componentName);
+        if (nonHostComponentMetrics == null) {
+          nonHostComponentMetrics = new HashSet<>();
+        }
         nonHostComponentMetrics.removeAll(hostComponentHostMetrics);
         Set<String> hostNamesBatches = splitHostNamesInBatches(getHostnames(resources.get(componentName)), HOST_NAMES_BATCH_REQUEST_SIZE);
         Map<String, Set<TimelineMetric>> metricsMap = new HashMap<>();
@@ -444,6 +449,14 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
       return metricCacheKey;
     }
+
+    public void linkResourceToMetric(String componentName, String metric) {
+      if (componentMetricMap.get(componentName) == null) {
+        componentMetricMap.put(componentName, new HashSet<>(Arrays.asList(metric)));
+      } else {
+        componentMetricMap.get(componentName).add(metric);
+      }
+    }
   }
 
   private List<String> getHostnames(Set<Resource> resources) {
@@ -653,6 +666,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
             metricsRequest.putPropertyId(
               preprocessPropertyId(propertyInfo.getPropertyId(), getComponentName(resource)),
               propertyId);
+            metricsRequest.linkResourceToMetric(getComponentName(resource), preprocessPropertyId(propertyInfo.getPropertyId(), getComponentName(resource)));
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {
               metricsRequest.putHosComponentHostMetric(propertyInfo.getPropertyId());
