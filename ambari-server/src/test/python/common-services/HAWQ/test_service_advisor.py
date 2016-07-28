@@ -79,6 +79,21 @@ class TestHAWQ200ServiceAdvisor(TestCase):
         service["StackServices"]["advisor_name"] = "HAWQ200ServiceAdvisor"
         service["StackServices"]["advisor_path"] = self.hawq200ServiceAdvisorPath
 
+  def getDesiredHDFSSiteValues(self, is_secure):
+    hdfs_site_desired_values = {
+      "dfs.allow.truncate" : "true",
+      "dfs.block.access.token.enable" : str(is_secure).lower(),
+      "dfs.block.local-path-access.user" : "gpadmin",
+      "dfs.client.read.shortcircuit" : "true",
+      "dfs.client.use.legacy.blockreader.local" : "false",
+      "dfs.datanode.data.dir.perm" : "750",
+      "dfs.datanode.handler.count" : "60",
+      "dfs.datanode.max.transfer.threads" : "40960",
+      "dfs.namenode.accesstime.precision" : "0",
+      "dfs.support.append" : "true"
+    }
+    return hdfs_site_desired_values
+
   @patch("socket.getfqdn")
   def test_getHostsForMasterComponent(self, getfqdn_mock):
     getfqdn_mock.return_value = "c6401.ambari.apache.org"
@@ -265,27 +280,14 @@ class TestHAWQ200ServiceAdvisor(TestCase):
     }
 
     ## Test that HDFS parameters required by HAWQ are recommended
-    self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.allow.truncate"], "true")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "false")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.local-path-access.user"], "gpadmin")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.client.read.shortcircuit"], "true")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.client.use.legacy.blockreader.local"], "false")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir.perm"], "750")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.handler.count"], "60")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.datanode.max.transfer.threads"], "40960")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.namenode.accesstime.precision"], "0")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.namenode.handler.count"], "200")
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.support.append"], "true")
-
-    self.assertEquals(configurations["core-site"]["properties"]["ipc.client.connection.maxidletime"], "3600000")
-    self.assertEquals(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
-
-
     configurations["cluster-env"]["properties"]["security_enabled"]="false"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
-    self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "false")
+    hdfs_site_desired_values = self.getDesiredHDFSSiteValues(False)
+    for property, value in hdfs_site_desired_values.iteritems():
+      self.assertEquals(configurations["hdfs-site"]["properties"][property], value)
+    self.assertEquals(configurations["core-site"]["properties"]["ipc.server.listen.queue.size"], "3300")
 
+    # Kerberos causes 1 property to be recommended differently
     configurations["cluster-env"]["properties"]["security_enabled"]="true"
     self.serviceAdvisor.getServiceConfigurationRecommendations(configurations, None, services, hosts)
     self.assertEquals(configurations["hdfs-site"]["properties"]["dfs.block.access.token.enable"], "true")
@@ -1164,5 +1166,87 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       'level': 'WARN'
     }
     problems = self.serviceAdvisor.validateHAWQHdfsClientConfigurations(properties, defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+  def test_validateHDFSSiteConfigurations(self):
+    services = {
+      "services":  [
+        { "StackServices": {"service_name": "HAWQ"},
+          "components": [{
+            "StackServiceComponents": {
+              "component_name": "HAWQSEGMENT",
+              "hostnames": []
+            }}]
+          }],
+      "configurations": {"hdfs-site": {}, "core-site": {}}
+    }
+
+    # setup default configuration values for non-kerberos case
+    configurations = services["configurations"]
+    configurations["cluster-env"] = {"properties": {"security_enabled": "false"}}
+    defaults = {}
+    hosts = {}
+    desired_values = self.getDesiredHDFSSiteValues(False)
+
+    # check all properties setup correctly in hdfs-site
+    configurations["hdfs-site"]["properties"] = desired_values.copy()
+    problems = self.serviceAdvisor.validateHDFSSiteConfigurations(configurations["hdfs-site"]["properties"], defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # check overall number of validations for hdfs-site
+    configurations["hdfs-site"]["properties"] = {}
+    problems = self.serviceAdvisor.validateHDFSSiteConfigurations(configurations["hdfs-site"]["properties"], defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 10)
+
+    # check individual properties
+    for property in desired_values.keys():
+      # populate all properties as to desired configuration
+      configurations["hdfs-site"]["properties"] = desired_values.copy()
+      # test when the given property is missing
+      configurations["hdfs-site"]["properties"].pop(property)
+      expected = {
+        'config-type': 'hdfs-site',
+        'message': 'HAWQ requires this property to be set to the recommended value of ' + desired_values[property],
+        'type': 'configuration',
+        'config-name': property,
+        'level': 'ERROR' if property == 'dfs.allow.truncate' else 'WARN'
+      }
+      problems = self.serviceAdvisor.validateHDFSSiteConfigurations(configurations["hdfs-site"]["properties"], defaults, configurations, services, hosts)
+      self.assertEqual(len(problems), 1)
+      self.assertEqual(problems[0], expected)
+
+      # test when the given property has a non-desired value
+      configurations["hdfs-site"]["properties"][property] = "foo"
+      problems = self.serviceAdvisor.validateHDFSSiteConfigurations(configurations["hdfs-site"]["properties"], defaults, configurations, services, hosts)
+      self.assertEqual(len(problems), 1)
+      self.assertEqual(problems[0], expected)
+
+    # check all properties setup correctly in core-site
+    configurations["core-site"]["properties"] = {"ipc.server.listen.queue.size" : "3300"}
+    problems = self.serviceAdvisor.validateCORESiteConfigurations(configurations["core-site"]["properties"], defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 0)
+
+    # check overall number of validations for core-site
+    configurations["core-site"]["properties"] = {}
+    problems = self.serviceAdvisor.validateCORESiteConfigurations(configurations["core-site"]["properties"], defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+
+    # check incorrect core-site property
+    expected = {
+      'config-type': 'core-site',
+      'message': 'HAWQ requires this property to be set to the recommended value of 3300',
+      'type': 'configuration',
+      'config-name': 'ipc.server.listen.queue.size',
+      'level': 'WARN'
+    }
+    configurations["core-site"]["properties"] = {"ipc.server.listen.queue.size" : "0"}
+    problems = self.serviceAdvisor.validateCORESiteConfigurations(configurations["core-site"]["properties"], defaults, configurations, services, hosts)
+    self.assertEqual(len(problems), 1)
+    self.assertEqual(problems[0], expected)
+
+    # check missing core-site property
+    configurations["core-site"]["properties"].pop("ipc.server.listen.queue.size")
+    problems = self.serviceAdvisor.validateCORESiteConfigurations(configurations["core-site"]["properties"], defaults, configurations, services, hosts)
     self.assertEqual(len(problems), 1)
     self.assertEqual(problems[0], expected)

@@ -299,11 +299,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if "HAWQ" in servicesList:
-      # Set dfs.allow.truncate to true
-      putHdfsSiteProperty('dfs.allow.truncate', 'true')
-
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
       rangerPluginEnabled = ''
       if 'ranger-hdfs-plugin-properties' in configurations and 'ranger-hdfs-plugin-enabled' in  configurations['ranger-hdfs-plugin-properties']['properties']:
@@ -811,13 +806,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
-
-    # Check if dfs.allow.truncate is true
-    if "HAWQ" in servicesList and \
-        not ("dfs.allow.truncate" in services["configurations"]["hdfs-site"]["properties"] and \
-        services["configurations"]["hdfs-site"]["properties"]["dfs.allow.truncate"].lower() == 'true'):
-        validationItems.append({"config-name": "dfs.allow.truncate",
-                                "item": self.getWarnItem("HAWQ requires dfs.allow.truncate in hdfs-site.xml set to True.")})
 
     validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
     validationProblems.extend(parentValidationProblems)
