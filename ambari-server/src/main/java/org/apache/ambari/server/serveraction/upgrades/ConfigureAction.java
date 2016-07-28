@@ -237,6 +237,9 @@ public class ConfigureAction extends AbstractServerAction {
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    if (config == null) {
+      throw new AmbariException("Could not find desired config type with name " + configType);
+    }
 
     StackId currentStack = cluster.getCurrentStackVersion();
     StackId targetStack = cluster.getDesiredStackVersion();

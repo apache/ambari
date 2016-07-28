@@ -36,7 +36,7 @@
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
 
-      <skippable>true</skippable>
+    <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
@@ -71,7 +71,7 @@
       <parallel-scheduler/>
       <service-check>false</service-check>
 
-      <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
+    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
       <service name="ATLAS">
         <component>ATLAS_SERVER</component>
       </service>
@@ -79,7 +79,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -87,7 +87,7 @@
         <component>ACCUMULO_MONITOR</component>
         <component>ACCUMULO_MASTER</component>
       </service>
-
+      
       <service name="STORM">
         <component>DRPC_SERVER</component>
         <component>STORM_UI_SERVER</component>
@@ -335,10 +335,12 @@
       </execute-stage>
 
       <!-- SQOOP -->
-      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop">
+      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop to remove Atlas Configs">
         <!-- Remove Atlas configs that were incorrectly added to sqoop-site instead of Atlas' application.properties. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_sqoop_atlas_configs"/>
+      </execute-stage>
 
+      <execute-stage service="SQOOP" component="SQOOP" title="Apply config changes for Sqoop if the cluster is Kerberized">
         <!-- If cluster is Kerberized, add configs to sqoop-atlas-application.properties,
         which will be written to the local file system if Atlas is present. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs" />
