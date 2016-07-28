@@ -19,6 +19,9 @@
 
 package org.apache.ambari.logsearch.manager;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,9 +31,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
@@ -556,6 +556,7 @@ public class AuditMgr extends MgrBase {
     queryGenerator.setRowCount(solrQuery, 0);
 
     String dataFormat = (String) searchCriteria.getParamValue("format");
+    FileOutputStream fis = null;
     try {
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
       if(queryResponse == null){
@@ -667,7 +668,7 @@ public class AuditMgr extends MgrBase {
         + ".";
       File file = File.createTempFile(fileName, dataFormat);
 
-      FileOutputStream fis = new FileOutputStream(file);
+      fis = new FileOutputStream(file);
       fis.write(data.getBytes());
       return Response
         .ok(file, MediaType.APPLICATION_OCTET_STREAM)
@@ -679,6 +680,13 @@ public class AuditMgr extends MgrBase {
       logger.error("Error during solrQuery=" + e);
       throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+    } finally {
+      if (fis != null) {
+        try {
+          fis.close();
+        } catch (IOException e) {
+        }
+      }
     }
   }
 

@@ -18,15 +18,10 @@
 
 package org.apache.ambari.server.view;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.Thread.sleep;
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,8 +36,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.zip.ZipFile;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static java.lang.Thread.sleep;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 @Singleton
 public class ViewDirectoryWatcher implements DirectoryWatcher {
@@ -225,14 +226,22 @@ public class ViewDirectoryWatcher implements DirectoryWatcher {
    * @return
    */
   private boolean verify(Path resolvedPath) {
+    ZipFile zipFile = null;
     try {
       File file = resolvedPath.toAbsolutePath().toFile();
       checkArgument(!file.isDirectory());
       checkArgument(file.length() > 0);
-      new ZipFile(file);
+      zipFile = new ZipFile(file);
     } catch (Exception e) {
       LOG.info("Verification failed ", e);
       return false;
+    } finally {
+      if (zipFile != null) {
+        try {
+          zipFile.close();
+        } catch (IOException e) {
+        }
+      }
     }
     return true;
   }

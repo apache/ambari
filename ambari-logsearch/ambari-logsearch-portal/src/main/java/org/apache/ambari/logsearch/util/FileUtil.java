@@ -19,14 +19,15 @@
 
 package org.apache.ambari.logsearch.util;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.view.VHost;
@@ -46,6 +47,7 @@ public class FileUtil {
   @SuppressWarnings("resource")
   public Response saveToFile(String text, String fileName, VSummary vsummary) {
     String mainExportedFile = "";
+    FileOutputStream fis = null;
     try {
       mainExportedFile = mainExportedFile
         + "**********************Summary**********************\n";
@@ -112,7 +114,7 @@ public class FileUtil {
         + "\n";
       mainExportedFile = mainExportedFile + text + "\n";
       File file = File.createTempFile(fileName, vsummary.getFormat());
-      FileOutputStream fis = new FileOutputStream(file);
+      fis = new FileOutputStream(file);
       fis.write(mainExportedFile.getBytes());
       return Response
         .ok(file, MediaType.APPLICATION_OCTET_STREAM)
@@ -123,6 +125,13 @@ public class FileUtil {
       logger.error(e.getMessage());
       throw restErrorUtil.createRESTException(e.getMessage(),
         MessageEnums.ERROR_SYSTEM);
+    } finally {
+      if (fis != null) {
+        try {
+          fis.close();
+        } catch (IOException e) {
+        }
+      }
     }
   }
 
