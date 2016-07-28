@@ -139,22 +139,8 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     if "hdfs-site" in services["configurations"]:
       hdfs_site = services["configurations"]["hdfs-site"]["properties"]
       putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
-      putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
 
-      hdfs_site_desired_values = {
-        "dfs.allow.truncate" : "true",
-        "dfs.block.access.token.enable" : is_secured,
-        "dfs.block.local-path-access.user" : "gpadmin",
-        "dfs.client.read.shortcircuit" : "true",
-        "dfs.client.use.legacy.blockreader.local" : "false",
-        "dfs.datanode.data.dir.perm" : "750",
-        "dfs.datanode.handler.count" : "60",
-        "dfs.datanode.max.transfer.threads" : "40960",
-        "dfs.namenode.accesstime.precision" : "0",
-        "dfs.namenode.handler.count" : "200",
-        "dfs.support.append" : "true"
-      }
-      for property, desired_value in hdfs_site_desired_values.iteritems():
+      for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).iteritems():
         if property not in hdfs_site or hdfs_site[property] != desired_value:
           putHdfsSiteProperty(property, desired_value)
 
@@ -163,11 +149,7 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       core_site = services["configurations"]["core-site"]["properties"]
       putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
 
-      core_site_desired_values = {
-        "ipc.client.connection.maxidletime" : "3600000",
-        "ipc.server.listen.queue.size" : "3300"
-      }
-      for property, desired_value in core_site_desired_values.iteritems():
+      for property, desired_value in self.getCORESiteDesiredValues().iteritems():
         if property not in core_site or core_site[property] != desired_value:
           putCoreSiteProperty(property, desired_value)
 
@@ -303,6 +285,19 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     method = self.validateHAWQHdfsClientConfigurations
     resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
     items.extend(resultItems)
+
+    # validate recommended properties in hdfs-site
+    siteName = "hdfs-site"
+    method = self.validateHDFSSiteConfigurations
+    resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
+    items.extend(resultItems)
+
+    # validate recommended properties in core-site
+    siteName = "core-site"
+    method = self.validateCORESiteConfigurations
+    resultItems = self.validateConfigurationsForSite(configurations, recommendedDefaults, services, hosts, siteName, method)
+    items.extend(resultItems)
+
     return items
 
   def isHawqMasterPortConflict(self, configurations):
@@ -416,3 +411,43 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         validationItems.append({"config-name": PROP_NAME, "item": self.getWarnItem(message.format(PROP_NAME, str(MIN_NUM_SEGMENT_THRESHOLD)))})
 
     return self.toConfigurationValidationProblems(validationItems, "hdfs-client")
+
+  def validateHDFSSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    hdfs_site = properties
+    validationItems = []
+    for property, desired_value in self.getHDFSSiteDesiredValues(self.isSecurityEnabled(services)).iteritems():
+      if property not in hdfs_site or hdfs_site[property] != desired_value:
+        message = "HAWQ requires this property to be set to the recommended value of " + desired_value
+        item = self.getErrorItem(message) if property == "dfs.allow.truncate" else self.getWarnItem(message)
+        validationItems.append({"config-name": property, "item": item})
+    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+
+  def validateCORESiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    core_site = properties
+    validationItems = []
+    for property, desired_value in self.getCORESiteDesiredValues().iteritems():
+      if property not in core_site or core_site[property] != desired_value:
+        message = "HAWQ requires this property to be set to the recommended value of " + desired_value
+        validationItems.append({"config-name": property, "item": self.getWarnItem(message)})
+    return self.toConfigurationValidationProblems(validationItems, "core-site")
+
+  def getHDFSSiteDesiredValues(self, is_secure):
+    hdfs_site_desired_values = {
+      "dfs.allow.truncate" : "true",
+      "dfs.block.access.token.enable" : str(is_secure).lower(),
+      "dfs.block.local-path-access.user" : "gpadmin",
+      "dfs.client.read.shortcircuit" : "true",
+      "dfs.client.use.legacy.blockreader.local" : "false",
+      "dfs.datanode.data.dir.perm" : "750",
+      "dfs.datanode.handler.count" : "60",
+      "dfs.datanode.max.transfer.threads" : "40960",
+      "dfs.namenode.accesstime.precision" : "0",
+      "dfs.support.append" : "true"
+    }
+    return hdfs_site_desired_values
+
+  def getCORESiteDesiredValues(self):
+    core_site_desired_values = {
+      "ipc.server.listen.queue.size" : "3300"
+    }
+    return core_site_desired_values
