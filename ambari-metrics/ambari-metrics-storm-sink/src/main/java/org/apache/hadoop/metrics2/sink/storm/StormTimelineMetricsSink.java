@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
+import org.apache.storm.Constants;
 import org.apache.storm.metric.api.IMetricsConsumer;
 import org.apache.storm.task.IErrorReporter;
 import org.apache.storm.task.TopologyContext;
@@ -33,6 +34,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,10 +42,16 @@ import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCach
 import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
 
 public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implements IMetricsConsumer {
+  // covers built-in metrics but still not beauty
+  private static final String[] METRIC_LOWERCASE_SUBSTRINGS_AGGREGATE_AVERAGE = { "-latency", "timems", "time_ms", "rate_secs", "timesecs" };
+
   private static final String[] WARN_STRINGS_FOR_TOPOLOGY_OR_COMPONENT_NAME = { ".", "_" };
 
   // create String manually in order to not rely on Guava Joiner or having our own
   private static final String JOINED_WARN_STRINGS_FOR_MESSAGE = "\".\", \"_\"";
+
+  // it's safe since it doesn't exceed the boundary
+  public static final int SYSTEM_TASK_ID = (int) Constants.SYSTEM_TASK_ID;
 
   public static final String CLUSTER_REPORTER_APP_ID = "clusterReporterAppId";
   public static final String DEFAULT_CLUSTER_REPORTER_APP_ID = "storm";
@@ -136,7 +144,16 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
     for (DataPoint dataPoint : dataPoints) {
       LOG.debug(dataPoint.name + " = " + dataPoint.value);
-      List<DataPoint> populatedDataPoints = populateDataPoints(dataPoint);
+
+      List<DataPoint> populatedDataPoints;
+      if (taskInfo.srcTaskId == SYSTEM_TASK_ID && dataPoint.value instanceof Collection) {
+        // worker level aggregated metrics - aggregation should be handled
+        List<DataPoint> populatedBeforeAggregationDataPoints = populateAllDataPointValues(dataPoint);
+        Map<String, List<Double>> metricNameKeyedValues = groupByMetricNameDataPoints(populatedBeforeAggregationDataPoints);
+        populatedDataPoints = applyAggregationToMetricNameKeyedDataPoints(metricNameKeyedValues);
+      } else {
+        populatedDataPoints = populateDataPoints(dataPoint);
+      }
 
       for (DataPoint populatedDataPoint : populatedDataPoints) {
         String metricName;
@@ -189,6 +206,22 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     return topologyId.substring(0, topologyId.substring(0, topologyId.lastIndexOf("-")).lastIndexOf("-"));
   }
 
+  private List<DataPoint> populateAllDataPointValues(DataPoint dataPoint) {
+    List<DataPoint> populatedDataPoints = new ArrayList<>();
+    Collection<Object> values = (Collection<Object>) dataPoint.value;
+    for (Object value : values) {
+      List<DataPoint> populated = populateDataPoints(new DataPoint(dataPoint.name, value));
+      for (DataPoint point : populated) {
+        if (point.value == null) {
+          continue;
+        }
+
+        populatedDataPoints.add(point);
+      }
+    }
+    return populatedDataPoints;
+  }
+
   private List<DataPoint> populateDataPoints(DataPoint dataPoint) {
     List<DataPoint> dataPoints = new ArrayList<>();
 
@@ -231,6 +264,58 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
 
       return null;
     }
+  }
+
+  private Map<String, List<Double>> groupByMetricNameDataPoints(List<DataPoint> populatedDataPoints) {
+    Map<String, List<Double>> metricNameKeyedValues = new HashMap<>();
+    for (DataPoint point : populatedDataPoints) {
+      List<Double> valuesOnMetric = metricNameKeyedValues.get(point.name);
+
+      if (valuesOnMetric == null) {
+        valuesOnMetric = new ArrayList<>();
+        metricNameKeyedValues.put(point.name, valuesOnMetric);
+      }
+
+      valuesOnMetric.add(Double.valueOf(point.value.toString()));
+    }
+    return metricNameKeyedValues;
+  }
+
+  private List<DataPoint> applyAggregationToMetricNameKeyedDataPoints(Map<String, List<Double>> metricNameKeyedValues) {
+    List<DataPoint> populatedDataPoints = new ArrayList<>();
+    for (Map.Entry<String, List<Double>> metricNameToValues : metricNameKeyedValues.entrySet()) {
+      String key = metricNameToValues.getKey();
+      List<Double> values = metricNameToValues.getValue();
+      populatedDataPoints.add(new DataPoint(key, applyAggregateFunction(key, values)));
+    }
+    return populatedDataPoints;
+  }
+
+  private Double applyAggregateFunction(String metricName, List<Double> values) {
+    String lowerCaseMetricName = metricName.toLowerCase();
+    for (String aggregateMetricSubstring : METRIC_LOWERCASE_SUBSTRINGS_AGGREGATE_AVERAGE) {
+      if (lowerCaseMetricName.contains(aggregateMetricSubstring)) {
+        return calculateAverage(values);
+      }
+    }
+
+    return calculateSummation(values);
+  }
+
+  private Double calculateSummation(List<Double> values) {
+    Double sum = 0.0;
+    for (Double value : values) {
+      sum += value;
+    }
+    return sum;
+  }
+
+  private Double calculateAverage(List<Double> values) {
+    if (values.isEmpty()) {
+      return 0.0d;
+    }
+
+    return calculateSummation(values) / values.size();
   }
 
   private TimelineMetric createTimelineMetric(long currentTimeMillis, String hostName,
