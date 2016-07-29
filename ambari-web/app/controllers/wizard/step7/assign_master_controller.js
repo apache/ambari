@@ -42,6 +42,14 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
   markSavedComponentsAsInstalled: true,
 
   /**
+   * Array of master component names, that should be addable
+   * Are used in HA wizards to add components, that are not addable for other wizards
+   * @type {Array}
+   * @override
+   */
+  mastersAddableInHA: Em.computed.alias('App.components.isMasterAddableOnlyOnHA'),
+
+  /**
    * Marks component add/delete action to be performed ahead.
    * @param context {Object} Context of the calling function
    * @param action {String} ADD|DELETE
