@@ -72,6 +72,38 @@ public class ConfigurationTest {
   }
 
   /**
+   * ambari.properties doesn't contain "security.agent.hostname.validate" option
+   */
+  @Test
+  public void testValidateAgentHostnames() {
+    Assert.assertTrue(new Configuration().validateAgentHostnames());
+  }
+
+  /**
+   * ambari.properties contains "security.agent.hostname.validate=true" option
+   */
+  @Test
+  public void testValidateAgentHostnamesOn() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.SRVR_AGENT_HOSTNAME_VALIDATE_KEY, "true");
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertTrue(conf.validateAgentHostnames());
+    Assert.assertEquals("true", conf.getConfigsMap().get(Configuration.SRVR_AGENT_HOSTNAME_VALIDATE_KEY));
+  }
+
+  /**
+   * ambari.properties contains "security.agent.hostname.validate=false" option
+   */
+  @Test
+  public void testValidateAgentHostnamesOff() {
+    Properties ambariProperties = new Properties();
+    ambariProperties.setProperty(Configuration.SRVR_AGENT_HOSTNAME_VALIDATE_KEY, "false");
+    Configuration conf = new Configuration(ambariProperties);
+    Assert.assertFalse(conf.validateAgentHostnames());
+    Assert.assertEquals("false", conf.getConfigsMap().get(Configuration.SRVR_AGENT_HOSTNAME_VALIDATE_KEY));
+  }
+
+  /**
    * ambari.properties doesn't contain "security.server.two_way_ssl" option
    * @throws Exception
    */

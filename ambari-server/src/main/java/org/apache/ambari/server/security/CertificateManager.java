@@ -20,10 +20,12 @@ package org.apache.ambari.server.security;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.HostUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,10 +42,9 @@ import java.util.Map;
 @Singleton
 public class CertificateManager {
 
+  private static final Logger LOG = LoggerFactory.getLogger(CertificateManager.class);
+
   @Inject Configuration configs;
-
-  private static final Log LOG = LogFactory.getLog(CertificateManager.class);
-
 
   private static final String GEN_SRVR_KEY = "openssl genrsa -des3 " +
       "-passout pass:{0} -out {1}" + File.separator + "{2} 4096 ";
@@ -97,7 +98,7 @@ public class CertificateManager {
    *
    * @return command execution exit code
    */
-  private int runCommand(String command) {
+  protected int runCommand(String command) {
     String line = null;
     Process process = null;
     BufferedReader br= null;
@@ -185,7 +186,38 @@ public class CertificateManager {
    */
   public synchronized SignCertResponse signAgentCrt(String agentHostname, String agentCrtReqContent, String passphraseAgent) {
     SignCertResponse response = new SignCertResponse();
-    LOG.info("Signing of agent certificate");
+    LOG.info("Signing agent certificate");
+
+    // Ensure the hostname is not empty or null...
+    agentHostname = StringUtils.trim(agentHostname);
+
+    if(StringUtils.isEmpty(agentHostname)) {
+      LOG.warn("The agent hostname is missing");
+      response.setResult(SignCertResponse.ERROR_STATUS);
+      response.setMessage("The agent hostname is missing");
+      return response;
+    }
+
+    // Optionally check the supplied hostname to make sure it is a valid hostname.
+    // By default, this feature is turned on.  If this check is not desired (maybe the validation
+    // rules are too strict), the feature may be turned off by setting the following
+    // property in the ambari.properties file:
+    //
+    //    security.agent.hostname.validate = "false"
+    //
+    if(configs.validateAgentHostnames()) {
+      LOG.info("Validating agent hostname: {}", agentHostname);
+      if(!HostUtils.isValidHostname(agentHostname)) {
+        LOG.warn("The agent hostname is not a valid hostname");
+        response.setResult(SignCertResponse.ERROR_STATUS);
+        response.setMessage("The agent hostname is not a valid hostname");
+        return response;
+      }
+    }
+    else {
+      LOG.info("Skipping validation of agent hostname: {}", agentHostname);
+    }
+
     LOG.info("Verifying passphrase");
 
     String passphraseSrvr = configs.getConfigsMap().get(Configuration.
