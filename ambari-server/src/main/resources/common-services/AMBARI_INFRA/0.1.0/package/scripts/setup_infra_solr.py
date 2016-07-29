@@ -24,76 +24,68 @@ from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import solr_cloud_util
 
-
-def setup_logsearch_solr(name = None):
+def setup_infra_solr(name = None):
   import params
 
   if name == 'server':
-    Directory([params.logsearch_solr_log_dir, params.logsearch_solr_piddir,
-               params.logsearch_solr_datadir, params.logsearch_solr_data_resources_dir],
+    Directory([params.infra_solr_log_dir, params.infra_solr_piddir,
+               params.infra_solr_datadir, params.infra_solr_data_resources_dir],
               mode=0755,
               cd_access='a',
               create_parents=True,
-              owner=params.logsearch_solr_user,
+              owner=params.infra_solr_user,
               group=params.user_group
               )
 
-    Directory([params.solr_dir, params.logsearch_solr_conf],
+    Directory([params.solr_dir, params.infra_solr_conf],
               mode=0755,
               cd_access='a',
-              owner=params.logsearch_solr_user,
+              owner=params.infra_solr_user,
               group=params.user_group,
               create_parents=True,
               recursive_ownership=True
               )
 
-    File(params.logsearch_solr_log,
+    File(params.infra_solr_log,
          mode=0644,
-         owner=params.logsearch_solr_user,
+         owner=params.infra_solr_user,
          group=params.user_group,
          content=''
          )
 
-    File(format("{logsearch_solr_conf}/logsearch-solr-env.sh"),
+    File(format("{infra_solr_conf}/infra-solr-env.sh"),
          content=InlineTemplate(params.solr_env_content),
          mode=0755,
-         owner=params.logsearch_solr_user,
+         owner=params.infra_solr_user,
          group=params.user_group
          )
 
-    File(format("{logsearch_solr_datadir}/solr.xml"),
+    File(format("{infra_solr_datadir}/solr.xml"),
          content=InlineTemplate(params.solr_xml_content),
-         owner=params.logsearch_solr_user,
+         owner=params.infra_solr_user,
          group=params.user_group
          )
 
-    File(format("{logsearch_solr_conf}/log4j.properties"),
+    File(format("{infra_solr_conf}/log4j.properties"),
          content=InlineTemplate(params.solr_log4j_content),
-         owner=params.logsearch_solr_user,
+         owner=params.infra_solr_user,
          group=params.user_group
          )
 
-    File(format("{logsearch_solr_datadir}/zoo.cfg"),
-         content=Template("zoo.cfg.j2"),
-         owner=params.logsearch_solr_user,
-         group=params.user_group
-         )
-
-    jaas_file = params.logsearch_solr_jaas_file if params.security_enabled else None
-    url_scheme = 'https' if params.logsearch_solr_ssl_enabled else 'http'
+    jaas_file = params.infra_solr_jaas_file if params.security_enabled else None
+    url_scheme = 'https' if params.infra_solr_ssl_enabled else 'http'
 
     create_ambari_solr_znode()
 
     if params.security_enabled:
-      File(format("{logsearch_solr_jaas_file}"),
-           content=Template("logsearch_solr_jaas.conf.j2"),
-           owner=params.logsearch_solr_user)
+      File(format("{infra_solr_jaas_file}"),
+           content=Template("infra_solr_jaas.conf.j2"),
+           owner=params.infra_solr_user)
 
     solr_cloud_util.set_cluster_prop(
       zookeeper_quorum=params.zookeeper_quorum,
-      solr_znode=params.logsearch_solr_znode,
+      solr_znode=params.infra_solr_znode,
       java64_home=params.java64_home,
-      user=params.logsearch_solr_user,
       prop_name="urlScheme",
       prop_value=url_scheme,
       jaas_file=jaas_file
@@ -101,8 +93,7 @@ def setup_logsearch_solr(name = None):
 
     solr_cloud_util.setup_kerberos_plugin(
       zookeeper_quorum=params.zookeeper_quorum,
-      solr_znode=params.logsearch_solr_znode,
-      user=params.logsearch_solr_user,
+      solr_znode=params.infra_solr_znode,
       jaas_file=jaas_file,
       java64_home=params.java64_home,
       secure=params.security_enabled
@@ -110,11 +101,7 @@ def setup_logsearch_solr(name = None):
 
 
   elif name == 'client':
-    solr_cloud_util.setup_solr_client(params.config)
-    if params.security_enabled:
-      File(format("{solr_client_dir}/logsearch_solr_client_jaas.conf"),
-           content=Template("logsearch_solr_jaas.conf.j2"),
-           owner=params.logsearch_solr_user)
+    solr_cloud_util.setup_solr_client(params.config, custom_log4j=params.solr_client_custom_log4j)
 
   else :
     raise Fail('Nor client or server were selected to install.')
@@ -124,6 +111,5 @@ def create_ambari_solr_znode():
   import params
   solr_cloud_util.create_znode(
     zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.logsearch_solr_znode,
-    java64_home=params.java64_home,
-    user=params.logsearch_solr_user)
+    solr_znode=params.infra_solr_znode,
+    java64_home=params.java64_home)

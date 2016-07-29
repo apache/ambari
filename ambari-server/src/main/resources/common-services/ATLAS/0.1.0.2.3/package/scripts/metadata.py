@@ -107,7 +107,7 @@ def metadata(type='server'):
          group=params.user_group
     )
 
-    if type == 'server' and params.search_backend_solr and params.has_logsearch_solr:
+    if type == 'server' and params.search_backend_solr and params.has_infra_solr:
       solr_cloud_util.setup_solr_client(params.config)
       check_znode()
       jaasFile=params.atlas_jaas_file if params.security_enabled else None
@@ -126,12 +126,11 @@ def upload_conf_set(config_set, jaasFile):
 
   solr_cloud_util.upload_configuration_to_zk(
       zookeeper_quorum=params.zookeeper_quorum,
-      solr_znode=params.logsearch_solr_znode,
+      solr_znode=params.infra_solr_znode,
       config_set_dir=format("{conf_dir}/solr"),
       config_set=config_set,
       tmp_dir=params.tmp_dir,
       java64_home=params.java64_home,
-      user=params.metadata_user,
       solrconfig_content=InlineTemplate(params.metadata_solrconfig_content),
       jaas_file=jaasFile,
       retry=30, interval=5)
@@ -141,20 +140,18 @@ def create_collection(collection, config_set, jaasFile):
 
   solr_cloud_util.create_collection(
       zookeeper_quorum=params.zookeeper_quorum,
-      solr_znode=params.logsearch_solr_znode,
+      solr_znode=params.infra_solr_znode,
       collection = collection,
       config_set=config_set,
       java64_home=params.java64_home,
-      user=params.metadata_user,
       jaas_file=jaasFile,
       shards=params.atlas_solr_shards,
-      replication_factor = params.logsearch_solr_replication_factor)
+      replication_factor = params.infra_solr_replication_factor)
 
 @retry(times=10, sleep_time=5, err_class=Fail)
 def check_znode():
   import params
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.logsearch_solr_znode,
-    java64_home=params.java64_home,
-    user=params.metadata_user)
+    solr_znode=params.infra_solr_znode,
+    java64_home=params.java64_home)

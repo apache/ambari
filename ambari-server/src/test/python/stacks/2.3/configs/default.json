@@ -171,13 +171,14 @@
         "log.index.interval.bytes": "4096",
         "log.retention.hours": "168"
       },
-      "logsearch-solr-env": {
-        "logsearch_solr_znode": "/logsearch",
-        "logsearch_solr_user": "solr",
-        "logsearch_solr_group": "solr",
-        "logsearch_solr_client_log_dir" :"/var/log/ambari-logsearch-solr-client"
+      "infra-solr-env": {
+        "infra_solr_znode": "/infra-solr",
+        "infra_solr_user": "solr",
+        "infra_solr_group": "solr",
+        "infra_solr_client_log_dir" :"/var/log/ambari-infra-solr-client"
       },
-      "logsearch-solr-client-log4j" : {
+      "infra-solr-client-log4j" : {
+        "infra_solr_client_log_dir" : "/var/log/ambari-infra-solr-client",
         "content" : "content"
       },
       "application-properties": {
@@ -341,7 +342,7 @@
         "kafka_broker_hosts": [
           "c6401.ambari.apache.org"
         ],
-        "logsearch_solr_hosts": [
+        "infra_solr_hosts": [
           "c6401.ambari.apache.org"
         ],
         "zookeeper_hosts": [

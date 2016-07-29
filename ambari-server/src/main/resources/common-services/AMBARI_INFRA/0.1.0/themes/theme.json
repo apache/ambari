@@ -1,0 +1,107 @@
+{
+  "name": "default",
+  "description": "Default theme for AMBARI_INFRA service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-infra-solr",
+                  "display-name": "Ambari Infra Solr",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "4",
+                  "subsections": [
+                    {
+                      "name": "subsection-infra-solr-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-infra-solr-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "infra-solr-env/infra_solr_minmem",
+          "subsection-name": "subsection-infra-solr-col1"
+        },
+        {
+          "config": "infra-solr-env/infra_solr_maxmem",
+          "subsection-name": "subsection-infra-solr-col1"
+        },
+        {
+          "config": "infra-solr-env/infra_solr_datadir",
+          "subsection-name": "subsection-infra-solr-col2"
+        },
+        {
+          "config": "infra-solr-env/infra_solr_znode",
+          "subsection-name": "subsection-infra-solr-col2"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "infra-solr-env/infra_solr_minmem",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "infra-solr-env/infra_solr_maxmem",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "GB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "infra-solr-env/infra_solr_datadir",
+        "widget": {
+          "type": "directory"
+        }
+      },
+      {
+        "config": "infra-solr-env/infra_solr_znode",
+        "widget": {
+          "type": "directory"
+        }
+      }
+    ]
+  }
+}
+

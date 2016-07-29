@@ -20,7 +20,7 @@
 SOLR_JAVA_HOME={{java64_home}}
 
 # Increase Java Min/Max Heap as needed to support your indexing / query needs
-SOLR_JAVA_MEM="-Xms{{logsearch_solr_min_mem}}m -Xmx{{logsearch_solr_max_mem}}m"
+SOLR_JAVA_MEM="-Xms{{infra_solr_min_mem}}m -Xmx{{infra_solr_max_mem}}m"
 
 # Enable verbose GC logging
 GC_LOG_OPTS="-verbose:gc -XX:+PrintHeapAtGC -XX:+PrintGCDetails \
@@ -45,7 +45,7 @@ GC_TUNE="-XX:NewRatio=3 \
 # Set the ZooKeeper connection string if using an external ZooKeeper ensemble
 # e.g. host1:2181,host2:2181/chroot
 # Leave empty if not using SolrCloud
-ZK_HOST="{{zookeeper_quorum}}{{logsearch_solr_znode}}"
+ZK_HOST="{{zookeeper_quorum}}{{infra_solr_znode}}"
 
 # Set the ZooKeeper client timeout (for SolrCloud mode)
 ZK_CLIENT_TIMEOUT="60000"
@@ -63,7 +63,7 @@ ZK_CLIENT_TIMEOUT="60000"
 ENABLE_REMOTE_JMX_OPTS="true"
 
 # The script will use SOLR_PORT+10000 for the RMI_PORT or you can set it here
-RMI_PORT={{logsearch_solr_jmx_port}}
+RMI_PORT={{infra_solr_jmx_port}}
 
 # Anything you add to the SOLR_OPTS variable will be included in the java
 # start command line as-is, in ADDITION to other options. If you specify the
@@ -74,30 +74,30 @@ RMI_PORT={{logsearch_solr_jmx_port}}
 
 # Location where the bin/solr script will save PID files for running instances
 # If not set, the script will create PID files in $SOLR_TIP/bin
-SOLR_PID_DIR={{logsearch_solr_piddir}}
+SOLR_PID_DIR={{infra_solr_piddir}}
 
 # Path to a directory where Solr creates index files, the specified directory
 # must contain a solr.xml; by default, Solr will use server/solr
-SOLR_HOME={{logsearch_solr_datadir}}
+SOLR_HOME={{infra_solr_datadir}}
 
 # Solr provides a default Log4J configuration properties file in server/resources
 # however, you may want to customize the log settings and file appender location
 # so you can point the script to use a different log4j.properties file
-LOG4J_PROPS={{logsearch_solr_conf}}/log4j.properties
+LOG4J_PROPS={{infra_solr_conf}}/log4j.properties
 
 # Location where Solr should write logs to; should agree with the file appender
 # settings in server/resources/log4j.properties
-SOLR_LOGS_DIR={{logsearch_solr_log_dir}}
+SOLR_LOGS_DIR={{infra_solr_log_dir}}
 
 # Sets the port Solr binds to, default is 8983
-SOLR_PORT={{logsearch_solr_port}}
+SOLR_PORT={{infra_solr_port}}
 
 # Be sure to update the paths to the correct keystore for your environment
-{% if logsearch_solr_ssl_enabled %}
-SOLR_SSL_KEY_STORE={{logsearch_solr_keystore_location}}
-SOLR_SSL_KEY_STORE_PASSWORD={{logsearch_solr_keystore_password}}
-SOLR_SSL_TRUST_STORE={{logsearch_solr_keystore_location}}
-SOLR_SSL_TRUST_STORE_PASSWORD={{logsearch_solr_keystore_password}}
+{% if infra_solr_ssl_enabled %}
+SOLR_SSL_KEY_STORE={{infra_solr_keystore_location}}
+SOLR_SSL_KEY_STORE_PASSWORD={{infra_solr_keystore_password}}
+SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}
+SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}
 SOLR_SSL_NEED_CLIENT_AUTH=false
 SOLR_SSL_WANT_CLIENT_AUTH=false
 {% endif %}
@@ -108,10 +108,10 @@ SOLR_SSL_WANT_CLIENT_AUTH=false
 
 {% if security_enabled -%}
 SOLR_HOST=`hostname -f`
-SOLR_JAAS_FILE={{logsearch_solr_jaas_file}}
-SOLR_KERB_KEYTAB={{logsearch_solr_web_kerberos_keytab}}
-SOLR_KERB_PRINCIPAL={{logsearch_solr_web_kerberos_principal}}
-SOLR_KERB_NAME_RULES={{logsearch_solr_kerberos_name_rules}}
+SOLR_JAAS_FILE={{infra_solr_jaas_file}}
+SOLR_KERB_KEYTAB={{infra_solr_web_kerberos_keytab}}
+SOLR_KERB_PRINCIPAL={{infra_solr_web_kerberos_principal}}
+SOLR_KERB_NAME_RULES={{infra_solr_kerberos_name_rules}}
 
 SOLR_AUTHENTICATION_CLIENT_CONFIGURER="org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer"
 SOLR_AUTHENTICATION_OPTS=" -DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=$SOLR_JAAS_FILE -Dsolr.kerberos.principal=${SOLR_KERB_PRINCIPAL} -Dsolr.kerberos.keytab=${SOLR_KERB_KEYTAB} -Dsolr.kerberos.cookie.domain=${SOLR_HOST} -Dsolr.kerberos.name.rules=${SOLR_KERB_NAME_RULES}"

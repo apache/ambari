@@ -68,7 +68,7 @@ stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_D
 stack_supports_ranger_log4j = check_stack_feature(StackFeature.RANGER_LOG4J_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_usersync_passwd = check_stack_feature(StackFeature.RANGER_USERSYNC_PASSWORD_JCEKS, version_for_stack_feature_checks)
-stack_supports_logsearch_client = check_stack_feature(StackFeature.RANGER_INSTALL_LOGSEARCH_CLIENT, version_for_stack_feature_checks)
+stack_supports_infra_client = check_stack_feature(StackFeature.RANGER_INSTALL_INFRA_CLIENT, version_for_stack_feature_checks)
 stack_supports_pid = check_stack_feature(StackFeature.RANGER_PID_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_admin_password_change = check_stack_feature(StackFeature.RANGER_ADMIN_PASSWD_CHANGE, version_for_stack_feature_checks)
 
@@ -272,24 +272,24 @@ ranger_solr_collection_name = config['configurations']['ranger-env']['ranger_sol
 ranger_solr_shards = config['configurations']['ranger-env']['ranger_solr_shards']
 replication_factor = config['configurations']['ranger-env']['ranger_solr_replication_factor']
 ranger_solr_conf = format('{ranger_home}/contrib/solr_for_audit_setup/conf')
-logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
-has_logsearch = len(logsearch_solr_hosts) > 0
+infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
+has_infra_solr = len(infra_solr_hosts) > 0
 is_solrCloud_enabled = default('/configurations/ranger-env/is_solrCloud_enabled', False)
 is_external_solrCloud_enabled = default('/configurations/ranger-env/is_external_solrCloud_enabled', False)
 solr_znode = '/ranger_audits'
-if stack_supports_logsearch_client and is_solrCloud_enabled:
+if stack_supports_infra_client and is_solrCloud_enabled:
   solr_znode = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', 'NONE')
   if solr_znode != '' and solr_znode.upper() != 'NONE':
     solr_znode = solr_znode.split('/')
     if len(solr_znode) > 1 and len(solr_znode) == 2:
       solr_znode = solr_znode[1]
       solr_znode = format('/{solr_znode}')
-  if has_logsearch and not is_external_solrCloud_enabled:
-    solr_znode = config['configurations']['logsearch-solr-env']['logsearch_solr_znode']
+  if has_infra_solr and not is_external_solrCloud_enabled:
+    solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
 solr_user = unix_user
-if has_logsearch and not is_external_solrCloud_enabled:
-  solr_user = default('/configurations/logsearch-solr-env/logsearch_solr_user', unix_user)
-custom_log4j = has_logsearch and not is_external_solrCloud_enabled
+if has_infra_solr and not is_external_solrCloud_enabled:
+  solr_user = default('/configurations/infra-solr-env/infra_solr_user', unix_user)
+custom_log4j = has_infra_solr and not is_external_solrCloud_enabled
 
 # get comma separated list of zookeeper hosts
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
@@ -318,11 +318,11 @@ if security_enabled:
     ranger_admin_principal = config['configurations']['ranger-admin-site']['ranger.admin.kerberos.principal']
     if not is_empty(ranger_admin_principal) and ranger_admin_principal != '':
       ranger_admin_jaas_principal = ranger_admin_principal.replace('_HOST', ranger_host.lower())
-      if stack_supports_logsearch_client and is_solrCloud_enabled and is_external_solrCloud_enabled and is_external_solrCloud_kerberos:
+      if stack_supports_infra_client and is_solrCloud_enabled and is_external_solrCloud_enabled and is_external_solrCloud_kerberos:
         solr_jaas_file = format('{ranger_home}/conf/ranger_solr_jaas.conf')
         solr_kerberos_principal = ranger_admin_jaas_principal
         solr_kerberos_keytab = ranger_admin_keytab
-      if stack_supports_logsearch_client and is_solrCloud_enabled and not is_external_solrCloud_enabled and not is_external_solrCloud_kerberos:
+      if stack_supports_infra_client and is_solrCloud_enabled and not is_external_solrCloud_enabled and not is_external_solrCloud_kerberos:
         solr_jaas_file = format('{ranger_home}/conf/ranger_solr_jaas.conf')
         solr_kerberos_principal = ranger_admin_jaas_principal
         solr_kerberos_keytab = ranger_admin_keytab

@@ -175,6 +175,16 @@
         }
       ]
     },
+    "infra" : {
+      "label" : "Infra",
+      "components": [
+        {
+          "name": "infra_solr"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
     "kafka": {
       "label": "Kafka",
       "components": [

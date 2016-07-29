@@ -91,7 +91,7 @@
   <property>
     <name>atlas_solr_shards</name>
     <value>1</value>
-    <description>The number of shards set for LogSearch SOLR.</description>
+    <description>The number of shards set for Infra SOLR.</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

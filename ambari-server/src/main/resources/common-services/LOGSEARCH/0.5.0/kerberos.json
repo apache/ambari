@@ -5,43 +5,9 @@
       "identities": [
         {
           "name": "/smokeuser"
-        },
-        {
-          "name": "/spnego",
-          "principal": {
-            "configuration": "logsearch-solr-env/logsearch_solr_web_kerberos_principal"
-          },
-          "keytab": {
-            "configuration": "logsearch-solr-env/logsearch_solr_web_kerberos_keytab"
-          }
         }
       ],
       "components": [
-        {
-          "name": "LOGSEARCH_SOLR",
-          "identities": [
-            {
-              "name": "logsearch-solr",
-              "principal": {
-                "value": "logsearch-solr/_HOST@${realm}",
-                "type": "service",
-                "configuration": "logsearch-solr-env/logsearch_solr_kerberos_principal"
-              },
-              "keytab": {
-                "file": "${keytab_dir}/logsearch-solr.service.keytab",
-                "owner": {
-                  "name": "${logsearch-solr-env/logsearch_solr_user}",
-                  "access": "r"
-                },
-                "group": {
-                  "name": "${cluster-env/user_group}",
-                  "access": ""
-                },
-                "configuration": "logsearch-solr-env/logsearch_solr_kerberos_keytab"
-              }
-            }
-          ]
-        },
         {
           "name": "LOGSEARCH_SERVER",
           "identities": [
@@ -91,9 +57,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "LOGSEARCH_SOLR_CLIENT"
         }
       ]
     }

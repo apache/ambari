@@ -576,7 +576,6 @@ def setup_ranger_audit_solr():
     config_set_dir = params.ranger_solr_conf,
     tmp_dir = params.tmp_dir,
     java64_home = params.java_home,
-    user = params.unix_user,
     jaas_file=params.solr_jaas_file,
     retry=30, interval=5)
 
@@ -586,7 +585,6 @@ def setup_ranger_audit_solr():
     collection = params.ranger_solr_collection_name,
     config_set = params.ranger_solr_config_set,
     java64_home = params.java_home,
-    user = params.unix_user,
     shards = params.ranger_solr_shards,
     replication_factor = int(params.replication_factor),
     jaas_file = params.solr_jaas_file)
@@ -605,5 +603,4 @@ def check_znode():
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
     solr_znode=params.solr_znode,
-    java64_home=params.java_home,
-    user=params.unix_user)
+    java64_home=params.java_home)

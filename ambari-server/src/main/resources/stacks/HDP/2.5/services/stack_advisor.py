@@ -163,7 +163,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             not application_properties['atlas.graph.index.search.solr.zookeeper-url']:
       validationItems.append({"config-name": "atlas.graph.index.search.solr.zookeeper-url",
                               "item": self.getErrorItem(
-                                  "If LOGSEARCH is not installed then the SOLR zookeeper url configuration must be specified.")})
+                                  "If AMBARI_INFRA is not installed then the SOLR zookeeper url configuration must be specified.")})
 
     if not application_properties['atlas.kafka.bootstrap.servers']:
       validationItems.append({"config-name": "atlas.kafka.bootstrap.servers",
@@ -490,12 +490,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     if atlas_rest_address is not None:
       putAtlasApplicationProperty("atlas.rest.address", atlas_rest_address)
 
-    if "LOGSEARCH" in servicesList and 'logsearch-solr-env' in services['configurations']:
-
-      if 'logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']:
-        logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
+    if "AMBARI_INFRA" in servicesList and 'infra-solr-env' in services['configurations']:
+      if 'infra_solr_znode' in services['configurations']['infra-solr-env']['properties']:
+        infra_solr_znode = services['configurations']['infra-solr-env']['properties']['infra_solr_znode']
       else:
-        logsearch_solr_znode = None
+        infra_solr_znode = None
 
       zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
       zookeeper_host_arr = []
@@ -503,8 +502,8 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       zookeeper_port = self.getZKPort(services)
       for i in range(len(zookeeper_hosts)):
         zookeeper_host = zookeeper_hosts[i] + ':' + zookeeper_port
-        if logsearch_solr_znode is not None:
-          zookeeper_host += logsearch_solr_znode
+        if infra_solr_znode is not None:
+          zookeeper_host += infra_solr_znode
         zookeeper_host_arr.append(zookeeper_host)
 
       solr_zookeeper_url = ",".join(zookeeper_host_arr)
@@ -1735,17 +1734,16 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     ranger_audit_zk_port = ''
 
-    #TODO to change check for LOGSEARCH after implemenation of AMBARI-17822
-    if 'LOGSEARCH' in servicesList and zookeeper_host_port and is_solr_cloud_enabled and not is_external_solr_cloud_enabled:
+    if 'AMBARI_INFRA' in servicesList and zookeeper_host_port and is_solr_cloud_enabled and not is_external_solr_cloud_enabled:
       zookeeper_host_port = zookeeper_host_port.split(',')
       zookeeper_host_port.sort()
       zookeeper_host_port = ",".join(zookeeper_host_port)
-      logsearch_solr_znode = '/ambari-solr'
+      infra_solr_znode = '/infra-solr'
 
-      if 'logsearch-solr-env' in services['configurations'] and \
-        ('logsearch_solr_znode' in services['configurations']['logsearch-solr-env']['properties']):
-        logsearch_solr_znode = services['configurations']['logsearch-solr-env']['properties']['logsearch_solr_znode']
-        ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, logsearch_solr_znode)
+      if 'infra-solr-env' in services['configurations'] and \
+        ('infra_solr_znode' in services['configurations']['infra-solr-env']['properties']):
+        infra_solr_znode = services['configurations']['infra-solr-env']['properties']['infra_solr_znode']
+        ranger_audit_zk_port = '{0}{1}'.format(zookeeper_host_port, infra_solr_znode)
       putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     elif zookeeper_host_port and is_solr_cloud_enabled and is_external_solr_cloud_enabled:
       ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')

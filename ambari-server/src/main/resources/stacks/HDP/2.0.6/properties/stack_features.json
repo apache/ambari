@@ -227,8 +227,8 @@
       "min_version": "2.5.0.0"
     },
     {
-      "name": "ranger_install_logsearch_client",
-      "description": "LogSearch Service support",
+      "name": "ranger_install_infra_client",
+      "description": "Ambari Infra Service support",
       "min_version": "2.5.0.0"
     },
     {

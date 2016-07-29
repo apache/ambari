@@ -238,6 +238,16 @@
       ]
     },
 {% endif %}
+    "ambari_infra" : {
+      "label": "Infra",
+      "components" : [
+        {
+          "name": "infra_solr"
+        }
+      ],
+      "dependencies": [
+      ]
+    },
 {% if "KNOX" in availableServices %}
     "knox": {
       "label": "Knox",
@@ -300,9 +310,6 @@
         },
         {
           "name": "logsearch_perf"
-        },
-        {
-          "name": "logsearch_solr"
         }
       ],
       "dependencies": [

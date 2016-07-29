@@ -942,7 +942,7 @@ public class StackManagerTest {
 
     String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
     String logsearchServerRoleCommand = Role.LOGSEARCH_SERVER + "-" + RoleCommand.START;
-    String logsearchSolrRoleCommand = Role.LOGSEARCH_SOLR + "-" + RoleCommand.START;
+    String infraSolrRoleCommand = Role.INFRA_SOLR + "-" + RoleCommand.START;
     String logsearchLogfeederRoleCommand = Role.LOGSEARCH_LOGFEEDER + "-" + RoleCommand.START;
 
     StackInfo hdp = stackManager.getStack("HDP", "2.3");
@@ -965,16 +965,16 @@ public class StackManagerTest {
 
     // verify logsearch rco
     // LogSearch Solr
-    ArrayList<String> logsearchSolrBlockers = (ArrayList<String>) generalDeps.get(logsearchSolrRoleCommand);
-    assertTrue(logsearchSolrRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, logsearchSolrBlockers.contains(zookeeperServerRoleCommand));
+    ArrayList<String> logsearchSolrBlockers = (ArrayList<String>) generalDeps.get(infraSolrRoleCommand);
+    assertTrue(infraSolrRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, logsearchSolrBlockers.contains(zookeeperServerRoleCommand));
 
     // LogSearch Server
     ArrayList<String> logsearchServerBlockers = (ArrayList<String>) generalDeps.get(logsearchServerRoleCommand);
-    assertTrue(logsearchServerRoleCommand + " should be dependent of " + logsearchSolrRoleCommand, logsearchServerBlockers.contains(logsearchSolrRoleCommand));
+    assertTrue(logsearchServerRoleCommand + " should be dependent of " + infraSolrRoleCommand, logsearchServerBlockers.contains(infraSolrRoleCommand));
 
     // LogSearch LogFeeder
     ArrayList<String> logsearchLogfeederBlockers = (ArrayList<String>) generalDeps.get(logsearchLogfeederRoleCommand);
-    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchSolrRoleCommand, logsearchLogfeederBlockers.contains(logsearchSolrRoleCommand));
+    assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + infraSolrRoleCommand, logsearchLogfeederBlockers.contains(infraSolrRoleCommand));
     assertTrue(logsearchLogfeederRoleCommand + " should be dependent of " + logsearchServerRoleCommand, logsearchLogfeederBlockers.contains(logsearchServerRoleCommand));
   }
 }
