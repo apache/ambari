@@ -23,7 +23,6 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
 from resource_management.libraries.script.script import Script
-import os
 import status_params
 
 
@@ -42,15 +41,10 @@ stack_version = default("/commandParams/version", None)
 sudo = AMBARI_SUDO_BINARY
 security_enabled = status_params.security_enabled
 
-logsearch_solr_conf = "/etc/ambari-logsearch-solr/conf"
 logsearch_server_conf = "/etc/ambari-logsearch-portal/conf"
 logsearch_logfeeder_conf = "/etc/ambari-logsearch-logfeeder/conf"
 
 logsearch_config_set_dir = format("{logsearch_server_conf}/solr_configsets")
-
-logsearch_solr_port = status_params.logsearch_solr_port
-logsearch_solr_piddir = status_params.logsearch_solr_piddir
-logsearch_solr_pidfile = status_params.logsearch_solr_pidfile
 
 # logsearch pid file
 logsearch_pid_dir = status_params.logsearch_pid_dir
@@ -81,38 +75,15 @@ if 'metrics_collector_hosts' in config['clusterHostInfo']:
 else:
   metrics_collector_hosts = ''
 
-#####################################
-# Solr configs
-#####################################
-
-# Only supporting SolrCloud mode - so hardcode those options
-solr_cloudmode = 'true'
-solr_dir = '/usr/lib/ambari-logsearch-solr'
-solr_client_dir = '/usr/lib/ambari-logsearch-solr-client'
-solr_bindir = solr_dir + '/bin'
-cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
-
-logsearch_solr_znode = config['configurations']['logsearch-solr-env']['logsearch_solr_znode']
-logsearch_solr_min_mem = format(config['configurations']['logsearch-solr-env']['logsearch_solr_minmem'])
-logsearch_solr_max_mem = format(config['configurations']['logsearch-solr-env']['logsearch_solr_maxmem'])
-logsearch_solr_instance_count = len(config['clusterHostInfo']['logsearch_solr_hosts'])
-logsearch_solr_datadir = format(config['configurations']['logsearch-solr-env']['logsearch_solr_datadir'])
-logsearch_solr_data_resources_dir = os.path.join(logsearch_solr_datadir, 'resources')
-logsearch_service_logs_max_retention = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_max_retention']
-logsearch_service_logs_merge_factor = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_merge_factor']
-logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
-logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
-
 logsearch_solr_metrics_collector_hosts = format(config['configurations']['logsearch-properties']['logsearch.solr.metrics.collector.hosts'])
-logsearch_solr_jmx_port = config['configurations']['logsearch-solr-env']['logsearch_solr_jmx_port']
 
-logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
-
-logsearch_audit_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
-logsearch_service_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
+# Infra Solr configs
+infra_solr_znode = default('/configurations/infra-solr-env/infra_solr_znode', '/infra-solr')
+infra_solr_instance_count = len(config['clusterHostInfo']['infra_solr_hosts'])
+infra_solr_ssl_enabled = default('configurations/infra-solr-env/infra_solr_ssl_enabled', False)
+infra_solr_jmx_port = config['configurations']['infra-solr-env']['infra_solr_jmx_port']
 
 zookeeper_port = default('/configurations/zoo.cfg/clientPort', None)
-# get comma separated list of zookeeper hosts from clusterHostInfo
 index = 0
 zookeeper_quorum = ""
 for host in config['clusterHostInfo']['zookeeper_hosts']:
@@ -121,43 +92,16 @@ for host in config['clusterHostInfo']['zookeeper_hosts']:
   if index < len(config['clusterHostInfo']['zookeeper_hosts']):
     zookeeper_quorum += ","
 
-if 'zoo.cfg' in config['configurations']:
-  zoo_cfg_properties_map = config['configurations']['zoo.cfg']
-else:
-  zoo_cfg_properties_map = {}
-
-
 
 if security_enabled:
   kinit_path_local = status_params.kinit_path_local
   _hostname_lowercase = config['hostname'].lower()
   logsearch_jaas_file = logsearch_server_conf + '/logsearch_jaas.conf'
-  logsearch_solr_jaas_file = logsearch_solr_conf + '/logsearch_solr_jaas.conf'
   logfeeder_jaas_file = logsearch_logfeeder_conf + '/logfeeder_jaas.conf'
-  logsearch_solr_kerberos_keytab = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_keytab']
-  logsearch_solr_kerberos_principal = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_principal'].replace('_HOST',_hostname_lowercase)
-  logsearch_solr_web_kerberos_keytab = config['configurations']['logsearch-solr-env']['logsearch_solr_web_kerberos_keytab']
-  logsearch_solr_web_kerberos_principal = config['configurations']['logsearch-solr-env']['logsearch_solr_web_kerberos_principal'].replace('_HOST',_hostname_lowercase)
   logsearch_kerberos_keytab = config['configurations']['logsearch-env']['logsearch_kerberos_keytab']
   logsearch_kerberos_principal = config['configurations']['logsearch-env']['logsearch_kerberos_principal'].replace('_HOST',_hostname_lowercase)
   logfeeder_kerberos_keytab = config['configurations']['logfeeder-env']['logfeeder_kerberos_keytab']
   logfeeder_kerberos_principal = config['configurations']['logfeeder-env']['logfeeder_kerberos_principal'].replace('_HOST',_hostname_lowercase)
-  logsearch_solr_kerberos_name_rules = config['configurations']['logsearch-solr-env']['logsearch_solr_kerberos_name_rules']
-
-
-logsearch_solr_user = config['configurations']['logsearch-solr-env']['logsearch_solr_user']
-logsearch_solr_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_log_dir']
-logsearch_solr_client_log_dir = config['configurations']['logsearch-solr-env']['logsearch_solr_client_log_dir']
-logsearch_solr_client_log = format("{logsearch_solr_client_log_dir}/solr-client.log")
-logsearch_solr_log = format("{logsearch_solr_log_dir}/solr-install.log")
-
-solr_env_content = config['configurations']['logsearch-solr-env']['content']
-
-solr_xml_content = config['configurations']['logsearch-solr-xml']['content']
-
-solr_log4j_content = config['configurations']['logsearch-solr-log4j']['content']
-
-solr_client_log4j_content = config['configurations']['logsearch-solr-client-log4j']['content']
 
 #####################################
 # Logsearch configs
@@ -170,40 +114,34 @@ logsearch_collection_audit_logs_numshards_config = config['configurations']['log
 if logsearch_collection_service_logs_numshards_config > 0:
   logsearch_collection_service_logs_numshards = str(logsearch_collection_service_logs_numshards_config)
 else:
-  logsearch_collection_service_logs_numshards = format(str(logsearch_solr_instance_count))
+  logsearch_collection_service_logs_numshards = format(str(infra_solr_instance_count))
 
 if logsearch_collection_audit_logs_numshards_config > 0:
   logsearch_collection_audit_logs_numshards = str(logsearch_collection_audit_logs_numshards_config)
 else:
-  logsearch_collection_audit_logs_numshards = format(str(logsearch_solr_instance_count))
+  logsearch_collection_audit_logs_numshards = format(str(infra_solr_instance_count))
 
 logsearch_collection_service_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.service.logs.replication.factor'])
 logsearch_collection_audit_logs_replication_factor = str(config['configurations']['logsearch-properties']['logsearch.collection.audit.logs.replication.factor'])
 
 logsearch_solr_collection_service_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.service.logs', 'hadoop_logs')
 logsearch_solr_collection_audit_logs = default('/configurations/logsearch-properties/logsearch.solr.collection.audit.logs','audit_logs')
+
+logsearch_service_logs_max_retention = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_max_retention']
+logsearch_service_logs_merge_factor = config['configurations']['logsearch-service_logs-solrconfig']['logsearch_service_logs_merge_factor']
+logsearch_service_logs_fields = config['configurations']['logsearch-properties']['logsearch.service.logs.fields']
+logsearch_service_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.service.logs.split.interval.mins']
+
+logsearch_audit_logs_max_retention = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_max_retention']
+logsearch_audit_logs_merge_factor = config['configurations']['logsearch-audit_logs-solrconfig']['logsearch_audit_logs_merge_factor']
+logsearch_audit_logs_split_interval_mins = config['configurations']['logsearch-properties']['logsearch.audit.logs.split.interval.mins']
+
 logsearch_logfeeder_include_default_level = default('/configurations/logsearch-properties/logsearch.logfeeder.include.default.level', 'fatal,error,warn')
 
-logsearch_solr_audit_logs_use_ranger = default('/configurations/logsearch-env/logsearch_solr_audit_logs_use_ranger', False)
-logsearch_solr_audit_logs_url = ''
-
-if logsearch_solr_audit_logs_use_ranger:
-  # In Ranger, this contain the /zkNode also
-  ranger_audit_solr_zookeepers = default('/configurations/ranger-admin-site/ranger.audit.solr.zookeepers', None)
-  # TODO: ranger property already has zk node appended. We need to remove it.
-  # For now, let's assume it is going to be URL
-  logsearch_solr_audit_logs_url = default('/configurations/ranger-admin-site/ranger.audit.solr.urls', solr_audit_logs_url)
-else:
-  logsearch_solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', None)
-  logsearch_solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', None)
-
-  if not (logsearch_solr_audit_logs_zk_quorum):
-    logsearch_solr_audit_logs_zk_quorum = zookeeper_quorum
-  if not (logsearch_solr_audit_logs_zk_node):
-    logsearch_solr_audit_logs_zk_node = logsearch_solr_znode
-
-  logsearch_solr_audit_logs_zk_node = format(logsearch_solr_audit_logs_zk_node)
-  logsearch_solr_audit_logs_zk_quorum = format(logsearch_solr_audit_logs_zk_quorum)
+logsearch_solr_audit_logs_zk_node = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_node', zookeeper_quorum)
+logsearch_solr_audit_logs_zk_quorum = default('/configurations/logsearch-env/logsearch_solr_audit_logs_zk_quorum', infra_solr_znode)
+logsearch_solr_audit_logs_zk_node = format(logsearch_solr_audit_logs_zk_node)
+logsearch_solr_audit_logs_zk_quorum = format(logsearch_solr_audit_logs_zk_quorum)
 
 # create custom properties - remove defaults
 logsearch_custom_properties = dict(config['configurations']['logsearch-properties'])
@@ -257,6 +195,7 @@ hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hba
 hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
 hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
 hcat_log_dir = default('configurations/hive-env/hcat_log_dir', '/var/log/webhcat')
+infra_solr_log_dir = default('configurations/infra-solr-env/infra_solr_log_dir', '/var/log/ambari-infra-solr')
 kafka_log_dir = default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')
 nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 oozie_log_dir = default('/configurations/oozie-env/oozie_log_dir', '/var/log/oozie')
@@ -316,13 +255,6 @@ solr_audit_logs_enable = default('/configurations/logfeeder-env/logfeeder_solr_a
 logfeeder_env_content = config['configurations']['logfeeder-env']['content']
 logfeeder_log4j_content = config['configurations']['logfeeder-log4j']['content']
 
-logsearch_solr_ssl_enabled = default('configurations/logsearch-solr-env/logsearch_solr_ssl_enabled', False)
-logsearch_solr_keystore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_location']
-logsearch_solr_keystore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_password']
-logsearch_solr_keystore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_keystore_type']
-logsearch_solr_truststore_location = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_location']
-logsearch_solr_truststore_password = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_password']
-logsearch_solr_truststore_type = config['configurations']['logsearch-solr-env']['logsearch_solr_truststore_type']
 logsearch_keystore_location = config['configurations']['logsearch-env']['logsearch_keystore_location']
 logsearch_keystore_password = config['configurations']['logsearch-env']['logsearch_keystore_password']
 logsearch_keystore_type = config['configurations']['logsearch-env']['logsearch_keystore_type']
@@ -342,7 +274,7 @@ logfeeder_checkpoint_folder = default('/configurations/logfeeder-env/logfeeder.c
 logfeeder_log_filter_enable = str(default('/configurations/logfeeder-properties/logfeeder.log.filter.enable', True)).lower()
 logfeeder_solr_config_interval = default('/configurations/logfeeder-properties/logfeeder.solr.config.interval', 5)
 
-logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'kafka',
+logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'infra', 'kafka',
                                 'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm', 'yarn', 'zeppelin', 'zookeeper']
 
 logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in

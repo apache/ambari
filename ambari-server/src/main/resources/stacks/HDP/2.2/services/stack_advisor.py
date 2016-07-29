@@ -997,13 +997,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendLogsearchConfigurations(self, configurations, clusterData, services, hosts):
     putLogsearchProperty = self.putProperty(configurations, "logsearch-properties", services)
-    logsearchSolrHosts = self.getComponentHostNames(services, "LOGSEARCH", "LOGSEARCH_SOLR")
+    infraSolrHosts = self.getComponentHostNames(services, "AMBARI_INFRA", "INFRA_SOLR")
 
-    if logsearchSolrHosts is not None and len(logsearchSolrHosts) > 0 \
+    if infraSolrHosts is not None and len(infraSolrHosts) > 0 \
       and "logsearch-properties" in services["configurations"]:
-      recommendedMinShards = len(logsearchSolrHosts)
-      recommendedShards = 2 * len(logsearchSolrHosts)
-      recommendedMaxShards = 3 * len(logsearchSolrHosts)
+      recommendedMinShards = len(infraSolrHosts)
+      recommendedShards = 2 * len(infraSolrHosts)
+      recommendedMaxShards = 3 * len(infraSolrHosts)
       # recommend number of shard
       putLogsearchAttribute = self.putPropertyAttribute(configurations, "logsearch-properties")
       putLogsearchAttribute('logsearch.collection.service.logs.numshards', 'minimum', recommendedMinShards)
@@ -1014,7 +1014,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putLogsearchAttribute('logsearch.collection.audit.logs.numshards', 'maximum', recommendedMaxShards)
       putLogsearchProperty("logsearch.collection.audit.logs.numshards", recommendedShards)
       # recommend replication factor
-      replicationReccomendFloat = math.log(len(logsearchSolrHosts), 5)
+      replicationReccomendFloat = math.log(len(infraSolrHosts), 5)
       recommendedReplicationFactor = int(1 + math.floor(replicationReccomendFloat))
       putLogsearchProperty("logsearch.collection.service.logs.replication.factor", recommendedReplicationFactor)
       putLogsearchProperty("logsearch.collection.audit.logs.replication.factor", recommendedReplicationFactor)

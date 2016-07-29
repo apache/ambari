@@ -187,13 +187,12 @@ hbase_conf_dir = "/etc/hbase/conf"
 atlas_search_backend = default("/configurations/application-properties/atlas.graph.index.search.backend", "")
 search_backend_solr = atlas_search_backend.startswith('solr')
 
-# logsearch solr
-logsearch_solr_znode = default("/configurations/logsearch-solr-env/logsearch_solr_znode", None)
-logsearch_solr_dir = '/usr/lib/ambari-logsearch-solr'
-logsearch_solr_hosts = default("/clusterHostInfo/logsearch_solr_hosts", [])
-logsearch_solr_replication_factor = 2 if len(logsearch_solr_hosts) > 1 else 1
+# infra solr
+infra_solr_znode = default("/configurations/infra-solr-env/infra_solr_znode", None)
+infra_solr_hosts = default("/clusterHostInfo/infra_solr_hosts", [])
+infra_solr_replication_factor = 2 if len(infra_solr_hosts) > 1 else 1
 atlas_solr_shards = default("/configurations/atlas-env/atlas_solr-shards", 1)
-has_logsearch_solr = len(logsearch_solr_hosts) > 0
+has_infra_solr = len(infra_solr_hosts) > 0
 
 # zookeeper
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']

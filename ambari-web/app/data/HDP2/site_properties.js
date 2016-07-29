@@ -2065,88 +2065,81 @@ var hdp2properties = [
     "index": 7
   },
   {
-    "name": "logsearch_solr_audit_logs_use_ranger",
+    "name": "logsearch_debug_enabled",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 8
   },
   {
-    "name": "logsearch_debug_enabled",
+    "name": "logsearch_debug_port",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 9
   },
   {
-    "name": "logsearch_debug_port",
+    "name": "logsearch_truststore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 10
   },
   {
-    "name": "logsearch_truststore_location",
+    "name": "logsearch_truststore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 11
   },
   {
-    "name": "logsearch_truststore_type",
+    "name": "logsearch_truststore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 12
   },
   {
-    "name": "logsearch_truststore_password",
+    "name": "logsearch_keystore_location",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 13
   },
   {
-    "name": "logsearch_keystore_location",
+    "name": "logsearch_keystore_type",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 14
   },
   {
-    "name": "logsearch_keystore_type",
+    "name": "logsearch_keystore_password",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 15
   },
   {
-    "name": "logsearch_keystore_password",
+    "name": "logsearch_kerberos_keytab",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 16
   },
   {
-    "name": "logsearch_kerberos_keytab",
+    "name": "logsearch_kerberos_principal",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
     "index": 17
   },
   {
-    "name": "logsearch_kerberos_principal",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-env.xml",
-    "category": "Advanced logsearch-env",
-    "index": 18
-  },
-  {
     "name": "content",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-env.xml",
     "category": "Advanced logsearch-env",
-    "index": 19
+    "index": 18
   },
   /*logsearch-log4j*/
   {
@@ -2242,147 +2235,155 @@ var hdp2properties = [
     "category": "Advanced logsearch-properties",
     "index": 9
   },
-  /*logsearch-solr-env*/
+  /*infra-solr-client-log4j*/
   {
-    "name": "logsearch_solr_log_dir",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_client_log_dir",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-client-log4j.xml",
+    "category": "Advanced infra-solr-client-log4j",
     "index": 1
   },
   {
-    "name": "logsearch_solr_client_log_dir",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "content",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-client-log4j.xml",
+    "category": "Advanced infra-solr-client-log4j",
+    "index": 2
+  },
+  /*infra-solr-env*/
+  {
+    "name": "infra_solr_log_dir",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
+    "index": 1
+  },
+  {
+    "name": "infra_solr_pid_dir",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 2
   },
   {
-    "name": "logsearch_solr_pid_dir",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_port",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 3
   },
   {
-    "name": "logsearch_solr_port",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_jmx_port",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 4
   },
   {
-    "name": "logsearch_solr_jmx_port",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_ssl_enabled",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 5
   },
   {
-    "name": "logsearch_solr_ssl_enabled",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_truststore_location",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 6
   },
   {
-    "name": "logsearch_solr_truststore_location",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_truststore_type",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 7
   },
   {
-    "name": "logsearch_solr_truststore_type",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_truststore_password",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 8
   },
   {
-    "name": "logsearch_solr_truststore_password",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_keystore_location",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 9
   },
   {
-    "name": "logsearch_solr_keystore_location",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_keystore_type",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 10
   },
   {
-    "name": "logsearch_solr_keystore_type",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_keystore_password",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 11
   },
   {
-    "name": "logsearch_solr_keystore_password",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_kerberos_keytab",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 12
   },
   {
-    "name": "logsearch_solr_kerberos_keytab",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
-    "index": 12
-  },
-  {
-    "name": "logsearch_solr_kerberos_principal",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_kerberos_principal",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 13
   },
   {
-    "name": "logsearch_solr_web_kerberos_keytab",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_web_kerberos_keytab",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 14
   },
   {
-    "name": "logsearch_solr_web_kerberos_principal",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_web_kerberos_principal",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 15
   },
   {
-    "name": "logsearch_solr_kerberos_name_rules",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "name": "infra_solr_kerberos_name_rules",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 16
   },
   {
     "name": "content",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-env.xml",
-    "category": "Advanced logsearch-solr-env",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-env.xml",
+    "category": "Advanced infra-solr-env",
     "index": 17
   },
-  /*logsearch-solr-log4j*/
+  /*infra-solr-log4j*/
   {
     "name": "content",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-log4j.xml",
-    "category": "Advanced logsearch-solr-log4j",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-log4j.xml",
+    "category": "Advanced infra-solr-log4j",
     "index": 1
   },
-  /*logsearch-solr-xml*/
+  /*infra-solr-xml*/
   {
     "name": "content",
-    "serviceName": "LOGSEARCH",
-    "filename": "logsearch-solr-xml.xml",
-    "category": "Advanced logsearch-solr-xml",
+    "serviceName": "AMBARI_INFRA",
+    "filename": "infra-solr-xml.xml",
+    "category": "Advanced infra-solr-xml",
     "index": 1
   },
 

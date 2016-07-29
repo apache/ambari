@@ -86,7 +86,7 @@ class StackFeature:
   RANGER_KERBEROS_SUPPORT = "ranger_kerberos_support"
   HIVE_METASTORE_SITE_SUPPORT = "hive_metastore_site_support"
   RANGER_USERSYNC_PASSWORD_JCEKS = "ranger_usersync_password_jceks"
-  RANGER_INSTALL_LOGSEARCH_CLIENT = "ranger_install_logsearch_client"
+  RANGER_INSTALL_INFRA_CLIENT = "ranger_install_infra_client"
   HBASE_HOME_DIRECTORY = "hbase_home_directory"
   ATLAS_RANGER_PLUGIN_SUPPORT = "atlas_ranger_plugin_support"
   ATLAS_UPGRADE_SUPPORT = "atlas_upgrade_support"

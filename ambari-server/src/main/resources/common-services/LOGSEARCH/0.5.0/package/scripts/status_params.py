@@ -26,10 +26,6 @@ from resource_management.libraries.script.script import Script
 
 config = Script.get_config()
 
-logsearch_solr_port = config['configurations']['logsearch-solr-env']['logsearch_solr_port']
-logsearch_solr_piddir = config['configurations']['logsearch-solr-env']['logsearch_solr_pid_dir']
-logsearch_solr_pidfile = format("{logsearch_solr_piddir}/solr-{logsearch_solr_port}.pid")
-
 # logsearch pid file
 logsearch_pid_dir = config['configurations']['logsearch-env']['logsearch_pid_dir']
 logsearch_pid_file = format("{logsearch_pid_dir}/logsearch.pid")

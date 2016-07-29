@@ -22,8 +22,8 @@
 <configuration supports_adding_forbidden="true">
   <property>
     <name>content</name>
-    <display-name>logsearch-solr-xml template</display-name>
-    <description>This is the jinja template for logsearch solr.xml file</description>
+    <display-name>infra-solr-xml template</display-name>
+    <description>This is the jinja template for Ambari Infrastructure solr.xml file</description>
     <value/>
     <property-type>VALUE_FROM_PROPERTY_FILE</property-type>
     <value-attributes>

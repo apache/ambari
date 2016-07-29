@@ -30,8 +30,8 @@
               <name>atlas-metadata_${stack_version}</name>
             </package>
             <package>
-              <name>ambari-logsearch-solr-client</name>
-              <condition>should_install_logsearch_solr_client</condition>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
             </package>
           </packages>
         </osSpecific>
@@ -42,14 +42,14 @@
               <name>atlas-metadata-${stack_version}</name>
             </package>
             <package>
-              <name>ambari-logsearch-solr-client</name>
-              <condition>should_install_logsearch_solr_client</condition>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
 
-<configuration-dependencies>
+      <configuration-dependencies>
         <config-type>ranger-atlas-audit</config-type>
         <config-type>ranger-atlas-plugin-properties</config-type>
         <config-type>ranger-atlas-policymgr-ssl</config-type>

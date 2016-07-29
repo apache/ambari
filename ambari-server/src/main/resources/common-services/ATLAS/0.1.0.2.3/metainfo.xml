@@ -91,8 +91,8 @@
               <name>atlas-metadata</name>
             </package>
             <package>
-              <name>ambari-logsearch-solr-client</name>
-              <condition>should_install_logsearch_solr_client</condition>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
             </package>
           </packages>
         </osSpecific>

@@ -28,6 +28,15 @@
           <name>ATLAS_SERVER</name>
           <cardinality>1+</cardinality>
         </component>
+        <dependencies>
+          <dependency>
+            <name>AMBARI_INFRA/INFRA_SOLR_CLIENT</name>
+            <scope>host</scope>
+            <auto-deploy>
+              <enabled>true</enabled>
+            </auto-deploy>
+          </dependency>
+        </dependencies>
       </components>
 
       <quickLinksConfigurations>
