@@ -116,6 +116,7 @@ public class Configuration {
   public static final String API_GZIP_MIN_COMPRESSION_SIZE_KEY = "api.gzip.compression.min.size";
   public static final String AGENT_API_GZIP_COMPRESSION_ENABLED_KEY = "agent.api.gzip.compression.enabled";
   public static final String AGENT_USE_SSL = "agent.ssl";
+  public static final String SRVR_AGENT_HOSTNAME_VALIDATE_KEY = "security.agent.hostname.validate";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
@@ -477,6 +478,7 @@ public class Configuration {
   private static final String SERVER_JDBC_USER_PASSWD_DEFAULT = "bigdata";
   private static final String SERVER_JDBC_RCA_USER_NAME_DEFAULT = "mapred";
   private static final String SERVER_JDBC_RCA_USER_PASSWD_DEFAULT = "mapred";
+  private static final String SRVR_AGENT_HOSTNAME_VALIDATE_DEFAULT = "true";
   private static final String SRVR_TWO_WAY_SSL_DEFAULT = "false";
   private static final String SRVR_KSTR_DIR_DEFAULT = ".";
   private static final String API_CSRF_PREVENTION_DEFAULT = "true";
@@ -928,6 +930,8 @@ public class Configuration {
     configsMap.putAll(agentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP_KEY, properties.getProperty(
       AMBARI_PYTHON_WRAP_KEY, AMBARI_PYTHON_WRAP_DEFAULT));
+    configsMap.put(SRVR_AGENT_HOSTNAME_VALIDATE_KEY, properties.getProperty(
+        SRVR_AGENT_HOSTNAME_VALIDATE_KEY, SRVR_AGENT_HOSTNAME_VALIDATE_DEFAULT));
     configsMap.put(SRVR_TWO_WAY_SSL_KEY, properties.getProperty(
       SRVR_TWO_WAY_SSL_KEY, SRVR_TWO_WAY_SSL_DEFAULT));
     configsMap.put(SRVR_TWO_WAY_SSL_PORT_KEY, properties.getProperty(
@@ -1671,6 +1675,16 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return properties.getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Check to see if the hostname of the agent is to be validated as a proper hostname or not
+   *
+   * @return true if agent hostnames should be checked as a valid hostnames; otherwise false
+   */
+  public boolean validateAgentHostnames() {
+    return ("true".equals(properties.getProperty(SRVR_AGENT_HOSTNAME_VALIDATE_KEY,
+        SRVR_AGENT_HOSTNAME_VALIDATE_DEFAULT)));
   }
 
   /**
