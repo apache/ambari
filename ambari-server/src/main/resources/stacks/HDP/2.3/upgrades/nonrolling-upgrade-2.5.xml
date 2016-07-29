@@ -77,10 +77,6 @@
       <parallel-scheduler/>
       <service-check>false</service-check>
 
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
-      </service>
-
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
@@ -102,10 +98,6 @@
 
       <service name="KNOX">
         <component>KNOX_GATEWAY</component>
-      </service>
-
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
       </service>
 
       <service name="FALCON">
@@ -196,6 +188,10 @@
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
         <component>PHOENIX_QUERY_SERVER</component>
+      </service>
+
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
       </service>
 
       <service name="HDFS">
@@ -509,6 +505,16 @@
       </execute-stage>
     </group>
 
+
+    <group xsi:type="restart" name="KAFKA" title="Kafka">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="YARN_AND_MAPR" title="YARN and MapReduce2">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -575,7 +581,9 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
         <service>HDFS</service>
+        <service>KAFKA</service>
         <service>YARN</service>
         <service>MAPREDUCE2</service>
         <service>HBASE</service>
@@ -676,15 +684,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="KAFKA" title="Kafka">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <parallel-scheduler/>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="KNOX" title="Knox">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -749,7 +748,6 @@
       <direction>UPGRADE</direction>
       <priority>
         <service>FALCON</service>
-        <service>KAFKA</service>
         <service>KNOX</service>
         <service>STORM</service>
         <service>SLIDER</service>
@@ -901,6 +899,14 @@
       </component>
 
       <component name="NFS_GATEWAY">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -1093,14 +1099,6 @@
       </component>
     </service>
 
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
         <upgrade>
@@ -1249,15 +1247,6 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
-    </service>
-
-    <service name="ATLAS">
-      <component name="ATLAS_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
     </service>
   </processing>
 </upgrade>

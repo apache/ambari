@@ -118,6 +118,13 @@
         <component>ZOOKEEPER_SERVER</component>
       </service>
     </group>
+
+    <group name="KAFKA" title="Kafka">
+      <skippable>true</skippable>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+    </group>
     
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
@@ -163,6 +170,7 @@
       <direction>UPGRADE</direction>
       <priority>
         <service>ZOOKEEPER</service>
+        <service>KAFKA</service>
         <service>HDFS</service>
         <service>YARN</service>
         <service>MAPREDUCE2</service>
@@ -330,13 +338,6 @@
       </exclude>
     </group>
 
-    <group name="KAFKA" title="Kafka">
-      <skippable>true</skippable>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
-
     <group name="KNOX" title="Knox">
       <skippable>true</skippable>
       <service name="KNOX">
@@ -438,6 +439,31 @@
       </component>
 
       <component name="ZOOKEEPER_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <!-- In HDP 2.3.4.0, Kafka had changes that required stopping all Kafka Brokers, running a migration script,
+        and then starting one at a time. This is needed during both upgrade and downgrade. -->
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Shut down all Kafka Brokers">
+            <script>scripts/kafka_broker.py</script>
+            <function>stop</function>
+          </task>
+        </pre-upgrade>
+
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KNOX">
+      <component name="KNOX_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -781,31 +807,6 @@
         </upgrade>
       </component>
       <component name="FALCON_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <!-- In HDP 2.3.4.0, Kafka had changes that required stopping all Kafka Brokers, running a migration script,
-        and then starting one at a time. This is needed during both upgrade and downgrade. -->
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Kafka Brokers">
-            <script>scripts/kafka_broker.py</script>
-            <function>stop</function>
-          </task>
-        </pre-upgrade>
-
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="KNOX">
-      <component name="KNOX_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
