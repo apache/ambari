@@ -88,7 +88,9 @@ App.WidgetPopoverSupport = Em.Mixin.create({
 
   movePopover: function (action) {
     var popoverSelector = Em.isEmpty(this.$('.original-widget')) ? this.$('.input-append') : this.$('.original-widget');
-    this.$(popoverSelector).popover(action);
+    if (popoverSelector) {
+      this.$(popoverSelector).popover(action)
+    }
   }
 
 });
