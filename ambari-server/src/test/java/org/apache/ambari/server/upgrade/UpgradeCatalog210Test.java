@@ -18,24 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -57,7 +39,6 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -81,7 +62,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
@@ -91,13 +71,11 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
@@ -106,6 +84,23 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -543,6 +538,96 @@ public class UpgradeCatalog210Test {
 
     Assert.assertTrue(hiveSecFound);
   }
+
+  @Test
+  public void testUpdateHiveConfigsWithRangerPlugin() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Config mockHiveEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHiveServerSite = easyMockSupport.createNiceMock(Config.class);
+    final Config mockHivePluginProperies = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHiveEnv = new HashMap<String, String>() {{
+      put("hive_security_authorization", "none");
+    }};
+    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
+    }};
+
+    final Map<String, String> propertiesExpectedPluginProperies = new HashMap<String, String>() {{
+      put("ranger-hive-plugin-enabled", "yes");
+    }};
+    final Map<String, String> propertiesExpectedHiveServerSite = new HashMap<String, String>() {{
+      put("hive.security.authorization.manager", "test");
+      put("hive.security.authenticator.manager", "test");
+    }};
+    final Map<String, Service> servicesExpected = new HashMap<String, Service>() {{
+      put("RANGER", null);
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+      }
+    });
+
+    final UpgradeCatalog210 upgradeCatalog210 = mockInjector.getInstance(UpgradeCatalog210.class);
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    Capture<Map<String, String>> configCreation = Capture.newInstance(CaptureType.ALL);
+
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnv).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hiveserver2-site")).andReturn(mockHiveServerSite).atLeastOnce();
+    expect(mockHiveEnv.getProperties()).andReturn(propertiesExpectedHiveEnv).anyTimes();
+    expect(mockHiveServerSite.getProperties()).andReturn(propertiesExpectedHiveServerSite).anyTimes();
+
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-hive-plugin-properties")).andReturn(mockHivePluginProperies).once();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
+    expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
+    expect(mockHivePluginProperies.getProperties()).andReturn(propertiesExpectedPluginProperies).anyTimes();
+    expect(mockClusterExpected.getServices()).andReturn(servicesExpected).atLeastOnce();
+    expect(mockAmbariManagementController.createConfig((Cluster) anyObject(),
+        anyString(),
+        capture(configCreation),
+        anyString(),
+        (Map<String, Map<String, String>>) anyObject())).andReturn(null).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    upgradeCatalog210.updateHiveConfigs();
+    easyMockSupport.verifyAll();
+    Assert.assertEquals(1, configCreation.getValues().size());
+
+    boolean result = false;
+    for (Map<String, String> cfg : configCreation.getValues()) {
+      if (cfg.containsKey("hive.security.authorization.manager")) {
+        result = true;
+        break;
+      }
+    }
+    Assert.assertFalse(result);
+    result = false;
+    for (Map<String, String> cfg : configCreation.getValues()) {
+      if (cfg.containsKey("hive.security.authenticator.manager")) {
+        result = true;
+        break;
+      }
+    }
+    Assert.assertFalse(result);
+  }
+
 
   @Test
   public void TestUpdateHiveEnvContent() {

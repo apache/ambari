@@ -121,11 +121,13 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
   public static final String CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES = "ranger-hbase-plugin-properties";
   public static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
+  public static final String CONFIGURATION_TYPE_RANGER_HIVE_PLUGIN_PROPERTIES = "ranger-hive-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
   public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
   public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
+  public static final String PROPERTY_RANGER_HIVE_PLUGIN_ENABLED = "ranger-hive-plugin-enabled";
 
   public static final String YARN_SCHEDULER_CAPACITY_ROOT_QUEUE = "yarn.scheduler.capacity.root";
   public static final String YARN_SCHEDULER_CAPACITY_ROOT_QUEUES = "yarn.scheduler.capacity.root.queues";
