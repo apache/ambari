@@ -260,6 +260,10 @@
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_set_ranger_admin_ssl_flag"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
         <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
       </execute-stage>
 

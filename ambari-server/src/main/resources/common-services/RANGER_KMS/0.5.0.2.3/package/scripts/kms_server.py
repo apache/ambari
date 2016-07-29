@@ -49,7 +49,7 @@ class KmsServer(Script):
     import params
 
     env.set_params(params)
-    kms_service(action = 'stop')
+    kms_service(action = 'stop', upgrade_type=upgrade_type)
     if params.stack_supports_pid:
       File(params.ranger_kms_pid_file,
         action = "delete"
@@ -62,7 +62,7 @@ class KmsServer(Script):
     self.configure(env)
     enable_kms_plugin()
     setup_kms_jce()
-    kms_service(action = 'start')
+    kms_service(action = 'start', upgrade_type=upgrade_type)
 
   def status(self, env):
     import status_params
