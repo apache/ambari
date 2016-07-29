@@ -65,6 +65,9 @@ def hive_interactive(name=None):
   exclude_list = ['hive.enforce.bucketing',
                   'hive.enforce.sorting']
 
+  # List of configs to be excluded from hive2 client, but present in Hive2 server.
+  exclude_list_for_hive2_client = ['javax.jdo.option.ConnectionPassword']
+
   # Copy Tarballs in HDFS.
   if params.stack_version_formatted_major and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.stack_version_formatted_major):
     resource_created = copy_to_hdfs("tez_hive2",
@@ -142,14 +145,33 @@ def hive_interactive(name=None):
   #   hive-exec-log4j2.properties
   #   beeline-log4j2.properties
 
-  for conf_dir in params.hive_conf_dirs_list:
-      XmlConfig("hive-site.xml",
-                conf_dir=conf_dir,
-                configurations=merged_hive_interactive_site,
-                configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
-                owner=params.hive_user,
-                group=params.user_group,
-                mode=0644)
+  hive2_conf_dirs_list = params.hive_conf_dirs_list
+  hive2_client_conf_path = format("{stack_root}/current/{component_directory}/conf")
+
+  # Making copy of 'merged_hive_interactive_site' in 'merged_hive_interactive_site_copy', and deleting 'javax.jdo.option.ConnectionPassword'
+  # config from there, as Hive2 client shouldn't have that config.
+  merged_hive_interactive_site_copy = merged_hive_interactive_site.copy()
+  for item in exclude_list_for_hive2_client:
+    if item in merged_hive_interactive_site.keys():
+      del merged_hive_interactive_site_copy[item]
+
+  for conf_dir in hive2_conf_dirs_list:
+      if conf_dir == hive2_client_conf_path:
+        XmlConfig("hive-site.xml",
+                  conf_dir=conf_dir,
+                  configurations=merged_hive_interactive_site_copy,
+                  configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
+                  owner=params.hive_user,
+                  group=params.user_group,
+                  mode=0644)
+      else:
+        XmlConfig("hive-site.xml",
+                  conf_dir=conf_dir,
+                  configurations=merged_hive_interactive_site,
+                  configuration_attributes=params.config['configuration_attributes']['hive-interactive-site'],
+                  owner=params.hive_user,
+                  group=params.user_group,
+                  mode=0644)
 
       XmlConfig("hiveserver2-site.xml",
                 conf_dir=conf_dir,
