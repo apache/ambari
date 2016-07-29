@@ -30,8 +30,6 @@
         },
         {
           "hive-interactive-site": {
-            "hadoop.security.authentication": "KERBEROS",
-            "hadoop.security.authorization": "true",
             "hive.llap.daemon.work.dirs": "/hadoop/llap/local"
           }
         },
