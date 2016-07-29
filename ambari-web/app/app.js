@@ -311,6 +311,10 @@ module.exports = Em.Application.create({
    * @type {Em.Object}
    */
   components: Em.Object.create({
+    isMasterAddableOnlyOnHA: function () {
+      return App.StackServiceComponent.find().filterProperty('isMasterAddableOnlyOnHA').mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
     allComponents: function () {
       return App.StackServiceComponent.find().mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
