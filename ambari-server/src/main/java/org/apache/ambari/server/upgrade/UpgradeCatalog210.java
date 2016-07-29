@@ -1558,7 +1558,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
               }
             }
 
-            if (isHiveSecurityAuthPresent && "none".equalsIgnoreCase(hiveSecurityAuth)) {
+            if (isHiveSecurityAuthPresent && "none".equalsIgnoreCase(hiveSecurityAuth) &&
+                !isConfigEnabled(cluster,
+                    AbstractUpgradeCatalog.CONFIGURATION_TYPE_RANGER_HIVE_PLUGIN_PROPERTIES,
+                    AbstractUpgradeCatalog.PROPERTY_RANGER_HIVE_PLUGIN_ENABLED)) {
               hiveServerSiteRemoveProps.add("hive.security.authorization.manager");
               hiveServerSiteRemoveProps.add("hive.security.authenticator.manager");
             }
