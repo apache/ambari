@@ -451,6 +451,8 @@
             <function>stop</function>
           </task>
 
+          <task xsi:type="configure" id="hdp_2_3_0_0_set_ranger_admin_ssl_flag"/>
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
 

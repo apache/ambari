@@ -656,6 +656,11 @@
             <set key="xasecure.audit.destination.solr" value="false"/>
           </definition>
 
+           <definition xsi:type="configure" id="hdp_2_3_0_0_set_ranger_admin_ssl_flag">
+            <type>ranger-admin-site</type>
+            <set key="ranger.service.https.attrib.ssl.enabled" value="true" if-type="ranger-site" if-key="http.enabled" if-value="false" />
+          </definition>
+
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
             <type>ranger-admin-site</type>
             <transfer operation="copy" from-type="ranger-site" from-key="https.attrib.clientAuth"

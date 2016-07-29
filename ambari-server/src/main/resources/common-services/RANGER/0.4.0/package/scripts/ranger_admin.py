@@ -31,6 +31,8 @@ from resource_management.core import shell
 from ranger_service import ranger_service
 from setup_ranger_xml import setup_ranger_audit_solr, setup_ranger_admin_passwd_change
 from resource_management.libraries.functions import solr_cloud_util
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from resource_management.libraries.functions.constants import Direction
 import upgrade
 import os, errno
 
@@ -58,8 +60,15 @@ class RangerAdmin(Script):
 
   def stop(self, env, upgrade_type=None):
     import params
-
     env.set_params(params)
+
+    if upgrade_type == UPGRADE_TYPE_NON_ROLLING and params.upgrade_direction == Direction.UPGRADE:
+      if params.stack_supports_rolling_upgrade and not params.stack_supports_config_versioning and os.path.isfile(format('{ranger_home}/ews/stop-ranger-admin.sh')):
+        File(format('{ranger_home}/ews/stop-ranger-admin.sh'),
+          owner=params.unix_user,
+          group = params.unix_group
+        )
+
     Execute(format('{params.ranger_stop}'), environment={'JAVA_HOME': params.java_home}, user=params.unix_user)
     if params.stack_supports_pid:
       File(params.ranger_admin_pid_file,
