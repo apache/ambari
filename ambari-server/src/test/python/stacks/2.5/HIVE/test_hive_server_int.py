@@ -298,17 +298,37 @@ class TestHiveServerInteractive(RMFTestCase):
     # Verify that config files got created under /etc/hive2/conf and /etc/hive2/conf/conf.server
     hive_conf_dirs_list = ['/usr/hdp/current/hive-server2-hive2/conf', '/usr/hdp/current/hive-server2-hive2/conf/conf.server']
 
+    # Making copy of 'hive_site_conf' in 'hive_site_conf_for_client', and deleting 'javax.jdo.option.ConnectionPassword' config
+    # from there.
+    hive_site_conf_for_client = hive_site_conf.copy()
+    del hive_site_conf_for_client['javax.jdo.option.ConnectionPassword']
+
     for conf_dir in hive_conf_dirs_list:
-        self.assertResourceCalled('XmlConfig', 'hive-site.xml',
-                                  group='hadoop',
-                                  conf_dir=conf_dir,
-                                  mode=0644,
-                                  configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
-                                                                       u'javax.jdo.option.ConnectionDriverName': u'true',
-                                                                       u'javax.jdo.option.ConnectionPassword': u'true'}},
-                                  owner='hive',
-                                  configurations=hive_site_conf,
-        )
+        # if 'conf_dir' is '/usr/hdp/current/hive-server2-hive2/conf', we don't expect 'javax.jdo.option.ConnectionPassword' config
+        # to be part of 'hive_site_conf', as we delete it for the HIVE client file. Thus, deleting it here for checking the contents.
+        if conf_dir == '/usr/hdp/current/hive-server2-hive2/conf':
+          self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+                                    group='hadoop',
+                                    conf_dir=conf_dir,
+                                    mode=0644,
+                                    configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
+                                                                         u'javax.jdo.option.ConnectionDriverName': u'true',
+                                                                         u'javax.jdo.option.ConnectionPassword': u'true'}},
+                                    owner='hive',
+                                    configurations=hive_site_conf_for_client,
+          )
+        else:
+          self.assertResourceCalled('XmlConfig', 'hive-site.xml',
+                                    group='hadoop',
+                                    conf_dir=conf_dir,
+                                    mode=0644,
+                                    configuration_attributes={u'final': {u'hive.optimize.bucketmapjoin.sortedmerge': u'true',
+                                                                         u'javax.jdo.option.ConnectionDriverName': u'true',
+                                                                         u'javax.jdo.option.ConnectionPassword': u'true'}},
+                                    owner='hive',
+                                    configurations=hive_site_conf,
+          )
+
         self.assertResourceCalled('XmlConfig', 'hiveserver2-site.xml',
                                   group='hadoop',
                                   conf_dir=conf_dir,
