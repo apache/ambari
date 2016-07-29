@@ -524,7 +524,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         LOG.info("executing insert resulted in {} row changes.", rowsChanged);
       } catch (Exception e) { // when the entity table is not yet created or other exception.
         entityManager.getTransaction().rollback();
-        LOG.error("Error --> can be ignored.", e);
+        LOG.info("Error (can be ignored) {}", e.getMessage());
+        LOG.debug("Exception occured while updating : {}",viewEntity.getViewName() + viewEntity.getViewInstance(), e);
       }
     }
   }
