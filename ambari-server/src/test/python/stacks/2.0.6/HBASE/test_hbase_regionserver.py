@@ -91,6 +91,54 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
+  def test_atlas_apply_acl(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['clusterHostInfo']['atlas_server_hosts'] = [
+      "c6401.ambari.apache.org",
+      "c6402.ambari.apache.org"
+    ]
+    json_content['clusterHostInfo']['hbase_rs_hosts'] = [
+      "c6401.ambari.apache.org",
+      "c6402.ambari.apache.org"
+    ]
+    json_content['configurations']['atlas-env'] = {
+        "metadata_user": "atlas"
+    }
+    if 'hbase-site' in json_content['configurations']:
+        json_content['configurations']['hbase-site']["hbase.zookeeper.quorum"] = ",".join(json_content['clusterHostInfo']['atlas_server_hosts'])
+    else:
+        json_content['configurations']['hbase-site'] = {
+            "hbase.zookeeper.quorum": ",".join(json_content['clusterHostInfo']['atlas_server_hosts'])
+        }
+
+    json_content['configurations']['application-properties'] = {
+        "atlas.graph.storage.hostname": json_content['configurations']['hbase-site']['hbase.zookeeper.quorum']
+    }
+
+    mock_dicts = {}
+    self.executeScript(
+      self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
+      classname="HbaseRegionServer",
+      command="start",
+      config_dict=json_content,
+      stack_version=self.STACK_VERSION,
+      target=RMFTestCase.TARGET_COMMON_SERVICES,
+      mocks_dict=mock_dicts
+    )
+    permission_apply_call_found = False
+    pattern_search = "/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; echo \"grant 'atlas', 'RWXCA'\" | hbase shell -n"
+    if "checked_call" in mock_dicts:
+        for _call in mock_dicts["checked_call"].call_args_list:
+            if len(_call) > 0 and isinstance(_call[0], tuple) and len(_call[0]) > 0 and \
+                    _call[0][0] == pattern_search:
+                permission_apply_call_found = True
+
+    self.assertEquals(True, permission_apply_call_found)
+
+
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
                    classname = "HbaseRegionServer",
