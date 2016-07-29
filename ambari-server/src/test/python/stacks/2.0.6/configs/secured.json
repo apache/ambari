@@ -41,7 +41,7 @@
         "update_exclude_file_only" : "false"
     },
     "taskId": 186, 
-    "public_hostname": "c6401.ambari.apache.org", 
+    "public_hostname": "c6401.ambari.apache.org",
     "configurations": {
         "sqoop-site": {
             "atlas.cluster.name": "c1",
