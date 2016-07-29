@@ -19,7 +19,9 @@ limitations under the License.
 """
 
 import sys
+
 from resource_management import *
+from resource_management.core import shell
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -81,14 +83,41 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     env.set_params(params)
     upgrade.post_regionserver(env)
 
+  def post_start(self, env, upgrade_type=None):
+    import params
+
+    self.apply_atlas_acl(params.hbase_user)
+
+  def apply_atlas_acl(self, hbase_user):
+    import params
+
+    if params.security_enabled and params.has_atlas and params.atlas_with_managed_hbase:
+      current_host = params.hostname.lower()
+      sorted_rs_hosts = sorted([host.lower() for host in params.rs_hosts])
+
+      # if list of rs_hosts are empty, try to apply permissions regardless of host
+      if len(sorted_rs_hosts) == 0:
+        can_apply_permissions = True
+      else:
+        can_apply_permissions = current_host == sorted_rs_hosts[0]
+
+      if can_apply_permissions:
+        kinit_cmd = format("{kinit_path_local} -kt {regionserver_keytab_path} {regionserver_jaas_princ}")
+        permissions_cmd = format("echo \"grant '{metadata_user}', 'RWXCA'\" | hbase shell -n")
+
+        # no additional logging required, as it supported by checked_call itself
+        # re-tries needed to suffer fails on Kerberos wizard as RegionServer update security features status over some time
+        shell.checked_call(format("{kinit_cmd}; {permissions_cmd}"), tries=10, try_sleep=10)
+
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # for security
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-regionserver")
-    hbase_service( 'regionserver',
-      action = 'start'
-    )
+
+    hbase_service('regionserver', action='start')
+
+    self.post_start(env, upgrade_type=upgrade_type)
 
   def stop(self, env, upgrade_type=None):
     import params

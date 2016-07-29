@@ -401,3 +401,10 @@ if has_ranger_admin:
 
 create_hbase_home_directory = check_stack_feature(StackFeature.HBASE_HOME_DIRECTORY, stack_version_formatted)
 hbase_home_directory = format("/user/{hbase_user}")
+
+atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
+has_atlas = len(atlas_hosts) > 0
+
+metadata_user = default('/configurations/atlas-env/metadata_user', None)
+atlas_graph_storage_hostname = default('/configurations/application-properties/atlas.graph.storage.hostname', None) if has_atlas else None
+atlas_with_managed_hbase = hbase_zookeeper_quorum == atlas_graph_storage_hostname if has_atlas and atlas_graph_storage_hostname is not None else False
