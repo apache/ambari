@@ -145,8 +145,8 @@
     <description>Solr Zookeeper string</description>
     <depends-on>
       <property>
-        <type>logsearch-solr-env</type>
-        <name>logsearch_solr_znode</name>
+        <type>infra-solr-env</type>
+        <name>infra_solr_znode</name>
       </property>
       <property>
         <type>ranger-env</type>

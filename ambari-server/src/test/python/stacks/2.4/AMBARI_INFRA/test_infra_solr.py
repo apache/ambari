@@ -22,40 +22,40 @@ from stacks.utils.RMFTestCase import RMFTestCase, Template, InlineTemplate, Stat
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.script.config_dictionary import UnknownConfiguration
 
-class TestSolr(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "LOGSEARCH/0.5.0/package"
+class TestInfraSolr(RMFTestCase):
+  COMMON_SERVICES_PACKAGE_DIR = "AMBARI_INFRA/0.1.0/package"
   STACK_VERSION = "2.4"
 
   def configureResourcesCalled(self):
-      self.assertResourceCalled('Directory', '/var/log/ambari-logsearch-solr',
+      self.assertResourceCalled('Directory', '/var/log/ambari-infra-solr',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
-      self.assertResourceCalled('Directory', '/var/run/ambari-logsearch-solr',
+      self.assertResourceCalled('Directory', '/var/run/ambari-infra-solr',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
-      self.assertResourceCalled('Directory', '/opt/logsearch_solr/data',
+      self.assertResourceCalled('Directory', '/opt/ambari_infra_solr/data',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
-      self.assertResourceCalled('Directory', '/opt/logsearch_solr/data/resources',
+      self.assertResourceCalled('Directory', '/opt/ambari_infra_solr/data/resources',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
                                 cd_access = 'a',
                                 mode = 0755
       )
-      self.assertResourceCalled('Directory', '/usr/lib/ambari-logsearch-solr',
+      self.assertResourceCalled('Directory', '/usr/lib/ambari-infra-solr',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
@@ -63,7 +63,7 @@ class TestSolr(RMFTestCase):
                                 cd_access = 'a',
                                 mode = 0755
                                 )
-      self.assertResourceCalled('Directory', '/etc/ambari-logsearch-solr/conf',
+      self.assertResourceCalled('Directory', '/etc/ambari-infra-solr/conf',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 create_parents = True,
@@ -72,43 +72,36 @@ class TestSolr(RMFTestCase):
                                 mode = 0755
                                 )
       
-      self.assertResourceCalled('File', '/var/log/ambari-logsearch-solr/solr-install.log',
+      self.assertResourceCalled('File', '/var/log/ambari-infra-solr/solr-install.log',
                                 owner = 'solr',
                                 group = 'hadoop',
                                 mode = 0644,
                                 content = ''
       )
-      self.assertResourceCalled('File', '/etc/ambari-logsearch-solr/conf/logsearch-solr-env.sh',
+      self.assertResourceCalled('File', '/etc/ambari-infra-solr/conf/infra-solr-env.sh',
                                 owner = 'solr',
                                 group='hadoop',
                                 mode = 0755,
-                                content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-env']['content'])
+                                content = InlineTemplate(self.getConfig()['configurations']['infra-solr-env']['content'])
       )
-      self.assertResourceCalled('File', '/opt/logsearch_solr/data/solr.xml',
+      self.assertResourceCalled('File', '/opt/ambari_infra_solr/data/solr.xml',
                                 owner = 'solr',
                                 group='hadoop',
-                                content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-xml']['content'])
+                                content = InlineTemplate(self.getConfig()['configurations']['infra-solr-xml']['content'])
       )
-      self.assertResourceCalled('File', '/etc/ambari-logsearch-solr/conf/log4j.properties',
+      self.assertResourceCalled('File', '/etc/ambari-infra-solr/conf/log4j.properties',
                                 owner = 'solr',
                                 group='hadoop',
-                                content = InlineTemplate(self.getConfig()['configurations']['logsearch-solr-log4j']['content'])
+                                content = InlineTemplate(self.getConfig()['configurations']['infra-solr-log4j']['content'])
       )
-      self.assertResourceCalled('File', '/opt/logsearch_solr/data/zoo.cfg',
-                                owner = 'solr',
-                                group='hadoop',
-                                content = Template('zoo.cfg.j2')
-      )
-      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /logsearch --create-znode --retry 5 --interval 10',
-                                user = "solr")
-      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/logsearch --cluster-prop --property-name urlScheme --property-value http',
-                                user = "solr")
-      self.assertResourceCalled('Execute', 'export JAVA_HOME=/usr/jdk64/jdk1.7.0_45 ; /usr/lib/ambari-logsearch-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /logsearch --setup-kerberos-plugin',
-                                user = "solr")
+
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --create-znode --retry 5 --interval 10')
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181/infra-solr --cluster-prop --property-name urlScheme --property-value http')
+      self.assertResourceCalled('Execute', 'ambari-sudo.sh JAVA_HOME=/usr/jdk64/jdk1.7.0_45 /usr/lib/ambari-infra-solr-client/solrCloudCli.sh --zookeeper-connect-string c6401.ambari.apache.org:2181 --znode /infra-solr --setup-kerberos-plugin')
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
-                       classname = "LogsearchSolr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/infra_solr.py",
+                       classname = "InfraSolr",
                        command = "configure",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
@@ -119,8 +112,8 @@ class TestSolr(RMFTestCase):
     self.assertNoMoreResources()
   
   def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
-                       classname = "LogsearchSolr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/infra_solr.py",
+                       classname = "InfraSolr",
                        command = "start",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
@@ -128,25 +121,25 @@ class TestSolr(RMFTestCase):
     )
     
     self.configureResourcesCalled()
-    self.assertResourceCalled('Execute', "/usr/lib/ambari-logsearch-solr/bin/solr start -cloud -noprompt -s /opt/logsearch_solr/data >> /var/log/ambari-logsearch-solr/solr-install.log 2>&1",
-                              environment = {'SOLR_INCLUDE': '/etc/ambari-logsearch-solr/conf/logsearch-solr-env.sh'},
+    self.assertResourceCalled('Execute', "/usr/lib/ambari-infra-solr/bin/solr start -cloud -noprompt -s /opt/ambari_infra_solr/data >> /var/log/ambari-infra-solr/solr-install.log 2>&1",
+                              environment = {'SOLR_INCLUDE': '/etc/ambari-infra-solr/conf/infra-solr-env.sh'},
                               user = "solr"
     )
   
   def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logsearch_solr.py",
-                       classname = "LogsearchSolr",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/infra_solr.py",
+                       classname = "InfraSolr",
                        command = "stop",
                        config_file = "default.json",
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
-    self.assertResourceCalled('Execute', '/usr/lib/ambari-logsearch-solr/bin/solr stop -all >> /var/log/ambari-logsearch-solr/solr-install.log',
-                              environment = {'SOLR_INCLUDE': '/etc/ambari-logsearch-solr/conf/logsearch-solr-env.sh'},
+    self.assertResourceCalled('Execute', '/usr/lib/ambari-infra-solr/bin/solr stop -all >> /var/log/ambari-infra-solr/solr-install.log',
+                              environment = {'SOLR_INCLUDE': '/etc/ambari-infra-solr/conf/infra-solr-env.sh'},
                               user = "solr",
-                              only_if = "test -f /var/run/ambari-logsearch-solr/solr-8886.pid"
+                              only_if = "test -f /var/run/ambari-infra-solr/solr-8886.pid"
     )
-    self.assertResourceCalled('File', '/var/run/ambari-logsearch-solr/solr-8886.pid',
+    self.assertResourceCalled('File', '/var/run/ambari-infra-solr/solr-8886.pid',
                               action = ['delete']
     )

@@ -136,7 +136,7 @@ public class SolrMetricsLoader extends TimerTask {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName(metricName);
     metric.setHostName(solrHost);
-    metric.setAppId("logsearch-solr");
+    metric.setAppId("infra-solr");
     metric.setStartTime(currMS);
     metric.setType(type);
     metric.setTimestamp(currMS);

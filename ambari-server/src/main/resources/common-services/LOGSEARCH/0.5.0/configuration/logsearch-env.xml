@@ -82,17 +82,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch_solr_audit_logs_use_ranger</name>
-    <value>false</value>
-    <display-name>Ranger Audit Enabled</display-name>
-    <description>Use Ranger Audit collection. This is supported only if Ranger Solr is installed in SolrCloud mode
-    </description>
-    <value-attributes>
-      <type>boolean</type>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>logsearch_debug_enabled</name>
     <value>false</value>
     <display-name>Log Search Debug Enabled</display-name>
@@ -111,7 +100,7 @@
   </property>
   <property>
     <name>logsearch_solr_audit_logs_zk_node</name>
-    <value>{logsearch_solr_znode}</value>
+    <value>{infra_solr_znode}</value>
     <display-name>Solr Audit Logs Znode</display-name>
     <description>Only needed if using custom solr cloud. E.g. /audit_logs</description>
     <on-ambari-upgrade add="true"/>

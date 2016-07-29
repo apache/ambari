@@ -6540,9 +6540,9 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.kafka.zookeeper.connect": ""
         }
       },
-      "logsearch-solr-env": {
+      "infra-solr-env": {
         "properties": {
-          "logsearch_solr_znode": "/logsearch"
+          "infra_solr_znode": "/infra-solr"
         }
       },
       'ranger-atlas-plugin-properties': {
@@ -6562,7 +6562,7 @@ class TestHDP25StackAdvisor(TestCase):
     expected = {
       'application-properties': {
         'properties': {
-          'atlas.graph.index.search.solr.zookeeper-url': 'c6401.ambari.apache.org:2181/logsearch',
+          'atlas.graph.index.search.solr.zookeeper-url': 'c6401.ambari.apache.org:2181/infra-solr',
           "atlas.audit.hbase.zookeeper.quorum": "c6401.ambari.apache.org",
           "atlas.graph.storage.hostname": "c6401.ambari.apache.org",
           "atlas.kafka.bootstrap.servers": "c6401.ambari.apache.org:6667",
@@ -6571,9 +6571,9 @@ class TestHDP25StackAdvisor(TestCase):
           "atlas.rest.address": "http://c6401.ambari.apache.org:21000"
         }
       },
-      "logsearch-solr-env": {
+      "infra-solr-env": {
         "properties": {
-          "logsearch_solr_znode": "/logsearch"
+          "infra_solr_znode": "/infra-solr"
         }
       },
       'ranger-atlas-plugin-properties': {
@@ -6595,9 +6595,9 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "services": [
         {
-          "href": "/api/v1/stacks/HDP/versions/2.2/services/LOGSEARCH",
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/AMBARI_INFRA",
           "StackServices": {
-            "service_name": "LOGSEARCH",
+            "service_name": "AMBARI_INFRA",
             "service_version": "2.6.0.2.2",
             "stack_name": "HDP",
             "stack_version": "2.3"
@@ -6608,7 +6608,7 @@ class TestHDP25StackAdvisor(TestCase):
                 "advertise_version": "false",
                 "cardinality": "1",
                 "component_category": "MASTER",
-                "component_name": "LOGSEARCH_SOLR",
+                "component_name": "INFRA_SOLR",
                 "display_name": "solr",
                 "is_client": "false",
                 "is_master": "true",
@@ -6725,9 +6725,9 @@ class TestHDP25StackAdvisor(TestCase):
             "atlas.kafka.zookeeper.connect": ""
           }
         },
-        "logsearch-solr-env": {
+        "infra-solr-env": {
           "properties": {
-            "logsearch_solr_znode": "/logsearch"
+            "infra_solr_znode": "/infra-solr"
           }
         },
         "hbase-site": {

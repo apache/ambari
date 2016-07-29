@@ -1991,9 +1991,9 @@ class TestHDP23StackAdvisor(TestCase):
     services = {
       "services": [
         {
-          "href": "/api/v1/stacks/HDP/versions/2.3/services/LOGSEARCH",
+          "href": "/api/v1/stacks/HDP/versions/2.3/services/AMBARI_INFRA",
           "StackServices": {
-            "service_name": "LOGSEARCH",
+            "service_name": "AMBARI_INFRA",
             "service_version": "2.6.0.2.2",
             "stack_name": "HDP",
             "stack_version": "2.3"
@@ -2004,8 +2004,8 @@ class TestHDP23StackAdvisor(TestCase):
                 "advertise_version": "false",
                 "cardinality": "1",
                 "component_category": "MASTER",
-                "component_name": "LOGSEARCH_SOLR",
-                "display_name": "Log Search Solr Instance",
+                "component_name": "INFRA_SOLR",
+                "display_name": "Infra Solr Instance",
                 "is_client": "false",
                 "is_master": "true",
                 "hostnames": []

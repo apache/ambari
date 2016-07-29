@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-logsearch.solr.zk_connect_string={{zookeeper_quorum}}{{logsearch_solr_znode}}
+logsearch.solr.zk_connect_string={{zookeeper_quorum}}{{infra_solr_znode}}
 
 # Service Logs
 logsearch.solr.collection.service.logs={{logsearch_solr_collection_service_logs}}
@@ -27,7 +27,7 @@ logsearch.service.logs.fields={{logsearch_service_logs_fields}}
 # Audit logs
 logsearch.solr.audit.logs.zk_connect_string={{logsearch_solr_audit_logs_zk_quorum}}{{logsearch_solr_audit_logs_zk_node}}
 logsearch.solr.collection.audit.logs={{logsearch_solr_collection_audit_logs}}
-logsearch.solr.audit.logs.url={{logsearch_solr_audit_logs_url}}
+logsearch.solr.audit.logs.url=
 
 logsearch.audit.logs.split.interval.mins={{logsearch_audit_logs_split_interval_mins}}
 logsearch.collection.audit.logs.numshards={{logsearch_collection_audit_logs_numshards}}
@@ -40,7 +40,7 @@ logsearch.collection.history.replication.factor=1
 
 # Metrics
 logsearch.solr.metrics.collector.hosts={{logsearch_solr_metrics_collector_hosts}}
-logsearch.solr.jmx.port={{logsearch_solr_jmx_port}}
+logsearch.solr.jmx.port={{infra_solr_jmx_port}}
 
 # Logfeeder Settings
 

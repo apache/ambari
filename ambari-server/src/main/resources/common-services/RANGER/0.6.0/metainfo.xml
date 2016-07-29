@@ -27,6 +27,18 @@
       <version>0.6.0</version>
 
       <components>
+        <component>
+          <name>RANGER_ADMIN</name>
+          <dependencies>
+            <dependency>
+              <name>AMBARI_INFRA/INFRA_SOLR_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
 
         <component>
           <name>RANGER_TAGSYNC</name>
@@ -68,8 +80,8 @@
               <condition>should_install_ranger_tagsync</condition>
             </package>
             <package>
-              <name>ambari-logsearch-solr-client</name>
-              <condition>should_install_logsearch_solr_client</condition>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
             </package>
           </packages>
         </osSpecific>
@@ -87,8 +99,8 @@
               <condition>should_install_ranger_tagsync</condition>
             </package>
             <package>
-              <name>ambari-logsearch-solr-client</name>
-              <condition>should_install_logsearch_solr_client</condition>
+              <name>ambari-infra-solr-client</name>
+              <condition>should_install_infra_solr_client</condition>
             </package>
           </packages>
         </osSpecific>

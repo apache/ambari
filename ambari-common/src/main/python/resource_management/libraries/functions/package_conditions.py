@@ -58,13 +58,13 @@ def should_install_ams_grafana():
   config = Script.get_config()
   return _has_applicable_local_component(config, ["METRICS_GRAFANA"])
 
-def should_install_logsearch_solr():
+def should_install_infra_solr():
   config = Script.get_config()
-  return _has_applicable_local_component(config, ["LOGSEARCH_SOLR"])
+  return _has_applicable_local_component(config, ["INFRA_SOLR"])
 
-def should_install_logsearch_solr_client():
+def should_install_infra_solr_client():
   config = Script.get_config()
-  return _has_applicable_local_component(config, ['LOGSEARCH_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN'])
+  return _has_applicable_local_component(config, ['INFRA_SOLR_CLIENT', 'ATLAS_SERVER', 'RANGER_ADMIN'])
 
 def should_install_logsearch_portal():
   config = Script.get_config()

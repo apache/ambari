@@ -121,12 +121,11 @@ def upload_conf_set(config_set, solrconfig_content = None):
   jaas_file = params.logsearch_jaas_file if params.security_enabled else None
   solr_cloud_util.upload_configuration_to_zk(
     zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.logsearch_solr_znode,
+    solr_znode=params.infra_solr_znode,
     config_set_dir=format("{logsearch_server_conf}/solr_configsets/{config_set}/conf"),
     config_set=config_set,
     tmp_dir=params.tmp_dir,
     java64_home=params.java64_home,
-    user=params.logsearch_solr_user,
     solrconfig_content= solrconfig_content,
     jaas_file=jaas_file,
     retry=30, interval=5)
@@ -136,6 +135,5 @@ def check_znode():
   import params
   solr_cloud_util.check_znode(
     zookeeper_quorum=params.zookeeper_quorum,
-    solr_znode=params.logsearch_solr_znode,
-    java64_home=params.java64_home,
-    user=params.logsearch_solr_user)
+    solr_znode=params.infra_solr_znode,
+    java64_home=params.java64_home)

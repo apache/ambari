@@ -14,25 +14,6 @@
               "tab-rows": "1",
               "sections": [
                 {
-                  "name": "section-logsearch-solr",
-                  "display-name": "Log Search Solr",
-                  "row-index": "0",
-                  "column-index": "0",
-                  "row-span": "1",
-                  "column-span": "1",
-                  "section-columns": "1",
-                  "section-rows": "4",
-                  "subsections": [
-                    {
-                      "name": "subsection-logsearch-solr-col1",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
-                },
-                {
                   "name": "section-logsearch-server",
                   "display-name": "Log Search Server",
                   "row-index": "0",
@@ -48,6 +29,13 @@
                       "column-index": "0",
                       "row-span": "1",
                       "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-logsearch-server-col2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
                     }
                   ]
                 }
@@ -61,22 +49,6 @@
       "configuration-layout": "default",
       "configs": [
         {
-          "config": "logsearch-solr-env/logsearch_solr_minmem",
-          "subsection-name": "subsection-logsearch-solr-col1"
-        },
-        {
-          "config": "logsearch-solr-env/logsearch_solr_maxmem",
-          "subsection-name": "subsection-logsearch-solr-col1"
-        },
-        {
-          "config": "logsearch-solr-env/logsearch_solr_datadir",
-          "subsection-name": "subsection-logsearch-solr-col1"
-        },
-        {
-          "config": "logsearch-solr-env/logsearch_solr_znode",
-          "subsection-name": "subsection-logsearch-solr-col1"
-        },
-        {
           "config" : "logsearch-properties/logsearch.logfeeder.include.default.level",
           "subsection-name": "subsection-logsearch-server-col1"
         },
@@ -86,57 +58,23 @@
         },
         {
           "config": "logsearch-properties/logsearch.collection.service.logs.numshards",
-          "subsection-name": "subsection-logsearch-server-col1"
+          "subsection-name": "subsection-logsearch-server-col2"
         },
         {
           "config": "logsearch-properties/logsearch.collection.service.logs.replication.factor",
-          "subsection-name": "subsection-logsearch-server-col1"
+          "subsection-name": "subsection-logsearch-server-col2"
         },
         {
           "config": "logsearch-properties/logsearch.collection.audit.logs.numshards",
-          "subsection-name": "subsection-logsearch-server-col1"
+          "subsection-name": "subsection-logsearch-server-col2"
         },
         {
           "config": "logsearch-properties/logsearch.collection.audit.logs.replication.factor",
-          "subsection-name": "subsection-logsearch-server-col1"
+          "subsection-name": "subsection-logsearch-server-col2"
         }
       ]
     },
     "widgets": [
-      {
-        "config": "logsearch-solr-env/logsearch_solr_minmem",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "GB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "logsearch-solr-env/logsearch_solr_maxmem",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "GB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "logsearch-solr-env/logsearch_solr_datadir",
-        "widget": {
-          "type": "directory"
-        }
-      },
-      {
-        "config": "logsearch-solr-env/logsearch_solr_znode",
-        "widget": {
-          "type": "directory"
-        }
-      },
       {
         "config": "logsearch-env/logsearch_app_max_memory",
         "widget": {
