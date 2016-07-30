@@ -30,6 +30,15 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
+    <name>nimbus.thrift.threads</name>
+    <value>196</value>
+    <description>The number of threads that should be used by the nimbus thrift server.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>topology.min.replication.count.default</name>
     <value>1</value>
     <description>Default minimum number of nimbus hosts where the code must be replicated before leader nimbus can mark the topology as active and create assignments. </description>
