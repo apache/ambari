@@ -1837,6 +1837,62 @@ public class UpgradeCatalog240Test {
   }
 
   @Test
+  public void testAtlasMetastoreAlertHashUpdate() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity atlasMetastoreAlertDefinitionEntity = new AlertDefinitionEntity();
+
+    atlasMetastoreAlertDefinitionEntity.setDefinitionName("metadata_server_webui");
+    atlasMetastoreAlertDefinitionEntity.setHash("initial_hash");
+    atlasMetastoreAlertDefinitionEntity.setSource("{\"uri\": {\n" +
+      "            \"http\": \"{{hostname}}:{{application-properties/atlas.server.http.port}}\",\n" +
+      "            \"https\": \"{{hostname}}:{{application-properties/atlas.server.https.port}}\",\n" +
+      "            \"https_property\": \"{{application-properties/atlas.enableTLS}}\",\n" +
+      "            \"https_property_value\": \"true\",\n" +
+      "            \"default_port\": 21000,\n" +
+      "            \"kerberos_keytab\": \"{{application-properties/atlas.http.authentication.kerberos.keytab}}\",\n" +
+      "            \"kerberos_principal\": \"{{application-properties/atlas.http.authentication.kerberos.principal}}\",\n" +
+      "            \"connection_timeout\": 5.0\n" +
+      "          }}");
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("metadata_server_webui")))
+        .andReturn(atlasMetastoreAlertDefinitionEntity).atLeastOnce();
+
+    expect(mockAlertDefinitionDAO.merge(atlasMetastoreAlertDefinitionEntity)).andReturn(atlasMetastoreAlertDefinitionEntity);
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog240.class).updateAlerts();
+
+    assertFalse(atlasMetastoreAlertDefinitionEntity.getHash().equals("initial_hash"));
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
   public void testConsolidateUserRoles() {
     final EasyMockSupport ems = new EasyMockSupport();
 

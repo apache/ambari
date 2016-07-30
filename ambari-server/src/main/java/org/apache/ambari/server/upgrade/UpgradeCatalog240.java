@@ -954,6 +954,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         uriJson.addProperty("kerberos_principal", "{{cluster-env/smokeuser_principal_name}}");
 
         atlasMetadataServerWebUI.setSource(sourceJson.toString());
+
+        atlasMetadataServerWebUI.setHash(UUID.randomUUID().toString());
         alertDefinitionDAO.merge(atlasMetadataServerWebUI);
       }
 
