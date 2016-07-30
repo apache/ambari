@@ -338,6 +338,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_hive_atlas_configs"/>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="server_action" summary="Update hive-env content" class="org.apache.ambari.server.serveraction.upgrades.HiveEnvClasspathAction"/>
+      </execute-stage>
+
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>

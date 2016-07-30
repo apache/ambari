@@ -157,6 +157,7 @@ hadoop_conf_dir = status_params.hadoop_conf_dir
 hadoop_bin_dir = status_params.hadoop_bin_dir
 webhcat_conf_dir = status_params.webhcat_conf_dir
 hive_conf_dir = status_params.hive_conf_dir
+hive_home_dir = status_params.hive_home_dir
 hive_config_dir = status_params.hive_config_dir
 hive_client_conf_dir = status_params.hive_client_conf_dir
 hive_server_conf_dir = status_params.hive_server_conf_dir
