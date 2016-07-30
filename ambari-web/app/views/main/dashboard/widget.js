@@ -320,10 +320,6 @@ App.DashboardWidgetView = Em.View.extend({
         rv = parseFloat(RegExp.$1); // IE version 1-10
       }
     }
-    var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-    if (isFirefox) {
-      return -2;
-    }
     return rv;
   },
 
