@@ -801,6 +801,7 @@
       <component name="HIVE_SERVER">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db" />
+          <task xsi:type="server_action" summary="Update hive-env content" class="org.apache.ambari.server.serveraction.upgrades.HiveEnvClasspathAction"/>
 
           <task xsi:type="manual">
             <summary>HiveServer Port Availability</summary>

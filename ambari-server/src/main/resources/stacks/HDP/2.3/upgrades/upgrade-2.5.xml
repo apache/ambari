@@ -820,6 +820,8 @@
 
           <!-- Remove Atlas configs that were incorrectly added to hive-site instead of Atlas' application.properties. -->
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_hive_atlas_configs" />
+
+          <task xsi:type="server_action" summary="Update hive-env content" class="org.apache.ambari.server.serveraction.upgrades.HiveEnvClasspathAction"/>
         </pre-upgrade>
 
         <pre-downgrade>
