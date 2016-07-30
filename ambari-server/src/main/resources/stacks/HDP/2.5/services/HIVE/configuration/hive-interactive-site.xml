@@ -642,34 +642,4 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
 
-  <!-- Disable ACID -->
-  <property>
-    <name>hive.txn.manager</name>
-    <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.support.concurrency</name>
-    <value>false</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.compactor.initiator.on</name>
-    <value>false</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.compactor.worker.threads</name>
-    <value>0</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
-    <name>hive.exec.dynamic.partition.mode</name>
-    <value>strict</value>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <!-- End of Disable ACID -->
-
-
-
 </configuration>
