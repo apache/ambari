@@ -34,7 +34,6 @@ import org.apache.ambari.view.slider.MetricsHolder;
 import org.apache.ambari.view.slider.SliderAppType;
 import org.apache.ambari.view.slider.SliderAppTypeComponent;
 import org.apache.ambari.view.slider.TemporalInfo;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.ambari.view.slider.SliderAppsViewController;
 
 import com.google.gson.JsonElement;
@@ -77,9 +76,6 @@ public class SliderAppMasterClient extends BaseHttpClient {
           return data;
         }
       }
-    } catch (HttpException e) {
-      logger.warn("Unable to determine Ambari clusters", e);
-      throw new RuntimeException(e.getMessage(), e);
     } catch (IOException e) {
       logger.warn("Unable to determine Ambari clusters", e);
       throw new RuntimeException(e.getMessage(), e);
@@ -112,8 +108,6 @@ public class SliderAppMasterClient extends BaseHttpClient {
           }
         }
       }
-    } catch (HttpException e) {
-      logger.warn("Unable to determine quicklinks from " + providerUrl, e);
     } catch (IOException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
     }
@@ -150,8 +144,6 @@ public class SliderAppMasterClient extends BaseHttpClient {
           }
         }
       }
-    } catch (HttpException e) {
-      logger.warn("Unable to determine quicklinks from " + providerUrl, e);
     } catch (IOException e) {
       logger.warn("Unable to determine quicklinks from " + providerUrl, e);
     }
