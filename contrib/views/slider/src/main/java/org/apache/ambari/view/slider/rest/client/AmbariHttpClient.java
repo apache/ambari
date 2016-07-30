@@ -19,7 +19,6 @@
 package org.apache.ambari.view.slider.rest.client;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,14 +33,10 @@ import org.apache.ambari.view.slider.clients.AmbariHostComponent;
 import org.apache.ambari.view.slider.clients.AmbariHostInfo;
 import org.apache.ambari.view.slider.clients.AmbariService;
 import org.apache.ambari.view.slider.clients.AmbariServiceInfo;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,22 +48,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 			ViewContext viewContext) {
 		super(url, userId, password, viewContext);
 	}
-	
-    @SuppressWarnings("deprecation")
-    private RuntimeException createRuntimeException(HttpException httpException) {
-      String message = httpException.getMessage();
-      try {
-        JsonElement jsonElement = new JsonParser().parse(new JsonReader(new StringReader(httpException.getMessage())));
-        if (jsonElement != null && jsonElement.getAsJsonObject().has("message")) {
-          message = jsonElement.getAsJsonObject().get("message").getAsString();
-        }
-      } catch (Throwable t) {
-      }
-      if (httpException.getReasonCode() != HttpStatus.SC_OK) {
-        message = httpException.getReasonCode() + " " + httpException.getReason() + ": " + message;
-      }
-      return new RuntimeException(message, httpException);
-    }
 
     /**
      * Provides the first cluster defined on this Ambari server.
@@ -91,9 +70,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
                 cluster.setVersion(clusterObj.get("version").getAsString());
                 return cluster;
             }
-        } catch (HttpException e) {
-            logger.warn("Unable to determine Ambari clusters", e);
-            throw createRuntimeException(e);
         } catch (IOException e) {
             logger.warn("Unable to determine Ambari clusters", e);
             throw new RuntimeException(e.getMessage(), e);
@@ -119,8 +95,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
             }
           }
         }
-      } catch (HttpException e) {
-        logger.warn("Unable to determine Ambari clusters", e);
       } catch (IOException e) {
         logger.warn("Unable to determine Ambari clusters", e);
       }
@@ -177,10 +151,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 			  logger.warn("Unable to determine Ambari cluster details - "
 			      + clusterInfo.getName(), e);
 			  throw new RuntimeException(e.getMessage(), e);
-			} catch (HttpException e) {
-				logger.warn("Unable to determine Ambari cluster details - "
-				    + clusterInfo.getName(), e);
-				throw createRuntimeException(e);
 			} catch (IOException e) {
 				logger.warn("Unable to determine Ambari cluster details - "
 				    + clusterInfo.getName(), e);
@@ -212,9 +182,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
 				    return properties;
 				  }
 				}
-			} catch (HttpException e) {
-				logger.warn("Unable to determine Ambari clusters", e);
-				throw createRuntimeException(e);
 			} catch (IOException e) {
 				logger.warn("Unable to determine Ambari clusters", e);
 				throw new RuntimeException(e.getMessage(), e);
@@ -255,9 +222,6 @@ public class AmbariHttpClient extends BaseHttpClient implements AmbariClient {
             }
             svc.setComponentsToHostComponentsMap(componentsToHostComponentsMap);
             return svc;
-        } catch (HttpException e) {
-            logger.warn("Unable to determine Ambari clusters", e);
-            throw createRuntimeException(e);
         } catch (IOException e) {
             logger.warn("Unable to determine Ambari clusters", e);
             throw new RuntimeException(e.getMessage(), e);
