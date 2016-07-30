@@ -93,6 +93,7 @@ else:
   hive_server_interactive_conf_dir = "/etc/hive2/conf.server"
 
   webhcat_conf_dir = format("{stack_root}/current/hive-webhcat/conf")
+  hive_home_dir = format("{stack_root}/current/{component_directory}")
   hive_conf_dir = format("{stack_root}/current/{component_directory}/conf")
   hive_client_conf_dir = format("{stack_root}/current/{component_directory}/conf")
 
