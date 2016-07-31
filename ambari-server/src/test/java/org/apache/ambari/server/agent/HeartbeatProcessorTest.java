@@ -17,30 +17,48 @@
  */
 package org.apache.ambari.server.agent;
 
-import com.google.gson.JsonObject;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
-import junit.framework.Assert;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostStatus;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOsType;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE_MASTER;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionDBAccessorImpl;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ActionManagerTestHelper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
-import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -71,31 +89,14 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.gson.JsonObject;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyCluster;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostStatus;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRelease;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOsType;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE_MASTER;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS_CLIENT;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.SECONDARY_NAMENODE;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import junit.framework.Assert;
 
 public class HeartbeatProcessorTest {
 
@@ -114,6 +115,9 @@ public class HeartbeatProcessorTest {
 
   @Inject
   HeartbeatTestHelper heartbeatTestHelper;
+
+  @Inject
+  ActionManagerTestHelper actionManagerTestHelper;
 
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
@@ -200,7 +204,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -263,7 +267,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -348,7 +352,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -431,7 +435,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -507,7 +511,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -541,8 +545,7 @@ public class HeartbeatProcessorTest {
     clusters.addCluster(DummyCluster, dummyStackId);
 
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
-        new HostsMap((String) null), unitOfWork, injector.getInstance(RequestFactory.class), null, null);
+    ActionManager am = injector.getInstance(ActionManager.class);
     heartbeatTestHelper.populateActionDB(db, DummyHostname1, requestId, stageId);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -624,7 +627,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -744,7 +747,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -848,7 +851,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -946,7 +949,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -1062,7 +1065,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -1152,7 +1155,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -1180,7 +1183,7 @@ public class HeartbeatProcessorTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testHeartBeatWithAlertAndInvalidCluster() throws Exception {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
 
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>());
@@ -1243,7 +1246,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         Collections.singletonList(command)).anyTimes();
     replay(am);
@@ -1351,7 +1354,7 @@ public class HeartbeatProcessorTest {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);

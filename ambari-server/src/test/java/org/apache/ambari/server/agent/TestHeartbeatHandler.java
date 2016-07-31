@@ -36,6 +36,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyString;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ActionManagerTestHelper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -106,10 +108,8 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
 
 import junit.framework.Assert;
-import static org.junit.Assert.assertNull;
 
 public class TestHeartbeatHandler {
 
@@ -138,9 +138,10 @@ public class TestHeartbeatHandler {
   HeartbeatTestHelper heartbeatTestHelper;
 
   @Inject
-  AuditLogger auditLogger;
+  ActionManagerTestHelper actionManagerTestHelper;
 
-  private UnitOfWork unitOfWork;
+  @Inject
+  AuditLogger auditLogger;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -155,8 +156,6 @@ public class TestHeartbeatHandler {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     injector.injectMembers(this);
-    log.debug("Using server os type=" + config.getServerOsType());
-    unitOfWork = injector.getInstance(UnitOfWork.class);
     EasyMock.replay(auditLogger);
   }
 
@@ -169,7 +168,7 @@ public class TestHeartbeatHandler {
   @Test
   @SuppressWarnings("unchecked")
   public void testHeartbeat() throws Exception {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(new ArrayList<HostRoleCommand>());
     replay(am);
     Clusters fsm = clusters;
@@ -241,7 +240,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -326,7 +325,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -348,7 +347,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistration() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -379,7 +378,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistrationRecoveryConfig() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -443,7 +442,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistrationRecoveryConfigMaintenanceMode()
           throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -498,7 +497,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegistrationAgentConfig() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -531,7 +530,7 @@ public class TestHeartbeatHandler {
   public void testRegistrationWithBadVersion() throws AmbariException,
       InvalidStateTransitionException {
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -572,7 +571,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -605,7 +604,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testInvalidOSRegistration() throws AmbariException,
       InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -634,7 +633,7 @@ public class TestHeartbeatHandler {
   public void testIncompatibleAgentRegistration() throws AmbariException,
           InvalidStateTransitionException {
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
@@ -662,7 +661,7 @@ public class TestHeartbeatHandler {
   @Test
   public void testRegisterNewNode()
       throws AmbariException, InvalidStateTransitionException {
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     fsm.addHost(DummyHostname1);
@@ -755,7 +754,7 @@ public class TestHeartbeatHandler {
     HeartbeatMonitor hm = mock(HeartbeatMonitor.class);
     when(hm.generateStatusCommands(anyString())).thenReturn(dummyCmds);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
     ActionQueue actionQueue = new ActionQueue();
@@ -824,7 +823,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, RoleCommand.INSTALL);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -895,7 +894,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -966,7 +965,7 @@ public class TestHeartbeatHandler {
     hb.setComponentStatus(componentStatuses);
 
     ActionQueue aq = new ActionQueue();
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
             }});
@@ -1007,7 +1006,7 @@ public class TestHeartbeatHandler {
     ActionQueue aq = new ActionQueue();
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1, Role.DATANODE, null, null);
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -1090,7 +1089,7 @@ public class TestHeartbeatHandler {
 
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -1322,7 +1321,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -1375,7 +1374,8 @@ public class TestHeartbeatHandler {
     expected.setComponents(dummyComponents);
 
     heartbeatTestHelper.getDummyCluster();
-    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(heartbeatTestHelper.getMockActionManager(),
+    HeartBeatHandler handler = heartbeatTestHelper.getHeartBeatHandler(
+        actionManagerTestHelper.getMockActionManager(),
         new ActionQueue());
 
     ComponentsResponse actual = handler.handleComponents(DummyCluster);
@@ -1440,7 +1440,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
             Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
             new ArrayList<HostRoleCommand>() {{
               add(command);
@@ -1527,7 +1527,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);
@@ -1558,7 +1558,7 @@ public class TestHeartbeatHandler {
     final HostRoleCommand command = hostRoleCommandFactory.create(DummyHostname1,
         Role.DATANODE, null, null);
 
-    ActionManager am = heartbeatTestHelper.getMockActionManager();
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(
         new ArrayList<HostRoleCommand>() {{
           add(command);

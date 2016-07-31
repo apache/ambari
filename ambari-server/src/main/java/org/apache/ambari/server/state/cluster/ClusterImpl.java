@@ -62,7 +62,10 @@ import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.ClusterEvent;
+import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
+import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -293,6 +296,12 @@ public class ClusterImpl implements Cluster {
    * information about cluster operations.
    */
   private AmbariEventPublisher eventPublisher;
+
+  /**
+   * Used for broadcasting {@link JPAEvent}s.
+   */
+  @Inject
+  private JPAEventPublisher jpaEventPublisher;
 
   /**
    * A simple cache for looking up {@code cluster-env} properties for a cluster.
@@ -3302,6 +3311,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
+
     try {
       ClusterEntity clusterEntity = getClusterEntity();
       Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
@@ -3320,16 +3330,18 @@ public class ClusterImpl implements Cluster {
 
       // loop through all configs and set the latest to enabled for the
       // specified stack
-      for(ClusterConfigMappingEntity e: configMappingEntities){
-        String type = e.getType();
-        String tag =  e.getTag();
+      for(ClusterConfigMappingEntity configMappingEntity: configMappingEntities){
+        String type = configMappingEntity.getType();
+        String tag =  configMappingEntity.getTag();
 
         for (ClusterConfigMappingEntity latest : latestConfigMappingByStack) {
-          String t = latest.getType();
-          String tagLatest = latest.getTag();
-          if(type.equals(t) && tag.equals(tagLatest) ){//find the latest config of a given mapping entity
+          String latestType = latest.getType();
+          String latestTag = latest.getTag();
+
+          // find the latest config of a given mapping entity
+          if (StringUtils.equals(type, latestType) && StringUtils.equals(tag, latestTag)) {
             LOG.info("{} with version tag {} is selected for stack {}", type, tag, stackId.toString());
-            e.setSelected(1);
+            configMappingEntity.setSelected(1);
           }
         }
       }
@@ -3342,6 +3354,17 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
+
+    LOG.info(
+        "Applied latest configurations for {} on stack {}. The desired configurations are now {}",
+        getClusterName(), stackId, getDesiredConfigs());
+
+    // publish an event to instruct entity managers to clear cached instances of
+    // ClusterEntity immediately - it takes EclipseLink about 1000ms to update
+    // the L1 caches of other threads and the action scheduler could act upon
+    // stale data
+    EntityManagerCacheInvalidationEvent event = new EntityManagerCacheInvalidationEvent();
+    jpaEventPublisher.publish(event);
   }
 
   public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){

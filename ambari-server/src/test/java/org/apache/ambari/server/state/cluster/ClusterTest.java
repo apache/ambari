@@ -120,6 +120,7 @@ import org.mockito.ArgumentCaptor;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -2627,6 +2628,87 @@ public class ClusterTest {
         Assert.assertEquals(1, clusterConfigMapping.isSelected());
       }
     }
+  }
+
+  /**
+   * Tests that applying configurations for a given stack correctly sets
+   * {@link DesiredConfig}s.
+   */
+  @Test
+  public void testDesiredConfigurationsAfterApplyingLatestForStack() throws Exception {
+    createDefaultCluster();
+    Cluster cluster = clusters.getCluster("c1");
+    StackId stackId = cluster.getCurrentStackVersion();
+    StackId newStackId = new StackId("HDP-2.2.0");
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+
+    // make sure the stacks are different
+    Assert.assertFalse(stackId.equals(newStackId));
+
+    Map<String, String> properties = new HashMap<String, String>();
+    Map<String, Map<String, String>> propertiesAttributes = new HashMap<String, Map<String, String>>();
+
+    // foo-type for v1 on current stack
+    properties.put("foo-property-1", "foo-value-1");
+    Config c1 = new ConfigImpl(cluster, "foo-type", properties, propertiesAttributes, injector);
+    c1.setTag("version-1");
+    c1.setStackId(stackId);
+    c1.setVersion(1L);
+
+    cluster.addConfig(c1);
+    c1.persist();
+
+    // make v1 "current"
+    cluster.addDesiredConfig("admin", Sets.newHashSet(c1), "note-1");
+
+    // bump the stack
+    cluster.setDesiredStackVersion(newStackId);
+
+    // save v2
+    // foo-type for v2 on new stack
+    properties.put("foo-property-2", "foo-value-2");
+    Config c2 = new ConfigImpl(cluster, "foo-type", properties, propertiesAttributes, injector);
+    c2.setTag("version-2");
+    c2.setStackId(newStackId);
+    c2.setVersion(2L);
+    cluster.addConfig(c2);
+    c2.persist();
+
+    // make v2 "current"
+    cluster.addDesiredConfig("admin", Sets.newHashSet(c2), "note-2");
+
+    // check desired config
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get("foo-type");
+    desiredConfig = desiredConfigs.get("foo-type");
+    assertNotNull(desiredConfig);
+    assertEquals(Long.valueOf(2), desiredConfig.getVersion());
+    assertEquals("version-2", desiredConfig.getTag());
+
+    String hostName = cluster.getHosts().iterator().next().getHostName();
+
+    // {foo-type={tag=version-2}}
+    Map<String, Map<String, String>> effectiveDesiredTags = configHelper.getEffectiveDesiredTags(
+        cluster, hostName);
+
+    assertEquals("version-2", effectiveDesiredTags.get("foo-type").get("tag"));
+
+    // move the stack back to the old stack
+    cluster.setDesiredStackVersion(stackId);
+
+    // apply the configs for the old stack
+    cluster.applyLatestConfigurations(stackId);
+
+    // {foo-type={tag=version-1}}
+    effectiveDesiredTags = configHelper.getEffectiveDesiredTags(cluster, hostName);
+    assertEquals("version-1", effectiveDesiredTags.get("foo-type").get("tag"));
+
+    desiredConfigs = cluster.getDesiredConfigs();
+    desiredConfig = desiredConfigs.get("foo-type");
+    assertNotNull(desiredConfig);
+    assertEquals(Long.valueOf(1), desiredConfig.getVersion());
+    assertEquals("version-1", desiredConfig.getTag());
   }
 
   /**

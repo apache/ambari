@@ -21,20 +21,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
-import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.CommandUtils;
 import org.apache.ambari.server.utils.StageUtils;
@@ -43,8 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.UnitOfWork;
 
 
 /**
@@ -55,25 +46,26 @@ public class ActionManager {
   private static Logger LOG = LoggerFactory.getLogger(ActionManager.class);
   private final ActionScheduler scheduler;
   private final ActionDBAccessor db;
-  private final ActionQueue actionQueue;
   private final AtomicLong requestCounter;
   private final RequestFactory requestFactory;
   private static TopologyManager topologyManager;
 
 
+  /**
+   * Guice-injected Constructor.
+   *
+   * @param db
+   * @param requestFactory
+   * @param scheduler
+   */
   @Inject
-  public ActionManager(@Named("schedulerSleeptime") long schedulerSleepTime,
-                       @Named("actionTimeout") long actionTimeout,
-                       ActionQueue aq, Clusters fsm, ActionDBAccessor db, HostsMap hostsMap,
-                       UnitOfWork unitOfWork,
-                       RequestFactory requestFactory, Configuration configuration,
-                       AmbariEventPublisher ambariEventPublisher) {
-    actionQueue = aq;
+  public ActionManager(ActionDBAccessor db, RequestFactory requestFactory,
+      ActionScheduler scheduler) {
     this.db = db;
-    scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
-        actionQueue, fsm, 2, hostsMap, unitOfWork, ambariEventPublisher, configuration);
-    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
     this.requestFactory = requestFactory;
+    this.scheduler = scheduler;
+
+    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
   }
 
   public void start() {
