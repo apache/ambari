@@ -23,8 +23,6 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOSRele
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,13 +38,9 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.Request;
-import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.HostsMap;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -138,20 +132,6 @@ public class HeartbeatTestHelper {
     reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
     return handler;
-  }
-
-  public ActionManager getMockActionManager() {
-    ActionQueue actionQueueMock = createNiceMock(ActionQueue.class);
-    Clusters clustersMock = createNiceMock(Clusters.class);
-    Configuration configurationMock = createNiceMock(Configuration.class);
-
-    ActionManager actionManager = createMockBuilder(ActionManager.class).
-        addMockedMethod("getTasks").
-        withConstructor((long)0, (long)0, actionQueueMock, clustersMock,
-            actionDBAccessor, new HostsMap((String) null), unitOfWork,
-            injector.getInstance(RequestFactory.class), configurationMock, createNiceMock(AmbariEventPublisher.class)).
-        createMock();
-    return actionManager;
   }
 
   public Cluster getDummyCluster()

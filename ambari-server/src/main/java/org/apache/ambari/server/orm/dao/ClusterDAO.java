@@ -317,11 +317,11 @@ public class ClusterDAO {
   public void removeConfigMapping(ClusterConfigMappingEntity entity) {
     entityManagerProvider.get().remove(entity);
   }
-  
-  
+
+
   /**
    * Sets selected = 0, for clusterConfigEntities which has type_name which is in the given types list
-   * 
+   *
    * @param clusterId
    *          the cluster that the service is a part of.
    * @param types
@@ -332,7 +332,7 @@ public class ClusterDAO {
       if(types.isEmpty()) {
         return;
       }
-      
+
       TypedQuery<Long> query = entityManagerProvider.get().createQuery
           ("DELETE FROM ClusterConfigMappingEntity configs WHERE configs" +
             ".clusterId=?1 AND configs.typeName IN ?2", Long.class);

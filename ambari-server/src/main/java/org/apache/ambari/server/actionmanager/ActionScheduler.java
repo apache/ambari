@@ -31,6 +31,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
@@ -45,7 +47,9 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
+import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
@@ -68,7 +72,12 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.eventbus.Subscribe;
 import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.google.inject.persist.UnitOfWork;
 
 
@@ -77,6 +86,7 @@ import com.google.inject.persist.UnitOfWork;
  * Action schedule frequently looks at action database and determines if
  * there is an action that can be scheduled.
  */
+@Singleton
 class ActionScheduler implements Runnable {
 
   private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
@@ -84,21 +94,39 @@ class ActionScheduler implements Runnable {
   public static final String FAILED_TASK_ABORT_REASONING =
           "Server considered task failed and automatically aborted it";
 
+  @Inject
+  private UnitOfWork unitOfWork;
+
+  @Inject
+  private ActionQueue actionQueue;
+
+  @Inject
+  private Clusters clusters;
+
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
+
+  @Inject
+  private HostsMap hostsMap;
+
+  @Inject
+  private Configuration configuration;
+
+  @Inject
+  Provider<EntityManager> entityManagerProvider;
+
+  volatile EntityManager threadEntityManager;
+
   private final long actionTimeout;
   private final long sleepTime;
-  private final UnitOfWork unitOfWork;
   private volatile boolean shouldRun = true;
   private Thread schedulerThread = null;
   private final ActionDBAccessor db;
-  private final short maxAttempts;
-  private final ActionQueue actionQueue;
-  private final Clusters clusters;
-  private final AmbariEventPublisher ambariEventPublisher;
+  private short maxAttempts = 2;
+  private final JPAEventPublisher jpaPublisher;
   private boolean taskTimeoutAdjustment = true;
-  private final HostsMap hostsMap;
   private final Object wakeupSyncObject = new Object();
   private final ServerActionExecutor serverActionExecutor;
-  private final Configuration configuration;
 
   private final Set<Long> requestsInProgress = new HashSet<Long>();
 
@@ -128,31 +156,82 @@ class ActionScheduler implements Runnable {
   private Cache<String, Map<String, String>> commandParamsStageCache;
   private Cache<String, Map<String, String>> hostParamsStageCache;
 
-  public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
-                         ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
-                         int maxAttempts, HostsMap hostsMap,
-                         UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
-                         Configuration configuration) {
+  /**
+   * Guice-injected Constructor.
+   *
+   * @param sleepTime
+   * @param actionTimeout
+   * @param db
+   * @param jpaPublisher
+   */
+  @Inject
+  public ActionScheduler(@Named("schedulerSleeptime") long sleepTime,
+      @Named("actionTimeout") long actionTimeout, ActionDBAccessor db,
+      JPAEventPublisher jpaPublisher) {
+
+    this.sleepTime = sleepTime;
+    this.actionTimeout = actionTimeout;
+    this.db = db;
+
+    this.jpaPublisher = jpaPublisher;
+    this.jpaPublisher.register(this);
+
+    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
+
+    initializeCaches();
+  }
+
+  /**
+   * Unit Test Constructor.
+   *
+   * @param sleepTimeMilliSec
+   * @param actionTimeoutMilliSec
+   * @param db
+   * @param actionQueue
+   * @param fsmObject
+   * @param maxAttempts
+   * @param hostsMap
+   * @param unitOfWork
+   * @param ambariEventPublisher
+   * @param configuration
+   */
+  protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
+      ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+      UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
+      Configuration configuration, Provider<EntityManager> entityManagerProvider) {
+
     sleepTime = sleepTimeMilliSec;
-    this.hostsMap = hostsMap;
     actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
     clusters = fsmObject;
-    this.ambariEventPublisher = ambariEventPublisher;
     this.maxAttempts = (short) maxAttempts;
-    serverActionExecutor = new ServerActionExecutor(db, sleepTimeMilliSec);
+    this.hostsMap = hostsMap;
     this.unitOfWork = unitOfWork;
+    this.ambariEventPublisher = ambariEventPublisher;
+    this.configuration = configuration;
+    this.entityManagerProvider = entityManagerProvider;
+    jpaPublisher = null;
+
+    serverActionExecutor = new ServerActionExecutor(db, sleepTime);
+    initializeCaches();
+  }
+
+  /**
+   * Initializes the caches.
+   */
+  private void initializeCaches(){
     clusterHostInfoCache = CacheBuilder.newBuilder().
         expireAfterAccess(5, TimeUnit.MINUTES).
         build();
+
     commandParamsStageCache = CacheBuilder.newBuilder().
       expireAfterAccess(5, TimeUnit.MINUTES).
       build();
+
     hostParamsStageCache = CacheBuilder.newBuilder().
       expireAfterAccess(5, TimeUnit.MINUTES).
       build();
-    this.configuration = configuration;
   }
 
   public void start() {
@@ -195,7 +274,9 @@ class ActionScheduler implements Runnable {
           }
           activeAwakeRequest = false;
         }
+
         doWork();
+
       } catch (InterruptedException ex) {
         LOG.warn("Scheduler thread is interrupted going to stop", ex);
         shouldRun = false;
@@ -212,6 +293,9 @@ class ActionScheduler implements Runnable {
   public void doWork() throws AmbariException {
     try {
       unitOfWork.begin();
+
+      // grab a reference to this UnitOfWork's EM
+      threadEntityManager = entityManagerProvider.get();
 
       // The first thing to do is to abort requests that are cancelled
       processCancelledRequestsList();
@@ -1157,6 +1241,25 @@ class ActionScheduler implements Runnable {
 
   ServerActionExecutor getServerActionExecutor() {
     return serverActionExecutor;
+  }
+
+  /**
+   * Handles {@link EntityManagerCacheInvalidationEvent} instances and instructs
+   * the thread running this scheduler to evict instances from the
+   * {@link EntityManager}.
+   *
+   * @param event
+   *          the event to handle (not {@code null}).
+   */
+  @Subscribe
+  public void onEvent(EntityManagerCacheInvalidationEvent event) {
+    try {
+      if (null != threadEntityManager && threadEntityManager.isOpen()) {
+        threadEntityManager.clear();
+      }
+    } catch (Throwable throwable) {
+      LOG.error("Unable to clear the EntityManager for the scheduler thread", throwable);
+    }
   }
 
   static class RoleStats {

@@ -39,6 +39,7 @@ import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.controller.HostsMap;
+import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Clusters;
@@ -94,9 +95,7 @@ public class TestActionManager {
   @Test
   public void testActionResponse() throws AmbariException {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), unitOfWork,
-        injector.getInstance(RequestFactory.class), null, null);
+    ActionManager am = injector.getInstance(ActionManager.class);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -137,9 +136,7 @@ public class TestActionManager {
   @Test
   public void testActionResponsesUnsorted() throws AmbariException {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), unitOfWork,
-        injector.getInstance(RequestFactory.class), null, null);
+    ActionManager am = injector.getInstance(ActionManager.class);
     populateActionDBWithTwoCommands(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -176,9 +173,7 @@ public class TestActionManager {
   @Test
   public void testLargeLogs() throws AmbariException {
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
-    ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(),
-        clusters, db, new HostsMap((String) null), unitOfWork,
-        injector.getInstance(RequestFactory.class), null, null);
+    ActionManager am = injector.getInstance(ActionManager.class);
     populateActionDB(db, hostname);
     Stage stage = db.getAllStages(requestId).get(0);
     Assert.assertEquals(stageId, stage.getStageId());
@@ -284,8 +279,8 @@ public class TestActionManager {
 
     replay(queue, db, clusters);
 
-    ActionManager manager = new ActionManager(0, 0, queue, clusters, db, null, unitOfWork,
-        injector.getInstance(RequestFactory.class), null, null);
+    ActionScheduler actionScheduler = new ActionScheduler(0, 0, db, createNiceMock(JPAEventPublisher.class));
+    ActionManager manager = new ActionManager(db, injector.getInstance(RequestFactory.class), actionScheduler);
     assertSame(listStages, manager.getActions(requestId));
 
     verify(queue, db, clusters);
