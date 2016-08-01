@@ -2497,6 +2497,10 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         if ("SERVICE.TOGGLE_ALERTS".equals(authorization.getAuthorizationId()) || "SERVICE.MANAGE_ALERTS".equals(authorization.getAuthorizationId())) {
           iterator.remove();
         }
+        if (pe.getPermissionName().equals("SERVICE.ADMINISTRATOR")
+                && ("SERVICE.MOVE".equals(authorization.getAuthorizationId()) || "SERVICE.ENABLE_HA".equals(authorization.getAuthorizationId()))) {
+          iterator.remove();
+        }
       }
       permissionDAO.merge(pe);
     }
