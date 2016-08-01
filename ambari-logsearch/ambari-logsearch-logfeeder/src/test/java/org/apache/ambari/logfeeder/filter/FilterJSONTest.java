@@ -27,6 +27,7 @@ import java.util.TimeZone;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.OutputMgr;
+import org.apache.ambari.logfeeder.exception.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
@@ -37,11 +38,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class JSONFilterCodeTest {
-  private static final Logger LOG = Logger.getLogger(JSONFilterCodeTest.class);
+public class FilterJSONTest {
+  private static final Logger LOG = Logger.getLogger(FilterJSONTest.class);
 
-  private JSONFilterCode jsonFilterCode;
+  private FilterJSON filterJson;
   private OutputMgr mockOutputMgr;
   private Capture<Map<String, Object>> capture;
 
@@ -49,10 +51,10 @@ public class JSONFilterCodeTest {
     mockOutputMgr = EasyMock.strictMock(OutputMgr.class);
     capture = EasyMock.newCapture(CaptureType.LAST);
 
-    jsonFilterCode = new JSONFilterCode();
-    jsonFilterCode.loadConfig(params);
-    jsonFilterCode.setOutputMgr(mockOutputMgr);
-    jsonFilterCode.init();
+    filterJson = new FilterJSON();
+    filterJson.loadConfig(params);
+    filterJson.setOutputMgr(mockOutputMgr);
+    filterJson.init();
   }
 
   @Test
@@ -69,7 +71,7 @@ public class JSONFilterCodeTest {
     DateFormat sdf = new SimpleDateFormat(LogFeederUtil.SOLR_DATE_FORMAT);
     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     String dateString = sdf.format(d);
-    jsonFilterCode.apply("{ logtime: '" + d.getTime() + "', line_number: 100 }", new InputMarker());
+    filterJson.apply("{ logtime: '" + d.getTime() + "', line_number: 100 }", new InputMarker());
 
     EasyMock.verify(mockOutputMgr);
     Map<String, Object> jsonParams = capture.getValue();
@@ -93,7 +95,7 @@ public class JSONFilterCodeTest {
     DateFormat sdf = new SimpleDateFormat(LogFeederUtil.SOLR_DATE_FORMAT);
     sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     String dateString = sdf.format(d);
-    jsonFilterCode.apply("{ logtime: '" + d.getTime() + "', some_field: 'abc' }", new InputMarker());
+    filterJson.apply("{ logtime: '" + d.getTime() + "', some_field: 'abc' }", new InputMarker());
 
     EasyMock.verify(mockOutputMgr);
     Map<String, Object> jsonParams = capture.getValue();
@@ -113,7 +115,7 @@ public class JSONFilterCodeTest {
     EasyMock.expectLastCall();
     EasyMock.replay(mockOutputMgr);
 
-    jsonFilterCode.apply("{ line_number: 100, some_field: 'abc' }", new InputMarker());
+    filterJson.apply("{ line_number: 100, some_field: 'abc' }", new InputMarker());
 
     EasyMock.verify(mockOutputMgr);
     Map<String, Object> jsonParams = capture.getValue();
@@ -121,6 +123,20 @@ public class JSONFilterCodeTest {
     assertEquals("Incorrect decoding: line number", 100l, jsonParams.remove("line_number"));
     assertEquals("Incorrect decoding: some field", "abc", jsonParams.remove("some_field"));
     assertTrue("jsonParams are not empty!", jsonParams.isEmpty());
+  }
+  
+  
+  @Test
+  public void testJSONFilterCode_invalidJson() throws Exception {
+    LOG.info("testJSONFilterCode_invalidJson()");
+    init(new HashMap<String, Object>());
+    String inputStr="invalid json";
+    try{
+    filterJson.apply(inputStr,new InputMarker());
+    fail("Expected LogfeederException was not occured");
+    }catch(LogfeederException logfeederException){
+      assertEquals("Json parsing failed for inputstr = "+inputStr, logfeederException.getLocalizedMessage());
+    }
   }
 
   @After

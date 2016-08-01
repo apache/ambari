@@ -29,7 +29,7 @@ import java.util.Random;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.filter.Filter;
-import org.apache.ambari.logfeeder.filter.JSONFilterCode;
+import org.apache.ambari.logfeeder.filter.FilterJSON;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.util.Base64;
 
@@ -64,7 +64,7 @@ public class InputSimulate extends Input {
     this.logText = getLogText();
     this.sleepMillis = LogFeederUtil.getIntProperty("logfeeder.simulate.sleep_milliseconds", 10000);
     
-    Filter filter = new JSONFilterCode();
+    Filter filter = new FilterJSON();
     filter.setInput(this);
     setFirstFilter(filter);
   }

@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.MetricCount;
+import org.apache.ambari.logfeeder.exception.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -59,12 +60,12 @@ public class FilterKeyValue extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
     apply(LogFeederUtil.toJSONObject(inputStr), inputMarker);
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
     if (sourceField == null) {
       return;
     }
