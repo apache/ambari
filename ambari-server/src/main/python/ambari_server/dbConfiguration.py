@@ -40,11 +40,11 @@ SETUP_DB_CONNECT_ATTEMPTS = 3
 
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-CUSTOM_JDBC_DB_NAMES = ["postgres", "mysql", "mssql", "oracle", "hsqldb", "sqlanywhere"]
-DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql", "sqlanywhere"]
+CUSTOM_JDBC_DB_NAMES = ["postgres", "mysql", "mssql", "oracle", "hsqldb", "sqlanywhere", "bdb"]
+DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql", "sqlanywhere", "bdb"]
 DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres":
-  "PostgreSQL", "sqlanywhere": "SQL Anywhere"}
-LINUX_DBMS_KEYS_LIST = [ 'embedded', 'oracle', 'mysql', 'postgres', 'mssql', 'sqlanywhere']
+  "PostgreSQL", "sqlanywhere": "SQL Anywhere", "bdb" : "Berkeley DB"}
+LINUX_DBMS_KEYS_LIST = [ 'embedded', 'oracle', 'mysql', 'postgres', 'mssql', 'sqlanywhere', 'bdb']
 AMBARI_DATABASE_NAME = "ambari"
 AMBARI_DATABASE_TITLE = "ambari"
 
@@ -55,7 +55,8 @@ default_connectors_map = { "mssql":"sqljdbc4.jar",
                            "postgres":"postgresql-jdbc.jar",
                            "oracle":"ojdbc.jar",
                            "sqlanywhere":"sajdbc4.jar",
-                           "hsqldb":"hsqldb.jar"}
+                           "hsqldb":"hsqldb.jar",
+                           "bdb": 'je-5.0.73.jar'}
 
 STORAGE_TYPE_LOCAL = 'local'
 STORAGE_TYPE_REMOTE = 'remote'
@@ -343,7 +344,7 @@ class DBMSConfigFactoryWindows(DBMSConfigFactory):
 class DBMSConfigFactoryLinux(DBMSConfigFactory):
   def __init__(self):
     from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig, \
-      createMSSQLConfig, createSQLAConfig
+      createMSSQLConfig, createSQLAConfig, createBDBConfig
 
     self.DBMS_KEYS_LIST = LINUX_DBMS_KEYS_LIST
 
@@ -353,7 +354,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       'postgres',
       'mssql',
       'hsqldb',
-      'sqlanywhere'
+      'sqlanywhere',
+      'bdb'
     ]
 
     self.DBMS_LIST = [
@@ -362,7 +364,9 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL / MariaDB', '', createMySQLConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[4], STORAGE_TYPE_REMOTE, 'Microsoft SQL Server', 'Tech Preview', createMSSQLConfig),
-      DBMSDesc(self.DBMS_KEYS_LIST[5], STORAGE_TYPE_REMOTE, 'SQL Anywhere', '', createSQLAConfig)
+      DBMSDesc(self.DBMS_KEYS_LIST[5], STORAGE_TYPE_REMOTE, 'SQL Anywhere', '', createSQLAConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[6], STORAGE_TYPE_REMOTE, 'BDB', '', createBDBConfig)
+
     ]
 
     self.DBMS_DICT = \
@@ -381,6 +385,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       self.DBMS_KEYS_LIST[3] + '-' + STORAGE_TYPE_REMOTE: 3,
       self.DBMS_KEYS_LIST[5] + '-': 5,
       self.DBMS_KEYS_LIST[5] + '-' + STORAGE_TYPE_REMOTE: 5,
+      self.DBMS_KEYS_LIST[6] + '-': 6,
+      self.DBMS_KEYS_LIST[6] + '-' + STORAGE_TYPE_LOCAL: 6,
     }
 
     self.DBMS_PROMPT_PATTERN = "[{0}] - {1}{2}\n"
