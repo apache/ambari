@@ -148,13 +148,28 @@ oozie_site = config['configurations']['oozie-site']
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_resourcemanager_address = config['configurations']['yarn-site']['yarn.resourcemanager.address']
 
-if security_enabled and stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
-  #older versions of oozie have problems when using _HOST in principal
+if security_enabled:
   oozie_site = dict(config['configurations']['oozie-site'])
-  oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
-    oozie_principal.replace('_HOST', hostname)
-  oozie_site['oozie.authentication.kerberos.principal'] = \
-    http_principal.replace('_HOST', hostname)
+
+  # If a user-supplied oozie.ha.authentication.kerberos.principal property exists in oozie-site,
+  # use it to replace the existing oozie.authentication.kerberos.principal value. This is to ensure
+  # that any special principal name needed for HA is used rather than the Ambari-generated value
+  if "oozie.ha.authentication.kerberos.principal" in oozie_site:
+    oozie_site['oozie.authentication.kerberos.principal'] = oozie_site['oozie.ha.authentication.kerberos.principal']
+    http_principal = oozie_site['oozie.authentication.kerberos.principal']
+
+  # If a user-supplied oozie.ha.authentication.kerberos.keytab property exists in oozie-site,
+  # use it to replace the existing oozie.authentication.kerberos.keytab value. This is to ensure
+  # that any special keytab file needed for HA is used rather than the Ambari-generated value
+  if "oozie.ha.authentication.kerberos.keytab" in oozie_site:
+    oozie_site['oozie.authentication.kerberos.keytab'] = oozie_site['oozie.ha.authentication.kerberos.keytab']
+
+  if stack_version_formatted and check_stack_feature(StackFeature.OOZIE_HOST_KERBEROS, stack_version_formatted):
+    #older versions of oozie have problems when using _HOST in principal
+    oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
+      oozie_principal.replace('_HOST', hostname)
+    oozie_site['oozie.authentication.kerberos.principal'] = \
+      http_principal.replace('_HOST', hostname)
 
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 oozie_keytab = default("/configurations/oozie-env/oozie_keytab", oozie_service_keytab)
