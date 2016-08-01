@@ -94,7 +94,9 @@ describe('App.KerberosWizardStep4Controller', function() {
       Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
       Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
       Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' }),
-      Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' })
+      Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' }),
+      App.ServiceConfigProperty.create({ name: 'null_value', serviceName: 'HDFS', value: null, isVisible: true }),
+      App.ServiceConfigProperty.create({ name: 'null_value_observed_value_ok', serviceName: 'HDFS', value: null, isVisible: false, observesValueFrom: 'spnego_keytab' })
     ]);
 
     var propertyValidationCases = [
@@ -124,6 +126,18 @@ describe('App.KerberosWizardStep4Controller', function() {
         property: 'hadoop.security.auth_to_local',
         e: [
           { key: 'displayType', value: 'multiLine' }
+        ]
+      },
+      {
+        property: 'null_value',
+        e: [
+          { key: 'isVisible', value: false }
+        ]
+      },
+      {
+        property: 'null_value_observed_value_ok',
+        e: [
+          { key: 'isVisible', value: true }
         ]
       }
     ];

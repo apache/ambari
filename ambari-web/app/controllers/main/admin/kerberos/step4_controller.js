@@ -239,6 +239,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         var observedValue = Em.get(allConfigs.findProperty('name', property.get('observesValueFrom')), 'value');
         property.set('value', observedValue);
         property.set('recommendedValue', observedValue);
+        property.set('isVisible', true);
       }
       if (property.get('serviceName') === 'Cluster') {
         property.set('category', 'Global');
