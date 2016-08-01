@@ -45,6 +45,7 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = status_params.stack_version_unformatted
 stack_version_formatted = status_params.stack_version_formatted
 upgrade_direction = default("/commandParams/upgrade_direction", None)
+jdk_location = config['hostLevelParams']['jdk_location']
 
 # current host stack version
 current_version = default("/hostLevelParams/current_version", None)
@@ -134,6 +135,7 @@ supports_falcon_extensions = (stack_version_formatted and check_stack_feature(St
 local_data_mirroring_dir = format('{stack_root}/current/falcon-server/data-mirroring')
 dfs_data_mirroring_dir = "/apps/data-mirroring"
 
+
 ########################################################
 ############# Atlas related params #####################
 ########################################################
@@ -168,6 +170,11 @@ hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+bdb_jar_name = "je-5.0.73.jar"
+bdb_resource_name = format("{jdk_location}/{bdb_jar_name}")
+target_jar_file = os.path.join(falcon_webinf_lib, bdb_jar_name)
+
 
 import functools
 #create partial functions with common arguments for every HdfsResource call

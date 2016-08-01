@@ -1119,3 +1119,37 @@ class SQLAConfig(LinuxDBMSConfig):
 
 def createSQLAConfig(options, properties, storage_type, dbId):
   return SQLAConfig(options, properties, storage_type)
+
+class BDBConfig(LinuxDBMSConfig):
+  def __init__(self, options, properties, storage_type):
+    super(BDBConfig, self).__init__(options, properties, storage_type)
+
+    #Init the database configuration data here, if any
+    self.dbms = "bdb"
+    self.dbms_full_name = "Berkeley DB Jar file"
+    self.driver_class_name = "com.berkeleydb.Driver"
+    self.driver_file_name = "je-5.0.73.jar"
+    self.driver_symlink_name = "bdb-jdbc-driver.jar"
+
+    self.database_storage_name = "Database"
+    self.client_tool_usage_pattern = ''
+
+  #
+  # Private implementation
+  #
+
+
+  def _is_jdbc_driver_installed(self, properties):
+    return LinuxDBMSConfig._find_jdbc_driver("*je-*.jar")
+
+  def _get_jdbc_driver_path(self, properties):
+    super(BDBConfig, self)._get_jdbc_driver_path(properties)
+
+
+  def _configure_database_name(self):
+    self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
+    return True
+
+
+def createBDBConfig(options, properties, storage_type, dbId):
+  return BDBConfig(options, properties, storage_type)
