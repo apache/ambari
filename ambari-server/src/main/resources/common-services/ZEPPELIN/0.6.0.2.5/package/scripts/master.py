@@ -23,6 +23,9 @@ import os
 from resource_management.core.resources import Directory
 from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate
+from resource_management.core import sudo
+from resource_management.core.logger import Logger
+from resource_management.core.source import StaticFile
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
@@ -127,14 +130,12 @@ class Master(Script):
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     # copy hive-site.xml
-    hive_site_xml_content = open("/etc/spark/conf/hive-site.xml").read()
-    File(format("{params.conf_dir}/hive-site.xml"), content=hive_site_xml_content,
+    File(format("{params.conf_dir}/hive-site.xml"), content=StaticFile("/etc/spark/conf/hive-site.xml"),
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
     if len(params.hbase_master_hosts) > 0:
       # copy hbase-site.xml
-      hbase_site_xml_content = open("/etc/hbase/conf/hbase-site.xml").read()
-      File(format("{params.conf_dir}/hbase-site.xml"), content=hbase_site_xml_content,
+      File(format("{params.conf_dir}/hbase-site.xml"), content=StaticFile("/etc/hbase/conf/hbase-site.xml"),
            owner=params.zeppelin_user, group=params.zeppelin_group)
 
   def stop(self, env):
@@ -172,9 +173,7 @@ class Master(Script):
             + params.zeppelin_log_file, user=params.zeppelin_user)
     pidfile = glob.glob(os.path.join(status_params.zeppelin_pid_dir,
                                      'zeppelin-' + params.zeppelin_user + '*.pid'))[0]
-    Execute('echo pid file is: ' + pidfile, user=params.zeppelin_user)
-    contents = open(pidfile).read()
-    Execute('echo pid is ' + contents, user=params.zeppelin_user)
+    Logger.info(format("Pid file is: {pidfile}"))
 
   def status(self, env):
     import status_params
@@ -192,9 +191,8 @@ class Master(Script):
     import json
 
     interpreter_config = os.path.join(params.conf_dir, "interpreter.json")
-    interpreter_config_file = open(interpreter_config, "r")
-    config_data = json.load(interpreter_config_file)
-    interpreter_config_file.close()
+    config_content = sudo.read_file(interpreter_config)
+    config_data = json.loads(config_content)
     return config_data
 
   def set_interpreter_settings(self, config_data):
