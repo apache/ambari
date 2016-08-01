@@ -83,12 +83,14 @@ describe('App.WidgetWizardStep2Controller', function () {
   describe("#isSubmitDisabled", function () {
     beforeEach(function () {
       this.expressionFunc = sinon.stub(controller, 'isExpressionComplete');
+      this.metricsFunc = sinon.stub(controller, 'isExpressionWithMetrics');
       this.graphFunc = sinon.stub(controller, 'isGraphDataComplete');
       this.templateFunc = sinon.stub(controller, 'isTemplateDataComplete');
       controller.set('expressions', ['']);
     });
     afterEach(function () {
       this.expressionFunc.restore();
+      this.metricsFunc.restore();
       this.graphFunc.restore();
       this.templateFunc.restore();
       controller.get('expressions').clear();
@@ -102,13 +104,31 @@ describe('App.WidgetWizardStep2Controller', function () {
       controller.set('widgetPropertiesViews', []);
       controller.set('content.widgetType', 'NUMBER');
       this.expressionFunc.returns(true);
+      this.metricsFunc.returns(true);
       controller.propertyDidChange('isSubmitDisabled');
       expect(controller.get('isSubmitDisabled')).to.be.false;
     });
-    it("invalid number widget", function () {
+    it("invalid number widget with metrics", function () {
       controller.set('widgetPropertiesViews', []);
       controller.set('content.widgetType', 'NUMBER');
       this.expressionFunc.returns(false);
+      this.metricsFunc.returns(true);
+      controller.propertyDidChange('isSubmitDisabled');
+      expect(controller.get('isSubmitDisabled')).to.be.true;
+    });
+    it("number widget w/o metrics", function () {
+      controller.set('widgetPropertiesViews', []);
+      controller.set('content.widgetType', 'NUMBER');
+      this.expressionFunc.returns(true);
+      this.metricsFunc.returns(false);
+      controller.propertyDidChange('isSubmitDisabled');
+      expect(controller.get('isSubmitDisabled')).to.be.true;
+    });
+    it("invalid number widget w/o metrics", function () {
+      controller.set('widgetPropertiesViews', []);
+      controller.set('content.widgetType', 'NUMBER');
+      this.expressionFunc.returns(false);
+      this.metricsFunc.returns(false);
       controller.propertyDidChange('isSubmitDisabled');
       expect(controller.get('isSubmitDisabled')).to.be.true;
     });
@@ -158,12 +178,7 @@ describe('App.WidgetWizardStep2Controller', function () {
       {
         expression: Em.Object.create({isInvalid: true}),
         result: false,
-        title: 'invalid expression, no data array'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: false}),
-        result: false,
-        title: 'no data array'
+        title: 'invalid expression'
       },
       {
         expression: Em.Object.create({isInvalid: false, isEmpty: true}),
@@ -171,49 +186,9 @@ describe('App.WidgetWizardStep2Controller', function () {
         title: 'empty expression'
       },
       {
-        expression: Em.Object.create({isInvalid: true, data: []}),
-        result: false,
-        title: 'invalid expression, empty data array'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: []}),
-        result: false,
-        title: 'empty data array'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: []}),
-        result: false,
-        title: 'empty expression and data array'
-      },
-      {
-        expression: Em.Object.create({isInvalid: true, data: [{isMetric: false}]}),
-        result: false,
-        title: 'invalid expression, no metrics'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: [{isMetric: false}]}),
-        result: false,
-        title: 'no metrics'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: [{isMetric: false}]}),
-        result: false,
-        title: 'empty expression, no metrics'
-      },
-      {
-        expression: Em.Object.create({isInvalid: true, data: [{isMetric: false}, {isMetric: true}]}),
-        result: false,
-        title: 'invalid expression'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: false, data: [{isMetric: false}, {isMetric: true}]}),
+        expression: Em.Object.create({isInvalid: false, isEmpty: false}),
         result: true,
-        title: 'valid expression'
-      },
-      {
-        expression: Em.Object.create({isInvalid: false, isEmpty: true, data: [{isMetric: false}, {isMetric: true}]}),
-        result: false,
-        title: 'empty expression, valid data array'
+        title: 'complete expression'
       }
     ];
     testCases.forEach(function (test) {
@@ -223,49 +198,152 @@ describe('App.WidgetWizardStep2Controller', function () {
     });
   });
 
+  describe("#isExpressionWithMetrics()", function () {
+    var testCases = [
+      {
+        expression: null,
+        result: false,
+        title: 'no expression'
+      },
+      {
+        expression: Em.Object.create(),
+        result: false,
+        title: 'no data array'
+      },
+      {
+        expression: Em.Object.create({data: []}),
+        result: false,
+        title: 'empty data array'
+      },
+      {
+        expression: Em.Object.create({data: [{isMetric: false}]}),
+        result: false,
+        title: 'no metrics'
+      },
+      {
+        expression: Em.Object.create({data: [{isMetric: false}, {isMetric: true}]}),
+        result: true,
+        title: 'metrics included'
+      }
+    ];
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        expect(controller.isExpressionWithMetrics(test.expression)).to.equal(test.result);
+      });
+    });
+  });
+
   describe("#isGraphDataComplete()", function () {
+    var mock,
+      cases = [
+        {
+          dataSets: [],
+          isGraphDataComplete: false,
+          title: 'dataSets is empty'
+        },
+        {
+          dataSets: [Em.Object.create({label: ''})],
+          isGraphDataComplete: false,
+          title: 'label is empty'
+        },
+        {
+          dataSets: [Em.Object.create({label: 'abc'})],
+          isExpressionComplete: false,
+          isGraphDataComplete: false,
+          title: 'expression is not complete'
+        },
+        {
+          dataSets: [Em.Object.create({label: 'abc'})],
+          isExpressionComplete: true,
+          isExpressionWithMetrics: false,
+          isGraphDataComplete: false,
+          title: 'no metrics in expression'
+        },
+        {
+          dataSets: [Em.Object.create({label: 'abc', expression: {data: [{isMetric: true}]}})],
+          isExpressionComplete: true,
+          isExpressionWithMetrics: true,
+          isGraphDataComplete: true,
+          title: 'expression is complete and contains metrics'
+        }
+      ];
+
     beforeEach(function () {
-      this.mock = sinon.stub(controller, 'isExpressionComplete');
+      mock = {
+        isExpressionComplete: sinon.stub(controller, 'isExpressionComplete'),
+        isExpressionWithMetrics: sinon.stub(controller, 'isExpressionWithMetrics')
+      };
     });
     afterEach(function () {
-      this.mock.restore();
+      mock.isExpressionComplete.restore();
+      mock.isExpressionWithMetrics.restore();
     });
-    it("dataSets is empty", function () {
-      expect(controller.isGraphDataComplete([])).to.be.false;
-    });
-    it("label is empty", function () {
-      expect(controller.isGraphDataComplete([Em.Object.create({label: ''})])).to.be.false;
-    });
-    it("expression is not complete", function () {
-      this.mock.returns(false);
-      expect(controller.isGraphDataComplete([Em.Object.create({label: 'abc'})])).to.be.false;
-    });
-    it("expression is complete", function () {
-      this.mock.returns(true);
-      expect(controller.isGraphDataComplete([Em.Object.create({label: 'abc'})])).to.be.true;
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        mock.isExpressionComplete.returns(item.isExpressionComplete);
+        mock.isExpressionWithMetrics.returns(item.isExpressionWithMetrics);
+        expect(controller.isGraphDataComplete(item.dataSets)).to.equal(item.isGraphDataComplete);
+      });
     });
   });
 
   describe("#isTemplateDataComplete()", function () {
+    var mock,
+      cases = [
+        {
+          expressions: [],
+          isTemplateDataComplete: false,
+          title: 'expressions is empty'
+        },
+        {
+          expressions: [{}],
+          templateValue: '',
+          isTemplateDataComplete: false,
+          title: 'templateValue is empty'
+        },
+        {
+          expressions: [{}],
+          templateValue: 'abc',
+          isExpressionComplete: false,
+          isTemplateDataComplete: false,
+          title: 'expression is not complete'
+        },
+        {
+          expressions: [{}],
+          templateValue: 'abc',
+          isExpressionComplete: true,
+          isExpressionWithMetrics: false,
+          isTemplateDataComplete: false,
+          title: 'no metrics in expression'
+        },
+        {
+          expressions: [{data: [{isMetric: true}]}],
+          templateValue: 'abc',
+          isExpressionComplete: true,
+          isExpressionWithMetrics: true,
+          isTemplateDataComplete: true,
+          title: 'expression is complete and contains metrics'
+        }
+      ];
+
     beforeEach(function () {
-      this.mock = sinon.stub(controller, 'isExpressionComplete');
+      mock = {
+        isExpressionComplete: sinon.stub(controller, 'isExpressionComplete'),
+        isExpressionWithMetrics: sinon.stub(controller, 'isExpressionWithMetrics')
+      };
     });
     afterEach(function () {
-      this.mock.restore();
+      mock.isExpressionComplete.restore();
+      mock.isExpressionWithMetrics.restore();
     });
-    it("expressions is empty", function () {
-      expect(controller.isTemplateDataComplete([])).to.be.false;
-    });
-    it("templateValue is empty", function () {
-      expect(controller.isTemplateDataComplete([{}], '')).to.be.false;
-    });
-    it("expression is not complete", function () {
-      this.mock.returns(false);
-      expect(controller.isTemplateDataComplete([{}], 'abc')).to.be.false;
-    });
-    it("expression is complete", function () {
-      this.mock.returns(true);
-      expect(controller.isTemplateDataComplete([{}], 'abc')).to.be.true;
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        mock.isExpressionComplete.returns(item.isExpressionComplete);
+        mock.isExpressionWithMetrics.returns(item.isExpressionWithMetrics);
+        expect(controller.isTemplateDataComplete(item.expressions, item.templateValue)).to.equal(item.isTemplateDataComplete);
+      });
     });
   });
 
