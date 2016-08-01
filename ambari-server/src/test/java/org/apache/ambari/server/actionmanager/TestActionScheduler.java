@@ -54,6 +54,8 @@ import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -107,6 +109,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
 
@@ -139,11 +142,16 @@ public class TestActionScheduler {
   @Inject
   HostDAO hostDAO;
 
+  Provider<EntityManager> entityManagerProviderMock = EasyMock.niceMock(Provider.class);
+
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+
+    expect(entityManagerProviderMock.get()).andReturn(null);
+    replay(entityManagerProviderMock);
   }
 
   @After
@@ -207,7 +215,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 5, db, aq, fsm,
-        10000, new HostsMap((String) null), unitOfWork, null, conf);
+        10000, new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
     scheduler.setTaskTimeoutAdjustment(false);
 
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1, scheduler);
@@ -230,6 +238,8 @@ public class TestActionScheduler {
 
     //Wait for sometime, it shouldn't be scheduled this time.
     ac = waitForQueueSize(hostname, aq, 0, scheduler);
+
+    EasyMock.verify(entityManagerProviderMock);
   }
 
   private List<AgentCommand> waitForQueueSize(String hostname, ActionQueue aq,
@@ -318,7 +328,7 @@ public class TestActionScheduler {
 
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 0, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
     scheduler.setTaskTimeoutAdjustment(false);
     // Start the thread
 
@@ -346,6 +356,7 @@ public class TestActionScheduler {
     verify(db, times(1)).startRequest(eq(1L));
     verify(db, times(1)).abortOperation(1L);
 
+    EasyMock.verify(entityManagerProviderMock);
   }
 
   @Test
@@ -402,7 +413,7 @@ public class TestActionScheduler {
     AmbariEventPublisher aep = EasyMock.createNiceMock(AmbariEventPublisher.class);
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
         withConstructor((long) 100, (long) 50, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, aep, conf).
+            new HostsMap((String) null), unitOfWork, aep, conf, entityManagerProviderMock).
         addMockedMethod("cancelHostRoleCommands").
         createMock();
     scheduler.cancelHostRoleCommands((Collection<HostRoleCommand>)EasyMock.anyObject(),EasyMock.anyObject(String.class));
@@ -418,7 +429,7 @@ public class TestActionScheduler {
 
     Assert.assertEquals(HostRoleStatus.TIMEDOUT,stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
 
-    EasyMock.verify(scheduler);
+    EasyMock.verify(scheduler, entityManagerProviderMock);
   }
 
   @Test
@@ -525,7 +536,7 @@ public class TestActionScheduler {
 
     // Make sure the NN install doesn't timeout
     ActionScheduler scheduler = new ActionScheduler(100, 50000, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
     scheduler.setTaskTimeoutAdjustment(false);
 
     int cycleCount=0;
@@ -639,7 +650,7 @@ public class TestActionScheduler {
 
     ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     int cycleCount = 0;
     while (!stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION")
@@ -715,7 +726,8 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf);
+        unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf,
+        entityManagerProviderMock);
 
     scheduler.doWork();
 
@@ -795,7 +807,7 @@ public class TestActionScheduler {
 
     ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     int cycleCount = 0;
     while (!stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION").isCompletedState()
@@ -815,8 +827,8 @@ public class TestActionScheduler {
 
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class)
       .withConstructor(long.class, long.class, ActionDBAccessor.class, ActionQueue.class, Clusters.class, int.class,
-        HostsMap.class, UnitOfWork.class, AmbariEventPublisher.class, Configuration.class)
-      .withArgs(100L, 50L, null, null, null, -1, null, null, null, null)
+        HostsMap.class, UnitOfWork.class, AmbariEventPublisher.class, Configuration.class, Provider.class)
+      .withArgs(100L, 50L, null, null, null, -1, null, null, null, null, entityManagerProviderMock)
       .createNiceMock();
 
     EasyMock.replay(scheduler);
@@ -923,8 +935,9 @@ public class TestActionScheduler {
 
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class)
       .withConstructor(long.class, long.class, ActionDBAccessor.class, ActionQueue.class, Clusters.class, int.class,
-        HostsMap.class, UnitOfWork.class, AmbariEventPublisher.class, Configuration.class)
-      .withArgs(100L, 50L, db, aq, fsm, -1, null, null, ambariEventPublisher, null)
+        HostsMap.class, UnitOfWork.class, AmbariEventPublisher.class, Configuration.class, Provider.class)
+        .withArgs(100L, 50L, db, aq, fsm, -1, null, null, ambariEventPublisher, null,
+            entityManagerProviderMock)
       .createNiceMock();
 
     EasyMock.replay(scheduler, fsm, host, db, cluster, ambariEventPublisher, service, serviceComponent, serviceComponentHost);
@@ -1002,7 +1015,7 @@ public class TestActionScheduler {
     }).when(db).getTasksByRoleAndStatus(anyString(), any(HostRoleStatus.class));
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     int cycleCount = 0;
     while (!stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION")
@@ -1109,7 +1122,7 @@ public class TestActionScheduler {
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, null, conf));
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock));
 
     doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
@@ -1200,7 +1213,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
             new HostsMap((String) null),
-            unitOfWork, null, conf));
+        unitOfWork, null, conf, entityManagerProviderMock));
 
 
     doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
@@ -1274,7 +1287,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf));
+        unitOfWork, null, conf, entityManagerProviderMock));
 
     doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
@@ -1395,7 +1408,8 @@ public class TestActionScheduler {
     ActionScheduler scheduler = EasyMock.createMockBuilder(ActionScheduler.class).
         withConstructor((long)100, (long)50, db, aq, fsm, 3,
           new HostsMap((String) null),
-          unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf).
+            unitOfWork, EasyMock.createNiceMock(AmbariEventPublisher.class), conf,
+            entityManagerProviderMock).
           addMockedMethod("cancelHostRoleCommands").
           createMock();
     scheduler.cancelHostRoleCommands(EasyMock.capture(cancelCommandList),
@@ -1403,9 +1417,7 @@ public class TestActionScheduler {
     EasyMock.expectLastCall().once();
     EasyMock.replay(scheduler);
 
-    ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), unitOfWork, requestFactory, conf,
-            EasyMock.createNiceMock(AmbariEventPublisher.class));
+    ActionManager am = new ActionManager(db, requestFactory, scheduler);
 
     scheduler.doWork();
 
@@ -1417,7 +1429,7 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.FAILED, stages.get(0).getHostRoleStatus(hostname, "NAMENODE"));
     Assert.assertEquals(HostRoleStatus.ABORTED, stages.get(1).getHostRoleStatus(hostname, "DATANODE"));
     Assert.assertEquals(cancelCommandList.getValue().size(), 1);
-    EasyMock.verify(scheduler);
+    EasyMock.verify(scheduler, entityManagerProviderMock);
   }
 
   /**
@@ -1572,7 +1584,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 10000, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf);
+        unitOfWork, null, conf, entityManagerProviderMock);
 
     scheduler.doWork();
 
@@ -1756,9 +1768,9 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf);
-    ActionManager am = new ActionManager(
-        2, 2, aq, fsm, db, new HostsMap((String) null), unitOfWork, requestFactory, conf, null);
+        unitOfWork, null, conf, entityManagerProviderMock);
+
+    ActionManager am = new ActionManager(db, requestFactory, scheduler);
 
     scheduler.doWork();
 
@@ -1940,7 +1952,7 @@ public class TestActionScheduler {
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
     ActionScheduler scheduler = new ActionScheduler(100, 100, db, aq, fsm,
-        10000, new HostsMap((String) null), unitOfWork, null, conf);
+        10000, new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
     scheduler.setTaskTimeoutAdjustment(false);
 
     List<AgentCommand> ac = waitForQueueSize(hostname, aq, 1, scheduler);
@@ -2023,7 +2035,7 @@ public class TestActionScheduler {
     when(db.getStagesInProgress()).thenReturn(stages);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50000, db, aq, fsm, 3,
-            new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     final CountDownLatch abortCalls = new CountDownLatch(2);
 
@@ -2132,7 +2144,7 @@ public class TestActionScheduler {
 
     ServerActionExecutor.init(injector);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     int cycleCount = 0;
     while (!stages.get(0).getHostRoleStatus(null, "AMBARI_SERVER_ACTION")
@@ -2266,7 +2278,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf);
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock);
 
     scheduler.doWork();
 
@@ -2426,7 +2438,7 @@ public class TestActionScheduler {
     Configuration conf = new Configuration(properties);
 
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf));
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock));
 
     doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
@@ -2486,7 +2498,7 @@ public class TestActionScheduler {
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf);
+        unitOfWork, null, conf, entityManagerProviderMock);
 
     HostRoleCommand hrc1 = hostRoleCommandFactory.create("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
     hrc1.setStatus(HostRoleStatus.COMPLETED);
@@ -2518,7 +2530,7 @@ public class TestActionScheduler {
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
-        unitOfWork, null, conf);
+        unitOfWork, null, conf, entityManagerProviderMock);
 
     HostRoleCommand hrc1 = hostRoleCommandFactory.create("h1", Role.NAMENODE, null, RoleCommand.EXECUTE);
     hrc1.setStatus(HostRoleStatus.COMPLETED);
@@ -2657,7 +2669,7 @@ public class TestActionScheduler {
     }).when(db).abortOperation(anyLong());
 
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
-        new HostsMap((String) null), unitOfWork, null, conf));
+        new HostsMap((String) null), unitOfWork, null, conf, entityManagerProviderMock));
 
     doReturn(false).when(scheduler).wasAgentRestartedDuringOperation(any(Host.class), any(Stage.class), anyString());
 
@@ -2675,6 +2687,7 @@ public class TestActionScheduler {
     Assert.assertEquals(HostRoleStatus.PENDING,
         stages.get(1).getHostRoleStatus(hostname1, "DATANODE"));
 
+    EasyMock.verify(entityManagerProviderMock);
   }
 
   @Test
@@ -2703,7 +2716,7 @@ public class TestActionScheduler {
     expect(previousStage.getSuccessFactor(Role.DATANODE)).andReturn(0.5F);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, actionDBAccessor, null, null, 3,
-      new HostsMap((String) null), null, null, null);
+        new HostsMap((String) null), null, null, null, entityManagerProviderMock);
 
     replay(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
 
@@ -2722,7 +2735,7 @@ public class TestActionScheduler {
     expect(nextStage.getStageId()).andReturn(0L);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, null, null, null, 3,
-      new HostsMap((String) null), null, null, null);
+        new HostsMap((String) null), null, null, null, entityManagerProviderMock);
 
     replay(nextStage);
 
@@ -2760,7 +2773,7 @@ public class TestActionScheduler {
     expect(previousStage.getSuccessFactor(Role.DATANODE)).andReturn(0.5F);
 
     ActionScheduler scheduler = new ActionScheduler(100, 50, actionDBAccessor, null, null, 3,
-      new HostsMap((String) null), null, null, null);
+        new HostsMap((String) null), null, null, null, entityManagerProviderMock);
 
     replay(previousStage, nextStage, actionDBAccessor, hostRoleCommand);
 
@@ -2778,5 +2791,4 @@ public class TestActionScheduler {
       bind(Clusters.class).toInstance(mock(Clusters.class));
     }
   }
-
 }

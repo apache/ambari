@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,6 @@ import com.google.inject.assistedinject.AssistedInject;
 public class ExecutionCommandWrapper {
 
   private final static Logger LOG = LoggerFactory.getLogger(ExecutionCommandWrapper.class);
-  private static String DELETED = "DELETED_";
   String jsonExecutionCommand = null;
   ExecutionCommand executionCommand = null;
 
@@ -88,8 +88,7 @@ public class ExecutionCommandWrapper {
 
     if( null == jsonExecutionCommand ){
       throw new RuntimeException(
-          "Invalid ExecutionCommandWrapper, both object and string"
-              + " representations are null");
+          "Invalid ExecutionCommandWrapper, both object and string representations are null");
     }
 
     try {
@@ -122,13 +121,17 @@ public class ExecutionCommandWrapper {
       // be refreshed with the latest.
       boolean refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
       if (refreshConfigTagsBeforeExecution) {
+        Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+
         Map<String, Map<String, String>> configurationTags = configHelper.getEffectiveDesiredTags(
-            cluster, executionCommand.getHostname());
+            cluster, executionCommand.getHostname(), desiredConfigs);
+
+        LOG.debug(
+            "While scheduling task {} on cluster {}, configurations are being refreshed using desired configurations of {}",
+            executionCommand.getTaskId(), cluster.getClusterName(), desiredConfigs);
 
         // then clear out any existing configurations so that all of the new
         // configurations are forcefully applied
-        LOG.debug("Refreshing all configuration tags before execution");
-
         configurations.clear();
         executionCommand.setConfigurationTags(configurationTags);
       }
