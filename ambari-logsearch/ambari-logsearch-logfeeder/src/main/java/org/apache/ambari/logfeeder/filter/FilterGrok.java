@@ -36,6 +36,7 @@ import oi.thekraken.grok.api.exception.GrokException;
 
 import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.MetricCount;
+import org.apache.ambari.logfeeder.exception.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -167,7 +168,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(String inputStr, InputMarker inputMarker) {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException {
     if (grokMessage == null) {
       return;
     }
@@ -205,7 +206,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
     if (sourceField != null) {
       savedInputMarker = inputMarker;
       applyMessage((String) jsonObj.get(sourceField), jsonObj, null);
@@ -218,9 +219,10 @@ public class FilterGrok extends Filter {
   /**
    * @param inputStr
    * @param jsonObj
+   * @throws LogfeederException 
    */
   private void applyMessage(String inputStr, Map<String, Object> jsonObj,
-                            String multilineJsonStr) {
+                            String multilineJsonStr) throws LogfeederException {
     String jsonStr = grokParse(inputStr);
 
     boolean parseError = false;
@@ -257,7 +259,6 @@ public class FilterGrok extends Filter {
         jsonObj.put("log_message", inputStr);
       }
     }
-
     super.apply(jsonObj, savedInputMarker);
     statMetric.count++;
   }
@@ -286,7 +287,11 @@ public class FilterGrok extends Filter {
     if (strBuff != null) {
       Map<String, Object> jsonObj = Collections
         .synchronizedMap(new HashMap<String, Object>());
-      applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
+      try {
+        applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
+      } catch (LogfeederException e) {
+        logger.error(e.getLocalizedMessage(), e.getCause());
+      }
       strBuff = null;
       savedInputMarker = null;
     }

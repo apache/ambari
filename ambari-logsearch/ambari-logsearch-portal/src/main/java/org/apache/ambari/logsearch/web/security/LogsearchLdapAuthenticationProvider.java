@@ -23,6 +23,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -86,6 +87,7 @@ public class LogsearchLdapAuthenticationProvider extends
       logger.warn("Ldap authentication failed. username="
         + authentication.getName() + ", details="
         + authentication.getDetails());
+      throw new BadCredentialsException("Invalid credentials!!");
     }
     return authentication;
   }

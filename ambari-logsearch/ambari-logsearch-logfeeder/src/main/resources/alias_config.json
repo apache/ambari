@@ -12,7 +12,7 @@
   },
   "filter": {
     "json": {
-      "klass": "org.apache.ambari.logfeeder.filter.JSONFilterCode"
+      "klass": "org.apache.ambari.logfeeder.filter.FilterJSON"
     },
     "keyvalue": {
       "klass": "org.apache.ambari.logfeeder.filter.FilterKeyValue"
