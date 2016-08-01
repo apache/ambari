@@ -43,6 +43,10 @@ class TestFalconServer(RMFTestCase):
 
     self.assert_configure_default()
 
+    self.assertResourceCalled('File', '/usr/lib/falcon/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
+      content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar')
+    )
+
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
       path = ['/usr/bin'],
       user = 'falcon',
@@ -368,6 +372,7 @@ class TestFalconServer(RMFTestCase):
         owner = 'falcon',
         create_parents = True,
     )
+   
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
         path = ['/usr/hdp/current/hadoop-client/bin'],
@@ -375,7 +380,7 @@ class TestFalconServer(RMFTestCase):
         not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
     )
     self.assertNoMoreResources()
-    
+
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
   @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")

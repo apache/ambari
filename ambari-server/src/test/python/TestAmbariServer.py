@@ -5331,7 +5331,7 @@ class TestAmbariServer(TestCase):
     get_ambari_properties_mock.return_value = properties
     get_ambari_properties_3_mock.side_effect = get_ambari_properties_2_mock.side_effect = [properties, properties2, properties2]
 
-    isfile_mock.side_effect = [False, True, False, False]
+    isfile_mock.side_effect = [False, True, False, False, False]
 
     try:
       upgrade(args)
@@ -6550,7 +6550,7 @@ class TestAmbariServer(TestCase):
 
     isdir_mock.return_value = True
 
-    isfile_mock.side_effect = [True, False, False, False]
+    isfile_mock.side_effect = [True, False, False, False, False]
 
     del args.database_index
     del args.persistence_type
@@ -6572,7 +6572,7 @@ class TestAmbariServer(TestCase):
     get_ambari_properties_mock.reset_mock()
     os_symlink_mock.reset_mock()
 
-    isfile_mock.side_effect = [False, False, False, False]
+    isfile_mock.side_effect = [False, False, False, False, False]
 
     check_jdbc_drivers(args)
 

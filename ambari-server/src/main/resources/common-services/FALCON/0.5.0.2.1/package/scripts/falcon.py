@@ -18,11 +18,13 @@ limitations under the License.
 """
 
 import os.path
+import traceback
 
 # Local Imports
 from resource_management.core.environment import Environment
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
+from resource_management.core.source import  DownloadSource
 from resource_management.core.resources import Execute
 from resource_management.core.resources.service import Service
 from resource_management.core.resources.service import ServiceConfig
@@ -196,6 +198,24 @@ def falcon(type, action = None, upgrade_type=None):
     process_exists = format("ls {server_pid_file} && ps -p {pid}")
 
     if action == 'start':
+      if not os.path.exists(params.target_jar_file):
+        try :
+          File(params.target_jar_file,
+           content = DownloadSource(params.bdb_resource_name))
+        except :
+           exc_msg = traceback.format_exc()
+           exception_message = format("Caught Exception while downloading {bdb_resource_name}:\n{exc_msg}")
+           Logger.error(exception_message)
+
+        if not os.path.isfile(params.target_jar_file) :
+          error_message = """
+If you are using bdb as the Falcon graph db store, please run
+ambari-server setup --jdbc-db=bdb --jdbc-driver=<path to je5.0.73.jar
+on the ambari server host.  Otherwise falcon startup will fail.
+Otherwise please configure Falcon to use HBase as the backend as described
+in the Falcon documentation.
+"""
+          Logger.error(error_message)
       try:
         Execute(format('{falcon_home}/bin/falcon-start -port {falcon_port}'),
           user = params.falcon_user,
