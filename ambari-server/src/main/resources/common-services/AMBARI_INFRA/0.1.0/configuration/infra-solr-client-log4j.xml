@@ -30,7 +30,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>content</name>
@@ -42,6 +42,6 @@
       <property-file-name>solr-client-log4j.properties.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

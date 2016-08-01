@@ -199,6 +199,7 @@ App.StackService.displayOrder = [
   'STORM',
   'FLUME',
   'ACCUMULO',
+  'AMBARI_INFRA',
   'AMBARI_METRICS',
   'ATLAS',
   'KAFKA',
