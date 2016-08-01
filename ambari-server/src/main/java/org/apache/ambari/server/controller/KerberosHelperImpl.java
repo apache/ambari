@@ -702,23 +702,25 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         if (serviceDescriptor != null) {
           Map<String, KerberosComponentDescriptor> componentDescriptors = serviceDescriptor.getComponents();
-          for (KerberosComponentDescriptor componentDescriptor : componentDescriptors.values()) {
-            if (componentDescriptor != null) {
-              List<KerberosIdentityDescriptor> identityDescriptors;
+          if (null != componentDescriptors) {
+            for (KerberosComponentDescriptor componentDescriptor : componentDescriptors.values()) {
+              if (componentDescriptor != null) {
+                List<KerberosIdentityDescriptor> identityDescriptors;
 
-              // Handle the service-level Kerberos identities
-              identityDescriptors = serviceDescriptor.getIdentities(true, filterContext);
-              if (identityDescriptors != null) {
-                for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
-                  createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                // Handle the service-level Kerberos identities
+                identityDescriptors = serviceDescriptor.getIdentities(true, filterContext);
+                if (identityDescriptors != null) {
+                  for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
+                    createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                  }
                 }
-              }
 
-              // Handle the component-level Kerberos identities
-              identityDescriptors = componentDescriptor.getIdentities(true, filterContext);
-              if (identityDescriptors != null) {
-                for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
-                  createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                // Handle the component-level Kerberos identities
+                identityDescriptors = componentDescriptor.getIdentities(true, filterContext);
+                if (identityDescriptors != null) {
+                  for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
+                    createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                  }
                 }
               }
             }

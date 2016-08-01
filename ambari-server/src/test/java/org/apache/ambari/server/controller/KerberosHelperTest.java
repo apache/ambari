@@ -2567,6 +2567,92 @@ public class KerberosHelperTest extends EasyMockSupport {
     assertTrue(capturedPrincipalsForKeytab.contains("s2_1@EXAMPLE.COM"));
   }
 
+  /**
+   * Test that a Kerberos Descriptor that contains a Service with 0 Components does not raise any exceptions.
+   */
+  @Test
+  public void testServiceWithoutComponents() throws Exception {
+    Map<String, String> propertiesKrb5Conf = new HashMap<String, String>();
+
+    Map<String, String> propertiesKerberosEnv = new HashMap<String, String>();
+    propertiesKerberosEnv.put("realm", "EXAMPLE.COM");
+    propertiesKerberosEnv.put("kdc_type", "mit-kdc");
+    propertiesKerberosEnv.put("create_ambari_principal", "false");
+
+    Config configKrb5Conf = createMock(Config.class);
+    expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).times(1);
+
+    Config configKerberosEnv = createMock(Config.class);
+    expect(configKerberosEnv.getProperties()).andReturn(propertiesKerberosEnv).times(1);
+
+    // Create a Service (SERVICE1) with one Component (COMPONENT11)
+    Host host1 = createMockHost("host1");
+
+    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    service1Component1HostMap.put("host1", createMockServiceComponentHost(State.INSTALLED));
+
+    Map<String, ServiceComponent> service1ComponentMap = new HashMap<String, ServiceComponent>();
+    service1ComponentMap.put("COMPONENT11", createMockComponent("COMPONENT11", true, service1Component1HostMap));
+
+    Service service1 = createMockService("SERVICE1", service1ComponentMap);
+
+    Map<String, Service> servicesMap = new HashMap<String, Service>();
+    servicesMap.put("SERVICE1", service1);
+
+    Cluster cluster = createMockCluster(Arrays.asList(host1), SecurityType.KERBEROS, configKrb5Conf, configKerberosEnv);
+    expect(cluster.getServices()).andReturn(servicesMap).times(1);
+
+    Map<String, String> kerberosDescriptorProperties = new HashMap<String, String>();
+    kerberosDescriptorProperties.put("additional_realms", "");
+    kerberosDescriptorProperties.put("keytab_dir", "/etc/security/keytabs");
+    kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
+
+    // Notice that this map is empty, hence it has 0 Components in the kerberosDescriptor.
+    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+
+    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    KerberosServiceDescriptor service1KerberosDescriptor = createMockServiceDescriptor("SERVICE1", service1ComponentDescriptorMap, service1Identities);
+
+    KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getProperties()).andReturn(kerberosDescriptorProperties);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
+
+    setupKerberosDescriptor(kerberosDescriptor, 1);
+
+    Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>();
+    existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
+
+    Set<String> services = new HashSet<String>() {
+      {
+        add("SERVICE1");
+      }
+    };
+
+    Capture<? extends String> capturePrincipal = newCapture(CaptureType.ALL);
+    Capture<? extends String> capturePrincipalForKeytab = newCapture(CaptureType.ALL);
+
+    replayAll();
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariMetaInfo.init();
+
+    CredentialStoreService credentialStoreService = injector.getInstance(CredentialStoreService.class);
+    credentialStoreService.setCredential(cluster.getClusterName(), KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
+        new PrincipalKeyCredential("principal", "password"), CredentialStoreType.TEMPORARY);
+
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    // Validate that it works with 0 Components.
+    kerberosHelper.ensureHeadlessIdentities(cluster, existingConfigurations, services);
+
+    verifyAll();
+
+    List<? extends String> capturedPrincipals = capturePrincipal.getValues();
+    assertEquals(0, capturedPrincipals.size());
+
+    List<? extends String> capturedPrincipalsForKeytab = capturePrincipalForKeytab.getValues();
+    assertEquals(0, capturedPrincipalsForKeytab.size());
+  }
+
   private void setupKerberosDescriptor(KerberosDescriptor kerberosDescriptor, int expectedCalls) throws Exception {
     // cluster.getCurrentStackVersion expectation is already specified in main test method
     expect(metaInfo.getKerberosDescriptor("HDP", "2.2")).andReturn(kerberosDescriptor).times(expectedCalls);

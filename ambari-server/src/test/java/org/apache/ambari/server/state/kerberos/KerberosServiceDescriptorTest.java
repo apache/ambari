@@ -374,4 +374,38 @@ public class KerberosServiceDescriptorTest {
     validateUpdatedData(serviceDescriptor);
   }
 
+  /**
+   * Test a JSON object in which only only a Service and configs are defined, but no Components.
+   * @throws AmbariException
+   */
+  @Test
+  public void testJSONWithOnlyServiceNameAndConfigurations() throws AmbariException {
+    String JSON_VALUE_ONLY_NAME_AND_CONFIGS =
+        "{" +
+            "  \"name\": \"SERVICE_NAME\"," +
+            "  \"configurations\": [" +
+            "    {" +
+            "      \"service-site\": {" +
+            "        \"service.property1\": \"value1\"," +
+            "        \"service.property2\": \"value2\"" +
+            "      }" +
+            "    }" +
+            "  ]" +
+            "}";
+
+    HashMap<String, Object> CHANGE_NAME = new HashMap<String, Object>() {{ put("name", "A_DIFFERENT_SERVICE_NAME"); }};
+
+    KerberosServiceDescriptor serviceDescriptor = KERBEROS_SERVICE_DESCRIPTOR_FACTORY.createInstance("SERVICE_NAME", JSON_VALUE_ONLY_NAME_AND_CONFIGS);
+    KerberosServiceDescriptor updatedServiceDescriptor = new KerberosServiceDescriptor(CHANGE_NAME);
+
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertNotNull(updatedServiceDescriptor);
+
+    // Update
+    serviceDescriptor.update(updatedServiceDescriptor);
+
+    // Validate
+    Assert.assertNotNull(serviceDescriptor);
+    Assert.assertEquals("A_DIFFERENT_SERVICE_NAME", serviceDescriptor.getName());
+  }
 }
