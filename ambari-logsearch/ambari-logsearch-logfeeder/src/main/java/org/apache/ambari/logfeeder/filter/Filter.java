@@ -31,6 +31,7 @@ import org.apache.ambari.logfeeder.MetricCount;
 import org.apache.ambari.logfeeder.OutputMgr;
 import org.apache.ambari.logfeeder.AliasUtil.ALIAS_PARAM;
 import org.apache.ambari.logfeeder.AliasUtil.ALIAS_TYPE;
+import org.apache.ambari.logfeeder.exception.LogfeederException;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.mapper.Mapper;
@@ -125,7 +126,7 @@ public abstract class Filter extends ConfigBlock {
   /**
    * Deriving classes should implement this at the minimum
    */
-  public void apply(String inputStr, InputMarker inputMarker) {
+  public void apply(String inputStr, InputMarker inputMarker) throws LogfeederException  {
     // TODO: There is no transformation for string types.
     if (nextFilter != null) {
       nextFilter.apply(inputStr, inputMarker);
@@ -134,7 +135,7 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
-  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) {
+  public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
     if (postFieldValueMappers.size() > 0) {
       for (String fieldName : postFieldValueMappers.keySet()) {
         Object value = jsonObj.get(fieldName);

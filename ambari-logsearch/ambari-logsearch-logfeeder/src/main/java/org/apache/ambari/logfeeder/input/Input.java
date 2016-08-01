@@ -30,6 +30,7 @@ import org.apache.ambari.logfeeder.ConfigBlock;
 import org.apache.ambari.logfeeder.InputMgr;
 import org.apache.ambari.logfeeder.MetricCount;
 import org.apache.ambari.logfeeder.OutputMgr;
+import org.apache.ambari.logfeeder.exception.LogfeederException;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.log4j.Logger;
@@ -102,7 +103,11 @@ public abstract class Input extends ConfigBlock implements Runnable {
     readBytesMetric.count += (line.length());
 
     if (firstFilter != null) {
-      firstFilter.apply(line, marker);
+      try {
+        firstFilter.apply(line, marker);
+      } catch (LogfeederException e) {
+        logger.error(e.getLocalizedMessage(),e);
+      }
     } else {
       // TODO: For now, let's make filter mandatory, so that no one
       // accidently forgets to write filter
