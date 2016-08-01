@@ -1794,6 +1794,13 @@ describe('App.InstallerStep9Controller', function () {
       sinon.stub(c, 'launchStartServices', Em.K);
       sinon.stub(c, 'saveClusterStatus', Em.K);
       c.set('hosts', hosts);
+      c.set('content', Em.Object.create({
+        slaveComponentHosts: [
+          {hosts: [{isInstalled: true, hostName: 'h1'}]},
+          {hosts: [{isInstalled: false, hostName: 'h2'}]}
+        ],
+        masterComponentHosts: []
+      }));
       c.isAllComponentsInstalledSuccessCallback(jsonData);
       this.clusterStatus = c.saveClusterStatus.args[0][0];
     });
