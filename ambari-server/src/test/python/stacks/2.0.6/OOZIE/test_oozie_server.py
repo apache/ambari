@@ -602,6 +602,37 @@ class TestOozieServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(shell, "call")
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  def test_configure_secured_ha(self, call_mocks):
+    call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
+
+    config_file = "stacks/2.0.6/configs/secured.json"
+    with open(config_file, "r") as f:
+      secured_json = json.load(f)
+
+    secured_json['configurations']['oozie-site']['oozie.ha.authentication.kerberos.principal'] = "*"
+    secured_json['configurations']['oozie-site']['oozie.ha.authentication.kerberos.keytab'] = "/etc/security/keytabs/oozie_ha.keytab"
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+                       classname = "OozieServer",
+                       command = "configure",
+                       config_dict = secured_json,
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = call_mocks
+    )
+
+    # Update the config data to see if
+    #  * configurations/oozie-site/oozie.authentication.kerberos.principal == configurations/oozie-site/oozie.ha.authentication.kerberos.principal
+    #  * configurations/oozie-site/oozie.authentication.kerberos.keytab == configurations/oozie-site/oozie.ha.authentication.kerberos.keytab
+    expected_oozie_site = dict(self.getConfig()['configurations']['oozie-site'])
+    expected_oozie_site['oozie.authentication.kerberos.principal'] = expected_oozie_site['oozie.ha.authentication.kerberos.principal']
+    expected_oozie_site['oozie.authentication.kerberos.keytab'] = expected_oozie_site['oozie.ha.authentication.kerberos.keytab']
+
+    self.assert_configure_secured(expected_oozie_site)
+    self.assertNoMoreResources()
+
+  @patch.object(shell, "call")
   @patch("os.path.isfile")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_start_secured(self, isfile_mock, call_mocks):
@@ -878,7 +909,7 @@ class TestOozieServer(RMFTestCase):
                               recursive_ownership = True,
     )
 
-  def assert_configure_secured(self):
+  def assert_configure_secured(self, expected_oozie_site = None):
     self.assertResourceCalled('HdfsResource', '/user/oozie',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,
@@ -911,12 +942,16 @@ class TestOozieServer(RMFTestCase):
                               group = 'hadoop',
                               create_parents = True
                               )
+
+    if expected_oozie_site is None:
+      expected_oozie_site = self.getConfig()['configurations']['oozie-site']
+
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0664,
                               conf_dir = '/etc/oozie/conf',
-                              configurations = self.getConfig()['configurations']['oozie-site'],
+                              configurations = expected_oozie_site,
                               configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
                               )
     self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
