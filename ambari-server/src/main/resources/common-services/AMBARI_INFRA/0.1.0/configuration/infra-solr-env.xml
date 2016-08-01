@@ -26,14 +26,14 @@
     <value>8886</value>
     <description>Solr port</description>
     <display-name>Infra Solr port</display-name>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_jmx_port</name>
     <value>18886</value>
     <description>Solr JMX port</description>
     <display-name>Infra Solr JMX port</display-name>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_pid_dir</name>
@@ -43,7 +43,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_log_dir</name>
@@ -53,7 +53,7 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_user</name>
@@ -65,7 +65,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_datadir</name>
@@ -76,7 +76,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_ssl_enabled</name>
@@ -86,21 +86,21 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_truststore_location</name>
     <value>/etc/security/serverKeys/infra.solr.trustStore.jks</value>
     <display-name>Infra Solr trust store location</display-name>
     <description>Location of the trust store file. (default value is not generated)</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_truststore_type</name>
     <value>jks</value>
     <display-name>Infra Solr trust store type</display-name>
     <description>Type of the trust store file.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_truststore_password</name>
@@ -111,21 +111,21 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_keystore_location</name>
     <value>/etc/security/serverKeys/infra.solr.keyStore.jks</value>
     <display-name>Infra Solr key store location</display-name>
     <description>Location of the key store file. (default value is not generated)</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_keystore_type</name>
     <value>jks</value>
     <display-name>Infra Solr key store type</display-name>
     <description>Type of the key store file.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_keystore_password</name>
@@ -136,7 +136,7 @@
     <value-attributes>
       <type>password</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_znode</name>
@@ -146,7 +146,7 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_minmem</name>
@@ -160,7 +160,7 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>infra_solr_maxmem</name>
@@ -174,7 +174,7 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -182,7 +182,7 @@
     <value>/etc/security/keytabs/infra_solr.service.keytab</value>
     <display-name>Infra Solr keytab</display-name>
     <description>The path to the Kerberos Keytab file containing service principal of the Infra Solr.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -190,7 +190,7 @@
     <value>infra-solr</value>
     <display-name>Infra Solr principal</display-name>
     <description>The service principal for Infra Solr.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -198,7 +198,7 @@
     <value>/etc/security/keytabs/spnego.service.keytab</value>
     <display-name>Infra Solr Http keytab</display-name>
     <description>The path to the Kerberos Keytab file containing service principal of the Infra Solr.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -206,17 +206,18 @@
     <value>HTTP/_HOST@EXAMPLE.COM</value>
     <display-name>Infra Solr Http principal</display-name>
     <description>The service principal for the Infra Solr.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
     <name>infra_solr_kerberos_name_rules</name>
     <value>DEFAULT</value>
+    <display-name>Infra Solr Kerberos name rules</display-name>
     <description>Kerberos name rules for Spnego</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- infra-solr-env.sh -->
@@ -230,6 +231,6 @@
       <property-file-name>infra-solr-env.sh.j2</property-file-name>
       <property-file-type>text</property-file-type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
