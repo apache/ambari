@@ -214,7 +214,8 @@ App.StackService.displayOrder = [
 ];
 
 App.StackService.unSelectByDefault = [
-  'SPARK2'
+  'SPARK2',
+  'LOGSEARCH'
 ];
 
 
