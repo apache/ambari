@@ -2539,6 +2539,7 @@ public class BlueprintConfigurationProcessor {
     // OOZIE_SERVER
     oozieSiteMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
     oozieSiteMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieSiteMap.put("oozie.ha.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
     oozieSiteMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
 
