@@ -67,6 +67,7 @@ solr_bindir = solr_dir + '/bin'
 cloud_scripts = solr_dir + '/server/scripts/cloud-scripts'
 
 if "infra-solr-env" in config['configurations']:
+  infra_solr_hosts = config['clusterHostInfo']['infra_solr_hosts']
   infra_solr_znode = config['configurations']['infra-solr-env']['infra_solr_znode']
   infra_solr_min_mem = format(config['configurations']['infra-solr-env']['infra_solr_minmem'])
   infra_solr_max_mem = format(config['configurations']['infra-solr-env']['infra_solr_maxmem'])
@@ -111,4 +112,8 @@ solr_xml_content = default('configurations/infra-solr-xml/content', None)
 solr_log4j_content = default('configurations/infra-solr-log4j/content', None)
 
 solr_client_custom_log4j = "infra-solr-client-log4j" in config['configurations']
+
+smokeuser = config['configurations']['cluster-env']['smokeuser']
+smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 
