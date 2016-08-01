@@ -1773,6 +1773,13 @@ public class ViewRegistry {
           } catch (IOException e) {
           }
         }
+
+        if (viewLog4jStream != null) {
+          try {
+            viewLog4jStream.close();
+          } catch (IOException e) {
+          }
+        }
       }
     }
   }
