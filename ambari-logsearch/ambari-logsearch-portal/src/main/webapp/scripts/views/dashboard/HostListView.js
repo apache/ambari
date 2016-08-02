@@ -109,7 +109,7 @@ define(['require',
 		},
 		fetchHosts : function(params){
 			var that = this;
-			$.extend(this.collection.queryParams,params);
+			$.extend(this.collection.queryParams,params,{treeParams:null});
 			this.collection.fetch({
 				reset:true,
 				complete : function(){
@@ -126,7 +126,7 @@ define(['require',
 				//appending box for every host
 				//if(i==0 || (i % 5 == 0)){
 					//($ul) ? that.formatTree($ul.parent(".tree")) : "";
-					$el.append("<div class='col-md-3'><div class='box box-dashed'><div class='box-content'><div class='tree smart-form'><ul></ul></div></div></div></div>");
+					$el.append("<div class='col-md-3'><div class='box box-dashed'><div class='box-contentHost'><div class='tree smart-form'><ul></ul></div></div></div></div>");
 					$ul = $el.find(".tree.smart-form").last().find("ul");
 				//}
 				if(data.get("isParent")  === "true" || data.get("isParent") == true){
@@ -250,7 +250,7 @@ define(['require',
 						params:_.extend({},{
 							host :  host,
 							component : component
-						},that.searchParams/*,{includeQuery:null,excludeQuery:null}*/),
+						},that.searchParams,{treeParams:null}),
 						globalVent : that.globalVent
 					});
 				}
