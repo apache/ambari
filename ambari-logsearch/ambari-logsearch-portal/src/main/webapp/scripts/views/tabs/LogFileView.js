@@ -279,9 +279,9 @@ define(['require',
                 this.listenTo(this.globalVent, "globalExclusion:component:message", function(value) {
                     this.fetchCollection(value);
                 }, this);
-                //            this.listenTo(this.vent, "tab:refresh", function(params) {
-                //            	this.reRenderView(params);
-                //            },this);
+                this.listenTo(this.vent, "tab:refresh", function(params) {
+                	this.fetchTableCollection(params);
+                },this);
                 this.listenTo(this.vent, "timer:end", function(value) {
                     //timer should start only after log table fetch is complete.
                     ViewUtils.setLatestTimeParams(this.params);

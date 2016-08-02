@@ -313,7 +313,7 @@ define(['require',
 					params:_.extend({},{
 						host :  host,
 						component : component
-					},that.searchParams),
+					},that.searchParams,{treeParams:null}),
 					globalVent : that.globalVent
 				}/*)*/);
 			}

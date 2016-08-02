@@ -151,7 +151,7 @@
             }
             if (options.selectBox) {
                 var select = this.genrateElement('select', {
-                    'class': 'btn btn-default dropdown-toggle',
+                    'class': 'mapDropDown dropdown-toggle',
                 }, option);
                 containerArr.push(select);
             }
