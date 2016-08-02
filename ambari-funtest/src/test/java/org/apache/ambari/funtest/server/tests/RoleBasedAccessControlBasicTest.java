@@ -32,7 +32,7 @@ import org.apache.ambari.funtest.server.api.cluster.GetAllClustersWebRequest;
 import org.apache.ambari.funtest.server.api.user.DeleteUserWebRequest;
 import org.apache.ambari.funtest.server.utils.ClusterUtils;
 import org.apache.ambari.funtest.server.utils.RestApiUtils;
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;

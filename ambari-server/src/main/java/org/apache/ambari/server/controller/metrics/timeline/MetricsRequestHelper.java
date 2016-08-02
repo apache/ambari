@@ -18,7 +18,7 @@
 package org.apache.ambari.server.controller.metrics.timeline;
 
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.http.NameValuePair;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;

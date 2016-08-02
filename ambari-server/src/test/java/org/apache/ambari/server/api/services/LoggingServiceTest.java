@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.services;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
-import org.apache.commons.httpclient.util.HttpURLConnection;
+import java.net.HttpURLConnection;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 

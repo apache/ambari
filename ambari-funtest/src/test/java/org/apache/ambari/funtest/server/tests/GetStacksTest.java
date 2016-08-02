@@ -23,18 +23,21 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
-
-import java.io.StringReader;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 
+import java.io.StringReader;
 import java.io.IOException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.http.HttpStatus;
 
 /**
@@ -69,17 +72,19 @@ public class GetStacksTest extends ServerTestBase {
      */
     String stacksPath = "/api/v1/stacks";
     String stacksUrl = String.format(SERVER_URL_FORMAT, serverPort) + stacksPath;
-    HttpClient httpClient = new HttpClient();
-    GetMethod getMethod = new GetMethod(stacksUrl);
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+    HttpGet httpGet = new HttpGet(stacksUrl);
+    httpGet.addHeader("Authorization", getBasicAdminAuthentication());
+    httpGet.addHeader("X-Requested-By", "ambari");
 
     try {
-      getMethod.addRequestHeader("Authorization", getBasicAdminAuthentication());
-      getMethod.addRequestHeader("X-Requested-By", "ambari");
-      int statusCode = httpClient.executeMethod(getMethod);
+      HttpResponse httpResponse = httpClient.execute(httpGet);
+      int statusCode = httpResponse.getStatusLine().getStatusCode();
 
       assertEquals(HttpStatus.SC_OK, statusCode); // HTTP status code 200
 
-      String responseBody = getMethod.getResponseBodyAsString();
+      HttpEntity entity = httpResponse.getEntity();
+      String responseBody = entity != null ? EntityUtils.toString(entity) : null;
 
       assertTrue(responseBody != null); // Make sure response body is valid
 
@@ -96,7 +101,7 @@ public class GetStacksTest extends ServerTestBase {
       assertTrue (stacksArray.size() > 0); // Should have at least one stack
 
     } finally {
-      getMethod.releaseConnection();
+      httpClient.close();
     }
   }
 }
