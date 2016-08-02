@@ -141,7 +141,7 @@
     <commons-configuration.version>1.6</commons-configuration.version>
     <commons-lang.version>2.6</commons-lang.version>
     <commons-compress.version>1.9</commons-compress.version>
-    <httpclient.version>4.2.5</httpclient.version>
+    <httpclient.version>4.5.2</httpclient.version>
     <slider.version>0.81.0-incubating-SNAPSHOT</slider.version>
     <guice.version>3.0</guice.version>
     <jackson.version>1.9.13</jackson.version>
