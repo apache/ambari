@@ -44,7 +44,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.commons.httpclient.HttpConnection;
 import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.junit.After;

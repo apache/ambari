@@ -23,24 +23,32 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpMethodBase;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.RequestLine;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.StringEntity;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
+import java.lang.StringBuilder;
 
+import org.apache.commons.lang.StringUtils;
 
 /**
  * REST API Client that performs various operations on the Ambari Server
@@ -282,112 +290,73 @@ public class AmbariHttpWebRequest extends WebRequest {
      * @throws IOException
      */
     private WebResponse executeRequest() throws IOException {
-        HttpMethodBase methodBase = null;
-        String httpMethod;
-
-        httpMethod = getHttpMethod();
-
-        if (httpMethod.equals("GET")) {
-            methodBase = getGetMethod();
-        } else if (httpMethod.equals("POST")) {
-            methodBase = getPostMethod();
-        } else if (httpMethod.equals("PUT")) {
-            methodBase = getPutMethod();
-        } else if (httpMethod.equals("DELETE")) {
-            methodBase = getDeleteMethod();
-        } else {
-            new RuntimeException(String.format("Unsupported HTTP method: %s", httpMethod));
-        }
-
-        WebResponse response = new WebResponse();
-        HttpClient httpClient = new HttpClient();
-        Map<String, String> headers = getHeaders();
-
-        for (Map.Entry<String, String> header : headers.entrySet()) {
-            methodBase.addRequestHeader(header.getKey(), header.getValue());
-        }
-
-        methodBase.setQueryString(getQueryString());
+        final WebResponse response = new WebResponse();
+        CloseableHttpClient httpClient = HttpClients.createDefault();
 
         try {
-            int statusCode = httpClient.executeMethod(methodBase);
-            response.setStatusCode(statusCode);
-            response.setContent(methodBase.getResponseBodyAsString());
+            HttpRequestBase requestBase = null;
+            String httpMethod = getHttpMethod();
+
+            if (httpMethod.equals("GET")) {
+                requestBase = new HttpGet(getRequestUrl());
+            } else if (httpMethod.equals("POST")) {
+                HttpPost httpPost = new HttpPost(getRequestUrl());
+                if (StringUtils.isNotEmpty(getContent())) {
+                    httpPost.setHeader("Content-Type", getContentType());
+                    httpPost.setEntity(new StringEntity(getContent(), getContentEncoding()));
+                }
+                requestBase = httpPost;
+            } else if (httpMethod.equals("PUT")) {
+                HttpPut httpPut = new HttpPut(getRequestUrl());
+                if (StringUtils.isNotEmpty(getContent())) {
+                    httpPut.setHeader("Content-Type", getContentType());
+                    httpPut.setEntity(new StringEntity(getContent(), getContentEncoding()));
+                }
+                requestBase = httpPut;
+            } else if (httpMethod.equals("DELETE")) {
+                requestBase = new HttpDelete(getRequestUrl());
+            } else {
+                new RuntimeException(String.format("Unsupported HTTP method: %s", httpMethod));
+            }
+
+            Map<String, String> headers = getHeaders();
+
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                requestBase.addHeader(header.getKey(), header.getValue());
+            }
+
+            RequestLine requestLine = requestBase.getRequestLine();
+            LOG.debug(requestLine);
+
+            ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
+
+                @Override
+                public String handleResponse(final HttpResponse httpResponse)
+                        throws ClientProtocolException, IOException {
+                    int statusCode = httpResponse.getStatusLine().getStatusCode();
+                    response.setStatusCode(statusCode);
+                    HttpEntity entity = httpResponse.getEntity();
+                    return entity != null ? EntityUtils.toString(entity) : null;
+                }
+            };
+
+            String responseBody = httpClient.execute(requestBase, responseHandler);
+            response.setContent(responseBody);
         } finally {
-            methodBase.releaseConnection();
+            httpClient.close();
         }
 
         return response;
     }
 
-    /**
-     * Constructs a GetMethod instance.
-     *
-     * @return - GetMethod.
-     */
-    private GetMethod getGetMethod() {
-        return new GetMethod(getUrl());
-    }
+    private String getRequestUrl() {
+        StringBuilder requestUrl = new StringBuilder(getUrl());
 
-    /**
-     * Constructs a PutMethod instance and sets the request data on it.
-     *
-     * @return - PutMethod.
-     */
-    @SuppressWarnings("deprecation")
-    private PutMethod getPutMethod() {
-        PutMethod putMethod = new PutMethod(getUrl());
-
-        putMethod.setRequestBody(getContent());
-
-        return putMethod;
-    }
-
-    /**
-     * Constructs a PostMethod and sets the request data on it.
-     *
-     * @return - PostMethod.
-     */
-    @SuppressWarnings("deprecation")
-    private PostMethod getPostMethod() {
-        PostMethod postMethod = new PostMethod(getUrl());
-
-        /*
-        RequestEntity requestEntity = new StringRequestEntity(
-                request.getContent(),
-                request.getContentType(),
-                request.getContentEncoding());
-
-        postMethod.setRequestEntity(requestEntity);
-        */
-
-        postMethod.setRequestBody(getContent());
-
-        return postMethod;
-    }
-
-    /**
-     * Constructs a DeleteMethod.
-     *
-     * @return - DeleteMethod.
-     */
-    private DeleteMethod getDeleteMethod() {
-        return new DeleteMethod(getUrl());
-    }
-
-    @SuppressWarnings("deprecation")
-    private RuntimeException createRuntimeException(HttpException httpException) {
-        String message = httpException.getMessage();
-        try {
-            JsonElement jsonElement = new JsonParser().parse(new JsonReader(new StringReader(httpException.getMessage())));
-            if (jsonElement != null && jsonElement.getAsJsonObject().has("message")) {
-                message = jsonElement.getAsJsonObject().get("message").getAsString();
-            }
-        } catch (Throwable t) {
+        if (StringUtils.isNotEmpty(getQueryString())) {
+            requestUrl.append("?");
+            requestUrl.append(getQueryString());
         }
-        if (httpException.getReasonCode() != HttpStatus.SC_OK) {
-            message = httpException.getReasonCode() + " " + httpException.getReason() + ": " + message;
-        }
-        return new RuntimeException(message, httpException);
+
+        return requestUrl.toString();
     }
 }
