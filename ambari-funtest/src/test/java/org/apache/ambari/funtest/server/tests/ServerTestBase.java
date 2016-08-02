@@ -26,8 +26,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.After;
@@ -40,6 +39,14 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.Properties;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpStatus;
 
 /**
  * Base test infrastructure.
@@ -215,24 +222,26 @@ public class ServerTestBase {
      * @return - True if the local server is responsive to queries.
      *           False, otherwise.
      */
-    private static boolean isServerUp() {
+    private static boolean isServerUp() throws IOException {
         String apiPath = "/api/v1/stacks";
 
         String apiUrl = String.format(SERVER_URL_FORMAT, serverPort) + apiPath;
-        HttpClient httpClient = new HttpClient();
-        GetMethod getMethod = new GetMethod(apiUrl);
+        CloseableHttpClient httpClient = HttpClients.createDefault();;
 
         try {
-            getMethod.addRequestHeader("Authorization", getBasicAdminAuthentication());
-            getMethod.addRequestHeader("X-Requested-By", "ambari");
-            int statusCode = httpClient.executeMethod(getMethod);
-            String response = getMethod.getResponseBodyAsString();
+            HttpGet httpGet = new HttpGet(apiUrl);
+            httpGet.addHeader("Authorization", getBasicAdminAuthentication());
+            httpGet.addHeader("X-Requested-By", "ambari");
+            HttpResponse httpResponse = httpClient.execute(httpGet);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity entity = httpResponse.getEntity();
+            String responseBody = entity != null ? EntityUtils.toString(entity) : null;
 
             return true;
         } catch (IOException ex) {
 
         } finally {
-            getMethod.releaseConnection();
+            httpClient.close();
         }
 
         return false;

@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import org.apache.ambari.funtest.server.WebRequest;
 import org.apache.ambari.funtest.server.WebResponse;
-import org.apache.commons.httpclient.HttpStatus;
+import org.apache.http.HttpStatus;
 
 import java.io.StringReader;
 
