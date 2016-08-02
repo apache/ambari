@@ -514,9 +514,6 @@ public class ConfigGroupResourceProviderTest {
         return configGroupMap;
       }
     });
-    expect(managementController.getConfigHelper()).andReturn(configHelper).once();
-    configHelper.invalidateStaleConfigsCache(null);
-    expectLastCall().once();
 
     replay(managementController, clusters, cluster,
       configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
