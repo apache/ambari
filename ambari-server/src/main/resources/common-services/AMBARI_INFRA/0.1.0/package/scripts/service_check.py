@@ -41,6 +41,7 @@ class InfraServiceCheck(Script):
       Execute(smoke_infra_solr_cmd,
               tries = 40,
               try_sleep=3,
+              user=params.smokeuser,
               logoutput=True)
 
 if __name__ == "__main__":
