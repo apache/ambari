@@ -696,7 +696,6 @@ public class ConfigGroupResourceProvider extends
         LOG.warn("Could not determine service name for config group {}, service config version not created",
             configGroup.getId());
       }
-      getManagementController().getConfigHelper().invalidateStaleConfigsCache(cluster.getDesiredConfigs());
     }
 
   }
