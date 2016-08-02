@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -48,6 +49,11 @@ public class HostConfig {
   @JsonProperty("overrides")
   public Map<Long, String> getConfigGroupOverrides() {
     return configGroupOverrides;
+  }
+
+  @Override
+  public int hashCode(){
+    return Objects.hashCode(defaultVersionTag.hashCode(), configGroupOverrides.hashCode());
   }
 
   @Override
