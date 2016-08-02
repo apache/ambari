@@ -217,7 +217,7 @@ define(['require',
 						host :  host,
 						component : component,
 						sourceLogId: id
-					},that.graphParams/*,{includeQuery:null,excludeQuery:null}*/),
+					},that.graphParams,{treeParams:null}),
 					globalVent : that.globalVent
 				});
 			}
@@ -717,7 +717,7 @@ define(['require',
 //							iMessage : that.collection.queryParams.iMessage,
 //							eMessage : that.collection.queryParams.eMessage,
 //							query : that.collection.queryParams.query
-						},that.collection.queryParams/*,{includeQuery:null,excludeQuery:null}*/),
+						},that.collection.queryParams,{treeParams:null}),
 						globalVent : that.globalVent
 					}/*)*/);
 				} else {

@@ -2846,3 +2846,66 @@ td.filterName {
   word-break: break-all;
   white-space: normal;
 }
+/*World Map Drop Down Css*/
+.mapDropDown {
+  border-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.25);
+  color: #333;
+  border-color: #ccc;
+  background-color: #fff;
+  display: inline-block;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid #CCC;
+  border-radius: 4px;
+}
+
+.mapDropDown:focus,.mapDropDown:active:focus,.mapDropDown.active:focus {
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+
+.mapDropDown:active {
+  position: relative;
+  top: 2px;
+  left: 2px;
+}
+
+.mapDropDown:hover {
+  color: #333333;
+  text-decoration: none;
+  background-color: #e6e6e6;
+  background-position: 0 -15px;
+  -webkit-transition: background-position 0.1s linear;
+  -moz-transition: background-position 0.1s linear;
+  -o-transition: background-position 0.1s linear;
+  transition: background-position 0.1s linear;
+}
+
+.box-contentHost{
+    padding: 5px 10px;
+    overflow: hidden;
+    background: #fff;
+    position: relative;
+}
+
+.box-contentHost:after {
+  clear: both; 
+}
+
+.box-contentHost:before, .box-contentHost:after {
+  content: "";
+  display: table;
+}

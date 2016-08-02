@@ -78,7 +78,7 @@ define(['require', 'tour'], function(require, TourJs) {
                 }, {
                     element: $(document.querySelectorAll('#r_BubbleTable')[1]).find('td.logTime:first').get(0),
                     content: "The Log Time column lists a consolidated view of filtered log entries for the selected service.",
-                    placement: "right"
+                    placement: "top"
                 }, {
                     element: $('li[data-id="audit"]').get(0),
                     content: "The Access Logs tab displays access information across services and their components. You can create different views and aggregations and apply filters for viewing access log details.",
@@ -260,10 +260,10 @@ define(['require', 'tour'], function(require, TourJs) {
             10: {
                 css: {
                     'top': '45px',
-                    'right': '10px'
+                    'right': '80px'
                 },
                 appendIndex: 1,
-                handDirection: 'left',
+                handDirection: 'right',
                 handText: "Components",
                 handClass: "left-right"
 
