@@ -207,6 +207,9 @@ public class ViewDataMigrationUtility {
     @Override
     public void migrateEntity(Class originEntityClass, Class currentEntityClass)
         throws ViewDataMigrationException {
+      if (currentEntityClass == null) {
+        return;
+      }
       migrationContext.copyAllObjects(originEntityClass, currentEntityClass);
     }
 
