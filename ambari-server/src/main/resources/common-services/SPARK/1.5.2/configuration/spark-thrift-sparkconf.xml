@@ -38,6 +38,22 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>spark.driver.extraJavaOptions</name>
+    <value>-Dhdp.version={{full_stack_version}}</value>
+    <description>
+      Specifies parameters that are passed to the JVM of the Spark driver.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>spark.yarn.am.extraJavaOptions</name>
+    <value>-Dhdp.version={{full_stack_version}}</value>
+    <description>
+      Specifies the parameters that are passed to the JVM of the Spark Application Master.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>spark.yarn.driver.memoryOverhead</name>
     <value>384</value>
     <description>
