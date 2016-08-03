@@ -91,6 +91,16 @@
              <!-- Used by decommission and recommission -->
              <masterComponent>RESOURCEMANAGER</masterComponent>
            </bulkCommands>
+          <customCommands>
+            <customCommand>
+              <name>CREATE_YARN_DIRECTORIES</name>
+              <commandScript>
+                <script>scripts/nodemanager.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>600</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <logs>
             <log>
               <logId>yarn_nodemanager</logId>

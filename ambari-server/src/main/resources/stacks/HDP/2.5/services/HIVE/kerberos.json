@@ -29,6 +29,11 @@
           }
         },
         {
+          "hive-interactive-site": {
+            "hive.llap.daemon.work.dirs": "/hadoop/llap/local"
+          }
+        },
+        {
           "ranger-hive-audit": {
             "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
             "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",

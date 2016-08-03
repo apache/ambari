@@ -607,6 +607,16 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>hive.llap.daemon.work.dirs</name>
+    <value>${yarn.nodemanager.local-dirs}</value>
+    <description>
+      Working directories for the daemon. Needs to be set for a secure cluster, since LLAP may
+      not have access to the default YARN working directories. yarn.nodemanager.local-dirs is
+      used if this is not set
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>hive.llap.zk.sm.connectionString</name>
     <value>localhost:2181</value>
     <description>ZooKeeper connection string for ZooKeeper SecretManager.</description>

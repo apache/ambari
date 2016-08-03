@@ -693,6 +693,44 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('common.error'), error);
   },
 
+  createYARNDirectories: function(event) {
+    var context = Em.I18n.t('services.service.actions.run.createYARNDirectories');
+    var command = "CREATE_YARN_DIRECTORIES";
+    var component = "NODEMANAGER";
+    var controller = this;
+    var hosts = App.Service.find('YARN').get('hostComponents').filterProperty('componentName', component).mapProperty('hostName');
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name: 'service.item.executeCustomCommand',
+        sender: controller,
+        data: {
+          command: command,
+          context: context,
+          hosts: hosts.join(','),
+          serviceName: "YARN",
+          componentName: component
+        },
+        success: 'createYARNDirectoriesSuccessCallback',
+        error: 'createYARNDirectoriesErrorCallback'
+      });
+    }, Em.I18n.t('services.service.actions.run.createYARNDirectories.confirmation'), null, Em.I18n.t('popup.confirmation.commonHeader'), Em.I18n.t('ok'), false);
+  },
+  createYARNDirectoriesSuccessCallback : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+  createYARNDirectoriesErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.executeCustomCommand.error');
+    if (data && data.responseText) {
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('common.error'), error);
+  },
+
   /**
    * On click handler for rebalance Hdfs command from items menu
    */

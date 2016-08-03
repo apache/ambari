@@ -19,6 +19,7 @@ Ambari Agent
 
 """
 import os
+import re
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -203,11 +204,38 @@ if hostname and nm_address and nm_address.startswith("0.0.0.0:"):
 nm_local_dirs = default("/configurations/yarn-site/yarn.nodemanager.local-dirs", "")
 nm_log_dirs = default("/configurations/yarn-site/yarn.nodemanager.log-dirs", "")
 
-nm_local_dirs_list = nm_local_dirs.split(',')
-nm_log_dirs_list = nm_log_dirs.split(',')
-
 nm_log_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_log_dir_mount.hist"
 nm_local_dir_to_mount_file = "/var/lib/ambari-agent/data/yarn/yarn_local_dir_mount.hist"
+
+# If Hive Interactive Server is present, then default value will be ${yarn.nodemanager.local-dirs}
+# During kerberization, kerberos.json changes the value to "/hadoop/llap/local".
+# This is a comma separated list of directories.
+hive_llap_work_dirs = default("/configurations/hive-interactive-site/hive.llap.daemon.work.dirs", "")
+
+# It can also be a dynamic variable, such as "${yarn.nodemanager.local-dirs}"
+p = re.compile(r"\$\{(.*?)\}")
+m = p.search(hive_llap_work_dirs)
+if m and len(m.groups()) == 1:
+  hive_llap_work_dirs = default("/configurations/yarn-site/" + m.group(1), "")
+
+nm_local_dirs_list = nm_local_dirs.split(",")
+nm_log_dirs_list = nm_log_dirs.split(",")
+hive_llap_work_dirs_list = hive_llap_work_dirs.split(",")
+
+
+def cleanse_list(l):
+  if l is None:
+    return None
+  l = [e.strip() for e in l if e.strip() != ""]
+  return l if len(l) > 0 else None
+
+nm_local_dirs_list = cleanse_list(nm_local_dirs_list)
+nm_log_dirs_list = cleanse_list(nm_log_dirs_list)
+hive_llap_work_dirs_list = cleanse_list(hive_llap_work_dirs_list)
+
+# Needed for LLAP to determine if should create Hive LLAP Work Dirs.
+hive_server_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
+hive_server_interactive_host = hive_server_interactive_hosts[0] if len(hive_server_interactive_hosts) > 0 else None
 
 distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
