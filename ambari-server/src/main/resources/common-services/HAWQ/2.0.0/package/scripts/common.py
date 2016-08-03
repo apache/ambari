@@ -15,22 +15,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import re
-import os
-import time
 import crypt
 import filecmp
-from resource_management.core.resources.system import Execute, Directory, File
-from resource_management.libraries.functions.default import default
-from resource_management.core.logger import Logger
-from resource_management.core.system import System
-from resource_management.core.exceptions import Fail
-from resource_management.core.resources.accounts import Group, User
+import os
+import re
+import time
 import xml.etree.ElementTree as ET
 
-import utils
-import hawq_constants
 import custom_params
+import hawq_constants
+import utils
+from resource_management.core.exceptions import Fail
+from resource_management.core.logger import Logger
+from resource_management.core.resources.accounts import Group, User
+from resource_management.core.resources.system import Execute, Directory, File
+from resource_management.core.shell import call
+from resource_management.core.system import System
+from resource_management.libraries.functions.default import default
+
 
 def setup_user():
   """
@@ -280,15 +282,23 @@ def start_component(component_name, port, data_dir):
 
   __check_dfs_truncate_enforced()
   if component_name == hawq_constants.MASTER:
+    # Check the owner for hawq_data directory
+    kinit_cmd = "{0} -kt {1} {2};".format(params.kinit_path_local, params.hdfs_user_keytab, params.hdfs_principal_name) if params.security_enabled else ""
     data_dir_owner = hawq_constants.hawq_user_secured if params.security_enabled else hawq_constants.hawq_user
-    params.HdfsResource(params.hawq_hdfs_data_dir,
-                        type="directory",
-                        action="create_on_execute",
-                        owner=data_dir_owner,
-                        group=hawq_constants.hawq_group,
-                        recursive_chown=True,
-                        mode=0755)
-    params.HdfsResource(None, action="execute")
+    cmd = kinit_cmd + "hdfs dfs -ls {0} | sed '1d;s/  */ /g' | cut -d\\  -f3".format(params.hawq_hdfs_data_dir)
+    returncode, stdout = call(cmd, user=params.hdfs_superuser, timeout=300)
+    if returncode:
+      raise
+    # Change owner recursively (if needed)
+    if stdout.strip() != data_dir_owner:
+      params.HdfsResource(params.hawq_hdfs_data_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=data_dir_owner,
+                          group=hawq_constants.hawq_group,
+                          recursive_chown=True,
+                          mode=0755)
+      params.HdfsResource(None, action="execute")
 
   options_str = "{0} -a -v".format(component_name)
   if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
