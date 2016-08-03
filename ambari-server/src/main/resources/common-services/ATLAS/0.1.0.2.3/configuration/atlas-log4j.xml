@@ -24,13 +24,13 @@
     <name>atlas_log_level</name>
     <value>info</value>
     <description>Log level for atlas logging</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>audit_log_level</name>
     <value>info</value>
     <description>Log level for audit logging</description>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
   <property>
     <name>content</name>
@@ -125,6 +125,6 @@
       <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
-    <on-ambari-upgrade add="false"/>
+    <on-ambari-upgrade add="true"/>
   </property>
 </configuration>
