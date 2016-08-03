@@ -30,10 +30,10 @@
         <name>atlas.cluster.name</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>sqoop.job.data.publish.class</name>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

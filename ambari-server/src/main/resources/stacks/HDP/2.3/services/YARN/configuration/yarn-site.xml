@@ -98,15 +98,6 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
-  <property>
-    <name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classpath</name>
-    <value/>
-    <description>Classpath for all plugins defined in yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
   <!-- advanced ats v1.5 properties-->
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.summary-store</name>

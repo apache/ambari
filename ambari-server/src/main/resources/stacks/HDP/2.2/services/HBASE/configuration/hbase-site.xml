@@ -101,7 +101,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.bucketcache.size</name>
@@ -110,7 +110,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.bucketcache.percentage.in.combinedcache</name>
@@ -119,7 +119,7 @@
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.regionserver.wal.codec</name>
@@ -145,7 +145,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.rpc.controllerfactory.class</name>
@@ -159,7 +159,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>phoenix.functions.allowUserDefinedFunctions</name>
@@ -170,7 +170,7 @@
         <name>phoenix_sql_enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.coprocessor.regionserver.classes</name>
@@ -184,7 +184,7 @@
         <name>hbase.security.authorization</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase.hstore.compaction.max</name>

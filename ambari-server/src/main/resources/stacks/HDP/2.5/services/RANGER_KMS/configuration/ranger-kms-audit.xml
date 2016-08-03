@@ -67,7 +67,7 @@
         <name>ranger.audit.solr.urls</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
@@ -79,7 +79,7 @@
         <name>ranger.audit.solr.zookeepers</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
 </configuration>

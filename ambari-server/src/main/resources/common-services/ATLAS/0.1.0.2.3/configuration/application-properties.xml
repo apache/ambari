@@ -126,7 +126,7 @@
     <name>atlas.notification.embedded</name>
     <value>false</value>
     <description>Indicates whether or not the notification service should be embedded.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- atlas.cluster.name is also part of Atlas Hooks -->
@@ -134,7 +134,7 @@
     <name>atlas.cluster.name</name>
     <value>{{cluster_name}}</value>
     <description>The cluster name.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -154,12 +154,12 @@
     <name>atlas.audit.hbase.tablename</name>
     <value>ATLAS_ENTITY_AUDIT_EVENTS</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>atlas.audit.zookeeper.session.timeout.ms</name>
     <value>1000</value>
     <description/>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
