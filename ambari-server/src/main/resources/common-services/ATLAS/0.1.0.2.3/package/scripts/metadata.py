@@ -92,12 +92,13 @@ def metadata(type='server'):
            mode=0755,
            content=InlineTemplate(params.metadata_env_content)
       )
-      File(format("{conf_dir}/solr/solrconfig.xml"),
-           mode=0644,
-           owner=params.metadata_user,
-           group=params.user_group,
-           content=InlineTemplate(params.metadata_solrconfig_content)
-      )
+      if params.metadata_solrconfig_content:
+        File(format("{conf_dir}/solr/solrconfig.xml"),
+             mode=0644,
+             owner=params.metadata_user,
+             group=params.user_group,
+             content=InlineTemplate(params.metadata_solrconfig_content)
+        )
 
     # Needed by both Server and Client
     PropertiesFile(format('{conf_dir}/{conf_file}'),
