@@ -48,7 +48,7 @@ public class AuditLoggerDefaultImpl implements AuditLogger {
     @Override
     protected DateFormat initialValue() {
       //2016-03-11T10:42:36.376Z
-      return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+      return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXX");
     }
   };
 
