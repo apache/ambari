@@ -1317,6 +1317,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
                     hostActiveIdentities.put(uniqueKey, new KerberosIdentityDescriptor(
                         identity.getName(),
+                        identity.getReference(),
                         resolvedPrincipalDescriptor,
                         resolvedKeytabDescriptor,
                         identity.getWhen()));
