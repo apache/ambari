@@ -151,7 +151,9 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
   }.property(),
 
-  journalNodeComponent: Em.computed.alias('service.journalNodes.firstObject'),
+  journalNodeComponent: Em.Object.create({
+    componentName: 'JOURNALNODE'
+  }),
 
   /**
    * @type {string}
