@@ -147,12 +147,6 @@ class TestSparkThriftServer(RMFTestCase):
         group = 'spark',
         mode = 0644
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = InlineTemplate(' '),
-        owner = 'spark',
-        group = 'spark',
-        mode = 0644
-    )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
@@ -163,6 +157,12 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'hive',
         group = 'hadoop',
         properties = self.getConfig()['configurations']['spark-thrift-sparkconf'],
+        mode = 0644
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate('  -Dhdp.version=None'),
+        owner = 'spark',
+        group = 'spark',
         mode = 0644
     )
 

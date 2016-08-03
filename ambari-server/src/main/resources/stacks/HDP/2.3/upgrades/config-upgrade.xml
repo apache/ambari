@@ -363,7 +363,26 @@
           <definition xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver">
             <type>spark-defaults</type>
             <transfer operation="delete" delete-key="spark.yarn.services" />
+            <transfer operation="delete" delete-key="spark.driver.extraJavaOptions" />
+            <transfer operation="delete" delete-key="spark.yarn.am.extraJavaOptions" />
             <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts">
+            <type>spark-javaopts-properties</type>
+            <transfer operation="delete" delete-key="content" />
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_remove_spark_properties_extraJavaOptions">
+            <type>spark-defaults</type>
+            <transfer operation="delete" delete-key="spark.driver.extraJavaOptions" />
+            <transfer operation="delete" delete-key="spark.yarn.am.extraJavaOptions" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts">
+            <type>spark-javaopts-properties</type>
+            <transfer operation="delete" delete-key="content" />
           </definition>
         </changes>
       </component>
@@ -379,6 +398,12 @@
             <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
             <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
             <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+            <transfer operation="delete" delete-key="spark.driver.extraJavaOptions" />
+            <transfer operation="delete" delete-key="spark.yarn.am.extraJavaOptions" />
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts">
+            <type>spark-javaopts-properties</type>
+            <transfer operation="delete" delete-key="content" />
           </definition>
         </changes>
       </component>
@@ -442,7 +467,7 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
-          
+
           <definition xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0">
             <type>storm-site</type>
             <replace key="_storm.thrift.nonsecure.transport" find="backtype.storm.security.auth.SimpleTransportPlugin"
