@@ -31,7 +31,6 @@ import xml.etree.ElementTree as ET
 import utils
 import hawq_constants
 import custom_params
-import hawqstatus
 
 def setup_user():
   """
@@ -291,15 +290,18 @@ def start_component(component_name, port, data_dir):
                         mode=0755)
     params.HdfsResource(None, action="execute")
 
+  options_str = "{0} -a -v".format(component_name)
   if os.path.exists(os.path.join(data_dir, hawq_constants.postmaster_opts_filename)):
-    return utils.exec_hawq_operation(hawq_constants.START,
-                                     "{0} -a -v".format(component_name),
+    return utils.exec_hawq_operation(hawq_constants.START, options_str,
                                      not_if=utils.generate_hawq_process_status_cmd(component_name, port))
 
-  options_str = "{0} -a -v".format(component_name)
+  # Initialize HAWQ
   if component_name == hawq_constants.MASTER:
-    options_str+=" --ignore-bad-hosts"
-  utils.exec_hawq_operation(hawq_constants.INIT, options_str)
+    utils.exec_hawq_operation(hawq_constants.INIT, options_str + " --ignore-bad-hosts")
+    utils.exec_psql_cmd('create database {0};'.format(hawq_constants.hawq_user),
+                        params.hawqmaster_host, params.hawq_master_address_port, ignore_error=True)
+  else:
+    utils.exec_hawq_operation(hawq_constants.INIT, options_str)
 
 def stop_component(component_name, mode):
   """

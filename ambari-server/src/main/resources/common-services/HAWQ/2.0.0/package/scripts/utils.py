@@ -88,7 +88,7 @@ def exec_ssh_cmd(hostname, cmd):
   return process.returncode, stdout, stderr
 
 
-def exec_psql_cmd(command, host, port, db=hawq_constants.POSTGRES, tuples_only=True):
+def exec_psql_cmd(command, host, port, db=hawq_constants.POSTGRES, tuples_only=True, ignore_error=False):
   """
   Sets up execution environment and runs the HAWQ queries
   """
@@ -100,7 +100,8 @@ def exec_psql_cmd(command, host, port, db=hawq_constants.POSTGRES, tuples_only=T
   retcode, out, err = exec_ssh_cmd(host, cmd)
   if retcode:
     Logger.error("SQL command executed failed: {0}\nReturncode: {1}\nStdout: {2}\nStderr: {3}".format(cmd, retcode, out, err))
-    raise Fail("SQL command executed failed.")
+    if not ignore_error:
+      raise Fail("SQL command executed failed.")
 
   Logger.info("Output:\n{0}".format(out))
   return retcode, out, err
