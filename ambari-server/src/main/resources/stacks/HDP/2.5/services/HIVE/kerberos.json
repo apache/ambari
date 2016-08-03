@@ -82,7 +82,8 @@
               }
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "name": "atlas_kafka",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "hive-atlas-application.properties/atlas.jaas.KafkaClient.option.principal"
               },
@@ -100,7 +101,8 @@
               }
             },
             {
-              "name": "/HIVE/HIVE_SERVER/hive_server_hive",
+              "name": "ranger_audit",
+              "reference": "/HIVE/HIVE_SERVER/hive_server_hive",
               "principal": {
                 "configuration": "ranger-hive-audit/xasecure.audit.jaas.Client.option.principal"
               },
