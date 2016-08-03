@@ -202,8 +202,6 @@ def yarn(name=None, config_dir=None):
            mode=0644,
            content=nm_local_dir_to_mount_file_content
       )
-
-    create_hive_llap_work_dir(params)
   #</editor-fold>
 
   if params.yarn_nodemanager_recovery_dir:
@@ -499,32 +497,3 @@ def yarn(name=None, config_dir=None):
          owner=params.mapred_user,
          group=params.user_group
     )
-
-
-def create_hive_llap_work_dir(params):
-  """
-  Create the work directory needed by LLAP, which is required on all NodeManagers.
-  This needs to be whenever NodeManagers are restarted, or after Hive Server Interactive and LLAP are added and started
-  via a custom command
-  :param params: Command parameters dictionary.
-  """
-  if params.hive_llap_work_dirs_list is None or params.hive_server_interactive_host is None or not params.security_enabled:
-    Logger.info("Skip creating any Hive LLAP work dir since either it's empty, Hive Interactive is not present, "
-                "or cluster is not kerberized.")
-    return
-
-  # If we already created this dir list because it has the same value as NM Local Dirs, then skip it
-  skip = False
-  if params.nm_local_dirs_list is not None and set(params.nm_local_dirs_list) == set(params.hive_llap_work_dirs_list):
-    skip = True
-
-  if skip:
-    Logger.info(format("Skip creating Hive LLAP Work Dirs since it is equivalent to NM Local Dirs: {nm_local_dirs_list}"))
-  else:
-    Logger.info(format("Hive Server Interactive is present on the cluster, ensure that the Hive LLAP work dirs exist: {hive_llap_work_dirs_list}"))
-    Directory(params.hive_llap_work_dirs_list,
-              owner=params.yarn_user,
-              group=params.user_group,
-              create_parents=True,
-              ignore_failures=False,
-              mode=0775)
