@@ -225,28 +225,8 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
         KerberosIdentityDescriptor identityToAdd;
 
         if (resolveReferences) {
-          // Copy this KerberosIdentityDescriptor and then attempt to find the referenced one.
-          // * If a reference is found, copy that, update it with the initial KerberosIdentityDescriptor
-          //   and then add it to the list.
-          // * If a reference is not found, simply add the initial KerberosIdentityDescriptor to the list
-          KerberosIdentityDescriptor referencedIdentity;
-          try {
-            referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
-          } catch (AmbariException e) {
-            throw new AmbariException(String.format("Invalid Kerberos identity reference: %s", identity.getName()), e);
-          }
-
-          // Detach this identity from the tree...
-          identity = new KerberosIdentityDescriptor(identity.toMap());
-
-          if (referencedIdentity != null) {
-            KerberosIdentityDescriptor detachedIdentity = new KerberosIdentityDescriptor(referencedIdentity.toMap());
-            detachedIdentity.update(identity);
-
-            identityToAdd = detachedIdentity;
-          } else {
-            identityToAdd = identity;
-          }
+          // Dereference this KerberosIdentityDescriptor, if necessary
+          identityToAdd = dereferenceIdentity(identity);
         } else {
           identityToAdd = identity;
         }
@@ -770,5 +750,52 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     } else {
       return false;
     }
+  }
+
+  /**
+   * Recursively dereference a referenced identity.
+   * <p>
+   * Follows the path of references such that the top-most identity definition (one with no pointer
+   * to a referenced identity) contains the base  information which is copied and updated with the
+   * referencing identity's data. The composite identity is then update with the next referencing
+   * identity's data, and so on until the initial identity is encountered.
+   *
+   * @param identity the initial identity to dereference
+   * @return a (disconnected) {@link KerberosIdentityDescriptor} built by traversing the identity
+   * references; or the input identity if it does not reference any other identities.
+   * @throws AmbariException
+   */
+  private KerberosIdentityDescriptor dereferenceIdentity(KerberosIdentityDescriptor identity) throws AmbariException {
+    KerberosIdentityDescriptor dereferencedIdentity = null;
+
+    if(identity != null) {
+      KerberosIdentityDescriptor referencedIdentity;
+      try {
+        if (identity.getReference() != null) {
+          referencedIdentity = getReferencedIdentityDescriptor(identity.getReference());
+        } else {
+          // For backwards compatibility, see if the identity's name indicates a reference...
+          referencedIdentity = getReferencedIdentityDescriptor(identity.getName());
+        }
+      } catch (AmbariException e) {
+        throw new AmbariException(String.format("Invalid Kerberos identity reference: %s", identity.getReference()), e);
+      }
+
+      if (referencedIdentity != null) {
+        dereferencedIdentity = dereferenceIdentity(referencedIdentity);  // Dereference the "parent"...
+
+        if (dereferencedIdentity != null) {
+          dereferencedIdentity.update(identity);
+        } else {
+          dereferencedIdentity = new KerberosIdentityDescriptor(referencedIdentity.toMap());
+          dereferencedIdentity.update(identity);
+        }
+      }
+      else {
+        dereferencedIdentity = new KerberosIdentityDescriptor(identity.toMap());
+      }
+    }
+
+    return dereferencedIdentity;
   }
 }

@@ -3682,6 +3682,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor1.getName()).andReturn("identity1").anyTimes();
+    expect(identityDescriptor1.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).anyTimes();
     expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).anyTimes();
     expect(identityDescriptor1.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
@@ -3689,6 +3690,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptor2.getName()).andReturn("identity2").anyTimes();
+    expect(identityDescriptor2.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).anyTimes();
     expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).anyTimes();
     expect(identityDescriptor2.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();
@@ -3696,6 +3698,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     final KerberosIdentityDescriptor identityDescriptorService1 = createMock(KerberosIdentityDescriptor.class);
     expect(identityDescriptorService1.getName()).andReturn("identity3").anyTimes();
+    expect(identityDescriptorService1.getReference()).andReturn(null).anyTimes();
     expect(identityDescriptorService1.getPrincipalDescriptor()).andReturn(principalDescriptorService1).anyTimes();
     expect(identityDescriptorService1.getKeytabDescriptor()).andReturn(keytabDescriptorService1).anyTimes();
     expect(identityDescriptorService1.shouldInclude(anyObject(Map.class))).andReturn(true).anyTimes();

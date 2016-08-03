@@ -2542,7 +2542,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
                 componentDescriptor.removeIdentity("hbase_queryserver_hbase");
 
                 // Add the new identity
-                componentDescriptor.putIdentity(new KerberosIdentityDescriptor("/spnego", newPrincipalDescriptor, newKeytabDescriptor, null));
+                componentDescriptor.putIdentity(new KerberosIdentityDescriptor("phoenix_spnego", "/spnego", newPrincipalDescriptor, newKeytabDescriptor, null));
 
                 artifactEntity.setArtifactData(kerberosDescriptor.toMap());
                 artifactDAO.merge(artifactEntity);
