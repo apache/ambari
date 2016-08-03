@@ -227,16 +227,16 @@ class TestJobHistoryServer(RMFTestCase):
         group = 'spark',
         mode = 0644
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = InlineTemplate(' '),
-        owner = 'spark',
-        group = 'spark',
-        mode = 0644
-    )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
         mode = 0755,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate('  -Dhdp.version=None'),
+        owner = 'spark',
+        group = 'spark',
+        mode = 0644
     )
 
   def assert_configure_secured(self):
@@ -308,18 +308,17 @@ class TestJobHistoryServer(RMFTestCase):
         group = 'spark',
         mode = 0644
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = InlineTemplate(' '),
-        owner = 'spark',
-        group = 'spark',
-        mode = 0644
-    )
     self.assertResourceCalled('Directory', '/usr/hdp/current/spark-client/logs',
         owner = 'spark',
         group = 'spark',
         mode = 0755,
     )
-
+    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
+        content = InlineTemplate('  -Dhdp.version=None'),
+        owner = 'spark',
+        group = 'spark',
+        mode = 0644
+    )
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
   def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):

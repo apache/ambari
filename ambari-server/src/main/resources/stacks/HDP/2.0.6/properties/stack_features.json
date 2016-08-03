@@ -276,6 +276,12 @@
       "name": "storm_metrics_apache_classes",
       "description": "Metrics sink for Storm that uses Apache class names",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "spark_java_opts_support",
+      "description": "Allow Spark to generate java-opts file",
+      "min_version": "2.2.0.0",
+      "max_version": "2.4.0.0"
     }
   ]
 }
