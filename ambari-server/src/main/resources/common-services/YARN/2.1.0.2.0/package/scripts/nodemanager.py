@@ -89,16 +89,6 @@ class NodemanagerDefault(Nodemanager):
     env.set_params(status_params)
     check_process_status(status_params.nodemanager_pid_file)
 
-  def create_yarn_directories(self, env):
-    """
-    Custom command to Create Directories, e.g., needed by YARN Apps on Slider
-    """
-    Logger.info("Custom Command to Create Directories")
-    import params
-    env.set_params(params)
-    create_hive_llap_work_dir(params)
-
-
   def security_status(self, env):
     import status_params
     env.set_params(status_params)
