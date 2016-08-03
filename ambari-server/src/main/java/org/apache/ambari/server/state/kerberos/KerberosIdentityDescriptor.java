@@ -72,6 +72,11 @@ import java.util.Map;
 public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
   /**
+   * The path to the Kerberos Identity definitions this {@link KerberosIdentityDescriptor} references
+   */
+  private String reference = null;
+
+  /**
    * The KerberosPrincipalDescriptor containing the principal details for this Kerberos identity
    */
   private KerberosPrincipalDescriptor principal = null;
@@ -99,12 +104,14 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
    * Creates a new KerberosIdentityDescriptor
    *
    * @param name the name of this identity descriptor
+   * @param reference an optional path to a referenced KerberosIdentityDescriptor
    * @param principal a KerberosPrincipalDescriptor
    * @param keytab a KerberosKeytabDescriptor
    * @param when a predicate
    */
-  public KerberosIdentityDescriptor(String name, KerberosPrincipalDescriptor principal, KerberosKeytabDescriptor keytab, Predicate when) {
+  public KerberosIdentityDescriptor(String name, String reference, KerberosPrincipalDescriptor principal, KerberosKeytabDescriptor keytab, Predicate when) {
     setName(name);
+    setReference(reference);
     setPrincipalDescriptor(principal);
     setKeytabDescriptor(keytab);
     setWhen(when);
@@ -123,6 +130,8 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     // The name for this KerberosIdentityDescriptor is stored in the "name" entry in the map
     // This is not automatically set by the super classes.
     setName(getStringValue(data, "name"));
+
+    setReference(getStringValue(data, "reference"));
 
     if (data != null) {
       Object item;
@@ -144,6 +153,25 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
         setWhen(PredicateUtils.fromMap((Map<String, Object>) item));
       }
     }
+  }
+
+  /**
+   * Gets the path to the referenced Kerberos identity definition
+   *
+   * @return the path to the referenced Kerberos identity definition or <code>null</code> if not set
+   */
+  public String getReference() {
+    return reference;
+  }
+
+  /**
+   * Sets the path to the referenced Kerberos identity definition
+   *
+   * @param reference the path to the referenced Kerberos identity definition or <code>null</code>
+   *                  to indicate no reference
+   */
+  public void setReference(String reference) {
+    this.reference = reference;
   }
 
   /**
@@ -263,6 +291,8 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     if (updates != null) {
       setName(updates.getName());
 
+      setReference(updates.getReference());
+
       setPassword(updates.getPassword());
 
       KerberosPrincipalDescriptor existingPrincipal = getPrincipalDescriptor();
@@ -298,6 +328,10 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   public Map<String, Object> toMap() {
     Map<String, Object> dataMap = super.toMap();
 
+    if (reference != null) {
+      dataMap.put("reference", reference);
+    }
+
     if (principal != null) {
       dataMap.put(Type.PRINCIPAL.getDescriptorName(), principal.toMap());
     }
@@ -320,6 +354,9 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
   @Override
   public int hashCode() {
     return super.hashCode() +
+        ((getReference() == null)
+            ? 0
+            : getReference().hashCode()) +
         ((getPrincipalDescriptor() == null)
             ? 0
             : getPrincipalDescriptor().hashCode()) +
@@ -340,6 +377,11 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
     } else if (object.getClass() == KerberosIdentityDescriptor.class) {
       KerberosIdentityDescriptor descriptor = (KerberosIdentityDescriptor) object;
       return super.equals(object) &&
+          (
+              (getReference() == null)
+                  ? (descriptor.getReference() == null)
+                  : getReference().equals(descriptor.getReference())
+          ) &&
           (
               (getPrincipalDescriptor() == null)
                   ? (descriptor.getPrincipalDescriptor() == null)

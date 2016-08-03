@@ -63,7 +63,8 @@ public class KerberosIdentityDescriptorTest {
   public static final Map<String, Object> MAP_VALUE_REFERENCE =
       new HashMap<String, Object>() {
         {
-          put("name", "/shared");
+          put("name", "shared_identity");
+          put("reference", "/shared");
           put("keytab", new HashMap<String, Object>() {
             {
               put("file", "/home/user/me/subject.service.keytab");

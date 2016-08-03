@@ -30,7 +30,7 @@
       }
     }
   ],
-  "services" : [
+  "services": [
     {
       "name": "SERVICE1",
       "identities": [
@@ -83,6 +83,17 @@
           }
         },
         {
+          "name": "service2_stack_reference",
+          "reference": "/stack_identity",
+          "principal": {
+            "configuration": "service2/property1_principal"
+          },
+          "keytab": {
+            "configuration": "service2/property1_keytab",
+            "file": "${keytab_dir}/service2_stack.keytab"
+          }
+        },
+        {
           "name": "collision",
           "principal": {
             "value": "service2_collision@${realm}",
@@ -90,7 +101,7 @@
           }
         }
       ],
-      "components" : [
+      "components": [
         {
           "name": "SERVICE2_COMPONENT1",
           "identities": [
@@ -110,6 +121,16 @@
                   "name": "${cluster-env/user_group}",
                   "access": "r"
                 }
+              }
+            },
+            {
+              "name": "component1_service2_stack_reference",
+              "reference": "/SERVICE2/service2_stack_reference",
+              "principal": {
+                "configuration": "component1_service2/property1_principal"
+              },
+              "keytab": {
+                "configuration": "component1_service2/property1_keytab"
               }
             },
             {
