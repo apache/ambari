@@ -101,7 +101,8 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
       controller.removeCurrentFromDependentList(config, saveRecommended);
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || config.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0) 
+         || (config.get('displayType') === 'user' && config.get('oldValue') !== config.get('value'))) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
          return controller.loadConfigRecommendations([{
