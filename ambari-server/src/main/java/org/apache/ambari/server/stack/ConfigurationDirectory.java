@@ -25,7 +25,7 @@ import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.utils.JsonUtils;
 import org.apache.ambari.server.utils.XmlUtils;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +73,7 @@ public class ConfigurationDirectory extends StackDefinitionDirectory {
    */
   public ConfigurationDirectory(String directoryName, String propertiesDirectoryName) {
     super(directoryName);
-    if(!StringUtil.isBlank(propertiesDirectoryName)) {
+    if(!StringUtils.isBlank(propertiesDirectoryName)) {
       propertiesDirFile = new File(propertiesDirectoryName);
     }
     parsePath();
