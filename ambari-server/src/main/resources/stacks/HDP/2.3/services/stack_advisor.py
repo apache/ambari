@@ -714,31 +714,27 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if "storm-site" in services["configurations"]:
       # atlas
       notifier_plugin_property = "storm.topology.submission.notifier.plugin.class"
-      if notifier_plugin_property in services["configurations"]["storm-site"]["properties"]:
+      if notifier_plugin_property in services["configurations"]["storm-site"]["properties"] and \
+         services["configurations"]["storm-site"]["properties"][notifier_plugin_property] is not None:
+
         notifier_plugin_value = services["configurations"]["storm-site"]["properties"][notifier_plugin_property]
-        if notifier_plugin_value is None:
-          notifier_plugin_value = " "
       else:
         notifier_plugin_value = " "
 
-      include_atlas = "ATLAS" in servicesList
+      atlas_is_present = "ATLAS" in servicesList
       atlas_hook_class = "org.apache.atlas.storm.hook.StormAtlasHook"
-      if include_atlas and atlas_hook_class not in notifier_plugin_value:
-        if notifier_plugin_value == " ":
-          notifier_plugin_value = atlas_hook_class
-        else:
-          notifier_plugin_value = notifier_plugin_value + "," + atlas_hook_class
-      if not include_atlas and atlas_hook_class in notifier_plugin_value:
-        application_classes = []
-        for application_class in notifier_plugin_value.split(","):
-          if application_class != atlas_hook_class and application_class != " ":
-            application_classes.append(application_class)
-        if application_classes:
-          notifier_plugin_value = ",".join(application_classes)
-        else:
-          notifier_plugin_value = " "
+      atlas_hook_is_set = atlas_hook_class in notifier_plugin_value
 
-      if notifier_plugin_value != " ":
+      if atlas_is_present and not atlas_hook_is_set:
+        notifier_plugin_value = atlas_hook_class if notifier_plugin_value == " " else ",".join([notifier_plugin_value, atlas_hook_class])
+
+      if not atlas_is_present and atlas_hook_is_set:
+        application_classes = [item for item in notifier_plugin_value.split(",") if item != atlas_hook_class and item != " "]
+        notifier_plugin_value = ",".join(application_classes) if application_classes else " "
+
+      if notifier_plugin_value != " " or \
+         (not atlas_is_present and atlas_hook_is_set):
+
         putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
 
   def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
