@@ -40,8 +40,7 @@ App.MainServiceItemView = Em.View.extend({
     'HAWQMASTER': ['IMMEDIATE_STOP_HAWQ_SERVICE', 'RUN_HAWQ_CHECK', 'HAWQ_CLEAR_CACHE', 'REMOVE_HAWQ_STANDBY', 'RESYNC_HAWQ_STANDBY'],
     'HAWQSEGMENT': ['IMMEDIATE_STOP_HAWQ_SEGMENT'],
     'HAWQSTANDBY': ['ACTIVATE_HAWQ_STANDBY'],
-    'HIVE_SERVER_INTERACTIVE' : ["RESTART_LLAP"],
-    'NODEMANAGER' : ["CREATE_YARN_DIRECTORIES"]
+    'HIVE_SERVER_INTERACTIVE' : ["RESTART_LLAP"]
   },
 
    addActionMap: function() {
@@ -142,16 +141,6 @@ App.MainServiceItemView = Em.View.extend({
       }
       if (this.get('serviceName') === 'YARN') {
         options.push(actionMap.REFRESHQUEUES);
-        var nodeManagerComponent = App.StackServiceComponent.find().findProperty('componentName', 'NODEMANAGER');
-        var isNodeManagerPresent = allSlaves.contains('NODEMANAGER');
-        if (nodeManagerComponent && isNodeManagerPresent) {
-          var nodeManagerCustomCommands = nodeManagerComponent.get('customCommands');
-          nodeManagerCustomCommands.forEach(function (command) {
-            if (actionMap[command]) {
-              options.push(actionMap[command]);
-            }
-          });
-        }
       }
       options.push(actionMap.RESTART_ALL);
       allSlaves.concat(allMasters).filter(function (_component) {

@@ -372,13 +372,6 @@ App.HostComponentActionMap = {
         label: Em.I18n.t('services.service.actions.run.restartLLAP') + ' ∞',
         cssClass: 'icon-refresh'
       },
-      CREATE_YARN_DIRECTORIES: {
-        action: 'createYARNDirectories',
-        customCommand: 'CREATE_YARN_DIRECTORIES',
-        context: Em.I18n.t('services.service.actions.run.createYARNDirectories'),
-        label: Em.I18n.t('services.service.actions.run.createYARNDirectories'),
-        cssClass: 'icon-refresh'
-      },
       REBALANCEHDFS: {
         action: 'rebalanceHdfsNodes',
         customCommand: 'REBALANCEHDFS',

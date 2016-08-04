@@ -494,8 +494,6 @@ describe('App.MainServiceItemView', function () {
             return Em.Object.create({ customCommands: ["DECOMMISSION", "REBALANCEHDFS"] });
           case 'RESOURCEMANAGER':
             return Em.Object.create({ customCommands: ["DECOMMISSION", "REFRESHQUEUES"] });
-          case 'NODEMANAGER':
-            return Em.Object.create({ customCommands: ["REFRESHQUEUES", "CREATE_YARN_DIRECTORIES"] });
           case 'HBASE_MASTER':
             return Em.Object.create({ customCommands: ["DECOMMISSION"] });
           case 'KNOX_GATEWAY':
