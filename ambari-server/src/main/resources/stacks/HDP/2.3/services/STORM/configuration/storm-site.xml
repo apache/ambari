@@ -54,4 +54,20 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+
+  <!--
+   Property storm.topology.submission.notifier.plugin.class definition is required only when Atlas service is installed.
+   To remove this property, we need to create dependency with Atlas service.
+   -->
+  <property>
+    <name>storm.topology.submission.notifier.plugin.class</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>application-properties</type>
+        <name>atlas.authentication.method</name>
+      </property>
+    </depends-on>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

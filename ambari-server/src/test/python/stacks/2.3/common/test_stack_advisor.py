@@ -1776,6 +1776,13 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+    services["services"] = []
+    services["configurations"]["storm-site"]["properties"]["storm.topology.submission.notifier.plugin.class"] = "org.apache.atlas.storm.hook.StormAtlasHook"
+    expected["storm-site"]["properties"]["storm.topology.submission.notifier.plugin.class"] = " "
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+
   def test_recommendFalconConfigurations(self):
     self.maxDiff = None
     configurations = {
