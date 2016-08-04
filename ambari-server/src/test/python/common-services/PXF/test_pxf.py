@@ -88,6 +88,9 @@ class TestPxf(RMFTestCase):
     self.assertResourceCalled('Package', 'pxf-hbase',
                               retry_count=5,
                               retry_on_repo_unavailability=False)
+    self.assertResourceCalled('Package', 'pxf-json',
+                              retry_count=5,
+                              retry_on_repo_unavailability=False)
 
     self.assert_configure_default()
 
