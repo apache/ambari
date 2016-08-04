@@ -15,6 +15,16 @@
             "atlas.jaas.KafkaClient.option.serviceName": "${kafka-env/kafka_user}",
             "atlas.solr.kerberos.enable": "true"
           }
+        },
+        {
+          "ranger-atlas-audit": {
+            "xasecure.audit.jaas.Client.loginModuleName": "com.sun.security.auth.module.Krb5LoginModule",
+            "xasecure.audit.jaas.Client.loginModuleControlFlag": "required",
+            "xasecure.audit.jaas.Client.option.useKeyTab": "true",
+            "xasecure.audit.jaas.Client.option.storeKey": "false",
+            "xasecure.audit.jaas.Client.option.serviceName": "solr",
+            "xasecure.audit.destination.solr.force.use.inmemory.jaas.config": "true"
+          }
         }
       ],
       "auth_to_local_properties" : [
@@ -46,7 +56,8 @@
               }
             },
             {
-              "name": "/ATLAS/ATLAS_SERVER/atlas",
+              "name": "atlas_auth",
+              "reference": "/ATLAS/ATLAS_SERVER/atlas",
               "principal": {
                 "configuration": "application-properties/atlas.authentication.principal"
               },
@@ -62,6 +73,16 @@
               },
               "keytab": {
                 "configuration": "application-properties/atlas.authentication.method.kerberos.keytab"
+              }
+            },
+            {
+              "name": "ranger_atlas_audit",
+              "reference": "/ATLAS/ATLAS_SERVER/atlas",
+              "principal": {
+                "configuration": "ranger-atlas-audit/xasecure.audit.jaas.Client.option.principal"
+              },
+              "keytab": {
+                "configuration": "ranger-atlas-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
             }
           ]
