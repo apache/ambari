@@ -156,6 +156,9 @@
             <package>
               <name>gcc</name>
             </package>
+            <package>
+              <name>libsnappy1*</name>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
