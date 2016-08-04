@@ -20,7 +20,7 @@
         "label": "Atlas Dashboard",
         "requires_user_name": "true",
         "component_name": "ATLAS_SERVER",
-        "url": "%@://%@:%@/#!/search?user.name=%@",
+        "url": "%@://%@:%@/",
         "port":{
           "http_property": "atlas.server.http.port",
           "http_default_port": "21000",
