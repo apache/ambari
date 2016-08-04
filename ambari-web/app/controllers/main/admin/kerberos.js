@@ -626,9 +626,12 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   showManageKDCCredentialsPopup: function() {
     return App.showManageCredentialsPopup();
   },
-  
+
   loadStep: function() {
     var self = this;
+    if (this.get('isRecommendedLoaded') === false) {
+      return;
+    }
     this.clearStep();
     this.getDescriptor().then(function (properties) {
       self.setStepConfigs(self.createServicesStackDescriptorConfigs(properties));
