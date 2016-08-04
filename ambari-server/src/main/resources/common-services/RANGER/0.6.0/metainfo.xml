@@ -29,6 +29,7 @@
       <components>
         <component>
           <name>RANGER_ADMIN</name>
+          <cardinality>1+</cardinality>
           <dependencies>
             <dependency>
               <name>AMBARI_INFRA/INFRA_SOLR_CLIENT</name>
