@@ -744,8 +744,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
     #  In 2.5, the classname changed.  The 2.5 stack advisor method will
     #  call this with attribute set.  2.3 will use the old method name
-    if hasattr(self, "__atlasFalconHookClassName"):
-      atlas_application_class = self.__atlasFalconHookClassName
+    if hasattr(self, "atlasFalconHookClassName"):
+      atlas_application_class = self.atlasFalconHookClassName
     else:
       atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
     putFalconStartupProperty = self.putProperty(configurations, "falcon-startup.properties", services)
