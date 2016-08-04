@@ -129,11 +129,6 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
     return any([self.isLocalHost(host) for host in hawqMasterComponentHosts])
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-    # Determine if the cluster is secured
-    if "cluster-env" in services["configurations"] and "security_enabled" in services["configurations"]["cluster-env"]["properties"]:
-      is_secured = services["configurations"]["cluster-env"]["properties"]["security_enabled"]
-    else:
-      is_secured = "false"
 
     # Update HDFS properties in hdfs-site
     if "hdfs-site" in services["configurations"]:
@@ -154,10 +149,11 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           putCoreSiteProperty(property, desired_value)
 
     # Process HAWQ specific properties
-    if any(x in services["configurations"] for x in ["hawq-site", "hdfs-client", "hawq-sysctl-env"]):
+    if all(x in services["configurations"] for x in ["hawq-site", "hdfs-client", "hawq-sysctl-env"]):
       componentsListList = [service["components"] for service in services["services"]]
       componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
       servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
       hawqMasterHosts = set(self.getHosts(componentsList, "HAWQMASTER")).union(set(self.getHosts(componentsList, "HAWQSTANDBY")))
       hawqSegmentHosts = set(self.getHosts(componentsList, "HAWQSEGMENT"))
       hawqHosts = hawqMasterHosts.union(hawqSegmentHosts)
@@ -165,20 +161,47 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
       minHawqHostsMemory = min([host['Hosts']['total_mem'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
       minHawqHostsCoreCount = min([host['Hosts']['cpu_count'] for host in hosts['items'] if host['Hosts']['host_name'] in hawqHosts])
 
-    if "hawq-site" in services["configurations"]:
       hawq_site = services["configurations"]["hawq-site"]["properties"]
-      putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
-      putHawqSitePropertyAttribute = self.putPropertyAttribute(configurations, "hawq-site")
       hawq_sysctl_env = services["configurations"]["hawq-sysctl-env"]["properties"]
+
+      putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
       putHawqSysctlEnvProperty = self.putProperty(configurations, "hawq-sysctl-env", services)
-      putHawqSysctlEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hawq-sysctl-env")
+      putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
 
       # remove master port when master is colocated with Ambari server
       if self.isHawqMasterComponentOnAmbariServer(services) and "hawq_master_address_port" in hawq_site:
-        putHawqSiteProperty('hawq_master_address_port', '')
+        putHawqSiteProperty("hawq_master_address_port", "")
 
-      # update query limits if segments are deployed
-      if numSegments and "default_hash_table_bucket_number" in hawq_site and "hawq_rm_nvseg_perquery_limit" in hawq_site:
+      putHawqSiteProperty("hawq_rm_nvcore_limit_perseg", minHawqHostsCoreCount)
+
+      MEMORY_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
+
+      # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
+      vm_overcommit_memory = 2 if minHawqHostsMemory >= MEMORY_THRESHOLD else 1
+      vm_overcommit_ratio = int(hawq_sysctl_env["vm.overcommit_ratio"]) if "vm.overcommit_ratio" in hawq_sysctl_env else 50
+
+      putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_memory)
+      putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
+
+      host_ram_kb = (float(minHawqHostsMemory) * float(vm_overcommit_ratio) / 100) if vm_overcommit_memory == 2 else minHawqHostsMemory
+      host_ram_gb = float(host_ram_kb) / (1024 * 1024)
+      recommended_mem_percentage = {
+        host_ram_gb <= 64: .75,
+        64 < host_ram_gb <= 512: .85,
+        host_ram_gb > 512: .95
+      }[True]
+
+      hawq_rm_memory_limit_perseg_value = math.ceil(host_ram_gb * recommended_mem_percentage)
+      hawq_rm_memory_limit_perseg_unit = "GB"
+      # If RAM on a host is very low ~ 2 GB, ceil function may result in making it equal to total mem, in that case we recommend the value in MB not GB
+      if hawq_rm_memory_limit_perseg_value >= host_ram_gb :
+        hawq_rm_memory_limit_perseg_value = math.ceil(float(host_ram_kb)/1024 * recommended_mem_percentage)
+        hawq_rm_memory_limit_perseg_unit = "MB"
+
+      # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
+      putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(hawq_rm_memory_limit_perseg_value), hawq_rm_memory_limit_perseg_unit))
+
+      if numSegments and "hawq_rm_nvseg_perquery_limit" in hawq_site:
         factor_min = 1
         factor_max = 6
         limit = int(hawq_site["hawq_rm_nvseg_perquery_limit"])
@@ -191,8 +214,14 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           buckets = factor_max * numSegments
         else:
           buckets = factor * numSegments
+
+        # In low memory environment, recalculate buckets with factor of 4
+        # When host_ram_kb = 2796202.66667kB, hawq_rm_memory_limit_perseg is 2GB
+        if host_ram_kb < 2796202.66667:
+          factor = 4
+          buckets = min(factor * numSegments, buckets)
+
         putHawqSiteProperty('default_hash_table_bucket_number', buckets)
-        putHawqSitePropertyAttribute('default_hash_table_bucket_number', "maximum", numSegments * 16 if 10000 > numSegments * 16 else 10000)
 
       # update YARN RM urls with the values from yarn-site if YARN is installed
       if "YARN" in servicesList and "yarn-site" in services["configurations"]:
@@ -201,58 +230,16 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
           if hs_prop in hawq_site and ys_prop in yarn_site:
             putHawqSiteProperty(hs_prop, yarn_site[ys_prop])
 
-      putHawqSiteProperty('hawq_rm_nvcore_limit_perseg', minHawqHostsCoreCount)
+      # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
+      # if number of segments is greater than 3, set to true
+      putHdfsClientProperty("output.replace-datanode-on-failure", str(numSegments > 3).lower())
 
-      if "vm.overcommit_memory" in hawq_sysctl_env:
-        MEM_THRESHOLD = 33554432 # 32GB, minHawqHostsMemory is represented in kB
-        # Set the value for hawq_rm_memory_limit_perseg based on vm.overcommit value and RAM available on HAWQ Hosts
-        # If value of hawq_rm_memory_limit_perseg is 67108864KB, it indicates hawq is being added and recommendation
-        # has not be made yet, since after recommendation it will be in GB in case its 67108864KB.
-        vm_overcommit_ratio = int(hawq_sysctl_env["vm.overcommit_ratio"]) if "vm.overcommit_ratio" in hawq_sysctl_env else 50
-        if "hawq_rm_memory_limit_perseg" in hawq_site and hawq_site["hawq_rm_memory_limit_perseg"] == "65535MB":
-          vm_overcommit_mem_value = 2 if minHawqHostsMemory >= MEM_THRESHOLD else 1
-        else:
-          # set vm.overcommit_memory to 2 if the minimum memory among all hawqHosts is greater than 32GB
-          vm_overcommit_mem_value = int(hawq_sysctl_env["vm.overcommit_memory"])
-        putHawqSysctlEnvProperty("vm.overcommit_ratio", vm_overcommit_ratio)
-        # Show vm.overcommit_ratio on theme only if vm.overcommit_memory is set to 2
-        overcommit_ratio_visibility = "true" if vm_overcommit_mem_value == 2 else "false"
-        putHawqSysctlEnvPropertyAttribute("vm.overcommit_ratio", "visible", overcommit_ratio_visibility)
-        putHawqSysctlEnvProperty("vm.overcommit_memory", vm_overcommit_mem_value)
-        host_ram_kb = minHawqHostsMemory * vm_overcommit_ratio / 100 if vm_overcommit_mem_value == 2 else minHawqHostsMemory
-        host_ram_gb = float(host_ram_kb) / (1024 * 1024)
-        recommended_mem_percentage = {
-          host_ram_gb <= 64: .75,
-          64 < host_ram_gb <= 512: .85,
-          host_ram_gb > 512: .95
-        }[True]
-        recommended_mem = math.ceil(host_ram_gb * recommended_mem_percentage)
-        unit = "GB"
-        # If RAM on a host is very low ~ 2 GB, ceil function may result in making it equal to total mem,
-        # in that case we recommend the value in MB not GB
-        if recommended_mem >= host_ram_gb:
-          recommended_mem = math.ceil(float(host_ram_kb)/1024 * recommended_mem_percentage)
-          unit = "MB"
-        # hawq_rm_memory_limit_perseg does not support decimal value so trim decimal using int
-        putHawqSiteProperty("hawq_rm_memory_limit_perseg", "{0}{1}".format(int(recommended_mem), unit))
+      putHawqSitePropertyAttribute = self.putPropertyAttribute(configurations, "hawq-site")
+      putHawqSysctlEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hawq-sysctl-env")
 
-      # Set default hawq_rm_nvseg_perquery_perseg_limit to 6, only if value was less than 6
-      if "hawq_rm_nvseg_perquery_perseg_limit" in hawq_site and int(hawq_site["hawq_rm_nvseg_perquery_perseg_limit"]) < 6:
-        putHawqSiteProperty('hawq_rm_nvseg_perquery_perseg_limit', 6)
-
-      if "hawq_global_rm_type" in hawq_site and "hawq_rm_memory_limit_perseg" in hawq_site:
-        hawq_rm_memory_limit_perseg = hawq_site["hawq_rm_memory_limit_perseg"].strip()
-        unit = hawq_rm_memory_limit_perseg[-2:]
-        value = hawq_rm_memory_limit_perseg[:-2]
-        # For clusters running with hawq_rm_memory_limit_perseg greater than or equal to 1GB but less than 2GB
-        if (unit == "GB" and 1 <= int(value) < 2) or (unit == "MB" and 1024 <= int(value) < 2048):
-          factor = 4 # Since memory is less drop hawq_rm_nvseg_perquery_perseg_limit to 4
-          buckets = min(factor * numSegments, int(hawq_site["default_hash_table_bucket_number"])) if "default_hash_table_bucket_number" in hawq_site else factor * numSegments
-          putHawqSiteProperty('default_hash_table_bucket_number', buckets)
-          putHawqSiteProperty('hawq_rm_nvseg_perquery_perseg_limit', factor)
-
-      # Show / Hide properties based on the value of hawq_global_rm_type
-      YARN_MODE = True if hawq_site["hawq_global_rm_type"].lower() == "yarn" else False
+      ## Set ranges and visibility of properties
+      # Show/hide properties based on the value of hawq_global_rm_type
+      YARN_MODE = hawq_site["hawq_global_rm_type"].lower() == "yarn"
       yarn_mode_properties_visibility = {
         "hawq_rm_memory_limit_perseg": False,
         "hawq_rm_nvcore_limit_perseg": False,
@@ -261,20 +248,17 @@ class HAWQ200ServiceAdvisor(service_advisor.ServiceAdvisor):
         "hawq_rm_yarn_scheduler_address": True,
         "hawq_rm_yarn_address": True
       }
-      for property, visible_status in yarn_mode_properties_visibility.iteritems():
-        putHawqSitePropertyAttribute(property, "visible", str(visible_status if YARN_MODE else not visible_status).lower())
 
-    # set output.replace-datanode-on-failure in HAWQ hdfs-client depending on the cluster size
-    if "hdfs-client" in services["configurations"]:
-      MIN_NUM_SEGMENT_THRESHOLD = 3
-      hdfs_client = services["configurations"]["hdfs-client"]["properties"]
-      if "output.replace-datanode-on-failure" in hdfs_client:
-        propertyValue = "true" if numSegments > MIN_NUM_SEGMENT_THRESHOLD else "false"
-        putHdfsClientProperty = self.putProperty(configurations, "hdfs-client", services)
-        putHdfsClientProperty("output.replace-datanode-on-failure", propertyValue)
+      for property, visibility in yarn_mode_properties_visibility.iteritems():
+        putHawqSitePropertyAttribute(property, "visible", str(visibility if YARN_MODE else not visibility).lower())
+
+      putHawqSitePropertyAttribute("default_hash_table_bucket_number", "maximum", numSegments * 16 if numSegments * 16 < 10000 else 10000)
 
   def getHAWQYARNPropertyMapping(self):
-    return { "hawq_rm_yarn_address": "yarn.resourcemanager.address", "hawq_rm_yarn_scheduler_address": "yarn.resourcemanager.scheduler.address" }
+    return {
+      "hawq_rm_yarn_address": "yarn.resourcemanager.address",
+      "hawq_rm_yarn_scheduler_address": "yarn.resourcemanager.scheduler.address"
+    }
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     siteName = "hawq-site"
