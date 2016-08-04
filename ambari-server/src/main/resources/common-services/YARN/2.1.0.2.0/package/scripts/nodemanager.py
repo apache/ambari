@@ -30,7 +30,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from yarn import yarn, create_hive_llap_work_dir
+from yarn import yarn
 from service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
