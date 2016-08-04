@@ -897,13 +897,14 @@ class DefaultStackAdvisor(StackAdvisor):
 
     filteredConfigs = {}
     for type, names in configs.items():
-      for name in names['properties']:
-        if type in requestedProperties.keys() and \
-                name in requestedProperties[type]:
-          if type not in filteredConfigs.keys():
-            filteredConfigs[type] = {'properties': {}}
-          filteredConfigs[type]['properties'][name] = \
-            configs[type]['properties'][name]
+      if 'properties' in names.keys():
+        for name in names['properties']:
+          if type in requestedProperties.keys() and \
+                  name in requestedProperties[type]:
+            if type not in filteredConfigs.keys():
+              filteredConfigs[type] = {'properties': {}}
+            filteredConfigs[type]['properties'][name] = \
+              configs[type]['properties'][name]
       if 'property_attributes' in names.keys():
         for name in names['property_attributes']:
           if type in requestedProperties.keys() and \

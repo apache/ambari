@@ -177,14 +177,6 @@
     </description>
     <depends-on>
       <property>
-        <type>hawq-sysctl-env</type>
-        <name>vm.overcommit_ratio</name>
-      </property>
-      <property>
-        <type>hawq-sysctl-env</type>
-        <name>vm.overcommit_memory</name>
-      </property>
-      <property>
         <type>hawq-site</type>
         <name>hawq_global_rm_type</name>
       </property>
@@ -310,12 +302,6 @@
       The default set during installation is the number of HAWQ Segments multiplied by 6.
       Adjust the value when the number of HAWQ Segments changes in the cluster. If parameter value is changed, existing Hash distributed tables must be redistributed.
     </description>
-    <depends-on>
-      <property>
-        <type>hawq-site</type>
-        <name>hawq_rm_memory_limit_perseg</name>
-      </property>
-    </depends-on>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
@@ -333,12 +319,6 @@
       This parameter is used to limit the maximum resource usage on each segment node.
       The default is 6. Not recommended to change this parameter.
     </description>
-    <depends-on>
-      <property>
-        <type>hawq-site</type>
-        <name>hawq_rm_memory_limit_perseg</name>
-      </property>
-    </depends-on>
     <value-attributes>
       <type>int</type>
       <minimum>1</minimum>
