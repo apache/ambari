@@ -270,6 +270,7 @@ public class JdbcConnector extends HiveActor {
   private void processResult(Optional<ResultSet> resultSetOptional) {
     executing = false;
 
+    LOG.info("Finished processing SQL statements for Job id : {}", jobId.or("SYNC JOB"));
     if (isAsync() && jobId.isPresent()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_FINISHED);
     }
@@ -316,6 +317,8 @@ public class JdbcConnector extends HiveActor {
     executionType = message.getType();
     commandSender = getSender();
 
+    resetToInitialState();
+
     if (!checkConnection()) return;
 
     for (String statement : message.getStatements()) {
@@ -346,6 +349,7 @@ public class JdbcConnector extends HiveActor {
 
   private void runGetMetaData(GetColumnMetadataJob message) {
     if (!checkConnection()) return;
+    resetToInitialState();
     executing = true;
     executionType = message.getType();
     commandSender = getSender();
@@ -417,6 +421,7 @@ public class JdbcConnector extends HiveActor {
       JobImpl job = storage.load(JobImpl.class, jobid);
       job.setStatus(status);
       storage.store(JobImpl.class, job);
+      LOG.info("Stored job status for Job id: {} as '{}'", jobid, status);
     } catch (ItemNotFound itemNotFound) {
       // Cannot do anything
     }
@@ -509,6 +514,13 @@ public class JdbcConnector extends HiveActor {
     if (!(inactivityScheduler == null || inactivityScheduler.isCancelled())) {
       inactivityScheduler.cancel();
     }
+  }
+
+  private void resetToInitialState() {
+    isFailure = false;
+    failure = null;
+    resultSetIterator = null;
+    isCancelCalled = false;
   }
 
   @Override

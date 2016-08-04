@@ -84,7 +84,9 @@ public class StatementExecutor extends HiveActor {
       if (message.shouldStartGUIDFetch() && message.getJobId().isPresent()) {
         startGUIDFetch(statement, message.getJobId().get());
       }
+      LOG.info("Statement executor is executing statement: {}, Statement id: {}, JobId: {}", message.getStatement(), message.getId(), message.getJobId().or("SYNC JOB"));
       Optional<ResultSet> resultSetOptional = connectionDelegate.execute(message.getStatement());
+      LOG.info("Finished executing statement: {}, Statement id: {}, JobId: {}", message.getStatement(), message.getId(), message.getJobId().or("SYNC JOB"));
 
       if (resultSetOptional.isPresent()) {
         sender().tell(new ResultInformation(message.getId(), resultSetOptional.get()), self());
@@ -105,6 +107,7 @@ public class StatementExecutor extends HiveActor {
       guidFetcher = getContext().actorOf(Props.create(YarnAtsGUIDFetcher.class, storage)
         .withDispatcher("akka.actor.misc-dispatcher"), "YarnAtsGUIDFetcher:" + UUID.randomUUID().toString());
     }
+    LOG.info("Fetching guid for Job Id: {}", jobId);
     guidFetcher.tell(new UpdateYarnAtsGuid(statement, jobId), self());
   }
 
@@ -121,6 +124,7 @@ public class StatementExecutor extends HiveActor {
         Props.create(LogAggregator.class, hdfsApi, statement, logFile)
           .withDispatcher("akka.actor.misc-dispatcher"), "LogAggregator:" + UUID.randomUUID().toString());
     }
+    LOG.info("Fetching query logs for statement: {}", sqlStatement);
     logAggregator.tell(new StartLogAggregation(sqlStatement), getSelf());
   }
 
