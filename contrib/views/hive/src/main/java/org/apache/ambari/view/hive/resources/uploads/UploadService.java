@@ -218,7 +218,7 @@ public class UploadService extends BaseService {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Job createTable(TableInput tableInput) {
+  public Response createTable(TableInput tableInput) {
     try {
       tableInput.validate();
       String databaseName = tableInput.getDatabaseName();
@@ -227,7 +227,7 @@ public class UploadService extends BaseService {
 
       Job job = createJob(tableCreationQuery, databaseName);
       LOG.info("job created for table creation {}", job);
-      return job;
+      return Response.ok(job).build();
     } catch (WebApplicationException e) {
       LOG.error(getErrorMessage(e), e);
       throw e;
@@ -309,14 +309,14 @@ public class UploadService extends BaseService {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Job insertFromTempTable(InsertFromQueryInput input) {
+  public Response insertFromTempTable(InsertFromQueryInput input) {
     try {
       String insertQuery = generateInsertFromQuery(input);
       LOG.info("insertQuery : {}", insertQuery);
 
       Job job = createJob(insertQuery, "default");
       LOG.info("Job created for insert from temp table : {}", job);
-      return job;
+      return Response.ok(job).build();
     } catch (WebApplicationException e) {
       LOG.error(getErrorMessage(e), e);
       throw e;
@@ -330,14 +330,14 @@ public class UploadService extends BaseService {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public Job deleteTable(DeleteQueryInput input) {
+  public Response deleteTable(DeleteQueryInput input) {
     try {
       String deleteQuery = generateDeleteQuery(input);
       LOG.info("deleteQuery : {}", deleteQuery);
 
       Job job = createJob(deleteQuery, "default");
       LOG.info("Job created for delete temp table : {} ", job);
-      return job;
+      return Response.ok(job).build();
     } catch (WebApplicationException e) {
       LOG.error(getErrorMessage(e), e);
       throw e;
