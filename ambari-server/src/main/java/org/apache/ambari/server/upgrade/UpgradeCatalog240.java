@@ -18,30 +18,17 @@
 
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-
-import java.io.File;
-import java.io.FileReader;
-import java.lang.reflect.Type;
-import java.sql.Clob;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-
+import com.google.common.collect.Lists;
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -109,17 +96,28 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.support.JdbcUtils;
 
-import com.google.common.collect.Lists;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
+import java.sql.Clob;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Upgrade catalog for version 2.4.0.
@@ -424,6 +422,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateRecoveryConfigurationDML();
     updatePigSmokeTestEntityClass();
     updateRangerHbasePluginProperties();
+    adjustHiveJobTimestamps();
   }
 
   /**
@@ -522,6 +521,39 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         int rowsChanged = insertQ.executeUpdate();
         entityManager.getTransaction().commit();
         LOG.info("executing insert resulted in {} row changes.", rowsChanged);
+      } catch (Exception e) { // when the entity table is not yet created or other exception.
+        entityManager.getTransaction().rollback();
+        LOG.info("Error (can be ignored) {}", e.getMessage());
+        LOG.debug("Exception occured while updating : {}",viewEntity.getViewName() + viewEntity.getViewInstance(), e);
+      }
+    }
+  }
+
+
+  /**
+   * get all entries of viewentity
+   * find all the table names by parsing class_name
+   * update jobimpls creation timestamp * 1000
+   */
+  protected void adjustHiveJobTimestamps() {
+    LOG.info("updateSequenceForView called.");
+    EntityManager entityManager = getEntityManagerProvider().get();
+    TypedQuery<ViewEntityEntity> viewEntityQuery = entityManager.createQuery("SELECT vee FROM ViewEntityEntity vee where vee.className = 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl'", ViewEntityEntity.class);
+    List<ViewEntityEntity> viewEntities = viewEntityQuery.getResultList();
+    LOG.info("Received JobImpl view Entities : {}, length : {}", viewEntities, viewEntities.size());
+
+    String selectIdsFormat = "update %s set ds_datesubmitted = ds_datesubmitted * 1000";
+    for (ViewEntityEntity viewEntity : viewEntities) {
+      LOG.info("Working with JobImpl viewEntity : {} : {} ", viewEntity, viewEntity.getViewName() + ":" + viewEntity.getViewInstanceName() + ":" + viewEntity.getClassName());
+      String tableName = getEntityName(viewEntity);
+      try {
+        entityManager.getTransaction().begin();
+        String updatesQueryString = String.format(selectIdsFormat, tableName).toLowerCase();
+        LOG.info("executing update query string for jobimpl {}", updatesQueryString);
+        Query updateQuery = entityManager.createNativeQuery(updatesQueryString);
+        int rowsChanged = updateQuery.executeUpdate();
+        entityManager.getTransaction().commit();
+        LOG.info("executing update on jobimpl resulted in {} row changes.", rowsChanged);
       } catch (Exception e) { // when the entity table is not yet created or other exception.
         entityManager.getTransaction().rollback();
         LOG.info("Error (can be ignored) {}", e.getMessage());
