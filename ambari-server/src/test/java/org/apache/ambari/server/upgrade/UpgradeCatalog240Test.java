@@ -560,6 +560,7 @@ public class UpgradeCatalog240Test {
     Method updateAmsConfigs = UpgradeCatalog240.class.getDeclaredMethod("updateAMSConfigs");
     Method updateClusterEnv = UpgradeCatalog240.class.getDeclaredMethod("updateClusterEnv");
     Method updateSequenceForView = UpgradeCatalog240.class.getDeclaredMethod("updateSequenceForView");
+    Method adjustHiveJobTimestamps = UpgradeCatalog240.class.getDeclaredMethod("adjustHiveJobTimestamps");
     Method updateHostRoleCommandTableDML = UpgradeCatalog240.class.getDeclaredMethod("updateHostRoleCommandTableDML");
     Method updateKerberosEnv = UpgradeCatalog240.class.getDeclaredMethod("updateKerberosConfigs");
     Method updateYarnEnv = UpgradeCatalog240.class.getDeclaredMethod("updateYarnEnv");
@@ -609,6 +610,7 @@ public class UpgradeCatalog240Test {
             .addMockedMethod(updateAmsConfigs)
             .addMockedMethod(updateClusterEnv)
             .addMockedMethod(updateSequenceForView)
+            .addMockedMethod(adjustHiveJobTimestamps)
             .addMockedMethod(updateHostRoleCommandTableDML)
             .addMockedMethod(updateKerberosEnv)
             .addMockedMethod(updateYarnEnv)
@@ -675,6 +677,7 @@ public class UpgradeCatalog240Test {
     upgradeCatalog240.updateRecoveryConfigurationDML();
     upgradeCatalog240.removeAtlasMetaserverAlert();
     upgradeCatalog240.updateRangerHbasePluginProperties();
+    upgradeCatalog240.adjustHiveJobTimestamps();
 
     replay(upgradeCatalog240, dbAccessor);
 
