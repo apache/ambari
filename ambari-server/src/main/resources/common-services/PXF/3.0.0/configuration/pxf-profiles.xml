@@ -157,6 +157,20 @@ under the License.
             <resolver>org.apache.hawq.pxf.plugins.gemfirexd.GemFireXDResolver</resolver>
         </plugins>
     </profile>
+    <profile>
+        <name>Json</name>
+        <description>
+            Access JSON data either as:
+            * one JSON record per line (default)
+            * or multiline JSON records with an IDENTIFIER parameter indicating a member name
+              used to determine the encapsulating json object to return
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hdfs.HdfsDataFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.json.JsonAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.json.JsonResolver</resolver>
+        </plugins>
+    </profile>
 </profiles>
     ]]></value>
     <value-attributes>
