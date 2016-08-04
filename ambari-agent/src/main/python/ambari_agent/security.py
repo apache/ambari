@@ -98,7 +98,7 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
     if self.sock:
       self.sock.close()
     logger.info("SSL Connect being called.. connecting to the server")
-    sock = socket.create_connection((self.host, self.port), 60)
+    sock = socket.create_connection((self.host, self.port), 90)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     if self._tunnel_host:
       self.sock = sock
