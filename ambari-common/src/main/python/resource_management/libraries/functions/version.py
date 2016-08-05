@@ -42,7 +42,7 @@ def format_stack_version(input):
   if input:
     if "-" in input:
       input_array = input.split("-")
-      input = input_array[1]
+      input = input_array[0]
 
     input = re.sub(r'^\D+', '', input)
     input = re.sub(r'\D+$', '', input)

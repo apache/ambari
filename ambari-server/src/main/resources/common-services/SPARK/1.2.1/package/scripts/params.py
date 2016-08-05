@@ -57,7 +57,7 @@ stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 if upgrade_direction == Direction.DOWNGRADE:
-  stack_version_unformatted = config['commandParams']['original_stack']
+  stack_version_unformatted = config['commandParams']['original_stack'].split("-")[1]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
