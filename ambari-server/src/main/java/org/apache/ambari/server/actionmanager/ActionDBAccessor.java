@@ -55,7 +55,9 @@ public interface ActionDBAccessor {
   Request getRequest(long requestId);
 
   /**
-   * Abort all outstanding operations associated with the given request
+   * Abort all outstanding operations associated with the given request. This
+   * method uses the {@link HostRoleStatus#SCHEDULED_STATES} to determine which
+   * {@link HostRoleCommand} instances to abort.
    */
   public void abortOperation(long requestId);
 
@@ -92,7 +94,7 @@ public interface ActionDBAccessor {
 
   /**
    * Persists all tasks for a given request
-   * 
+   *
    * @param request
    *          request object
    */

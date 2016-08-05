@@ -39,7 +39,13 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "stage")
 @IdClass(org.apache.ambari.server.orm.entities.StageEntityPK.class)
-@NamedQueries({ @NamedQuery(name = "StageEntity.findByCommandStatuses", query = "SELECT stage from StageEntity stage WHERE EXISTS (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER by stage.requestId, stage.stageId") })
+@NamedQueries({
+    @NamedQuery(
+        name = "StageEntity.findByCommandStatuses",
+        query = "SELECT stage from StageEntity stage WHERE EXISTS (SELECT roleCommand.stageId from HostRoleCommandEntity roleCommand WHERE roleCommand.status IN :statuses AND roleCommand.stageId = stage.stageId AND roleCommand.requestId = stage.requestId ) ORDER by stage.requestId, stage.stageId"),
+    @NamedQuery(
+        name = "StageEntity.findIdsByRequestId",
+        query = "SELECT stage.stageId FROM StageEntity stage WHERE stage.requestId = :requestId ORDER BY stage.stageId ASC") })
 public class StageEntity {
 
   @Column(name = "cluster_id", updatable = false, nullable = false)

@@ -129,6 +129,21 @@ public class StageDAO {
   }
 
   /**
+   * Gets all of the stage IDs associated with a request.
+   *
+   * @param requestId
+   * @return the list of stage IDs.
+   */
+  @RequiresSession
+  public List<Long> findIdsByRequestId(long requestId) {
+    TypedQuery<Long> query = entityManagerProvider.get().createNamedQuery(
+        "StageEntity.findIdsByRequestId", Long.class);
+
+    query.setParameter("requestId", requestId);
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Get the list of stage entities for the given request id and stage ids.
    *
    * @param requestId  the request ids

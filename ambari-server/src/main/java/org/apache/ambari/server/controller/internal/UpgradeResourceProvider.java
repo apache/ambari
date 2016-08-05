@@ -71,6 +71,7 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -113,6 +114,7 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.hadoop.metrics2.sink.relocated.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -474,6 +476,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_ID));
     }
 
+    long clusterId = cluster.getClusterId();
     long requestId = Long.parseLong(requestIdProperty);
     UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
     if( null == upgradeEntity){
@@ -514,7 +517,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         suspended = Boolean.valueOf((String) propertyMap.get(UPGRADE_SUSPENDED));
       }
 
-      setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
+      setUpgradeRequestStatus(clusterId, requestId, status, propertyMap);
 
       // When the status of the upgrade's request is changing, we also update the suspended flag.
       upgradeEntity.setSuspended(suspended);
@@ -1747,6 +1750,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * <li>{@link HostRoleStatus#PENDING}</li>
    * </ul>
    *
+   * @param clusterId
+   *          the ID of the cluster
    * @param requestId
    *          the request to change the status for.
    * @param status
@@ -1755,7 +1760,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *          the map of request properties (needed for things like abort reason
    *          if present)
    */
-  private void setUpgradeRequestStatus(String requestId, HostRoleStatus status,
+  private void setUpgradeRequestStatus(long clusterId, long requestId, HostRoleStatus status,
       Map<String, Object> propertyMap) {
     if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
       throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
@@ -1767,14 +1772,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
     }
 
-    ActionManager actionManager = getManagementController().getActionManager();
-    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(
-        Collections.singletonList(Long.valueOf(requestId)));
+    // do not try to pull back the entire request here as they can be massive
+    // and cause OOM problems; instead, use the count of statuses to determine
+    // the state of the upgrade request
+    Map<Long, HostRoleCommandStatusSummaryDTO> aggregateCounts = s_hostRoleCommandDAO.findAggregateCounts(requestId);
+    CalculatedStatus calculatedStatus = CalculatedStatus.statusFromStageSummary(aggregateCounts,
+        aggregateCounts.keySet());
 
-    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
-
-    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
-        internalRequest.getStages()).getStatus();
+    HostRoleStatus internalStatus = calculatedStatus.getStatus();
 
     if (HostRoleStatus.PENDING == status && !(internalStatus == HostRoleStatus.ABORTED || internalStatus == HostRoleStatus.IN_PROGRESS)) {
       throw new IllegalArgumentException(
@@ -1782,10 +1787,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               HostRoleStatus.ABORTED, internalStatus));
     }
 
-    Long clusterId = internalRequest.getClusterId();
+    ActionManager actionManager = getManagementController().getActionManager();
+
     if (HostRoleStatus.ABORTED == status) {
       if (!internalStatus.isCompletedState()) {
-        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+        actionManager.cancelRequest(requestId, reason);
         // Remove relevant upgrade entity
         try {
           Cluster cluster = clusters.get().getClusterById(clusterId);
@@ -1801,11 +1807,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     } else {
       // Status must be PENDING.
       List<Long> taskIds = new ArrayList<Long>();
-      for (HostRoleCommand hrc : internalRequest.getCommands()) {
-        if (HostRoleStatus.ABORTED == hrc.getStatus()
-            || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
-          taskIds.add(hrc.getTaskId());
-        }
+      List<HostRoleCommandEntity> hrcEntities = s_hostRoleCommandDAO.findByRequestIdAndStatuses(
+          requestId, Sets.newHashSet(HostRoleStatus.ABORTED, HostRoleStatus.TIMEDOUT));
+
+      for (HostRoleCommandEntity hrcEntity : hrcEntities) {
+        taskIds.add(hrcEntity.getTaskId());
       }
 
       actionManager.resubmitTasks(taskIds);

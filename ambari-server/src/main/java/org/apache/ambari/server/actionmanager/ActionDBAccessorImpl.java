@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,14 +37,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
+import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.OperationStatusAuditEvent;
 import org.apache.ambari.server.audit.event.TaskStatusAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.events.HostRemovedEvent;
-import org.apache.ambari.server.events.ServiceComponentUninstalledEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -200,8 +198,8 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.apache.ambari.server.actionmanager.ActionDBAccessor#abortOperation(long)
+  /**
+   * {@inheritDoc}
    */
   @Override
   public void abortOperation(long requestId) {
@@ -209,23 +207,21 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
     endRequest(requestId);
 
-    List<HostRoleCommandEntity> commands =
-        hostRoleCommandDAO.findByRequest(requestId);
+    // only request commands which actually need to be aborted; requesting all
+    // commands here can cause OOM problems during large requests like upgrades
+    List<HostRoleCommandEntity> commands = hostRoleCommandDAO.findByRequestIdAndStatuses(requestId,
+        HostRoleStatus.SCHEDULED_STATES);
+
     for (HostRoleCommandEntity command : commands) {
-      if (command.getStatus() == HostRoleStatus.QUEUED ||
-          command.getStatus() == HostRoleStatus.IN_PROGRESS ||
-          command.getStatus() == HostRoleStatus.PENDING) {
+      command.setStatus(HostRoleStatus.ABORTED);
+      command.setEndTime(now);
+      LOG.info("Aborting command. Hostname " + command.getHostName()
+          + " role " + command.getRole()
+          + " requestId " + command.getRequestId()
+          + " taskId " + command.getTaskId()
+          + " stageId " + command.getStageId());
 
-        command.setStatus(HostRoleStatus.ABORTED);
-        command.setEndTime(now);
-        LOG.info("Aborting command. Hostname " + command.getHostName()
-            + " role " + command.getRole()
-            + " requestId " + command.getRequestId()
-            + " taskId " + command.getTaskId()
-            + " stageId " + command.getStageId());
-
-        auditLog(command, requestId);
-      }
+      auditLog(command, requestId);
     }
 
     // no need to merge if there's nothing to merge
