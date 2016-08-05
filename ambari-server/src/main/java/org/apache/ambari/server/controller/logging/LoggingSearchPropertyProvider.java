@@ -27,12 +27,18 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.LogDefinition;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +51,11 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
   private static final String CLUSTERS_PATH = "/api/v1/clusters";
 
   private static final String PATH_TO_SEARCH_ENGINE = "/logging/searchEngine";
+
+  /**
+   * The user of authorizations for which a user must have one of in order to access LogSearch data
+   */
+  private static final Set<RoleAuthorization> REQUIRED_AUTHORIZATIONS = EnumSet.of(RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS);
 
   private static AtomicInteger errorLogCounterForLogSearchConnectionExceptions = new AtomicInteger(0);
 
@@ -68,6 +79,16 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
       final String componentName = (String)resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "component_name"));
       final String hostName = (String) resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "host_name"));
       final String clusterName = (String) resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "cluster_name"));
+
+      // Test to see if the authenticated user is authorized to view this data... if not, skip it.
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceID(clusterName), REQUIRED_AUTHORIZATIONS)) {
+        if(LOG.isDebugEnabled()) {
+          LOG.debug(String.format("The authenticated user (%s) is not authorized to access LogSearch data for the cluster named %s",
+              AuthorizationHelper.getAuthenticatedName(),
+              clusterName));
+        }
+        continue;
+      }
 
       if (!logSearchServerRunning(clusterName)) {
         continue;
@@ -112,6 +133,38 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
     }
 
     return resources;
+  }
+
+  /**
+   * Get the relevant cluster's resource ID.
+   *
+   * @param clusterName a cluster name
+   * @return a resource ID or <code>null</code> if the cluster is not found
+   */
+  private Long getClusterResourceID(String clusterName) {
+    Long clusterResourceId = null;
+
+    if(!StringUtils.isEmpty(clusterName)) {
+      try {
+        Cluster cluster = ambariManagementController.getClusters().getCluster(clusterName);
+
+        if(cluster == null) {
+          LOG.warn(String.format("No cluster found with the name %s, assuming null resource id", clusterName));
+        }
+        else {
+          clusterResourceId = cluster.getResourceId();
+        }
+
+      } catch (AmbariException e) {
+        LOG.warn(String.format("An exception occurred looking up the cluster named %s, assuming null resource id: %s",
+            clusterName, e.getLocalizedMessage()));
+      }
+    }
+    else {
+      LOG.debug("The cluster name is not set, assuming null resource id");
+    }
+
+    return clusterResourceId;
   }
 
   private boolean logSearchServerRunning(String clusterName) {
