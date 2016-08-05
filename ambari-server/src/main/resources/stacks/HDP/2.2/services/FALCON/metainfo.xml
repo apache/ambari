@@ -29,6 +29,10 @@
             <package>
               <name>falcon_${stack_version}</name>
             </package>
+            <package>
+              <name>atlas-metadata_${stack_version}-falcon-plugin</name>
+              <condition>should_install_falcon_atlas_hook</condition>
+            </package>
           </packages>
         </osSpecific>
         <osSpecific>
@@ -36,6 +40,10 @@
           <packages>
             <package>
               <name>falcon-${stack_version}</name>
+            </package>
+            <package>
+              <name>atlas-metadata-${stack_version}-falcon-plugin</name>
+              <condition>should_install_falcon_atlas_hook</condition>
             </package>
           </packages>
         </osSpecific>

@@ -395,7 +395,6 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       "ATLAS": self.recommendAtlasConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "FALCON": self.recommendFalconConfigurations,
       "OOZIE": self.recommendOozieConfigurations,
       "SPARK2": self.recommendSpark2Configurations
     }

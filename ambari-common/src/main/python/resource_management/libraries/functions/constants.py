@@ -91,6 +91,8 @@ class StackFeature:
   ATLAS_RANGER_PLUGIN_SUPPORT = "atlas_ranger_plugin_support"
   ATLAS_UPGRADE_SUPPORT = "atlas_upgrade_support"
   ATLAS_CONF_DIR_IN_PATH = "atlas_conf_dir_in_path"
+  FALCON_ATLAS_SUPPORT_2_3 = "falcon_atlas_support_2_3"
+  FALCON_ATLAS_SUPPORT = "falcon_atlas_support"
   RANGER_PID_SUPPORT = "ranger_pid_support"
   RANGER_KMS_PID_SUPPORT = "ranger_kms_pid_support"
   RANGER_ADMIN_PASSWD_CHANGE = "ranger_admin_password_change"

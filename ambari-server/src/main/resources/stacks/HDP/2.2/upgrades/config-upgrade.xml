@@ -234,7 +234,7 @@
           <definition xsi:type="configure" id="hdp_2_2_0_0_falcon_application_services">
             <type>falcon-startup.properties</type>
             <set key="*.application.services"
-                 value="org.apache.falcon.security.AuthenticationInitializationService,&#92;&#xA;      org.apache.falcon.workflow.WorkflowJobEndNotificationService,&#92;&#xA;      org.apache.falcon.service.ProcessSubscriberService,&#92;&#xA;      org.apache.falcon.entity.store.ConfigurationStore,&#92;&#xA;      org.apache.falcon.rerun.service.RetryService,&#92;&#xA;      org.apache.falcon.rerun.service.LateRunService,&#92;&#xA;      org.apache.falcon.service.LogCleanupService,&#92;&#xA;      org.apache.falcon.metadata.MetadataMappingService"/>
+                 value="org.apache.falcon.security.AuthenticationInitializationService,&#92;&#xA;      org.apache.falcon.workflow.WorkflowJobEndNotificationService,&#92;&#xA;      org.apache.falcon.service.ProcessSubscriberService,&#92;&#xA;      org.apache.falcon.entity.store.ConfigurationStore,&#92;&#xA;      org.apache.falcon.rerun.service.RetryService,&#92;&#xA;      org.apache.falcon.rerun.service.LateRunService,&#92;&#xA;      org.apache.falcon.service.LogCleanupService,&#92;&#xA;      org.apache.falcon.metadata.MetadataMappingService{{atlas_application_class_addition}}"/>
           </definition>
         </changes>
       </component>

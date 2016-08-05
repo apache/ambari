@@ -35,7 +35,9 @@ from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions import get_user_call_output
-from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
+from resource_management.libraries.functions.stack_features import check_stack_feature
 from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
 from ambari_commons import OSConst
@@ -115,9 +117,17 @@ def falcon(type, action = None, upgrade_type=None):
         cd_access = "a")
 
     # Generate atlas-application.properties.xml file
-    if has_atlas_in_cluster():
+    if params.falcon_atlas_support:
+      # If Atlas is added later than Falcon, this package will be absent.
+      install_atlas_hook_packages()
+
       atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
       setup_atlas_hook(SERVICE.FALCON, params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
+
+      # Falcon 0.10 uses FALCON_EXTRA_CLASS_PATH.
+      # Setup symlinks for older versions.
+      if params.current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, params.current_version_formatted):
+        setup_atlas_jar_symlinks("falcon", params.falcon_webinf_lib)
 
   if type == 'server':
     if action == 'config':

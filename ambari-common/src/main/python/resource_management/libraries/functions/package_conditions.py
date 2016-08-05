@@ -24,9 +24,12 @@ __all__ = ["is_lzo_enabled", "should_install_phoenix", "should_install_ams_colle
 
 import os
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
 
-def _has_applicable_local_component(config, components):
+def _has_local_components(config, components, indicator_function = any):
   if 'role' not in config:
     return False
   if config['role'] == 'install_packages':
@@ -34,9 +37,12 @@ def _has_applicable_local_component(config, components):
     # Check if
     if 'localComponents' not in config:
       return False
-    return any([component in config['localComponents'] for component in components])
+    return indicator_function([component in config['localComponents'] for component in components])
   else:
     return config['role'] in components
+
+def _has_applicable_local_component(config, components):
+  return _has_local_components(config, components, any)
 
 def should_install_lzo():
   config = Script.get_config()
@@ -87,6 +93,15 @@ def should_install_hive_atlas():
   atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
   has_atlas = len(atlas_hosts) > 0
   return has_atlas
+
+def should_install_falcon_atlas_hook():
+  config = Script.get_config()
+  stack_version_unformatted = config['hostLevelParams']['stack_version']
+  stack_version_formatted = format_stack_version(stack_version_unformatted)
+  if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted) \
+      or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):
+    return _has_local_components(config, ['FALCON_SERVER', 'ATLAS_SERVER'], all)
+  return False
 
 def should_install_ranger_tagsync():
   config = Script.get_config()
