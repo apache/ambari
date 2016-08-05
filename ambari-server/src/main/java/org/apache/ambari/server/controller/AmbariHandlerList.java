@@ -140,10 +140,8 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     } else {
       // if there is a view target (as in a view resource request) then set the view class loader
       ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-      ClassLoader viewClassLoader    = null;
-
       try {
-        viewClassLoader = viewEntity.getClassLoader();
+        ClassLoader viewClassLoader = viewEntity.getClassLoader();
         if (viewClassLoader == null) {
           LOG.debug("No class loader associated with view " + viewEntity.getName() + ".");
         } else {
@@ -151,9 +149,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
         }
         processHandlers(target, baseRequest, request, response);
       } finally {
-        if (viewClassLoader != null) {
-          Thread.currentThread().setContextClassLoader(contextClassLoader);
-        }
+        Thread.currentThread().setContextClassLoader(contextClassLoader);
       }
     }
   }

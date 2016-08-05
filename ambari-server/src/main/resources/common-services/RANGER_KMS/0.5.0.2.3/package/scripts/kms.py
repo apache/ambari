@@ -577,12 +577,9 @@ def check_ranger_service_support_kerberos(user, keytab, principal):
 
   if response_code is not None and response_code[0] == 200:
     get_repo_name_response = ranger_adm_obj.get_repository_by_name_curl(user, keytab, principal, params.repo_name, 'kms', 'true', is_keyadmin = True)
-    if get_repo_name_response is not None and ('exist' in str(get_repo_name_response).lower() or 'name' in str(get_repo_name_response).lower()):
+    if get_repo_name_response is not None:
       Logger.info('KMS repository {0} exist'.format(get_repo_name_response['name']))
       return True
-    elif get_repo_name_response is not None and 'error' in str(get_repo_name_response).lower():
-      Logger.error('Ranger service get failed.')
-      return False
     else:
       create_repo_response = ranger_adm_obj.create_repository_curl(user, keytab, principal, params.repo_name, json.dumps(params.kms_ranger_plugin_repo), None, is_keyadmin = True)
       if create_repo_response is not None and len(create_repo_response) > 0:
