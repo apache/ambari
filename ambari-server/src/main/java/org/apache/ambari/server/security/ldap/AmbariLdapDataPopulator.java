@@ -654,10 +654,10 @@ public class AmbariLdapDataPopulator {
     String encodedFilter = filter.encode();
 
     do {
+      LOG.trace("LDAP User Query - Base DN: '{}' ; Filter: '{}'", baseDn, encodedFilter);
       List dtos = configuration.getLdapServerProperties().isPaginationEnabled() ?
         ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper, processor) :
         ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper);
-      LOG.trace("LDAP User Query - Base DN: '{}' ; Filter: '{}'", baseDn, encodedFilter);
       for (Object dto : dtos) {
         if (dto != null) {
           users.add((LdapUserDto)dto);
