@@ -65,8 +65,8 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -77,7 +77,7 @@ import com.google.inject.persist.Transactional;
 
 public class HostImpl implements Host {
 
-  private static final Log LOG = LogFactory.getLog(HostImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HostImpl.class);
   private static final String HARDWAREISA = "hardware_isa";
   private static final String HARDWAREMODEL = "hardware_model";
   private static final String INTERFACES = "interfaces";
@@ -1217,7 +1217,7 @@ public class HostImpl implements Host {
           try {
             clusters.getClusterById(clusterEntity.getClusterId()).refresh();
           } catch (AmbariException e) {
-            LOG.error(e);
+            LOG.error("Error while looking up the cluster", e);
             throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed", e);
           }
         }
@@ -1475,6 +1475,7 @@ public class HostImpl implements Host {
     }
     return hostStateEntity;
   }
+
 }
 
 
