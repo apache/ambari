@@ -1283,7 +1283,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'webhcat-site': {
         'properties': {
-          'templeton.hadoop.queue.name': 'queue1'
+          'templeton.hadoop.queue.name': 'queue2'
         }
       }
     }

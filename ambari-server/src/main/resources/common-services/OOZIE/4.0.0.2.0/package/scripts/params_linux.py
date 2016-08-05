@@ -112,7 +112,7 @@ oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 smoke_hdfs_user_mode = 0770
-service_check_queue_name = default('/configurations/yarn-env/service_check.queue.name','default')
+service_check_queue_name = default('/configurations/yarn-env/service_check.queue.name', 'default')
 
 # This config actually contains {oozie_user}
 oozie_admin_users = format(config['configurations']['oozie-env']['oozie_admin_users'])
