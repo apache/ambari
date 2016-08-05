@@ -72,7 +72,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor);
+        replicationFactor,true);
       intializeLogFeederFilter();
 
     } catch (Exception e) {

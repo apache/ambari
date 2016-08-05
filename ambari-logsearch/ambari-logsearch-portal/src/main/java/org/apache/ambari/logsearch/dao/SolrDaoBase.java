@@ -219,6 +219,7 @@ public abstract class SolrDaoBase {
               if( count == collectionListIn.size()) {
                 logger.info("Setup for alias " + aliasNameIn
                     + " is successful. Exiting setup retry thread. Collections=" + collectionListIn);
+                populateSchemaFields();
                 break;
               }
             } else {
@@ -292,7 +293,7 @@ public abstract class SolrDaoBase {
   }
 
   public void setupCollections(final String splitMode, final String configName,
-      final int numberOfShards, final int replicationFactor) throws Exception {
+      final int numberOfShards, final int replicationFactor,boolean needToPopulateSchemaField) throws Exception {
     if (isZkConnectString) {
       setup_status = createCollectionsIfNeeded(splitMode, configName,
           numberOfShards, replicationFactor);
@@ -334,7 +335,9 @@ public abstract class SolrDaoBase {
         setupThread.start();
       }
     }
-    populateSchemaFields();
+    if(needToPopulateSchemaField){
+      populateSchemaFields();
+    }
   }
 
   public boolean createCollectionsIfNeeded(final String splitMode,
