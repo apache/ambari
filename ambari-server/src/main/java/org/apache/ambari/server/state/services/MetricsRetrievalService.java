@@ -89,7 +89,7 @@ public class MetricsRetrievalService extends AbstractService {
    *
    * @see #s_exceptionCache
    */
-  private static final int EXCEPTION_CACHE_TIMEOUT_MINUTES = 5;
+  private static final int EXCEPTION_CACHE_TIMEOUT_MINUTES = 20;
 
   /**
    * Exceptions from this service should not SPAM the logs; so cache exceptions
