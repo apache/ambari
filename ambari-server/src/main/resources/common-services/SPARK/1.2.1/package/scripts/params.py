@@ -33,6 +33,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import Direction
 
 
 # a map of the Ambari role to the component name
@@ -50,9 +51,13 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['hostLevelParams']['stack_version']
+if upgrade_direction == Direction.DOWNGRADE:
+  stack_version_unformatted = config['commandParams']['original_stack']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
