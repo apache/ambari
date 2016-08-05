@@ -966,6 +966,7 @@
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
+          <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
         </pre-upgrade>
 
         <pre-downgrade>
