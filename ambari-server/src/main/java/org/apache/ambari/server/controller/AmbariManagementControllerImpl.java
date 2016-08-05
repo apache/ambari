@@ -89,6 +89,7 @@ import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
@@ -3123,6 +3124,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  private void checkIfHostComponentsInDeleteFriendlyState(ServiceComponentHostRequest request, Cluster cluster) throws AmbariException {
+    Service service = cluster.getService(request.getServiceName());
+    ServiceComponent component = service.getServiceComponent(request.getComponentName());
+    ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
+
+    if (!componentHost.canBeRemoved()) {
+      throw new AmbariException("Host Component cannot be removed"
+              + ", clusterName=" + request.getClusterName()
+              + ", serviceName=" + request.getServiceName()
+              + ", componentName=" + request.getComponentName()
+              + ", hostname=" + request.getHostname()
+              + ", request=" + request);
+    }
+
+    // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
+    // generation.
+    // Clients may be removed without a state check.
+    if (!component.isClientComponent() &&
+            !componentHost.getState().isRemovableState()) {
+      throw new AmbariException("To remove master or slave components they must be in " +
+              "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
+    }
+  }
+
   @Override
   public String findServiceName(Cluster cluster, String componentName) throws AmbariException {
     StackId stackId = cluster.getDesiredStackVersion();
@@ -3224,10 +3249,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public RequestStatusResponse deleteHostComponents(
+  public DeleteStatusMetaData deleteHostComponents(
       Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException {
 
-    Set<ServiceComponentHostRequest> expanded = new HashSet<ServiceComponentHostRequest>();
+    Set<ServiceComponentHostRequest> expanded = new HashSet<>();
 
     // if any request are for the whole host, they need to be expanded
     for (ServiceComponentHostRequest request : requests) {
@@ -3254,7 +3279,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
     }
 
-    Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<ServiceComponent, Set<ServiceComponentHost>>();
+    Map<ServiceComponent, Set<ServiceComponentHost>> safeToRemoveSCHs = new HashMap<>();
+    DeleteStatusMetaData deleteStatusMetaData = new DeleteStatusMetaData();
 
     for (ServiceComponentHostRequest request : expanded) {
 
@@ -3279,88 +3305,41 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       ServiceComponent component = service.getServiceComponent(request.getComponentName());
       ServiceComponentHost componentHost = component.getServiceComponentHost(request.getHostname());
 
-      if (!componentHost.canBeRemoved()) {
-        throw new AmbariException("Host Component cannot be removed"
-            + ", clusterName=" + request.getClusterName()
-            + ", serviceName=" + request.getServiceName()
-            + ", componentName=" + request.getComponentName()
-            + ", hostname=" + request.getHostname()
-            + ", request=" + request);
-      }
-
-      // Only allow removing master/slave components in DISABLED/UNKNOWN/INSTALL_FAILED/INIT state without stages
-      // generation.
-      // Clients may be removed without a state check.
-      if (!component.isClientComponent() &&
-          !componentHost.getState().isRemovableState()) {
-        throw new AmbariException("To remove master or slave components they must be in " +
-            "DISABLED/INIT/INSTALLED/INSTALL_FAILED/UNKNOWN state. Current=" + componentHost.getState() + ".");
-      }
-
       setRestartRequiredServices(service, request.getComponentName());
-
-      if (!safeToRemoveSCHs.containsKey(component)) {
-        safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
+      try {
+        checkIfHostComponentsInDeleteFriendlyState(request, cluster);
+        if (!safeToRemoveSCHs.containsKey(component)) {
+          safeToRemoveSCHs.put(component, new HashSet<ServiceComponentHost>());
+        }
+        safeToRemoveSCHs.get(component).add(componentHost);
+      } catch (Exception ex) {
+        deleteStatusMetaData.addException(request.getHostname() + "/" + request.getComponentName(), ex);
       }
-      safeToRemoveSCHs.get(component).add(componentHost);
     }
 
-    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry
-            : safeToRemoveSCHs.entrySet()) {
+    for (Entry<ServiceComponent, Set<ServiceComponentHost>> entry : safeToRemoveSCHs.entrySet()) {
       for (ServiceComponentHost componentHost : entry.getValue()) {
-        String included_hostname = componentHost.getHostName();
-        String serviceName = entry.getKey().getServiceName();
-        String master_component_name = null;
-        String slave_component_name = componentHost.getServiceComponentName();
-        HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
-        State slaveState = componentHost.getState();
-        //Delete hostcomponents
-        entry.getKey().deleteServiceComponentHosts(componentHost.getHostName());
-        // If deleted hostcomponents support decomission and were decommited and stopped
-        if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name)
-                && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
-                && slaveState.equals(State.INSTALLED)) {
+        try {
+          deleteHostComponent(entry.getKey(), componentHost);
+          deleteStatusMetaData.addDeletedKey(componentHost.getHostName() + "/" + componentHost.getServiceComponentName());
 
-          for (Entry<String, String> entrySet : AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.entrySet()) {
-            if (entrySet.getValue().equals(slave_component_name)) {
-              master_component_name = entrySet.getKey();
-            }
-          }
-          //Clear exclud file or draining list except HBASE
-          if (!serviceName.equals(Service.Type.HBASE.toString())) {
-            HashMap<String, String> requestProperties = new HashMap<String, String>();
-            requestProperties.put("context", "Remove host " +
-                    included_hostname + " from exclude file");
-            requestProperties.put("exclusive", "true");
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put("included_hosts", included_hostname);
-            params.put("slave_type", slave_component_name);
-            params.put(AmbariCustomCommandExecutionHelper.UPDATE_EXCLUDE_FILE_ONLY, "true");
-
-            //Create filter for RECOMISSION command
-            RequestResourceFilter resourceFilter
-                    = new RequestResourceFilter(serviceName, master_component_name, null);
-            //Create request for RECOMISSION command
-            ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-                    entry.getKey().getClusterName(), AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
-                    Collections.singletonList(resourceFilter), null, params, true);
-            //Send request
-            createAction(actionRequest, requestProperties);
-          }
-
-          //Mark master component as needed to restart for remove host info from components UI
-          Cluster cluster = clusters.getCluster(entry.getKey().getClusterName());
-          Service service = cluster.getService(serviceName);
-          ServiceComponent sc = service.getServiceComponent(master_component_name);
-
-          if (sc != null && sc.isMasterComponent()) {
-            for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
-              sch.setRestartRequired(true);
-            }
-          }
-
+        } catch (Exception ex) {
+          deleteStatusMetaData.addException(componentHost.getHostName() + "/" + componentHost.getServiceComponentName(), ex);
         }
+      }
+    }
 
+    //Do not break behavior for existing clients where delete request contains only 1 host component.
+    //Response for these requests will have empty body with appropriate error code.
+    if (deleteStatusMetaData.getDeletedKeys().size() + deleteStatusMetaData.getExceptionForKeys().size() == 1) {
+      if (deleteStatusMetaData.getDeletedKeys().size() == 1) {
+        return null;
+      }
+      Exception ex =  deleteStatusMetaData.getExceptionForKeys().values().iterator().next();
+      if (ex instanceof AmbariException) {
+        throw (AmbariException)ex;
+      } else {
+        throw new AmbariException(ex.getMessage(), ex);
       }
     }
 
@@ -3368,7 +3347,61 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (!safeToRemoveSCHs.isEmpty()) {
       setMonitoringServicesRestartRequired(requests);
     }
-    return null;
+    return deleteStatusMetaData;
+  }
+
+  private void deleteHostComponent(ServiceComponent serviceComponent, ServiceComponentHost componentHost) throws AmbariException {
+    String included_hostname = componentHost.getHostName();
+    String serviceName = serviceComponent.getServiceName();
+    String master_component_name = null;
+    String slave_component_name = componentHost.getServiceComponentName();
+    HostComponentAdminState desiredAdminState = componentHost.getComponentAdminState();
+    State slaveState = componentHost.getState();
+    //Delete hostcomponents
+    serviceComponent.deleteServiceComponentHosts(componentHost.getHostName());
+    // If deleted hostcomponents support decomission and were decommited and stopped
+    if (AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.containsValue(slave_component_name)
+            && desiredAdminState.equals(HostComponentAdminState.DECOMMISSIONED)
+            && slaveState.equals(State.INSTALLED)) {
+
+      for (Entry<String, String> entrySet : AmbariCustomCommandExecutionHelper.masterToSlaveMappingForDecom.entrySet()) {
+        if (entrySet.getValue().equals(slave_component_name)) {
+          master_component_name = entrySet.getKey();
+        }
+      }
+      //Clear exclud file or draining list except HBASE
+      if (!serviceName.equals(Service.Type.HBASE.toString())) {
+        HashMap<String, String> requestProperties = new HashMap<String, String>();
+        requestProperties.put("context", "Remove host " +
+                included_hostname + " from exclude file");
+        requestProperties.put("exclusive", "true");
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("included_hosts", included_hostname);
+        params.put("slave_type", slave_component_name);
+        params.put(AmbariCustomCommandExecutionHelper.UPDATE_EXCLUDE_FILE_ONLY, "true");
+
+        //Create filter for RECOMISSION command
+        RequestResourceFilter resourceFilter
+                = new RequestResourceFilter(serviceName, master_component_name, null);
+        //Create request for RECOMISSION command
+        ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+                serviceComponent.getClusterName(), AmbariCustomCommandExecutionHelper.DECOMMISSION_COMMAND_NAME, null,
+                Collections.singletonList(resourceFilter), null, params, true);
+        //Send request
+        createAction(actionRequest, requestProperties);
+      }
+
+      //Mark master component as needed to restart for remove host info from components UI
+      Cluster cluster = clusters.getCluster(serviceComponent.getClusterName());
+      Service service = cluster.getService(serviceName);
+      ServiceComponent sc = service.getServiceComponent(master_component_name);
+
+      if (sc != null && sc.isMasterComponent()) {
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          sch.setRestartRequired(true);
+        }
+      }
+    }
   }
 
   @Override

@@ -215,12 +215,12 @@ public class HostComponentService extends BaseService {
    */
   @DELETE
   @Produces("text/plain")
-  public Response deleteHostComponents(@Context HttpHeaders headers, @Context UriInfo ui) {
+  public Response deleteHostComponents(String body, @Context HttpHeaders headers, @Context UriInfo ui) {
 
-    return handleRequest(headers, null, ui, Request.Type.DELETE,
+    return handleRequest(headers, body, ui, Request.Type.DELETE,
         createHostComponentResource(m_clusterName, m_hostName, null));
   }
-  
+
   @GET
   @Path("{hostComponentName}/processes")
   @Produces("text/plain")
