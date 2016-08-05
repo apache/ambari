@@ -22,6 +22,7 @@ limitations under the License.
 import status_params
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions import Direction
 from setup_spark import *
 
 import resource_management.libraries.functions
@@ -51,9 +52,13 @@ component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['hostLevelParams']['stack_version']
+if upgrade_direction == Direction.DOWNGRADE:
+  stack_version_unformatted = config['commandParams']['original_stack']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 

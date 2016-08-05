@@ -51,7 +51,8 @@ define(['require',
 		ui: {
 			viewType: "input[name='viewTypeAudit']",
 			excludeComponents : "#excludeComponents",
-			includeComponents : "#includeComponents"
+			includeComponents : "#includeComponents",
+			collapseArrowClick : "a.collapse-link.chkArrow"
 		},
 
 		/** ui events hash */
@@ -59,6 +60,13 @@ define(['require',
 			var events = {};
 			events['click [data-id="refresh-tab-audit"]']  = 'onAuditTabRefresh';
 			events['change ' + this.ui.viewType]  = 'onViewTypeChange';
+			events['click ' +this.ui.collapseArrowClick] = function(e){
+				if($(e.currentTarget).find('i').hasClass('fa-chevron-down')){
+					if(this.RAuditAggregated.currentView){
+						this.RAuditAggregated.currentView.trigger("button:min:max");
+					}
+				}
+			}
 			return events;
 		},
 
@@ -434,17 +442,18 @@ define(['require',
 			});
 		},
 		reinitializeFilterMustBe : function(values){
-			if(values.mustBe)
+			if(values.mustBe){
 				this.ui.includeComponents.select2('val',values.mustBe.split(","));
-			else
+			}else{
 				this.ui.includeComponents.select2('val',[]);
+			}
 		},
 		reinitializeFilterMustNot : function(values){
-			if(values.mustNot)
+			if(values.mustNot){
 				this.ui.excludeComponents.select2('val',values.mustNot.split(","));
-			else
-				this.ui.excludeComponents.select2('val',[]);
-				
+			}else{
+				this.ui.excludeComponents.select2('val',[]);	
+			}
 		}
 	});
 });

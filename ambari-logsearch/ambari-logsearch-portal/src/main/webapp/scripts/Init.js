@@ -204,7 +204,7 @@
          'bootbox': '../libs/bower/bootbox/js/bootbox.min',
          'moment': '../libs/bower/moment/js/moment.min',
          'moment-tz': '../libs/bower/moment/js/moment-timezone-with-data.min',
-         'visualsearch': '../libs/other/visualsearch/visualsearch',
+         'visualsearch': '../libs/other/custom/visualsearch/visualsearch',
          'globalize': '../libs/bower/globalize/lib/globalize',
          /*'handlebars from the require handlerbars plugin below */
          'handlebars': '../libs/bower/require-handlebars-plugin/js/Handlebars',

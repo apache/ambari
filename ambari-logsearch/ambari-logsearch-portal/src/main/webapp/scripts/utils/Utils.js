@@ -48,7 +48,7 @@ define(['require',
 	// ///////////////////////////////////////////////////////
 	// Enum utility methods
 	// //////////////////////////////////////////////////////
-	/**
+	/**Utils
 	 * Get enum for the enumId
 	 * 
 	 * @param {integer}
@@ -445,11 +445,14 @@ define(['require',
 		    var diffTime = (new Date().getTime() - prevNetworkErrorTime);
 		    if (diffTime > 3000) {
 		        prevNetworkErrorTime = new Date().getTime();
-		        Utils.notifyError({
-		            content: "Network Connection Failure : " +
-		                "It seems you are not connected to the internet. Please check your internet connection and try again"
-		        })
-
+		        if(error.statusText === "abort"){
+		        	Utils.notifyInfo({ content: "You have canceled the request"});
+		        }else{
+		        	 Utils.notifyError({
+			            content: "Network Connection Failure : " +
+			                "It seems you are not connected to the internet. Please check your internet connection and try again"
+			        });
+		        }
 		    }
 		}
 		// require(['views/common/ErrorView','App'],function(vError,App){

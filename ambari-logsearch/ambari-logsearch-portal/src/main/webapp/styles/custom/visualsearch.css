@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 /*------------------------------ RESET + DEFAULT STYLES ---------------------------------*/
 
 /* 
@@ -38,7 +56,7 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
   .VS-search .VS-icon-cancel {
     width: 11px; height: 11px;
     background-position: center 0;
-    background-image: url('../images/cancel_search.png');
+    background-image: url('../../images/cancel_search.png');
     cursor: pointer;
   }
     .VS-search .VS-icon-cancel:hover {
@@ -46,7 +64,7 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
     }
   .VS-search .VS-icon-search {
     width: 12px; height: 12px;
-    background-image: url('../images/search_glyph.png');
+    background-image: url('../../images/search_glyph.png');
   }
 
 /* ===================== */
@@ -58,7 +76,7 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
   color: #373737;
   font-size: 12px;
 }
-.VS-search input {
+.VS-search textarea {
   display: block;
   border: none;
   -moz-box-shadow: none;
@@ -70,8 +88,9 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
   font-size: 16px;
   line-height: 20px;
   width: 100%;
+  resize:none;
 }
-.VS-interface, .VS-search .dialog, .VS-search input {
+.VS-interface, .VS-search .dialog, .VS-search textarea {
   font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif !important;
   line-height: 1.1em;
 }
@@ -91,7 +110,8 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
   -moz-box-shadow: inset 0px 0px 3px #ccc;
   box-shadow: inset 0px 0px 3px #ccc;
   min-height: 28px;
-  height: auto;
+  max-height: 140px;
+  overflow-y: auto;
 }
   .VS-search.VS-readonly .VS-search-box {
     cursor: default;
@@ -118,18 +138,19 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
     position: relative;
     margin: 0 20px 0 22px;
     overflow: hidden;
+    width: 96%;
   }
-  .VS-search input {
+  .VS-search textarea {
     width: 100px;
   }
-  .VS-search input,
+  .VS-search textarea,
   .VS-search .VS-input-width-tester {
     padding: 6px 0;
     float: left;
     color: #808080;
     font: 13px/17px Helvetica, Arial;
   }
-  .VS-search.VS-focus input {
+  .VS-search.VS-focus textarea {
     color: #606060;
   }
   .VS-search .VS-icon-search {
@@ -149,13 +170,14 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
 /* ================ */
 
 .VS-search .search_facet {
-  float: left;
+   display: block;
   margin: 0;
   padding: 0 0 0 14px;
   position: relative;
   border: 1px solid transparent;
-  height: 20px;
+  min-height: 20px;
   margin: 3px -3px 3px 0;
+  width: 100%;
 }
   .VS-search.VS-readonly .search_facet {
     padding-left: 0;
@@ -178,9 +200,10 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
     font-size: 10px;
     color: #808080;
     padding: 8px 0 5px;
-    line-height: 13px;
+    line-height: 7px;
     cursor: pointer;
     padding: 4px 0 0;
+    min-width:7%;
   }
     .VS-search.VS-readonly .search_facet .category {
       cursor: default;
@@ -190,25 +213,29 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
   }
   .VS-search .search_facet .search_facet_input_container {
     float: left;
+    max-width: 93%;
+    clear:right;
   }
-  .VS-search .search_facet input {
+  .VS-search .search_facet textarea {
     margin: 0;
     padding: 0;
     color: #000;
-    font-size: 13px;
-    line-height: 16px;
+    font-size: 10px;
+    line-height: 13px;
     padding: 5px 0 5px 4px;
-    height: 16px;
+    min-height: 13px;
     width: auto;
     z-index: 100;
     position: relative;
     padding-top: 1px;
-    padding-bottom: 2px;
+    padding-bottom: 0;
     padding-right: 3px;
-
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
-  .VS-search .search_facet.is_editing input,
-  .VS-search .search_facet.is_selected input {
+  .VS-search .search_facet.is_editing textarea,
+  .VS-search .search_facet.is_selected textarea {
     color: #000;
   }
   .VS-search.VS-readonly .search_facet .search_facet_remove {
@@ -242,21 +269,22 @@ Source: http://meyerweb.com/eric/thoughts/2007/05/01/reset-reloaded/
 /* ================ */
 
 .VS-search .search_input {
-  height: 28px;
-  float: left;
+  height: 7px;
+  display: block;
   margin-left: -1px;
 }
-  .VS-search .search_input input {
+  .VS-search .search_input textarea {
     padding: 6px 3px 6px 2px;
     line-height: 10px;
     height: 22px;
-    margin-top: -4px;
-    width: 10px;
+    margin-top: 2px;
+    font-size: 10px;
+    width: 90px;
     z-index: 100;
     min-width: 4px;
     position: relative;
   }
-  .VS-search .search_input.is_editing input {
+  .VS-search .search_input.is_editing textarea {
     color: #202020;
   }
 

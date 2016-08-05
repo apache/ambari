@@ -108,20 +108,28 @@ define(['require',
     	},
     	onInfoClick : function(e){
     		var html = "<table class='table eventTable table-hover'><thead><th>Name</th><th>Value</th></thead>",that=this;
-    		_.each(this.model.get("params"), function(value, key) {
-    			if ( (! _.isEmpty(value)) && ( key != "bundleId" && key != "start_time" && 
+            var customParam = {"mustNot":[],"mustBe":[],"includeQuery":[],"excludeQuery":[]};
+            var paramNames = _.extend({},this.model.get("params"),customParam);
+            _.each(paramNames, function(value, key) {
+            	if ( (! _.isEmpty(value) || _.isArray(value)) && ( key != "bundleId" && key != "start_time" && 
                 		key != "end_time" && key != "q" && key != "unit" && key != "query" && key != "type" && 
                 		key != "time" && key != "dateRangeLabl" && key != "advanceSearch" && !_.isUndefined(Globals.paramsNameMapping[key]) )){
-    				html += '<tr class="' + key + '"><td>' + Globals.paramsNameMapping[key].label + '</td><td>' + that.getHtmlForParam(key,value) + '</td><tr>'
+            		html += '<tr class="' + key + '"><td>' + Globals.paramsNameMapping[key].label + '</td><td>' + that.getHtmlForParam(key) + '</td><tr>'
     			}
     		});
     		html += "</table>";
     		Utils.alertPopup({msg : html,className:"bootBoxSmall"});
     	},
-    	getHtmlForParam : function(key,value){
+    	getHtmlForParam : function(key){
+            var paramValue = this.model.get("params"),value=paramValue[key];
+
     		if(key === "from" || key === "to"){
-    			value = moment(value).format('MM/DD/YYYY,HH:mm:ss,SSS');
-    		}
+    			value = moment(paramValue[key]).format('MM/DD/YYYY,HH:mm:ss,SSS');
+    		}else{
+                if(_.isUndefined(paramValue[key])){
+                    value = "[]";
+                }
+            }
     		return value;
     	},
     	onRemoveFlagClick : function(e){
