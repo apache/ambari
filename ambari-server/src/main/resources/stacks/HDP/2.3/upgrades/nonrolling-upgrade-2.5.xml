@@ -1,3 +1,4 @@
+
 <?xml version="1.0"?>
 <!--
    Licensed to the Apache Software Foundation (ASF) under one or more
@@ -431,6 +432,8 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs"/>
+        <!-- Add nimbus.impersonation acls . -->
+        <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
       </execute-stage>
     </group>
 
