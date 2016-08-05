@@ -37,7 +37,7 @@
       org.apache.falcon.rerun.service.RetryService,\
       org.apache.falcon.rerun.service.LateRunService,\
       org.apache.falcon.service.LogCleanupService,\
-      org.apache.falcon.metadata.MetadataMappingService
+      org.apache.falcon.metadata.MetadataMappingService{{atlas_application_class_addition}}
     </value>
     <description>Falcon application services</description>
     <on-ambari-upgrade add="true"/>

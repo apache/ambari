@@ -34,7 +34,6 @@ import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -57,6 +56,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
@@ -68,6 +68,7 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 
 /**
@@ -337,7 +338,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+        "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);
@@ -966,6 +967,35 @@ public class TopologyManager {
         }
       }
       return configTopologyResolved;
+    }
+  }
+
+  /**
+   *
+   * Removes a host from the available hosts when the host gets deleted.
+   * @param hostRemovedEvent the event containing the hostname
+   */
+  @Subscribe
+  public void processHostRemovedEvent(HostRemovedEvent hostRemovedEvent) {
+    LOG.info("Cleaning up caches on host removed event: {}", hostRemovedEvent.getHostName());
+
+    HostImpl toBeRemoved = null;
+
+    // synchronization is required here as the list may be modified concurrently. See comments in this whole class.
+    synchronized (availableHosts) {
+      for (HostImpl hostImpl : availableHosts) {
+        if (hostRemovedEvent.getHostName().equals(hostImpl.getHostName())) {
+          toBeRemoved = hostImpl;
+          break;
+        }
+      }
+
+      if (null != toBeRemoved) {
+        availableHosts.remove(toBeRemoved);
+        LOG.info("Removed host: [{}] from available hosts", toBeRemoved.getHostName());
+      } else {
+        LOG.info("Host [{}] not found in available hosts", toBeRemoved.getHostName());
+      }
     }
   }
 }
