@@ -47,8 +47,7 @@ public class AuditSolrDao extends SolrDaoBase {
     String aliasNameIn = PropertiesUtil.getProperty(
         "logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
     String rangerAuditCollection = PropertiesUtil.getProperty(
-        "logsearch.ranger.audit.logs.collection.name", "ranger_audits");
-    
+        "logsearch.ranger.audit.logs.collection.name");
     String splitInterval = PropertiesUtil.getProperty(
       "logsearch.audit.logs.split.interval.mins", "none");
     String configName = PropertiesUtil.getProperty(
@@ -60,9 +59,15 @@ public class AuditSolrDao extends SolrDaoBase {
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
+      boolean createAlias = false;
+      if (aliasNameIn != null && rangerAuditCollection != null
+          && rangerAuditCollection.trim().length() > 0) {
+        createAlias = true;
+      }
+      boolean needToPopulateSchemaField = !createAlias;
       setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor);
-      if(aliasNameIn != null && rangerAuditCollection != null && rangerAuditCollection.trim().length() >0) {
+          replicationFactor, needToPopulateSchemaField);
+      if(createAlias) {
         Collection<String> collectionsIn = new ArrayList<String>();
         collectionsIn.add(collection);
         collectionsIn.add(rangerAuditCollection.trim());

@@ -54,7 +54,7 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
       setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor);
+        replicationFactor,true);
     } catch (Exception e) {
       logger.error(
         "error while connecting to Solr for service logs : solrUrl="
