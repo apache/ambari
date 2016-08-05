@@ -192,10 +192,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   protected static final String EXTENSION_LINK_ID_COLUMN = "link_id";
 
   private static final Map<String, Integer> ROLE_ORDER;
-  public static final String WEBHCAT_SITE_QUEUE_NAME = "templeton.hadoop.queue.name";
-  public static final String TEZ_SITE_QUEUE_NAME = "tez.queue.name";
-  public static final String YARN_ENV_QUEUE_NAME = "service_check.queue.name";
-  public static final String MAPRED_SITE_QUEUE_NAME = "mapreduce.job.queuename";
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
   private static final String AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY = "hbase.normalizer.enabled";
@@ -402,7 +398,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     updateSparkConfigs();
     updateHBaseConfigs();
     updateFalconConfigs();
-    updateQueueNameConfigs();
     updateKerberosDescriptorArtifacts();
     removeHiveOozieDBConnectionConfigs();
     updateClustersAndHostsVersionStateTableDML();
@@ -2239,49 +2234,6 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
             String newValue = value.trim().concat(atlasApplicationClassAddition);
             updateConfigurationPropertiesForCluster(cluster, "falcon-startup.properties", Collections.singletonMap(applicationServicesPropertyName, newValue), null, true, false);
           }
-        }
-      }
-    }
-  }
-
-  /**
-   * Updates the YARN Capacity Scheduler related configurations for the clusters managed by this Ambari
-   * Update services configuration to set proper leaf queue name for services
-   * update mapred-site, webhcat-site, tez-site, yarn-env
-   *
-   * @throws AmbariException if an error occurs while updating the configurations
-   */
-  protected void updateQueueNameConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-    Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
-
-    for (final Cluster cluster : clusterMap.values()) {
-      Config capacityScheduler = cluster.getDesiredConfigByType(CAPACITY_SCHEDULER_CONFIG);
-      if (capacityScheduler != null) {
-        Map<String, String> capacitySchedulerProperties = capacityScheduler.getProperties();
-        Set<String> leafQueues;
-        leafQueues = getCapacitySchedulerLeafQueues(capacitySchedulerProperties);
-        Set<String> installedServices = cluster.getServices().keySet();
-        if (leafQueues ==null || leafQueues.isEmpty()) {
-          LOG.warn("There is no leafQueues in capacity-scheduler");
-          return;
-        }
-        if (installedServices.contains(cluster.getServiceByConfigType(WEBHCAT_SITE_CONFIG)) &&
-            !isQueueNameValid(cluster, leafQueues, WEBHCAT_SITE_QUEUE_NAME, WEBHCAT_SITE_CONFIG)){
-          updateQueueName(cluster, leafQueues, WEBHCAT_SITE_QUEUE_NAME, WEBHCAT_SITE_CONFIG);
-        }
-        if (installedServices.contains(cluster.getServiceByConfigType(TEZ_SITE_CONFIG)) &&
-            !isQueueNameValid(cluster, leafQueues, TEZ_SITE_QUEUE_NAME, TEZ_SITE_CONFIG)){
-          updateQueueName(cluster, leafQueues, TEZ_SITE_QUEUE_NAME, TEZ_SITE_CONFIG);
-        }
-        if (installedServices.contains(cluster.getServiceByConfigType(YARN_ENV_CONFIG)) &&
-            !isQueueNameValid(cluster, leafQueues, YARN_ENV_QUEUE_NAME, YARN_ENV_CONFIG)){
-          updateQueueName(cluster, leafQueues, YARN_ENV_QUEUE_NAME, YARN_ENV_CONFIG);
-        }
-        if (installedServices.contains(cluster.getServiceByConfigType(MAPRED_SITE_CONFIG)) &&
-            !isQueueNameValid(cluster, leafQueues, MAPRED_SITE_QUEUE_NAME, MAPRED_SITE_CONFIG)){
-          updateQueueName(cluster, leafQueues, MAPRED_SITE_QUEUE_NAME, MAPRED_SITE_CONFIG);
         }
       }
     }

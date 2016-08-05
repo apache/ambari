@@ -75,7 +75,7 @@
         <name>yarn.scheduler.capacity.root.queues</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>spark.yarn.containerLauncherMaxThreads</name>

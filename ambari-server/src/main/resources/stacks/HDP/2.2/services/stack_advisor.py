@@ -57,12 +57,17 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     :type hosts dict
     """
     putSparkProperty = self.putProperty(configurations, "spark-defaults", services)
-    putSparkProperty("spark.yarn.queue", self.recommendYarnQueue(services))
+
+    spark_queue = self.recommendYarnQueue(services, "spark-defaults", "spark.yarn.queue")
+    if spark_queue is not None:
+      putSparkProperty("spark.yarn.queue", spark_queue)
 
     # add only if spark supports this config
     if "configurations" in services and "spark-thrift-sparkconf" in services["configurations"]:
       putSparkThriftSparkConf = self.putProperty(configurations, "spark-thrift-sparkconf", services)
-      putSparkThriftSparkConf("spark.yarn.queue", self.recommendYarnQueue(services))
+      recommended_spark_queue = self.recommendYarnQueue(services, "spark-thrift-sparkconf", "spark.yarn.queue")
+      if recommended_spark_queue is not None:
+        putSparkThriftSparkConf("spark.yarn.queue", recommended_spark_queue)
 
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
@@ -445,7 +450,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     leafQueues = sorted(leafQueues, key=lambda q:q['value'])
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
-    putWebhcatSiteProperty("templeton.hadoop.queue.name", self.recommendYarnQueue(services))
+
+    webhcat_queue = self.recommendYarnQueue(services, "webhcat-site", "templeton.hadoop.queue.name")
+    if webhcat_queue is not None:
+      putWebhcatSiteProperty("templeton.hadoop.queue.name", webhcat_queue)
 
 
     # Recommend Ranger Hive authorization as per Ranger Hive plugin property
@@ -812,7 +820,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
     putTezProperty("tez.session.am.dag.submit.timeout.secs", "600")
-    putTezProperty("tez.queue.name", self.recommendYarnQueue(services))
+
+    tez_queue = self.recommendYarnQueue(services, "tez-site", "tez.queue.name")
+    if tez_queue is not None:
+      putTezProperty("tez.queue.name", tez_queue)
 
     serverProperties = services["ambari-server-properties"]
     latest_tez_jar_version = None
@@ -1079,7 +1090,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "minimum", yarnMinAllocationSize)
     # Hadoop MR limitation
     putMapredPropertyAttribute("mapreduce.task.io.sort.mb", "maximum", "2047")
-    putMapredProperty("mapreduce.job.queuename", self.recommendYarnQueue(services))
+
+    mr_queue = self.recommendYarnQueue(services, "mapred-site", "mapreduce.job.queuename")
+    if mr_queue is not None:
+      putMapredProperty("mapreduce.job.queuename", mr_queue)
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},

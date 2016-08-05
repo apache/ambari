@@ -405,8 +405,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     putSparkProperty = self.putProperty(configurations, "spark2-defaults", services)
     putSparkThriftSparkConf = self.putProperty(configurations, "spark2-thrift-sparkconf", services)
 
-    putSparkProperty("spark.yarn.queue", self.recommendYarnQueue(services))
-    putSparkThriftSparkConf("spark.yarn.queue", self.recommendYarnQueue(services))
+    spark_queue = self.recommendYarnQueue(services, "spark2-defaults", "spark.yarn.queue")
+    if spark_queue is not None:
+      putSparkProperty("spark.yarn.queue", spark_queue)
+
+    spart_thrift_queue = self.recommendYarnQueue(services, "spark2-thrift-sparkconf", "spark.yarn.queue")
+    if spart_thrift_queue is not None:
+      putSparkThriftSparkConf("spark.yarn.queue", spart_thrift_queue)
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)

@@ -657,7 +657,7 @@ class TestHDP23StackAdvisor(TestCase):
       },
       'webhcat-site': {
         'properties': {
-          'templeton.hadoop.queue.name': 'queue1'
+          'templeton.hadoop.queue.name': 'queue2'
         }
       }
     }
@@ -933,7 +933,7 @@ class TestHDP23StackAdvisor(TestCase):
       },
       'webhcat-site': {
         'properties': {
-          'templeton.hadoop.queue.name': 'queue1'
+          'templeton.hadoop.queue.name': 'queue2'
         }
       }
     }
@@ -1163,7 +1163,7 @@ class TestHDP23StackAdvisor(TestCase):
           "tez.session.am.dag.submit.timeout.secs": "600",
           "tez.runtime.unordered.output.buffer.size-mb": "57",
           "tez.am.resource.memory.mb": "4000",
-          "tez.queue.name": "queue1",
+          "tez.queue.name": "queue2",
         }
       },
       "yarn-site": {

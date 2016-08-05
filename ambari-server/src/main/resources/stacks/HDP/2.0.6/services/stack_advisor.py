@@ -113,7 +113,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
-    putYarnEnvProperty("service_check.queue.name", self.recommendYarnQueue(services))
+
+    sc_queue_name = self.recommendYarnQueue(services, "yarn-env", "service_check.queue.name")
+    if sc_queue_name is not None:
+      putYarnEnvProperty("service_check.queue.name", sc_queue_name)
+
     containerExecutorGroup = 'hadoop'
     if 'cluster-env' in services['configurations'] and 'user_group' in services['configurations']['cluster-env']['properties']:
       containerExecutorGroup = services['configurations']['cluster-env']['properties']['user_group']
@@ -140,7 +144,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
-    putMapredProperty("mapreduce.job.queuename", self.recommendYarnQueue(services))
+    mr_queue = self.recommendYarnQueue(services, "mapred-site", "mapreduce.job.queuename")
+    if mr_queue is not None:
+      putMapredProperty("mapreduce.job.queuename", mr_queue)
 
   def getAmbariUser(self, services):
     ambari_user = services['ambari-server-properties']['ambari-server.user']
@@ -1382,34 +1388,36 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return None
 
   def validatorYarnQueue(self, properties, recommendedDefaults, propertyName, services):
-    if not propertyName in properties:
+    if propertyName not in properties:
       return self.getErrorItem("Value should be set")
-    capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
-    leafQueueNames = set()
-    leafQueues = self.getAllYarnLeafQueues(capacity_scheduler_properties)
-    for queue in leafQueues:
-      queue = queue.rstrip('.')
-      queueName = queue.split('.')[-1]
-      leafQueueNames.add(queueName)
-    value = properties[propertyName]
-    if len(leafQueueNames) == 0:
+
+    capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+    leaf_queue_names = self.getAllYarnLeafQueues(capacity_scheduler_properties)
+    queue_name = properties[propertyName]
+
+    if len(leaf_queue_names) == 0:
       return None
-    if value not in leafQueueNames:
-      return self.getErrorItem("Queue is not exist, or not corresponds to existing YARN leaf queue")
+    elif queue_name not in leaf_queue_names:
+      return self.getErrorItem("Queue is not exist or not corresponds to existing YARN leaf queue")
+
     return None
 
-  def recommendYarnQueue(self, services):
-    if services:
-      if 'configurations' in services:
-        capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
-        leafQueueNames = set()
-        leafQueues = self.getAllYarnLeafQueues(capacity_scheduler_properties)
-        for queue in leafQueues:
-          queue = queue.rstrip('.')
-          queueName = queue.split('.')[-1]
-          leafQueueNames.add(queueName)
-        if leafQueueNames:
-          return leafQueueNames.pop()
+  def recommendYarnQueue(self, services, catalog_name=None, queue_property=None):
+    old_queue_name = None
+
+    if services and 'configurations' in services:
+        configurations = services["configurations"]
+        if catalog_name in configurations and queue_property in configurations[catalog_name]["properties"]:
+          old_queue_name = configurations[catalog_name]["properties"][queue_property]
+
+        capacity_scheduler_properties, _ = self.getCapacitySchedulerProperties(services)
+        leaf_queues = sorted(self.getAllYarnLeafQueues(capacity_scheduler_properties))
+
+        if leaf_queues and (old_queue_name is None or old_queue_name not in leaf_queues):
+          return leaf_queues.pop()
+        elif old_queue_name and old_queue_name in leaf_queues:
+          return None
+
     return "default"
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
@@ -1641,7 +1649,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   """
   def getAllYarnLeafQueues(self, capacitySchedulerProperties):
     config_list = capacitySchedulerProperties.keys()
-    yarn_queues = []
+    yarn_queues = None
     leafQueueNames = set()
     if 'yarn.scheduler.capacity.root.queues' in config_list:
       yarn_queues = capacitySchedulerProperties.get('yarn.scheduler.capacity.root.queues')

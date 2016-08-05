@@ -183,7 +183,7 @@ mapred_log_dir_prefix = config['configurations']['mapred-env']['mapred_log_dir_p
 mapred_env_sh_template = config['configurations']['mapred-env']['content']
 yarn_env_sh_template = config['configurations']['yarn-env']['content']
 yarn_nodemanager_recovery_dir = default('/configurations/yarn-site/yarn.nodemanager.recovery.dir', None)
-service_check_queue_name = default('/configurations/yarn-env/service_check.queue.name','default')
+service_check_queue_name = default('/configurations/yarn-env/service_check.queue.name', 'default')
 
 if len(rm_hosts) > 1:
   additional_rm_host = rm_hosts[1]

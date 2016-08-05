@@ -127,7 +127,9 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
     putTezProperty("tez.am.java.opts",
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
-    putTezProperty("tez.queue.name", self.recommendYarnQueue(services))
+    recommended_tez_queue = self.recommendYarnQueue(services, "tez-site", "tez.queue.name")
+    if recommended_tez_queue is not None:
+      putTezProperty("tez.queue.name", recommended_tez_queue)
 
 
   def getNotPreferableOnServerComponents(self):
