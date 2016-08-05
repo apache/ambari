@@ -144,15 +144,12 @@ class RangeradminV2:
         repo_data = json.dumps(repo_properties)
         while retryCount <= 5:
           response = self.get_repository_by_name_curl(component_user,component_user_keytab,component_user_principal,repo_name, component, 'true')
-          if response is not None and ('exists' in str(response).lower() or 'name' in str(response).lower()):
+          if response is not None:
             Logger.info('{0} Repository {1} exist'.format(component.title(), (response['name'])))
-            break
-          elif response is not None and 'error' in str(response).lower():
-            Logger.error('Ranger service get failed.')
             break
           else:
             response = self.create_repository_curl(component_user,component_user_keytab,component_user_principal,repo_name, repo_data,policy_user)
-            if response is not None and len(response) > 0:
+            if response and len(response) > 0:
               Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
               break
             else:
@@ -333,7 +330,7 @@ class RangeradminV2:
 
 
 
-  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail='error')
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def get_repository_by_name_curl(self, component_user, component_user_keytab, component_user_principal, name, component, status, is_keyadmin = False):
     """
     :param component_user: service user for which call is to be made
@@ -350,22 +347,6 @@ class RangeradminV2:
       if is_keyadmin:
         search_repo_url = '{0}&suser=keyadmin'.format(search_repo_url)
       response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,request_method='GET')
-      if ('http' in response.lower() and ('401' in response.lower() and ('authentication failed' in response.lower() or 'unauthorized' in response.lower()))):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 401.')
-      elif ('http' in response.lower() and ('400' in response.lower() or 'bad request' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 400.')
-      elif ('http' in response.lower() and ('403' in response.lower() or 'forbidden' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 403.')
-      elif ('http' in response.lower() and ('404' in response.lower() or 'not found' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 404.')
-      elif ('http' in response.lower() and ('419' in response.lower() or 'session expired' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 419.')
-      elif ('http' in response.lower() and ('500' in response.lower() or 'server error' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 500.')
-      elif ('http' in response.lower() and ('307' in response.lower() or 'forbidden' in response.lower())):
-        raise Fail('Ranger get call Error: HTTP RESPONSE CODE 307.')
-      elif 'exists' in response.lower():
-        return response
       response_stripped = response[1:len(response) - 1]
       if response_stripped and len(response_stripped) > 0:
         response_json = json.loads(response_stripped)
@@ -398,22 +379,6 @@ class RangeradminV2:
       method = 'POST'
 
       response,error_message,time_in_millis = self.call_curl_request(component_user,component_user_keytab,component_user_principal,search_repo_url,False,method,data,header)
-      if ('http' in response.lower() and ('401' in response.lower() and ('authentication failed' in response.lower() or 'unauthorized' in response.lower()))):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 401.')
-      elif ('http' in response.lower() and ('400' in response.lower() or 'bad request' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 400.')
-      elif ('http' in response.lower() and ('403' in response.lower() or 'forbidden' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 403.')
-      elif ('http' in response.lower() and ('404' in response.lower() or 'not found' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 404.')
-      elif ('http' in response.lower() and ('419' in response.lower() or 'session expired' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 419.')
-      elif ('http' in response.lower() and ('500' in response.lower() or 'server error' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 500.')
-      elif ('http' in response.lower() and ('307' in response.lower() or 'forbidden' in response.lower())):
-        raise Fail('Ranger create call Error: HTTP RESPONSE CODE 307.')
-      elif 'exists' in response.lower():
-        return response
       if response and len(response) > 0:
         response_json = json.loads(response)
         if 'name' in response_json and response_json['name'].lower() == name.lower():
