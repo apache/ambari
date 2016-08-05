@@ -129,9 +129,6 @@ supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
 # In HDP 2.5, an empty data-mirroring folder has to be created, and the extensions folder has to be uploaded to HDFS.
 supports_data_mirroring = supports_hive_dr and (stack_version_formatted and not check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
 
-# Falcon Extensions were supported in HDP 2.5 and higher.
-supports_falcon_extensions = (stack_version_formatted and check_stack_feature(StackFeature.FALCON_EXTENSIONS, stack_version_formatted))
-
 local_data_mirroring_dir = format('{stack_root}/current/falcon-server/data-mirroring')
 dfs_data_mirroring_dir = "/apps/data-mirroring"
 

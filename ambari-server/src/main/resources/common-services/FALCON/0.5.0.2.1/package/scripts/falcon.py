@@ -30,13 +30,14 @@ from resource_management.core.resources.service import Service
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory
 from resource_management.core.resources.system import File
+from resource_management.libraries.functions import get_user_call_output
 from resource_management.libraries.script import Script
 from resource_management.libraries.resources import PropertiesFile
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook, install_atlas_hook_packages, setup_atlas_jar_symlinks
 from resource_management.libraries.functions.stack_features import check_stack_feature
-from resource_management.libraries.functions import get_user_call_output
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions import StackFeature
 from ambari_commons.constants import SERVICE
 from resource_management.core.logger import Logger
@@ -161,8 +162,11 @@ def falcon(type, action = None, upgrade_type=None):
           mode = 0770,
           source = params.local_data_mirroring_dir)
 
-      if params.supports_falcon_extensions:
+      # Falcon Extensions were supported in HDP 2.5 and higher.
+      effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
+      supports_falcon_extensions = effective_version and check_stack_feature(StackFeature.FALCON_EXTENSIONS, effective_version)
 
+      if supports_falcon_extensions:
         params.HdfsResource(params.falcon_extensions_dest_dir,
                             type = "directory",
                             action = "create_on_execute",
