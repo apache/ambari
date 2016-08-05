@@ -232,6 +232,7 @@ public class DefaultEventCreatorTest {
         return null;
       }
 
+      @Override
       public String changeSessionId() {
         return null;
       }
@@ -281,6 +282,7 @@ public class DefaultEventCreatorTest {
         return null;
       }
 
+      @Override
       public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) throws IOException, ServletException {
         return null;
       }
@@ -310,6 +312,7 @@ public class DefaultEventCreatorTest {
         return 0;
       }
 
+      @Override
       public long getContentLengthLong() {
         return 0;
       }
