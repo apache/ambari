@@ -26,7 +26,6 @@ import socket
 
 # Local Imports
 from resource_management.core.logger import Logger
-from resource_management.libraries.functions.version import compare_versions
 
 
 DB_TYPE_DEFAULT_PORT_MAP = {"MYSQL":"3306", "ORACLE":"1521", "POSTGRES":"5432", "MSSQL":"1433", "SQLA":"2638"}
@@ -81,7 +80,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "KAFKA": self.recommendKAFKAConfigurations,
       "RANGER": self.recommendRangerConfigurations,
       "RANGER_KMS": self.recommendRangerKMSConfigurations,
-      "FALCON": self.recommendFalconConfigurations,
       "STORM": self.recommendStormConfigurations,
       "SQOOP": self.recommendSqoopConfigurations
     }
@@ -736,40 +734,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
          (not atlas_is_present and atlas_hook_is_set):
 
         putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
-
-  def recommendFalconConfigurations(self, configurations, clusterData, services, hosts):
-    #  In 2.5, the classname changed.  The 2.5 stack advisor method will
-    #  call this with attribute set.  2.3 will use the old method name
-    if hasattr(self, "atlasFalconHookClassName"):
-      atlas_application_class = self.atlasFalconHookClassName
-    else:
-      atlas_application_class = "org.apache.falcon.atlas.service.AtlasService"
-    putFalconStartupProperty = self.putProperty(configurations, "falcon-startup.properties", services)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-
-    # atlas
-    application_services_property = "*.application.services"
-    if "falcon-startup.properties" in services["configurations"] and application_services_property in services["configurations"]["falcon-startup.properties"]["properties"]:
-      application_services_value = services["configurations"]["falcon-startup.properties"]["properties"][application_services_property]
-    else:
-      application_services_value = " "
-
-    include_atlas = "ATLAS" in servicesList
-    if include_atlas and atlas_application_class not in application_services_value:
-      if application_services_value == " ":
-        application_services_value = atlas_application_class
-      else:
-        application_services_value = application_services_value + "," + atlas_application_class
-    if not include_atlas and atlas_application_class in application_services_value:
-      application_classes = []
-      for application_class in application_services_value.split(","):
-        if application_class != atlas_application_class and application_class != " ":
-          application_classes.append(application_class)
-      if application_classes:
-        application_services_value = ",".join(application_classes)
-      else:
-        application_services_value = " "
-    putFalconStartupProperty(application_services_property, application_services_value)
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

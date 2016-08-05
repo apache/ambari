@@ -28,7 +28,9 @@ from resource_management.libraries.resources.properties_file import PropertiesFi
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Link
+from resource_management.core.resources.packaging import Package
 from resource_management.core.logger import Logger
+from ambari_commons import OSCheck
 from ambari_commons.constants import SERVICE
 
 '''
@@ -170,3 +172,10 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
         source_lib_file_name = os.path.join(jar_source_dir, file_name)
         if os.path.isfile(atlas_hook_file_name):
           Link(source_lib_file_name, to=atlas_hook_file_name)
+
+def install_atlas_hook_packages():
+  import params
+
+  if not params.host_sys_prepped:
+    Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
+            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)

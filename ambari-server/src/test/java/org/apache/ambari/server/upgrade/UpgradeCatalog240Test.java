@@ -784,6 +784,31 @@ public class UpgradeCatalog240Test {
     propertiesExpectedFalconEnv.put("falcon_store_uri", "file:///hadoop/falcon/store");
     propertiesExpectedFalconEnv.put("property", "value");
 
+    final String applicationServicesOldPropertyValue =
+        "org.apache.falcon.security.AuthenticationInitializationService,\\\n" +
+        "      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \\\n" +
+        "      org.apache.falcon.service.ProcessSubscriberService,\\\n" +
+        "      org.apache.falcon.entity.store.ConfigurationStore,\\\n" +
+        "      org.apache.falcon.rerun.service.RetryService,\\\n" +
+        "      org.apache.falcon.rerun.service.LateRunService,\\\n" +
+        "      org.apache.falcon.service.LogCleanupService,\\\n" +
+        "      org.apache.falcon.metadata.MetadataMappingService";
+
+    final String applicationServicesExpectedPropertyValue =
+        "org.apache.falcon.security.AuthenticationInitializationService,\\\n" +
+        "      org.apache.falcon.workflow.WorkflowJobEndNotificationService, \\\n" +
+        "      org.apache.falcon.service.ProcessSubscriberService,\\\n" +
+        "      org.apache.falcon.entity.store.ConfigurationStore,\\\n" +
+        "      org.apache.falcon.rerun.service.RetryService,\\\n" +
+        "      org.apache.falcon.rerun.service.LateRunService,\\\n" +
+        "      org.apache.falcon.service.LogCleanupService,\\\n" +
+        "      org.apache.falcon.metadata.MetadataMappingService{{atlas_application_class_addition}}";
+
+    final Config falconStartupConfig = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> falconStartupConfigProperties= new HashMap<String, String>();
+    falconStartupConfigProperties.put("*.application.services", applicationServicesOldPropertyValue);
+    falconStartupConfigProperties.put("property", "value");
     final Injector mockInjector = Guice.createInjector(new Module() {
       @Override
       public void configure(Binder binder) {
@@ -805,9 +830,16 @@ public class UpgradeCatalog240Test {
     expect(mockClusterExpected.getDesiredConfigByType("falcon-env")).andReturn(mockFalconEnv).atLeastOnce();
     expect(mockFalconEnv.getProperties()).andReturn(propertiesExpectedFalconEnv).anyTimes();
 
+    expect(mockClusterExpected.getDesiredConfigByType("falcon-startup.properties")).andReturn(falconStartupConfig).atLeastOnce();
+    expect(falconStartupConfig.getProperties()).andReturn(falconStartupConfigProperties).anyTimes();
+
     Capture<Map<String, String>> falconCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
-            capture(falconCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
+        capture(falconCapture), anyString(), (Map<String, Map<String, String>>) anyObject())).andReturn(null).once();
+
+    Capture<Map<String, String>> falconStartupCapture =  newCapture();
+    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-startup.properties"),
+        capture(falconStartupCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog240.class).updateFalconConfigs();
@@ -815,6 +847,9 @@ public class UpgradeCatalog240Test {
 
     assertEquals("value", falconCapture.getValue().get("property"));
     assertNull(falconCapture.getValue().get("falcon_store_uri"));
+
+    assertEquals("value", falconStartupCapture.getValue().get("property"));
+    assertEquals(applicationServicesExpectedPropertyValue, falconStartupCapture.getValue().get("*.application.services"));
   }
 
   @Test

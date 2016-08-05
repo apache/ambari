@@ -2206,6 +2206,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   /**
    * Updates the Falcon-related configurations for the clusters managed by this Ambari
    * Removes falcon_store_uri from falcon-env.
+   * Appends '{{atlas_application_class_addition}}' to *.application.services from falcon-startup.properties if it doesn't contain it.
    *
    * @throws AmbariException if an error occurs while updating the configurations
    */
@@ -2215,12 +2216,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
 
     for (final Cluster cluster : clusterMap.values()) {
+      // Remove falcon_store_uri from falcon-env.
       Config falconEnvConfig = cluster.getDesiredConfigByType("falcon-env");
       if (falconEnvConfig != null) {
         Map<String, String> falconEnvEnvProperties = falconEnvConfig.getProperties();
         if (falconEnvEnvProperties.containsKey("falcon_store_uri")) {
           LOG.info("Removing property falcon_store_uri from falcon-env");
           removeConfigurationPropertiesFromCluster(cluster, "falcon-env", Collections.singleton("falcon_store_uri"));
+        }
+      }
+
+      // Update falcon-startup.properties/*.application.services.
+      // Ensure {{atlas_application_class_addition}}
+      Config falconStartupConfig = cluster.getDesiredConfigByType("falcon-startup.properties");
+      if (falconStartupConfig != null) {
+        final String applicationServicesPropertyName = "*.application.services";
+        String value = falconStartupConfig.getProperties().get(applicationServicesPropertyName);
+        if (value != null) {
+          final String atlasApplicationClassAddition = "{{atlas_application_class_addition}}";
+          if (!(value.contains(atlasApplicationClassAddition) || value.contains("org.apache.falcon.atlas.service.AtlasService") || value.contains("org.apache.atlas.falcon.service.AtlasService"))) {
+            LOG.info("Appending '{}' to *.application.services from falcon-startup.properties since it doesn't contain it", atlasApplicationClassAddition);
+            String newValue = value.trim().concat(atlasApplicationClassAddition);
+            updateConfigurationPropertiesForCluster(cluster, "falcon-startup.properties", Collections.singletonMap(applicationServicesPropertyName, newValue), null, true, false);
+          }
         }
       }
     }

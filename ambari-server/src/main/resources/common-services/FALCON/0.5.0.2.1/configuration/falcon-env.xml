@@ -163,7 +163,9 @@ export FALCON_DATA_DIR={{falcon_embeddedmq_data}}
 #export FALCON_EXPANDED_WEBAPP_DIR=
 
 # Add the Atlas Falcon hook to the Falcon classpath
+{% if falcon_atlas_support %}
 export FALCON_EXTRA_CLASS_PATH={{atlas_hook_cp}}${FALCON_EXTRA_CLASS_PATH}
+{% endif %}
     </value>
     <value-attributes>
       <type>content</type>

@@ -70,7 +70,7 @@
       org.apache.falcon.entity.store.ConfigurationStore,\
       org.apache.falcon.rerun.service.RetryService,\
       org.apache.falcon.rerun.service.LateRunService,\
-      org.apache.falcon.service.LogCleanupService
+      org.apache.falcon.service.LogCleanupService{{atlas_application_class_addition}}
     </value>
     <description/>
     <on-ambari-upgrade add="true"/>
