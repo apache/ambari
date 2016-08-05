@@ -111,7 +111,7 @@ class HbaseRegionServerDefault(HbaseRegionServer):
 
         # no additional logging required, as it supported by checked_call itself
         # re-tries needed to suffer fails on Kerberos wizard as RegionServer update security features status over some time
-        shell.checked_call(format("{kinit_cmd}; {permissions_cmd}"), tries=10, try_sleep=10)
+        shell.checked_call(format("{kinit_cmd}; {permissions_cmd}"), user=params.hbase_user, tries=10, try_sleep=10)
 
   def start(self, env, upgrade_type=None):
     import params
