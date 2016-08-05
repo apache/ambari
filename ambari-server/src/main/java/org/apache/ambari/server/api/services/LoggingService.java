@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
@@ -27,7 +28,13 @@ import org.apache.ambari.server.controller.logging.LoggingRequestHelper;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactory;
 import org.apache.ambari.server.controller.logging.LoggingRequestHelperFactoryImpl;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.utils.RetryHelper;
+import org.apache.commons.lang.StringUtils;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -38,9 +45,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This Service provides access to the LogSearch query services, including:
@@ -50,6 +59,11 @@ import java.util.Map;
  *
  */
 public class LoggingService extends BaseService {
+
+  /**
+   * The user of authorizations for which a user must have one of in order to access LogSearch data
+   */
+  private static final Set<RoleAuthorization> REQUIRED_AUTHORIZATIONS = EnumSet.of(RoleAuthorization.SERVICE_VIEW_OPERATIONAL_LOGS);
 
   private final ControllerFactory controllerFactory;
 
@@ -71,8 +85,46 @@ public class LoggingService extends BaseService {
   @GET
   @Path("searchEngine")
   @Produces("text/plain")
-  public Response getSearchEngine(String body, @Context HttpHeaders headers, @Context UriInfo uri) {
-    return handleDirectRequest(uri, MediaType.TEXT_PLAIN_TYPE);
+  public Response getSearchEngine(String body, @Context HttpHeaders headers, @Context UriInfo uri) throws AuthorizationException {
+    if(AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(), REQUIRED_AUTHORIZATIONS)) {
+      return handleDirectRequest(uri, MediaType.TEXT_PLAIN_TYPE);
+    }
+    else {
+      Response.ResponseBuilder responseBuilder = Response.status(new ResultStatus(ResultStatus.STATUS.FORBIDDEN).getStatusCode());
+      responseBuilder.entity("The authenticated user is not authorized to perform this operation.");
+      return responseBuilder.build();
+    }
+  }
+
+  /**
+   * Get the relevant cluster's resource ID.
+   *
+   * @return a resource ID or <code>null</code> if the cluster is not found
+   */
+  private Long getClusterResourceId() {
+    Long clusterResourceId = null;
+
+    if(!StringUtils.isEmpty(clusterName)) {
+      try {
+        Cluster cluster = controllerFactory.getController().getClusters().getCluster(clusterName);
+
+        if(cluster == null) {
+          LOG.warn("No cluster found with the name {}, assuming null resource id", clusterName);
+        }
+        else {
+          clusterResourceId = cluster.getResourceId();
+        }
+
+      } catch (AmbariException e) {
+        LOG.warn("An exception occurred looking up the cluster named {}, assuming null resource id: {}",
+            clusterName, e.getLocalizedMessage());
+      }
+    }
+    else {
+      LOG.debug("The cluster name is not set, assuming null resource id");
+    }
+
+    return clusterResourceId;
   }
 
   /**
