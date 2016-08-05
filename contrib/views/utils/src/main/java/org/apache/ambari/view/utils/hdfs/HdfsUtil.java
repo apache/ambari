@@ -114,27 +114,32 @@ public class HdfsUtil {
    */
   public static synchronized HdfsApi connectToHDFSApi(ViewContext context) throws HdfsApiException {
     HdfsApi api = null;
+    ClassLoader currentClassLoader = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(null);
-
-    ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(context);
-    AuthConfigurationBuilder authConfigurationBuilder = new AuthConfigurationBuilder(context);
-
-    Map<String, String> authParams = authConfigurationBuilder.build();
-    configurationBuilder.setAuthParams(authParams);
-
     try {
-      api = new HdfsApi(configurationBuilder, getHdfsUsername(context));
-      LOG.info("HdfsApi connected OK");
-    } catch (IOException e) {
-      String message = "HDFS040 Couldn't open connection to HDFS";
-      LOG.error(message);
-      throw new HdfsApiException(message, e);
-    } catch (InterruptedException e) {
-      String message = "HDFS041 Couldn't open connection to HDFS";
-      LOG.error(message);
-      throw new HdfsApiException(message, e);
+      ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(context);
+      AuthConfigurationBuilder authConfigurationBuilder = new AuthConfigurationBuilder(context);
+
+      Map<String, String> authParams = authConfigurationBuilder.build();
+      configurationBuilder.setAuthParams(authParams);
+
+      try {
+        api = new HdfsApi(configurationBuilder, getHdfsUsername(context));
+        LOG.info("HdfsApi connected OK");
+      } catch (IOException e) {
+        String message = "HDFS040 Couldn't open connection to HDFS";
+        LOG.error(message);
+        throw new HdfsApiException(message, e);
+      } catch (InterruptedException e) {
+        String message = "HDFS041 Couldn't open connection to HDFS";
+        LOG.error(message);
+        throw new HdfsApiException(message, e);
+      }
+      return api;
     }
-    return api;
+    finally {
+      Thread.currentThread().setContextClassLoader(currentClassLoader);
+    }
   }
 
   /**
