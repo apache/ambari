@@ -445,12 +445,10 @@ define(['backbone',
     					  }else if(max < 3){
     						  setMinHeight = true
     					  }
-    					  
     					  if(setMinHeight){
-    						  chart.height("100");
+    						  chart.height("200");
     					  }
     				  }
-    					    
     				  chart.tooltip.enabled();
     				  chart.yAxis
     				      .tickFormat(d3.format('d'));

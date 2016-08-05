@@ -599,18 +599,7 @@ define(['require',
             },
             initializeContextMenu: function() {
                 var that = this;
-                this.$(".logMessage").on('mouseup contextmenu', function(e) {
-                    var selection;
-                    e.stopPropagation();
-                    if (window.getSelection) {
-                        selection = window.getSelection();
-                    } else if (document.selection) {
-                        selection = document.selection.createRange();
-                    }
-                    setTimeout(function() {
-                        that.selectionCallBack(selection, e)
-                    }, 1);
-                });
+                
                 $('body').on("mouseup.contextMenuLogFile", function(e) {
                     var selection;
                     if (window.getSelection) {
@@ -622,6 +611,19 @@ define(['require',
                         that.selectionText = "";
                     }
 
+                });
+
+                this.$(".logMessage").on('mouseup contextmenu', function(e) {
+                    var selection;
+                    e.stopPropagation();
+
+                    var range = window.getSelection().getRangeAt(0);
+                    var selectionContents = range.cloneContents();
+                    selection = selectionContents.textContent;
+
+                    setTimeout(function() {
+                        that.selectionCallBack(selection, e)
+                    }, 1);
                 });
             },
             selectionCallBack: function(selection, e) {
@@ -795,7 +797,7 @@ define(['require',
                             that.ui.next.trigger("click");
                             that.pageNotification();
                         },
-                        error: function(col, response, errorThrown) {
+                        error: function(col, xhr, errorThrown) {
                             that.resetFindParams();
                             if (!!errorThrown.xhr.getAllResponseHeaders()) {
                               //  Utils.notifyInfo({ content: "Keyword '" + val + "' not found in " + (keywordType == 1 ? "next" : "previous") + " page !" });

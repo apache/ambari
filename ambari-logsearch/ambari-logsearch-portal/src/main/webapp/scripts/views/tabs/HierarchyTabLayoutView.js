@@ -153,7 +153,6 @@ define(['require',
 		onRender : function(){
 			//this.renderTreeView();
 			this.fetchServiceLogsColumns();
-			this.renderBubbleTableView();
 			this.renderLogLevel();
 			this.renderEventHistory();
 			this.renderHistogram();
@@ -184,6 +183,7 @@ define(['require',
 				},
 				complete : function(){
 					that.renderServiceColumnsVSSearch();
+					that.renderBubbleTableView();
 				}
 			});
 		},

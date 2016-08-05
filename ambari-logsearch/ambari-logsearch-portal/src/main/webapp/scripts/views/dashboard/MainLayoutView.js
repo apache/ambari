@@ -116,6 +116,10 @@ define(['require',
             this.listenTo(this.globalVent,"show:tab",function(tabName){
             	this.showTab(tabName);
             },this);
+            this.listenTo(this.globalVent,"add:compare",function($el){
+            	this.quickMenuCompare = true;
+            	this.onCompareLink($el);
+            },this);
 		},
 		onRender : function(){
 			this.renderTroubleShootTab();
@@ -454,50 +458,75 @@ define(['require',
 			})
 		},
 		tabcheckBoxSelectDeselect:function(el,fromEvent){
-			if(el.find('i').hasClass('fa-square-o')){
-				 if (this.componetList.length >= 4) {
-                    Utils.alertPopup({
-                        msg: "Currently only four components comparison supported."
-                    });
-                    return;
-                }
-				el.find('i').removeClass('fa-square-o').addClass(' fa-check-square-o');
-				this.onCompareLink(el);
-			}else{
-				el.find('i').removeClass('fa-check-square-o').addClass('fa-square-o');
-				if(!fromEvent){
-					this.onCloseCompareComponentClick(el.parents('li').find('a').data().id)
-				}
-				
+			var that = this,
+		    clickedId = this.$('div[role="tabpanel"] ul').find(el).parents('li').data('id');
+			if (el.find('i').hasClass('fa-square-o')) {
+				var idList = _.pluck(this.componetList, 'id');
+			    if (! _.contains(idList, clickedId)) {
+			    	if(this.componetList.length >= 4){
+			    		Utils.alertPopup({
+			    			msg: "Currently only four components comparison supported."
+			    		});
+			    		return;
+			    	}else{
+			    		el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
+			    		this.quickMenuCompare = false;
+			    		this.onCompareLink(el);
+			    	}        
+			    }else{
+			    	el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
+			    }
+			} else {
+			    el.find('i').removeClass('fa-check-square-o').addClass('fa-square-o');
+			    if (!fromEvent) {
+			        this.onCloseCompareComponentClick(el.parents('li').find('a').data().id)
+			    }
 			}
 		},
 		onCompareLink:function($el){
-			this.togglePanelPosition(false,true);
-			var clickedId ="",
-				newValue = true,
-				dataValue =  $el.parents('li').find('a').data();
-			if(dataValue.id){
-				var clickedId = dataValue.id;
+			this.togglePanelPosition(false, true);
+			var clickedId = "",
+			    newValue = true,
+			    dataValue;
+			if (this.quickMenuCompare) {
+			    dataValue = $el.data();
+			    if(dataValue.host){
+			    	dataValue.id = dataValue.host.replace(/\./g, '_') + dataValue.node;
+			    }
+			} else {
+			    dataValue = $el.parents('li').find('a').data();
 			}
-			_.each(this.componetList,function(object){
-					if(object.id.match(clickedId)){
-						newValue = false;
-					}
+			if (dataValue.id) {
+			    var clickedId = dataValue.id;
+			}
+			_.each(this.componetList, function(object) {
+			    if (object.id.match(clickedId)) {
+			        newValue = false;
+			    }
 			});
-			if(this.componetList.length <= 3 && newValue){
-				if(dataValue.host && dataValue.component){
-					var host = dataValue.host;
-					var component = dataValue.component;
-					var spanLength = this.$('.compare .panel-body span.hasNode');
-					if(spanLength.length != 0 && spanLength.length >= 1){
-						this.componetList.push({'host':host,'component':component,id:clickedId});
-						this.$('.compare .panel-body .hostCompList').append('<span class="hasNode" data-id="'+clickedId+'"><i class=" closeComponent fa fa-times-circle"></i>'+host.split(".")[0]+' <i class="fa fa-angle-double-right"></i><br> '+component+'</span>');
-					}else{
-						this.componetList.push({'host':host,'component':component,id:clickedId});
-					  	this.$('.compare .panel-body .hostCompList').html('<span class="hasNode" data-id="'+clickedId+'"><i class=" closeComponent fa fa-times-circle"></i>'+host.split(".")[0]+' <i class="fa fa-angle-double-right"></i><br> '+component+'</span>');
-					}
-				}
+			if (this.componetList.length >= 4) {
+			    if (newValue) {
+			        Utils.alertPopup({
+			            msg: "Currently only four components comparison supported."
+			        });
+			        return;
+			    }
 			}
+			if (this.componetList.length <= 3 && newValue) {
+			    if (dataValue.host && (dataValue.component || dataValue.node)) {
+			        var host = dataValue.host;
+			        var component = dataValue.component || dataValue.node;
+			        var spanLength = this.$('.compare .panel-body span.hasNode');
+			        if (spanLength.length != 0 && spanLength.length >= 1) {
+			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.$('.compare .panel-body .hostCompList').append('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
+			        } else {
+			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.$('.compare .panel-body .hostCompList').html('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
+			        }
+			    }
+			}
+			this.quickMenuCompare = false;
 		},
 		onCompareButtonClick:function(){
 			if(this.componetList.length == 1){
@@ -505,25 +534,25 @@ define(['require',
                         msg: "Minimum two components are required for comparison. Please select one more component and try again."
                 });
 			}else{
-					var dateRangeLabel ='Last 1 Hour';
-					var dateObj = this.dateUtil.getRelativeDateFromString(dateRangeLabel);
+				var dateRangeLabel ='Last 1 Hour';
+				var dateObj = this.dateUtil.getRelativeDateFromString(dateRangeLabel);
 
-					if (this.RHierarchyTab.currentView && this.RHierarchyTab.currentView.defaultParams) {
-					    var dateParams = this.RHierarchyTab.currentView.defaultParams;
-					    if (!_.isUndefined(dateParams) && _.isObject(dateParams)) {
-					        dateObj = {
-					            from: dateParams.from,
-					            to: dateParams.to,
-					            dateRangeLabel: dateParams.dateRangeLabel
-					        };
-					    }
-					}
+				if (this.RHierarchyTab.currentView && this.RHierarchyTab.currentView.defaultParams) {
+				    var dateParams = this.RHierarchyTab.currentView.defaultParams;
+				    if (!_.isUndefined(dateParams) && _.isObject(dateParams)) {
+				        dateObj = {
+				            from: dateParams.from,
+				            to: dateParams.to,
+				            dateRangeLabel: dateParams.dateRangeLabel
+				        };
+				    }
+				}
 
-					this.globalVent.trigger("render:comparison:tab",{
-						params: dateObj,
-						componetList:this.componetList,
-						globalVent : this.globalVent
-					});
+				this.globalVent.trigger("render:comparison:tab",{
+					params: dateObj,
+					componetList:this.componetList,
+					globalVent : this.globalVent
+				});
 			}
 			this.togglePanelPosition(false,false)
 		},
@@ -562,9 +591,6 @@ define(['require',
 			            clickedIndex = i + 1;
 			        }
 			    });
-			    if(fromEvent){
-					this.tabcheckBoxSelectDeselect(this.$('div[role="tabpanel"] ul').find('li[data-id="'+clickedId+'"] div.compareClick'),true)
-				}
 			    if (clickedIndex) {
 			        this.componetList.splice(clickedIndex - 1, 1);
 			        if(this.componetList.length == 0){
@@ -573,7 +599,9 @@ define(['require',
 			        	this.togglePanelPosition(false,true);
 			        }
 			    }
-			    
+			    if(fromEvent){
+					this.tabcheckBoxSelectDeselect(this.$('div[role="tabpanel"] ul').find('li[data-id="'+clickedId+'"] div.compareClick'),true)
+				}
 			}
 		},
 		bindTabClickListener:function(){

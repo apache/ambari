@@ -78,17 +78,16 @@ define(['require',
             showParams: function() {
                 var tableSting = "",
                     that = this;
-
-                _.each(this.params, function(value, key) {
-                    if ((key != "from" && (! _.isEmpty(value) || value != "[]") && key != "to" && key != "bundleId" && key != "start_time" && 
+                var customParam = {"mustNot":[],"mustBe":[],"includeQuery":[],"excludeQuery":[]};
+                var paramNames = _.extend({},this.params,customParam);
+                _.each(paramNames, function(value, key) {
+                    if ((key != "from" && (! _.isEmpty(value) || _.isArray(value)) && key != "to" && key != "bundleId" && key != "start_time" && 
                     		key != "end_time" && key != "q" && key != "unit" && key != "query" && key != "type" && 
                     		key != "time" && key != "dateRangeLabel" && key != "advanceSearch" && !_.isUndefined(Globals.paramsNameMapping[key]) )) {
                         tableSting += '<tr class="' + key + '"><td>' + Globals.paramsNameMapping[key].label + '</td><td>' + (that.createInnerSpan(key)) + '</td><tr>'
                     }
-                })
-                this.ui.paramsPanelBody.html(tableSting)
-
-
+                });
+                this.ui.paramsPanelBody.html(tableSting);
             },
             createInnerSpan: function(type) {
                 var typeString = "",
@@ -100,7 +99,7 @@ define(['require',
                             ((type == "level") ? (",") : (""));
                     });
                 }
-                return ((typeString.length == 0) ? ("-") : ((type == "level") ? ((typeString).slice(0, -1)) : (typeString)))
+                return ((typeString.length == 0) ? ("[ ]") : ((type == "level") ? ((typeString).slice(0, -1)) : (typeString)))
             },
             popoverForTd: function() {
                 this.ui.paramsPanelBody.find('td:nth-child(2) span').map(function() {

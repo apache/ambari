@@ -100,6 +100,7 @@ define(['require',
 			this.graphModel = new VGraphInfo();
 			this.bindEvents();
 			this.graphParams = this.params;
+
 		},
 		bindEvents : function(){
 			this.listenTo(this.collection,"reset",function(collection){
@@ -327,7 +328,7 @@ define(['require',
 								  '<ul class="dropdown-menu dropupright">' +
 								    '<li data-id="A_B"><a href="javascript:void(0)">Preview</a></li>' +
 								    "<li data-id='N_T'><a title='Open logs in new tab' data-type='C' data-host='"+model.get("host")+"' data-node='"+model.get("type")+"' data-id='"+model.get("id")+"' href='javascript:void(0)' class=''>Go To Log</a></li>" +
-								    //'<li><a href="#">JavaScript</a></li>' +
+								    "<li data-id='C_M'><a title='Add to compare' data-type='C' data-host='"+model.get("host")+"' data-node='"+model.get("type")+"' data-id='"+model.get("id")+"' href='javascript:void(0)' class=''>Add to Compare</a></li>" +
 								  '</ul>' +
 								'</div></div>';
 								return str;
@@ -533,14 +534,15 @@ define(['require',
 			this.$el.on('mouseup contextmenu', ".logMessage", function(e){
 		        var selection;
 		        e.stopPropagation();
-		        if (window.getSelection) {
-		          selection = window.getSelection();
-		        } else if (document.selection) {
-		          selection = document.selection.createRange();
-		        }
+
+		        var range = window.getSelection().getRangeAt(0);
+				var selectionContents = range.cloneContents();
+				selection = selectionContents.textContent;
+
 		        setTimeout(function(){
 		        	that.selectionCallBack(selection,e)
 		        },1);
+
 		        
 		    });
 		},
@@ -602,6 +604,8 @@ define(['require',
 				});
 			}else if ($el.data("id") === "N_T"){
 				this.onNewTabIconClick($el.find('a'));
+			}else if ($el.data("id") === "C_M"){
+				this.globalVent.trigger("add:compare",$el.find('a'));
 			}
 			
 		},

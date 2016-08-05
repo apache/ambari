@@ -237,11 +237,11 @@ define(['require',
                     if(!that.futureDate){
                         var date = moment().add(1,"hours").format("YYYY-MM-DDTHH:mm:ss.SSSSZ");
                         var newObj =[];
-                        for(i = 0 ;i < Obj.values.length ;i++){
-                                if(moment(date).isAfter(that.dateUtil.getMomentObject(Obj.values[i].x))){
-                                    newObj[i] = {
-                                                     x : that.dateUtil.getMomentObject(Obj.values[i].x),
-                                                     y : Obj.values[i].y
+                        for(var k = 0 ;k < Obj.values.length ;k++){
+                                if(moment(date).isAfter(that.dateUtil.getMomentObject(Obj.values[k].x))){
+                                    newObj[k] = {
+                                                     x : that.dateUtil.getMomentObject(Obj.values[k].x),
+                                                     y : Obj.values[k].y
                                                  }
                                 }
                         }
