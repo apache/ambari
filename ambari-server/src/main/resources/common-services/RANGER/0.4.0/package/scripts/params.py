@@ -140,14 +140,14 @@ ranger_external_url = config['configurations']['admin-properties']['policymgr_ex
 if ranger_external_url.endswith('/'):
   ranger_external_url = ranger_external_url.rstrip('/')
 ranger_db_name = config['configurations']['admin-properties']['db_name']
-ranger_auditdb_name = config['configurations']['admin-properties']['audit_db_name']
+ranger_auditdb_name = default('/configurations/admin-properties/audit_db_name', 'ranger_audits')
 
 sql_command_invoker = config['configurations']['admin-properties']['SQL_COMMAND_INVOKER']
 db_root_user = config['configurations']['admin-properties']['db_root_user']
 db_root_password = unicode(config['configurations']['admin-properties']['db_root_password'])
 db_host =  config['configurations']['admin-properties']['db_host']
 ranger_db_user = config['configurations']['admin-properties']['db_user']
-ranger_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+ranger_audit_db_user = default('/configurations/admin-properties/audit_db_user', 'rangerlogger')
 ranger_db_password = unicode(config['configurations']['admin-properties']['db_password'])
 
 #ranger-env properties
@@ -214,8 +214,10 @@ ranger_credential_provider_path = config["configurations"]["ranger-admin-site"][
 ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]
 ranger_ambari_db_password = unicode(config["configurations"]["admin-properties"]["db_password"])
 
-ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"] if stack_supports_ranger_audit_db else None
-ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"]) if stack_supports_ranger_audit_db else None
+ranger_jpa_audit_jdbc_credential_alias = default('/configurations/ranger-admin-site/ranger.jpa.audit.jdbc.credential.alias', 'rangeraudit')
+ranger_ambari_audit_db_password = ''
+if not is_empty(config["configurations"]["admin-properties"]["audit_db_password"]) and stack_supports_ranger_audit_db:
+  ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"])
 
 ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
 ugsync_cred_lib = os.path.join(usersync_home,"lib","*")
