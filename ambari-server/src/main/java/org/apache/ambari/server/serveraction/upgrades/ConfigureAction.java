@@ -17,10 +17,16 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -50,15 +56,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * The {@link ConfigureAction} is used to alter a configuration property during
@@ -236,9 +237,12 @@ public class ConfigureAction extends AbstractServerAction {
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    if (desiredConfig == null) {
+      throw new AmbariException("Could not find desired config type with name " + configType);
+    }
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
     if (config == null) {
-      throw new AmbariException("Could not find desired config type with name " + configType);
+      throw new AmbariException("Could not find config type with name " + configType);
     }
 
     StackId currentStack = cluster.getCurrentStackVersion();
