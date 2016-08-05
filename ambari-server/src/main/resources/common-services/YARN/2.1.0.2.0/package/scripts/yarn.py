@@ -112,7 +112,7 @@ def yarn(name=None, config_dir=None):
                            type="directory",
                            owner=params.yarn_user,
                            group=params.user_group,
-                           mode=0777,
+                           mode=01777,
                            recursive_chmod=True
       )
 
