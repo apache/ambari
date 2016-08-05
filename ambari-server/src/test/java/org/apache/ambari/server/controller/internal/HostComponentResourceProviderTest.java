@@ -430,7 +430,7 @@ public class HostComponentResourceProviderTest {
     Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    DeleteStatusMetaData deleteStatusMetaData = createNiceMock(DeleteStatusMetaData.class);
     Injector injector = createNiceMock(Injector.class);
 
     HostComponentResourceProvider provider =
@@ -441,10 +441,10 @@ public class HostComponentResourceProviderTest {
     // set expectations
     expect(managementController.deleteHostComponents(
         AbstractResourceProviderTest.Matcher.getHostComponentRequestSet(
-            null, null, "Component100", "Host100", null, null))).andReturn(response);
+            null, null, "Component100", "Host100", null, null))).andReturn(deleteStatusMetaData);
 
     // replay
-    replay(managementController, response);
+    replay(managementController, deleteStatusMetaData);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -466,7 +466,7 @@ public class HostComponentResourceProviderTest {
     Assert.assertNull(lastEvent.getRequest());
 
     // verify
-    verify(managementController, response);
+    verify(managementController, deleteStatusMetaData);
   }
 
   @Test
