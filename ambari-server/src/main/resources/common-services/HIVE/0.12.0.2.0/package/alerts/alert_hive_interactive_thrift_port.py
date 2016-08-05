@@ -34,17 +34,17 @@ CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 
 HIVE_SERVER_INTERACTIVE_THRIFT_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.port}}'
 HIVE_SERVER_INTERACTIVE_THRIFT_HTTP_PORT_KEY = '{{hive-interactive-site/hive.server2.thrift.http.port}}'
-HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-interactive-site/hive.server2.transport.mode}}'
+HIVE_SERVER_INTERACTIVE_TRANSPORT_MODE_KEY = '{{hive-site/hive.server2.transport.mode}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 HIVE_SERVER2_INTERACTIVE_AUTHENTICATION_KEY = '{{hive-interactive-site/hive.server2.authentication}}'
 HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
-HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY = '{{hive-interactive-site/hive.server2.authentication.kerberos.principal}}'
+HIVE_SERVER_INTERACTIVE_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.principal}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
-HIVE_SSL = '{{hive-interactive-site/hive.server2.use.SSL}}'
-HIVE_SSL_KEYSTORE_PATH = '{{hive-interactive-site/hive.server2.keystore.path}}'
-HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-interactive-site/hive.server2.keystore.password}}'
+HIVE_SSL = '{{hive-site/hive.server2.use.SSL}}'
+HIVE_SSL_KEYSTORE_PATH = '{{hive-site/hive.server2.keystore.path}}'
+HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-site/hive.server2.keystore.password}}'
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
