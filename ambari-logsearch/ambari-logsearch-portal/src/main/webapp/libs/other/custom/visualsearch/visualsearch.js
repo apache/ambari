@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 // This is the annotated source code for
 // [VisualSearch.js](http://documentcloud.github.com/visualsearch/),
 // a rich search box for real data.
@@ -257,10 +275,10 @@ VS.ui.SearchBox = Backbone.View.extend({
     this.renderSearchInput();
     this.facetViews.push(view);
     this.$('.VS-search-inner').children().eq(position*2).after(view.render().el);
-
+    $('.search_input').children('textarea').css({'width':0,'height':0});
     view.calculateSize();
     _.defer(_.bind(view.calculateSize, view));
-
+    $('.search_facet_input_container').css({'width': ($('.search_facet').width() - ($('.category').width() + 10) )+'px'})
     return view;
   },
 
@@ -337,14 +355,14 @@ VS.ui.SearchBox = Backbone.View.extend({
   deselectAllFacets : function(e) {
     this.disableFacets();
 
-    if (this.$(e.target).is('.category,input')) {
+    if (this.$(e.target).is('.category,textarea')) {
       var el   = $(e.target).closest('.search_facet,.search_input');
       var view = _.detect(this.facetViews.concat(this.inputViews), function(v) {
         return v.el == el[0];
       });
       if (view.type == 'facet') {
         view.selectFacet();
-      } else if (view.type == 'input') {
+      } else if (view.type == 'textarea') {
         _.defer(function() {
           view.enableEdit(true);
         });
@@ -470,7 +488,7 @@ VS.ui.SearchBox = Backbone.View.extend({
       view.box.trigger('keydown');
     }
     _.defer(_.bind(function() {
-      if (!this.$('input:focus').length) {
+      if (!this.$('textarea:focus').length) {
         view.enableEdit(selectText);
       }
     }, this));
@@ -552,8 +570,8 @@ VS.ui.SearchFacet = Backbone.View.extend({
 
   events : {
     'click .category'           : 'selectFacet',
-    'keydown input'             : 'keydown',
-    'mousedown input'           : 'enableEdit',
+    'keydown textarea'             : 'keydown',
+    'mousedown textarea'           : 'enableEdit',
     'mouseover .VS-icon-cancel' : 'showDelete',
     'mouseout .VS-icon-cancel'  : 'hideDelete',
     'click .VS-icon-cancel'     : 'remove'
@@ -579,13 +597,12 @@ VS.ui.SearchFacet = Backbone.View.extend({
 
     this.setMode('not', 'editing');
     this.setMode('not', 'selected');
-    this.box = this.$('input');
+    this.box = this.$('textarea');
     this.box.val(this.model.label());
     this.box.bind('blur', this.deferDisableEdit);
     // Handle paste events with `propertychange`
-    this.box.bind('input propertychange', this.keydown);
+    this.box.bind('textarea propertychange', this.keydown);
     this.setupAutocomplete();
-
     return this;
   },
 
@@ -594,14 +611,14 @@ VS.ui.SearchFacet = Backbone.View.extend({
   // DOM to get the correct font-size.
   calculateSize : function() {
     this.box.autoGrowInput();
-    this.box.unbind('updated.autogrow');
+    //this.box.unbind('updated.autogrow');
     this.box.bind('updated.autogrow', _.bind(this.moveAutocomplete, this));
   },
 
   // Forces a recalculation of this facet's input field's value. Called when
   // the facet is focused, removed, or otherwise modified.
   resize : function(e) {
-    this.box.trigger('resize.autogrow', e);
+   // this.box.trigger('resize.autogrow', e);
   },
 
   // Watches the facet's input field to see if it matches the beginnings of
@@ -644,7 +661,6 @@ VS.ui.SearchFacet = Backbone.View.extend({
         });
       }, this)
     });
-
     this.box.autocomplete('widget').addClass('VS-interface');
   },
 
@@ -994,11 +1010,11 @@ VS.ui.SearchInput = Backbone.View.extend({
   className : 'search_input ui-menu',
 
   events : {
-    'keypress input'  : 'keypress',
-    'keydown input'   : 'keydown',
-    'keyup input'     : 'keyup',
-    'click input'     : 'maybeTripleClick',
-    'dblclick input'  : 'startTripleClickTimer'
+    'keypress textarea'  : 'keypress',
+    'keydown textarea'   : 'keydown',
+    'keyup textarea'     : 'keyup',
+    'click textarea'     : 'maybeTripleClick',
+    'dblclick textarea'  : 'startTripleClickTimer'
   },
 
   initialize : function(options) {
@@ -1020,7 +1036,7 @@ VS.ui.SearchInput = Backbone.View.extend({
 
     this.setMode('not', 'editing');
     this.setMode('not', 'selected');
-    this.box = this.$('input');
+    this.box = this.$('textarea');
     this.box.autoGrowInput();
     this.box.bind('updated.autogrow', this.moveAutocomplete);
     this.box.bind('blur',  this.deferDisableEdit);
@@ -1301,11 +1317,10 @@ VS.ui.SearchInput = Backbone.View.extend({
   // Callback fired on key press in the search box. We search when they hit return.
   keypress : function(e) {
     var key = VS.app.hotkeys.key(e);
-
     if (key == 'enter') {
       return this.search(e, 100);
     } else if (VS.app.hotkeys.colon(e)) {
-      this.box.trigger('resize.autogrow', e);
+     // this.box.trigger('resize.autogrow', e);
       var query    = this.box.val();
       var prefixes = [];
       this.app.options.callbacks.facetMatches(function(p) {
@@ -1394,7 +1409,7 @@ VS.ui.SearchInput = Backbone.View.extend({
   // We should get the value of an input should be done
   // on keyup since keydown gets the previous value and not the current one
   keyup : function(e) {
-    this.box.trigger('resize.autogrow', e);
+    //this.box.trigger('resize.autogrow', e);
   }
 
 });
@@ -1577,8 +1592,7 @@ $.fn.extend({
       // Watch for input value changes on all of these events. `resize`
       // event is called explicitly when the input has been changed without
       // a single keypress.
-      var events = 'keydown.autogrow keypress.autogrow ' +
-                   'resize.autogrow change.autogrow';
+      var events = {};
       $input.next('.VS-input-width-tester').remove();
       $input.after($tester);
       $input.unbind(events).bind(events, function(e, realEvent) {
@@ -1603,12 +1617,12 @@ $.fn.extend({
 
         $tester.html(value);
 
-        $input.width($tester.width() + 3 + parseInt($input.css('min-width')));
-        $input.trigger('updated.autogrow');
+        $input.width($tester.width() + 10 + parseInt($input.css('min-width')));
+        //$input.trigger('updated.autogrow');
       });
 
       // Sets the width of the input on initialization.
-      $input.trigger('resize.autogrow');
+      //$input.trigger('resize.autogrow');
     });
   },
 
@@ -1965,6 +1979,6 @@ VS.model.SearchQuery = Backbone.Collection.extend({
 window.JST = window.JST || {};
 
 window.JST['search_box'] = _.template('<div class="VS-search <% if (readOnly) { %>VS-readonly<% } %>">\n  <div class="VS-search-box-wrapper VS-search-box">\n    <div class="VS-icon VS-icon-search"></div>\n    <div class="VS-placeholder"></div>\n    <div class="VS-search-inner"></div>\n    <div class="VS-icon VS-icon-cancel VS-cancel-search-box" title="clear search"></div>\n  </div>\n</div>');
-window.JST['search_facet'] = _.template('<% if (model.has(\'category\')) { %>\n  <div class="category"><%= model.get(\'category\') %>:</div>\n<% } %>\n\n<div class="search_facet_input_container">\n  <input type="text" class="search_facet_input ui-menu VS-interface" value="" <% if (readOnly) { %>disabled="disabled"<% } %> />\n</div>\n\n<div class="search_facet_remove VS-icon VS-icon-cancel"></div>');
-window.JST['search_input'] = _.template('<input type="text" class="ui-menu" <% if (readOnly) { %>disabled="disabled"<% } %> />');
+window.JST['search_facet'] = _.template('<% if (model.has(\'category\')) { %>\n  <div class="category"><%= model.get(\'category\') %>:</div>\n<% } %>\n\n<div class="search_facet_input_container">\n  <textarea type="text" class="search_facet_input ui-menu VS-interface" value="" <% if (readOnly) { %>disabled="disabled"<% } %> />\n</div>\n\n<div class="search_facet_remove VS-icon VS-icon-cancel"></div>');
+window.JST['search_input'] = _.template('<textarea type="text" class="ui-menu" <% if (readOnly) { %>disabled="disabled"<% } %> />');
 })();
