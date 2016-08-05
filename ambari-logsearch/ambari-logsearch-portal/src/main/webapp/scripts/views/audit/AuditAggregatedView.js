@@ -86,6 +86,10 @@ define(['require',
 				this.fetchTopUsers(value);
 				this.fetchTopResources(value);
             },this);
+            this.listenTo(this,"button:min:max",function(){
+            	this.renderGraphUsers();
+            	this.renderGraphResources();
+            },this);
 		},
 		initializeCollection : function(){
 			this.topUsers = new VNameValueList([],{

@@ -1,3 +1,4 @@
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -866,7 +867,7 @@ div.columnmanager-visibilitycontrol {
   overflow: visible;
   text-overflow: clip;
   white-space: pre-wrap;
-  word-break: break-word;
+  /*  word-break: break-word;*/
 }
 
 /* Side Panel */
@@ -1370,24 +1371,25 @@ body {
   display: none;
 }
 
-.saveFilterTable tr {
+table.saveFilterTable tr {
   width: 100%;
   display: block;
 }
 
-.saveFilterTable tr td:first-child {
+table.saveFilterTable tr td:first-child {
   width: 20%;
   text-align: right;
   display: inline-block;
 }
 
-.saveFilterTable tr td {
+table.saveFilterTable tr td {
   width: 80%;
   display: inline-block;
   text-align: left;
+  white-space: normal;
 }
 
-.saveFilterTable,.saveFilterTable tbody {
+table.saveFilterTable,.saveFilterTable tbody {
   display: block;
 }
 
@@ -2878,7 +2880,6 @@ td.filterName {
 }
 
 .mapDropDown:active {
-  position: relative;
   top: 2px;
   left: 2px;
 }
@@ -2908,4 +2909,29 @@ td.filterName {
 .box-contentHost:before, .box-contentHost:after {
   content: "";
   display: table;
+}
+table.backgrid{
+  overflow: auto !important;
+}
+button.defaultBtn{
+    color: #ffffff !important;
+    background-color: #006dcc !important;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc)) !important;
+    background-image: -webkit-linear-gradient(top, #0088cc, #0044cc) !important;
+    background-image: -o-linear-gradient(top, #0088cc, #0044cc) !important;
+    background-image: linear-gradient(to bottom, #0088cc, #0044cc) !important;
+    background-image: -moz-linear-gradient(top, #0088cc, #0044cc) !important;
+}
+button.defaultCancelBtn{
+  color: #333333 !important;
+  background-color: #ffffff;
+}
+ul.user-profile{
+  list-style: none;
+  margin: 0;
+  -webkit-padding-start: 0;
+}
+ul.user-profile i{
+  font-size: 26px;
+  margin-right: 20px;
 }

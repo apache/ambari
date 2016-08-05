@@ -178,14 +178,14 @@ define(['require',
                         buttons: [{
                             id: "okBtn",
                             text: "Save",
-                            "class": "btn btn-primary",
+                            "class": "btn btn-primary defaultBtn",
                             click: function() {
                                 that.onCreateFilterSubmit();
                             }
                         }, {
                             id: "cancelBtn",
                             text: "Close",
-                            "class": "btn btn-default",
+                            "class": "btn btn-default defaultCancelBtn",
                             click: function() {
                                 that.onDialogClosed();
                             }
@@ -368,21 +368,21 @@ define(['require',
                         buttons: [{
                             id: "reloadBtn",
                             text: "Reload",
-                            "class": "btn btn-primary",
+                            "class": "btn btn-primary defaultBtn",
                             click: function() {
                                 that.onTimeZoneReload();
                             }
                         }, {
                             id: "reloadNewBtn",
                             text: "Reload in new tab",
-                            "class": "btn btn-primary",
+                            "class": "btn btn-primary defaultBtn",
                             click: function() {
                                 that.onTimeZoneReloadinNewTab();
                             }
                         }, {
                             id: "cancelBtn",
                             text: "Close",
-                            "class": "btn btn-default",
+                            "class": "btn btn-default defaultCancelBtn",
                             click: function() {
                                 that.onDialogClosed();
                             }
@@ -399,7 +399,7 @@ define(['require',
                     Utils.localStorage.setLocalStorage('timezone', content.selectedtimeZone);
                     //this.ui.timeZoneChange.find('span').text(moment.tz(content.selectedtimeZone).zoneName());
                     this.globalVent.trigger("currentMap:load",obj);
-                    window.open(window.location.href, '_blank');
+                    window.open(window.location.href);
 
                 }
             },

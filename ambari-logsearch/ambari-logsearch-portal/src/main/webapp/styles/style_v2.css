@@ -781,6 +781,7 @@ ul.DTTT_dropdown.dropdown-menu > li:hover > a {
 }
 .btn i {
   vertical-align: middle;
+  pointer-events:none;
 }
 .btn-app {
   width: 50px;
@@ -956,7 +957,7 @@ ul.DTTT_dropdown.dropdown-menu > li:hover > a {
   *background-color: #d9d9d9;
   /* Buttons in IE7 don't get borders, so darken on hover */
 
-  background-position: 0 -15px;
+  background-position: 0 -30px;
   -webkit-transition: background-position 0.1s linear;
      -moz-transition: background-position 0.1s linear;
        -o-transition: background-position 0.1s linear;
@@ -2100,7 +2101,7 @@ button.btn.btn-xs{
   padding: 0 15px;
 }
 .btn + .dropdown-menu {
-  margin-top: -10px;
+  margin-top: -48px;
   background: rgba(0, 0, 0, 0.7) !important; padding: 0; border: 0; 
   right: 0; 
   left: auto; 
