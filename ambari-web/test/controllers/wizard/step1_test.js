@@ -209,4 +209,193 @@ describe('App.WizardStep1Controller', function () {
 
   });
 
+  describe('#uploadVdf', function () {
+
+    function getModal() {
+      var controller = getController();
+      controller.set('optionsToSelect', Em.Object.create({
+        useLocalRepo: {
+          enterUrl: {isSelected: true, url: 'apache.org'},
+          uploadFile: {isSelected: false, file: 'some_file'}
+        }
+      }));
+      return controller.uploadVdf();
+    }
+
+    beforeEach(function () {
+      this.modal = getModal();
+    });
+
+    describe('#restoreUploadOptions', function () {
+
+      beforeEach(function () {
+        wizardStep1Controller.set('optionsToSelect.useLocalRepo', {
+          enterUrl: {isSelected: true, url: 'apache.org'},
+          uploadFile: {isSelected: false, file: 'some_file'}
+        });
+        this.modal.restoreUploadOptions();
+      });
+
+      it('`enterUrl.isSelected`', function () {
+        expect(this.modal.get('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected')).to.be.false;
+      });
+
+      it('`enterUrl.url`', function () {
+        expect(this.modal.get('controller.optionsToSelect.useLocalRepo.enterUrl.url')).to.be.equal('');
+      });
+
+      it('`uploadFile.isSelected`', function () {
+        expect(this.modal.get('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')).to.be.true;
+      });
+
+      it('`uploadFile.file`', function () {
+        expect(this.modal.get('controller.optionsToSelect.useLocalRepo.uploadFile.file')).to.be.equal('');
+      });
+
+    });
+
+    describe('#bodyClass', function () {
+
+      beforeEach(function () {
+        this.body = this.modal.get('bodyClass').create();
+      });
+
+      describe('#uploadFileView', function () {
+
+        beforeEach(function() {
+          this.fileView = this.body.get('uploadFileView').create();
+        });
+
+        describe('#click', function () {
+
+          beforeEach(function () {
+            this.fileView.set('controller', getController());
+            this.fileView.set('controller.optionsToSelect', {
+              useLocalRepo: {
+                enterUrl: {isSelected: true, hasError: true},
+                uploadFile: {isSelected: false, hasError: true}
+              }
+            });
+            this.fileView.click();
+          });
+
+          it('`enterUrl.isSelected`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected')).to.be.false;
+          });
+
+          it('`enterUrl.hasError`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.enterUrl.hasError')).to.be.false;
+          });
+
+          it('`uploadFile.isSelected`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')).to.be.true;
+          });
+
+          it('`uploadFile.hasError`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.uploadFile.hasError')).to.be.false;
+          });
+
+        });
+
+      });
+
+      describe('#enterUrlView', function () {
+
+        beforeEach(function() {
+          this.fileView = this.body.get('enterUrlView').create();
+        });
+
+        describe('#click', function () {
+
+          beforeEach(function () {
+            this.fileView.set('controller', getController());
+            this.fileView.set('controller.optionsToSelect', {
+              useLocalRepo: {
+                enterUrl: {isSelected: false, hasError: true},
+                uploadFile: {isSelected: false, hasError: true}
+              }
+            });
+            this.fileView.click();
+          });
+
+          it('`enterUrl.isSelected`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected')).to.be.true;
+          });
+
+          it('`enterUrl.hasError`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.enterUrl.hasError')).to.be.false;
+          });
+
+          it('`uploadFile.isSelected`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')).to.be.false;
+          });
+
+          it('`uploadFile.hasError`', function () {
+            expect(this.fileView.get('controller.optionsToSelect.useLocalRepo.uploadFile.hasError')).to.be.false;
+          });
+
+        });
+
+      });
+
+    });
+
+  })
+
+  describe('#removeOS', function() {
+
+    beforeEach(function () {
+      wizardStep1Controller.set('selectedStack', {useRedhatSatellite: null});
+    });
+
+    [
+      {
+        useRedhatSatellite: false,
+        e: false,
+      },
+      {
+        useRedhatSatellite: true,
+        e: true
+      }
+    ].forEach(function (test) {
+      it('useRedhatSatellite is ' + JSON.stringify(test.useRedhatSatellite), function () {
+        wizardStep1Controller.set('selectedStack.useRedhatSatellite', test.useRedhatSatellite);
+        var os = {isSelected: true};
+        wizardStep1Controller.removeOS({context: os})
+        expect(Ember.get(os, 'isSelected')).to.be.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#addOS', function() {
+
+    it('should set `isSelected` to true', function () {
+      var os = {isSelected: false};
+      wizardStep1Controller.addOS({context: os})
+      expect(Ember.get(os, 'isSelected')).to.be.true;
+    });
+
+  });
+
+  describe('#onNetworkIssuesExist', function () {
+
+    beforeEach(function () {
+      this.controller = App.WizardStep1Controller.create({content: Em.Object.create({stacks: stacks})});
+      this.controller.get('content.stacks').setEach('usePublicRepo', true);
+      this.controller.get('content.stacks').setEach('useLocalRepo', false);
+      this.controller.reopen({networkIssuesExist: true});
+      this.controller.onNetworkIssuesExist();
+    });
+
+    it('each stack has `usePublicRepo` false', function() {
+      expect(this.controller.get('content.stacks').everyProperty('usePublicRepo', false)).to.be.true;
+    });
+
+    it('each stack has `useLocalRepo` true', function() {
+      expect(this.controller.get('content.stacks').everyProperty('useLocalRepo', true)).to.be.true;
+    });
+
+  });
+
 });
