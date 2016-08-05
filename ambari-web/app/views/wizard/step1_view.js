@@ -196,8 +196,8 @@ App.WizardStep1View = Em.View.extend({
     }
     var operatingSystems = this.get('controller.selectedStack.operatingSystems');
     var selectedOS = operatingSystems.filterProperty('isSelected', true);
-    return selectedOS.everyProperty('isEmpty', true);
-  }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isEmpty', 'controller.selectedStack.useRedhatSatellite'),
+    return selectedOS.everyProperty('isNotFilled', true);
+  }.property('controller.selectedStack.operatingSystems.@each.isSelected', 'controller.selectedStack.operatingSystems.@each.isNotFilled', 'controller.selectedStack.useRedhatSatellite'),
 
   popoverView: Em.View.extend({
     tagName: 'i',
