@@ -3851,7 +3851,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage,
           requestProperties);
     } else {
-      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage);
+      actionExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestProperties);
     }
 
     RoleGraph rg;

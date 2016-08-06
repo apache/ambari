@@ -233,9 +233,11 @@ public class AmbariActionExecutionHelper {
    *
    * @param actionContext  the context associated with the action
    * @param stage          stage into which tasks must be inserted
+   * @param requestParams  all request parameters (may be null)
    * @throws AmbariException if the task can not be added
    */
-  public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage)
+  public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage,
+                                          Map<String, String> requestParams)
       throws AmbariException {
 
     String actionName = actionContext.getActionName();
@@ -391,6 +393,11 @@ public class AmbariActionExecutionHelper {
         commandParams.put(COMMAND_TIMEOUT, actionContext.getTimeout().toString());
       } else {
         commandParams.put(COMMAND_TIMEOUT, Integer.toString(taskTimeout));
+      }
+
+      if (requestParams != null && requestParams.containsKey(KeyNames.LOG_OUTPUT)) {
+        LOG.info("Should command log output?: " + requestParams.get(KeyNames.LOG_OUTPUT));
+        commandParams.put(KeyNames.LOG_OUTPUT, requestParams.get(KeyNames.LOG_OUTPUT));
       }
 
       commandParams.put(SCRIPT, actionName + ".py");
