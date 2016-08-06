@@ -50,6 +50,8 @@ import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
@@ -115,6 +117,23 @@ class ActionScheduler implements Runnable {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  /**
+   * Used for turning instances of {@link HostRoleCommandEntity} into
+   * {@link HostRoleCommand}.
+   */
+  @Inject
+  private HostRoleCommandFactory hostRoleCommandFactory;
+
+  /**
+   * Used for retrieving {@link HostRoleCommandEntity} instances which need to
+   * be cancelled.
+   */
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+
+  /**
+   * The current thread's reference to the {@link EntityManager}.
+   */
   volatile EntityManager threadEntityManager;
 
   private final long actionTimeout;
@@ -194,11 +213,14 @@ class ActionScheduler implements Runnable {
    * @param unitOfWork
    * @param ambariEventPublisher
    * @param configuration
+   * @param hostRoleCommandDAO
+   * @param hostRoleCommandFactory
    */
   protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
       ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
       UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
-      Configuration configuration, Provider<EntityManager> entityManagerProvider) {
+      Configuration configuration, Provider<EntityManager> entityManagerProvider,
+      HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
 
     sleepTime = sleepTimeMilliSec;
     actionTimeout = actionTimeoutMilliSec;
@@ -211,6 +233,8 @@ class ActionScheduler implements Runnable {
     this.ambariEventPublisher = ambariEventPublisher;
     this.configuration = configuration;
     this.entityManagerProvider = entityManagerProvider;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.hostRoleCommandFactory = hostRoleCommandFactory;
     jpaPublisher = null;
 
     serverActionExecutor = new ServerActionExecutor(db, sleepTime);
@@ -1098,14 +1122,32 @@ class ActionScheduler implements Runnable {
     synchronized (requestsToBeCancelled) {
       // Now, cancel stages completely
       for (Long requestId : requestsToBeCancelled) {
-        List<HostRoleCommand> tasksToDequeue = db.getRequestTasks(requestId);
-        String reason = requestCancelReasons.get(requestId);
-        cancelHostRoleCommands(tasksToDequeue, reason);
-        List<Stage> stages = db.getAllStages(requestId);
-        for (Stage stage : stages) {
-          abortOperationsForStage(stage);
+        // only pull back entities that have not completed; pulling back all
+        // entities for the request can cause OOM problems on large requests,
+        // like those for upgrades
+        List<HostRoleCommandEntity> entitiesToDequeue = hostRoleCommandDAO.findByRequestIdAndStatuses(
+            requestId, HostRoleStatus.NOT_COMPLETED_STATUSES);
+
+        if (!entitiesToDequeue.isEmpty()) {
+          List<HostRoleCommand> tasksToDequeue = new ArrayList<>(entitiesToDequeue.size());
+          for (HostRoleCommandEntity hrcEntity : entitiesToDequeue) {
+            HostRoleCommand task = hostRoleCommandFactory.createExisting(hrcEntity);
+            tasksToDequeue.add(task);
+          }
+
+          String reason = requestCancelReasons.get(requestId);
+          cancelHostRoleCommands(tasksToDequeue, reason);
+        }
+
+        // abort any stages in progress; don't execute this for all stages since
+        // that could lead to OOM errors on large requests, like those for
+        // upgrades
+        List<Stage> stagesInProgress = db.getStagesInProgress();
+        for (Stage stageInProgress : stagesInProgress) {
+          abortOperationsForStage(stageInProgress);
         }
       }
+
       requestsToBeCancelled.clear();
       requestCancelReasons.clear();
     }
@@ -1154,6 +1196,7 @@ class ActionScheduler implements Runnable {
       }
     }
   }
+
   void cancelCommandOnTimeout(Collection<HostRoleCommand> hostRoleCommands) {
     for (HostRoleCommand hostRoleCommand : hostRoleCommands) {
       // There are no server actions in actionQueue
