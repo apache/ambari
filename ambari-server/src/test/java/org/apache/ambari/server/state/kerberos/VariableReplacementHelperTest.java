@@ -158,10 +158,6 @@ public class VariableReplacementHelperTest {
           put("realm", "UNIT.TEST");
         }});
 
-        put("kafka-broker", new HashMap<String, String>() {{
-          put("listeners", "PLAINTEXT://localhost:6667");
-        }});
-        
         put("clusterHostInfo", new HashMap<String, String>() {{
           put("hive_metastore_host", "host1.unit.test, host2.unit.test , host3.unit.test"); // spaces are there on purpose.
         }});
@@ -175,8 +171,6 @@ public class VariableReplacementHelperTest {
         helper.replaceVariables("hive.metastore.local=false,hive.metastore.uris=${clusterHostInfo/hive_metastore_host | each(thrift://%s:9083, \\\\,, \\s*\\,\\s*)},hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}", configurations));
 
     Assert.assertEquals("test=unit.test", helper.replaceVariables("test=${realm|toLower()}", configurations));
-  
-    Assert.assertEquals("PLAINTEXTSASL://localhost:6667", helper.replaceVariables("${kafka-broker/listeners|replace(\\bPLAINTEXT\\b,PLAINTEXTSASL)}", configurations)); 
   }
 
 }
