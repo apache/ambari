@@ -316,8 +316,8 @@ if has_ranger_admin:
 
   if stack_supports_ranger_kerberos and security_enabled:
     policy_user = format('{storm_user},{storm_bare_jaas_principal}')
-    storm_ranger_plugin_config['policy.download.auth.users'] = storm_user
-    storm_ranger_plugin_config['tag.download.auth.users'] = storm_user
+    storm_ranger_plugin_config['policy.download.auth.users'] = policy_user
+    storm_ranger_plugin_config['tag.download.auth.users'] = policy_user
     storm_ranger_plugin_config['ambari.service.check.user'] = policy_user
 
     storm_ranger_plugin_repo = {
@@ -330,12 +330,9 @@ if has_ranger_admin:
 
   ranger_storm_principal = None
   ranger_storm_keytab = None
-  if stack_supports_ranger_kerberos and security_enabled and 'storm-nimbus' in status_params.component_directory.lower():
-    ranger_storm_principal = nimbus_jaas_principal
-    ranger_storm_keytab = nimbus_keytab_path
-  elif stack_supports_ranger_kerberos and security_enabled and 'storm-client' in status_params.component_directory.lower():
-    ranger_storm_principal = storm_ui_jaas_principal
-    ranger_storm_keytab = storm_ui_keytab_path
+  if stack_supports_ranger_kerberos and security_enabled:
+    ranger_storm_principal = storm_jaas_principal
+    ranger_storm_keytab = storm_keytab_path
 
   xa_audit_db_is_enabled = False
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
