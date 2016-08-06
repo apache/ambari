@@ -35,7 +35,6 @@ import javax.ws.rs.ext.Provider;
 import java.io.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Date;
 
 @Provider
 @Consumes({MediaType.APPLICATION_JSON, "text/json"})
@@ -47,8 +46,7 @@ public class GsonJsonProvider implements MessageBodyReader<Object>,
 
   static final Gson gson = new GsonBuilder()
 //      .setPrettyPrinting()
-    .registerTypeAdapter(Date.class, new DateJsonDeserializer())
-    .create();
+      .create();
 
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
