@@ -14,8 +14,7 @@
               "principal.to.local.class":"kafka.security.auth.KerberosPrincipalToLocal",
               "super.users": "user:${kafka-env/kafka_user}",
               "security.inter.broker.protocol": "PLAINTEXTSASL",
-              "zookeeper.set.acl": "true",
-              "listeners": "${kafka-broker/listeners|replace(\\bPLAINTEXT\\b, PLAINTEXTSASL)}"
+              "zookeeper.set.acl": "true"
           }
         },
         {
