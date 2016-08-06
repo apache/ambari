@@ -730,10 +730,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         application_classes = [item for item in notifier_plugin_value.split(",") if item != atlas_hook_class and item != " "]
         notifier_plugin_value = ",".join(application_classes) if application_classes else " "
 
-      if notifier_plugin_value != " " or \
-         (not atlas_is_present and atlas_hook_is_set):
-
+      if notifier_plugin_value.strip() != "":
         putStormStartupProperty(notifier_plugin_property, notifier_plugin_value)
+      else:
+        putStormStartupPropertyAttribute = self.putPropertyAttribute(configurations, "storm-site")
+        putStormStartupPropertyAttribute(notifier_plugin_property, 'delete', 'true')
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
