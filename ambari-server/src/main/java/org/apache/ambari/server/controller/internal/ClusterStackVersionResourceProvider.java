@@ -509,7 +509,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
                   cluster, managementController, ami, stackId, serviceNames, perOsRepos, stage, host);
           if (null != actionContext) {
             try {
-              actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
+              actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
               hasStage = true;
             } catch (AmbariException e) {
               throw new SystemException("Cannot modify stage", e);

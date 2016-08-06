@@ -1413,7 +1413,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
-    s_actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage);
+    s_actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, null);
 
     // need to set meaningful text on the command
     for (Map<String, HostRoleCommand> map : stage.getHostRoleCommands().values()) {

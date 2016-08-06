@@ -291,8 +291,8 @@ class ActionQueue(threading.Thread):
     if isAutoExecuteCommand:
       retryAble = False
 
-    logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}".
-                 format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration))
+    logger.info("Command execution metadata - taskId = {taskId}, retry enabled = {retryAble}, max retry duration (sec) = {retryDuration}, log_output = {log_command_output}".
+                 format(taskId=taskId, retryAble=retryAble, retryDuration=retryDuration, log_command_output=log_command_output))
     while retryDuration >= 0:
       numAttempts += 1
       start = 0
