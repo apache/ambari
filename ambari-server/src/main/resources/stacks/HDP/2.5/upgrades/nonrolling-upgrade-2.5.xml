@@ -176,6 +176,12 @@
           <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
+
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Pre Upgrade Zeppelin notebooks Backup">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Zeppelin notebooks directory on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
@@ -249,6 +255,11 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Restore Zeppelin notebooks directory">
+        <task xsi:type="manual">
+          <message>Before continuing, please restore Zeppelin notebooks directory</message>
+        </task>
+      </execute-stage>
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
@@ -510,7 +521,7 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="ZEPPELIN" title="Spark">
+    <group xsi:type="restart" name="ZEPPELIN" title="Zeppelin">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
@@ -962,6 +973,14 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

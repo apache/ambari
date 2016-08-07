@@ -108,6 +108,11 @@
           <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
+      <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Pre Upgrade Zeppelin notebooks Backup">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Zeppelin notebooks directory on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">
@@ -772,6 +777,14 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="ZEPPELIN">
+      <component name="ZEPPELIN_MASTER">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
