@@ -66,6 +66,10 @@ try:
 except:
   pass
 
+# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+version = default("/commandParams/version", None)
+stack_name = default("/hostLevelParams/stack_name", None)
+
 # params from zeppelin-config
 zeppelin_port = str(config['configurations']['zeppelin-config']['zeppelin.server.port'])
 

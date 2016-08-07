@@ -109,6 +109,10 @@
         <component>LIVY_SERVER</component>
       </service>
 
+      <service name="ZEPPELIN">
+        <component>ZEPPELIN_MASTER</component>
+      </service>
+
       <service name="HIVE">
         <component>WEBHCAT_SERVER</component>
         <component>HIVE_SERVER</component>
@@ -503,6 +507,16 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="ZEPPELIN" title="Spark">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="ZEPPELIN">
+        <component>ZEPPELIN_MASTER</component>
       </service>
     </group>
 

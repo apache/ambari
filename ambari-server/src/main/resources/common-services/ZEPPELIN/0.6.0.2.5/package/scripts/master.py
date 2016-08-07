@@ -29,9 +29,18 @@ from resource_management.core.source import StaticFile
 from resource_management.libraries import XmlConfig
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import stack_select
+from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.script.script import Script
 
 class Master(Script):
+
+  def get_component_name(self):
+    return "zeppelin-server"
+
   def install(self, env):
     import params
     env.set_params(params)
@@ -138,13 +147,13 @@ class Master(Script):
       File(format("{params.conf_dir}/hbase-site.xml"), content=StaticFile("/etc/hbase/conf/hbase-site.xml"),
            owner=params.zeppelin_user, group=params.zeppelin_group)
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     self.create_zeppelin_log_dir(env)
     Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh stop >> ' + params.zeppelin_log_file,
             user=params.zeppelin_user)
 
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     import params
     import status_params
     import time
@@ -194,6 +203,15 @@ class Master(Script):
     config_content = sudo.read_file(interpreter_config)
     config_data = json.loads(config_content)
     return config_data
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
+      conf_select.select(params.stack_name, "zeppelin", params.version)
+      stack_select.select("zeppelin-server", params.version)
 
   def set_interpreter_settings(self, config_data):
     import params
