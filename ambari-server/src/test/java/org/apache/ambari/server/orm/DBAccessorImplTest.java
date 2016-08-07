@@ -19,9 +19,13 @@
 package org.apache.ambari.server.orm;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.matchers.JUnitMatchers.containsString;
 
+import java.io.ByteArrayInputStream;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -33,8 +37,6 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.eclipse.persistence.sessions.DatabaseSession;
 import org.junit.After;
@@ -45,9 +47,8 @@ import org.junit.rules.ExpectedException;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import java.io.ByteArrayInputStream;
-import java.sql.Clob;
-import java.sql.PreparedStatement;
+
+import junit.framework.Assert;
 
 public class DBAccessorImplTest {
   private Injector injector;
@@ -494,32 +495,32 @@ public class DBAccessorImplTest {
     createMyTable(tableName);
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 
-    dbAccessor.addColumn(tableName, new DBColumnInfo("isNullable",
-        String.class, 1000, "test", false));
+    // create a column with a non-NULL constraint
+    DBColumnInfo dbColumnInfo = new DBColumnInfo("isNullable", String.class, 1000, "test", false);
+    dbAccessor.addColumn(tableName, dbColumnInfo);
 
     Statement statement = dbAccessor.getConnection().createStatement();
-    ResultSet resultSet = statement.executeQuery("SELECT isNullable FROM "
-        + tableName);
+    ResultSet resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     ResultSetMetaData rsmd = resultSet.getMetaData();
-    assertEquals(ResultSetMetaData.columnNullable, rsmd.isNullable(1));
-
-    statement.close();
-
-    dbAccessor.setColumnNullable(tableName, new DBColumnInfo("isNullable",
-                                                              String.class, 1000, "test", false), false);
-    statement = dbAccessor.getConnection().createStatement();
-    resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
-    rsmd = resultSet.getMetaData();
     assertEquals(ResultSetMetaData.columnNoNulls, rsmd.isNullable(1));
 
     statement.close();
 
-    dbAccessor.setColumnNullable(tableName, new DBColumnInfo("isNullable",
-                                                              String.class, 1000, "test", false), true);
+    // set it to nullable
+    dbAccessor.setColumnNullable(tableName, dbColumnInfo, true);
     statement = dbAccessor.getConnection().createStatement();
     resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
     rsmd = resultSet.getMetaData();
     assertEquals(ResultSetMetaData.columnNullable, rsmd.isNullable(1));
+
+    statement.close();
+
+    // set it back to non-NULL
+    dbAccessor.setColumnNullable(tableName, dbColumnInfo, false);
+    statement = dbAccessor.getConnection().createStatement();
+    resultSet = statement.executeQuery("SELECT isNullable FROM " + tableName);
+    rsmd = resultSet.getMetaData();
+    assertEquals(ResultSetMetaData.columnNoNulls, rsmd.isNullable(1));
 
     statement.close();
   }
@@ -532,4 +533,44 @@ public class DBAccessorImplTest {
     Statement customSchemaTableCreation = dbAccessor.getConnection().createStatement();
     customSchemaTableCreation.execute(toString().format("Create table %s.%s (id int, time int)", schemaName, tableName));
   }
+
+  /**
+   * Checks to ensure that columns created with a default have the correct
+   * DEFAULT constraint value set in.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDefaultColumnConstraintOnAddColumn() throws Exception {
+    String tableName = getFreeTableName().toUpperCase();
+    String columnName = "COLUMN_WITH_DEFAULT_VALUE";
+
+    createMyTable(tableName);
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    // create a column with a non-NULL constraint that has a default value
+    DBColumnInfo dbColumnInfo = new DBColumnInfo(columnName, String.class, 32, "foo", false);
+    dbAccessor.addColumn(tableName, dbColumnInfo);
+
+    String schema = null;
+    Connection connection = dbAccessor.getConnection();
+    DatabaseMetaData databaseMetadata = connection.getMetaData();
+    ResultSet schemaResultSet = databaseMetadata.getSchemas();
+    if (schemaResultSet.next()) {
+      schema = schemaResultSet.getString(1);
+    }
+
+    schemaResultSet.close();
+
+    String columnDefaultVal = null;
+    ResultSet rs = databaseMetadata.getColumns(null, schema, tableName, columnName);
+
+    if (rs.next()) {
+      columnDefaultVal = rs.getString("COLUMN_DEF");
+    }
+
+    rs.close();
+
+    assertEquals("'foo'", columnDefaultVal);
+   }
 }

@@ -63,4 +63,20 @@ public class OracleHelper extends GenericDbmsHelper {
     return statement.toString();
   }
 
+  /**
+   * {@inheritDoc}
+   * <p/>
+   * Oracle supports the format:
+   *
+   * <pre>
+   * ALTER TABLE foo ADD COLUMN bar varchar2(32) DEFAULT 'baz' NOT NULL
+   * </pre>
+   *
+   * This syntax doesn't allow contraints added after the {@code NULL}
+   * constraint.
+   */
+  @Override
+  public boolean isConstraintSupportedAfterNullability() {
+    return false;
+  }
 }

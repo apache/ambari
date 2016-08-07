@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.eclipse.persistence.sessions.DatabaseSession;
 
@@ -138,8 +139,22 @@ public interface DBAccessor {
                               String referenceTableName,
                               String[] referenceColumns,
                               boolean ignoreFailure) throws SQLException;
+
   /**
-   * Add column to existing table
+   * Adds a column to an existing table. This method will honor the
+   * {@link DBColumnInfo#isNullable} and {@link DBColumnInfo#getDefaultValue()}
+   * methods and create a new column that has a {@code DEFAULT} constraint.
+   * <p/>
+   * Oracle is, of course, the exception here since their syntax doesn't conform
+   * to widely accepted SQL standards. Because they switch the order of the
+   * {@code NULL} constraint and the {@code DEFAULT} constraint, we need to
+   * create the table in a non-atomic fashion. This is because the EclipseLink
+   * {@link FieldDeclaration} class hard codes the order of the constraints. In
+   * the case of Oracle, we alter the nullability of the table after its
+   * creation.
+   * <p/>
+   * No work is performed if the column already exists.
+   *
    * @param tableName
    * @param columnInfo
    * @throws SQLException
@@ -579,6 +594,18 @@ public interface DBAccessor {
    * @throws SQLException
    */
   void dropPKConstraint(String tableName, String defaultConstraintName) throws SQLException;
+
+  /**
+   * Adds a default constraint to an existing column.
+   *
+   * @param tableName
+   *          the table where the column is defined (not {@code null}).
+   * @param column
+   *          the column information which contains the default value (not
+   *          {@code null}).
+   * @throws SQLException
+   */
+  void addDefaultConstraint(String tableName, DBColumnInfo column) throws SQLException;
 
   enum DbType {
     ORACLE,
