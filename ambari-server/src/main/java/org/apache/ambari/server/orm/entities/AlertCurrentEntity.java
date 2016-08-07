@@ -284,14 +284,6 @@ public class AlertCurrentEntity {
   }
 
   /**
-   * @param occurrences
-   *          the occurrences to set
-   */
-  public void setOccurrences(Long occurrences) {
-    this.occurrences = occurrences;
-  }
-
-  /**
    * Gets the firmness of the alert, indicating whether or not it could be a
    * potential false positive.
    *
