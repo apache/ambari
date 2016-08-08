@@ -64,7 +64,7 @@ App.IsodateTransform = DS.Transform.extend({
   },
   serialize: function (deserialized) {
     if (deserialized) {
-      return moment(deserialized).format('X');
+      return moment(deserialized).utc().format('YYYY-MM-DDTHH:mm:ss') + 'Z';
     }
     return deserialized;
   }
