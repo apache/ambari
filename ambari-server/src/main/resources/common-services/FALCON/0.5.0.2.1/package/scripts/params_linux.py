@@ -166,7 +166,7 @@ if has_atlas_in_cluster():
       atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
       atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
     elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
-      atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*')
+      atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep
 
 atlas_application_class_addition = ""
 if falcon_atlas_support:
