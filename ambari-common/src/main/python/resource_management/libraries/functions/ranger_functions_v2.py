@@ -356,8 +356,8 @@ class RangeradminV2:
           return None
       else:
         return None
-    except Fail, fail:
-      raise Fail(str(fail))
+    except Exception, err:
+      raise Fail('Error in call for getting Ranger service:\n {0}'.format(err))
 
 
 
@@ -393,5 +393,5 @@ class RangeradminV2:
       else:
         Logger.info('Repository creation failed')
         return None
-    except Fail, fail:
-      raise Fail(str(fail))
+    except Exception, err:
+      raise Fail('Error in call for creating Ranger service:\n {0}'.format(err))
