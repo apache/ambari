@@ -37,51 +37,6 @@ def fix_subprocess_racecondition():
 
 fix_subprocess_racecondition()
 
-import gc
-import traceback
-import threading
-import time
-
-MEMORY_LEAK_DEBUG_FILEPATH = "/var/log/ambari-agent/memory_leak_debug.out"
-
-def setup_memory_leak_debugger():
-  gc.disable_old = gc.disable
-  gc.enable_old = gc.enable
-  gc.isenabled_old = gc.isenabled
-
-  def print_debug_info(result):
-    time_prefix =  time.strftime('%X %x')
-    thread_repr = repr(threading.currentThread())
-    stack_trace = ''.join(traceback.format_stack()).strip()
-
-    message = '{0} | {1}\n{2}\n'.format(time_prefix, thread_repr, stack_trace)
-    if result:
-      message = '{0}Result = {1}\n'.format(message, result)
-
-    with open(MEMORY_LEAK_DEBUG_FILEPATH, "a") as f:
-      f.write(message)
-
-  def disable_new():
-    result = gc.disable_old()
-    print_debug_info(result)
-    return result
-
-  def enable_new():
-    result = gc.enable_old()
-    print_debug_info(result)
-    return result
-
-  def isenabled_new():
-    result = gc.isenabled_old()
-    print_debug_info(result)
-    return result
-
-  gc.disable = disable_new
-  gc.enable = enable_new
-  gc.isenabled = isenabled_new
-
-setup_memory_leak_debugger()
-
 import logging.handlers
 import logging.config
 import signal
