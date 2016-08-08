@@ -123,4 +123,14 @@ public interface DbmsHelper {
    * @return the statement (never {@code null}).
    */
   String getSetNullableStatement(String tableName, DBAccessor.DBColumnInfo columnInfo, boolean nullable);
+
+  /**
+   * Gets whether the database platform supports adding contraints after the
+   * {@code NULL} constraint. Some database, such as Oracle, don't allow this.
+   * Unfortunately, EclipsLink hard codes the order of constraints.
+   *
+   * @return {@code true} if contraints can be added after the {@code NULL}
+   *         constraint, {@code false} otherwise.
+   */
+  boolean isConstraintSupportedAfterNullability();
 }

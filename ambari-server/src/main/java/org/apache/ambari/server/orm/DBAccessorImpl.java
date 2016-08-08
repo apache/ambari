@@ -550,18 +550,52 @@ public class DBAccessorImpl implements DBAccessor {
 
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void addColumn(String tableName, DBColumnInfo columnInfo) throws SQLException {
-    if (!tableHasColumn(tableName, columnInfo.getName())) {
-      //TODO workaround for default values, possibly we will have full support later
-      if (columnInfo.getDefaultValue() != null) {
-        columnInfo.setNullable(true);
-      }
-      String query = dbmsHelper.getAddColumnStatement(tableName, columnInfo);
-      executeQuery(query);
+    if (tableHasColumn(tableName, columnInfo.getName())) {
+      return;
+    }
 
-      if (columnInfo.getDefaultValue() != null) {
-        updateTable(tableName, columnInfo.getName(), columnInfo.getDefaultValue(), "");
+    DatabaseType databaseType = configuration.getDatabaseType();
+    switch (databaseType) {
+      case ORACLE: {
+        // capture the original null value and set the column to nullable if
+        // there is a default value
+        boolean originalNullable = columnInfo.isNullable();
+        if (columnInfo.getDefaultValue() != null) {
+          columnInfo.setNullable(true);
+        }
+
+        String query = dbmsHelper.getAddColumnStatement(tableName, columnInfo);
+        executeQuery(query);
+
+        // update the column after it's been created with the default value and
+        // then set the nullable field back to the specified value
+        if (columnInfo.getDefaultValue() != null) {
+          updateTable(tableName, columnInfo.getName(), columnInfo.getDefaultValue(), "");
+
+          // if the column wasn't originally nullable, then set that here
+          if (!originalNullable) {
+            setColumnNullable(tableName, columnInfo, originalNullable);
+          }
+
+          // finally, add the DEFAULT constraint to the table
+          addDefaultConstraint(tableName, columnInfo);
+        }
+        break;
+      }
+      case DERBY:
+      case MYSQL:
+      case POSTGRES:
+      case SQL_ANYWHERE:
+      case SQL_SERVER:
+      default: {
+        String query = dbmsHelper.getAddColumnStatement(tableName, columnInfo);
+        executeQuery(query);
+        break;
       }
     }
   }
@@ -733,16 +767,7 @@ public class DBAccessorImpl implements DBAccessor {
           String whereClause) throws SQLException {
 
     StringBuilder query = new StringBuilder(String.format("UPDATE %s SET %s = ", tableName, columnName));
-
-    // Only String and number supported.
-    // Taken from: org.eclipse.persistence.internal.databaseaccess.appendParameterInternal
-    Object dbValue = databasePlatform.convertToDatabaseType(value);
-    String valueString = value.toString();
-    if (dbValue instanceof String) {
-      valueString = "'" + value.toString() + "'";
-    }
-
-    query.append(valueString);
+    query.append(escapeParameter(value));
     query.append(" ");
     query.append(whereClause);
 
@@ -1199,5 +1224,56 @@ public class DBAccessorImpl implements DBAccessor {
     } else {
       dropPKConstraint(tableName, primaryKeyConstraintName, true);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addDefaultConstraint(String tableName, DBColumnInfo column) throws SQLException {
+    String defaultValue = escapeParameter(column.getDefaultValue());
+    StringBuilder builder = new StringBuilder(String.format("ALTER TABLE %s ", tableName));
+
+    DatabaseType databaseType = configuration.getDatabaseType();
+    switch (databaseType) {
+      case DERBY:
+      case MYSQL:
+      case POSTGRES:
+      case SQL_ANYWHERE:
+        builder.append(String.format("ALTER %s SET DEFAULT %s", column.getName(), defaultValue));
+      case ORACLE:
+        builder.append(String.format("MODIFY %s DEFAULT %s", column.getName(), defaultValue));
+        break;
+      case SQL_SERVER:
+        builder.append(
+            String.format("ALTER COLUMN %s SET DEFAULT %s", column.getName(), defaultValue));
+        break;
+      default:
+        builder.append(String.format("ALTER %s SET DEFAULT %s", column.getName(), defaultValue));
+        break;
+    }
+
+    executeQuery(builder.toString());
+  }
+
+  /**
+   * Gets an escaped version of the specified value suitable for including as a
+   * parameter when building statements.
+   *
+   * @param value
+   *          the value to escape
+   * @return the escaped value
+   */
+  protected String escapeParameter(Object value) {
+    // Only String and number supported.
+    // Taken from:
+    // org.eclipse.persistence.internal.databaseaccess.appendParameterInternal
+    Object dbValue = databasePlatform.convertToDatabaseType(value);
+    String valueString = value.toString();
+    if (dbValue instanceof String) {
+      valueString = "'" + value.toString() + "'";
+    }
+
+    return valueString;
   }
 }
