@@ -36,6 +36,7 @@ import org.apache.hadoop.metrics2.sink.timeline.SingleValuedTimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
@@ -103,6 +104,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_ENABLED;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATOR_SINK_CLASS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CONTAINER_METRICS_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_CONTAINER_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_HOSTED_APPS_METADATA_TABLE_SQL;
@@ -166,6 +168,7 @@ public class PhoenixHBaseAccessor {
   private final BlockingQueue<TimelineMetrics> insertCache;
   private ScheduledExecutorService scheduledExecutorService;
   private MetricsCacheCommitterThread metricsCommiterThread;
+  private TimelineMetricsAggregatorSink aggregatorSink;
   private final int cacheCommitInterval;
   private final boolean skipBlockCacheForAggregatorsEnabled;
   private final String timelineMetricsTablesDurability;
@@ -227,6 +230,15 @@ public class PhoenixHBaseAccessor {
       metricsCommiterThread = new MetricsCacheCommitterThread(this);
       scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
       scheduledExecutorService.scheduleWithFixedDelay(metricsCommiterThread, 0, cacheCommitInterval, TimeUnit.SECONDS);
+    }
+
+    Class<? extends TimelineMetricsAggregatorSink> metricSinkClass =
+        metricsConf.getClass(TIMELINE_METRIC_AGGREGATOR_SINK_CLASS, null,
+            TimelineMetricsAggregatorSink.class);
+    if (metricSinkClass != null) {
+      aggregatorSink =
+          ReflectionUtils.newInstance(metricSinkClass, metricsConf);
+      LOG.info("Initialized aggregator sink class " + metricSinkClass);
     }
   }
 
@@ -1214,6 +1226,16 @@ public class PhoenixHBaseAccessor {
       LOG.info("Time to save map: " + (end - start) + ", " +
         "thread = " + Thread.currentThread().getClass());
     }
+    if (aggregatorSink != null) {
+      try {
+        aggregatorSink.saveHostAggregateRecords(hostAggregateMap,
+            getTablePrecision(phoenixTableName));
+      } catch (Exception e) {
+        LOG.warn(
+            "Error writing host aggregate records metrics to external sink. "
+                + e);
+      }
+    }
   }
 
   /**
@@ -1295,6 +1317,15 @@ public class PhoenixHBaseAccessor {
       LOG.info("Time to save: " + (end - start) + ", " +
         "thread = " + Thread.currentThread().getName());
     }
+    if (aggregatorSink != null) {
+      try {
+        aggregatorSink.saveClusterAggregateRecords(records);
+      } catch (Exception e) {
+        LOG.warn(
+            "Error writing cluster aggregate records metrics to external sink. "
+                + e);
+      }
+    }
   }
 
 
@@ -1375,6 +1406,43 @@ public class PhoenixHBaseAccessor {
       LOG.info("Time to save: " + (end - start) + ", " +
         "thread = " + Thread.currentThread().getName());
     }
+    if (aggregatorSink != null) {
+      try {
+        aggregatorSink.saveClusterTimeAggregateRecords(records,
+            getTablePrecision(tableName));
+      } catch (Exception e) {
+        LOG.warn(
+            "Error writing cluster time aggregate records metrics to external sink. "
+                + e);
+      }
+    }
+  }
+
+  /**
+   * Get precision for a table
+   * @param tableName
+   * @return precision
+   */
+  private Precision getTablePrecision(String tableName) {
+    Precision tablePrecision = null;
+    switch (tableName) {
+    case METRICS_RECORD_TABLE_NAME:
+      tablePrecision = Precision.SECONDS;
+      break;
+    case METRICS_AGGREGATE_MINUTE_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME:
+      tablePrecision = Precision.MINUTES;
+      break;
+    case METRICS_AGGREGATE_HOURLY_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME:
+      tablePrecision = Precision.HOURS;
+      break;
+    case METRICS_AGGREGATE_DAILY_TABLE_NAME:
+    case METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME:
+      tablePrecision = Precision.DAYS;
+      break;
+    }
+    return tablePrecision;
   }
 
   /**

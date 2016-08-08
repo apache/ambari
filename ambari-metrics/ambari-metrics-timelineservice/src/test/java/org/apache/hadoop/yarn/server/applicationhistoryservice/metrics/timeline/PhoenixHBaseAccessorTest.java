@@ -25,6 +25,9 @@ import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricClusterAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
@@ -243,6 +246,76 @@ public class PhoenixHBaseAccessorTest {
     accessor.insertMetricRecords(timelineMetrics);
 
     EasyMock.verify(timelineMetrics, connection);
+  }
+
+  @Test
+  public void testMetricsAggregatorSink() throws IOException, SQLException {
+    Configuration hbaseConf = new Configuration();
+    hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
+    Configuration metricsConf = new Configuration();
+    Map<TimelineClusterMetric, MetricClusterAggregate> clusterAggregateMap =
+        new HashMap<>();
+    Map<TimelineClusterMetric, MetricHostAggregate> clusterTimeAggregateMap =
+        new HashMap<>();
+    Map<TimelineMetric, MetricHostAggregate> hostAggregateMap = new HashMap<>();
+
+    metricsConf.setStrings(
+        TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_SIZE, "1");
+    metricsConf.setStrings(
+        TimelineMetricConfiguration.TIMELINE_METRICS_CACHE_COMMIT_INTERVAL,
+        "100");
+    metricsConf.setStrings(
+        TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATOR_SINK_CLASS,
+        "org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricsAggregatorMemorySink");
+
+    final Connection connection = EasyMock.createNiceMock(Connection.class);
+    final PreparedStatement statement =
+        EasyMock.createNiceMock(PreparedStatement.class);
+    EasyMock.expect(connection.prepareStatement(EasyMock.anyString()))
+        .andReturn(statement).anyTimes();
+    EasyMock.replay(statement);
+    EasyMock.replay(connection);
+
+    PhoenixConnectionProvider connectionProvider =
+        new PhoenixConnectionProvider() {
+          @Override
+          public HBaseAdmin getHBaseAdmin() throws IOException {
+            return null;
+          }
+
+          @Override
+          public Connection getConnection() throws SQLException {
+            return connection;
+          }
+        };
+
+    TimelineClusterMetric clusterMetric =
+        new TimelineClusterMetric("metricName", "appId", "instanceId",
+            System.currentTimeMillis(), "type");
+    TimelineMetric timelineMetric = new TimelineMetric();
+    timelineMetric.setMetricName("Metric1");
+    timelineMetric.setType("type1");
+    timelineMetric.setAppId("App1");
+    timelineMetric.setInstanceId("instance1");
+    timelineMetric.setHostName("host1");
+
+    clusterAggregateMap.put(clusterMetric, new MetricClusterAggregate());
+    clusterTimeAggregateMap.put(clusterMetric, new MetricHostAggregate());
+    hostAggregateMap.put(timelineMetric, new MetricHostAggregate());
+
+    PhoenixHBaseAccessor accessor =
+        new PhoenixHBaseAccessor(hbaseConf, metricsConf, connectionProvider);
+    accessor.saveClusterAggregateRecords(clusterAggregateMap);
+    accessor.saveHostAggregateRecords(hostAggregateMap,
+        PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME);
+    accessor.saveClusterTimeAggregateRecords(clusterTimeAggregateMap,
+        PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
+
+    TimelineMetricsAggregatorMemorySink memorySink =
+        new TimelineMetricsAggregatorMemorySink();
+    assertEquals(1, memorySink.getClusterAggregateRecords().size());
+    assertEquals(1, memorySink.getClusterTimeAggregateRecords().size());
+    assertEquals(1, memorySink.getHostAggregateRecords().size());
   }
 
 }
