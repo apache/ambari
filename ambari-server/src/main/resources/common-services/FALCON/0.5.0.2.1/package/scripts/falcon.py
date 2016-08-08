@@ -120,7 +120,8 @@ def falcon(type, action = None, upgrade_type=None):
     # Generate atlas-application.properties.xml file
     if params.falcon_atlas_support:
       # If Atlas is added later than Falcon, this package will be absent.
-      install_atlas_hook_packages()
+      install_atlas_hook_packages(params.atlas_plugin_package, params.atlas_ubuntu_plugin_package, params.host_sys_prepped,
+                                  params.agent_stack_retry_on_unavailability, params.agent_stack_retry_count)
 
       atlas_hook_filepath = os.path.join(params.falcon_conf_dir, params.atlas_hook_filename)
       setup_atlas_hook(SERVICE.FALCON, params.falcon_atlas_application_properties, atlas_hook_filepath, params.falcon_user, params.user_group)
