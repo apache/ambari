@@ -73,11 +73,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
 
   @Override
   public Job read(Object id) throws ItemNotFound {
-    Job job = super.read(id);
-    JobController jobController =  jobControllerFactory.createControllerForJob(job);
-    jobController.update();
-    saveIfModified(jobController);
-    return job;
+    return super.read(id);
   }
 
   @Override
@@ -94,15 +90,4 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
     Job job = read(id);
     return jobControllerFactory.createControllerForJob(job);
   }
-
-  /*public Cursor getJobResultsCursor(ExecuteJob job) {
-    try {
-      JobController jobController = jobControllerFactory.createControllerForJob(job);
-      return jobController.getResults();
-    } catch (ItemNotFound itemNotFound) {
-      throw new NotFoundFormattedException("ExecuteJob results are expired", null);
-    }
-  }*/
-
-  //TODO: New implementation
 }
