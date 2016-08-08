@@ -32,7 +32,7 @@ limitations under the License.
   </property>
   <property>
     <name>hive.service.metrics.hadoop2.component</name>
-    <value>hiveserver2-interactive</value>
+    <value>hiveserver2</value>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>

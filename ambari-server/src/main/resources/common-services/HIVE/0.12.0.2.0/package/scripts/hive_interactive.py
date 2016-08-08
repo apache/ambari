@@ -224,6 +224,12 @@ def hive_interactive(name=None):
          owner=params.hive_user,
          content=params.beeline_log4j2)
 
+      File(os.path.join(hive_server_interactive_conf_dir, "hadoop-metrics2-hiveserver2.properties"),
+           owner=params.hive_user,
+           group=params.user_group,
+           content=Template("hadoop-metrics2-hiveserver2.properties.j2")
+           )
+
       File(format("{hive_server_interactive_conf_dir}/hadoop-metrics2-llapdaemon.properties"),
            owner=params.hive_user,
            group=params.user_group,

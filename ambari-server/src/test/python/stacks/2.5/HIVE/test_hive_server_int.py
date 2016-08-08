@@ -372,6 +372,12 @@ class TestHiveServerInteractive(RMFTestCase):
                                   group='hadoop',
                                   mode=0644,
         )
+        self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-hiveserver2.properties'),
+                                  content=Template("hadoop-metrics2-hiveserver2.properties.j2"),
+                                  owner='hive',
+                                  group='hadoop'
+                                  )
+
         self.assertResourceCalled('File', os.path.join(conf_dir, 'hadoop-metrics2-llapdaemon.properties'),
                                   content=Template("hadoop-metrics2-llapdaemon.j2"),
                                   owner='hive',
