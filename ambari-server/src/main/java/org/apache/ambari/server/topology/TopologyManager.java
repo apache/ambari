@@ -977,8 +977,13 @@ public class TopologyManager {
    */
   @Subscribe
   public void processHostRemovedEvent(HostRemovedEvent hostRemovedEvent) {
-    LOG.info("Cleaning up caches on host removed event: {}", hostRemovedEvent.getHostName());
 
+    if (null == hostRemovedEvent.getHostName()) {
+      LOG.warn("Missing host name from host removed event [{}] !", hostRemovedEvent);
+      return;
+    }
+
+    LOG.info("Removing host [{}] from available hosts on host removed event.", hostRemovedEvent.getHostName());
     HostImpl toBeRemoved = null;
 
     // synchronization is required here as the list may be modified concurrently. See comments in this whole class.
@@ -994,7 +999,7 @@ public class TopologyManager {
         availableHosts.remove(toBeRemoved);
         LOG.info("Removed host: [{}] from available hosts", toBeRemoved.getHostName());
       } else {
-        LOG.info("Host [{}] not found in available hosts", toBeRemoved.getHostName());
+        LOG.debug("Host [{}] not found in available hosts", hostRemovedEvent.getHostName());
       }
     }
   }
