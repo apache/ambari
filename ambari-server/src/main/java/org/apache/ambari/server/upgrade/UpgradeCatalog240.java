@@ -2216,6 +2216,7 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   /**
    * Updates the Falcon-related configurations for the clusters managed by this Ambari
    * Removes falcon_store_uri from falcon-env.
+   * Appends Atlas hook classpath to FALCON_EXTRA_CLASS_PATH from falcon-env if it doesn't contain it
    * Appends '{{atlas_application_class_addition}}' to *.application.services from falcon-startup.properties if it doesn't contain it.
    *
    * @throws AmbariException if an error occurs while updating the configurations
@@ -2226,13 +2227,29 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
 
     for (final Cluster cluster : clusterMap.values()) {
-      // Remove falcon_store_uri from falcon-env.
       Config falconEnvConfig = cluster.getDesiredConfigByType("falcon-env");
       if (falconEnvConfig != null) {
+        // Remove falcon_store_uri from falcon-env.
         Map<String, String> falconEnvEnvProperties = falconEnvConfig.getProperties();
         if (falconEnvEnvProperties.containsKey("falcon_store_uri")) {
           LOG.info("Removing property falcon_store_uri from falcon-env");
           removeConfigurationPropertiesFromCluster(cluster, "falcon-env", Collections.singleton("falcon_store_uri"));
+        }
+
+        // Append Atlas hook classpath to FALCON_EXTRA_CLASS_PATH from falcon-env if it doesn't contain it
+        // This is necessary for stack upgrades to 2.5 after the Ambari upgrade
+        final String envContentPropertyName = "content";
+        String contentValue = falconEnvConfig.getProperties().get(envContentPropertyName);
+        if (contentValue != null) {
+          final String atlasHookCPAddition = "{{atlas_hook_cp}}";
+          if (!contentValue.contains(atlasHookCPAddition)) {
+            LOG.info("Appending '{}' to FALCON_EXTRA_CLASS_PATH from falcon-env since it doesn't contain it", atlasHookCPAddition);
+            String newValue = contentValue + "\n\n{% if falcon_atlas_support %}\n" +
+                "# Add the Atlas Falcon hook to the Falcon classpath\n" +
+                "export FALCON_EXTRA_CLASS_PATH={{atlas_hook_cp}}${FALCON_EXTRA_CLASS_PATH}\n" +
+                "{% endif %}";
+            updateConfigurationPropertiesForCluster(cluster, "falcon-env", Collections.singletonMap(envContentPropertyName, newValue), null, true, false);
+          }
         }
       }
 

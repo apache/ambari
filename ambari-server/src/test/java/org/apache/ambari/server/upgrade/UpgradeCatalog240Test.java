@@ -778,6 +778,7 @@ public class UpgradeCatalog240Test {
 
     final Map<String, String> propertiesExpectedFalconEnv = new HashMap<String, String>();
     propertiesExpectedFalconEnv.put("falcon_store_uri", "file:///hadoop/falcon/store");
+    propertiesExpectedFalconEnv.put("content", "# content");
     propertiesExpectedFalconEnv.put("property", "value");
 
     final String applicationServicesOldPropertyValue =
@@ -833,6 +834,10 @@ public class UpgradeCatalog240Test {
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
         capture(falconCapture), anyString(), (Map<String, Map<String, String>>) anyObject())).andReturn(null).once();
 
+    Capture<Map<String, String>> falconCapture2 =  newCapture();
+    expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-env"),
+        capture(falconCapture2), anyString(), (Map<String, Map<String, String>>) anyObject())).andReturn(null).once();
+
     Capture<Map<String, String>> falconStartupCapture =  newCapture();
     expect(mockAmbariManagementController.createConfig(eq(mockClusterExpected), eq("falcon-startup.properties"),
         capture(falconStartupCapture), anyString(), (Map<String, Map<String, String>>)anyObject())).andReturn(null).once();
@@ -841,8 +846,18 @@ public class UpgradeCatalog240Test {
     mockInjector.getInstance(UpgradeCatalog240.class).updateFalconConfigs();
     easyMockSupport.verifyAll();
 
+    final String expectredEnvContent = "# content\n" +
+                                       "\n" +
+                                       "{% if falcon_atlas_support %}\n" +
+                                       "# Add the Atlas Falcon hook to the Falcon classpath\n" +
+                                       "export FALCON_EXTRA_CLASS_PATH={{atlas_hook_cp}}${FALCON_EXTRA_CLASS_PATH}\n" +
+                                       "{% endif %}";
+
     assertEquals("value", falconCapture.getValue().get("property"));
+    assertEquals("# content", falconCapture.getValue().get("content"));
     assertNull(falconCapture.getValue().get("falcon_store_uri"));
+
+    assertEquals(expectredEnvContent, falconCapture2.getValue().get("content"));
 
     assertEquals("value", falconStartupCapture.getValue().get("property"));
     assertEquals(applicationServicesExpectedPropertyValue, falconStartupCapture.getValue().get("*.application.services"));

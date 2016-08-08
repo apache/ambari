@@ -173,9 +173,8 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
         if os.path.isfile(atlas_hook_file_name):
           Link(source_lib_file_name, to=atlas_hook_file_name)
 
-def install_atlas_hook_packages():
-  import params
-
-  if not params.host_sys_prepped:
-    Package(params.atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else params.atlas_plugin_package,
-            retry_on_repo_unavailability=params.agent_stack_retry_on_unavailability, retry_count=params.agent_stack_retry_count)
+def install_atlas_hook_packages(atlas_plugin_package, atlas_ubuntu_plugin_package, host_sys_prepped,
+                                agent_stack_retry_on_unavailability, agent_stack_retry_count):
+  if not host_sys_prepped:
+    Package(atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else atlas_plugin_package,
+            retry_on_repo_unavailability=agent_stack_retry_on_unavailability, retry_count=agent_stack_retry_count)
