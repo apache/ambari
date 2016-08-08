@@ -86,6 +86,8 @@ public class JdbcConnector extends HiveActor {
    */
   private static final long MAX_TERMINATION_INACTIVITY_INTERVAL = 10 * 60 * 1000;
 
+  private static final long MILLIS_IN_SECOND = 1000L;
+
   private final Storage storage;
 
   /**
@@ -420,11 +422,16 @@ public class JdbcConnector extends HiveActor {
     try {
       JobImpl job = storage.load(JobImpl.class, jobid);
       job.setStatus(status);
+      job.setDuration(getUpdatedDuration(job.getDateSubmitted()));
       storage.store(JobImpl.class, job);
       LOG.info("Stored job status for Job id: {} as '{}'", jobid, status);
     } catch (ItemNotFound itemNotFound) {
       // Cannot do anything
     }
+  }
+
+  private Long getUpdatedDuration(Long dateSubmitted) {
+    return (System.currentTimeMillis() / MILLIS_IN_SECOND) - (dateSubmitted / MILLIS_IN_SECOND);
   }
 
 
