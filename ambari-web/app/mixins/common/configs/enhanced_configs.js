@@ -300,9 +300,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
 
   changedDependentGroup: function () {
     var dependentServices = this.get('selectedService.dependentServiceNames');
+    var isInstallWizard = this.get('content.controllerName') === 'installerController';
     var installedServices = App.Service.find().mapProperty('serviceName');
     var services = this.get('stepConfigs').filter(function (stepConfig) {
-      return installedServices.contains(stepConfig.get('serviceName')) && dependentServices.contains(stepConfig.get('serviceName'));
+      if (dependentServices.contains(stepConfig.get('serviceName'))) {
+        return isInstallWizard ? true : installedServices.contains(stepConfig.get('serviceName'));
+      }
+      return false;
     }, this);
     App.showSelectGroupsPopup(this.get('selectedService.serviceName'),
         this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),

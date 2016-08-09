@@ -477,16 +477,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
             if (serviceConfig) {
               var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
               var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-              if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') === self.get('selectedConfigGroup.name')) {
-                var overridePlainObject = {
-                  "value": value,
-                  "savedValue": value,
-                  "isFinal": isFinal,
-                  "savedIsFinal": isFinal,
-                  "isEditable": self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name')
-                };
-                App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
-              }
+              var overridePlainObject = {
+                "value": value,
+                "isVisible": self.get('selectedConfigGroup.isDefault') || configGroup.get('name') === self.get('selectedConfigGroup.name'),
+                "savedValue": value,
+                "isFinal": isFinal,
+                "savedIsFinal": isFinal,
+                "isEditable": self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name')
+              };
+              App.config.createOverride(serviceConfig, overridePlainObject, configGroup);
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') === self.get('selectedConfigGroup.name');
               allConfigs.push(App.config.createCustomGroupConfig({
