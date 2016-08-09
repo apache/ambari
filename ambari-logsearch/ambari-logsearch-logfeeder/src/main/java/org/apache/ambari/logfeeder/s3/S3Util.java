@@ -44,13 +44,13 @@ import com.amazonaws.services.s3.transfer.Upload;
 /**
  * Utility to connect to s3
  */
-public enum S3Util {
-  INSTANCE;
+public class S3Util {
+  public static final S3Util INSTANCE = new S3Util();
 
   private static final Logger LOG = Logger.getLogger(S3Util.class);
 
-  public final String S3_PATH_START_WITH = "s3://";
-  public final String S3_PATH_SEPARATOR = "/";
+  public static final String S3_PATH_START_WITH = "s3://";
+  public static final String S3_PATH_SEPARATOR = "/";
 
   public AmazonS3 getS3Client(String accessKey, String secretKey) {
     AWSCredentials awsCredentials = AWSUtil.INSTANCE.createAWSCredentials(

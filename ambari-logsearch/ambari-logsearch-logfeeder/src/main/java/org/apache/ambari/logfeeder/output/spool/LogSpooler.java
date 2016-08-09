@@ -25,6 +25,9 @@ import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A class that manages local storage of log events before they are uploaded to the output destinations.
@@ -36,6 +39,7 @@ import java.util.Date;
  * {@link RolloverHandler} to trigger the handling of the rolled over file.
  */
 public class LogSpooler {
+  public static final long TIME_BASED_ROLLOVER_DISABLED_THRESHOLD = 0;
   static private Logger logger = Logger.getLogger(LogSpooler.class);
   static final String fileDateFormat = "yyyy-MM-dd-HH-mm-ss";
 
@@ -46,6 +50,8 @@ public class LogSpooler {
   private PrintWriter currentSpoolBufferedWriter;
   private File currentSpoolFile;
   private LogSpoolerContext currentSpoolerContext;
+  private Timer rolloverTimer;
+  private AtomicBoolean rolloverInProgress = new AtomicBoolean(false);
 
   /**
    * Create an instance of the LogSpooler.
@@ -59,11 +65,34 @@ public class LogSpooler {
    */
   public LogSpooler(String spoolDirectory, String sourceFileNamePrefix, RolloverCondition rolloverCondition,
                     RolloverHandler rolloverHandler) {
+    this(spoolDirectory, sourceFileNamePrefix, rolloverCondition, rolloverHandler,
+        TIME_BASED_ROLLOVER_DISABLED_THRESHOLD);
+  }
+
+  /**
+   * Create an instance of the LogSpooler.
+   * @param spoolDirectory The directory under which spooler files are created.
+   *                       Should be unique per instance of {@link Output}
+   * @param sourceFileNamePrefix The prefix with which the locally spooled files are created.
+   * @param rolloverCondition An object of type {@link RolloverCondition} that will be used to
+   *                          determine when to rollover.
+   * @param rolloverHandler An object of type {@link RolloverHandler} that will be called when
+   *                        there should be a rollover.
+   * @param rolloverTimeThresholdSecs  Setting a non-zero value enables time based rollover of
+   *                                   spool files. Sending a 0 value disables this functionality.
+   */
+  public LogSpooler(String spoolDirectory, String sourceFileNamePrefix, RolloverCondition rolloverCondition,
+                    RolloverHandler rolloverHandler, long rolloverTimeThresholdSecs) {
     this.spoolDirectory = spoolDirectory;
     this.sourceFileNamePrefix = sourceFileNamePrefix;
     this.rolloverCondition = rolloverCondition;
     this.rolloverHandler = rolloverHandler;
-    initializeSpoolFile();
+    if (rolloverTimeThresholdSecs != TIME_BASED_ROLLOVER_DISABLED_THRESHOLD) {
+      rolloverTimer = new Timer("log-spooler-timer-" + sourceFileNamePrefix, true);
+      rolloverTimer.scheduleAtFixedRate(new LogSpoolerRolloverTimerTask(),
+          rolloverTimeThresholdSecs*1000, rolloverTimeThresholdSecs*1000);
+    }
+    initializeSpoolState();
   }
 
   private void initializeSpoolDirectory() {
@@ -77,9 +106,9 @@ public class LogSpooler {
     }
   }
 
-  private void initializeSpoolFile() {
+  private void initializeSpoolState() {
     initializeSpoolDirectory();
-    currentSpoolFile = new File(spoolDirectory, getCurrentFileName());
+    currentSpoolFile = initializeSpoolFile();
     try {
       currentSpoolBufferedWriter = initializeSpoolWriter(currentSpoolFile);
     } catch (IOException e) {
@@ -87,7 +116,12 @@ public class LogSpooler {
           + ", error message: " + e.getLocalizedMessage(), e);
     }
     currentSpoolerContext = new LogSpoolerContext(currentSpoolFile);
-    logger.info("Initialized spool file at path: " + currentSpoolFile.getAbsolutePath());
+    logger.info("Initialized spool file at path: " + currentSpoolFile);
+  }
+
+  @VisibleForTesting
+  protected File initializeSpoolFile() {
+    return new File(spoolDirectory, getCurrentFileName());
   }
 
   @VisibleForTesting
@@ -103,11 +137,12 @@ public class LogSpooler {
    * it is ready to rollover the file.
    * @param logEvent The log event to spool.
    */
-  public void add(String logEvent) {
+  public synchronized void add(String logEvent) {
     currentSpoolBufferedWriter.println(logEvent);
     currentSpoolerContext.logEventSpooled();
     if (rolloverCondition.shouldRollover(currentSpoolerContext)) {
-      rollover();
+      logger.info("Trying to rollover based on rollover condition");
+      tryRollover();
     }
   }
 
@@ -121,17 +156,49 @@ public class LogSpooler {
   public void rollover() {
     logger.info("Rollover condition detected, rolling over file: " + currentSpoolFile);
     currentSpoolBufferedWriter.flush();
-    currentSpoolBufferedWriter.close();
-    rolloverHandler.handleRollover(currentSpoolFile);
-    logger.info("Invoked rollover handler with file: " + currentSpoolFile);
-    initializeSpoolFile();
+    if (currentSpoolFile.length()==0) {
+      logger.info("No data in file " + currentSpoolFile + ", not doing rollover");
+    } else {
+      currentSpoolBufferedWriter.close();
+      rolloverHandler.handleRollover(currentSpoolFile);
+      logger.info("Invoked rollover handler with file: " + currentSpoolFile);
+      initializeSpoolState();
+    }
+    boolean status = rolloverInProgress.compareAndSet(true, false);
+    if (!status) {
+      logger.error("Should have reset rollover flag!!");
+    }
   }
 
-  @VisibleForTesting
-  protected String getCurrentFileName() {
+  private synchronized void tryRollover() {
+    if (rolloverInProgress.compareAndSet(false, true)) {
+      rollover();
+    } else {
+      logger.warn("Ignoring rollover call as rollover already in progress for file " +
+          currentSpoolFile);
+    }
+  }
+
+  private String getCurrentFileName() {
     Date currentDate = new Date();
     String dateStr = DateUtil.dateToString(currentDate, fileDateFormat);
     return sourceFileNamePrefix + dateStr;
   }
 
+  /**
+   * Cancel's any time based rollover task, if started.
+   */
+  public void close() {
+    if (rolloverTimer != null) {
+      rolloverTimer.cancel();
+    }
+  }
+
+  private class LogSpoolerRolloverTimerTask extends TimerTask {
+    @Override
+    public void run() {
+      logger.info("Trying rollover based on time");
+      tryRollover();
+    }
+  }
 }

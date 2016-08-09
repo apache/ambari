@@ -43,7 +43,6 @@ public class LogSpoolerTest {
 
   private String spoolDirectory;
   private static final String SOURCE_FILENAME_PREFIX = "hdfs-namenode.log";
-  private static final String FILE_SUFFIX = "currentFile";
 
   @Mock
   private RolloverCondition rolloverCondition;
@@ -61,13 +60,13 @@ public class LogSpoolerTest {
     final PrintWriter spoolWriter = mock(PrintWriter.class);
     spoolWriter.println("log event");
 
-    final File spoolFile = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX);
-    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(spoolFile);
+    final File mockFile = setupInputFileExpectations();
+    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(mockFile);
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))).
         andReturn(false);
 
-    replay(spoolWriter, rolloverCondition);
+    replay(spoolWriter, rolloverCondition, mockFile);
 
     LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
         rolloverCondition, rolloverHandler) {
@@ -77,13 +76,19 @@ public class LogSpoolerTest {
       }
 
       @Override
-      protected String getCurrentFileName() {
-        return SOURCE_FILENAME_PREFIX + FILE_SUFFIX;
+      protected File initializeSpoolFile() {
+        return mockFile;
       }
     };
     logSpooler.add("log event");
 
     verify(spoolWriter);
+  }
+
+  private File setupInputFileExpectations() {
+    final File mockFile = mock(File.class);
+    expect(mockFile.length()).andReturn(10240L);
+    return mockFile;
   }
 
   @Test
@@ -92,14 +97,14 @@ public class LogSpoolerTest {
     final PrintWriter spoolWriter = mock(PrintWriter.class);
     spoolWriter.println("log event");
 
-    final File spoolFile = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX);
-    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(spoolFile);
+    final File mockFile = setupInputFileExpectations();
+    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(mockFile);
     logSpoolerContext.logEventSpooled();
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext, new LogSpoolerEventCountComparator(), LogicalOperator.EQUAL))).
         andReturn(false);
 
-    replay(spoolWriter, rolloverCondition);
+    replay(spoolWriter, rolloverCondition, mockFile);
 
     LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
         rolloverCondition, rolloverHandler) {
@@ -109,8 +114,8 @@ public class LogSpoolerTest {
       }
 
       @Override
-      protected String getCurrentFileName() {
-        return SOURCE_FILENAME_PREFIX + FILE_SUFFIX;
+      protected File initializeSpoolFile() {
+        return mockFile;
       }
     };
     logSpooler.add("log event");
@@ -125,14 +130,14 @@ public class LogSpoolerTest {
     spoolWriter.flush();
     spoolWriter.close();
 
-    File spoolFile = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX);
-    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(spoolFile);
+    final File mockFile = setupInputFileExpectations();
+    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(mockFile);
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))).
         andReturn(true);
-    rolloverHandler.handleRollover(spoolFile);
+    rolloverHandler.handleRollover(mockFile);
 
-    replay(spoolWriter, rolloverCondition, rolloverHandler);
+    replay(spoolWriter, rolloverCondition, rolloverHandler, mockFile);
 
     LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
         rolloverCondition, rolloverHandler) {
@@ -143,8 +148,8 @@ public class LogSpoolerTest {
       }
 
       @Override
-      protected String getCurrentFileName() {
-        return SOURCE_FILENAME_PREFIX + FILE_SUFFIX;
+      protected File initializeSpoolFile() {
+        return mockFile;
       }
     };
     logSpooler.add("log event");
@@ -161,22 +166,22 @@ public class LogSpoolerTest {
     spoolWriter1.flush();
     spoolWriter1.close();
 
-    File spoolFile1 = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX + "_1");
-    File spoolFile2 = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX + "_2");
+    final File mockFile1 = setupInputFileExpectations();
+    final File mockFile2 = setupInputFileExpectations();
 
-    LogSpoolerContext logSpoolerContext1 = new LogSpoolerContext(spoolFile1);
+    LogSpoolerContext logSpoolerContext1 = new LogSpoolerContext(mockFile1);
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext1, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))
     ).andReturn(true);
 
-    LogSpoolerContext logSpoolerContext2 = new LogSpoolerContext(spoolFile2);
+    LogSpoolerContext logSpoolerContext2 = new LogSpoolerContext(mockFile2);
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext2, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))
     ).andReturn(false);
 
-    rolloverHandler.handleRollover(spoolFile1);
+    rolloverHandler.handleRollover(mockFile1);
 
-    replay(spoolWriter1, spoolWriter2, rolloverCondition, rolloverHandler);
+    replay(spoolWriter1, spoolWriter2, rolloverCondition, rolloverHandler, mockFile1, mockFile2);
 
     LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
         rolloverCondition, rolloverHandler) {
@@ -193,11 +198,11 @@ public class LogSpoolerTest {
       }
 
       @Override
-      protected String getCurrentFileName() {
+      protected File initializeSpoolFile() {
         if (!wasRolledOver) {
-          return SOURCE_FILENAME_PREFIX + FILE_SUFFIX + "_1";
+          return mockFile1;
         } else {
-          return SOURCE_FILENAME_PREFIX + FILE_SUFFIX + "_2";
+          return mockFile2;
         }
       }
     };
@@ -214,14 +219,14 @@ public class LogSpoolerTest {
     spoolWriter.flush();
     spoolWriter.close();
 
-    File spoolFile = new File(spoolDirectory, SOURCE_FILENAME_PREFIX + FILE_SUFFIX);
-    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(spoolFile);
+    final File mockFile = setupInputFileExpectations();
+    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(mockFile);
     expect(rolloverCondition.shouldRollover(
         cmp(logSpoolerContext, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))
     ).andReturn(true);
-    rolloverHandler.handleRollover(spoolFile);
+    rolloverHandler.handleRollover(mockFile);
 
-    replay(spoolWriter, rolloverCondition, rolloverHandler);
+    replay(spoolWriter, rolloverCondition, rolloverHandler, mockFile);
 
     LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
         rolloverCondition, rolloverHandler) {
@@ -232,8 +237,8 @@ public class LogSpoolerTest {
       }
 
       @Override
-      protected String getCurrentFileName() {
-        return SOURCE_FILENAME_PREFIX + FILE_SUFFIX;
+      protected File initializeSpoolFile() {
+        return mockFile;
       }
     };
     logSpooler.add("log event");
@@ -241,10 +246,121 @@ public class LogSpoolerTest {
     verify(rolloverHandler);
   }
 
+  // Rollover twice - the second rollover should work if the "rolloverInProgress"
+  // flag is being reset correctly. Third file expectations being setup due
+  // to auto-initialization.
+  @Test
+  public void shouldResetRolloverInProgressFlag() {
+    final PrintWriter spoolWriter1 = mock(PrintWriter.class);
+    final PrintWriter spoolWriter2 = mock(PrintWriter.class);
+    final PrintWriter spoolWriter3 = mock(PrintWriter.class);
+    spoolWriter1.println("log event1");
+    spoolWriter2.println("log event2");
+    spoolWriter1.flush();
+    spoolWriter1.close();
+    spoolWriter2.flush();
+    spoolWriter2.close();
+
+    final File mockFile1 = setupInputFileExpectations();
+    final File mockFile2 = setupInputFileExpectations();
+    final File mockFile3 = setupInputFileExpectations();
+
+    LogSpoolerContext logSpoolerContext1 = new LogSpoolerContext(mockFile1);
+    expect(rolloverCondition.shouldRollover(
+        cmp(logSpoolerContext1, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))
+    ).andReturn(true);
+
+    LogSpoolerContext logSpoolerContext2 = new LogSpoolerContext(mockFile2);
+    expect(rolloverCondition.shouldRollover(
+        cmp(logSpoolerContext2, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))
+    ).andReturn(true);
+
+    rolloverHandler.handleRollover(mockFile1);
+    rolloverHandler.handleRollover(mockFile2);
+
+    replay(spoolWriter1, spoolWriter2, rolloverCondition, rolloverHandler, mockFile1, mockFile2, mockFile3);
+
+    LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
+        rolloverCondition, rolloverHandler) {
+      private int currentFileNum;
+
+      @Override
+      protected PrintWriter initializeSpoolWriter(File spoolFile) throws IOException {
+        PrintWriter spoolWriter = null;
+        switch (currentFileNum) {
+          case 0:
+            spoolWriter = spoolWriter1;
+            break;
+          case 1:
+            spoolWriter = spoolWriter2;
+            break;
+          case 2:
+            spoolWriter = spoolWriter3;
+            break;
+        }
+        currentFileNum++;
+        return spoolWriter;
+      }
+
+      @Override
+      protected File initializeSpoolFile() {
+        switch (currentFileNum) {
+          case 0:
+            return mockFile1;
+          case 1:
+            return mockFile2;
+          case 2:
+            return mockFile3;
+          default:
+            return null;
+        }
+      }
+    };
+    logSpooler.add("log event1");
+    logSpooler.add("log event2");
+
+    verify(spoolWriter1, spoolWriter2, rolloverCondition);
+  }
+
+  @Test
+  public void shouldNotRolloverZeroLengthFiles() {
+    final PrintWriter spoolWriter = mock(PrintWriter.class);
+    spoolWriter.println("log event");
+    spoolWriter.flush();
+    spoolWriter.close();
+
+    final File mockFile = mock(File.class);
+    expect(mockFile.length()).andReturn(0L);
+
+    LogSpoolerContext logSpoolerContext = new LogSpoolerContext(mockFile);
+    expect(rolloverCondition.shouldRollover(
+        cmp(logSpoolerContext, new LogSpoolerFileComparator(), LogicalOperator.EQUAL))).
+        andReturn(true);
+
+    replay(spoolWriter, rolloverCondition, mockFile);
+
+    LogSpooler logSpooler = new LogSpooler(spoolDirectory, SOURCE_FILENAME_PREFIX,
+        rolloverCondition, rolloverHandler) {
+
+      @Override
+      protected PrintWriter initializeSpoolWriter(File spoolFile) throws IOException {
+        return spoolWriter;
+      }
+
+      @Override
+      protected File initializeSpoolFile() {
+        return mockFile;
+      }
+    };
+    logSpooler.add("log event");
+
+    verify(mockFile);
+  }
+
   class LogSpoolerFileComparator implements Comparator<LogSpoolerContext> {
     @Override
     public int compare(LogSpoolerContext o1, LogSpoolerContext o2) {
-      return o1.getActiveSpoolFile().compareTo(o2.getActiveSpoolFile());
+      return o1.getActiveSpoolFile()==o2.getActiveSpoolFile() ? 0 : -1;
     }
   }
 
