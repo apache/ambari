@@ -153,6 +153,12 @@ _PACKAGE_DIRS = {
       "current_dir": "{0}/current/spark-client/conf".format(STACK_ROOT_PATTERN)
     }
   ],
+  "zeppelin": [
+    {
+      "conf_dir": "/etc/zeppelin/conf",
+      "current_dir": "{0}/current/zeppelin-server/conf".format(STACK_ROOT_PATTERN)
+    }
+  ],
   "spark2": [
     {
       "conf_dir": "/etc/spark2/conf",

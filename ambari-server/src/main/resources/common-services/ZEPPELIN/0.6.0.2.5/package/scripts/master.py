@@ -159,6 +159,9 @@ class Master(Script):
     import time
     self.configure(env)
 
+    Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"), "/etc/zeppelin"),
+            sudo=True)
+
     if params.security_enabled:
         zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
         Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
