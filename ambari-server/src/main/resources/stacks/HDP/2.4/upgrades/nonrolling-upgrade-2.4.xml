@@ -436,6 +436,8 @@
       <direction>UPGRADE</direction>
       <priority>
         <service>ZOOKEEPER</service>
+        <service>RANGER</service>
+        <service>RANGER_KMS</service>
         <service>HDFS</service>
         <service>KAFKA</service>
         <service>YARN</service>

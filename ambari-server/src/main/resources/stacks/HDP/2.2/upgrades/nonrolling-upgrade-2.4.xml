@@ -85,7 +85,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -175,12 +175,6 @@
           <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
-
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
@@ -207,10 +201,6 @@
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
-      </service>
-
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -240,12 +230,6 @@
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Restore Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please restore Ranger KMS database</message>
         </task>
       </execute-stage>
     </group>
@@ -597,16 +581,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -710,6 +684,8 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
+        <service>ZOOKEEPER</service>
+        <service>RANGER</service>
         <service>HDFS</service>
         <service>YARN</service>
         <service>MAPREDUCE2</service>
@@ -874,7 +850,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -905,7 +881,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -980,14 +956,6 @@
       </component>
 
       <component name="RANGER_USERSYNC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -1287,7 +1255,7 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-downgrade>
-        
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

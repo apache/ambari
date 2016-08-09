@@ -377,10 +377,12 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
-        <service>HBASE</service>
-        <service>MAPREDUCE2</service>
-        <service>YARN</service>
+        <service>ZOOKEEPER</service>
+        <service>RANGER</service>
         <service>HDFS</service>
+        <service>YARN</service>
+        <service>MAPREDUCE2</service>
+        <service>HBASE</service>
       </priority>
     </group>
 
