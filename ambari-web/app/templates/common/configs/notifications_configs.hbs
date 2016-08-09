@@ -33,23 +33,23 @@
         {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="yes"}} {{t installer.step7.misc.notification.configure}}
       </div>
 
-      {{#each view.categoryConfigs}}
-        <div {{bindAttr class=":entry-row rowStyleClass isUserProperty:indent-1"}}>
-          <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+      {{#each config in view.categoryConfigs}}
+        <div {{bindAttr class=":entry-row config.rowStyleClass config.isUserProperty:indent-1"}}>
+          <span {{bindAttr class="config.errorMessage:error: :control-group :control-label-span"}}>
             <label class="control-label">
-              {{formatWordBreak displayName}}
+              {{formatWordBreak config.displayName}}
             </label>
           </span>
 
-          <div {{bindAttr class="showLabel:controls"}}>
-            <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
-              {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+          <div {{bindAttr class="config.showLabel:controls"}}>
+            <div {{bindAttr class="config.errorMessage:error: config.warnMessage:warning: :control-group"}}>
+              {{view config.viewClass serviceConfigBinding="config" categoryConfigsAllBinding="view.categoryConfigsAll" }}
 
-              {{#if isRemovable}}
+              {{#if config.isRemovable}}
                 {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-                  {{#unless this.isComparison}}
+                  {{#unless config.isComparison}}
                     <a class="btn-small" href="#" data-toggle="tooltip"
-                      {{action "removeProperty" this target="view"}}
+                      {{action "removeProperty" config target="view"}}
                       {{translateAttr data-original-title="common.remove"}}>
                       <i class="icon-minus-sign"></i>
                     </a>
@@ -57,8 +57,8 @@
                 {{/isAuthorized}}
               {{/if}}
 
-              <span class="help-inline">{{errorMessage}}</span>
-              <span class="help-inline">{{warnMessage}}</span>
+              <span class="help-inline">{{config.errorMessage}}</span>
+              <span class="help-inline">{{config.warnMessage}}</span>
             </div>
           </div>
         </div>
