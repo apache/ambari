@@ -99,7 +99,7 @@
     <value>false</value>
     <description>
       Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the
-      end of the job rather then delete them.
+      end of the job rather than delete them.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
