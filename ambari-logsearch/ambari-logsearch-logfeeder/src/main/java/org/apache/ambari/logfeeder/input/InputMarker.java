@@ -32,5 +32,4 @@ public class InputMarker {
     return "InputMarker [lineNumber=" + lineNumber + ", input="
       + input.getShortDescription() + "]";
   }
-
 }
