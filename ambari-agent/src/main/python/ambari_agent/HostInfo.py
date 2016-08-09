@@ -133,7 +133,7 @@ class HostInfoLinux(HostInfo):
     "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
     "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
     "mahout", "spark", "pig", "phoenix", "ranger", "accumulo",
-    "ambari-metrics-collector", "ambari-metrics-monitor", "atlas"
+    "ambari-metrics-collector", "ambari-metrics-monitor", "atlas", "zeppelin"
   ]
 
 
@@ -146,7 +146,7 @@ class HostInfoLinux(HostInfo):
     "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
     "hdfs", "zookeeper", "flume", "sqoop", "sqoop2",
     "hue", "yarn", "tez", "storm", "falcon", "kafka", "knox", "ams",
-    "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms"
+    "hadoop", "spark", "accumulo", "atlas", "mahout", "ranger", "kms", "zeppelin"
   ]
   
   # Default set of directories that are checked for existence of files and folders
