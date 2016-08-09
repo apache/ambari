@@ -1,0 +1,132 @@
+<!--
+     Licensed to the Apache Software Foundation (ASF) under one or more
+     contributor license agreements.  See the NOTICE file distributed with
+     this work for additional information regarding copyright ownership.
+     The ASF licenses this file to You under the Apache License, Version 2.0
+     (the "License"); you may not use this file except in compliance with
+     the License.  You may obtain a copy of the License at
+
+         http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+  -->
+<view>
+  <name>Workflow Manager</name>
+  <label>Workflow Manager</label>
+  <version>1.0.0</version>
+  <build>${env.BUILD_NUMBER}</build>
+  <min-ambari-version>2.0.*</min-ambari-version>
+  <resource>
+    <name>proxy</name>
+    <service-class>org.apache.oozie.ambari.view.OozieProxyImpersonator</service-class>
+  </resource>
+
+  <parameter>
+    <name>oozie.service.uri</name>
+    <description>Oozie service URI for the Oozie API.</description>
+    <label>Oozie Service URI</label>
+    <placeholder>http://sandbox.hortonworks.com:11000/oozie</placeholder>
+    <cluster-config>oozie-site/oozie.base.url</cluster-config>
+  </parameter>
+
+
+      <parameter>
+        <name>webhdfs.url</name>
+        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address
+            property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
+        <label>WebHDFS FileSystem URI</label>
+        <required>true</required>
+        <cluster-config>core-site/fs.defaultFS</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.nameservices</name>
+        <description>Comma-separated list of nameservices. Value of hdfs-site/dfs.nameservices property</description>
+        <label>Logical name of the NameNode cluster</label>
+        <required>false</required>
+        <cluster-config>hdfs-site/dfs.nameservices</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenodes.list</name>
+        <description>Comma-separated list of namenodes for a given nameservice.
+            Value of hdfs-site/dfs.ha.namenodes.[nameservice] property</description>
+        <label>List of NameNodes</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn1</name>
+        <description>RPC address for first name node.
+            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.rpc-address.nn2</name>
+        <description>RPC address for second name node.
+            Value of hdfs-site/dfs.namenode.rpc-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode RPC Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn1</name>
+        <description>WebHDFS address for first name node.
+            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode1] property</description>
+        <label>First NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.ha.namenode.http-address.nn2</name>
+        <description>WebHDFS address for second name node.
+            Value of hdfs-site/dfs.namenode.http-address.[nameservice].[namenode2] property</description>
+        <label>Second NameNode HTTP (WebHDFS) Address</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>webhdfs.client.failover.proxy.provider</name>
+        <description>The Java class that HDFS clients use to contact the Active NameNode
+            Value of hdfs-site/dfs.client.failover.proxy.provider.[nameservice] property</description>
+        <label>Failover Proxy Provider</label>
+        <required>false</required>
+        <cluster-config>fake</cluster-config>
+    </parameter>
+    <parameter>
+        <name>hdfs.auth_to_local</name>
+        <description>Auth to Local Configuration</description>
+        <label>Auth To Local</label>
+        <required>false</required>
+        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+    </parameter>
+<!--
+    <parameter>
+        <name>webhdfs.username</name>
+        <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
+        <label>WebHDFS Username</label>
+        <default-value>${username}</default-value>
+        <required>false</required>
+    </parameter> -->
+    <parameter>
+        <name>webhdfs.auth</name>
+        <description>Semicolon-separated authentication configs.</description>
+        <placeholder>auth=SIMPLE</placeholder>
+        <label>WebHDFS Authorization</label>
+        <required>false</required>
+    </parameter>
+
+  <!--<auto-instance>
+    <name>AUTO_OOZIE_VIEW</name>
+    <label>Oozie UI View</label>
+    <description>This auto-created Oozie View Instance allows accessing and managing Oozie jobs as well as interactively design new Workflows.</description>
+    <stack-id>HDP-2.*</stack-id>
+    <services>
+      <service>OOZIE</service>
+    </services>
+  </auto-instance>-->
+</view>
