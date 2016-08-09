@@ -100,7 +100,7 @@ def should_install_falcon_atlas_hook():
   stack_version_formatted = format_stack_version(stack_version_unformatted)
   if check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, stack_version_formatted) \
       or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted):
-    return _has_local_components(config, ['FALCON_SERVER', 'ATLAS_SERVER'], all)
+    return _has_applicable_local_component(config, ['FALCON_SERVER'])
   return False
 
 def should_install_ranger_tagsync():
