@@ -140,14 +140,6 @@ dfs_data_mirroring_dir = "/apps/data-mirroring"
 falcon_atlas_application_properties = default('/configurations/falcon-atlas-application.properties', {})
 
 # Calculate atlas_hook_cp to add to FALCON_EXTRA_CLASS_PATH
-atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
-has_atlas_server_on_host = False
-
-for host in atlas_hosts:
-  if host.upper() == hostname.upper():
-    has_atlas_server_on_host = True
-    break
-
 falcon_atlas_support = False
 
 # Path to add to environment variable
@@ -155,18 +147,16 @@ atlas_hook_cp = ""
 if has_atlas_in_cluster():
   atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
 
-  # Only append /etc/atlas/conf to classpath if on HDP 2.4.* and atlas server is running on this host.
-  if has_atlas_server_on_host:
-    # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from current_version_formatted
-    falcon_atlas_support = current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted) \
-        or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted)
+  # stack_version doesn't contain a minor number of the stack (only first two numbers: 2.3). Get it from current_version_formatted
+  falcon_atlas_support = current_version_formatted and check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT_2_3, current_version_formatted) \
+      or check_stack_feature(StackFeature.FALCON_ATLAS_SUPPORT, stack_version_formatted)
 
-    if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
-      atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else format('{stack_root}/current/atlas-server/conf')
-      atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
-      atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
-    elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
-      atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep
+  if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
+    atlas_conf_dir = os.environ['METADATA_CONF'] if 'METADATA_CONF' in os.environ else format('{stack_root}/current/atlas-server/conf')
+    atlas_home_dir = os.environ['METADATA_HOME_DIR'] if 'METADATA_HOME_DIR' in os.environ else format('{stack_root}/current/atlas-server')
+    atlas_hook_cp = atlas_conf_dir + os.pathsep + os.path.join(atlas_home_dir, "hook", "falcon", "*") + os.pathsep
+  elif check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, stack_version_formatted):
+    atlas_hook_cp = format('{stack_root}/current/atlas-client/hook/falcon/*') + os.pathsep
 
 atlas_application_class_addition = ""
 if falcon_atlas_support:
