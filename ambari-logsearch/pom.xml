@@ -34,6 +34,7 @@
     <module>ambari-logsearch-portal</module>
     <module>ambari-logsearch-logfeeder</module>
     <module>ambari-logsearch-solr-client</module>
+    <module>ambari-logsearch-it</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -162,6 +163,7 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.log</exclude>
             <exclude>**/*.txt</exclude>
+            <exclude>**/*.story</exclude>
             <exclude>**/docker/Profile</exclude>
           </excludes>
         </configuration>
