@@ -71,7 +71,7 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
-      
+
       <service name="ACCUMULO">
         <component>ACCUMULO_TRACER</component>
         <component>ACCUMULO_GC</component>
@@ -293,7 +293,7 @@
         </task>
       </execute-stage>
     </group>
-    
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
@@ -441,6 +441,8 @@
       <direction>UPGRADE</direction>
       <priority>
         <service>ZOOKEEPER</service>
+        <service>RANGER</service>
+        <service>RANGER_KMS</service>
         <service>HDFS</service>
         <service>KAFKA</service>
         <service>YARN</service>
@@ -587,7 +589,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -617,7 +619,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
