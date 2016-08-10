@@ -88,7 +88,14 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
       if (componentInfo.getCardinality() == null) {
         componentInfo.setCardinality(parentInfo.getCardinality());
       }
-      componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
+
+      // Inherit versionAdvertised from the parent if the current Component Info has it as null or "inherit".
+      if (null == componentInfo.getVersionAdvertisedField()) {
+        componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
+      } else {
+        // Set to explicit boolean
+        componentInfo.setVersionAdvertised(componentInfo.getVersionAdvertisedField().booleanValue());
+      }
 
       if (componentInfo.getDecommissionAllowed() == null) {
         componentInfo.setDecommissionAllowed(parentInfo.getDecommissionAllowed());
