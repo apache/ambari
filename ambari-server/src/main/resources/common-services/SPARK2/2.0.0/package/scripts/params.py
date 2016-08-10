@@ -108,9 +108,13 @@ else:
   spark_history_server_host = "localhost"
 
 # spark-defaults params
+ui_ssl_enabled = default("configurations/spark2-defaults/spark.ssl.enabled", False)
+
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
 
 spark_history_ui_port = config['configurations']['spark2-defaults']['spark.history.ui.port']
+if ui_ssl_enabled:
+  spark_history_ui_port = str(int(spark_history_ui_port) + 400)
 
 spark_env_sh = config['configurations']['spark2-env']['content']
 spark_log4j_properties = config['configurations']['spark2-log4j-properties']['content']
