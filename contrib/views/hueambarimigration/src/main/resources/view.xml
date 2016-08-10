@@ -29,7 +29,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 
   <parameter>
     <name>Hue_Server_hostname</name>
-    <description>Hostname of the server where hue exist</description>
+    <description>Hostname of the server where hue Exist</description>
     <label>Hue Server hostname</label>
     <placeholder>Enter Hue Server Hostname</placeholder>
   </parameter>
@@ -43,9 +43,9 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 
   <parameter>
     <name>Ambari_Server_hostname</name>
-    <description>Hostname where ambari exixt</description>
+    <description>Hostname where ambari Exist</description>
     <label>Ambari Server hostname</label>
-    <placeholder>Enter Hue Server Hostname</placeholder>
+    <placeholder>Enter Ambari Server Hostname</placeholder>
   </parameter>
 
   <parameter>
