@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
@@ -215,6 +216,20 @@ public class ClusterTopologyImpl implements ClusterTopology {
 
     for (TopologyValidator validator : validators) {
       validator.validate(this);
+    }
+    if(isNameNodeHAEnabled()){
+        Collection<String> nnHosts = getHostAssignmentsForComponent("NAMENODE");
+        if (nnHosts.size() != 2) {
+            throw new InvalidTopologyException("NAMENODE HA requires exactly 2 hosts running NAMENODE but there are: " +
+                nnHosts.size() + " Hosts: " + nnHosts);
+        }
+        Map<String, String> hadoopEnvConfig = configuration.getFullProperties().get("hadoop-env");
+        if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
+           if((!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_active")))
+             || (!HostGroup.HOSTGROUP_REGEX.matcher(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")).matches() && !nnHosts.contains(hadoopEnvConfig.get("dfs_ha_initial_namenode_standby")))){
+              throw new IllegalArgumentException("NAMENODE HA hosts mapped incorrectly for properties 'dfs_ha_initial_namenode_active' and 'dfs_ha_initial_namenode_standby'. Expected hosts are: " + nnHosts);
+        }
+        }
     }
   }
 

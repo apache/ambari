@@ -42,6 +42,7 @@ import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -124,11 +125,6 @@ public class BlueprintConfigurationProcessor {
    */
   private static Collection<Map<String, Map<String, PropertyUpdater>>> allUpdaters =
       new ArrayList<Map<String, Map<String, PropertyUpdater>>>();
-
-  /**
-   * Compiled regex for hostgroup token.
-   */
-  private static Pattern HOSTGROUP_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%");
 
   /**
    * Compiled regex for hostgroup token with port information.
@@ -1273,7 +1269,7 @@ public class BlueprintConfigurationProcessor {
                                          ClusterTopology topology)  {
 
       //todo: getHostStrings
-      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
+      Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
       if (m.find()) {
         String hostGroupName = m.group(1);
 
@@ -1396,7 +1392,7 @@ public class BlueprintConfigurationProcessor {
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
       //todo: getHostStrings
-      Matcher m = HOSTGROUP_REGEX.matcher(origValue);
+      Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
       if (m.find()) {
         String hostGroupName = m.group(1);
         return Collections.singleton(hostGroupName);

@@ -284,4 +284,7 @@ public class HostGroupImpl implements HostGroup {
     Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
     configuration = new Configuration(config, attributes);
   }
+  public String toString(){
+       return  name;
+  }
 }

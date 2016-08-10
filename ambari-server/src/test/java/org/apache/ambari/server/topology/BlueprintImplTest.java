@@ -61,6 +61,7 @@ public class BlueprintImplTest {
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
+    hdfsProps.put("dfs.nameservices", "val");
     Map<String, String> category1Props = new HashMap<>();
     properties.put("category1", category1Props);
     category1Props.put("prop1", "val");
@@ -144,10 +145,60 @@ public class BlueprintImplTest {
     expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
 
     expect(group1.getCardinality()).andReturn("1").atLeastOnce();
-    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
     expect(group2.getCardinality()).andReturn("1").atLeastOnce();
-    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c3"))).atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    Map<String, String> category2Props = new HashMap<>();
+    properties.put("category2", category2Props);
+    category2Props.put("prop2", "val");
+    group1Components.add("NAMENODE");
+    group2Components.add("NAMENODE");
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
+    Map<String, String> hdfsProps = new HashMap<String, String>();
+    properties.put("hdfs-site", hdfsProps);
+    hdfsProps.put("foo", "val");
+    hdfsProps.put("bar", "val");
+    Map<String, String> hadoopProps = new HashMap<String, String>();
+    properties.put("hadoop-env", hadoopProps);
+    hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP:group1%");
+    hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP:group2%");
+    replay(stack, group1, group2);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    blueprint.validateRequiredProperties();
+    BlueprintEntity entity = blueprint.toEntity();
+    verify(stack, group1, group2);
+    assertTrue(entity.getSecurityType() == SecurityType.NONE);
+    assertTrue(entity.getSecurityDescriptorReference() == null);
+  }
+  @Test
+  public void testValidateConfigurations__hostGroupConfigForNameNodeHAPositive() throws Exception {
+    Map<String, Map<String, String>> group2Props = new HashMap<>();
+    Map<String, String> group2Category2Props = new HashMap<>();
+    group2Props.put("category2", group2Category2Props);
+    group2Category2Props.put("prop2", "val");
+    // set config for group2 which contains a required property
+    Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
+    expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
 
+    expect(group1.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    expect(group2.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    Map<String, String> category2Props = new HashMap<>();
+    properties.put("category2", category2Props);
+    category2Props.put("prop2", "val");
+    group1Components.add("NAMENODE");
+    group2Components.add("NAMENODE");
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
+    Map<String, String> hdfsProps = new HashMap<String, String>();
+    properties.put("hdfs-site", hdfsProps);
+    hdfsProps.put("foo", "val");
+    hdfsProps.put("bar", "val");
+    hdfsProps.put("dfs.nameservices", "val");
+    Map<String, String> hadoopProps = new HashMap<String, String>();
+    properties.put("hadoop-env", hadoopProps);
+    hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group1%");
+    hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
     replay(stack, group1, group2);
 
     Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
@@ -159,6 +210,72 @@ public class BlueprintImplTest {
     assertTrue(entity.getSecurityDescriptorReference() == null);
   }
 
+  @Test(expected= IllegalArgumentException.class)
+  public void testValidateConfigurations__hostGroupConfigForNameNodeHAInCorrectHostGroups() throws Exception {
+    Map<String, Map<String, String>> group2Props = new HashMap<>();
+    Map<String, String> group2Category2Props = new HashMap<>();
+    group2Props.put("category2", group2Category2Props);
+    group2Category2Props.put("prop2", "val");
+    // set config for group2 which contains a required property
+    Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
+    expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
+    expect(group1.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    expect(group2.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    Map<String, String> category2Props = new HashMap<>();
+    properties.put("category2", category2Props);
+    category2Props.put("prop2", "val");
+    group1Components.add("NAMENODE");
+    group2Components.add("NAMENODE");
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
+    Map<String, String> hdfsProps = new HashMap<String, String>();
+    properties.put("hdfs-site", hdfsProps);
+    hdfsProps.put("foo", "val");
+    hdfsProps.put("bar", "val");
+    hdfsProps.put("dfs.nameservices", "val");
+    Map<String, String> hadoopProps = new HashMap<String, String>();
+    properties.put("hadoop-env", hadoopProps);
+    hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
+    hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group3%");
+    replay(stack, group1, group2);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2);
+  }
+  @Test(expected= IllegalArgumentException.class)
+  public void testValidateConfigurations__hostGroupConfigForNameNodeHAMappedSameHostGroup() throws Exception {
+    Map<String, Map<String, String>> group2Props = new HashMap<>();
+    Map<String, String> group2Category2Props = new HashMap<>();
+    group2Props.put("category2", group2Category2Props);
+    group2Category2Props.put("prop2", "val");
+    // set config for group2 which contains a required property
+    Configuration group2Configuration = new Configuration(group2Props, EMPTY_ATTRIBUTES, configuration);
+    expect(group2.getConfiguration()).andReturn(group2Configuration).atLeastOnce();
+    expect(group1.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    expect(group2.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("NAMENODE"))).atLeastOnce();
+    Map<String, String> category2Props = new HashMap<>();
+    properties.put("category2", category2Props);
+    category2Props.put("prop2", "val");
+    group1Components.add("NAMENODE");
+    group2Components.add("NAMENODE");
+    expect(stack.getServiceForComponent("NAMENODE")).andReturn("SERVICE2").atLeastOnce();
+    Map<String, String> hdfsProps = new HashMap<String, String>();
+    properties.put("hdfs-site", hdfsProps);
+    hdfsProps.put("foo", "val");
+    hdfsProps.put("bar", "val");
+    hdfsProps.put("dfs.nameservices", "val");
+    Map<String, String> hadoopProps = new HashMap<String, String>();
+    properties.put("hadoop-env", hadoopProps);
+    hadoopProps.put("dfs_ha_initial_namenode_active", "%HOSTGROUP::group2%");
+    hadoopProps.put("dfs_ha_initial_namenode_standby", "%HOSTGROUP::group2%");
+    replay(stack, group1, group2);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    blueprint.validateRequiredProperties();
+    verify(stack, group1, group2);
+  }
   @Test(expected = InvalidTopologyException.class)
   public void testValidateConfigurations__secretReference() throws InvalidTopologyException {
     Map<String, Map<String, String>> group2Props = new HashMap<>();

@@ -25,12 +25,17 @@ import org.apache.ambari.server.state.DependencyInfo;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * Host Group representation.
  */
 public interface HostGroup {
 
+  /**
+   * Compiled regex for hostgroup token.
+   */
+  Pattern HOSTGROUP_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%");
   /**
    * Get the name of the host group.
    *
