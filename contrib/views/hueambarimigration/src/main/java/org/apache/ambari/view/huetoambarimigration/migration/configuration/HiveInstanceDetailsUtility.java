@@ -28,79 +28,126 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.hive.instancedetail.*;
+import org.apache.log4j.Logger;
 
 
 public class HiveInstanceDetailsUtility {
 
   public List<InstanceModel> getInstancedetails(ViewContext view) throws PropertyVetoException, SQLException, IOException {
 
+    final Logger logger = Logger.getLogger(HiveInstanceDetailsUtility.class);
     List<InstanceModel> instancelist = new ArrayList<>();
     Connection conn = null;
     conn = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();
     conn.setAutoCommit(false);
-    PreparedStatement prSt;
-
+    PreparedStatement prSt = null;
     QuerySetAmbariDB ambaridatabase = null;
-
-    if (view.getProperties().get("ambaridrivername").contains("mysql")) {
-      ambaridatabase = new MysqlQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
-      ambaridatabase = new PostgressQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
-      ambaridatabase = new OracleQuerySetAmbariDB();
-    }
-
     ResultSet rs1 = null;
-    prSt = ambaridatabase.getHiveInstanceDeatil(conn);
-    rs1 = prSt.executeQuery();
-    int i = 0;
 
-    while (rs1.next()) {
-      InstanceModel I = new InstanceModel();
-      I.setInstanceName(rs1.getString(1));
-      I.setId(i);
-      instancelist.add(I);
-      i++;
+    try {
+
+      if (view.getProperties().get("ambaridrivername").contains("mysql")) {
+        ambaridatabase = new MysqlQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
+        ambaridatabase = new PostgressQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
+        ambaridatabase = new OracleQuerySetAmbariDB();
+      }
+
+      prSt = ambaridatabase.getHiveInstanceDeatil(conn);
+      rs1 = prSt.executeQuery();
+      int i = 0;
+
+      while (rs1.next()) {
+        InstanceModel I = new InstanceModel();
+        I.setInstanceName(rs1.getString(1));
+        I.setId(i);
+        instancelist.add(I);
+        i++;
+      }
+      return instancelist;
+    } finally {
+      if (rs1 != null) {
+        try {
+          rs1.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing result set : ", e);
+        }
+      }
+      if (prSt != null) {
+        try {
+          prSt.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing PreparedStatement : ", e);
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing the connection : ", e);
+        }
+      }
     }
-    return instancelist;
-
   }
 
   public List<InstanceModel> getAllInstancedetails(ViewContext view) throws PropertyVetoException, SQLException, IOException {
 
     List<InstanceModel> instancelist = new ArrayList<>();
+    final Logger logger = Logger.getLogger(HiveInstanceDetailsUtility.class);
     Connection conn = null;
     Statement stmt = null;
     conn = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();
     conn.setAutoCommit(false);
-    PreparedStatement prSt;
-
-    QuerySetAmbariDB ambaridatabase = null;
-
-    if (view.getProperties().get("ambaridrivername").contains("mysql")) {
-      ambaridatabase = new MysqlQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
-      ambaridatabase = new PostgressQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
-      ambaridatabase = new OracleQuerySetAmbariDB();
-    }
-
+    PreparedStatement prSt = null;
     ResultSet rs1 = null;
-    int i = 0;
-    prSt = ambaridatabase.getAllInstanceDeatil(conn);
-    rs1 = prSt.executeQuery();
+    QuerySetAmbariDB ambaridatabase = null;
+    try {
 
-    while (rs1.next()) {
-      InstanceModel I = new InstanceModel();
-      I.setInstanceName(rs1.getString(1));
-      I.setId(i);
-      instancelist.add(I);
-      i++;
+      if (view.getProperties().get("ambaridrivername").contains("mysql")) {
+        ambaridatabase = new MysqlQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
+        ambaridatabase = new PostgressQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
+        ambaridatabase = new OracleQuerySetAmbariDB();
+      }
+
+      int i = 0;
+      prSt = ambaridatabase.getAllInstanceDeatil(conn);
+      rs1 = prSt.executeQuery();
+
+      while (rs1.next()) {
+        InstanceModel I = new InstanceModel();
+        I.setInstanceName(rs1.getString(1));
+        I.setId(i);
+        instancelist.add(I);
+        i++;
+      }
+      return instancelist;
+    }  finally {
+      if (rs1 != null) {
+        try {
+          rs1.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing result set : ", e);
+        }
+      }
+      if (prSt != null) {
+        try {
+          prSt.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing PreparedStatement : ", e);
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing the connection : ", e);
+        }
+      }
     }
-    rs1.close();
-    return instancelist;
-
   }
 
-
 }
+
