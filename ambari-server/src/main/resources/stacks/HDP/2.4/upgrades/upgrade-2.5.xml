@@ -967,6 +967,7 @@
             <function>delete_storm_local_data</function>
           </task>
           <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
+          <task xsi:type="configure" id="hdp_2_4_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
         </pre-upgrade>
 
         <pre-downgrade>

@@ -512,6 +512,13 @@
             </condition>
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"
+                      summary="Removing empty storm.topology.submission.notifier.plugin.class property">
+            <type>storm-site</type>
+            <transfer operation="delete" delete-key="storm.topology.submission.notifier.plugin.class" if-key="storm.topology.submission.notifier.plugin.class"
+                      if-type="storm-site" if-value=" "/>
+          </definition>
+
           <!-- All of these configs are present in Atlas' application.properties file instead and then copied to the hook's atlas-application.properties file. -->
           <definition xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs">
             <type>storm-site</type>

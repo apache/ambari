@@ -643,6 +643,13 @@
             <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
             <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"
+                      summary="Removing empty storm.topology.submission.notifier.plugin.class property">
+            <type>storm-site</type>
+            <transfer operation="delete" delete-key="storm.topology.submission.notifier.plugin.class" if-key="storm.topology.submission.notifier.plugin.class"
+                      if-type="storm-site" if-value=" "/>
+          </definition>
         </changes>
       </component>
     </service>
