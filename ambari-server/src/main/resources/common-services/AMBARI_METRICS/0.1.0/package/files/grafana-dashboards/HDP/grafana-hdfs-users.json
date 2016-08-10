@@ -17,7 +17,7 @@
       "height": "25px",
       "panels": [
         {
-          "content": "<h4 align=\"center\">Metrics for HDFS Namenode RPC Call Queue status in terms of call volumes for top users and their priority assignment. Click on each row title to expand on demand to look at various metrics. </h4>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
+          "content": "<h4 align=\"center\">Metrics for HDFS Namenode RPC Call Queue status in terms of call volumes for top users and their priority assignment. Click on each row title to expand on demand to look at various metrics. </h4>\n<h5 align=\"center\">HDFS User metrics aren't emitted by default. You can use this <a style=\"color: green;\" href=\"https://cwiki.apache.org/confluence/display/AMBARI/Enabling+HDFS+per-user+Metrics\">document</a> as a reference to enable them.</h5>\n<h6 style=\"color:red;\" align=\"center\">This dashboard is managed by Ambari.  You may lose any changes made to this dashboard.  If you want to customize, make your own copy.</h6>",
           "editable": true,
           "error": false,
           "id": 3,
