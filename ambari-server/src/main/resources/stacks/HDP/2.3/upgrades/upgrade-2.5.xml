@@ -1001,6 +1001,8 @@
           <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs" />
 
+          <task xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
+
           <task xsi:type="execute" hosts="any" summary="Removing Storm data from ZooKeeper">
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_zookeeper_data</function>
