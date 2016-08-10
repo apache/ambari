@@ -19,7 +19,7 @@ package org.apache.ambari.server.utils;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import org.eclipse.jetty.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Static Helper methods for Json processing.
@@ -35,7 +35,7 @@ public class JsonUtils {
    */
   public static boolean isValidJson(String jsonString) {
 
-    if(StringUtil.isBlank(jsonString)) {
+    if(StringUtils.isBlank(jsonString)) {
       return false;
     }
     try {
