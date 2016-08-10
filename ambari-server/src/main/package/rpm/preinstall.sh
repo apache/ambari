@@ -49,7 +49,9 @@ then
     mkdir "$AMBARI_VIEWS_BACKUP_FOLDER"
 fi
 
-if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ]
+ls $AMBARI_VIEWS_FOLDER/*.jar 2>&1 > /dev/null
+JARS_EXIST="$?"
+if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ] && [ "$JARS_EXIST" -eq 0 ]
 then
     cp -u $AMBARI_VIEWS_FOLDER/*.jar $AMBARI_VIEWS_BACKUP_FOLDER/
 fi
