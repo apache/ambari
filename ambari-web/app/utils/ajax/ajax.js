@@ -728,16 +728,6 @@ var urls = {
 
   /*************************CONFIG VERSIONS*************************************/
 
-  'configs.config_versions.load.all.min': {
-    'real': '/clusters/{clusterName}/configurations/service_config_versions?fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true',
-    'mock': '/data/configurations/config_versions.json'
-  },
-
-  'configs.config_versions.load.service.min': {
-    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note&minimal_response=true',
-    'mock': '/data/configurations/config_versions.json'
-  },
-
   'configs.config_versions.load': {
     'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&service_config_version={configVersion}&fields=*',
     'mock': '/data/configurations/config_versions.json'
@@ -2676,12 +2666,8 @@ var urls = {
   },
 
   'service.serviceConfigVersions.get': {
-    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&minimal_response=true',
+    real: '/clusters/{clusterName}/configurations/service_config_versions?service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&sortBy=service_config_version.desc&minimal_response=true',
     mock: '/data/configurations/service_versions.json'
-  },
-  'service.serviceConfigVersions.get.not.loaded': {
-    real: '/clusters/{clusterName}/configurations/service_config_versions?service_config_version>{lastSavedVersion}&service_name={serviceName}&fields=service_config_version,user,hosts,group_id,group_name,is_current,createtime,service_name,service_config_version_note,stack_id,is_cluster_compatible&minimal_response=true',
-    mock: '/data/configurations/service_versions_total.json'
   },
   'service.serviceConfigVersions.get.current': {
     real: '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*',
