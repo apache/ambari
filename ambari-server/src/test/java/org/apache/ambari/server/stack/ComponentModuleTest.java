@@ -478,6 +478,68 @@ public class ComponentModuleTest {
     assertSame("true", resolveComponent(info, parentInfo).getModuleInfo().getReassignAllowed());
   }
 
+  /**
+   * Test that versionAdvertised is resolved correctly.
+   */
+  @Test
+  public void testResolve_VersionAdvertised() {
+    List<ComponentInfo> components = createComponentInfo(2);
+    ComponentInfo info = components.get(0);
+    ComponentInfo parentInfo = components.get(1);
+
+    // Test cases where the current Component Info explicitly sets the value.
+
+    // 1. Chain of versionAdvertised is: true (parent) -> true (current) => true
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(new Boolean(true));
+    assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 2. Chain of versionAdvertised is: true (parent) -> false (current) => false
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(new Boolean(false));
+    assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 3. Chain of versionAdvertised is: false (parent) -> true (current) => true
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(new Boolean(true));
+    assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 4. Chain of versionAdvertised is: null (parent) -> true (current) => true
+    parentInfo.setVersionAdvertisedField(null);
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(new Boolean(true));
+    assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // Test cases where current Component Info is null so it should inherit from parent.
+
+    // 5. Chain of versionAdvertised is: true (parent) -> null (current) => true
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(null);
+    assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 6. Chain of versionAdvertised is: true (parent) -> inherit (current) => true
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(null);
+    assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 7. Chain of versionAdvertised is: false (parent) -> null (current) => false
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(null);
+    assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+
+    // 8. Chain of versionAdvertised is: false (parent) -> inherit (current) => false
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(null);
+    assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
+  }
+
   private List<ComponentInfo> createComponentInfo(int count){
     List<ComponentInfo> result = new ArrayList<ComponentInfo>();
     if(count > 0) {
