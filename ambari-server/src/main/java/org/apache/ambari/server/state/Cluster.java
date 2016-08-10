@@ -431,6 +431,13 @@ public interface Cluster {
   Map<String, Collection<ServiceConfigVersionResponse>> getActiveServiceConfigVersions();
 
   /**
+   * Get active service config version responses for all config groups of a service
+   * @param serviceName service name
+   * @return
+   */
+  public List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName);
+
+  /**
    * Get service config version history
    * @return
    */

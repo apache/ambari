@@ -31,13 +31,14 @@ public class ServiceConfigVersionRequest {
   public ServiceConfigVersionRequest() {
   }
 
-  public ServiceConfigVersionRequest(String clusterName, String serviceName, Long version, Long createTime, Long applyTime, String userName) {
+  public ServiceConfigVersionRequest(String clusterName, String serviceName, Long version, Long createTime, Long applyTime, String userName, Boolean isCurrent) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.version = version;
     this.createTime = createTime;
     this.applyTime = applyTime;
     this.userName = userName;
+    this.isCurrent = isCurrent;
   }
 
   public String getServiceName() {

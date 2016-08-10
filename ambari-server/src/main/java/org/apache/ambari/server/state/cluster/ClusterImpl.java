@@ -2621,9 +2621,6 @@ public class ClusterImpl implements Cluster {
           activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
           activeServiceConfigResponse = serviceConfigVersionResponse;
         }
-
-        serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
-
         if (serviceConfigEntity.getGroupId() == null) {
           if (serviceConfigVersionResponse.getCreateTime() > activeServiceConfigResponse.getCreateTime()) {
             activeServiceConfigResponseGroups.put(serviceConfigVersionResponse.getGroupName(), serviceConfigVersionResponse);
@@ -2636,19 +2633,7 @@ public class ClusterImpl implements Cluster {
         }
 
         serviceConfigVersionResponse.setIsCurrent(false);
-
-        List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
-        for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
-          Config config = allConfigs.get(clusterConfigEntity.getType()).get(
-              clusterConfigEntity.getTag());
-
-          serviceConfigVersionResponse.getConfigurations().add(
-              new ConfigurationResponse(getClusterName(), config.getStackId(),
-                  config.getType(), config.getTag(), config.getVersion(),
-                  config.getProperties(), config.getPropertiesAttributes(), config.getPropertiesTypes()));
-        }
-
-        serviceConfigVersionResponses.add(serviceConfigVersionResponse);
+        serviceConfigVersionResponses.add(getServiceConfigVersionResponseWithConfig(serviceConfigVersionResponse, serviceConfigEntity));
       }
 
       for (Map<String, ServiceConfigVersionResponse> serviceConfigVersionResponseGroup: activeServiceConfigResponses.values()) {
@@ -2688,6 +2673,44 @@ public class ClusterImpl implements Cluster {
 
     return activeServiceConfigVersions;
   }
+
+  @Override
+  public List<ServiceConfigVersionResponse> getActiveServiceConfigVersionResponse(String serviceName) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      List<ServiceConfigEntity> activeServiceConfigVersionEntities = new ArrayList<ServiceConfigEntity>();
+      List<ServiceConfigVersionResponse> activeServiceConfigVersionResponses = new ArrayList<ServiceConfigVersionResponse>();
+      activeServiceConfigVersionEntities.addAll(serviceConfigDAO.getLastServiceConfigsForService(getClusterId(), serviceName));
+      for (ServiceConfigEntity serviceConfigEntity : activeServiceConfigVersionEntities) {
+        ServiceConfigVersionResponse serviceConfigVersionResponse = getServiceConfigVersionResponseWithConfig(convertToServiceConfigVersionResponse(serviceConfigEntity), serviceConfigEntity);
+        serviceConfigVersionResponse.setIsCurrent(true);
+        activeServiceConfigVersionResponses.add(serviceConfigVersionResponse);
+      }
+      return activeServiceConfigVersionResponses;
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  /**
+   * Adds Configuration data to the serviceConfigVersionResponse
+   * @param serviceConfigVersionResponse
+   * @param serviceConfigEntity
+   * @return serviceConfigVersionResponse
+   */
+  private ServiceConfigVersionResponse getServiceConfigVersionResponseWithConfig(ServiceConfigVersionResponse serviceConfigVersionResponse, ServiceConfigEntity serviceConfigEntity) {
+    serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
+    List<ClusterConfigEntity> clusterConfigEntities = serviceConfigEntity.getClusterConfigEntities();
+    for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
+      Config config = allConfigs.get(clusterConfigEntity.getType()).get(
+          clusterConfigEntity.getTag());
+
+      serviceConfigVersionResponse.getConfigurations().add(
+          new ConfigurationResponse(getClusterName(), config));
+    }
+    return serviceConfigVersionResponse;
+  }
+
 
   @RequiresSession
   ServiceConfigVersionResponse getActiveServiceConfigVersion(String serviceName) {
