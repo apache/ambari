@@ -120,41 +120,43 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method saveConfigs
    */
   saveConfigs: function () {
-    var selectedConfigGroup = this.get('selectedConfigGroup');
-    if (selectedConfigGroup.get('isDefault')) {
-
-      var data = [];
-      this.get('stepConfigs').forEach(function(stepConfig) {
-
-        var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
-
-        if (serviceConfig)  {
-          data.push(serviceConfig);
-        }
-
-      }, this);
-
-      if (Em.isArray(data) && data.length) {
-        this.putChangedConfigurations(data, 'doPUTClusterConfigurationSiteSuccessCallback');
-      } else {
-        this.onDoPUTClusterConfigurations();
-      }
+    if (this.get('selectedConfigGroup.isDefault')) {
+      this.saveConfigsForDefaultGroup();
     } else {
+      this.saveConfigsForNonDefaultGroup();
+    }
+  },
 
-      this.get('stepConfigs').forEach(function(stepConfig) {
-        var serviceName = stepConfig.get('serviceName');
-        var configs = stepConfig.get('configs');
-        var configGroup = this.getGroupFromModel(serviceName);
-        if (configGroup && !configGroup.get('isDefault')) {
+  saveConfigsForNonDefaultGroup: function() {
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      var serviceName = stepConfig.get('serviceName');
+      var configs = stepConfig.get('configs');
+      var configGroup = this.getGroupFromModel(serviceName);
+      if (configGroup && !configGroup.get('isDefault')) {
+        var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-          var overriddenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
-
-          if (Em.isArray(overriddenConfigs)) {
-            var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
-            this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
-          }
+        if (Em.isArray(overriddenConfigs)) {
+          var successCallback = this.get('content.serviceName') === serviceName ? 'putConfigGroupChangesSuccess' : null;
+          this.saveGroup(overriddenConfigs, configGroup, this.get('serviceConfigVersionNote'), successCallback);
         }
-      }, this);
+      }
+    }, this);
+  },
+
+  saveConfigsForDefaultGroup: function() {
+    var data = [];
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      var serviceConfig = this.getServiceConfigToSave(stepConfig.get('serviceName'), stepConfig.get('configs'));
+
+      if (serviceConfig)  {
+        data.push(serviceConfig);
+      }
+    }, this);
+
+    if (data.length) {
+      this.putChangedConfigurations(data, 'doPUTClusterConfigurationSiteSuccessCallback');
+    } else {
+      this.onDoPUTClusterConfigurations();
     }
   },
 
@@ -186,7 +188,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method hasUnsavedChanges
    */
   hasUnsavedChanges: function () {
-    return !Em.isNone(this.get('hash')) && this.get('hash') != this.getHash();
+    return !Em.isNone(this.get('hash')) && this.get('hash') !== this.getHash();
   },
 
   /*********************************** 1. PRE SAVE CHECKS ************************************/
@@ -289,10 +291,11 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       overridenConfigs = overridenConfigs.concat(config.get('overrides'));
     });
     // find custom original properties that assigned to selected config group
-    return overridenConfigs.concat(stepConfigs.filterProperty('group')
-      .filter(function (config) {
+    return overridenConfigs.concat(
+      stepConfigs.filterProperty('group').filter(function (config) {
         return config.get('group.name') == configGroupName;
-      }));
+      })
+    );
   },
 
   /**
@@ -669,7 +672,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method onDoPUTClusterConfigurations
    */
   onDoPUTClusterConfigurations: function (doConfigActions) {
-    var header, message, messageClass, value, status = 'unknown', urlParams = '',
+    var status = 'unknown',
       result = {
         flag: this.get('saveConfigsFlag'),
         message: null,
@@ -683,33 +686,55 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     }
 
     App.router.get('clusterController').updateClusterData();
-    App.router.get('updateController').updateComponentConfig(function () {
-    });
-    var flag = result.flag;
-    if (result.flag === true) {
-      header = Em.I18n.t('services.service.config.saved');
-      message = Em.I18n.t('services.service.config.saved.message');
-      messageClass = 'alert alert-success';
-      // warn the user if any of the components are in UNKNOWN state
-      urlParams += ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count';
-      if (this.get('content.serviceName') === 'HDFS') {
-        urlParams += '&ServiceComponentInfo/service_name.in(HDFS)'
-      }
-    } else {
-      header = Em.I18n.t('common.failure');
-      message = result.message;
-      messageClass = 'alert alert-error';
-      value = result.value;
-    }
-    if (currentService){
-      App.get('router.clusterController').triggerQuickLinksUpdate();
+    App.router.get('updateController').updateComponentConfig(Em.K);
+    var popupOptions = this.getSaveConfigsPopupOptions(result);
+    if (currentService) {
+      App.router.get('clusterController').triggerQuickLinksUpdate();
     }
 
     //  update configs for service actions
     App.router.get('mainServiceItemController').loadConfigs();
 
-    this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams, doConfigActions);
+    this.showSaveConfigsPopup(
+      popupOptions.header,
+      result.flag,
+      popupOptions.message,
+      popupOptions.messageClass,
+      popupOptions.value,
+      status,
+      popupOptions.urlParams,
+      doConfigActions);
     this.clearAllRecommendations();
+  },
+
+  /**
+   *
+   * @param {object} result
+   * @returns {object}
+   */
+  getSaveConfigsPopupOptions: function(result) {
+    var options;
+    if (result.flag === true) {
+      options = {
+        header: Em.I18n.t('services.service.config.saved'),
+        message: Em.I18n.t('services.service.config.saved.message'),
+        messageClass: 'alert alert-success',
+        urlParams: ',ServiceComponentInfo/installed_count,ServiceComponentInfo/total_count'
+      };
+
+      if (this.get('content.serviceName') === 'HDFS') {
+        options.urlParams += '&ServiceComponentInfo/service_name.in(HDFS)'
+      }
+    } else {
+      options = {
+        urlParams: '',
+        header: Em.I18n.t('common.failure'),
+        message: result.message,
+        messageClass: 'alert alert-error',
+        value: result.value
+      }
+    }
+    return options;
   },
 
   /**

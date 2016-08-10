@@ -38,7 +38,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   /**
    * object with loaded recommendations
    *
-   * @type {Object}
+   * @type {?Object}
    */
   recommendationsConfigs: null,
 
@@ -98,25 +98,45 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @method setDependentGroups
    */
   setDependentGroups: function () {
-    if (this.get('selectedConfigGroup') && this.get('isControllerSupportsEnhancedConfigs') && !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length')) {
+    if (this.shouldSetDependentConfigs()) {
       this.get('selectedService.dependentServiceNames').forEach(function (serviceName) {
         if (!this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) {
           var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);
           if (stepConfig) {
-            stepConfig.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
-              this.get('selectedService.configGroups').filterProperty('isDefault', false).forEach(function (currentServiceGroup) {
-                if (currentServiceGroup.get('dependentConfigGroups')[serviceName] != configGroup.get('name')) {
-                  var dependentGroups = $.extend({},this.get('selectedConfigGroup.dependentConfigGroups'));
-                  dependentGroups[serviceName] = configGroup.get('name');
-                  this.set('selectedConfigGroup.dependentConfigGroups', dependentGroups);
-                }
-              }, this);
-            }, this);
+            this.setDependentConfigGroups(stepConfig, serviceName);
           }
         }
       }, this);
     }
   }.observes('selectedConfigGroup'),
+
+  /**
+   *
+   * @param {Em.Object} stepConfig
+   * @param {string} serviceName
+   */
+  setDependentConfigGroups: function(stepConfig, serviceName) {
+    stepConfig.get('configGroups').filterProperty('isDefault', false).forEach(function (configGroup) {
+      this.get('selectedService.configGroups').filterProperty('isDefault', false).forEach(function (currentServiceGroup) {
+        if (currentServiceGroup.get('dependentConfigGroups')[serviceName] !== configGroup.get('name')) {
+          var dependentGroups = $.extend({}, this.get('selectedConfigGroup.dependentConfigGroups'));
+          dependentGroups[serviceName] = configGroup.get('name');
+          this.set('selectedConfigGroup.dependentConfigGroups', dependentGroups);
+        }
+      }, this);
+    }, this);
+  },
+
+  /**
+   *
+   * @returns {boolean}
+   */
+  shouldSetDependentConfigs: function() {
+    return Boolean(this.get('selectedConfigGroup') &&
+           this.get('isControllerSupportsEnhancedConfigs') &&
+           !this.get('selectedConfigGroup.isDefault') &&
+           this.get('selectedService.dependentServiceNames.length'));
+  },
 
   /******************************METHODS THAT WORKS WITH DEPENDENT CONFIGS *************************************/
 
@@ -136,7 +156,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       if (stepConfig) {
         var groups = stepConfig.get('configGroups');
         if (this.get('selectedConfigGroup.isDefault')) {
-          return groups.length ? groups.findProperty('isDefault', true) : null;
+          return groups.length ? groups.findProperty('isDefault') : null;
         } else {
           return groups.length ? groups.findProperty('name', this.get('selectedConfigGroup.dependentConfigGroups')[serviceName]) : null;
         }
@@ -157,43 +177,19 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @returns {$.ajax|null}
    */
   loadConfigRecommendations: function (changedConfigs, onComplete) {
-    var self = this;
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
     var stepConfigs = this.get('stepConfigs');
+
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
-      var configGroup = this.get('selectedConfigGroup');
       var recommendations = this.get('hostGroups');
-
-      var dataToSend = {
-        recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
-        hosts: this.get('hostNames'),
-        services: this.get('serviceNames')
-      };
-      if (updateDependencies) {
-        dataToSend.changed_configurations = changedConfigs;
-      }
-
-      if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
-        recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
-      } else {
-        delete recommendations.config_groups;
-      }
+      var dataToSend = this.getConfigRecommendationsParams(updateDependencies);
+      this.modifyRecommendationConfigGroups(recommendations);
 
       if (stepConfigs.someProperty('serviceName', 'MISC')) {
-        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
-        dataToSend.recommendations = recommendations;
+        this.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
         return this.getRecommendationsRequest(dataToSend, onComplete);
       } else {
-        App.config.getClusterEnvConfigs().done(function (clusterEnvConfigs) {
-          stepConfigs = stepConfigs.concat(Em.Object.create({
-            serviceName: 'MISC',
-            configs: clusterEnvConfigs
-          }));
-
-          recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
-          dataToSend.recommendations = recommendations;
-          return self.getRecommendationsRequest(dataToSend, onComplete);
-        });
+        this.requestRecommendationsWithEnv(stepConfigs, recommendations, dataToSend, onComplete);
       }
     } else {
       if (onComplete) {
@@ -201,6 +197,66 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       }
     }
     return $.Deferred().resolve().promise();
+  },
+
+  /**
+   *
+   * @param recommendations
+   * @param dataToSend
+   * @param stepConfigs
+   */
+  addRecommendationRequestParams: function(recommendations, dataToSend, stepConfigs) {
+    recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(stepConfigs);
+    dataToSend.recommendations = recommendations;
+  },
+
+  /**
+   *
+   * @param {Array} stepConfigs
+   * @param {object} recommendations
+   * @param {object} dataToSend
+   * @param {Function} onComplete
+   */
+  requestRecommendationsWithEnv: function(stepConfigs, recommendations, dataToSend, onComplete) {
+    var self = this;
+    App.config.getClusterEnvConfigs().done(function (clusterEnvConfigs) {
+      stepConfigs = stepConfigs.concat(Em.Object.create({
+        serviceName: 'MISC',
+        configs: clusterEnvConfigs
+      }));
+
+      self.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
+      self.getRecommendationsRequest(dataToSend, onComplete);
+    });
+  },
+
+  /**
+   *
+   * @param {object} recommendations
+   */
+  modifyRecommendationConfigGroups: function(recommendations) {
+    var configGroup = this.get('selectedConfigGroup');
+
+    if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
+      recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
+    } else {
+      delete recommendations.config_groups;
+    }
+  },
+
+  /**
+   *
+   * @param {boolean} updateDependencies
+   * @param {Array} changedConfigs
+   * @returns {{recommend: string, hosts: *, services: *, changed_configurations: *}}
+   */
+  getConfigRecommendationsParams: function(updateDependencies, changedConfigs) {
+    return {
+      recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
+      hosts: this.get('hostNames'),
+      services: this.get('serviceNames'),
+      changed_configurations: updateDependencies ? changedConfigs : undefined
+    };
   },
 
   getRecommendationsRequest: function (dataToSend, callback) {
@@ -232,14 +288,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @returns {boolean}
    */
   isConfigHasInitialState: function() {
-    return this.get('selectedConfigGroup.isDefault') && !Em.isNone(this.get('recommendationsConfigs'))
+    return Boolean(this.get('selectedConfigGroup.isDefault') && !Em.isNone(this.get('recommendationsConfigs'))
       && !this.get('stepConfigs').filter(function(stepConfig) {
       return stepConfig.get('changedConfigProperties').filter(function(c) {
         return !this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
         }).contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
-    }, this).length;
+    }, this).length);
   },
 
   /**
@@ -324,15 +380,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var recommendations = data.resources[0].recommendations;
     if (recommendations['config-groups'] && this.get('selectedConfigGroup') && !this.get('selectedConfigGroup.isDefault')) {
-      var configFroGroup = recommendations['config-groups'][0];
-      this.get('stepConfigs').forEach(function(stepConfig) {
-        var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
-        if (configGroup) {
-          this.updateOverridesByRecommendations(configFroGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
-          this.updateOverridesByRecommendations(configFroGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
-          this.toggleProperty('forceUpdateBoundaries');
-        }
-      }, this);
+      this.saveConfigGroupsRecommendations(recommendations, changedConfigs);
     } else {
       var configObject = recommendations.blueprint.configurations;
       this.get('stepConfigs').forEach(function(stepConfig) {
@@ -341,6 +389,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       this.addByRecommendations(configObject, changedConfigs);
     }
     this.cleanUpRecommendations();
+  },
+
+  /**
+   *
+   * @param {object} recommendations
+   * @param {?Array} changedConfigs
+   */
+  saveConfigGroupsRecommendations: function(recommendations, changedConfigs) {
+    var configForGroup = recommendations['config-groups'][0];
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
+      if (configGroup) {
+        this.updateOverridesByRecommendations(configForGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
+        this.updateOverridesByRecommendations(configForGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
+        this.toggleProperty('forceUpdateBoundaries');
+      }
+    }, this);
   },
 
   /**
@@ -365,7 +430,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   onSaveRecommendedPopup: function(recommendations) {
     var propertiesToUpdate = recommendations.filter(function(c) {
-        return Em.get(c, 'saveRecommendedDefault') != Em.get(c, 'saveRecommended');
+        return Em.get(c, 'saveRecommendedDefault') !== Em.get(c, 'saveRecommended');
       }),
       propertiesToUndo = propertiesToUpdate.filterProperty('saveRecommended', false),
       propertiesToRedo = propertiesToUpdate.filterProperty('saveRecommended', true);
@@ -388,31 +453,65 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       var recommended = redo ? Em.get(p, 'recommendedValue') : Em.get(p, 'initialValue');
       var stepConfig = this.get('stepConfigs').findProperty('serviceName', Em.get(p, 'serviceName'));
       var config = stepConfig.get('configs').find(function(scp) {
-        return scp.get('name') == Em.get(p, 'propertyName') && scp.get('filename') == App.config.getOriginalFileName(Em.get(p, 'propertyFileName'));
+        return scp.get('name') === Em.get(p, 'propertyName') &&
+               scp.get('filename') === App.config.getOriginalFileName(Em.get(p, 'propertyFileName'));
       });
-      var selectedGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', Em.get(p, 'serviceName')).findProperty('name', Em.get(p, 'configGroup'));
+      var selectedGroup = App.ServiceConfigGroup.find()
+        .filterProperty('serviceName', Em.get(p, 'serviceName'))
+        .findProperty('name', Em.get(p, 'configGroup'));
+
       if (selectedGroup.get('isDefault')) {
-        if (Em.isNone(recommended)) {
-          stepConfig.get('configs').removeObject(config);
-        } else if (Em.isNone(initial)) {
-          stepConfig.get('configs').pushObject(this._createNewProperty(Em.get(p, 'propertyName'), Em.get(p, 'propertyFileName'),Em.get(p, 'serviceName'),
-              recommended, App.configsCollection.getConfigByName(Em.get(p, 'propertyName'), Em.get(p, 'propertyFileName')).propertyDependsOn));
-        } else {
-          Em.set(config, 'value', recommended);
-        }
+        this.setRecommendedForDefaultGroup(recommended, stepConfig, p, initial, config);
       } else {
-        if (Em.isNone(recommended)) {
-          config.get('overrides').removeObject(config.getOverride(selectedGroup.get('name')));
-        } else if (Em.isNone(initial)) {
-          this._addConfigOverrideRecommendation(config, recommended, null, selectedGroup);
-        } else {
-          var override = config.getOverride(selectedGroup.get('name'));
-          if (override) {
-            override.set('value', recommended);
-          }
-        }
+        this.setRecommendedForGroup(recommended, selectedGroup, config, initial);
       }
     }, this);
+  },
+
+  /**
+   *
+   * @param {string} recommended
+   * @param {Em.Object} selectedGroup
+   * @param {object} config
+   * @param {string}initial
+   */
+  setRecommendedForGroup: function(recommended, selectedGroup, config, initial) {
+    if (Em.isNone(recommended)) {
+      config.get('overrides').removeObject(config.getOverride(selectedGroup.get('name')));
+    } else if (Em.isNone(initial)) {
+      this._addConfigOverrideRecommendation(config, recommended, null, selectedGroup);
+    } else {
+      var override = config.getOverride(selectedGroup.get('name'));
+      if (override) {
+        override.set('value', recommended);
+      }
+    }
+  },
+
+  /**
+   *
+   * @param {string} recommended
+   * @param {Em.Object} stepConfig
+   * @param {object|Em.Object} prop
+   * @param {string} initial
+   * @param {object} config
+   */
+  setRecommendedForDefaultGroup: function(recommended, stepConfig, prop, initial, config) {
+    var name = Em.get(prop, 'propertyName'),
+        filename = Em.get(prop, 'propertyFileName');
+
+    if (Em.isNone(recommended)) {
+      stepConfig.get('configs').removeObject(config);
+    } else if (Em.isNone(initial)) {
+      stepConfig.get('configs').pushObject(this._createNewProperty(
+        name,
+        filename,
+        Em.get(prop, 'serviceName'),
+        recommended,
+        App.configsCollection.getConfigByName(name, filename).propertyDependsOn));
+    } else {
+      Em.set(config, 'value', recommended);
+    }
   },
   
   saveInitialRecommendations: function() {
