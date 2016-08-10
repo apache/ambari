@@ -21,7 +21,7 @@ var App = require('app');
 App.Script = DS.Model.extend({
   title:DS.attr('string'),
   pigScript:DS.belongsTo('file', { async: true }),
-  dateCreated:DS.attr('isodate', { defaultValue: moment()}),
+  dateCreated:DS.attr('scriptdate', { defaultValue: moment()}),
   templetonArguments:DS.attr('string'),
   pythonScript:DS.attr('string'),
   owner:DS.attr('string'),
