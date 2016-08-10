@@ -251,7 +251,7 @@ public enum CheckDescription {
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
         "After upgrading, Ranger will no longer support the Audit to Database feature. Instead, Ranger will audit to Solr. " +
-                  "To migrate the existing audit logs to Solr, follow the steps in this link.").build()),
+                  "To migrate the existing audit logs to Solr, follow the steps in Apache Ranger documention for 0.6 release.").build()),
 
   KAFKA_KERBEROS_CHECK(PrereqCheckType.SERVICE,
     "Kafka upgrade on Kerberized cluster",
