@@ -355,13 +355,14 @@ hive_interactive_pid = status_params.hive_interactive_pid
 hive_conf_dirs_list = [hive_client_conf_dir]
 
 # These are the folders to which the configs will be written to.
+ranger_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP['HIVE_SERVER']
 if status_params.role == "HIVE_METASTORE" and hive_metastore_hosts is not None and hostname in hive_metastore_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
 elif status_params.role == "HIVE_SERVER" and hive_server_hosts is not None and hostname in hive_server_host:
   hive_conf_dirs_list.append(hive_server_conf_dir)
 elif status_params.role == "HIVE_SERVER_INTERACTIVE" and hive_server_interactive_hosts is not None and hostname in hive_server_interactive_hosts:
   hive_conf_dirs_list.append(status_params.hive_server_interactive_conf_dir)
-
+  ranger_hive_component = status_params.SERVER_ROLE_DIRECTORY_MAP['HIVE_SERVER_INTERACTIVE']
 # log4j version is 2 for hive2; put config files under /etc/hive2/conf
 if status_params.role == "HIVE_SERVER_INTERACTIVE":
   log4j_version = '2'
