@@ -47,9 +47,11 @@ import javax.persistence.TableGenerator;
   , initialValue = 1
 )
 @NamedQueries({
+    @NamedQuery(name = "ServiceConfigEntity.findAll", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId ORDER BY serviceConfig.version DESC"),
     @NamedQuery(name = "ServiceConfigEntity.findNextServiceConfigVersion", query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId"),
     @NamedQuery(name = "ServiceConfigEntity.findAllServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack"),
-    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND serviceConfig.createTimestamp = (SELECT MAX(serviceConfig2.createTimestamp) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId=:clusterId AND serviceConfig2.stack=:stack AND serviceConfig2.serviceName = serviceConfig.serviceName)") })
+    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND serviceConfig.version = (SELECT MAX(serviceConfig2.version) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId=:clusterId AND serviceConfig2.stack=:stack AND serviceConfig2.serviceName = serviceConfig.serviceName)"),
+    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByService", query = "SELECT scv FROM ServiceConfigEntity scv WHERE scv.clusterId = :clusterId AND scv.serviceName = :serviceName AND scv.version = (SELECT MAX(scv2.version) FROM ServiceConfigEntity scv2 WHERE (scv2.serviceName = :serviceName AND scv2.clusterId = :clusterId) AND (scv2.groupId = scv.groupId OR (scv2.groupId IS NULL AND scv.groupId IS NULL)))")})
 public class ServiceConfigEntity {
   @Id
   @Column(name = "service_config_id")

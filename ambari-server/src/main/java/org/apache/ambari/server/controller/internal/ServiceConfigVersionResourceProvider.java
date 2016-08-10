@@ -215,10 +215,11 @@ public class ServiceConfigVersionResourceProvider extends
     String clusterName = (String) properties.get(SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
     String serviceName = (String) properties.get(SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
     String user = (String) properties.get(SERVICE_CONFIG_VERSION_USER_PROPERTY_ID);
+    Boolean isCurrent = Boolean.valueOf((String) properties.get(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID));
     Object versionObject = properties.get(SERVICE_CONFIG_VERSION_PROPERTY_ID);
     Long version = versionObject == null ? null : Long.valueOf(versionObject.toString());
 
-    return new ServiceConfigVersionRequest(clusterName, serviceName, version, null, null, user);
+    return new ServiceConfigVersionRequest(clusterName, serviceName, version, null, null, user, isCurrent);
   }
 
   private List<Map<String, Object>> convertToSubResources(final String clusterName, List<ConfigurationResponse> configs) {

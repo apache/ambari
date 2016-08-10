@@ -3572,9 +3572,17 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Cluster cluster = clusters.getCluster(request.getClusterName());
 
     Set<ServiceConfigVersionResponse> result = new LinkedHashSet<ServiceConfigVersionResponse>();
+    String serviceName = request.getServiceName();
+    List<ServiceConfigVersionResponse> serviceConfigVersionResponses =  new ArrayList<ServiceConfigVersionResponse>();
 
-    for (ServiceConfigVersionResponse response : cluster.getServiceConfigVersions()) {
-      if (request.getServiceName() != null && !StringUtils.equals(request.getServiceName(), response.getServiceName())) {
+    if (Boolean.TRUE.equals(request.getIsCurrent()) && serviceName != null) {
+      serviceConfigVersionResponses.addAll(cluster.getActiveServiceConfigVersionResponse(serviceName));
+    } else {
+      serviceConfigVersionResponses.addAll(cluster.getServiceConfigVersions());
+    }
+
+    for (ServiceConfigVersionResponse response : serviceConfigVersionResponses) {
+      if (serviceName != null && !StringUtils.equals(serviceName, response.getServiceName())) {
         continue;
       }
       if (request.getVersion() != null && NumberUtils.compare(request.getVersion(), response.getVersion()) != 0) {
