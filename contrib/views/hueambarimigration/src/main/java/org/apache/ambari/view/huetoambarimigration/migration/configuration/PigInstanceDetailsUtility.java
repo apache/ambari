@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.instancedetail.*;
+import org.apache.log4j.Logger;
 
 /**
  * Utility class to fetch Pig Instance details
@@ -36,44 +37,62 @@ import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambarique
 public class PigInstanceDetailsUtility {
 
   public List<InstanceModel> getInstancedetails(ViewContext view) throws PropertyVetoException, SQLException, IOException {
-
+    final Logger logger = Logger.getLogger(PigInstanceDetailsUtility.class);
     List<InstanceModel> instancelist = new ArrayList<>();
-    Connection conn = null;
-    Statement stmt = null;
-    PreparedStatement prSt;
+    Connection conn;
+    ResultSet rs1 = null;
+    PreparedStatement prSt=null;
     conn = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();
     conn.setAutoCommit(false);
-    stmt = conn.createStatement();
     int i = 0;
 
     QuerySetAmbariDB ambaridatabase = null;
+    try {
+      if (view.getProperties().get("ambaridrivername").contains("mysql")) {
+        ambaridatabase = new MysqlQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
+        ambaridatabase = new PostgressQuerySetAmbariDB();
+      } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
+        ambaridatabase = new OracleQuerySetAmbariDB();
+      }
 
-    if (view.getProperties().get("ambaridrivername").contains("mysql")) {
-      ambaridatabase = new MysqlQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
-      ambaridatabase = new PostgressQuerySetAmbariDB();
-    } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
-      ambaridatabase = new OracleQuerySetAmbariDB();
+
+      prSt = ambaridatabase.getAllPigInstance(conn);
+      rs1 = prSt.executeQuery();
+
+      while (rs1.next()) {
+        InstanceModel I = new InstanceModel();
+        I.setInstanceName(rs1.getString(1));
+        I.setId(i);
+        instancelist.add(I);
+        i++;
+      }
+      return instancelist;
     }
-
-    ResultSet rs1 = null;
-
-    prSt = ambaridatabase.getAllPigInstance(conn);
-
-    rs1 = prSt.executeQuery();
-
-    while (rs1.next()) {
-      InstanceModel I = new InstanceModel();
-      I.setInstanceName(rs1.getString(1));
-      I.setId(i);
-      instancelist.add(I);
-      i++;
+    finally {
+      if (rs1 != null) {
+        try {
+          rs1.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing result set : ", e);
+        }
+      }
+      if (prSt != null) {
+        try {
+          prSt.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing PreparedStatement : ", e);
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException e) {
+          logger.error("Sql exception in while closing the connection : ", e);
+        }
+      }
     }
-    rs1.close();
-    stmt.close();
-    return instancelist;
 
   }
-
 
 }
