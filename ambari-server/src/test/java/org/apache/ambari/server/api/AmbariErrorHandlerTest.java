@@ -24,9 +24,7 @@ import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import org.apache.ambari.server.configuration.Configuration;
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.junit.Test;
@@ -65,8 +63,7 @@ public class AmbariErrorHandlerTest {
 
     server.start();
 
-    Connector connector = server.getConnectors()[0];
-    int localPort = ((ServerConnector)connector).getLocalPort();
+    int localPort = server.getConnectors()[0].getLocalPort();
 
     Client client = new Client();
     WebResource resource = client.resource("http://localhost:" + localPort + "/");
