@@ -692,8 +692,14 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putYarnSitePropertyAttributes('yarn.authorization-provider', 'delete', 'true')
 
-    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
-      if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
+    if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
+      if self.isSecurityEnabled(services):
+        # enable proxy-user privileges for secure clusters for long-running services (spark streaming etc)
+        putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'true')
+        if 'RANGER_KMS' in servicesList:
+          # disable proxy-user privileges on secure clusters as it does not work with TDE
+          putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
+      else:
         putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
 
 
