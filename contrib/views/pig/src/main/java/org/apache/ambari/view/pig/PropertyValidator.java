@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.pig;
 
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
@@ -42,9 +43,9 @@ public class PropertyValidator implements Validator {
     // 1. Validate non cluster associated properties
     // no properties
 
-    // 2. if associated with cluster, no need to validate associated properties
-    Long cluster = viewInstanceDefinition.getClusterHandle();
-    if (cluster != null) {
+    // if associated with cluster(local or remote), no need to validate associated properties
+    ClusterType clusterType = viewInstanceDefinition.getClusterType();
+    if (clusterType == ClusterType.LOCAL_AMBARI || clusterType == ClusterType.REMOTE_AMBARI) {
       return ValidationResult.SUCCESS;
     }
 

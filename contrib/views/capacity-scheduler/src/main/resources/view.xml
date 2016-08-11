@@ -21,9 +21,6 @@
     <build>${env.BUILD_NUMBER}</build>
 
     <min-ambari-version>2.1.*</min-ambari-version>
-
-    <validator-class>org.apache.ambari.view.capacityscheduler.PropertyValidator</validator-class>
-
     <cluster-config-options>AMBARI-ONLY</cluster-config-options>
 
   <resource>
