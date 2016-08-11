@@ -2294,7 +2294,9 @@ class TestHDP22StackAdvisor(TestCase):
           "timeline.metrics.host.aggregate.splitpoints": "master.FileSystem.MetaHlogSplitTime_75th_percentile",
           "timeline.metrics.service.handler.thread.count": "20",
           'timeline.metrics.service.webapp.address': 'host1:6188',
-          'timeline.metrics.service.watcher.disabled': 'false'
+          'timeline.metrics.service.watcher.disabled': 'false',
+          'timeline.metrics.cache.size': '100',
+          'timeline.metrics.cache.commit.interval': '10'
         }
       }
     }
@@ -2330,6 +2332,9 @@ class TestHDP22StackAdvisor(TestCase):
         ]
       }
     ]
+
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '1408'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '320'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '512'
@@ -2400,6 +2405,9 @@ class TestHDP22StackAdvisor(TestCase):
     ]
     expected["ams-site"]['properties']['timeline.metrics.host.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
     expected["ams-site"]['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = 'master.Server.numDeadRegionServers'
+
+    expected["ams-site"]['properties']['timeline.metrics.cache.size'] = '500'
+    expected["ams-site"]['properties']['timeline.metrics.cache.commit.interval'] = '7'
     expected["ams-hbase-env"]['properties']['hbase_master_heapsize'] = '2432'
     expected["ams-hbase-env"]['properties']['hbase_master_xmn_size'] = '512'
     expected["ams-env"]['properties']['metrics_collector_heapsize'] = '640'
@@ -2486,6 +2494,40 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 13)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
+
+    # 2000-nodes cluster
+    for i in range(202, 2001):
+        hosts['items'].extend([{
+            "Hosts": {
+                "host_name": "host" + str(i)
+            }
+        }])
+
+    services['services'] = [
+        {
+            "StackServices": {
+                "service_name": "AMBARI_METRICS"
+            },
+            "components": [
+                {
+                    "StackServiceComponents": {
+                        "component_name": "METRICS_COLLECTOR",
+                        "hostnames": ["host1"]
+                    }
+                },
+                {
+                    "StackServiceComponents": {
+                        "component_name": "METRICS_MONITOR",
+                        "hostnames": ["host" + str(i) for i in range(1, 2001)]
+                    }
+                }
+            ]
+        }
+    ]
+
+    self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.size'], '700')
+    self.assertEquals(configurations["ams-site"]['properties']['timeline.metrics.cache.commit.interval'], '5')
 
   def test_recommendHbaseConfigurations(self):
     servicesList = ["HBASE"]
