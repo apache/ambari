@@ -80,6 +80,7 @@
             # - LIVY_PID_DIR    Where the pid file is stored. (Default: /tmp)
             # - LIVY_SERVER_JAVA_OPTS  Java Opts for running livy server (You can set jvm related setting here, like jvm memory/gc algorithm and etc.)
         export SPARK_HOME=/usr/hdp/current/spark-client
+        export JAVA_HOME={{java_home}}
         export HADOOP_CONF_DIR=/etc/hadoop/conf
         export LIVY_LOG_DIR={{livy_log_dir}}
         export LIVY_PID_DIR={{livy_pid_dir}}

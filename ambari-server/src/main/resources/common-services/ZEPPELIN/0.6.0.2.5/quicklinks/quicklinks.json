@@ -4,7 +4,14 @@
   "configuration": {
     "protocol":
     {
-      "type":"HTTP_ONLY"
+      "type":"https",
+      "checks":[
+        {
+          "property":"zeppelin.ssl",
+          "desired":"true",
+          "site":"zeppelin-config"
+        }
+      ]
     },
 
     "links": [
