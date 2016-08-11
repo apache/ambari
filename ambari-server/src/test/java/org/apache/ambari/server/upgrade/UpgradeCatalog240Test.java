@@ -100,6 +100,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -1406,7 +1407,10 @@ public class UpgradeCatalog240Test {
 
   @Test
   public void testUpdateKerberosConfiguration() throws Exception {
-    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final AmbariManagementController controller = createMock(AmbariManagementController.class);
+    final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    final StackInfo stackInfo = createMock(StackInfo.class);
+    final ServiceInfo serviceInfo = createMock(ServiceInfo.class);
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     final OsFamily osFamily = createNiceMock(OsFamily.class);
 
@@ -1436,7 +1440,7 @@ public class UpgradeCatalog240Test {
             "{% if domains %}\n" +
             "[domain_realm]\n" +
             "{% for domain in domains.split(',') %}\n" +
-            "  {{domain|trim}} = {{realm}}\n" +
+            "  {{domain}} = {{realm}}\n" +
             "{% endfor %}\n" +
             "{% endif %}\n" +
             "\n" +
@@ -1463,14 +1467,13 @@ public class UpgradeCatalog240Test {
     expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).anyTimes();
     expect(configKrb5Conf.getTag()).andReturn("tag1").anyTimes();
 
+    final StackId currentStackVersion = new StackId("HDP", "2.4.2");
+
     final Cluster cluster = createNiceMock(Cluster.class);
-    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).once();
-    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).once();
-
-    final Clusters clusters = createNiceMock(Clusters.class);
-    expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster));
-
-    expect(controller.getClusters()).andReturn(clusters).once();
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).anyTimes();
+    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(currentStackVersion).once();
 
     expect(cluster.getConfigsByType("kerberos-env"))
         .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
@@ -1479,12 +1482,10 @@ public class UpgradeCatalog240Test {
         .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
         .once();
 
-    expect(cluster.getDesiredConfigByType("kerberos-env"))
-        .andReturn(configKerberosEnv)
-        .once();
-    expect(cluster.getDesiredConfigByType("krb5-conf"))
-        .andReturn(configKerberosEnv)
-        .once();
+    final Clusters clusters = createNiceMock(Clusters.class);
+    expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster));
+
+    expect(controller.getClusters()).andReturn(clusters).once();
 
     Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
     Capture<String> typeCapture = newCapture(CaptureType.ALL);
@@ -1492,13 +1493,26 @@ public class UpgradeCatalog240Test {
     Capture<String> tagCapture = newCapture(CaptureType.ALL);
     Capture<Map> attributesCapture = newCapture(CaptureType.ALL);
 
-
     expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
         capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
         .andReturn(createNiceMock(Config.class))
         .anyTimes();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).once();
 
-    replay(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    expect(metaInfo.getStack(currentStackVersion.getStackName(), currentStackVersion.getStackVersion()))
+        .andReturn(stackInfo)
+        .once();
+
+    expect(stackInfo.getService("KERBEROS")).andReturn(serviceInfo).once();
+
+    final PropertyInfo propertyInfo = new PropertyInfo();
+    propertyInfo.setFilename("krb5-conf.xml");
+    propertyInfo.setName("content");
+    propertyInfo.setValue("new content template");
+
+    expect(serviceInfo.getProperties()).andReturn(Collections.singletonList(propertyInfo)).once();
+
+    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
 
     final Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -1513,7 +1527,7 @@ public class UpgradeCatalog240Test {
 
     injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
 
-    verify(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
 
     List<String> typeCaptureValues = typeCapture.getValues();
     Assert.assertEquals(2, typeCaptureValues.size());
@@ -1542,44 +1556,9 @@ public class UpgradeCatalog240Test {
     Assert.assertNotNull(capturedCRProperties);
     Assert.assertTrue(capturedCRProperties.containsKey("content"));
 
-    for (String property : propertiesKerberosEnv.keySet()) {
+    for (String property : propertiesKrb5Conf.keySet()) {
       if ("content".equals(property)) {
-        Assert.assertEquals(property, "[libdefaults]\n" +
-            "  renew_lifetime = 7d\n" +
-            "  forwardable = true\n" +
-            "  default_realm = {{realm}}\n" +
-            "  ticket_lifetime = 24h\n" +
-            "  dns_lookup_realm = false\n" +
-            "  dns_lookup_kdc = false\n" +
-            "  #default_tgs_enctypes = {{encryption_types}}\n" +
-            "  #default_tkt_enctypes = {{encryption_types}}\n" +
-            "{% if domains %}\n" +
-            "[domain_realm]\n" +
-            "{%- for domain in domains.split(',') %}\n" +
-            "  {{domain|trim()}} = {{realm}}\n" +
-            "{%- endfor %}\n" +
-            "{% endif %}\n" +
-            "[logging]\n" +
-            "  default = FILE:/var/log/krb5kdc.log\n" +
-            "  admin_server = FILE:/var/log/kadmind.log\n" +
-            "  kdc = FILE:/var/log/krb5kdc.log\n" +
-            "\n" +
-            "[realms]\n" +
-            "  {{realm}} = {\n" +
-            "{%- if kdc_hosts > 0 -%}\n" +
-            "{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n" +
-            "{%- if kdc_host_list and kdc_host_list|length > 0 %}\n" +
-            "    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n" +
-            "{%- if kdc_host_list -%}\n" +
-            "{% for kdc_host in kdc_host_list %}\n" +
-            "    kdc = {{kdc_host|trim()}}\n" +
-            "{%- endfor -%}\n" +
-            "{% endif %}\n" +
-            "{%- endif %}\n" +
-            "{%- endif %}\n" +
-            "  }\n" +
-            "\n" +
-            "{# Append additional realm declarations below #}", capturedCRProperties.get("content"));
+        Assert.assertEquals(property, "new content template", capturedCRProperties.get("content"));
       } else {
         Assert.assertEquals(property, propertiesKerberosEnv.get(property), capturedCRProperties.get(property));
       }
@@ -1588,7 +1567,10 @@ public class UpgradeCatalog240Test {
 
   @Test
   public void testUpdateKerberosConfigurationWithChangedKrb5ConfContent() throws Exception {
-    final AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+    final AmbariManagementController controller = createMock(AmbariManagementController.class);
+    final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
+    final StackInfo stackInfo = createMock(StackInfo.class);
+    final ServiceInfo serviceInfo = createMock(ServiceInfo.class);
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     final OsFamily osFamily = createNiceMock(OsFamily.class);
 
@@ -1624,6 +1606,22 @@ public class UpgradeCatalog240Test {
     expect(clusters.getClusters()).andReturn(Collections.singletonMap("c1", cluster));
 
     expect(controller.getClusters()).andReturn(clusters).once();
+    expect(controller.getAmbariMetaInfo()).andReturn(metaInfo).once();
+
+    final StackId currentStackVersion = new StackId("HDP", "2.4.2");
+
+    expect(metaInfo.getStack(currentStackVersion.getStackName(), currentStackVersion.getStackVersion()))
+        .andReturn(stackInfo)
+        .once();
+
+    expect(stackInfo.getService("KERBEROS")).andReturn(serviceInfo).once();
+
+    final PropertyInfo propertyInfo = new PropertyInfo();
+    propertyInfo.setFilename("krb5-conf.xml");
+    propertyInfo.setName("content");
+    propertyInfo.setValue("new content template");
+
+    expect(serviceInfo.getProperties()).andReturn(Collections.singletonList(propertyInfo)).once();
 
     expect(cluster.getConfigsByType("kerberos-env"))
         .andReturn(Collections.singletonMap("tag1", configKerberosEnv))
@@ -1632,6 +1630,8 @@ public class UpgradeCatalog240Test {
     expect(cluster.getDesiredConfigByType("kerberos-env"))
         .andReturn(configKerberosEnv)
         .once();
+
+    expect(cluster.getCurrentStackVersion()).andReturn(currentStackVersion).once();
 
     Capture<Cluster> clusterCapture = newCapture(CaptureType.ALL);
     Capture<String> typeCapture = newCapture(CaptureType.ALL);
@@ -1645,7 +1645,7 @@ public class UpgradeCatalog240Test {
         .andReturn(createNiceMock(Config.class))
         .anyTimes();
 
-    replay(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    replay(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
 
     final Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -1660,7 +1660,7 @@ public class UpgradeCatalog240Test {
 
     injector.getInstance(UpgradeCatalog240.class).updateKerberosConfigs();
 
-    verify(controller, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
+    verify(controller, metaInfo, stackInfo, serviceInfo, dbAccessor, osFamily, cluster, configKerberosEnv, configKrb5Conf, clusters);
 
     List<String> typeCaptureValues = typeCapture.getValues();
     Assert.assertEquals(1, typeCaptureValues.size());
