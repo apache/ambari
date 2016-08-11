@@ -186,8 +186,8 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    */
   removeMasterComponent: function () {
     var componentsToDelete = this.get('mastersToCreate');
+    var componentsFromConfigs = this.get('content.componentsFromConfigs');
     if (this.get('content.controllerName')) {
-      var parentController = App.router.get(this.get('content.controllerName'));
       var masterComponentHosts = this.get('content.masterComponentHosts');
       var recommendationsHostGroups = this.get('content.recommendationsHostGroups');
       componentsToDelete.forEach(function (_componentName) {
@@ -195,10 +195,11 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         recommendationsHostGroups.blueprint.host_groups.forEach(function(hostGroup){
           hostGroup.components = hostGroup.components.rejectProperty('name', _componentName);
         }, this);
+        componentsFromConfigs = componentsFromConfigs.without(_componentName);
       }, this);
       this.get('content').set('masterComponentHosts', masterComponentHosts);
-      parentController.setDBProperty('masterComponentHosts', masterComponentHosts);
-      parentController.setDBProperty('recommendationsHostGroups', recommendationsHostGroups);
+      this.set('content.componentsFromConfigs', componentsFromConfigs);
+      this.set('content.recommendationsHostGroups', recommendationsHostGroups);
     } else {
       this.clearComponentsToBeAdded(componentsToDelete[0]);
       var hostComponent = App.HostComponent.find().findProperty('componentName', componentsToDelete[0]);
@@ -289,8 +290,11 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    */
   saveMasterComponentHosts: function() {
     var controller = App.router.get(this.get('content.controllerName'));
-    controller.saveMasterComponentHosts(this);
+    var componentsFromConfigs = this.get('content.componentsFromConfigs');
+    controller.saveMasterComponentHosts(this, true);
     controller.loadMasterComponentHosts();
+    componentsFromConfigs = componentsFromConfigs.concat(this.get('mastersToCreate'));
+    this.set('content.componentsFromConfigs', componentsFromConfigs);
   },
 
   /**
@@ -299,7 +303,6 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
    * @method {saveRecommendationsHostGroups}
    */
   saveRecommendationsHostGroups: function() {
-    var controller = App.router.get(this.get('content.controllerName'));
     var recommendationsHostGroups = this.get('content.recommendationsHostGroups');
     var mastersToCreate = this.get('mastersToCreate');
     mastersToCreate.forEach(function(componentName) {
@@ -324,7 +327,7 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
         }
       }
     }, this);
-    controller.setDBProperty('recommendationsHostGroups', recommendationsHostGroups);
+    this.set('content.recommendationsHostGroups', recommendationsHostGroups);
   },
 
   /**

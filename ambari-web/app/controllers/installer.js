@@ -42,6 +42,8 @@ App.InstallerController = App.WizardController.extend({
     slaveGroupProperties: null,
     stacks: null,
     clients: [],
+    // list of components, that was added from configs page via AssignMasterOnStep7Controller
+    componentsFromConfigs: [],
     /**
      * recommendations for host groups loaded from server
      */
@@ -80,7 +82,8 @@ App.InstallerController = App.WizardController.extend({
     'hostInfo',
     'recommendations',
     'recommendationsHostGroups',
-    'recommendationsConfigs'
+    'recommendationsConfigs',
+    'componentsFromConfigs'
   ],
 
   init: function () {
@@ -473,8 +476,9 @@ App.InstallerController = App.WizardController.extend({
   /**
    * Save Master Component Hosts data to Main Controller
    * @param stepController App.WizardStep5Controller
+   * @param  skip  {Boolean}
    */
-  saveMasterComponentHosts: function (stepController) {
+  saveMasterComponentHosts: function (stepController, skip) {
     var obj = stepController.get('selectedServicesMasters'),
       hosts = this.getDBProperty('hosts');
 
@@ -489,22 +493,24 @@ App.InstallerController = App.WizardController.extend({
       });
     });
 
-    this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
+    if (!skip) {
+      this.setDBProperty('masterComponentHosts', masterComponentHosts);
+    }
   },
 
   /**
    * Load master component hosts data for using in required step controllers
+   * @param inMemory {Boolean}: Load master component hosts from memory
    */
-  loadMasterComponentHosts: function () {
+  loadMasterComponentHosts: function (inMemory) {
     var props = this.getDBProperties(['masterComponentHosts', 'hosts']);
-    var masterComponentHosts = props.masterComponentHosts,
+    var masterComponentHosts = !!inMemory ? this.get("content.masterComponentHosts") : props.masterComponentHosts,
       hosts = props.hosts || {},
       hostNames = Em.keys(hosts);
     if (Em.isNone(masterComponentHosts)) {
       masterComponentHosts = [];
-    }
-    else {
+    } else {
       masterComponentHosts.forEach(function (component) {
         for (var i = 0; i < hostNames.length; i++) {
           if (hosts[hostNames[i]].id === component.host_id) {
@@ -975,6 +981,7 @@ App.InstallerController = App.WizardController.extend({
           this.setSkipSlavesStep(App.StackService.find().filterProperty('isSelected'), 6);
           this.loadMasterComponentHosts();
           this.loadConfirmedHosts();
+          this.loadComponentsFromConfigs();
           this.loadRecommendations();
         }
       }
@@ -985,6 +992,7 @@ App.InstallerController = App.WizardController.extend({
         callback: function () {
           this.loadSlaveComponentHosts();
           this.loadClients();
+          this.loadComponentsFromConfigs();
           this.loadRecommendations();
         }
       }
@@ -997,11 +1005,28 @@ App.InstallerController = App.WizardController.extend({
           this.loadServiceConfigProperties();
           this.loadCurrentHostGroups();
           this.loadRecommendationsConfigs();
+          this.loadComponentsFromConfigs();
           return this.loadConfigThemes();
         }
       }
     ]
   },
+
+
+  clearConfigActionComponents: function() {
+    var masterComponentHosts = this.get('content.masterComponentHosts');
+    var componentsAddedFromConfigAction = this.get('content.componentsFromConfigs');
+
+    if (componentsAddedFromConfigAction && componentsAddedFromConfigAction.length) {
+      componentsAddedFromConfigAction.forEach(function(_masterComponent){
+        masterComponentHosts = masterComponentHosts.rejectProperty('component', _masterComponent);
+      });
+    }
+    this.set('content.masterComponentHosts', masterComponentHosts);
+    this.setDBProperty('masterComponentHosts', masterComponentHosts);
+  },
+
+
   /**
    * Clear all temporary data
    */

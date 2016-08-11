@@ -44,7 +44,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     'installOptions',
     'allHostNamesPattern',
     'serviceComponents',
-    'fileNamesToUpdate'
+    'fileNamesToUpdate',
+    'componentsFromConfigs'
   ],
 
   sensibleConfigs: [
@@ -1404,6 +1405,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadRequestIds: function() {
     var requestIds = this.getDBProperty('requestIds');
     this.set('content.requestIds', requestIds);
+  },
+
+  saveComponentsFromConfigs: function (componentsFromConfigs) {
+    this.set('content.componentsFromConfigs', componentsFromConfigs);
+    this.setDBProperty('componentsFromConfigs', componentsFromConfigs);
+  },
+
+  loadComponentsFromConfigs: function() {
+    var componentsFromConfigs = this.getDBProperty('componentsFromConfigs');
+    this.set('content.componentsFromConfigs', componentsFromConfigs);
   },
 
   loadRecommendations: function () {
