@@ -56,7 +56,7 @@ public class KdcServerConnectionVerificationTest  {
   @Before
   public void before() throws Exception {
     Properties configProps = new Properties();
-    configProps.setProperty(Configuration.KDC_PORT_KEY, Integer.toString(KDC_TEST_PORT));
+    configProps.setProperty(Configuration.KDC_PORT.getKey(), Integer.toString(KDC_TEST_PORT));
     configuration = new Configuration(configProps);
   }
 

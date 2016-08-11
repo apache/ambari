@@ -71,7 +71,6 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
-import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -256,8 +255,8 @@ public class ClientConfigResourceProviderTest {
     responses.add(shr1);
 
     Map<String, String> returnConfigMap = new HashMap<String, String>();
-    returnConfigMap.put(Configuration.SERVER_TMP_DIR_KEY, Configuration.SERVER_TMP_DIR_DEFAULT);
-    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP_KEY, Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    returnConfigMap.put(Configuration.SERVER_TMP_DIR.getKey(), Configuration.SERVER_TMP_DIR.getDefaultValue());
+    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP.getKey(), Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
 
     // set expectations
     expect(managementController.getConfigHelper()).andReturn(configHelper);
@@ -265,19 +264,17 @@ public class ClientConfigResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
     expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
-    expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
-    expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
-    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    expect(configMap.get(Configuration.SERVER_TMP_DIR.getKey())).andReturn(Configuration.SERVER_TMP_DIR.getDefaultValue());
+    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn(stackRoot);
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
-    expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
+    expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
     Map<String,String> props = new HashMap<String, String>();
-    props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
@@ -315,6 +312,7 @@ public class ClientConfigResourceProviderTest {
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
+    expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 
@@ -458,8 +456,8 @@ public class ClientConfigResourceProviderTest {
     responses.add(shr1);
 
     Map<String, String> returnConfigMap = new HashMap<String, String>();
-    returnConfigMap.put(Configuration.SERVER_TMP_DIR_KEY, Configuration.SERVER_TMP_DIR_DEFAULT);
-    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP_KEY, Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    returnConfigMap.put(Configuration.SERVER_TMP_DIR.getKey(), Configuration.SERVER_TMP_DIR.getDefaultValue());
+    returnConfigMap.put(Configuration.AMBARI_PYTHON_WRAP.getKey(), Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
 
     // set expectations
     expect(managementController.getConfigHelper()).andReturn(configHelper);
@@ -467,20 +465,18 @@ public class ClientConfigResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
     expect(configHelper.getEffectiveConfigProperties(cluster, configTags)).andReturn(properties);
-    expect(clusterConfig.getType()).andReturn(Configuration.HIVE_CONFIG_TAG).anyTimes();
     expect(configHelper.getEffectiveConfigAttributes(cluster, configTags)).andReturn(attributes);
-    expect(configMap.get(Configuration.SERVER_TMP_DIR_KEY)).andReturn(Configuration.SERVER_TMP_DIR_DEFAULT);
-    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
+    expect(configMap.get(Configuration.SERVER_TMP_DIR.getKey())).andReturn(Configuration.SERVER_TMP_DIR.getDefaultValue());
+    expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey())).andReturn(Configuration.AMBARI_PYTHON_WRAP.getDefaultValue());
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getResourceDirPath()).andReturn("/var/lib/ambari-server/src/main/resources");
     expect(configuration.getJavaVersion()).andReturn(8);
     expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.isAgentStackRetryOnInstallEnabled()).andReturn("false");
     expect(configuration.getAgentStackRetryOnInstallCount()).andReturn("5");
-    expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
+    expect(configuration.getExternalScriptTimeout()).andReturn(Configuration.EXTERNAL_SCRIPT_TIMEOUT.getDefaultValue());
 
     Map<String,String> props = new HashMap<String, String>();
-    props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
     props.put("key","value");
     expect(clusterConfig.getProperties()).andReturn(props);
     expect(configHelper.getEffectiveDesiredTags(cluster, hostName)).andReturn(allConfigTags);
@@ -518,6 +514,7 @@ public class ClientConfigResourceProviderTest {
     expect(componentInfo.getCommandScript()).andReturn(commandScriptDefinition);
     expect(componentInfo.getClientConfigFiles()).andReturn(clientConfigFileDefinitionList);
     expect(cluster.getConfig("hive-site", null)).andReturn(clusterConfig);
+    expect(clusterConfig.getType()).andReturn("hive-site").anyTimes();
     expect(cluster.getDesiredConfigs()).andReturn(desiredConfigMap);
     expect(clusters.getHost(hostName)).andReturn(host);
 

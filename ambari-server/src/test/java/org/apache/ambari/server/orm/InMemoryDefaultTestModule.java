@@ -71,24 +71,24 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
     }
 
-    if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE_KEY)) {
-      properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+    if (!properties.containsKey(Configuration.SERVER_PERSISTENCE_TYPE.getKey())) {
+      properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
     }
 
-    if (!properties.containsKey(Configuration.METADATA_DIR_PATH)) {
-      properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
+    if (!properties.containsKey(Configuration.METADATA_DIR_PATH.getKey())) {
+      properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks);
     }
 
-    if (!properties.containsKey(Configuration.SERVER_VERSION_FILE)) {
-      properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
+    if (!properties.containsKey(Configuration.SERVER_VERSION_FILE.getKey())) {
+      properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version);
     }
 
-    if (!properties.containsKey(Configuration.OS_VERSION_KEY)) {
-      properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
+    if (!properties.containsKey(Configuration.OS_VERSION.getKey())) {
+      properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
     }
 
-    if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR_KEY)) {
-      properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    if (!properties.containsKey(Configuration.SHARED_RESOURCES_DIR.getKey())) {
+      properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
     }
 
     try {

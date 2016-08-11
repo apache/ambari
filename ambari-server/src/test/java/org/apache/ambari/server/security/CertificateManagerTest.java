@@ -18,10 +18,14 @@
 
 package org.apache.ambari.server.security;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.expect;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
@@ -30,13 +34,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.expect;
+import junit.framework.Assert;
 
 public class CertificateManagerTest extends EasyMockSupport {
   @Rule
@@ -51,11 +53,11 @@ public class CertificateManagerTest extends EasyMockSupport {
     String hostname = "host1.example.com";
 
     Map<String, String> configurationMap = new HashMap<String, String>();
-    configurationMap.put(Configuration.SRVR_KSTR_DIR_KEY, directory.getAbsolutePath());
-    configurationMap.put(Configuration.SRVR_CRT_PASS_KEY, "server_cert_pass");
-    configurationMap.put(Configuration.SRVR_CRT_NAME_KEY, "server_cert_name");
-    configurationMap.put(Configuration.SRVR_KEY_NAME_KEY, "server_key_name");
-    configurationMap.put(Configuration.PASSPHRASE_KEY, "passphrase");
+    configurationMap.put(Configuration.SRVR_KSTR_DIR.getKey(), directory.getAbsolutePath());
+    configurationMap.put(Configuration.SRVR_CRT_PASS.getKey(), "server_cert_pass");
+    configurationMap.put(Configuration.SRVR_CRT_NAME.getKey(), "server_cert_name");
+    configurationMap.put(Configuration.SRVR_KEY_NAME.getKey(), "server_key_name");
+    configurationMap.put(Configuration.PASSPHRASE.getKey(), "passphrase");
 
     Configuration configuration = injector.getInstance(Configuration.class);
     expect(configuration.validateAgentHostnames()).andReturn(true).once();
@@ -70,11 +72,11 @@ public class CertificateManagerTest extends EasyMockSupport {
         directory.getAbsolutePath(),
         hostname,
         agentCrtFile.getAbsolutePath(),
-        configurationMap.get(Configuration.SRVR_CRT_PASS_KEY),
+        configurationMap.get(Configuration.SRVR_CRT_PASS.getKey()),
         directory.getAbsolutePath(),
-        configurationMap.get(Configuration.SRVR_KEY_NAME_KEY),
+        configurationMap.get(Configuration.SRVR_KEY_NAME.getKey()),
         directory.getAbsolutePath(),
-        configurationMap.get(Configuration.SRVR_CRT_NAME_KEY));
+        configurationMap.get(Configuration.SRVR_CRT_NAME.getKey()));
 
     CertificateManager certificateManager = createMockBuilder(CertificateManager.class)
         .addMockedMethod(runCommand)
@@ -125,7 +127,7 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     Configuration configuration = injector.getInstance(Configuration.class);
     expect(configuration.validateAgentHostnames()).andReturn(true).once();
-    expect(configuration.getConfigsMap()).andReturn(Collections.singletonMap(Configuration.PASSPHRASE_KEY, "some_passphrase")).once();
+    expect(configuration.getConfigsMap()).andReturn(Collections.singletonMap(Configuration.PASSPHRASE.getKey(), "some_passphrase")).once();
 
     replayAll();
 
@@ -146,7 +148,7 @@ public class CertificateManagerTest extends EasyMockSupport {
 
     Configuration configuration = injector.getInstance(Configuration.class);
     expect(configuration.validateAgentHostnames()).andReturn(false).once();
-    expect(configuration.getConfigsMap()).andReturn(Collections.singletonMap(Configuration.PASSPHRASE_KEY, "some_passphrase")).once();
+    expect(configuration.getConfigsMap()).andReturn(Collections.singletonMap(Configuration.PASSPHRASE.getKey(), "some_passphrase")).once();
 
     replayAll();
 

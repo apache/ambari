@@ -78,15 +78,15 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
   /**
    * The value for the Strict-Transport-Security HTTP response header.
    */
-  private String strictTransportSecurity = Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT;
+  private String strictTransportSecurity = Configuration.HTTP_STRICT_TRANSPORT_HEADER_VALUE.getDefaultValue();
   /**
    * The value for the X-Frame-Options HTTP response header.
    */
-  private String xFrameOptionsHeader = Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT;
+  private String xFrameOptionsHeader = Configuration.HTTP_X_FRAME_OPTIONS_HEADER_VALUE.getDefaultValue();
   /**
    * The value for the X-XSS-Protection HTTP response header.
    */
-  private String xXSSProtectionHeader = Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT;
+  private String xXSSProtectionHeader = Configuration.HTTP_X_XSS_PROTECTION_HEADER_VALUE.getDefaultValue();
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {

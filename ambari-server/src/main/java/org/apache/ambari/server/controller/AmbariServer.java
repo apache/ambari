@@ -19,16 +19,20 @@
 package org.apache.ambari.server.controller;
 
 
-import com.google.common.util.concurrent.ServiceManager;
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
+import java.io.File;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.BindException;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.logging.LogManager;
+
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
 import org.apache.ambari.server.StaticallyInject;
@@ -143,19 +147,16 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-import java.io.File;
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.BindException;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.LogManager;
+import com.google.common.util.concurrent.ServiceManager;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 @Singleton
 public class AmbariServer {
@@ -414,21 +415,21 @@ public class AmbariServer {
         SslSelectChannelConnector sslConnectorTwoWay = new SslSelectChannelConnector(contextFactoryTwoWay);
         sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
 
-        String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator
-            + configsMap.get(Configuration.KSTR_NAME_KEY);
+        String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+            + configsMap.get(Configuration.KSTR_NAME.getKey());
 
-        String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) + File.separator
-            + configsMap.get(Configuration.TSTR_NAME_KEY);
+        String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+            + configsMap.get(Configuration.TSTR_NAME.getKey());
 
-        String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
+        String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
 
         sslConnectorTwoWay.setKeystore(keystore);
         sslConnectorTwoWay.setTruststore(truststore);
         sslConnectorTwoWay.setPassword(srvrCrtPass);
         sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
         sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
-        sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-        sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
+        sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
+        sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
         sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
         sslConnectorTwoWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
         sslConnectorTwoWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
@@ -440,8 +441,8 @@ public class AmbariServer {
         contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
         contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
         contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
-        contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-        contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
+        contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
+        contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
         contextFactoryOneWay.setNeedClientAuth(false);
         disableInsecureProtocols(contextFactoryOneWay);
 
@@ -536,13 +537,13 @@ public class AmbariServer {
       SelectChannelConnector apiConnector;
 
       if (configs.getApiSSLAuthentication()) {
-        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME_KEY);
-        String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME_KEY) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME_KEY);
+        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey());
+        String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME.getKey());
         LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
 
-        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS_KEY);
+        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
 
         SslContextFactory contextFactoryApi = new SslContextFactory();
         disableInsecureProtocols(contextFactoryApi);
@@ -553,8 +554,8 @@ public class AmbariServer {
         sapiConnector.setPassword(httpsCrtPass);
         sapiConnector.setKeyPassword(httpsCrtPass);
         sapiConnector.setTrustPassword(httpsCrtPass);
-        sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
-        sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE_KEY));
+        sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+        sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
         sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
         apiConnector = sapiConnector;
       } else  {
@@ -576,7 +577,7 @@ public class AmbariServer {
 
       String osType = getServerOsType();
       if (osType == null || osType.isEmpty()) {
-        throw new RuntimeException(Configuration.OS_VERSION_KEY + " is not "
+        throw new RuntimeException(Configuration.OS_VERSION.getKey() + " is not "
             + " set in the ambari.properties file");
       }
 
@@ -799,7 +800,7 @@ public class AmbariServer {
       users.createUser("user", "user");
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
-      schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);
+      schemaVersion.setMetainfoName(Configuration.SERVER_VERSION.getKey());
       schemaVersion.setMetainfoValue(VersionUtils.getVersionSubstring(ambariMetaInfo.getServerVersion()));
 
       metainfoDAO.create(schemaVersion);

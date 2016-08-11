@@ -50,10 +50,10 @@ public class DispatchFactoryTest {
     Integer snmpPort = 30111;
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY,"in-memory");
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY,sourceResourceDirectory);
-    properties.setProperty(Configuration.ALERTS_SNMP_DISPATCH_UDP_PORT,snmpPort.toString());
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(),"in-memory");
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(),sourceResourceDirectory);
+    properties.setProperty(Configuration.ALERTS_SNMP_DISPATCH_UDP_PORT.getKey(),snmpPort.toString());
 
     Injector injector = Guice.createInjector(new AuditLoggerModule(), new ControllerModule(properties));
     DispatchFactory dispatchFactory = injector.getInstance(DispatchFactory.class);

@@ -25,8 +25,6 @@ import static org.powermock.api.easymock.PowerMock.expectPrivate;
 
 import java.util.Properties;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.After;
 import org.junit.Before;
@@ -39,6 +37,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.quartz.Scheduler;
 import org.quartz.impl.StdSchedulerFactory;
 
+import junit.framework.Assert;
+
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.management.*")
 public class ExecutionSchedulerTest {
@@ -48,13 +48,13 @@ public class ExecutionSchedulerTest {
   @Before
   public void setup() throws Exception {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_THREADS_KEY, "2");
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CLUSTERED_KEY, "false");
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CONNECTIONS_KEY, "2");
-    properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, "db.driver");
-    properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:postgresql://localhost/");
-    properties.setProperty(Configuration.SERVER_JDBC_USER_NAME_KEY, "user");
-    properties.setProperty(Configuration.SERVER_DB_NAME_KEY, "derby");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_THREADS.getKey(), "2");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CLUSTERED.getKey(), "false");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CONNECTIONS.getKey(), "2");
+    properties.setProperty(Configuration.SERVER_JDBC_DRIVER.getKey(), "db.driver");
+    properties.setProperty(Configuration.SERVER_JDBC_URL.getKey(), "jdbc:postgresql://localhost/");
+    properties.setProperty(Configuration.SERVER_JDBC_USER_NAME.getKey(), "user");
+    properties.setProperty(Configuration.SERVER_DB_NAME.getKey(), "derby");
 
     configuration = new Configuration(properties);
 
@@ -113,9 +113,9 @@ public class ExecutionSchedulerTest {
   @Test
   public void testGetQuartzDbDelegateClassAndValidationQuery() throws Exception {
     Properties testProperties = new Properties();
-    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
       "jdbc:postgresql://host:port/dbname");
-    testProperties.setProperty(Configuration.SERVER_DB_NAME_KEY, "ambari");
+    testProperties.setProperty(Configuration.SERVER_DB_NAME.getKey(), "ambari");
     Configuration configuration1 = new Configuration(testProperties);
     ExecutionSchedulerImpl executionScheduler =
       spy(new ExecutionSchedulerImpl(configuration1));
@@ -126,7 +126,7 @@ public class ExecutionSchedulerTest {
     Assert.assertEquals("org.quartz.impl.jdbcjobstore.PostgreSQLDelegate", subProps[0]);
     Assert.assertEquals("select 0", subProps[1]);
 
-    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
       "jdbc:mysql://host:port/dbname");
     configuration1 = new Configuration(testProperties);
     executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));
@@ -136,7 +136,7 @@ public class ExecutionSchedulerTest {
     Assert.assertEquals("org.quartz.impl.jdbcjobstore.StdJDBCDelegate", subProps[0]);
     Assert.assertEquals("select 0", subProps[1]);
 
-    testProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY,
+    testProperties.setProperty(Configuration.SERVER_JDBC_URL.getKey(),
       "jdbc:oracle:thin://host:port/dbname");
     configuration1 = new Configuration(testProperties);
     executionScheduler = spy(new ExecutionSchedulerImpl(configuration1));

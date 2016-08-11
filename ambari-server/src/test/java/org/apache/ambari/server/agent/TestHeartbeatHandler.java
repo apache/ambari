@@ -519,11 +519,11 @@ public class TestHeartbeatHandler {
     RegistrationResponse rr = handler.handleRegistration(reg);
     Map<String, String> config = rr.getAgentConfig();
     assertFalse(config.isEmpty());
-    assertTrue(config.containsKey(Configuration.CHECK_REMOTE_MOUNTS_KEY));
-    assertTrue("false".equals(config.get(Configuration.CHECK_REMOTE_MOUNTS_KEY)));
-    assertTrue(config.containsKey(Configuration.CHECK_MOUNTS_TIMEOUT_KEY));
-    assertTrue("0".equals(config.get(Configuration.CHECK_MOUNTS_TIMEOUT_KEY)));
-    assertTrue("true".equals(config.get(Configuration.ENABLE_AUTO_AGENT_CACHE_UPDATE_KEY)));
+    assertTrue(config.containsKey(Configuration.CHECK_REMOTE_MOUNTS.getKey()));
+    assertTrue("false".equals(config.get(Configuration.CHECK_REMOTE_MOUNTS.getKey())));
+    assertTrue(config.containsKey(Configuration.CHECK_MOUNTS_TIMEOUT.getKey()));
+    assertTrue("0".equals(config.get(Configuration.CHECK_MOUNTS_TIMEOUT.getKey())));
+    assertTrue("true".equals(config.get(Configuration.ENABLE_AUTO_AGENT_CACHE_UPDATE.getKey())));
   }
 
   @Test

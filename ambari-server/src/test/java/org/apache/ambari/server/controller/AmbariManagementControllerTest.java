@@ -8689,8 +8689,8 @@ public class AmbariManagementControllerTest {
     // verify change with new meta info
     Configuration configuration = injector.getInstance(Configuration.class);
     Properties properties = configuration.getProperties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
     Configuration newConfiguration = new Configuration(properties);
 
     AmbariMetaInfo ami = new AmbariMetaInfo(newConfiguration);
@@ -8796,7 +8796,7 @@ public class AmbariManagementControllerTest {
     }
 
     // variation #1: url with trailing slash, suffix preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/repodata/repomd.xml");
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU.getKey(), "/repodata/repomd.xml");
     Assert.assertTrue(baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("ubuntu12")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     try {
@@ -8809,7 +8809,7 @@ public class AmbariManagementControllerTest {
     }
 
     // variation #2: url with trailing slash, suffix no preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "repodata/repomd.xml");
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT.getKey(), "repodata/repomd.xml");
     Assert.assertTrue(baseUrl.endsWith("/") && !configuration.getRepoValidationSuffixes("redhat6")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     try {
@@ -8835,7 +8835,7 @@ public class AmbariManagementControllerTest {
     }
 
     // variation #4: url with no trailing slash, suffix preceding slash
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT, "/repodata/repomd.xml");
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_DEFAULT.getKey(), "/repodata/repomd.xml");
     Assert.assertTrue(!baseUrl.endsWith("/") && configuration.getRepoValidationSuffixes("suse11")[0].startsWith("/"));
     request.setBaseUrl(baseUrl);
     try {
@@ -8848,7 +8848,7 @@ public class AmbariManagementControllerTest {
     }
 
     // variation #5: multiple suffix tests
-    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU, "/foo/bar.xml,/repodata/repomd.xml");
+    backingProperties.setProperty(Configuration.REPO_SUFFIX_KEY_UBUNTU.getKey(), "/foo/bar.xml,/repodata/repomd.xml");
     Assert.assertTrue(configuration.getRepoValidationSuffixes("ubuntu12").length > 1);
     request.setBaseUrl(baseUrl);
     try {
@@ -9293,14 +9293,12 @@ public class AmbariManagementControllerTest {
       @Override
       protected void configure() {
         Properties properties = new Properties();
-        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
+        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
 
-        properties.setProperty(Configuration.METADATA_DIR_PATH,
-            "src/test/resources/stacks");
-        properties.setProperty(Configuration.SERVER_VERSION_FILE,
-            "../version");
-        properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-        properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+        properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(),"src/test/resources/stacks");
+        properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(),"../version");
+        properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
+        properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
         try {
           install(new ControllerModule(properties));
         } catch (Exception e) {

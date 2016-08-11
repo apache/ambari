@@ -1999,7 +1999,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @throws AmbariException if a new temporary directory cannot be created
    */
   private File createTemporaryDirectory() throws AmbariException {
-    String tempDirectoryPath = configuration.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+    String tempDirectoryPath = configuration.getProperty(Configuration.SERVER_TMP_DIR.getKey());
 
     if ((tempDirectoryPath == null) || tempDirectoryPath.isEmpty()) {
       tempDirectoryPath = System.getProperty("java.io.tmpdir");

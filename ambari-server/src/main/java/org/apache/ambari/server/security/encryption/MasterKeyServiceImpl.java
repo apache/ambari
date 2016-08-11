@@ -18,15 +18,6 @@
 
 package org.apache.ambari.server.security.encryption;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.utils.AmbariPath;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.net.ntp.TimeStamp;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,6 +28,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.utils.AmbariPath;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.net.ntp.TimeStamp;
 
 public class MasterKeyServiceImpl implements MasterKeyService {
   private static final Log LOG = LogFactory.getLog(MasterKeyServiceImpl.class);
@@ -78,7 +78,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    */
   public MasterKeyServiceImpl(String masterKey) {
     if (masterKey != null) {
-      this.master = masterKey.toCharArray();
+      master = masterKey.toCharArray();
     } else {
       throw new IllegalArgumentException("Master key cannot be null");
     }
@@ -90,17 +90,18 @@ public class MasterKeyServiceImpl implements MasterKeyService {
   public MasterKeyServiceImpl() {
     String key = readMasterKey();
     if (key != null) {
-      this.master = key.toCharArray();
+      master = key.toCharArray();
     }
   }
 
+  @Override
   public boolean isMasterKeyInitialized() {
-    return this.master != null;
+    return master != null;
   }
 
   @Override
   public char[] getMasterSecret() {
-    return this.master;
+    return master;
   }
 
   public static void main(String args[]) {
@@ -275,14 +276,14 @@ public class MasterKeyServiceImpl implements MasterKeyService {
     if (envVariables != null && !envVariables.isEmpty()) {
       key = envVariables.get(Configuration.MASTER_KEY_ENV_PROP);
       if (key == null || key.isEmpty()) {
-        String keyPath = envVariables.get(Configuration.MASTER_KEY_LOCATION);
+        String keyPath = envVariables.get(Configuration.MASTER_KEY_LOCATION.getKey());
         if (keyPath != null && !keyPath.isEmpty()) {
           File keyFile = new File(keyPath);
           if (keyFile.exists()) {
             try {
               initializeFromFile(keyFile);
-              if (this.master != null) {
-                key = new String(this.master);
+              if (master != null) {
+                key = new String(master);
               }
               FileUtils.deleteQuietly(keyFile);
             } catch (IOException e) {
@@ -306,7 +307,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
       LOG.info("Loading from persistent master: " + tag);
       String line = new String(Base64.decodeBase64(lines.get(1)));
       String[] parts = line.split("::");
-      this.master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
+      master = new String(aes.decrypt(Base64.decodeBase64(parts[0]),
           Base64.decodeBase64(parts[1]), Base64.decodeBase64(parts[2])),
           "UTF8").toCharArray();
     } catch (IOException e) {

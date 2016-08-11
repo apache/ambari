@@ -17,26 +17,26 @@
  */
 package org.apache.ambari.server.security;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.junit.Assert.assertTrue;
-
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.util.Properties;
-
-import static org.easymock.EasyMock.createNiceMock;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class SslExecutionTest {
 
@@ -70,7 +70,7 @@ public class SslExecutionTest {
       e.printStackTrace();
     }
     Properties properties = new Properties();
-    properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, temp.getRoot().getAbsolutePath());
+    properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), temp.getRoot().getAbsolutePath());
 
     return properties;
   }
@@ -102,9 +102,9 @@ public class SslExecutionTest {
   public void testSslLogging() throws Exception {
     LOG.info("Testing sign");
 
-    certMan.configs.getConfigsMap().put(Configuration.PASSPHRASE_KEY, "123123");
+    certMan.configs.getConfigsMap().put(Configuration.PASSPHRASE.getKey(), "123123");
 
-    LOG.info("key dir = " + certMan.configs.getConfigsMap().get(Configuration.SRVR_KSTR_DIR_KEY));
+    LOG.info("key dir = " + certMan.configs.getConfigsMap().get(Configuration.SRVR_KSTR_DIR.getKey()));
 
     SignCertResponse signAgentCrt = certMan.signAgentCrt("somehost", "gdfgdfg", "123123");
     LOG.info("-------------RESPONCE-------------");

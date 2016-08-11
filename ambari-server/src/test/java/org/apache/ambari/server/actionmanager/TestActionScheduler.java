@@ -727,7 +727,7 @@ public class TestActionScheduler {
     when(db.getStagesInProgress()).thenReturn(stages);
 
     Properties properties = new Properties();
-    properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "true");
+    properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "true");
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),
@@ -1221,7 +1221,7 @@ public class TestActionScheduler {
     when(db.getStagesInProgress()).thenReturn(stages);
 
     Properties properties = new Properties();
-    properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "false");
+    properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "false");
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
             new HostsMap((String) null),
@@ -1296,7 +1296,7 @@ public class TestActionScheduler {
     when(db.getStagesInProgress()).thenReturn(stages);
 
     Properties properties = new Properties();
-    properties.put(Configuration.PARALLEL_STAGE_EXECUTION_KEY, "true");
+    properties.put(Configuration.PARALLEL_STAGE_EXECUTION.getKey(), "true");
     Configuration conf = new Configuration(properties);
     ActionScheduler scheduler = spy(new ActionScheduler(100, 50, db, aq, fsm, 3,
         new HostsMap((String) null),

@@ -61,9 +61,17 @@ public class LdapPerformanceTest {
     injector.injectMembers(this);
     injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
-    configuration.setLdap("c6402.ambari.apache.org:389", "posixAccount", "uid",
-        "posixGroup", "cn", "memberUid", "dc=apache,dc=org", false,
-        "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org", "hdfs");
+
+    configuration.setProperty(Configuration.LDAP_PRIMARY_URL.getKey(), "c6402.ambari.apache.org:389");
+    configuration.setProperty(Configuration.LDAP_USER_OBJECT_CLASS.getKey(), "posixAccount");
+    configuration.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE.getKey(), "uid");
+    configuration.setProperty(Configuration.LDAP_GROUP_OBJECT_CLASS.getKey(), "posixGroup");
+    configuration.setProperty(Configuration.LDAP_GROUP_NAMING_ATTR.getKey(), "cn");
+    configuration.setProperty(Configuration.LDAP_GROUP_MEMEBERSHIP_ATTR.getKey(), "memberUid");
+    configuration.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=apache,dc=org");
+    configuration.setProperty(Configuration.LDAP_BIND_ANONYMOUSLY.getKey(), String.valueOf(false));
+    configuration.setProperty(Configuration.LDAP_MANAGER_DN.getKey(), "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org");
+    configuration.setProperty(Configuration.LDAP_MANAGER_PASSWORD.getKey(), "hdfs");
   }
 
   @Test

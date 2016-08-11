@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.api.services;
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -44,6 +42,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -103,6 +103,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 public class AmbariMetaInfoTest {
 
@@ -927,9 +929,9 @@ public class AmbariMetaInfoTest {
     }
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks.getPath());
-    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH, commonServicesRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, version.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks.getPath());
+    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH.getKey(), commonServicesRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
@@ -2004,8 +2006,8 @@ public class AmbariMetaInfoTest {
     File versionFile) throws Exception {
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stackRoot.getPath());
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stackRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), versionFile.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);

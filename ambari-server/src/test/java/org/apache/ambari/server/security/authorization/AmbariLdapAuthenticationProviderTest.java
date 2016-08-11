@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
-
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.find;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
@@ -46,9 +48,12 @@ import org.slf4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import static org.easymock.EasyMock.*;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
-import static org.junit.Assert.*;
+import junit.framework.Assert;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
@@ -89,8 +94,8 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     injector.injectMembers(this);
     injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER_KEY, "(&(mail={0})(objectClass={userObjectClass}))");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "false");
+    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER.getKey(), "(&(mail={0})(objectClass={userObjectClass}))");
+    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "false");
   }
 
   @After
@@ -179,7 +184,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     users.createUser("allowedUser", "password", UserType.LDAP, true, false);
     UserEntity ldapUser = userDAO.findLdapUserByName("allowedUser");
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser", "password");
-    
+
     AmbariAuthentication result = (AmbariAuthentication) authenticationProvider.authenticate(authentication);
     assertTrue(result.isAuthenticated());
     assertEquals(ldapUser.getUserId(), result.getUserId());
@@ -203,7 +208,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser@ambari.apache.org"));
     users.createUser("allowedUser@ambari.apache.org", "password", UserType.LDAP, true, false);
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
     // When
     Authentication result = authenticationProvider.authenticate(authentication);
@@ -217,7 +222,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("missingloginalias@ambari.apache.org", "password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
 
     // When
@@ -233,7 +238,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     // Given
     assertNull("User already exists in DB", userDAO.findLdapUserByName("allowedUser"));
     Authentication authentication = new UsernamePasswordAuthenticationToken("allowedUser@ambari.apache.org", "bad_password");
-    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED_KEY, "true");
+    configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "true");
 
 
     // When

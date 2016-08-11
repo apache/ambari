@@ -18,12 +18,12 @@
 
 package org.apache.ambari.server.resources;
 
+import static org.easymock.EasyMock.createNiceMock;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
-
-import junit.framework.TestCase;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -38,25 +38,25 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.createNiceMock;
+import junit.framework.TestCase;
 
 public class TestResources extends TestCase {
-	
+
   private static ResourceManager resMan;
   private static final String RESOURCE_FILE_NAME = "resources.ext";
   private static final String RESOURCE_FILE_CONTENT = "CONTENT";
   Injector injector;
   private TemporaryFolder tempFolder = new TemporaryFolder();
   private File resourceFile;
-  
+
   protected Properties buildTestProperties() {
-	   
+
 	Properties properties = new Properties();
     try {
 		tempFolder.create();
-		
-		properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
-		properties.setProperty(Configuration.RESOURCES_DIR_KEY, tempFolder.getRoot().getAbsolutePath());
+
+		properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), tempFolder.getRoot().getAbsolutePath());
+		properties.setProperty(Configuration.RESOURCES_DIR.getKey(), tempFolder.getRoot().getAbsolutePath());
 
 	    resourceFile = tempFolder.newFile(RESOURCE_FILE_NAME);
 	    FileUtils.writeStringToFile(resourceFile, RESOURCE_FILE_CONTENT);
@@ -65,7 +65,7 @@ public class TestResources extends TestCase {
 	}
     return properties;
   }
-  
+
   protected Constructor<Configuration> getConfigurationConstructor() {
     try {
 	  return Configuration.class.getConstructor(Properties.class);
@@ -89,18 +89,20 @@ public class TestResources extends TestCase {
     resMan = instance;
   }
 
+  @Override
   @Before
   public void setUp() throws IOException {
     injector = Guice.createInjector(new ResourceModule());
     resMan = injector.getInstance(ResourceManager.class);
   }
-	
+
+  @Override
   @After
   public void tearDown() throws IOException {
     resourceFile.delete();
 	tempFolder.delete();
   }
-	
+
   @Test
   public void testGetResource() throws Exception {
     File resFile = resMan.getResource(resourceFile.getName());

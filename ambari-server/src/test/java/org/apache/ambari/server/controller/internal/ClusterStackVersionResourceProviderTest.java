@@ -111,6 +111,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -120,8 +122,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 
  /**
@@ -171,7 +171,7 @@ public class ClusterStackVersionResourceProviderTest {
     configHelper = createNiceMock(ConfigHelper.class);
     InMemoryDefaultTestModule inMemoryModule = new InMemoryDefaultTestModule();
     Properties properties = inMemoryModule.getProperties();
-    properties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
+    properties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT.getKey(),
             String.valueOf(MAX_TASKS_PER_STAGE));
     configuration = new Configuration(properties);
     stageFactory = createNiceMock(StageFactory.class);

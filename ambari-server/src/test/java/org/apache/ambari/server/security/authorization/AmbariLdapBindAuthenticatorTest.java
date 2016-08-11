@@ -18,6 +18,10 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.junit.Assert.assertEquals;
+
 import java.util.Properties;
 
 import org.apache.ambari.server.configuration.Configuration;
@@ -44,10 +48,6 @@ import org.springframework.security.ldap.search.LdapUserSearch;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.junit.Assert.assertEquals;
 
 
 @RunWith(FrameworkRunner.class)
@@ -93,13 +93,13 @@ public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationPro
     ldapCtxSource.afterPropertiesSet();
 
     Properties properties = new Properties();
-    properties.setProperty(Configuration.CLIENT_SECURITY_KEY, "ldap");
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
-    properties.setProperty(Configuration.LDAP_BASE_DN_KEY, "dc=ambari,dc=apache,dc=org");
+    properties.setProperty(Configuration.CLIENT_SECURITY.getKey(), "ldap");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(),"src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(),"src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=ambari,dc=apache,dc=org");
 
     Configuration configuration = new Configuration(properties);
 
