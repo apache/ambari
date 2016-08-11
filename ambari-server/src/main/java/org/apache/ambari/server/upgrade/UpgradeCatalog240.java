@@ -73,6 +73,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -2187,6 +2188,32 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : clusterMap.values()) {
       Config config;
 
+      // Find the new stack default value for krb5-conf/content
+      String newDefault = null;
+      AmbariMetaInfo metaInfo = ambariManagementController.getAmbariMetaInfo();
+      StackId stackId = cluster.getCurrentStackVersion();
+      StackInfo stackInfo = ((metaInfo == null) || (stackId == null))
+          ? null
+          : metaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      if(stackInfo != null) {
+        ServiceInfo kerberosService = stackInfo.getService("KERBEROS");
+
+        if (kerberosService != null) {
+          List<PropertyInfo> properties = kerberosService.getProperties();
+
+          if (properties != null) {
+            for (PropertyInfo propertyInfo : properties) {
+              if ("krb5-conf.xml".equals(propertyInfo.getFilename()) &&
+                  "content".equals(propertyInfo.getName())) {
+                newDefault = propertyInfo.getValue();
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Update the kerberos-env properties to change kdc_host to kdc_hosts
       config = cluster.getDesiredConfigByType("kerberos-env");
       if (config != null) {
         // Rename kdc_host to kdc_hosts
@@ -2197,17 +2224,32 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
         updateConfigurationPropertiesForCluster(cluster, "kerberos-env", updates, removes, true, false);
       }
 
-      config = cluster.getDesiredConfigByType("krb5-conf");
-      if (config != null) {
-        String value = config.getProperties().get("content");
-        String oldDefault = "\n[libdefaults]\n  renew_lifetime \u003d 7d\n  forwardable \u003d true\n  default_realm \u003d {{realm}}\n  ticket_lifetime \u003d 24h\n  dns_lookup_realm \u003d false\n  dns_lookup_kdc \u003d false\n  #default_tgs_enctypes \u003d {{encryption_types}}\n  #default_tkt_enctypes \u003d {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(\u0027,\u0027) %}\n  {{domain|trim}} \u003d {{realm}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default \u003d FILE:/var/log/krb5kdc.log\n  admin_server \u003d FILE:/var/log/kadmind.log\n  kdc \u003d FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} \u003d {\n    admin_server \u003d {{admin_server_host|default(kdc_host, True)}}\n    kdc \u003d {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}";
+      // If a new default value for krb5-conf/content is available update it
+      if(newDefault != null) {
+        config = cluster.getDesiredConfigByType("krb5-conf");
+        if (config != null) {
+          String value = config.getProperties().get("content");
+          String oldDefault = "\n[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n\n{% if domains %}\n[domain_realm]\n{% for domain in domains.split(\u0027,\u0027) %}\n  {{domain}} = {{realm}}\n{% endfor %}\n{% endif %}\n\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n    admin_server = {{admin_server_host|default(kdc_host, True)}}\n    kdc = {{kdc_host}}\n  }\n\n{# Append additional realm declarations below #}";
 
-        // if the content is the same as the old stack default, update to the new stack default;
-        // else leave it alone since the user may have changed it for a reason.
-        if(oldDefault.equalsIgnoreCase(value)) {
-          String newDefault ="[libdefaults]\n  renew_lifetime = 7d\n  forwardable = true\n  default_realm = {{realm}}\n  ticket_lifetime = 24h\n  dns_lookup_realm = false\n  dns_lookup_kdc = false\n  #default_tgs_enctypes = {{encryption_types}}\n  #default_tkt_enctypes = {{encryption_types}}\n{% if domains %}\n[domain_realm]\n{%- for domain in domains.split(',') %}\n  {{domain|trim()}} = {{realm}}\n{%- endfor %}\n{% endif %}\n[logging]\n  default = FILE:/var/log/krb5kdc.log\n  admin_server = FILE:/var/log/kadmind.log\n  kdc = FILE:/var/log/krb5kdc.log\n\n[realms]\n  {{realm}} = {\n{%- if kdc_hosts > 0 -%}\n{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n{%- if kdc_host_list and kdc_host_list|length > 0 %}\n    admin_server = {{admin_server_host|default(kdc_host_list[0]|trim(), True)}}\n{%- if kdc_host_list -%}\n{% for kdc_host in kdc_host_list %}\n    kdc = {{kdc_host|trim()}}\n{%- endfor -%}\n{% endif %}\n{%- endif %}\n{%- endif %}\n  }\n\n{# Append additional realm declarations below #}";
-          Map<String, String> updates = Collections.singletonMap("content", newDefault);
-          updateConfigurationPropertiesForCluster(cluster, "krb5-conf", updates, null, true, false);
+          // if the content is the same as the old stack default, update to the new stack default;
+          // else leave it alone since the user may have changed it for a reason.
+          if (oldDefault.equalsIgnoreCase(value)) {
+            Map<String, String> updates = Collections.singletonMap("content", newDefault);
+            updateConfigurationPropertiesForCluster(cluster, "krb5-conf", updates, null, true, false);
+          }
+          else {
+            LOG.warn("The krb5-conf/content value was not updated to use the kerberos-env/kdc_hosts " +
+                "property since the stored template appears to have been changed from the default. " +
+                "This value should be manually updated so that\n" +
+                "\tkdc = {{kdc_host}}\n" +
+                "Is changed to something like\n" +
+                "\t{%- if kdc_hosts &gt; 0 -%}\n" +
+                "\t{%- set kdc_host_list = kdc_hosts.split(',')  -%}\n" +
+                "\t{%- if kdc_host_list -%}\n" +
+                "\t{% for kdc_host in kdc_host_list %}\n" +
+                "\t    kdc = {{kdc_host|trim()}}\n" +
+                "\t{%- endfor -%}");
+          }
         }
       }
     }
