@@ -19,8 +19,6 @@ package org.apache.ambari.server.orm;
 
 import java.util.Properties;
 
-import com.google.inject.persist.PersistService;
-
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
@@ -32,6 +30,7 @@ import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class JdbcPropertyTest {
   Properties properties;
@@ -40,11 +39,11 @@ public class JdbcPropertyTest {
   @Before
   public void configure() {
     properties = new Properties();
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
   }
 
   @After

@@ -67,7 +67,8 @@ public class ConfigUpgradeValidityTest {
 
     // ensure that we use the real stacks
     InMemoryDefaultTestModule testModule = new InMemoryDefaultTestModule();
-    testModule.getProperties().put(Configuration.METADATA_DIR_PATH, "src/main/resources/stacks");
+    testModule.getProperties().put(Configuration.METADATA_DIR_PATH.getKey(),
+        "src/main/resources/stacks");
 
     injector = Guice.createInjector(testModule);
     injector.getInstance(GuiceJpaInitializer.class);

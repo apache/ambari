@@ -18,23 +18,29 @@
 
 package org.apache.ambari.server.api.services;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.spi.ClusterController;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.state.ConfigHelper;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.Resource;
 
 /**
  * Service responsible for components resource requests.
@@ -233,7 +239,7 @@ public class ComponentService extends BaseService {
 
     Response.ResponseBuilder rb = Response.status(Response.Status.OK);
     Configuration configs = new Configuration();
-    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR_KEY);
+    String tmpDir = configs.getProperty(Configuration.SERVER_TMP_DIR.getKey());
     File file = new File(tmpDir + File.separator + componentName + "-configs" + Configuration.DEF_ARCHIVE_EXTENSION);
     InputStream resultInputStream = null;
     try {

@@ -112,7 +112,7 @@ public class DatabaseConsistencyCheckHelper {
       metainfoDAO = injector.getInstance(MetainfoDAO.class);
     }
 
-    MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
+    MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION.getKey());
     String schemaVersion = null;
 
     if (schemaVersionEntity != null) {

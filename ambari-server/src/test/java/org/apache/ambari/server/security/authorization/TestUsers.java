@@ -24,11 +24,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
-import java.util.Properties;
 
 import javax.persistence.EntityManager;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -63,6 +60,8 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 
+import junit.framework.Assert;
+
 public class TestUsers {
   private Injector injector;
 
@@ -88,12 +87,10 @@ public class TestUsers {
   protected PasswordEncoder passwordEncoder;
   @Inject
   Provider<EntityManager> entityManagerProvider;
-  private Properties properties;
 
   @Before
   public void setup() throws AmbariException {
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
-    properties = module.getProperties();
     injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);

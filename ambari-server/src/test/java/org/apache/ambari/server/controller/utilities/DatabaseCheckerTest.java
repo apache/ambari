@@ -69,9 +69,9 @@ public class DatabaseCheckerTest {
     MetainfoDAO metainfoDAO =  createMock(MetainfoDAO.class);
     MetainfoEntity metainfoEntity = new MetainfoEntity();
     String serverVersion = ambariMetaInfo.getServerVersion();
-    metainfoEntity.setMetainfoName(Configuration.SERVER_VERSION_KEY);
+    metainfoEntity.setMetainfoName(Configuration.SERVER_VERSION.getKey());
     metainfoEntity.setMetainfoValue(serverVersion);
-    expect(metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY)).
+    expect(metainfoDAO.findByKey(Configuration.SERVER_VERSION.getKey())).
       andReturn(metainfoEntity);
     replay(metainfoDAO);
     DatabaseChecker.metainfoDAO = metainfoDAO;
@@ -88,9 +88,9 @@ public class DatabaseCheckerTest {
   public void testCheckDBVersionInvalid() throws Exception {
     MetainfoDAO metainfoDAO =  createMock(MetainfoDAO.class);
     MetainfoEntity metainfoEntity = new MetainfoEntity();
-    metainfoEntity.setMetainfoName(Configuration.SERVER_VERSION_KEY);
+    metainfoEntity.setMetainfoName(Configuration.SERVER_VERSION.getKey());
     metainfoEntity.setMetainfoValue("0.0.0"); // Incompatible version
-    expect(metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY)).
+    expect(metainfoDAO.findByKey(Configuration.SERVER_VERSION.getKey())).
       andReturn(metainfoEntity);
     replay(metainfoDAO);
     DatabaseChecker.metainfoDAO = metainfoDAO;

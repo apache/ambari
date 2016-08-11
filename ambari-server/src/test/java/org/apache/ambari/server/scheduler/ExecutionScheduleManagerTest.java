@@ -17,16 +17,26 @@
  */
 package org.apache.ambari.server.scheduler;
 
-import com.google.gson.Gson;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
-import com.google.inject.util.Modules;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -66,26 +76,17 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import com.google.gson.Gson;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+import com.google.inject.util.Modules;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import junit.framework.Assert;
 
 public class ExecutionScheduleManagerTest {
   private Clusters clusters;
@@ -97,7 +98,6 @@ public class ExecutionScheduleManagerTest {
   private RequestExecutionFactory requestExecutionFactory;
   private ExecutionScheduler executionScheduler;
   private Scheduler scheduler;
-  Properties properties;
 
   private static final Logger LOG =
     LoggerFactory.getLogger(ExecutionScheduleManagerTest.class);
@@ -105,7 +105,6 @@ public class ExecutionScheduleManagerTest {
   @Before
   public void setup() throws Exception {
     InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
-    properties = defaultTestModule.getProperties();
     injector  = Guice.createInjector(Modules.override(defaultTestModule)
       .with(new ExecutionSchedulerTestModule()));
     injector.getInstance(GuiceJpaInitializer.class);

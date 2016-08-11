@@ -31,10 +31,11 @@ public class ComponentSSLConfigurationTest {
   public static ComponentSSLConfiguration getConfiguration(String path,
       String pass, String type, boolean isSslEnabled) {
     Properties ambariProperties = new Properties();
-    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PATH_KEY, path);
-    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD_KEY, pass);
-    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_TYPE_KEY, type);
-    ambariProperties.setProperty(Configuration.AMRABI_METRICS_HTTPS_ENABLED_KEY, Boolean.toString(isSslEnabled));
+    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PATH.getKey(), path);
+    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_PASSWORD.getKey(), pass);
+    ambariProperties.setProperty(Configuration.SSL_TRUSTSTORE_TYPE.getKey(), type);
+    ambariProperties.setProperty(Configuration.AMBARI_METRICS_HTTPS_ENABLED.getKey(),
+        Boolean.toString(isSslEnabled));
 
     Configuration configuration =  new TestConfiguration(ambariProperties);
 

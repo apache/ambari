@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.security.encryption;
 
-import junit.framework.Assert;
+import java.io.File;
+import java.io.IOException;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.junit.After;
 import org.junit.Before;
@@ -25,8 +27,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
-import java.io.IOException;
+import junit.framework.Assert;
 
 public class CredentialProviderTest {
   @Rule

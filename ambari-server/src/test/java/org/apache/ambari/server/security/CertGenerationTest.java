@@ -18,13 +18,16 @@
 
 package org.apache.ambari.server.security;
 
-import java.io.*;
+import static org.easymock.EasyMock.createNiceMock;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-
-import com.google.common.io.Files;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -34,7 +37,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.google.inject.AbstractModule;
@@ -42,7 +49,6 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.createNiceMock;
 import junit.framework.TestCase;
 
 public class CertGenerationTest {
@@ -74,7 +80,7 @@ public class CertGenerationTest {
       requestStaticInjection(CertGenerationTest.class);
     }
   }
-  
+
   protected static Properties buildTestProperties() {
     try {
       temp.create();
@@ -82,19 +88,19 @@ public class CertGenerationTest {
       e.printStackTrace();
     }
 	  Properties properties = new Properties();
-	  properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY,
+	  properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(),
       temp.getRoot().getAbsolutePath());
     passLen = (int) Math.abs((new Random().nextFloat() * MAX_PASS_LEN));
 
-    properties.setProperty(Configuration.SRVR_CRT_PASS_LEN_KEY,
+    properties.setProperty(Configuration.SRVR_CRT_PASS_LEN.getKey(),
       String.valueOf(passLen));
 
     passFileName = RandomStringUtils.randomAlphabetic(PASS_FILE_NAME_LEN);
-    properties.setProperty(Configuration.SRVR_CRT_PASS_FILE_KEY, passFileName);
-	
+    properties.setProperty(Configuration.SRVR_CRT_PASS_FILE.getKey(), passFileName);
+
 	  return properties;
   }
- 
+
   protected static Constructor<Configuration> getConfigurationConstructor() {
     try {
       return Configuration.class.getConstructor(Properties.class);
@@ -102,7 +108,7 @@ public class CertGenerationTest {
 	    throw new RuntimeException("Expected constructor not found in Configuration.java", e);
 	   }
 	}
-	
+
   @BeforeClass
   public static void setUpBeforeClass() throws IOException {
 
@@ -142,24 +148,24 @@ public class CertGenerationTest {
   public static void tearDownAfterClass() throws IOException {
     temp.delete();
   }
-	
+
   @Ignore // randomly fails on BAO (e.g. https://builds.apache.org/job/Ambari-branch-2.2/155/console)
   @Test
   public void testServerCertGen() throws Exception {
-    File serverCrt = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_CRT_NAME_DEFAULT);
+    File serverCrt = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_CRT_NAME.getDefaultValue());
     Assert.assertTrue(serverCrt.exists());
   }
 
   @Test
   public void testServerKeyGen() throws Exception {
-    File serverKey = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_KEY_NAME_DEFAULT);
+    File serverKey = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.SRVR_KEY_NAME.getDefaultValue());
     Assert.assertTrue(serverKey.exists());
   }
 
   @Ignore // randomly fails on BAO (e.g. https://builds.apache.org/job/Ambari-branch-2.2/155/console)
   @Test
   public void testServerKeystoreGen() throws Exception {
-    File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.KSTR_NAME_DEFAULT);
+    File serverKeyStrore = new File(temp.getRoot().getAbsoluteFile() + File.separator + Configuration.KSTR_NAME.getDefaultValue());
     Assert.assertTrue(serverKeyStrore.exists());
   }
 
@@ -168,7 +174,7 @@ public class CertGenerationTest {
   public void testRevokeExistingAgentCert() throws Exception {
 
     Map<String,String> config = certMan.configs.getConfigsMap();
-    config.put(Configuration.PASSPHRASE_KEY,"passphrase");
+    config.put(Configuration.PASSPHRASE.getKey(),"passphrase");
 
     String agentHostname = "agent_hostname";
     SignCertResponse scr = certMan.signAgentCrt(agentHostname,

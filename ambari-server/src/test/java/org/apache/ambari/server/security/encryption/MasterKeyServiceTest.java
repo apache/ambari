@@ -17,8 +17,19 @@
  */
 package org.apache.ambari.server.security.encryption;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import static org.easymock.EasyMock.expect;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.verifyAll;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,18 +41,8 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.expect;
-import static org.powermock.api.easymock.PowerMock.mockStatic;
-import static org.powermock.api.easymock.PowerMock.replayAll;
-import static org.powermock.api.easymock.PowerMock.verifyAll;
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.crypto.*", "org.apache.log4j.*"})
@@ -95,7 +96,7 @@ public class MasterKeyServiceTest extends TestCase {
   @Test
   public void testReadFromEnvAsKey() throws Exception {
     Map<String, String> mapRet = new HashMap<String, String>();
-    mapRet.put(Configuration.MASTER_KEY_ENV_PROP, "ThisisSomePassPhrase");
+    mapRet.put("AMBARI_SECURITY_MASTER_KEY", "ThisisSomePassPhrase");
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();
@@ -118,7 +119,7 @@ public class MasterKeyServiceTest extends TestCase {
     Assert.assertTrue(masterKeyFile.exists());
 
     Map<String, String> mapRet = new HashMap<String, String>();
-    mapRet.put(Configuration.MASTER_KEY_LOCATION, masterKeyFile.getAbsolutePath());
+    mapRet.put(Configuration.MASTER_KEY_LOCATION.getKey(), masterKeyFile.getAbsolutePath());
     mockStatic(System.class);
     expect(System.getenv()).andReturn(mapRet);
     replayAll();

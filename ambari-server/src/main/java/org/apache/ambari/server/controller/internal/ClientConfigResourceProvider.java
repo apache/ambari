@@ -175,8 +175,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
     Configuration configs = new Configuration();
     Map<String, String> configMap = configs.getConfigsMap();
-    String TMP_PATH = configMap.get(Configuration.SERVER_TMP_DIR_KEY);
-    String pythonCmd = configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY);
+    String TMP_PATH = configMap.get(Configuration.SERVER_TMP_DIR.getKey());
+    String pythonCmd = configMap.get(Configuration.AMBARI_PYTHON_WRAP.getKey());
     AmbariManagementController managementController = getManagementController();
     ConfigHelper configHelper = managementController.getConfigHelper();
     Cluster cluster = null;
@@ -341,7 +341,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       String userList = gson.toJson(userSet);
       hostLevelParams.put(USER_LIST, userList);
 
-      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredClusterConfigs);      
+      Set<String> groupSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.GROUP, cluster, desiredClusterConfigs);
       String groupList = gson.toJson(groupSet);
       hostLevelParams.put(GROUP_LIST, groupList);
 

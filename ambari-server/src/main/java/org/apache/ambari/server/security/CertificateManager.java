@@ -17,8 +17,14 @@
  */
 package org.apache.ambari.server.security;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.text.MessageFormat;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.HostUtils;
 import org.apache.ambari.server.utils.ShellCommandUtil;
@@ -27,13 +33,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.text.MessageFormat;
-import java.util.Map;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Ambari security.
@@ -82,8 +83,8 @@ public class CertificateManager {
   private boolean isCertExists() {
 
     Map<String, String> configsMap = configs.getConfigsMap();
-    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
-    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
+    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey());
+    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME.getKey());
     File certFile = new File(srvrKstrDir + File.separator + srvrCrtName);
     LOG.debug("srvrKstrDir = " + srvrKstrDir);
     LOG.debug("srvrCrtName = " + srvrCrtName);
@@ -138,12 +139,12 @@ public class CertificateManager {
     LOG.info("Generation of server certificate");
 
     Map<String, String> configsMap = configs.getConfigsMap();
-    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
-    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
-    String srvrCsrName = configsMap.get(Configuration.SRVR_CSR_NAME_KEY);;
-    String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME_KEY);
-    String kstrName = configsMap.get(Configuration.KSTR_NAME_KEY);
-    String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
+    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey());
+    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME.getKey());
+    String srvrCsrName = configsMap.get(Configuration.SRVR_CSR_NAME.getKey());;
+    String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME.getKey());
+    String kstrName = configsMap.get(Configuration.KSTR_NAME.getKey());
+    String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
 
     Object[] scriptArgs = {srvrCrtPass, srvrKstrDir, srvrKeyName,
         srvrCrtName, kstrName, srvrCsrName};
@@ -168,8 +169,8 @@ public class CertificateManager {
    */
   public String getServerCert() {
     Map<String, String> configsMap = configs.getConfigsMap();
-    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
-        File.separator + configsMap.get(Configuration.SRVR_CRT_NAME_KEY));
+    File certFile = new File(configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) +
+        File.separator + configsMap.get(Configuration.SRVR_CRT_NAME.getKey()));
     String srvrCrtContent = null;
     try {
       srvrCrtContent = FileUtils.readFileToString(certFile);
@@ -221,7 +222,7 @@ public class CertificateManager {
     LOG.info("Verifying passphrase");
 
     String passphraseSrvr = configs.getConfigsMap().get(Configuration.
-        PASSPHRASE_KEY).trim();
+        PASSPHRASE.getKey()).trim();
 
     if (!passphraseSrvr.equals(passphraseAgent.trim())) {
       LOG.warn("Incorrect passphrase from the agent");
@@ -231,10 +232,10 @@ public class CertificateManager {
     }
 
     Map<String, String> configsMap = configs.getConfigsMap();
-    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY);
-    String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
-    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME_KEY);
-    String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME_KEY);
+    String srvrKstrDir = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey());
+    String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
+    String srvrCrtName = configsMap.get(Configuration.SRVR_CRT_NAME.getKey());
+    String srvrKeyName = configsMap.get(Configuration.SRVR_KEY_NAME.getKey());
     String agentCrtReqName = agentHostname + ".csr";
     String agentCrtName = agentHostname + ".crt";
 

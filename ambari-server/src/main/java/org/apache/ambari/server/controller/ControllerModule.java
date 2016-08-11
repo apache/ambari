@@ -18,6 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
+
 import java.beans.PropertyVetoException;
 import java.lang.annotation.Annotation;
 import java.security.SecureRandom;
@@ -142,21 +157,6 @@ import com.google.inject.persist.PersistModule;
 import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_ONLY;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.CREATE_OR_EXTEND;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_BOTH_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DDL_GENERATION_MODE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_AND_CREATE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.DROP_JDBC_DDL_FILE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.NON_JTA_DATASOURCE;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.THROW_EXCEPTIONS;
-
 /**
  * Used for injection purposes.
  */
@@ -211,7 +211,7 @@ public class ControllerModule extends AbstractModule {
     switch (configuration.getPersistenceType()) {
       case IN_MEMORY:
         properties.setProperty(JDBC_URL, Configuration.JDBC_IN_MEMORY_URL);
-        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMROY_DRIVER);
+        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_IN_MEMORY_DRIVER);
         properties.setProperty(DDL_GENERATION, DROP_AND_CREATE);
         properties.setProperty(THROW_EXCEPTIONS, "true");
       case REMOTE:
@@ -220,7 +220,7 @@ public class ControllerModule extends AbstractModule {
         break;
       case LOCAL:
         properties.setProperty(JDBC_URL, configuration.getLocalDatabaseUrl());
-        properties.setProperty(JDBC_DRIVER, Configuration.JDBC_LOCAL_DRIVER);
+        properties.setProperty(JDBC_DRIVER, Configuration.SERVER_JDBC_DRIVER.getDefaultValue());
         break;
     }
 
