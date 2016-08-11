@@ -590,7 +590,7 @@ describe('App.InstallerStep7Controller', function () {
         selectedService: {serviceName: 'abc'},
         selectedConfigGroup: Em.Object.create({isDefault: isDefault})
       });
-      var config = Em.Object.create({isEditable: null});
+      var config = Em.Object.create({isEditable: true});
       var updatedConfig = installerStep7Controller._setEditableValue(config);
       expect(updatedConfig.get('isEditable')).to.equal(isDefault);
       installerStep7Controller.toggleProperty('selectedConfigGroup.isDefault');

@@ -528,6 +528,9 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   loadStep: function () {
     this.clearStep();
+    if (this._additionalClearSteps) {
+      this._additionalClearSteps();
+    }
     this.renderHostInfo();
     this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
   },

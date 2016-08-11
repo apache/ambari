@@ -563,6 +563,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           serviceConfig.set('description', serviceConfig.get('description') + notEditableText);
           serviceConfig.set('isReconfigurable', false);
           config.isReconfigurable = false;
+          serviceConfig.set('isEditable', false);
+          config.isEditable = false;
         }
       }
     }, this);
@@ -1178,7 +1180,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (isServiceInstalled) {
         isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
       } else {
-        isEditable = selectedGroup.get('isDefault');
+        isEditable = isEditable  && selectedGroup.get('isDefault');
       }
       if (config.get('group')) {
         isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');

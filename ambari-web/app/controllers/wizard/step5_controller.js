@@ -29,4 +29,11 @@ App.WizardStep5Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignM
     }
   },
 
+  _additionalClearSteps: function() {
+    var parentController = App.router.get(this.get('content.controllerName'));
+    if (parentController && parentController.get('content.componentsFromConfigs')) {
+      parentController.clearConfigActionComponents();
+    }
+  }
+
 });
