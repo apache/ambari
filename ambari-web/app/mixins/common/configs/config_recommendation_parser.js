@@ -160,7 +160,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
         errorMessage: '',
         warnMessage: ''
       });
-      if (!Em.isNone(recommendedValue)) {
+      if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
       this.applyRecommendation(Em.get(config, 'name'), Em.get(config, 'filename'), Em.get(config, 'group.name'), recommendedValue, this._getInitialValue(config), parentProperties);
