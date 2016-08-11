@@ -53,7 +53,7 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-
+java_home = config['hostLevelParams']['java_home']
 stack_name = status_params.stack_name
 stack_root = Script.get_stack_root()
 stack_version_unformatted = config['hostLevelParams']['stack_version']
