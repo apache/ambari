@@ -1127,7 +1127,7 @@ describe('App.EnhancedConfigsMixin', function () {
     };
 
     beforeEach(function() {
-      sinon.stub(App, 'showDependentConfigsPopup', function(r, callback, s) {
+      sinon.stub(App, 'showDependentConfigsPopup', function(r, callback) {
         callback();
       });
       sinon.stub(mixin, 'onSaveRecommendedPopup');
@@ -1255,68 +1255,103 @@ describe('App.EnhancedConfigsMixin', function () {
       mixin.setRecommendedForGroup.restore();
     });
 
-    it("redo is true, default group, setRecommendedForDefaultGroup should be called", function() {
-      mixin.set('stepConfigs', [Em.Object.create({
-        serviceName: 'S1',
-        configs: [
-          Em.Object.create({ name: 'p1', filename: 'file1'})
-        ]
-      })]);
-      var propertiesToUpdate = [Em.Object.create({
-        initialValue: 'val1',
-        recommendedValue: 'val2',
-        serviceName: 'S1',
-        propertyName: 'p1',
-        configGroup: 'g1'
-      })];
-      mixin.undoRedoRecommended(propertiesToUpdate, true);
-      expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[0]).to.be.equal('val2');
-      expect(JSON.stringify(mixin.setRecommendedForDefaultGroup.getCall(0).args[1])).to.be.eql(JSON.stringify(Em.Object.create({
-        serviceName: 'S1',
-        configs: [
-          Em.Object.create({ name: 'p1', filename: 'file1'})
-        ]
-      })));
-      expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[2]).to.be.eql(Em.Object.create({
-        initialValue: 'val1',
-        recommendedValue: 'val2',
-        serviceName: 'S1',
-        propertyName: 'p1',
-        configGroup: 'g1'
-      }));
-      expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[3]).to.be.equal('val1');
-      expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[4]).to.be.eql(Em.Object.create({
-        name: 'p1',
-        filename: 'file1'
-      }));
+    describe("redo is true, default group, setRecommendedForDefaultGroup should be called", function() {
+
+      beforeEach(function () {
+        mixin.set('stepConfigs', [Em.Object.create({
+          serviceName: 'S1',
+          configs: [
+            Em.Object.create({ name: 'p1', filename: 'file1'})
+          ]
+        })]);
+        var propertiesToUpdate = [Em.Object.create({
+          initialValue: 'val1',
+          recommendedValue: 'val2',
+          serviceName: 'S1',
+          propertyName: 'p1',
+          configGroup: 'g1'
+        })];
+        mixin.undoRedoRecommended(propertiesToUpdate, true);
+      });
+
+      it('setRecommendedForDefaultGroup arg 0', function () {
+        expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[0]).to.be.equal('val2');
+      });
+
+      it('setRecommendedForDefaultGroup arg 1', function () {
+        expect(JSON.stringify(mixin.setRecommendedForDefaultGroup.getCall(0).args[1])).to.be.eql(JSON.stringify(Em.Object.create({
+          serviceName: 'S1',
+          configs: [
+            Em.Object.create({ name: 'p1', filename: 'file1'})
+          ]
+        })));
+      });
+
+      it('setRecommendedForDefaultGroup arg 2', function () {
+        expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[2]).to.be.eql(Em.Object.create({
+          initialValue: 'val1',
+          recommendedValue: 'val2',
+          serviceName: 'S1',
+          propertyName: 'p1',
+          configGroup: 'g1'
+        }));
+      })
+
+      it('setRecommendedForDefaultGroup arg 3', function () {
+        expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[3]).to.be.equal('val1');
+      });
+
+      it('setRecommendedForDefaultGroup arg 4', function () {
+        expect(mixin.setRecommendedForDefaultGroup.getCall(0).args[4]).to.be.eql(Em.Object.create({
+          name: 'p1',
+          filename: 'file1'
+        }));
+      });
+
     });
 
-    it("redo is false, non-default group, setRecommendedForGroup should be called", function() {
-      mixin.set('stepConfigs', [Em.Object.create({
-        serviceName: 'S1',
-        configs: [
-          Em.Object.create({ name: 'p1', filename: 'file1'})
-        ]
-      })]);
-      var propertiesToUpdate = [Em.Object.create({
-        initialValue: 'val1',
-        recommendedValue: 'val2',
-        serviceName: 'S1',
-        propertyName: 'p1',
-        configGroup: 'g2'
-      })];
-      mixin.undoRedoRecommended(propertiesToUpdate, false);
-      expect(mixin.setRecommendedForGroup.getCall(0).args[0]).to.be.equal('val1');
-      expect(mixin.setRecommendedForGroup.getCall(0).args[1]).to.be.eql(Em.Object.create({
-        serviceName: 'S1',
-        name: 'g2',
-        isDefault: false
-      }));
-      expect(mixin.setRecommendedForGroup.getCall(0).args[2]).to.be.eql(Em.Object.create({
-        name: 'p1',
-        filename: 'file1'
-      }));
-      expect(mixin.setRecommendedForGroup.getCall(0).args[3]).to.be.equal('val2');
+    describe("redo is false, non-default group, setRecommendedForGroup should be called", function() {
+
+      beforeEach(function () {
+        mixin.set('stepConfigs', [Em.Object.create({
+          serviceName: 'S1',
+          configs: [
+            Em.Object.create({ name: 'p1', filename: 'file1'})
+          ]
+        })]);
+        var propertiesToUpdate = [Em.Object.create({
+          initialValue: 'val1',
+          recommendedValue: 'val2',
+          serviceName: 'S1',
+          propertyName: 'p1',
+          configGroup: 'g2'
+        })];
+        mixin.undoRedoRecommended(propertiesToUpdate, false);
+      });
+
+      it('setRecommendedForGroup arg 0', function () {
+        expect(mixin.setRecommendedForGroup.getCall(0).args[0]).to.be.equal('val1');
+      });
+
+      it('setRecommendedForGroup arg 1', function () {
+        expect(mixin.setRecommendedForGroup.getCall(0).args[1]).to.be.eql(Em.Object.create({
+          serviceName: 'S1',
+          name: 'g2',
+          isDefault: false
+        }));
+      });
+
+      it('setRecommendedForGroup arg 2', function () {
+        expect(mixin.setRecommendedForGroup.getCall(0).args[2]).to.be.eql(Em.Object.create({
+          name: 'p1',
+          filename: 'file1'
+        }));
+      });
+
+      it('setRecommendedForGroup arg 3', function () {
+        expect(mixin.setRecommendedForGroup.getCall(0).args[3]).to.be.equal('val2');
+      });
+
     });
   });
 

@@ -194,12 +194,12 @@ describe('App.ConfigWithOverrideRecommendationParser', function() {
 
     it("modify attributes on existing group", function() {
       mixin._updateOverrideBoundaries(stackProperty, 'attr1', 'false', Em.Object.create({name: 'g1'}));
-      expect(stackProperty.valueAttributes['g1']['attr1']).to.be.equal('false');
+      expect(stackProperty.valueAttributes.g1.attr1).to.be.equal('false');
     });
 
     it("modify attributes on new group", function() {
       mixin._updateOverrideBoundaries(stackProperty, 'attr1', 'true', Em.Object.create({name: 'g2'}));
-      expect(stackProperty.valueAttributes['g2']['attr1']).to.be.equal('true');
+      expect(stackProperty.valueAttributes.g2.attr1).to.be.equal('true');
     });
   });
 });

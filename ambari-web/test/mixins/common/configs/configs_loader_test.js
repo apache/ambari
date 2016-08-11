@@ -364,13 +364,13 @@ describe('App.ConfigsLoader', function() {
     it("loadCurrentVersions should be called", function() {
       mixin.loadSelectedVersion('v1', null);
       expect(mixin.loadCurrentVersions.calledOnce).to.be.true;
-      expect(mixin.get('selectedVersion', 'v1'));
+      expect(mixin.get('selectedVersion')).to.be.equal('v1');
     });
 
     it("loadCurrentVersions should be called, default", function() {
       mixin.loadSelectedVersion('v1', Em.Object.create({isDefault: true}));
       expect(mixin.loadCurrentVersions.calledOnce).to.be.true;
-      expect(mixin.get('selectedVersion', 'v1'));
+      expect(mixin.get('selectedVersion')).to.be.equal('v1');
     });
   });
 
@@ -457,7 +457,7 @@ describe('App.ConfigsLoader', function() {
         dataIsLoaded: true,
         isVersionDefault: true,
         switchToGroup: null,
-        expected: null
+        expected: {isDefault: true}
       },
       {
         dataIsLoaded: false,
@@ -468,11 +468,13 @@ describe('App.ConfigsLoader', function() {
     ];
 
     testCases.forEach(function(test) {
-      it("dataIsLoaded = " +test.dataIsLoaded +
-         "isVersionDefault = " + test.isVersionDefault +
-         "switchToGroup = "+ test.switchToGroup , function() {
+      it("dataIsLoaded = " +test.dataIsLoaded + " " +
+         "isVersionDefault = " + test.isVersionDefault + " " +
+         "switchToGroup = "+ test.switchToGroup, function() {
         this.mock.returns(test.isVersionDefault);
+        mixin.set('dataIsLoaded', test.dataIsLoaded);
         mixin.setSelectedConfigGroup('v1', test.switchToGroup);
+        expect(mixin.get('selectedConfigGroup')).to.be.eql(test.expected);
       });
     });
   });
