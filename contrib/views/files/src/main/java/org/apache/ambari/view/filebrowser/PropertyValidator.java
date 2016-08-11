@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.filebrowser;
 
+import org.apache.ambari.view.ClusterType;
 import org.apache.ambari.view.ViewInstanceDefinition;
 import org.apache.ambari.view.utils.ambari.ValidatorUtils;
 import org.apache.ambari.view.validation.ValidationResult;
@@ -37,13 +38,18 @@ public class PropertyValidator implements Validator {
 
   @Override
   public ValidationResult validateProperty(String property, ViewInstanceDefinition viewInstanceDefinition, ValidationContext validationContext) {
+
+    // if associated with cluster(local or remote), no need to validate associated properties
+    ClusterType clusterType = viewInstanceDefinition.getClusterType();
+    if (clusterType == ClusterType.LOCAL_AMBARI || clusterType == ClusterType.REMOTE_AMBARI) {
+      return ValidationResult.SUCCESS;
+    }
+
     if (property.equals(WEBHDFS_URL)) {
       String webhdfsUrl = viewInstanceDefinition.getPropertyMap().get(WEBHDFS_URL);
-      if (webhdfsUrl != null) {
-        if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
-          LOG.error("Invalid webhdfs.url = {}", webhdfsUrl);
-          return new InvalidPropertyValidationResult(false, "Must be valid URL");
-        }
+      if (!ValidatorUtils.validateHdfsURL(webhdfsUrl)) {
+        LOG.error("Invalid webhdfs.url = {}", webhdfsUrl);
+        return new InvalidPropertyValidationResult(false, "Must be valid URL");
       }
     }
     return ValidationResult.SUCCESS;

@@ -2858,8 +2858,12 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
 
         //Getting 1st cluster and updating view instance table with cluster_id
         if (null != resultSet && resultSet.next()) {
-          final Long clusterId = resultSet.getLong("cluster_id");
+          String updateClusterTypeSQL = String.format(
+              "UPDATE %s SET %s = '%s' WHERE cluster_handle IS NULL",
+              VIEWINSTANCE_TABLE, "cluster_type", ClusterType.NONE.name());
+          dbAccessor.executeQuery(updateClusterTypeSQL);
 
+          final Long clusterId = resultSet.getLong("cluster_id");
           String updateSQL = String.format(
             "UPDATE %s SET %s = %d WHERE cluster_handle IS NOT NULL",
             VIEWINSTANCE_TABLE, cluster_handle_dummy, clusterId);
