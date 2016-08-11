@@ -22,7 +22,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'installPXF', 'reconfigureHBase', 'reconfigureAccumulo', 'reconfigureHawq', 'deleteSNameNode', 'stopNameNodes', 'startAllServices'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'installPXF', 'reconfigureHBase', 'reconfigureAccumulo', 'reconfigureHawq', 'deleteSNameNode', 'stopHDFS', 'startAllServices'],
 
   hbaseSiteTag: "",
   accumuloSiteTag: "",
@@ -143,10 +143,9 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   startAllServices: function () {
     this.startServices(false);
   },
-  
-  stopNameNodes: function () {
-    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName');
-    this.updateComponent('NAMENODE', hostName, "HDFS", "Stop");
+
+  stopHDFS: function () {
+    this.stopServices(["HDFS"], true);
   },
 
   deleteSNameNode: function () {
