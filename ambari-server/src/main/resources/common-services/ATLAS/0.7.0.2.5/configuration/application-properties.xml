@@ -128,10 +128,7 @@
       </property>
     </depends-on>
     <value-attributes>
-      <read-only>true</read-only>
-      <editable-only-at-install>true</editable-only-at-install>
-      <overridable>false</overridable>
-      <visible>true</visible>
+      <editable-only-at-install>false</editable-only-at-install>
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
