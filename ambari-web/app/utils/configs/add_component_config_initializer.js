@@ -59,7 +59,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
       'nimbus.seeds': this.getHostsListComponentJSONStringifiedConfig('NIMBUS', true),
       'hadoop.proxyuser.{{webhcatUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
       'hadoop.proxyuser.{{hiveUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
-      'hive.metastore.uris': this.getHostsWithPortConfig(['WEBHCAT_SERVER', 'HIVE_METASTORE'], 'thrift://', '', ',thrift://', 'hiveMetastorePort', true)
+      'hive.metastore.uris': this.getHostsWithPortConfig(['HIVE_METASTORE'], 'thrift://', '', ',thrift://', 'hiveMetastorePort', true)
     };
   },
 
@@ -225,7 +225,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
 
   _initTempletonHiveProperties: function(configProperty, localDB, dependecies, initializer) {
     var hostNames = localDB.masterComponentHosts.filter(function(masterComponent) {
-      return ['WEBHCAT_SERVER', 'HIVE_METASTORE'].contains(masterComponent.component) && masterComponent.isInstalled === true;
+      return ['HIVE_METASTORE'].contains(masterComponent.component) && masterComponent.isInstalled === true;
     }).mapProperty('hostName').uniq().sort();
     var hiveMSHosts = hostNames.map(function(hostName) {
       return "thrift://" + hostName + ":" + dependecies.hiveMetastorePort;
@@ -304,8 +304,6 @@ App.AddHiveComponentsInitializer = App.AddComponentConfigInitializer.create({
  */
 App.AddWebHCatComponentsInitializer = App.AddComponentConfigInitializer.create({
   initializeForProperties: [
-    'hive.metastore.uris',
-    'templeton.hive.properties',
     'hadoop.proxyuser.{{webhcatUser}}.hosts'
   ]
 });

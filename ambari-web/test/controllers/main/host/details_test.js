@@ -3756,10 +3756,10 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "hive-site": makeFileNameProps('hive-site', [
-                  ['hive.metastore.uris', 'thrift://host1:9083,thrift://host2:9083,thrift://host3:9083']
+                  ['hive.metastore.uris', 'thrift://host1:9083']
                 ]).properties,
                 "webhcat-site": makeFileNameProps('webhcat-site', [
-                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083\\,thrift://host2:9083\\,thrift://host3:9083,hive.metastore.sasl.enabled=false']
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
                   ['hive_user', 'hive_user_val']
@@ -3806,10 +3806,10 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "hive-site": makeFileNameProps('hive-site', [
-                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host2:1111,thrift://host3:1111']
+                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host2:1111']
                 ]).properties,
                 "webhcat-site": makeFileNameProps('webhcat-site', [
-                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host2:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host2:1111,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
                   ['hive_user', 'hive_user_val']
@@ -3859,10 +3859,10 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "hive-site": makeFileNameProps('hive-site', [
-                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host3:1111']
+                  ['hive.metastore.uris', 'thrift://host1:1111']
                 ]).properties,
                 "webhcat-site": makeFileNameProps('webhcat-site', [
-                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
                   ['webhcat_user', 'webhcat_user_val']
@@ -3911,10 +3911,10 @@ describe('App.MainHostDetailsController', function () {
             {
               "properties": {
                 "hive-site": makeFileNameProps('hive-site', [
-                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host3:1111']
+                  ['hive.metastore.uris', 'thrift://host1:1111']
                 ]).properties,
                 "webhcat-site": makeFileNameProps('webhcat-site', [
-                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111,hive.metastore.sasl.enabled=false']
                 ]).properties,
                 "hive-env": makeFileNameProps('hive-env', [
                   ['hive_user', 'hive_user_val']
