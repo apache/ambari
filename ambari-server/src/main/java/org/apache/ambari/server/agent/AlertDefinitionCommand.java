@@ -17,13 +17,11 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.alert.AlertDefinition;
 import org.apache.ambari.server.state.alert.AlertDefinitionHash;
@@ -130,39 +128,8 @@ public class AlertDefinitionCommand extends AgentCommand {
    */
   public void addConfigs(ConfigHelper configHelper, Cluster cluster)
     throws AmbariException {
-
-    m_configurations = new HashMap<String, Map<String, String>>();
-
-    Map<String, Map<String, String>> allConfigTags =
-        configHelper.getEffectiveDesiredTags(cluster, m_hostName);
-
-    for(Config clusterConfig: cluster.getAllConfigs()) {
-      if (null == clusterConfig) {
-        // !!! hard to believe
-        continue;
-      }
-
-      Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
-
-      Map<String, Map<String, String>> configTags = new HashMap<String,
-              Map<String, String>>();
-
-      for (Map.Entry<String, Map<String, String>> entry : allConfigTags.entrySet()) {
-        if (entry.getKey().equals(clusterConfig.getType())) {
-          configTags.put(clusterConfig.getType(), entry.getValue());
-        }
-      }
-
-      Map<String, Map<String, String>> properties = configHelper
-              .getEffectiveConfigProperties(cluster, configTags);
-
-      if (!properties.isEmpty()) {
-        for (Map<String, String> propertyMap : properties.values()) {
-          props.putAll(propertyMap);
-        }
-      }
-
-      m_configurations.put(clusterConfig.getType(), props);
-    }
+    Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, m_hostName);
+    Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
+    m_configurations = configurations;
   }
 }

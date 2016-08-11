@@ -80,6 +80,7 @@ public class AlertDefinitionHashTest extends TestCase {
   private List<AlertDefinitionEntity> m_agentDefinitions;
   private AlertDefinitionEntity m_hdfsService;
   AlertDefinitionEntity m_hdfsHost;
+  private ConfigHelper m_configHelper;
 
   /**
    *
@@ -201,6 +202,12 @@ public class AlertDefinitionHashTest extends TestCase {
 
     EasyMock.replay(m_mockClusters, m_mockCluster, m_mockDao);
     m_hash = m_injector.getInstance(AlertDefinitionHash.class);
+
+    // configHelper mock
+    m_configHelper = m_injector.getInstance(ConfigHelper.class);
+    EasyMock.expect(m_configHelper.getEffectiveDesiredTags((Cluster) anyObject(), EasyMock.anyString())).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+    EasyMock.expect(m_configHelper.getEffectiveConfigProperties((Cluster) anyObject(), (Map<String, Map<String, String>>) anyObject())).andReturn(new HashMap<String, Map<String, String>>()).anyTimes();
+    EasyMock.replay(m_configHelper);
   }
 
   /**
