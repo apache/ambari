@@ -547,6 +547,7 @@ describe('App.InstallerController', function () {
       var setSkipSlavesStep = false;
       var loadMasterComponentHosts = false;
       var loadConfirmedHosts = false;
+      var loadComponentsFromConfigs = false;
       var loadRecommendations = false;
 
       var checker = {
@@ -558,6 +559,9 @@ describe('App.InstallerController', function () {
         },
         loadConfirmedHosts: function() {
           loadConfirmedHosts = true;
+        },
+        loadComponentsFromConfigs: function() {
+          loadComponentsFromConfigs = true;
         },
         loadRecommendations: function() {
           loadRecommendations = true;
@@ -580,6 +584,10 @@ describe('App.InstallerController', function () {
         expect(loadMasterComponentHosts).to.be.true;
       });
 
+      it('components added via configs are loaded', function () {
+        expect(loadComponentsFromConfigs).to.be.true;
+      });
+
       it('recommendations are loaded', function() {
         expect(loadRecommendations).to.be.true;
       });
@@ -591,6 +599,7 @@ describe('App.InstallerController', function () {
       var loadServiceConfigProperties = false;
       var loadCurrentHostGroups = false;
       var loadRecommendationsConfigs = false;
+      var loadComponentsFromConfigs = false;
       var loadConfigThemes = false;
 
       var checker = {
@@ -605,6 +614,9 @@ describe('App.InstallerController', function () {
         },
         loadRecommendationsConfigs: function() {
           loadRecommendationsConfigs = true;
+        },
+        loadComponentsFromConfigs: function() {
+          loadComponentsFromConfigs = true;
         },
         loadConfigThemes: function() {
           loadConfigThemes = true;
@@ -631,6 +643,10 @@ describe('App.InstallerController', function () {
         expect(loadRecommendationsConfigs).to.be.true;
       });
 
+      it('components added via configs are loaded', function () {
+        expect(loadComponentsFromConfigs).to.be.true;
+      });
+
       it('config themes are loaded', function () {
         expect(loadConfigThemes).to.be.true;
       });
@@ -641,6 +657,7 @@ describe('App.InstallerController', function () {
       var loadSlaveComponentHosts = false;
       var loadClients = false;
       var loadRecommendations = false;
+      var loadComponentsFromConfigs = false;
 
       var checker = {
         loadSlaveComponentHosts: function() {
@@ -648,6 +665,9 @@ describe('App.InstallerController', function () {
         },
         loadClients: function() {
           loadClients = true;
+        },
+        loadComponentsFromConfigs: function() {
+          loadComponentsFromConfigs = true;
         },
         loadRecommendations: function() {
           loadRecommendations = true;
@@ -664,6 +684,10 @@ describe('App.InstallerController', function () {
 
       it('clients are loaded', function () {
         expect(loadClients).to.be.true;
+      });
+
+      it('components added via configs are loaded', function () {
+        expect(loadComponentsFromConfigs).to.be.true;
       });
 
       it('recommendations are loaded', function () {

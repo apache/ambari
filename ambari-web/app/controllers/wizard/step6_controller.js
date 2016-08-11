@@ -300,6 +300,11 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   loadStep: function () {
     this.clearStep();
+    var parentController = App.router.get(this.get('content.controllerName'));
+    if (parentController && parentController.get('content.componentsFromConfigs')) {
+      parentController.clearConfigActionComponents();
+    }
+
     var selectedServices = App.StackService.find().filterProperty('isSelected');
     var installedServices = App.StackService.find().filterProperty('isInstalled');
     var services;

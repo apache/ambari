@@ -201,6 +201,7 @@ describe('App.AssignMasterOnStep7Controller', function () {
             {component: 'C1'},
             {component: 'C2'}
           ],
+          componentsFromConfigs: ["C1","C2"],
           recommendationsHostGroups: {
             blueprint: {host_groups: [{name: 'host-group-1', components: [{name: 'C1'}, {name: 'C2'}]}]},
             blueprint_cluster_binding: {host_groups: [{name: 'host-group-1', hosts: [{fqdn: 'localhost'}]}]}
@@ -214,7 +215,6 @@ describe('App.AssignMasterOnStep7Controller', function () {
       view.removeMasterComponent();
       expect(view.get('content.masterComponentHosts')).to.be.eql([{component: 'C1'}]);
       expect(view.get('content.recommendationsHostGroups').blueprint).to.be.eql({host_groups: [{name: 'host-group-1', components: [{name: 'C1'}]}]});
-      expect(mock.setDBProperty.calledWith('masterComponentHosts', [{component: 'C1'}])).to.be.true;
     });
   });
 
@@ -342,7 +342,8 @@ describe('App.AssignMasterOnStep7Controller', function () {
       sinon.stub(mock, 'loadConfigRecommendations');
       view.reopen({
         content: Em.Object.create({
-          controllerName: 'ctrl1'
+          controllerName: 'ctrl1',
+          componentsFromConfigs: []
         }),
         selectedServicesMasters: [
           {

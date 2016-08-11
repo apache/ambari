@@ -358,11 +358,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             App.set('router.nextBtnClickInProgress', true);
             controller.saveSlaveComponentHosts(wizardStep6Controller);
             controller.get('content').set('serviceConfigProperties', null);
+            controller.get('content').set('componentsFromConfigs', []);
             controller.setDBProperties({
               serviceConfigProperties: null,
               serviceConfigGroups: null,
               recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
-              recommendationsConfigs: null
+              recommendationsConfigs: null,
+              componentsFromConfigs: []
             });
             router.transitionTo('step7');
             console.timeEnd('step6 next');
@@ -419,6 +421,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.saveServiceConfigProperties(wizardStep7Controller);
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
+        controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
+        controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('recommendationsHostGroup'));
+        controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('masterComponentHosts'));
         router.transitionTo('step8');
         console.timeEnd('step7 next');
       }
