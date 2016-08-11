@@ -92,7 +92,6 @@ class YamlParser(Parser): # Used Yaml parser to read data into a map
         return None, None
     return configurations, None
 
-
 class PropertiesParser(Parser): # Used ConfigParser parser to read data into a map
   def read_data_to_map(self, path):
     configurations = {}
@@ -104,6 +103,7 @@ class PropertiesParser(Parser): # Used ConfigParser parser to read data into a m
       properties_file_content.seek(0, os.SEEK_SET)
 
       cp = ConfigParser.ConfigParser()
+      cp.optionxform = str
       cp.readfp(properties_file_content)
 
       for section in cp._sections:
@@ -529,7 +529,7 @@ def main():
                    "Please provide it at the given path or provide a different path to it using -u option.".format(options.unknown_files_mapping_file))
   if options.action == "merge" :
     ConfigMerge.INPUT_DIR = options.inputDir
-    file_paths = ConfigMerge.get_all_supported_files_grouped_by_name(ConfigMerge.INPUT_DIR)
+    file_paths = ConfigMerge.get_all_supported_files_grouped_by_name(directory=ConfigMerge.INPUT_DIR)
     logger.info("Writing logs into '{0}' file".format(logegr_file_name))
     logger.debug("Following configuration files found:\n{0}".format(file_paths.items()))
     config_merge = ConfigMerge(config_files_map=file_paths)
