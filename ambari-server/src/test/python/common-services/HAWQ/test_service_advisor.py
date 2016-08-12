@@ -16,13 +16,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, imp, json
+import imp
+import json
+import os
 from unittest import TestCase
+
 from mock.mock import patch, MagicMock
 
 
 class TestHAWQ200ServiceAdvisor(TestCase):
+
   testDirectory = os.path.dirname(os.path.abspath(__file__))
+  stack_advisor_path = os.path.join(testDirectory, '../../../../main/resources/stacks/stack_advisor.py')
+  with open(stack_advisor_path, 'rb') as fp:
+    imp.load_module('stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
+
   serviceAdvisorPath = '../../../../main/resources/common-services/HAWQ/2.0.0/service_advisor.py'
   hawq200ServiceAdvisorPath = os.path.join(testDirectory, serviceAdvisorPath)
   with open(hawq200ServiceAdvisorPath, 'rb') as fp:

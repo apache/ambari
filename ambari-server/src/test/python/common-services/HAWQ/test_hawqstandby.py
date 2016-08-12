@@ -18,154 +18,58 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, json, copy, crypt
 from mock.mock import patch
-from stacks.utils.RMFTestCase import RMFTestCase, InlineTemplate
+from hawq_base_test_case import HawqBaseTestCase
 
 
-class TestHawqStandby(RMFTestCase):
+class TestHawqStandby(HawqBaseTestCase):
 
-  COMMON_SERVICES_PACKAGE_DIR = 'HAWQ/2.0.0/package'
-  STACK_VERSION = '2.3'
-  GPADMIN = 'gpadmin'
-  POSTGRES = 'postgres'
-  CONFIG_FILE = os.path.join(os.path.dirname(__file__), '../configs/hawq_default.json')
-  with open(CONFIG_FILE, "r") as f:
-    hawq_config = json.load(f)
+  COMPONENT_TYPE = 'master'
 
-  def setUp(self):
-    self.config_dict = copy.deepcopy(self.hawq_config)
-
-  def __asserts_for_configure(self):
-
-    self.assertResourceCalled('Group', self.GPADMIN,
-        ignore_failures = True
-        )
-
-    self.assertResourceCalled('User', self.GPADMIN,
-        gid = self.GPADMIN,
-        groups = [self.GPADMIN, u'hadoop'],
-        ignore_failures = True,
-        password = crypt.crypt(self.getConfig()['configurations']['hawq-env']['hawq_password'], "$1$salt$")
-        )
-
-    self.assertResourceCalled('Group', self.POSTGRES,
-        ignore_failures = True
-        )
-
-    self.assertResourceCalled('User', self.POSTGRES,
-        gid = self.POSTGRES,
-        groups = [self.POSTGRES, u'hadoop'],
-        ignore_failures = True
-        )
-
-    self.assertResourceCalled('Execute', 'chown -R gpadmin:gpadmin /usr/local/hawq/',
-        timeout = 600
-        )
-
-    self.assertResourceCalled('XmlConfig', 'hdfs-client.xml',
-        conf_dir = '/usr/local/hawq/etc/',
-        configurations = self.getConfig()['configurations']['hdfs-client'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-client'],
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
-    self.assertResourceCalled('XmlConfig', 'yarn-client.xml',
-        conf_dir = '/usr/local/hawq/etc/',
-        configurations = self.getConfig()['configurations']['yarn-client'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['yarn-client'],
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
-    self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
-        conf_dir = '/usr/local/hawq/etc/',
-        configurations = self.getConfig()['configurations']['hawq-site'],
-        configuration_attributes = self.getConfig()['configuration_attributes']['hawq-site'],
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
-    self.assertResourceCalled('File', '/usr/local/hawq/etc/hawq_check.cnf',
-        content = self.getConfig()['configurations']['hawq-check-env']['content'],
-        owner = self.GPADMIN,
-        group = self.GPADMIN,
-        mode = 0644
-        )
-
-    self.assertResourceCalled('File', '/usr/local/hawq/etc/slaves',
-        content = InlineTemplate('c6401.ambari.apache.org\nc6402.ambari.apache.org\nc6403.ambari.apache.org\n\n'),
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        mode = 0644
-        )
-
-    self.assertResourceCalled('Directory', '/data/hawq/master',
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        create_parents = True
-        )
-
-    self.assertResourceCalled('Execute', 'chmod 700 /data/hawq/master',
-        user = 'root',
-        timeout = 600
-        )
-
-    self.assertResourceCalled('Directory', '/data/hawq/tmp/master',
-        group = self.GPADMIN,
-        owner = self.GPADMIN,
-        create_parents = True
-        )
-
-
-  @patch ('hawqstandby.common.__set_osparams')
+  @patch ('common.__set_osparams')
   def test_configure_default(self, set_osparams_mock):
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+    self.executeScript(self.HAWQ_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
         command = 'configure',
         config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
-        target = RMFTestCase.TARGET_COMMON_SERVICES
+        target = self.TARGET_COMMON_SERVICES
         )
 
-    self.__asserts_for_configure()
+    self.asserts_for_configure()
     self.assertNoMoreResources()
 
 
-  @patch ('hawqstandby.common.__set_osparams')
+  @patch ('common.__set_osparams')
   def test_install_default(self, set_osparams_mock):
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+    self.executeScript(self.HAWQ_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
         command = 'install',
         config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
-        target = RMFTestCase.TARGET_COMMON_SERVICES
+        target = self.TARGET_COMMON_SERVICES
         )
 
-    self.__asserts_for_configure()
+    self.asserts_for_configure()
     self.assertNoMoreResources()
 
 
-  @patch ('hawqstandby.common.__set_osparams')
+  @patch ('common.__set_osparams')
   def test_start_default(self, set_osparams_mock):
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+    self.executeScript(self.HAWQ_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
         command = 'start',
         config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
-        target = RMFTestCase.TARGET_COMMON_SERVICES
+        target = self.TARGET_COMMON_SERVICES
         )
 
-    self.__asserts_for_configure()
+    self.asserts_for_configure()
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq init standby -a -v',
+    self.assertResourceCalled('Execute', self.SOURCE_HAWQ_SCRIPT + 'hawq init standby -a -v',
         logoutput = True,
         not_if = None,
         only_if = None,
@@ -175,20 +79,20 @@ class TestHawqStandby(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch ('hawqstandby.common.__set_osparams')
+  @patch ('common.__set_osparams')
   @patch ('common.get_local_hawq_site_property_value')
   def test_stop_default(self, get_local_hawq_site_property_value_mock, set_osparams_mock):
     get_local_hawq_site_property_value_mock.return_value = 5432
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+    self.executeScript(self.HAWQ_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
         command = 'stop',
         config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
-        target = RMFTestCase.TARGET_COMMON_SERVICES
+        target = self.TARGET_COMMON_SERVICES
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq stop standby -M fast -a -v',
+    self.assertResourceCalled('Execute', self.SOURCE_HAWQ_SCRIPT + 'hawq stop standby -M fast -a -v',
         logoutput = True,
         not_if = None,
         only_if = "netstat -tupln | egrep ':5432\\s' | egrep gpsyncmaster",
@@ -205,16 +109,16 @@ class TestHawqStandby(RMFTestCase):
 
     get_local_hawq_site_property_value_mock.return_value = 5432
 
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + '/scripts/hawqstandby.py',
+    self.executeScript(self.HAWQ_PACKAGE_DIR + '/scripts/hawqstandby.py',
         classname = 'HawqStandby',
         command = 'activate_hawq_standby',
         config_dict = self.config_dict,
         stack_version = self.STACK_VERSION,
-        target = RMFTestCase.TARGET_COMMON_SERVICES
+        target = self.TARGET_COMMON_SERVICES
         )
 
     self.assertResourceCalled('XmlConfig', 'hawq-site.xml',
-        conf_dir = '/usr/local/hawq/etc/',
+        conf_dir = self.CONF_DIR,
         configurations = self.getConfig()['configurations']['hawq-site'],
         configuration_attributes = self.getConfig()['configuration_attributes']['hawq-site'],
         group = self.GPADMIN,
@@ -222,7 +126,7 @@ class TestHawqStandby(RMFTestCase):
         mode = 0644
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && export PGHOST=\"c6402.ambari.apache.org\" && hawq activate standby -a -M fast -v --ignore-bad-hosts',
+    self.assertResourceCalled('Execute', self.SOURCE_HAWQ_SCRIPT + 'export PGHOST=\"c6402.ambari.apache.org\" && hawq activate standby -a -M fast -v --ignore-bad-hosts',
         logoutput = True,
         not_if = None,
         only_if = None,
@@ -230,7 +134,7 @@ class TestHawqStandby(RMFTestCase):
         timeout = 900
         )
 
-    self.assertResourceCalled('Execute', 'source /usr/local/hawq/greenplum_path.sh && hawq stop master -M fast -a -v',
+    self.assertResourceCalled('Execute', self.SOURCE_HAWQ_SCRIPT + 'hawq stop master -M fast -a -v',
         logoutput = True,
         not_if = None,
         only_if = "netstat -tupln | egrep ':5432\\s' | egrep postgres",

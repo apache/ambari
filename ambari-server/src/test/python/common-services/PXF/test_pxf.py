@@ -18,13 +18,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
-import os, copy, json
+import copy
+import json
+import os
+
 from mock.mock import patch
 from stacks.utils.RMFTestCase import Template, RMFTestCase
 
 
 class TestPxf(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "PXF/3.0.0/package"
+  PXF_PACKAGE_DIR = "PXF/3.0.0/package"
   STACK_VERSION = "2.3"
   PXF_USER = 'pxf'
   PXF_GROUP = 'pxf'
@@ -65,7 +68,7 @@ class TestPxf(RMFTestCase):
 
   @patch('shutil.copy2')
   def test_install_default(self, shutil_copy2_mock):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
+    self.executeScript(self.PXF_PACKAGE_DIR + "/scripts/pxf.py",
                        classname="Pxf",
                        command="install",
                        config_dict=self.config_dict,
@@ -96,7 +99,7 @@ class TestPxf(RMFTestCase):
 
   @patch('shutil.copy2')
   def test_configure_default(self, shutil_copy2_mock):
-      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
+      self.executeScript(self.PXF_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="configure",
                    config_dict=self.config_dict,
@@ -108,7 +111,7 @@ class TestPxf(RMFTestCase):
 
   @patch('shutil.copy2')
   def test_start_default(self, shutil_copy2_mock):
-      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
+      self.executeScript(self.PXF_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="start",
                    config_dict=self.config_dict,
@@ -128,7 +131,7 @@ class TestPxf(RMFTestCase):
                           logoutput=True)
 
   def test_stop_default(self):
-      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
+      self.executeScript(self.PXF_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="stop",
                    config_dict=self.config_dict,
@@ -141,7 +144,7 @@ class TestPxf(RMFTestCase):
                           logoutput=True)
 
   def test_status_default(self):
-      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/pxf.py",
+      self.executeScript(self.PXF_PACKAGE_DIR + "/scripts/pxf.py",
                    classname="Pxf",
                    command="status",
                    config_dict=self.config_dict,
