@@ -24,4 +24,9 @@
     <value>false</value>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>zookeeper.recovery.retry</name>
+    <value>6</value>
+    <on-ambari-upgrade add="false"/>
+  </property>
 </configuration>
