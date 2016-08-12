@@ -333,9 +333,9 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.second.ttl</name>
-    <value>604800</value>
+    <value>259200</value>
     <description>
-      Cluster wide second resolution data purge interval in seconds. Default is 7 days.
+      Cluster wide second resolution data purge interval in seconds. Default is 3 days.
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
@@ -367,7 +367,7 @@
     <name>timeline.metrics.host.aggregator.ttl</name>
     <value>86400</value>
     <description>
-      1 minute resolution data purge interval in seconds. Default is 1 day for embedded mode and 3 days for Distributed mode.
+      1 minute resolution data purge interval in seconds. Default is 1 day.
     </description>
     <depends-on>
       <property>

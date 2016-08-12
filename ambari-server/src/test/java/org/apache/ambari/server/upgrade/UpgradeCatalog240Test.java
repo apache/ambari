@@ -1299,11 +1299,15 @@ public class UpgradeCatalog240Test {
     Map<String, String> oldPropertiesAmsSite = new HashMap<String, String>() {
       {
         put("timeline.metrics.sink.collection.period", "60");
+        put("timeline.metrics.host.aggregator.ttl", "86400");
+        put("timeline.metrics.cluster.aggregator.second.ttl", "604800");
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
         put("timeline.metrics.sink.collection.period", "10");
+        put("timeline.metrics.host.aggregator.ttl", "86400");
+        put("timeline.metrics.cluster.aggregator.second.ttl", "259200");
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
