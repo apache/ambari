@@ -25,10 +25,10 @@ from mock.mock import patch
 # Local imports
 from stacks.utils.RMFTestCase import RMFTestCase
 
-COMMON_SERVICES_ALERTS_DIR_PATH = "../../../../../main/resources/common-services/PXF/3.0.0/package/alerts"
+PXF_ALERTS_DIR_PATH = "../../../../main/resources/common-services/PXF/3.0.0/package/alerts"
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-alerts_dir = os.path.abspath(os.path.join(current_dir, COMMON_SERVICES_ALERTS_DIR_PATH))
+pxf_alerts_dir = os.path.abspath(os.path.join(current_dir, PXF_ALERTS_DIR_PATH))
 
 class TestAlertsApiStatus(RMFTestCase):
 
@@ -38,7 +38,7 @@ class TestAlertsApiStatus(RMFTestCase):
     Because the class is present in a different folder, append its dir to the system path.
     Also, shorten the import name and make it a global so the test functions can access it.
     """
-    sys.path.append(alerts_dir)
+    sys.path.append(pxf_alerts_dir)
     global api_status
     import api_status
 

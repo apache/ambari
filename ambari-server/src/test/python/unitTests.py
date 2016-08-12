@@ -98,15 +98,16 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
     test_mask = TEST_MASK
 
   server_src_dir = get_parent_path(base_folder, 'src')
-
-  base_stack_folder = os.path.join(server_src_dir,
-                                   "main", "resources", "stacks", get_stack_name(), stack)
-
   script_folders = set()
-  for root, subFolders, files in os.walk(os.path.join(base_stack_folder,
-                                                      "services", service)):
-    if os.path.split(root)[-1] in ["scripts", "files"] and service in root:
-      script_folders.add(root)
+
+  if stack is not None:
+    base_stack_folder = os.path.join(server_src_dir,
+                                     "main", "resources", "stacks", get_stack_name(), stack)
+
+    for root, subFolders, files in os.walk(os.path.join(base_stack_folder,
+                                                        "services", service)):
+      if os.path.split(root)[-1] in ["scripts", "files"] and service in root:
+        script_folders.add(root)
 
   # Add the common-services scripts directories to the PATH
   base_commserv_folder = os.path.join(server_src_dir, "main", "resources", "common-services")
@@ -163,7 +164,7 @@ def main():
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_common_folder, "src/main/python/ambari_jinja2"))
   sys.path.append(os.path.join(ambari_common_folder, "src/test/python"))
-  sys.path.append(os.path.join(ambari_agent_folder, "src/main/python"))
+  sys.path.append(os.path.join(ambari_agent_folder,  "src/main/python"))
   sys.path.append(os.path.join(ambari_server_folder, "src/test/python"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/python"))
   sys.path.append(os.path.join(ambari_server_folder, "src/main/resources/scripts"))
@@ -188,6 +189,15 @@ def main():
             test_variants.append({'directory': current_service_dir,
                                   'service': service,
                                   'stack': stack})
+
+  #add tests for services under common-services
+  comm_serv_folder = os.path.join(pwd, 'common-services')
+  for service in os.listdir(comm_serv_folder):
+    current_service_dir = os.path.join(comm_serv_folder, service)
+    if os.path.isdir(current_service_dir) and service not in SERVICE_EXCLUDE:
+      test_variants.append({'directory': current_service_dir,
+                          'service': service,
+                          'stack': None})
 
   #run tests for every service in every stack in separate process
   has_failures = False

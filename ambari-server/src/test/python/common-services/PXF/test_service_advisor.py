@@ -16,21 +16,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os, json
+import imp
+import json
+import os
 from unittest import TestCase
 
 
 class TestPXF300ServiceAdvisor(TestCase):
 
-  def setUp(self):
-    import imp
-    self.testDirectory = os.path.dirname(os.path.abspath(__file__))
-    self.pxf300ServiceAdvisorPath = os.path.join(self.testDirectory, '../../../../main/resources/common-services/PXF/3.0.0/service_advisor.py')
-    with open(self.pxf300ServiceAdvisorPath, 'rb') as fp:
-      service_advisor_impl = imp.load_module('service_advisor_impl', fp, self.pxf300ServiceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
-    serviceAdvisorClass = getattr(service_advisor_impl, 'PXF300ServiceAdvisor')
-    self.serviceAdvisor = serviceAdvisorClass()
+  testDirectory = os.path.dirname(os.path.abspath(__file__))
+  stack_advisor_path = os.path.join(testDirectory, '../../../../main/resources/stacks/stack_advisor.py')
+  with open(stack_advisor_path, 'rb') as fp:
+    imp.load_module('stack_advisor', fp, stack_advisor_path, ('.py', 'rb', imp.PY_SOURCE))
 
+  serviceAdvisorPath = '../../../../main/resources/common-services/PXF/3.0.0/service_advisor.py'
+  pxf300ServiceAdvisorPath = os.path.join(testDirectory, serviceAdvisorPath)
+  with open(pxf300ServiceAdvisorPath, 'rb') as fp:
+    service_advisor_impl = imp.load_module('service_advisor_impl', fp, pxf300ServiceAdvisorPath, ('.py', 'rb', imp.PY_SOURCE))
+
+  def setUp(self):
+    serviceAdvisorClass = getattr(self.service_advisor_impl, 'PXF300ServiceAdvisor')
+    self.serviceAdvisor = serviceAdvisorClass()
     self.PXF_PATH = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}:/usr/lib/pxf/pxf-hbase.jar"
 
   def load_json(self, filename):
