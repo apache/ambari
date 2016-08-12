@@ -333,8 +333,8 @@ class HdfsResourceWebHDFS:
   def _set_owner(self, file_status=None):
     owner = "" if not self.main_resource.resource.owner else self.main_resource.resource.owner
     group = "" if not self.main_resource.resource.group else self.main_resource.resource.group
-    
-    if (not owner or file_status and file_status['owner'] == owner) and (not group or file_status and file_status['group'] == group):
+
+    if not self.main_resource.resource.recursive_chown and (not owner or file_status and file_status['owner'] == owner) and (not group or file_status and file_status['group'] == group):
       return
     
     self.util.run_command(self.main_resource.resource.target, 'SETOWNER', method='PUT', owner=owner, group=group, assertable_result=False)
