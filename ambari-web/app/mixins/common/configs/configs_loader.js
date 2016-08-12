@@ -68,9 +68,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
       }
     }
     this.set('allVersionsLoaded', true);
-    if (this.get('preSelectedConfigVersion')) {
-      this.loadPreSelectedConfigVersion();
-    } else {
+    if (!this.get('preSelectedConfigVersion')) {
       this.set('selectedVersion', this.get('currentDefaultVersion'));
     }
   },

@@ -97,12 +97,6 @@ describe('App.ConfigsLoader', function() {
       expect(mixin.get('allVersionsLoaded')).to.be.true;
     });
 
-    it("loadPreSelectedConfigVersion should be called", function() {
-      mixin.set('preSelectedConfigVersion', {});
-      mixin.loadServiceConfigVersionsSuccess({items: []});
-      expect(mixin.loadPreSelectedConfigVersion.calledOnce).to.be.true;
-    });
-
     it("selectedVersion should be set", function() {
       mixin.set('preSelectedConfigVersion', null);
       mixin.set('currentDefaultVersion', 'v1');
