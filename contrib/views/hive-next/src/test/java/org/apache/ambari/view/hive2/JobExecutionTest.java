@@ -45,6 +45,7 @@ import org.apache.hive.jdbc.HiveQueryResultSet;
 import org.apache.hive.jdbc.HiveStatement;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.ResultSet;
@@ -67,6 +68,7 @@ public class JobExecutionTest {
   }
 
   @Test
+  @Ignore
   public void testExecuteJob() throws Exception {
     ViewContext viewContext = createNiceMock(ViewContext.class);
     ConnectionSupplier connectionSupplier = createNiceMock(ConnectionSupplier.class);
