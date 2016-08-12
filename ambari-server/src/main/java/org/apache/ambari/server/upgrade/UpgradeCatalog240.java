@@ -196,6 +196,8 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String HBASE_RPC_TIMEOUT_PROPERTY = "hbase.rpc.timeout";
   private static final String AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY = "hbase.normalizer.enabled";
+  public static final String PRECISION_TABLE_TTL_PROPERTY = "timeline.metrics.host.aggregator.ttl";
+  public static final String CLUSTER_SECOND_TABLE_TTL_PROPERTY = "timeline.metrics.cluster.aggregator.second.ttl";
 
   static {
     // Manually create role order since there really isn't any mechanism for this
@@ -2023,6 +2025,19 @@ public class UpgradeCatalog240 extends AbstractUpgradeCatalog {
               newProperties.put(TIMELINE_METRICS_SINK_COLLECTION_PERIOD, "10");
               LOG.info("Setting value of " + TIMELINE_METRICS_SINK_COLLECTION_PERIOD + " : 10");
             }
+
+            if (amsSiteProperties.containsKey(PRECISION_TABLE_TTL_PROPERTY) &&
+              !amsSiteProperties.get(PRECISION_TABLE_TTL_PROPERTY).equals("86400")) {
+              newProperties.put(PRECISION_TABLE_TTL_PROPERTY, String.valueOf(86400));
+              LOG.info("Setting value of " + PRECISION_TABLE_TTL_PROPERTY + " : " + 86400);
+            }
+
+            if (amsSiteProperties.containsKey(CLUSTER_SECOND_TABLE_TTL_PROPERTY) &&
+              !amsSiteProperties.get(CLUSTER_SECOND_TABLE_TTL_PROPERTY).equals("259200")) {
+              newProperties.put(CLUSTER_SECOND_TABLE_TTL_PROPERTY, String.valueOf(259200));
+              LOG.info("Setting value of " + CLUSTER_SECOND_TABLE_TTL_PROPERTY + " : " + 259200);
+            }
+
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
 
