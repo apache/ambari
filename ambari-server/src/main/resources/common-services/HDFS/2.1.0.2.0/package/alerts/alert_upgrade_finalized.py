@@ -28,11 +28,13 @@ from resource_management.libraries.functions.curl_krb_request import DEFAULT_KER
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
 from resource_management.libraries.functions.curl_krb_request import CONNECTION_TIMEOUT_DEFAULT
 from resource_management.core.environment import Environment
+from resource_management.libraries.functions.namenode_ha_utils import get_all_namenode_addresses
 
 NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 NN_HTTP_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 
+HDFS_SITE_KEY = '{{hdfs-site}}'
 KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
 KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
@@ -47,7 +49,7 @@ def get_tokens():
 
   :rtype tuple
   """
-  return (NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, EXECUTABLE_SEARCH_PATHS,
+  return (HDFS_SITE_KEY, NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, EXECUTABLE_SEARCH_PATHS,
           KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY, SMOKEUSER_KEY)
 
 
@@ -69,16 +71,11 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (('UNKNOWN', ['There were no configurations supplied to the script.']))
 
   uri = None
-  scheme = 'http'
-  http_uri = None
-  https_uri = None
   http_policy = 'HTTP_ONLY'
 
-  if NN_HTTP_ADDRESS_KEY in configurations:
-    http_uri = configurations[NN_HTTP_ADDRESS_KEY]
-
-  if NN_HTTPS_ADDRESS_KEY in configurations:
-    https_uri = configurations[NN_HTTPS_ADDRESS_KEY]
+  # hdfs-site is required
+  if not HDFS_SITE_KEY in configurations:
+    return 'SKIPPED', ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)]
 
   if NN_HTTP_POLICY_KEY in configurations:
     http_policy = configurations[NN_HTTP_POLICY_KEY]
@@ -106,12 +103,18 @@ def execute(configurations={}, parameters={}, host_name=None):
   kinit_timer_ms = parameters.get(KERBEROS_KINIT_TIMER_PARAMETER, DEFAULT_KERBEROS_KINIT_TIMER_MS)
 
   # determine the right URI and whether to use SSL
-  uri = http_uri
-  if http_policy == 'HTTPS_ONLY':
-    scheme = 'https'
+  hdfs_site = configurations[HDFS_SITE_KEY]
 
-    if https_uri is not None:
-      uri = https_uri
+  scheme = "https" if http_policy == "HTTPS_ONLY" else "http"
+
+  nn_addresses = get_all_namenode_addresses(hdfs_site)
+  for nn_address in nn_addresses:
+    if nn_address.startswith(host_name + ":") or nn_address == host_name:
+      uri = nn_address
+      break
+  if not uri:
+    return 'SKIPPED', [
+      'NameNode on host {0} not found (namenode adresses = {1})'.format(host_name, ', '.join(nn_addresses))]
 
   upgrade_finalized_qry = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=NameNodeInfo".format(scheme, uri)
 
