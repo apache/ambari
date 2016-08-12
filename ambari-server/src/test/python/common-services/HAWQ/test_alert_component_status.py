@@ -21,17 +21,16 @@ limitations under the License.
 # System imports
 import os
 import sys
-
 from mock.mock import patch
 
 # Local imports
-from stacks.utils.RMFTestCase import *
+from stacks.utils.RMFTestCase import RMFTestCase
 
-COMMON_SERVICES_ALERTS_DIR = "HAWQ/2.0.0/package/alerts"
+HAWQ_ALERTS_DIR = "HAWQ/2.0.0/package/alerts"
 
 file_path = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(file_path)))))
-file_path = os.path.join(file_path, "main", "resources", "common-services", COMMON_SERVICES_ALERTS_DIR)
+file_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(file_path))))
+file_path = os.path.join(file_path, "main", "resources", "common-services", HAWQ_ALERTS_DIR)
 
 WORKING_CONFIGS = {
                     "{{hawq-site/hawq_master_address_port}}": "5432",
