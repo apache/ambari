@@ -189,7 +189,6 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog222.class);
       catalogBinder.addBinding().to(UpgradeCatalog230.class);
       catalogBinder.addBinding().to(UpgradeCatalog240.class);
-      catalogBinder.addBinding().to(UpgradeCatalog250.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
       EventBusSynchronizer.synchronizeAmbariEventPublisher(binder());
