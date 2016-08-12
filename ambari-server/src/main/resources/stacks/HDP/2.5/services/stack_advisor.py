@@ -460,9 +460,12 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     services_list = [service["StackServices"]["service_name"] for service in services["services"]]
     is_atlas_in_cluster = "ATLAS" in services_list
 
-    atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
-    if is_atlas_in_cluster and atlas_server_host_info:
-      atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
+    atlas_server_hosts_info = self.getHostsWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
+    if is_atlas_in_cluster and atlas_server_hosts_info and len(atlas_server_hosts_info) > 0:
+      # Multiple Atlas Servers can exist, so sort by hostname to create deterministic csv
+      atlas_host_names = [e['Hosts']['host_name'] for e in atlas_server_hosts_info]
+      if len(atlas_host_names) > 1:
+        atlas_host_names = sorted(atlas_host_names)
 
       scheme = "http"
       metadata_port = "21000"
@@ -480,7 +483,9 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
             metadata_port = str(services['configurations']['application-properties']['properties']['atlas.server.https.port'])
           else:
             metadata_port = atlas_server_default_https_port
-      atlas_rest_address = '{0}://{1}:{2}'.format(scheme, atlas_rest_host, metadata_port)
+
+      atlas_rest_address_list = ["{0}://{1}:{2}".format(scheme, hostname, metadata_port) for hostname in atlas_host_names]
+      atlas_rest_address = ",".join(atlas_rest_address_list)
       Logger.info("Constructing atlas.rest.address=%s" % atlas_rest_address)
     return atlas_rest_address
 

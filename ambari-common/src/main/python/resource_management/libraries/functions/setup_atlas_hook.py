@@ -77,6 +77,7 @@ SHARED_ATLAS_HOOK_CONFIGS = set(
   "atlas.notification.kafka.service.principal",
   "atlas.notification.kafka.keytab.location",
   "atlas.cluster.name",
+  "atlas.rest.address",
 
   # Security properties
   "atlas.jaas.KafkaClient.option.serviceName",
