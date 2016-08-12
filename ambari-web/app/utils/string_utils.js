@@ -24,9 +24,9 @@ module.exports = {
     var STR_PAD_RIGHT = 2;
     var STR_PAD_BOTH = 3;
 
-    if (typeof(len) == "undefined") { var len = 0; }
-    if (typeof(pad) == "undefined") { var pad = ' '; }
-    if (typeof(dir) == "undefined") { var dir = STR_PAD_RIGHT; }
+    if (typeof(len) == "undefined") { len = 0; }
+    if (typeof(pad) == "undefined") { pad = ' '; }
+    if (typeof(dir) == "undefined") { dir = STR_PAD_RIGHT; }
 
     if (len + 1 >= str.length) {
 

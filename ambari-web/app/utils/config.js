@@ -1232,7 +1232,7 @@ App.config = Em.Object.create({
    * @return {App.ServiceConfigProperty|Boolean} - App.ServiceConfigProperty instance or <code>false</code> when property not found
    */
   findConfigProperty: function(stepConfigs, name, fileName) {
-    if (!name && !fileName) return false;
+    if (!name || !fileName) return false;
     if (stepConfigs && stepConfigs.length) {
       return stepConfigs.mapProperty('configs').filter(function(item) {
         return item.length;

@@ -130,7 +130,6 @@ describe('App.stackServiceMapper', function () {
                   "bulk_commands_master_component_name" : "NAMENODE",
                   "has_bulk_commands_definition" : true,
                   "reassign_allowed" : true,
-                  "cardinality" : "1+",
                   "display_name" : "DataNode",
                   "is_client" : false,
                   "is_master" : true,

@@ -918,7 +918,7 @@ App.resetDsStoreTypeMap = function(type) {
   if (typeMap) {
     var idToClientIdMap = typeMap.idToCid;
     for (var id in idToClientIdMap) {
-      if (idToClientIdMap.hasOwnProperty(id) && idToClientIdMap[id]) {
+      if (idToClientIdMap.hasOwnProperty(id) && idToClientIdMap[id] && allRecords[idToClientIdMap[id]] !== undefined) {
         delete allRecords[idToClientIdMap[id]];  // deletes the cached copy of the record from the store
       }
     }

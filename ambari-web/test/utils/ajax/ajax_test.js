@@ -21,6 +21,12 @@ require('utils/ajax/ajax');
 
 describe('App.ajax', function() {
 
+  window.performance = {
+    now: function() {
+      return 1;
+    }
+  };
+
   beforeEach(function() {
     App.ajax.send.restore();
     sinon.spy(App.ajax, 'send'); // no sense to test stubbed function, so going to spy on it

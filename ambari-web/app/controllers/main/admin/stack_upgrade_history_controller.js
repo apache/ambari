@@ -103,7 +103,7 @@ App.MainAdminStackUpgradeHistoryController = Em.ArrayController.extend({
     }
     var upgradeGroups = [];
     if (newData.upgrade_groups) {
-      nonActiveStates = this.get('nonActiveStates'),
+      var nonActiveStates = this.get('nonActiveStates');
       //wrap all entities into App.finishedUpgradeEntity
       newData.upgrade_groups.forEach(function (newGroup) {
       var hasExpandableItems = newGroup.upgrade_items.some(function (item) {

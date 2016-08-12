@@ -96,6 +96,7 @@ App.ManageAlertNotificationsView = Em.View.extend({
    * @method onLoad
    */
   onLoad: function () {
+    var self = this;
     if (this.get('controller.isLoaded')) {
       var notifications = this.get('controller.alertNotifications');
       if (notifications && notifications.length) {
@@ -104,8 +105,8 @@ App.ManageAlertNotificationsView = Em.View.extend({
         this.set('selectedAlertNotification', null);
       }
       Em.run.later(this, function () {
-        App.tooltip(this.$("[rel='button-info']"));
-        App.tooltip(this.$("[rel='button-info-dropdown']"), {placement: 'left'});
+        App.tooltip(self.$("[rel='button-info']"));
+        App.tooltip(self.$("[rel='button-info-dropdown']"), {placement: 'left'});
       }, 50);
     }
   }.observes('controller.isLoaded'),
