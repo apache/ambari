@@ -24,6 +24,7 @@ from functions import calc_xmn_from_xms, ensure_unit_for_memory
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.os_check import OSCheck
+from ambari_commons.str_utils import string_set_intersection
 
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
@@ -413,5 +414,12 @@ atlas_hosts = default('/clusterHostInfo/atlas_server_hosts', [])
 has_atlas = len(atlas_hosts) > 0
 
 metadata_user = default('/configurations/atlas-env/metadata_user', None)
-atlas_graph_storage_hostname = default('/configurations/application-properties/atlas.graph.storage.hostname', None) if has_atlas else None
-atlas_with_managed_hbase = hbase_zookeeper_quorum == atlas_graph_storage_hostname if has_atlas and atlas_graph_storage_hostname is not None else False
+atlas_graph_storage_hostname = default('/configurations/application-properties/atlas.graph.storage.hostname', None)
+atlas_graph_storage_hbase_table = default('/configurations/application-properties/atlas.graph.storage.hbase.table', None)
+atlas_audit_hbase_tablename = default('/configurations/application-properties/atlas.audit.hbase.tablename', None)
+
+if has_atlas:
+  zk_hosts_matches = string_set_intersection(atlas_graph_storage_hostname, hbase_zookeeper_quorum)
+  atlas_with_managed_hbase = len(zk_hosts_matches) > 0
+else:
+  atlas_with_managed_hbase = False

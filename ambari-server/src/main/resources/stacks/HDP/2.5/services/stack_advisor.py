@@ -20,6 +20,7 @@ limitations under the License.
 import math
 import traceback
 
+from ambari_commons.str_utils import string_set_equals
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
@@ -181,7 +182,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
         validationItems.append({"config-name": "atlas.graph.storage.hostname",
                                 "item": self.getErrorItem(
                                     "If HBASE is not installed then the hbase zookeeper quorum configuration must be specified.")})
-      elif application_properties['atlas.graph.storage.hostname'] == hbase_zookeeper_quorum:
+      elif string_set_equals(application_properties['atlas.graph.storage.hostname'], hbase_zookeeper_quorum):
         validationItems.append({"config-name": "atlas.graph.storage.hostname",
                                 "item": self.getWarnItem(
                                     "Atlas is configured to use the HBase installed in this cluster. If you would like Atlas to use another HBase instance, please configure this property and HBASE_CONF_DIR variable in atlas-env appropriately.")})
