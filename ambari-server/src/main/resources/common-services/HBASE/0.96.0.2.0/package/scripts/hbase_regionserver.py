@@ -103,11 +103,15 @@ class HbaseRegionServerDefault(HbaseRegionServer):
 
       if can_apply_permissions:
         kinit_cmd = format("{kinit_path_local} -kt {regionserver_keytab_path} {regionserver_jaas_princ}")
-        permissions_cmd = format("echo \"grant '{metadata_user}', 'RWXCA'\" | hbase shell -n")
+        permissions_cmd = [
+          format("echo \"grant '{metadata_user}', 'RWXCA', '{atlas_graph_storage_hbase_table}'\" | hbase shell -n"),
+          format("echo \"grant '{metadata_user}', 'RWXCA', '{atlas_audit_hbase_tablename}'\" | hbase shell -n"),
+        ]
 
         # no additional logging required, as it supported by checked_call itself
         # re-tries needed to suffer fails on Kerberos wizard as RegionServer update security features status over some time
-        shell.checked_call(format("{kinit_cmd}; {permissions_cmd}"), user=params.hbase_user, tries=10, try_sleep=10)
+        for perm_cmd in permissions_cmd:
+          shell.checked_call(format("{kinit_cmd}; {perm_cmd}"), user=params.hbase_user, tries=10, try_sleep=10)
 
   def start(self, env, upgrade_type=None):
     import params

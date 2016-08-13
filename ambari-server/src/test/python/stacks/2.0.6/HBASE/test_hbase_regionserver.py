@@ -115,7 +115,8 @@ class TestHbaseRegionServer(RMFTestCase):
         }
 
     json_content['configurations']['application-properties'] = {
-        "atlas.graph.storage.hostname": json_content['configurations']['hbase-site']['hbase.zookeeper.quorum']
+        "atlas.graph.storage.hostname": json_content['configurations']['hbase-site']['hbase.zookeeper.quorum'],
+        "atlas.graph.storage.hbase.table": "test"
     }
 
     mock_dicts = {}
@@ -129,7 +130,7 @@ class TestHbaseRegionServer(RMFTestCase):
       mocks_dict=mock_dicts
     )
     permission_apply_call_found = False
-    pattern_search = "/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; echo \"grant 'atlas', 'RWXCA'\" | hbase shell -n"
+    pattern_search = "/usr/bin/kinit -kt /etc/security/keytabs/hbase.service.keytab hbase/c6401.ambari.apache.org@EXAMPLE.COM; echo \"grant 'atlas', 'RWXCA', 'test'\" | hbase shell -n"
     if "checked_call" in mock_dicts:
         for _call in mock_dicts["checked_call"].call_args_list:
             if len(_call) > 0 and isinstance(_call[0], tuple) and len(_call[0]) > 0 and \
