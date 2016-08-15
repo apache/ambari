@@ -65,6 +65,12 @@
           }
         },
         {
+          "spark-thrift-sparkconf": {
+            "spark.yarn.keytab": "${spark-env/hive_kerberos_keytab}",
+            "spark.yarn.principal": "${spark-env/hive_kerberos_principal}"
+          }
+        },
+        {
           "livy-conf": {
             "livy.server.auth.type": "kerberos",
             "livy.impersonation.enabled": "true",
