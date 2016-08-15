@@ -192,8 +192,8 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
 
     // Define if show plain text label or link
     isServiceLinkDisabled: function () {
-      return this.get('content.serviceName') === 'KERBEROS' && !App.Service.find().someProperty('serviceName', 'KERBEROS');
-    }.property('content.serviceName')
+      return this.get('content.serviceName') === 'KERBEROS' && !App.Service.find().someProperty('serviceName', 'KERBEROS') || this.get('content.isConfigGroupDeleted');
+    }.property('content.serviceName', 'content.isConfigGroupDeleted')
   }),
 
   /**

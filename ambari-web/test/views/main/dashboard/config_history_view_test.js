@@ -204,11 +204,12 @@ describe('App.MainConfigHistoryView', function() {
   });
 
   describe("#ConfigVersionView", function () {
-    var subView = view.get('ConfigVersionView').create({
-      parentView: view
-    });
-
+    var subView;
     before(function () {
+      subView = view.get('ConfigVersionView').create({
+        parentView: view
+      });
+
       sinon.stub(App, 'tooltip', Em.K);
     });
     after(function () {
@@ -222,6 +223,33 @@ describe('App.MainConfigHistoryView', function() {
       subView.set('showLessNotes', true);
       subView.toggleShowLessStatus();
       expect(subView.get('showLessNotes')).to.be.false;
+    });
+
+    describe("#isServiceLinkDisable", function () {
+      beforeEach(function () {
+        subView.set('content', Em.Object.create());
+        this.hasKerberos = sinon.stub(App.Service, 'find');
+      });
+      afterEach(function () {
+        App.Service.find.restore();
+      });
+      it("should be true for deleted kerberos groups", function () {
+        subView.set('content.serviceName', 'KERBEROS');
+        this.hasKerberos.returns([]);
+        expect(subView.get('isServiceLinkDisabled')).to.be.true;
+      });
+      it("should be false for deleted kerberos groups", function () {
+        subView.set('content.serviceName', 'KERBEROS');
+        subView.set('content.isConfigGroupDeleted', false);
+        this.hasKerberos.returns([{serviceName: 'KERBEROS'}]);
+        expect(subView.get('isServiceLinkDisabled')).to.be.false;
+      });
+      it("should be true if group is deleted", function () {
+        subView.set('content.serviceName', 'KERBEROS');
+        subView.set('content.isConfigGroupDeleted', true);
+        this.hasKerberos.returns([{serviceName: 'KERBEROS'}]);
+        expect(subView.get('isServiceLinkDisabled')).to.be.true;
+      });
     });
   });
 
