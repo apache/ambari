@@ -49,7 +49,7 @@ then
     mkdir "$AMBARI_VIEWS_BACKUP_FOLDER"
 fi
 
-ls $AMBARI_VIEWS_FOLDER/*.jar 2>&1 > /dev/null
+ls $AMBARI_VIEWS_FOLDER/*.jar > /dev/null 2>&1
 JARS_EXIST="$?"
 if [ -d "$AMBARI_VIEWS_FOLDER" ] && [ -d "$AMBARI_VIEWS_BACKUP_FOLDER" ] && [ "$JARS_EXIST" -eq 0 ]
 then

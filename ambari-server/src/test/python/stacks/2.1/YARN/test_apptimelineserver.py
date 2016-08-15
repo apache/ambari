@@ -269,21 +269,6 @@ class TestAppTimelineServer(RMFTestCase):
                               )
 
 
-  def test_status(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/application_timeline_server.py",
-                       classname="ApplicationTimelineServer",
-                       command="status",
-                       config_file="default.json",
-                       stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-
-    self.assertResourceCalled('Execute', 'mv /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
-        only_if = 'test -e /var/run/hadoop-yarn/yarn/yarn-yarn-historyserver.pid',
-    )
-    self.assertNoMoreResources()
-
-
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
   @patch("resource_management.libraries.functions.security_commons.validate_security_config_properties")

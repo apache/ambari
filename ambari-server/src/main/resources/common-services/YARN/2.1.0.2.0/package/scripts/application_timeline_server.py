@@ -81,8 +81,6 @@ class ApplicationTimelineServerDefault(ApplicationTimelineServer):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    Execute(format("mv {yarn_historyserver_pid_file_old} {yarn_historyserver_pid_file}"),
-            only_if = format("test -e {yarn_historyserver_pid_file_old}", user=status_params.yarn_user))
     check_process_status(status_params.yarn_historyserver_pid_file)
 
   def security_status(self, env):
