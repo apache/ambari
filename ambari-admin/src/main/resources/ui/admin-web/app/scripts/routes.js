@@ -163,6 +163,11 @@ angular.module('ambariAdminConsole')
       url: '/clusters/:id/userAccessList',
       templateUrl: 'views/clusters/userAccessList.html',
       controller: 'UserAccessListCtrl'
+    },
+    exportBlueprint: {
+      url: '/clusters/:id/exportBlueprint',
+      templateUrl: 'views/clusters/exportBlueprint.html',
+      controller: 'ExportBlueprintCtrl'
     }
   },
   dashboard:{

@@ -296,6 +296,21 @@ angular.module('ambariAdminConsole')
         }
       });
     },
+    getBlueprint: function(params){
+      var deferred = $q.defer();
+      var clusterName = params.clusterName;
+      $http({
+        method: 'GET',
+        url: Settings.baseUrl + '/clusters/' + clusterName + '?' + 'format=blueprint'
+      })
+      .success(function(data) {
+        deferred.resolve(data);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+      return deferred.promise;
+    },
     getRepoVersionStatus: function (clusterName, repoId ) {
       var me = this;
       var deferred = $q.defer();
