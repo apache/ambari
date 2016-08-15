@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-
+import socket
 import status_params
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions import StackFeature
@@ -171,7 +171,7 @@ if security_enabled:
     })
 
     hive_kerberos_keytab = config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
-    hive_kerberos_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
+    hive_kerberos_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal'].replace('_HOST', socket.getfqdn().lower())
 
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
