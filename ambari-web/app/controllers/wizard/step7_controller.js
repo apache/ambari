@@ -1180,7 +1180,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (isServiceInstalled) {
         isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
       } else {
-        isEditable = isEditable  && selectedGroup.get('isDefault');
+        isEditable = selectedGroup.get('isDefault');
       }
       if (config.get('group')) {
         isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');
