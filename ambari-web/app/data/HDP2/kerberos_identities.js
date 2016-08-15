@@ -87,29 +87,43 @@ module.exports = {
       "name": "spark.history.kerberos.principal",
       "displayName": "Spark user principal",
       "category": "Ambari Principals",
-      "filename": "spark-env.xml",
+      "filename": "spark-defaults.xml",
       "index": 10
     },
     {
       "name": "spark.history.kerberos.keytab",
       "displayName": "Spark user keytab",
       "category": "Ambari Principals",
-      "filename": "spark-env.xml",
+      "filename": "spark-defaults.xml",
       "index": 11
+    },
+    {
+      "name": "spark.history.kerberos.principal",
+      "displayName": "Spark2 user principal",
+      "category": "Ambari Principals",
+      "filename": "spark2-defaults.xml",
+      "index": 12
+    },
+    {
+      "name": "spark.history.kerberos.keytab",
+      "displayName": "Spark2 user keytab",
+      "category": "Ambari Principals",
+      "filename": "spark2-defaults.xml",
+      "index": 13
     },
     {
       "name": "storm_principal_name",
       "displayName": "Storm user principal",
       "category": "Ambari Principals",
       "filename": "storm-env.xml",
-      "index": 12
+      "index": 14
     },
     {
       "name": "storm_keytab",
       "displayName": "Storm user keytab",
       "category": "Ambari Principals",
       "filename": "storm-env.xml",
-      "index": 13
+      "index": 15
     }
   ]
 };
