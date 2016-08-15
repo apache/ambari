@@ -33,6 +33,12 @@
           "spark-defaults": {
             "spark.history.kerberos.enabled": "true"
           }
+        },
+        {
+          "spark-thrift-sparkconf": {
+            "spark.yarn.keytab": "${spark-env/hive_kerberos_keytab}",
+            "spark.yarn.principal": "${spark-env/hive_kerberos_principal}"
+          }
         }
       ],
       "components": [
