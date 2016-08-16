@@ -35,6 +35,7 @@ import org.apache.ambari.view.hive2.actor.message.RegisterActor;
 import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
 import org.apache.ambari.view.hive2.actor.message.job.CancelJob;
 import org.apache.ambari.view.hive2.actor.message.job.FetchFailed;
+import org.apache.ambari.view.hive2.actor.message.job.SaveDagInformation;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.DestroyConnector;
 import org.apache.ambari.view.hive2.actor.message.lifecycle.FreeConnector;
 import org.apache.ambari.view.hive2.internal.ContextSupplier;
@@ -145,6 +146,10 @@ public class OperationController extends HiveActor {
     if (message instanceof DestroyConnector) {
       destroyConnector((DestroyConnector) message);
     }
+
+    if (message instanceof SaveDagInformation) {
+      saveDagInformation((SaveDagInformation) message);
+    }
   }
 
   private void cancelJob(CancelJob message) {
@@ -157,6 +162,16 @@ public class OperationController extends HiveActor {
       String msg = String.format("Cannot cancel job. Job with id: %s for instance: %s has either not started or has expired.", message.getJobId(), context.getInstanceName());
       LOG.error(msg);
       sender().tell(new FetchFailed(msg), self());
+    }
+  }
+
+  private void saveDagInformation(SaveDagInformation message) {
+    ActorRef jdbcConnection = asyncBusyConnections.get(context.getUsername()).get(message.getJobId());
+    if(jdbcConnection != null) {
+      jdbcConnection.tell(message, sender());
+    } else {
+      String msg = String.format("Cannot update Dag Information for job. Job with id: %s for instance: %s has either not started or has expired.", message.getJobId(), context.getInstanceName());
+      LOG.error(msg);
     }
   }
 
