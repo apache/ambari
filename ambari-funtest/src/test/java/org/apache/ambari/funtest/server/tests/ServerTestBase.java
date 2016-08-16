@@ -18,21 +18,6 @@
 
 package org.apache.ambari.funtest.server.tests;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import org.apache.ambari.funtest.server.LocalAmbariServer;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.ControllerModule;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.commons.codec.binary.Base64;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.DriverManager;
@@ -40,13 +25,26 @@ import java.sql.SQLException;
 import java.sql.SQLNonTransientConnectionException;
 import java.util.Properties;
 
+import org.apache.ambari.funtest.server.LocalAmbariServer;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.http.HttpStatus;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * Base test infrastructure.
@@ -99,19 +97,19 @@ public class ServerTestBase {
     public static void setupTest() throws Exception {
         if (!isInitialized) {
             Properties properties = new Properties();
-            properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
-            properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
-            properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
-            properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
-            properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
-            properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-            properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+            properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "remote");
+            properties.setProperty(Configuration.SERVER_JDBC_URL.getKey(), Configuration.JDBC_IN_MEMORY_URL);
+            properties.setProperty(Configuration.SERVER_JDBC_DRIVER.getKey(), Configuration.JDBC_IN_MEMORY_DRIVER);
+            properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
+            properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
+            properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
+            properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
 
-            properties.setProperty(Configuration.AGENT_USE_SSL, "false");
-            properties.setProperty(Configuration.CLIENT_API_PORT_KEY, Integer.toString(serverPort));
-            properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT_KEY, Integer.toString(serverAgentPort));
+            properties.setProperty(Configuration.AGENT_USE_SSL.getKey(), "false");
+            properties.setProperty(Configuration.CLIENT_API_PORT.getKey(), Integer.toString(serverPort));
+            properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT.getKey(), Integer.toString(serverAgentPort));
             String tmpDir = System.getProperty("java.io.tmpdir");
-            properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, tmpDir);
+            properties.setProperty(Configuration.SRVR_KSTR_DIR.getKey(), tmpDir);
 
             ControllerModule testModule = new ControllerModule(properties);
 
@@ -159,7 +157,7 @@ public class ServerTestBase {
      */
     protected static void dropDatabase() throws ClassNotFoundException, SQLException {
         String DROP_DERBY_URL = "jdbc:derby:memory:myDB/ambari;drop=true";
-        Class.forName(Configuration.JDBC_IN_MEMROY_DRIVER);
+        Class.forName(Configuration.JDBC_IN_MEMORY_DRIVER);
         try {
             DriverManager.getConnection(DROP_DERBY_URL);
         } catch (SQLNonTransientConnectionException ignored) {

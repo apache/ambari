@@ -22,20 +22,23 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -44,10 +47,13 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
@@ -55,17 +61,27 @@ import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProp
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
+import org.apache.ambari.server.state.services.RetryUpgradeActionService;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.AmbariPath;
+import org.apache.ambari.server.utils.DateUtils;
+import org.apache.ambari.server.utils.HostUtils;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -74,12 +90,50 @@ import com.google.inject.Singleton;
 
 
 /**
- * Ambari configuration.
- * Reads properties from ambari.properties
+ * The {@link Configuration} class is used to read from the
+ * {{ambari.properties}} file and manage/expose the configuration properties.
+ * Each property is wrapped in a {@link ConfigurationProperty} type, allowing
+ * the coupling of the key, default value, and type.
+ * <p/>
+ * The {@link Configuration#main(String[])} method can be invoked to produce <a
+ * href=https://en.wikipedia.org/wiki/Markdown>Markdown</a> of all of the
+ * properties, along with their default values and descriptions. This should be
+ * done for every release so that the documentation of the configuration
+ * properties can be kept current. The {@code index_template.md} file is used to generate
+ * the markdown.
  */
 @Singleton
 public class Configuration {
 
+  /**
+   * The file to generate the complete Markdown documentation.
+   */
+  private static final String MARKDOWN_TEMPLATE_FILE = "index_template.md";
+
+  /**
+   * The key to replace with the content of all of the properties.
+   */
+  private static final String MARKDOWN_CONFIGURATION_TABLE_KEY = "$configuration-properties";
+
+  /**
+   * The key to replace with the content of recomended baseline values.
+   */
+  private static final String MARKDOWN_BASELINE_VALUES_KEY = "$baseline-values";
+
+  /**
+   * The template to use when appending a related property in the description.
+   */
+  private static final String MARKDOWN_RELATED_TO_TEMPLATE = " This property is related to `%s`.";
+
+  /**
+   * The HTML {@code <br/>} tag.
+   */
+  private static final String HTML_BREAK_TAG = "<br/>";
+
+  /**
+   * Used to determine which repository validation strings should be used
+   * depending on the OS.
+   */
   @Inject
   private OsFamily osFamily;
 
@@ -102,84 +156,109 @@ public class Configuration {
   public static final float JDK_MIN_VERSION = 1.7f;
 
   /**
-   *
+   * The default regex pattern to use when replacing the member attribute ID
+   * value with a placeholder, such as {@code ${member}}. This is used in cases
+   * where a UID of an LDAP member is not a full CN or unique ID.
    */
   private static final String LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT = "";
 
   /**
+   * The default LDAP filter to use when syncing user or group members. This
+   * default filter can include a {@code {member}} placeholder which allows
+   * substitution of a direct ID. For example:
    *
+   * <pre>
+   * (&(objectclass=posixaccount)(dn={member})) -> (&(objectclass=posixaccount)(dn=cn=mycn,dc=apache,dc=org))
+   * </pre>
    */
   private static final String LDAP_SYNC_MEMBER_FILTER_DEFAULT = "";
 
   /**
-   *
+   * The prefix for any configuration property which will be appended to
+   * {@code eclipselink.jdbc.property.} before being passed into EclipseLink.
+   * These properties are driver-specific properties only and do not affect
+   * EclipseLink.
    */
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
 
   /**
-   *
+   * A prefix for any EclipseLink-specifc properties which are passed into
+   * EclipseLink to alter its behavior. For example:
+   * {@code server.persistence.properties.eclipselink.jdbc.batch-writing.size=25 ->
+   * eclipselink.jdbc.batch-writing.size=25}
    */
   public static final String SERVER_PERSISTENCE_PROPERTIES_PREFIX = "server.persistence.properties.";
 
   /**
-   *
+   * A replacement string to use for the RCA JDBC URLs in order to supply the
+   * Ambari Server hostname.
    */
   public static final String HOSTNAME_MACRO = "{hostname}";
 
   /**
-   *
+   * The name of the persistence unit in {@code persistence.xml} for the Ambari
+   * Server.
    */
   public static final String JDBC_UNIT_NAME = "ambari-server";
 
   /**
-   *
+   * The JDBC URL to use for local {@link DatabaseType#POSTGRES} connections.
    */
   public static final String JDBC_LOCAL_URL = "jdbc:postgresql://localhost/";
 
   /**
-   *
+   * The schema to use when creating a {@link DatabaseType#DERBY} database for
+   * unit tests.
    */
   public static final String DEFAULT_DERBY_SCHEMA = "ambari";
 
   /**
-   *
+   * The JDBC URL to use when creating a {@link DatabaseType#DERBY} database for
+   * unit tests.
    */
   public static final String JDBC_IN_MEMORY_URL = String.format(
       "jdbc:derby:memory:myDB/%s;create=true", DEFAULT_DERBY_SCHEMA);
 
   /**
-   *
+   * The Derby driver to use when creating a {@link DatabaseType#DERBY} database
+   * for unit tests.
    */
   public static final String JDBC_IN_MEMORY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 
   /**
-   *
+   * The JSSE property which governs the location of the keystore file
+   * containing the collection of CA certificates trusted by Ambari.
    */
   public static final String JAVAX_SSL_TRUSTSTORE = "javax.net.ssl.trustStore";
 
   /**
-   *
+   * The JSSE property which governs password to the keystore file containing
+   * the collection of CA certificates trusted by Ambari.
    */
   public static final String JAVAX_SSL_TRUSTSTORE_PASSWORD = "javax.net.ssl.trustStorePassword";
 
   /**
-   *
+   * The JSSE property which governs the type of the keystore file containing
+   * the collection of CA certificates trusted by Ambari.
    */
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
 
   /**
-   *
+   * The configuration tag used for "global" properties affecting the entire
+   * cluster or the Ambari server itself.
    */
+  @Deprecated
   public static final String GLOBAL_CONFIG_TAG = "global";
 
   /**
-   *
+   * The configuration tag for {@code mapreduce2-log4j}
    */
   public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
 
   /**
-   *
+   * The configuration property for determining whether RCA is enabled.
    */
+  @Deprecated
   public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
 
   /**
@@ -197,579 +276,715 @@ public class Configuration {
       * Runtime.getRuntime().availableProcessors();
 
   /**
-   *
+   * A set of all of the custom database connector JAR property names.
    */
-  private static final Set<String> dbConnectorPropertyNames = new HashSet<String>(Arrays.asList(
+  private static final Set<String> dbConnectorPropertyNames = Sets.newHashSet(
       "custom.mysql.jdbc.name", "custom.oracle.jdbc.name", "custom.postgres.jdbc.name",
-      "custom.mssql.jdbc.name", "custom.hsqldb.jdbc.name", "custom.sqlanywhere.jdbc.name"));
-
+      "custom.mssql.jdbc.name", "custom.hsqldb.jdbc.name", "custom.sqlanywhere.jdbc.name");
 
   /**
-   *
+   * An environment property which can be used to specify the location of the
+   * Ambari key services's master key.
    */
   public static final String MASTER_KEY_ENV_PROP = "AMBARI_SECURITY_MASTER_KEY";
 
   /**
-   *
+   * The default name of the master key file.
    */
   public static final String MASTER_KEY_FILENAME_DEFAULT = "master";
 
   /**
-   *
+   * The default name of the JSSE keystore file used by Ambari.
    */
   public static final String MASTER_KEYSTORE_FILENAME_DEFAULT = "credentials.jceks";
 
   /**
-   * The directory on the ambari-server file system used for storing
-   * ambari-agent bootstrap information.
+   * The key in the {@code metainfo} table that represents the version of Ambari
+   * that the database is running.
    */
+  public static final String SERVER_VERSION_KEY = "version";
+
+  /**
+   * The directory on the Ambari Server file system used for storing
+   * Ambari Agent bootstrap information such as request responses.
+   */
+  @Markdown(description = "The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses.")
   public static final ConfigurationProperty<String> BOOTSTRAP_DIRECTORY = new ConfigurationProperty<>(
       "bootstrap.dir", AmbariPath.getPath("/var/run/ambari-server/bootstrap"));
 
   /**
-   * The directory on the ambari-server file system used for expanding Views and
+   * The directory on the Ambari Server file system used for expanding Views and
    * storing webapp work.
    */
+  @Markdown(description = "The directory on the Ambari Server file system used for expanding Views and storing webapp work.")
   public static final ConfigurationProperty<String> VIEWS_DIRECTORY = new ConfigurationProperty<>(
       "views.dir", AmbariPath.getPath("/var/lib/ambari-server/resources/views"));
 
   /**
-   *
+   * Determines whether to validate a View's configuration XML file against an XSD.
    */
+  @Markdown(description = "Determines whether to validate a View's configuration XML file against an XSD.")
   public static final ConfigurationProperty<String> VIEWS_VALIDATE = new ConfigurationProperty<>(
       "views.validate", "false");
 
   /**
-   *
+   * Determines whether remove undeployed views from the Ambari database.
    */
+  @Markdown(description = "Determines whether remove undeployed views from the Ambari database.")
   public static final ConfigurationProperty<String> VIEWS_REMOVE_UNDEPLOYED = new ConfigurationProperty<>(
       "views.remove.undeployed", "false");
 
   /**
-   *
+   * The Ambari Server webapp root directory.
    */
+  @Markdown(description = "The Ambari Server webapp root directory.")
   public static final ConfigurationProperty<String> WEBAPP_DIRECTORY = new ConfigurationProperty<>(
       "webapp.dir", "web");
 
   /**
-   *
+   * The location and name of the Python script used to bootstrap new Ambari Agent hosts.
    */
+  @Markdown(description = "The location and name of the Python script used to bootstrap new Ambari Agent hosts.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SCRIPT = new ConfigurationProperty<>(
-      "bootstrap.script", AmbariPath.getPath("/usr/bin/ambari_bootstrap"));
+      "bootstrap.script", AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py"));
 
   /**
-   *
+   * The location and name of the Python script executed on the Ambari Agent
+   * host during the bootstrap process.
    */
+  @Markdown(description = "The location and name of the Python script executed on the Ambari Agent host during the bootstrap process.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_SCRIPT = new ConfigurationProperty<>(
       "bootstrap.setup_agent.script",
       AmbariPath.getPath("/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py"));
 
   /**
-   *
+   * The password to set on the {@code AMBARI_PASSPHRASE} environment variable
+   * before invoking the bootstrap script.
    */
+  @Markdown(description = "The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script.")
   public static final ConfigurationProperty<String> BOOTSTRAP_SETUP_AGENT_PASSWORD = new ConfigurationProperty<>(
       "bootstrap.setup_agent.password", "password");
 
   /**
-   *
+   * The host name of the Ambari Server which will be used by the Ambari Agents
+   * for communication.
    */
+  @Markdown(description = "The host name of the Ambari Server which will be used by the Ambari Agents for communication.")
   public static final ConfigurationProperty<String> BOOTSTRAP_MASTER_HOSTNAME = new ConfigurationProperty<>(
       "bootstrap.master_host_name", null);
 
   /**
+   * The amount of time that recommendation API data is kept on the Ambari
+   * Server file system. This is specified using a {@code hdwmy} syntax for
+   * pairing the value with a time unit.
    *
+   * @see DateUtils#getDateSpecifiedTimeAgo(String)
    */
+  @Markdown(
+      description = "The amount of time that Recommendation API data is kept on the Ambari Server file system. This is specified using a `hdwmy` syntax for pairing the value with a time unit (hours, days, weeks, months, years)",
+      examples = { "8h", "2w", "1m" } )
   public static final ConfigurationProperty<String> RECOMMENDATIONS_ARTIFACTS_LIFETIME = new ConfigurationProperty<>(
       "recommendations.artifacts.lifetime", "1w");
 
   /**
-   *
+   * The directory on the Ambari Server file system used for storing
+   * Recommendation API artifacts.
    */
+  @Markdown(description = "The directory on the Ambari Server file system used for storing Recommendation API artifacts.")
   public static final ConfigurationProperty<String> RECOMMENDATIONS_DIR = new ConfigurationProperty<>(
       "recommendations.dir", AmbariPath.getPath("/var/run/ambari-server/stack-recommendations"));
 
   /**
-   *
+   * The location and name of the Python stack advisor script executed when
+   * configuring services.
    */
+  @Markdown(description = "The location and name of the Python stack advisor script executed when configuring services.")
   public static final ConfigurationProperty<String> STACK_ADVISOR_SCRIPT = new ConfigurationProperty<>(
       "stackadvisor.script",
       AmbariPath.getPath("/var/lib/ambari-server/resources/scripts/stack_advisor.py"));
 
   /**
-   *
+   * The name of the shell script used to wrap all invocations of Python by Ambari.
    */
+  @Markdown(description = "The name of the shell script used to wrap all invocations of Python by Ambari. ")
   public static final ConfigurationProperty<String> AMBARI_PYTHON_WRAP = new ConfigurationProperty<>(
       "ambari.python.wrap", "ambari-python-wrap");
 
   /**
-   *
+   * The username of the default user assumed to be executing API calls. When
+   * set, authentication is not required in order to login to Ambari or use the
+   * REST APIs.
    */
+  @Markdown(description = "The username of the default user assumed to be executing API calls. When set, authentication is not required in order to login to Ambari or use the REST APIs.  ")
   public static final ConfigurationProperty<String> API_AUTHENTICATED_USER = new ConfigurationProperty<>(
       "api.authenticated.user", null);
 
   /**
-   *
+   * Determines whether SSL is used in for secure connections to Ambari.
    */
+  @Markdown(description = "Determines whether SSL is used in for secure connections to Ambari. When enabled, ambari-server setup-https must be run in order to properly configure keystores.")
   public static final ConfigurationProperty<String> API_USE_SSL = new ConfigurationProperty<>(
       "api.ssl", "false");
 
   /**
-   *
+   * Determines whether
+   * {@code org.apache.ambari.server.api.AmbariCsrfProtectionFilter} is used to
+   * intercept requests and inspect the headers for an {@code X-Requested-By}
+   * value. This helps to prevent Cross-Site Request Forgery attacks.
    */
+  @Markdown(description = "Determines whether Cross-Site Request Forgery attacks are prevented by looking for the `X-Requested-By` header.")
   public static final ConfigurationProperty<String> API_CSRF_PREVENTION = new ConfigurationProperty<>(
       "api.csrfPrevention.enabled", "true");
 
   /**
-   *
+   * Determines whether HTTP body data is compressed with GZIP.
    */
+  @Markdown(description = "Determines whether data sent to and from the Ambari service should be compressed.")
   public static final ConfigurationProperty<String> API_GZIP_COMPRESSION_ENABLED = new ConfigurationProperty<>(
       "api.gzip.compression.enabled", "true");
 
   /**
-   *
+   * Used in conjunction with {@link #API_GZIP_COMPRESSION_ENABLED}, determines
+   * the mininum size (in bytes) that an HTTP request must be before it should be
+   * compressed.
    */
+  @Markdown(description = "Used in conjunction with `api.gzip.compression.enabled`, determines the mininum size that an HTTP request must be before it should be compressed. This is measured in bytes.")
   public static final ConfigurationProperty<String> API_GZIP_MIN_COMPRESSION_SIZE = new ConfigurationProperty<>(
       "api.gzip.compression.min.size", "10240");
 
   /**
-   *
+   * Determiens whether communication with the Ambari Agents should have the
+   * JSON payloads compressed with GZIP.
    */
+  @Markdown(description = "Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP.")
   public static final ConfigurationProperty<String> AGENT_API_GZIP_COMPRESSION_ENABLED = new ConfigurationProperty<>(
       "agent.api.gzip.compression.enabled", "true");
 
   /**
-   *
+   * Determines whether SSL is used to communicate between Ambari Server and Ambari Agents.
    */
+  @Markdown(description = "Determines whether SSL is used to communicate between Ambari Server and Ambari Agents.")
   public static final ConfigurationProperty<String> AGENT_USE_SSL = new ConfigurationProperty<>(
       "agent.ssl", "true");
 
   /**
-   *
+   * Determines whether the Ambari Agent host names should be validated against
+   * a regular expression to ensure that they are well-formed.
    */
+  @Markdown(description = "Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed.")
   public static final ConfigurationProperty<String> SRVR_AGENT_HOSTNAME_VALIDATE = new ConfigurationProperty<>(
       "security.agent.hostname.validate", "true");
 
   /**
+   * Determines whether two-way SSL should be used between Ambari Server and
+   * Ambari Agents so that the agents must also use SSL.
    *
+   * @see HostUtils#isValidHostname(String)
    */
+  @Markdown(description = "Determines whether two-way SSL should be used between Ambari Server and Ambari Agents so that the agents must also use SSL.")
   public static final ConfigurationProperty<String> SRVR_TWO_WAY_SSL = new ConfigurationProperty<>(
       "security.server.two_way_ssl", "false");
 
   /**
-   *
+   * The port that the Ambari Server will use to communicate with the agents over SSL.
    */
+  @Markdown(description = "The port that the Ambari Server will use to communicate with the agents over SSL.")
   public static final ConfigurationProperty<String> SRVR_TWO_WAY_SSL_PORT = new ConfigurationProperty<>(
       "security.server.two_way_ssl.port", "8441");
 
   /**
-   *
+   * The port that the Ambari Agents will use to communicate with the Ambari Server over SSL.
    */
+  @Markdown(description = "The port that the Ambari Agents will use to communicate with the Ambari Server over SSL.")
   public static final ConfigurationProperty<String> SRVR_ONE_WAY_SSL_PORT = new ConfigurationProperty<>(
       "security.server.one_way_ssl.port", "8440");
 
   /**
-   *
+   * The directory on the Ambari Server where keystores are kept.
    */
+  @Markdown(description = "The directory on the Ambari Server where keystores are kept.")
   public static final ConfigurationProperty<String> SRVR_KSTR_DIR = new ConfigurationProperty<>(
       "security.server.keys_dir", ".");
 
   /**
-   *
+   * The name of the file that certificates are written to when using {@code openssl ca}.
    */
+  @Markdown(description = "The name of the file located in the `security.server.keys_dir` directory where certificates will be generated when Ambari uses the `openssl ca` command.")
   public static final ConfigurationProperty<String> SRVR_CRT_NAME = new ConfigurationProperty<>(
       "security.server.cert_name", "ca.crt");
 
   /**
-   *
+   * The name of the certificate request file used when generating certificates.
    */
+  @Markdown(description = "The name of the certificate request file used when generating certificates.")
   public static final ConfigurationProperty<String> SRVR_CSR_NAME = new ConfigurationProperty<>(
       "security.server.csr_name", "ca.csr");
 
   /**
-   *
+   * The name of the private key used to sign requests.
    */
+  @Markdown(description = "The name of the private key used to sign requests.")
   public static final ConfigurationProperty<String> SRVR_KEY_NAME = new ConfigurationProperty<>(
       "security.server.key_name", "ca.key");
 
   /**
-   *
+   * The name of the keystore file, located in {@link SRVR_KSTR_DIR}.
    */
+  @Markdown(description = "The name of the keystore file, located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> KSTR_NAME = new ConfigurationProperty<>(
       "security.server.keystore_name", "keystore.p12");
 
   /**
-   * By default self-signed certificates are used and we can use keystore as
-   * truststore in PKCS12 format When CA signed certificates are used truststore
-   * should be created in JKS format (truststore.jks)
+   * The type of the keystore file specified in {@link #KSTR_NAME}. By default
+   * self-signed certificates are used and we can use keystore as truststore in
+   * PKCS12 format. When CA signed certificates are used truststore should be
+   * created in JKS format (truststore.jks)
    */
+  @Markdown(description = "The type of the keystore file specified in `security.server.key_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS`")
   public static final ConfigurationProperty<String> KSTR_TYPE = new ConfigurationProperty<>(
       "security.server.keystore_type", "PKCS12");
 
   /**
-   *
+   * The name of the truststore file ambari uses to store trusted certificates.
+   * Located in {@link SRVR_KSTR_DIR}.
    */
+  @Markdown(description = "The name of the truststore file ambari uses to store trusted certificates. Located in `security.server.keys_dir`")
   public static final ConfigurationProperty<String> TSTR_NAME = new ConfigurationProperty<>(
       "security.server.truststore_name", "keystore.p12");
 
   /**
-   * By default self-signed certificates are used and we can use keystore as
-   * truststore in PKCS12 format When CA signed certificates are used truststore
-   * should be created in JKS format (truststore.jks)
+   * The type of the truststore file specified in {@link #TSTR_NAME}. By default
+   * self-signed certificates are used and we can use keystore as truststore in
+   * PKCS12 format. When CA signed certificates are used truststore should be
+   * created in JKS format (truststore.jks)
    */
+  @Markdown(description = "The type of the truststore file specified in `security.server.truststore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS`")
   public static final ConfigurationProperty<String> TSTR_TYPE = new ConfigurationProperty<>(
       "security.server.truststore_type", "PKCS12");
 
   /**
-   *
+   * The filename which contains the password for the keystores, truststores, and certificates.
    */
+  @Markdown(description = "The filename which contains the password for the keystores, truststores, and certificates.")
   public static final ConfigurationProperty<String> SRVR_CRT_PASS_FILE = new ConfigurationProperty<>(
       "security.server.crt_pass_file", "pass.txt");
 
   /**
-   *
+   * The password for the keystores, truststores, and certificates. If not specified, then {@link #SRVR_CRT_PASS_FILE} should be used.
    */
+  @Markdown(description = "The password for the keystores, truststores, and certificates. If not specified, then `security.server.crt_pass_file` should be used")
   public static final ConfigurationProperty<String> SRVR_CRT_PASS = new ConfigurationProperty<>(
       "security.server.crt_pass", null);
 
   /**
-   *
+   * The length of the randomly generated password for keystores and truststores.
    */
+  @Markdown(description = "The length of the randomly generated password for keystores and truststores. ")
   public static final ConfigurationProperty<String> SRVR_CRT_PASS_LEN = new ConfigurationProperty<>(
       "security.server.crt_pass.len", "50");
 
   /**
-   *
+   * An environment variable which can be used to supply the Ambari Server
+   * password when bootstrapping new Ambari Agents.
    */
+  @Markdown(description = "An environment variable which can be used to supply the Ambari Server password when bootstrapping new Ambari Agents.")
   public static final ConfigurationProperty<String> PASSPHRASE_ENV = new ConfigurationProperty<>(
       "security.server.passphrase_env_var", "AMBARI_PASSPHRASE");
 
   /**
-   *
+   * The password to the Ambari Server to supply to new Ambari Agent hosts being
+   * bootstrapped.
    */
+  @Markdown(description = "The password to the Ambari Server to supply to new Ambari Agent hosts being bootstrapped.")
   public static final ConfigurationProperty<String> PASSPHRASE = new ConfigurationProperty<>(
       "security.server.passphrase", "AMBARI_PASSPHRASE");
 
   /**
-   *
+   * A list of cipher suites which are not strong enough to use and will be excluded when creating SSL connections.
    */
+  @Markdown(
+      description = "A list of cipher suites which are not strong enough to use and will be excluded when creating SSL connections.",
+      examples = {"SSL_RSA_WITH_RC4_128_MD5\\|SSL_RSA_WITH_RC4_12‌​8_MD5"})
   public static final ConfigurationProperty<String> SRVR_DISABLED_CIPHERS = new ConfigurationProperty<>(
       "security.server.disabled.ciphers", "");
 
   /**
-   *
+   * The list of protocols which should not be used when creating SSL connections.
    */
+  @Markdown(
+      description = "The list of protocols which should not be used when creating SSL connections.",
+      examples = { "TLSv1.1\\|TLSv1.2" })
   public static final ConfigurationProperty<String> SRVR_DISABLED_PROTOCOLS = new ConfigurationProperty<>(
       "security.server.disabled.protocols", "");
 
   /**
-   *
+   * The location on the Ambari Server where all resources exist, including common services, stacks, and scripts.
    */
+  @Markdown(description = "The location on the Ambari Server where all resources exist, including common services, stacks, and scripts.")
   public static final ConfigurationProperty<String> RESOURCES_DIR = new ConfigurationProperty<>(
       "resources.dir", AmbariPath.getPath("/var/lib/ambari-server/resources/"));
 
   /**
-   *
+   * The location on the Ambari Server where the stack resources exist.
    */
+  @Markdown(
+      description = "The location on the Ambari Server where the stack resources exist.",
+      examples = { "/var/lib/ambari-server/resources/stacks" })
   public static final ConfigurationProperty<String> METADATA_DIR_PATH = new ConfigurationProperty<>(
       "metadata.path", null);
 
   /**
-   *
+   * The location on the Ambari Server where common service resources exist.
+   * Stack services share the common service files.
    */
+  @Markdown(
+      description = "The location on the Ambari Server where common service resources exist. Stack services share the common service files.",
+      examples = { "/var/lib/ambari-server/resources/common-services" })
   public static final ConfigurationProperty<String> COMMON_SERVICES_DIR_PATH = new ConfigurationProperty<>(
       "common.services.path", null);
 
   /**
-   *
+   * The location on the Ambari Server where stack extensions exist.
    */
+  @Markdown(
+      description = "The location on the Ambari Server where stack extensions exist.",
+      examples = { "/var/lib/ambari-server/resources/extensions" })
   public static final ConfigurationProperty<String> EXTENSIONS_DIR_PATH = new ConfigurationProperty<>(
       "extensions.path", null);
 
   /**
-   *
+   * The Ambari Management Pack staging directory on the Ambari Server.
    */
+  @Markdown(
+      description = "The Ambari Management Pack staging directory on the Ambari Server.",
+      examples = { "/var/lib/ambari-server/resources/mpacks" })
   public static final ConfigurationProperty<String> MPACKS_STAGING_DIR_PATH = new ConfigurationProperty<>(
       "mpacks.staging.path", null);
 
   /**
-   *
+   * The full path to the file which contains the Ambari Server version.
    */
+  @Markdown(
+      description = "The full path to the file which contains the Ambari Server version. This is used to ensure that there is not a version mismatch between Ambari Agents and Ambari Server.",
+      examples = { "/var/lib/ambari-server/resources/version" })
   public static final ConfigurationProperty<String> SERVER_VERSION_FILE = new ConfigurationProperty<>(
       "server.version.file", null);
 
   /**
-   *
+   * The location of the JDK on the Ambari Agent hosts.
    */
-  public static final ConfigurationProperty<String> SERVER_VERSION = new ConfigurationProperty<>(
-      "version", null);
-
-  /**
-   *
-   */
+  @Markdown(
+      description = "The location of the JDK on the Ambari Agent hosts.",
+      examples = { "/usr/jdk64/jdk1.7.0_45" })
   public static final ConfigurationProperty<String> JAVA_HOME = new ConfigurationProperty<>(
       "java.home", null);
 
   /**
-   *
+   * The name of the JDK installation binary.
    */
+  @Markdown(
+      description = "The name of the JDK installation binary.",
+      examples = { "jdk-7u45-linux-x64.tar.gz" })
   public static final ConfigurationProperty<String> JDK_NAME = new ConfigurationProperty<>(
       "jdk.name", null);
 
   /**
-   *
+   * The name of the JCE policy ZIP file.
    */
+  @Markdown(
+      description = "The name of the JCE policy ZIP file. ",
+      examples = {"UnlimitedJCEPolicyJDK7.zip"})
   public static final ConfigurationProperty<String> JCE_NAME = new ConfigurationProperty<>(
       "jce.name", null);
 
   /**
+   * The type of authentication mechanism used by Ambari.
    *
+   * @see ClientSecurityType
    */
+  @Markdown(
+      examples = { "local", "ldap" },
+      description = "The type of authentication mechanism used by Ambari.")
   public static final ConfigurationProperty<String> CLIENT_SECURITY = new ConfigurationProperty<>(
       "client.security", null);
 
   /**
-   *
+   * The port that client connections will use with the REST API.
    */
+  @Markdown(description = "The port that client connections will use with the REST API. The Ambari Web client runs on this port.")
   public static final ConfigurationProperty<String> CLIENT_API_PORT = new ConfigurationProperty<>(
       "client.api.port", "8080");
 
   /**
-   *
+   * The port that client connections will use with the REST API when using SSL.
    */
+  @Markdown(description = "The port that client connections will use with the REST API when using SSL. The Ambari Web client runs on this port if SSL is enabled.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_PORT = new ConfigurationProperty<>(
       "client.api.ssl.port", "8443");
 
   /**
-   *
+   * The location on the Ambari server where the REST API keystore and password files are stored if using SSL.
    */
+  @Markdown(description = "The location on the Ambari server where the REST API keystore and password files are stored if using SSL.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_KSTR_DIR_NAME = new ConfigurationProperty<>(
       "client.api.ssl.keys_dir", null);
 
   /**
-   *
+   * The name of the keystore used when the Ambari Server REST API is protected by SSL.
    */
+  @Markdown(description = "The name of the keystore used when the Ambari Server REST API is protected by SSL.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_KSTR_NAME = new ConfigurationProperty<>(
       "client.api.ssl.keystore_name", "https.keystore.p12");
 
   /**
-   * By default self-signed certificates are used and we can use keystore as
-   * truststore in PKCS12 format When CA signed certificates are used truststore
-   * should be created in JKS format (truststore.jks)
+   * The type of the keystore file specified in {@link #CLIENT_API_SSL_KSTR_NAME}. By default
+   * self-signed certificates are used and we can use keystore as truststore in
+   * PKCS12 format. When CA signed certificates are used truststore should be
+   * created in JKS format (truststore.jks)
    */
+  @Markdown(description = "The type of the keystore file specified in `client.api.ssl.keystore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS`")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_KSTR_TYPE = new ConfigurationProperty<>(
       "client.api.ssl.keystore_type", "PKCS12");
 
   /**
-   *
+   * The name of the truststore used when the Ambari Server REST API is protected by SSL.
    */
+  @Markdown(description = "The name of the truststore used when the Ambari Server REST API is protected by SSL.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_TSTR_NAME = new ConfigurationProperty<>(
       "client.api.ssl.truststore_name", "https.keystore.p12");
 
   /**
-   * By default self-signed certificates are used and we can use keystore as
-   * truststore in PKCS12 format When CA signed certificates are used truststore
-   * should be created in JKS format (truststore.jks)
+   * The type of the keystore file specified in {@link #CLIENT_API_SSL_KSTR_NAME}. By default
+   * self-signed certificates are used and we can use keystore as truststore in
+   * PKCS12 format. When CA signed certificates are used truststore should be
+   * created in JKS format (truststore.jks)
    */
+  @Markdown(description = "The type of the keystore file specified in `client.api.ssl.truststore_name`. Self-signed certificates can be `PKCS12` while CA signed certificates are `JKS`")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_TSTR_TYPE = new ConfigurationProperty<>(
       "client.api.ssl.truststore_type", "PKCS12");
 
   /**
-   *
+   * The filename which contains the password for the keystores, truststores,
+   * and certificates for the REST API when it's protected by SSL.
    */
-  public static final ConfigurationProperty<String> CLIENT_API_SSL_CRT_NAME = new ConfigurationProperty<>(
-      "client.api.ssl.cert_name", "https.crt");
-
-  /**
-   *
-   */
+  @Markdown(description = "The filename which contains the password for the keystores, truststores, and certificates for the REST API when it's protected by SSL.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_CRT_PASS_FILE_NAME = new ConfigurationProperty<>(
       "client.api.ssl.cert_pass_file", "https.pass.txt");
 
   /**
-   *
+   * The password for the keystores, truststores, and certificates for the REST
+   * API when it's protected by SSL. If not specified, then
+   * {@link #SRVR_CRT_PASS_FILE} should be used.
    */
+  @Markdown(description = "The password for the keystores, truststores, and certificates for the REST API when it's protected by SSL. If not specified, then `client.api.ssl.cert_pass_file` should be used.")
   public static final ConfigurationProperty<String> CLIENT_API_SSL_CRT_PASS = new ConfigurationProperty<>(
       "client.api.ssl.crt_pass", null);
 
   /**
-   *
+   * Determines whether the agents will automatically attempt to download updates to stack resources from the Ambari Server.
    */
-  public static final ConfigurationProperty<String> CLIENT_API_SSL_KEY_NAME = new ConfigurationProperty<>(
-      "client.api.ssl.key_name", "https.key");
-
-  /**
-   *
-   */
+  @Markdown(description = "Determines whether the agents will automatically attempt to download updates to stack resources from the Ambari Server.")
   public static final ConfigurationProperty<String> ENABLE_AUTO_AGENT_CACHE_UPDATE = new ConfigurationProperty<>(
       "agent.auto.cache.update", "true");
 
   /**
-   *
+   * Determines whether the Ambari Agents will use the {@code df} or {@code df -l} command when checking disk mounts for capacity issues.
    */
+  @Markdown(description = "Determines whether the Ambari Agents will use the `df` or `df -l` command when checking disk mounts for capacity issues. Auto-mounted remote directories can cause long delays.")
   public static final ConfigurationProperty<String> CHECK_REMOTE_MOUNTS = new ConfigurationProperty<>(
       "agent.check.remote.mounts", "false");
 
   /**
-   *
+   * The timeout, used by the {@code timeout} command in linux, when checking mounts for free capacity.
    */
+  @Markdown(description = "The timeout, used by the `timeout` command in linux, when checking mounts for free capacity.")
   public static final ConfigurationProperty<String> CHECK_MOUNTS_TIMEOUT = new ConfigurationProperty<>(
       "agent.check.mounts.timeout", "0");
 
   /**
-   *
+   * The name of the database.
    */
+  @Markdown(description = "The name of the database.")
   public static final ConfigurationProperty<String> SERVER_DB_NAME = new ConfigurationProperty<>(
       "server.jdbc.database_name", "ambari");
 
   /**
-   *
+   * The amount of time, in {@link TimeUnit#MILLISECONDS}, that views will wait
+   * before timing out on HTTP(S) read operations.
    */
+  @Markdown(description = "The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request.")
   public static final ConfigurationProperty<String> REQUEST_READ_TIMEOUT = new ConfigurationProperty<>(
       "views.request.read.timeout.millis", "10000");
 
   /**
-   *
+   * The amount of time, in {@link TimeUnit#MILLISECONDS}, that views will wait
+   * when trying to connect on HTTP(S) operations to a remote resource.
    */
+  @Markdown(description = "The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to a remote resource.")
   public static final ConfigurationProperty<String> REQUEST_CONNECT_TIMEOUT = new ConfigurationProperty<>(
       "views.request.connect.timeout.millis", "5000");
 
   /**
-   *
+   * The amount of time, in {@link TimeUnit#MILLISECONDS}, that views will wait
+   * before timing out on HTTP(S) read operations to the Ambari REST API.
    */
+  @Markdown(description = "The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request to the Ambari REST API.")
   public static final ConfigurationProperty<String> AMBARI_REQUEST_READ_TIMEOUT = new ConfigurationProperty<>(
       "views.ambari.request.read.timeout.millis", "45000");
 
   /**
-   *
+   * The amount of time, in {@link TimeUnit#MILLISECONDS}, that views will wait
+   * when trying to connect on HTTP(S) operations to a remote resource.
    */
+  @Markdown(description = "The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to the Ambari REST API.")
   public static final ConfigurationProperty<String> AMBARI_REQUEST_CONNECT_TIMEOUT = new ConfigurationProperty<>(
       "views.ambari.request.connect.timeout.millis", "30000");
 
   /**
-   *
+   * The schema within a named PostgreSQL database where Ambari's tables, users,
+   * and constraints are stored.
    */
+  @Markdown(description = "The schema within a named PostgreSQL database where Ambari's tables, users, and constraints are stored. ")
   public static final ConfigurationProperty<String> SERVER_JDBC_POSTGRES_SCHEMA_NAME = new ConfigurationProperty<>(
       "server.jdbc.postgres.schema", "");
 
   /**
-   *
+   * The name of the Oracle JDBC JAR connector.
    */
+  @Markdown(description = "The name of the Oracle JDBC JAR connector.")
   public static final ConfigurationProperty<String> OJDBC_JAR_NAME = new ConfigurationProperty<>(
       "db.oracle.jdbc.name", "ojdbc6.jar");
 
   /**
-   *
+   * The name of the MySQL JDBC JAR connector.
    */
+  @Markdown(description = "The name of the MySQL JDBC JAR connector.")
   public static final ConfigurationProperty<String> MYSQL_JAR_NAME = new ConfigurationProperty<>(
       "db.mysql.jdbc.name", "mysql-connector-java.jar");
 
   /**
    * For development purposes only, should be changed to 'false'
    */
+  @Markdown(description = "An internal property used for unit testing and development purposes.")
   public static final ConfigurationProperty<String> IS_LDAP_CONFIGURED = new ConfigurationProperty<>(
       "ambari.ldap.isConfigured", "false");
 
   /**
-   *
+   * Determines whether to use LDAP over SSL (LDAPS).
    */
+  @Markdown(description = "Determines whether to use LDAP over SSL (LDAPS).")
   public static final ConfigurationProperty<String> LDAP_USE_SSL = new ConfigurationProperty<>(
       "authentication.ldap.useSSL", "false");
 
   /**
    * The default value is used for embedded purposes only.
    */
+  @Markdown(description = "The LDAP URL used for connecting to an LDAP server when authenticating users. This should include both the host name and port.")
   public static final ConfigurationProperty<String> LDAP_PRIMARY_URL = new ConfigurationProperty<>(
       "authentication.ldap.primaryUrl", "localhost:33389");
 
   /**
-   *
+   * A second LDAP URL to use as a backup when authenticating users.
    */
+  @Markdown(description = "A second LDAP URL to use as a backup when authenticating users. This should include both the host name and port.")
   public static final ConfigurationProperty<String> LDAP_SECONDARY_URL = new ConfigurationProperty<>(
       "authentication.ldap.secondaryUrl", null);
 
   /**
-   *
+   * The base DN to use when filtering LDAP users and groups.
    */
+  @Markdown(description = "The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled.")
   public static final ConfigurationProperty<String> LDAP_BASE_DN = new ConfigurationProperty<>(
       "authentication.ldap.baseDn", "dc=ambari,dc=apache,dc=org");
 
   /**
-   *
+   * Determines whether LDAP requests can connect anonymously or if a managed
+   * user is required to connect.
    */
+  @Markdown(description = "Determines whether LDAP requests can connect anonymously or if a managed user is required to connect.")
   public static final ConfigurationProperty<String> LDAP_BIND_ANONYMOUSLY = new ConfigurationProperty<>(
       "authentication.ldap.bindAnonymously", "true");
 
   /**
-   *
+   * The DN of the manager account to use when binding to LDAP if
+   * {@link #LDAP_BIND_ANONYMOUSLY} is turned off.
    */
+  @Markdown(description = "The DN of the manager account to use when binding to LDAP if anonymous binding is disabled.")
   public static final ConfigurationProperty<String> LDAP_MANAGER_DN = new ConfigurationProperty<>(
       "authentication.ldap.managerDn", null);
 
   /**
-   *
+   * The password for the account used to bind to LDAP if
+   * {@link #LDAP_BIND_ANONYMOUSLY} is turned off.
    */
+  @Markdown(description = "The password for the manager account used to bind to LDAP if anonymous binding is disabled.")
   public static final ConfigurationProperty<String> LDAP_MANAGER_PASSWORD = new ConfigurationProperty<>(
       "authentication.ldap.managerPassword", null);
 
   /**
-   *
+   * The attribute used for determining what the distinguished name property is.
    */
+  @Markdown(description = "The attribute used for determining what the distinguished name property is.")
   public static final ConfigurationProperty<String> LDAP_DN_ATTRIBUTE = new ConfigurationProperty<>(
       "authentication.ldap.dnAttribute", "dn");
 
   /**
-   *
+   * The attribute used for determining the user name.
    */
+  @Markdown(description = "The attribute used for determining the user name, such as `uid`.")
   public static final ConfigurationProperty<String> LDAP_USERNAME_ATTRIBUTE = new ConfigurationProperty<>(
       "authentication.ldap.usernameAttribute", "uid");
 
   /**
-   *
+   * The filter used when searching for users in LDAP.
    */
+  @Markdown(description = "The filter used when searching for users in LDAP.")
   public static final ConfigurationProperty<String> LDAP_USER_BASE = new ConfigurationProperty<>(
       "authentication.ldap.userBase", "ou=people,dc=ambari,dc=apache,dc=org");
 
   /**
-   *
+   * The class to which user objects in LDAP belong.
    */
+  @Markdown(description = "The class to which user objects in LDAP belong.")
   public static final ConfigurationProperty<String> LDAP_USER_OBJECT_CLASS = new ConfigurationProperty<>(
       "authentication.ldap.userObjectClass", "person");
 
   /**
-   *
+   * The filter used when searching for groups in LDAP.
    */
+  @Markdown(description = "The filter used when searching for groups in LDAP.")
   public static final ConfigurationProperty<String> LDAP_GROUP_BASE = new ConfigurationProperty<>(
       "authentication.ldap.groupBase", "ou=groups,dc=ambari,dc=apache,dc=org");
 
   /**
-   *
+   * The class to which group objects in LDAP belong.
    */
+  @Markdown(description = "The class to which group objects in LDAP belong.")
   public static final ConfigurationProperty<String> LDAP_GROUP_OBJECT_CLASS = new ConfigurationProperty<>(
       "authentication.ldap.groupObjectClass", "group");
 
   /**
-   *
+   * The attribute used to determine the group name.
    */
+  @Markdown(description = "The attribute used to determine the group name in LDAP.")
   public static final ConfigurationProperty<String> LDAP_GROUP_NAMING_ATTR = new ConfigurationProperty<>(
       "authentication.ldap.groupNamingAttr", "cn");
 
   /**
-   *
+   * The LDAP attribute which identifies group membership.
    */
-  public static final ConfigurationProperty<String> LDAP_GROUP_MEMEBERSHIP_ATTR = new ConfigurationProperty<>(
+  @Markdown(description = "The LDAP attribute which identifies group membership.")
+  public static final ConfigurationProperty<String> LDAP_GROUP_MEMBERSHIP_ATTR = new ConfigurationProperty<>(
       "authentication.ldap.groupMembershipAttr", "member");
 
   /**
-   *
+   * A comma-separate list of groups which would give a user administrative access to Ambari.
    */
+  @Markdown(
+      description = "A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.",
+      examples = { "administrators", "Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators" })
   public static final ConfigurationProperty<String> LDAP_ADMIN_GROUP_MAPPING_RULES = new ConfigurationProperty<>(
       "authorization.ldap.adminGroupMappingRules", "Ambari Administrators");
-
-  /**
-   *
-   */
-  public static final ConfigurationProperty<String> LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR = new ConfigurationProperty<>(
-      "authorization.ldap.adminGroupMappingMemberAttr", "Ambari Administrators");
 
   /**
    * When authentication through LDAP is enabled then Ambari Server uses this
@@ -779,6 +994,9 @@ public class Configuration {
    * {@code (&({usernameAttribute}={0})(objectClass={userObjectClass}))} is
    * used.
    */
+  @Markdown(
+      description = "A filter used to lookup a user in LDAP based on the Ambari user name",
+      examples = { "(&({usernameAttribute}={0})(objectClass={userObjectClass}))" })
   public static final ConfigurationProperty<String> LDAP_USER_SEARCH_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.userSearchFilter",
       "(&({usernameAttribute}={0})(objectClass={userObjectClass}))");
@@ -791,6 +1009,7 @@ public class Configuration {
    *
    * If it is not set then the default
    */
+  @Markdown(description = "Determines whether a secondary (alternate) LDAP user search filer is used if the primary filter fails to find a user.")
   public static final ConfigurationProperty<String> LDAP_ALT_USER_SEARCH_ENABLED = new ConfigurationProperty<>(
       "authentication.ldap.alternateUserSearchEnabled", "false");
 
@@ -809,158 +1028,213 @@ public class Configuration {
    * user1@x.y.com) which is the userPrincipalName format used in AD.
    * </p>
    */
+  @Markdown(description = "An alternate LDAP user search filter which can be used if `authentication.ldap.alternateUserSearchEnabled` is enabled and the primary filter fails to find a user.")
   public static final ConfigurationProperty<String> LDAP_ALT_USER_SEARCH_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.alternateUserSearchFilter",
       "(&(userPrincipalName={0})(objectClass={userObjectClass}))");
 
   /**
-   *
+   * The DN to use when searching for LDAP groups.
    */
+  @Markdown(description = "The DN to use when searching for LDAP groups.")
   public static final ConfigurationProperty<String> LDAP_GROUP_SEARCH_FILTER = new ConfigurationProperty<>(
       "authorization.ldap.groupSearchFilter", "");
 
   /**
-   *
+   * Determines whether to follow LDAP referrals when the LDAP controller doesn't have the requested object.
    */
+  @Markdown(description = "Determines whether to follow LDAP referrals to other URLs when the LDAP controller doesn't have the requested object.")
   public static final ConfigurationProperty<String> LDAP_REFERRAL = new ConfigurationProperty<>(
       "authentication.ldap.referral", "follow");
 
   /**
-   *
+   * Determines whether results from LDAP are paginated when requested.
    */
+  @Markdown(description = "Determines whether results from LDAP are paginated when requested.")
   public static final ConfigurationProperty<String> LDAP_PAGINATION_ENABLED = new ConfigurationProperty<>(
       "authentication.ldap.pagination.enabled", "true");
 
   /**
-   *
+   * The default regex pattern to use when replacing the user member attribute
+   * ID value with a placeholder. This is used in cases where a UID of an LDAP
+   * member is not a full CN or unique ID.
    */
-  public static final ConfigurationProperty<String> LDAP_SYCN_USER_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
+  @Markdown(
+      description = "The default regex pattern to use when replacing the user member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID",
+      examples = { "`${member}`" })
+  public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
       "authentication.ldap.sync.userMemberReplacePattern",
       LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
 
   /**
-   *
+   * The default regex pattern to use when replacing the group member attribute
+   * ID value with a placeholder. This is used in cases where a UID of an LDAP
+   * member is not a full CN or unique ID.
    */
+  @Markdown(
+      description = "The default regex pattern to use when replacing the group member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID",
+      examples = { "`${member}`" })
   public static final ConfigurationProperty<String> LDAP_SYCN_GROUP_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
       "authentication.ldap.sync.groupMemberReplacePattern",
       LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
 
   /**
-   *
+   * The default filter to use for syncing users from LDAP.
    */
-  public static final ConfigurationProperty<String> LDAP_SYCN_USER_MEMBER_FILTER = new ConfigurationProperty<>(
+  @Markdown(description = "The default filter to use for syncing users from LDAP.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.sync.userMemberFilter",
       LDAP_SYNC_MEMBER_FILTER_DEFAULT);
 
   /**
-   *
+   * The default filter to use for syncing member from LDAP.
    */
-  public static final ConfigurationProperty<String> LDAP_SYCN_GROUP_MEMBER_FILTER = new ConfigurationProperty<>(
+  @Markdown(description = "The default filter to use for syncing member from LDAP.")
+  public static final ConfigurationProperty<String> LDAP_SYNC_GROUP_MEMBER_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.sync.groupMemberFilter",
       LDAP_SYNC_MEMBER_FILTER_DEFAULT);
 
 
+  /**
+   * The size of the cache used to hold {@link HostRoleCommand} instances in-memory.
+   */
+  @Markdown(description = "The size of the cache which is used to hold current operations in memory until they complete.")
   public static final ConfigurationProperty<Long> SERVER_EC_CACHE_SIZE = new ConfigurationProperty<>(
       "server.ecCacheSize", 10000L);
 
   /**
-   *
+   * Determines whether caching a requests's
+   * {@link HostRoleCommandStatusSummaryDTO} is enabled.
    */
+  @Markdown(description = "Determines whether an existing request's status is cached. This is enabled by default to prevent increases in database access when there are long running operations in progress.")
   public static final ConfigurationProperty<Boolean> SERVER_HRC_STATUS_SUMMARY_CACHE_ENABLED = new ConfigurationProperty<>(
       "server.hrcStatusSummary.cache.enabled", Boolean.TRUE);
 
   /**
-   *
+   * The size of the cache which is used to hold a status of every operation in a request.
    */
+  @Markdown(
+      relatedTo = "server.hrcStatusSummary.cache.enabled",
+      description = "The size of the cache which is used to hold a status of every operation in a request.")
   public static final ConfigurationProperty<Long> SERVER_HRC_STATUS_SUMMARY_CACHE_SIZE = new ConfigurationProperty<>(
       "server.hrcStatusSummary.cache.size", 10000L);
 
   /**
    * The value is specified in {@link TimeUnit#MINUTES}.
    */
+  @Markdown(
+      relatedTo = "server.hrcStatusSummary.cache.enabled",
+      description = "The expiration time, in minutes, of the request status cache.")
   public static final ConfigurationProperty<Long> SERVER_HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION = new ConfigurationProperty<>(
       "server.hrcStatusSummary.cache.expiryDuration", 30L);
 
   /**
-   *
+   * Determines when the stale configuration cache is enabled. If disabled, then
+   * queries to determine if components need to be restarted will query the
+   * database directly.
    */
+  @Markdown(description = "Determines when the stale configuration cache is enabled. If disabled, then queries to determine if components need to be restarted will query the database directly.")
   public static final ConfigurationProperty<Boolean> SERVER_STALE_CONFIG_CACHE_ENABLED = new ConfigurationProperty<>(
       "server.cache.isStale.enabled", Boolean.TRUE);
 
   /**
+   * The expiration time, in {@link TimeUnit#MINUTES}, that stale configuration information is
+   * cached.
    *
+   * @see #SERVER_STALE_CONFIG_CACHE_ENABLED
    */
+  @Markdown(
+      relatedTo = "server.cache.isStale.enabled",
+      description = "The expiration time, in {@link TimeUnit#MINUTES}, that stale configuration information is cached.")
   public static final ConfigurationProperty<Integer> SERVER_STALE_CONFIG_CACHE_EXPIRATION = new ConfigurationProperty<>(
       "server.cache.isStale.expiration", 600);
 
   /**
-   *
+   * The {@link PersistenceType} of the database.
    */
+  @Markdown(
+      examples = { "local", "remote" },
+      description = "The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.")
   public static final ConfigurationProperty<String> SERVER_PERSISTENCE_TYPE = new ConfigurationProperty<>(
       "server.persistence.type", "local");
 
   /**
-   *
+   * The user name used to login to the database.
    */
+  @Markdown(description = "The user name used to login to the database.")
   public static final ConfigurationProperty<String> SERVER_JDBC_USER_NAME = new ConfigurationProperty<>(
       "server.jdbc.user.name", "ambari");
 
   /**
-   *
+   * The password for the user when logging into the database.
    */
+  @Markdown(description = "The password for the user when logging into the database.")
   public static final ConfigurationProperty<String> SERVER_JDBC_USER_PASSWD = new ConfigurationProperty<>(
       "server.jdbc.user.passwd", "bigdata");
 
   /**
-   *
+   * The name of the PostgresSQL JDBC JAR connector.
    */
+  @Markdown(description = "The name of the PostgresSQL JDBC JAR connector.")
   public static final ConfigurationProperty<String> SERVER_JDBC_DRIVER = new ConfigurationProperty<>(
       "server.jdbc.driver", "org.postgresql.Driver");
 
   /**
-   *
+   * The full JDBC url used for in-memory database creation.
    */
+  @Markdown(
+      internal = true,
+      description = "The full JDBC url used for in-memory database creation.")
   public static final ConfigurationProperty<String> SERVER_JDBC_URL = new ConfigurationProperty<>(
       "server.jdbc.url", null);
 
   /**
-   *
+   * The size of the buffer to use, in bytes, for REST API HTTP header requests.
    */
+  @Markdown(description = "The size of the buffer to use, in bytes, for REST API HTTP header requests.")
   public static final ConfigurationProperty<Integer> SERVER_HTTP_REQUEST_HEADER_SIZE = new ConfigurationProperty<>(
       "server.http.request.header.size", 64 * 1024);
 
   /**
-   *
+   * The size of the buffer to use, in bytes, for REST API HTTP header responses.
    */
+  @Markdown(description = "The size of the buffer to use, in bytes, for REST API HTTP header responses.")
   public static final ConfigurationProperty<Integer> SERVER_HTTP_RESPONSE_HEADER_SIZE = new ConfigurationProperty<>(
       "server.http.response.header.size", 64 * 1024);
 
   /**
-   *
+   * A comma-separated list of packages which will be skipped during a stack upgrade.
    */
+  @Markdown(description = "A comma-separated list of packages which will be skipped during a stack upgrade.")
   public static final ConfigurationProperty<String> ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES = new ConfigurationProperty<>(
       "rolling.upgrade.skip.packages.prefixes", "");
 
   /**
-   *
+   * Determines whether pre-upgrade checks will be skipped when performing a stack upgrade.
    */
+  @Markdown(description = "Determines whether pre-upgrade checks will be skipped when performing a rolling or express stack upgrade.")
   public static final ConfigurationProperty<Boolean> STACK_UPGRADE_BYPASS_PRECHECKS = new ConfigurationProperty<>(
       "stack.upgrade.bypass.prechecks", Boolean.FALSE);
 
   /**
-   * If a host is shutdown or ambari-agent is stopped, then Ambari Server will still keep waiting til the task timesout,
-   * say 10-20 mins. If the host comes back online and ambari-agent is started, then need this retry property
-   * to be greater; ideally, it should be greater than 2 * command_timeout in order to retry at least
-   * 3 times in that amount of mins.
-   * Suggested value is 15-30 mins.
+   * If a host is shutdown or ambari-agent is stopped, then Ambari Server will
+   * still keep waiting til the task timesout, say 10-20 mins. If the host comes
+   * back online and ambari-agent is started, then need this retry property to
+   * be greater; ideally, it should be greater than 2 * command_timeout in order
+   * to retry at least 3 times in that amount of mins. Suggested value is 15-30
+   * mins.
    */
+  @Markdown(description = "The amount of time to wait in order to retry a command during a stack upgrade when an agent loses communication. This value must be greater than the `agent.task.timeout` value.")
   public static final ConfigurationProperty<Integer> STACK_UPGRADE_AUTO_RETRY_TIMEOUT_MINS = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.timeout.mins", 0);
 
   /**
-   * If the stack.upgrade.auto.retry.timeout.mins property is positive, then run RetryUpgradeActionService every x
-   * seconds.
+   * If the stack.upgrade.auto.retry.timeout.mins property is positive, then run
+   * {@link RetryUpgradeActionService} every x seconds.
    */
+  @Markdown(
+      relatedTo = "stack.upgrade.auto.retry.timeout.mins",
+      description = "The amount of time to wait, in seconds, between checking for upgrade tasks to be retried. This value is only applicable if `stack.upgrade.auto.retry.timeout.mins` is positive.")
   public static final ConfigurationProperty<Integer> STACK_UPGRADE_AUTO_RETRY_CHECK_INTERVAL_SECS = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.check.interval.secs", 20);
 
@@ -968,6 +1242,7 @@ public class Configuration {
    * If auto-retry during stack upgrade is enabled, skip any tasks whose custom command name contains at least one
    * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
    */
+  @Markdown(description = "A comma-separate list of upgrade tasks names to skip when retrying failed commands automatically.")
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_CUSTOM_COMMAND_NAMES_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.names.to.ignore",
       "\"ComponentVersionCheckAction\",\"FinalizeUpgradeAction\"");
@@ -976,198 +1251,297 @@ public class Configuration {
    * If auto-retry during stack upgrade is enabled, skip any tasks whose command details contains at least one
    * of the strings in the following CSV property. Note that values have to be enclosed in quotes and separated by commas.
    */
+  @Markdown(description = "A comma-separate list of upgrade tasks details to skip when retrying failed commands automatically.")
   public static final ConfigurationProperty<String> STACK_UPGRADE_AUTO_RETRY_COMMAND_DETAILS_TO_IGNORE = new ConfigurationProperty<>(
       "stack.upgrade.auto.retry.command.details.to.ignore", "\"Execute HDFS Finalize\"");
 
   /**
-   *
+   * Determines whether to use JWT authentication when connecting to remote Hadoop resources.
    */
+  @Markdown(description = "Determines whether to use JWT authentication when connecting to remote Hadoop resources.")
   public static final ConfigurationProperty<Boolean> JWT_AUTH_ENABLED = new ConfigurationProperty<>(
       "authentication.jwt.enabled", Boolean.FALSE);
 
   /**
-   *
+   * The URL for authentication of the user in the absence of a JWT token when
+   * handling a JWT request.
    */
+  @Markdown(
+      relatedTo = "authentication.jwt.enabled",
+      description = "The URL for authentication of the user in the absence of a JWT token when handling a JWT request.")
   public static final ConfigurationProperty<String> JWT_AUTH_PROVIDER_URL = new ConfigurationProperty<>(
       "authentication.jwt.providerUrl", null);
 
   /**
-   *
+   * The public key to use when verifying the authenticity of a JWT token.
    */
+  @Markdown(
+      relatedTo = "authentication.jwt.enabled",
+      description = "The public key to use when verifying the authenticity of a JWT token.")
   public static final ConfigurationProperty<String> JWT_PUBLIC = new ConfigurationProperty<>(
       "authentication.jwt.publicKey", null);
 
   /**
-   *
+   * A list of the JWT audiences expected. Leaving this blank will allow for any audience.
    */
+  @Markdown(
+      relatedTo = "authentication.jwt.enabled",
+      description = "A list of the JWT audiences expected. Leaving this blank will allow for any audience.")
   public static final ConfigurationProperty<String> JWT_AUDIENCES = new ConfigurationProperty<>(
       "authentication.jwt.audiences", null);
 
   /**
-   *
+   * The name of the cookie which will be used to extract the JWT token from the request.
    */
+  @Markdown(
+      relatedTo = "authentication.jwt.enabled",
+      description = "The name of the cookie which will be used to extract the JWT token from the request.")
   public static final ConfigurationProperty<String> JWT_COOKIE_NAME = new ConfigurationProperty<>(
       "authentication.jwt.cookieName", "hadoop-jwt");
 
   /**
-   *
+   * The original URL to use when constructing the logic URL for JWT.
    */
+  @Markdown(
+      relatedTo = "authentication.jwt.enabled",
+      description = "The original URL to use when constructing the logic URL for JWT.")
   public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
       "authentication.jwt.originalUrlParamName", "originalUrl");
 
   /**
-   *
+   * The type of connection pool to use with JDBC connections to the database.
    */
+  @Markdown(
+      examples = {"internal", "c3p0"},
+      description = "The connection pool manager to use for database connections. If using MySQL, then `c3p0` is automatically chosen.")
   public static final ConfigurationProperty<String> SERVER_JDBC_CONNECTION_POOL = new ConfigurationProperty<>(
       "server.jdbc.connection-pool", ConnectionPoolType.INTERNAL.getName());
 
   /**
-   *
+   * The minimum number of connections that should always exist in the
+   * database connection pool. Only used with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The minimum number of connections that should always exist in the database connection pool. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.min-size", 5);
 
   /**
-   *
+   * The maximum number of connections that should exist in the
+   * database connection pool. Only used with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The maximum number of connections that should exist in the database connection pool. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_MAX_SIZE = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.max-size", 32);
 
   /**
-   *
+   * The number of connections that should be retrieved when the pool size must
+   * increase. It's wise to set this higher than 1 since the assumption is that
+   * a pool that needs to grow should probably grow by more than 1. Only used
+   * with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The number of connections that should be retrieved when the pool size must increase. "
+          + "This should be set higher than 1 since the assumption is that a pool that needs to grow should probably grow by more than 1. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_AQUISITION_SIZE = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.acquisition-size", 5);
 
   /**
-   *
+   * The maximum amount of time in {@link TimeUnit#SECONDS} any connection,
+   * whether its been idle or active, should even be in the pool. This will
+   * terminate the connection after the expiration age and force new connections
+   * to be opened. Only used with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = " The maximum amount of time, in seconds, any connection, whether its been idle or active, should remain in the pool. "
+          + "This will terminate the connection after the expiration age and force new connections to be opened. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_MAX_AGE = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.max-age", 0);
 
   /**
-   *
+   * The maximum amount of time in {@link TimeUnit#SECONDS} that an idle
+   * connection can remain in the pool. This should always be greater than the
+   * value returned from {@link #getConnectionPoolMaximumExcessIdle()}. Only used
+   * with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The maximum amount of time, in seconds, that an idle connection can remain in the pool. "
+          + "This should always be greater than the value returned from `server.jdbc.connection-pool.max-idle-time-excess`. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.max-idle-time", 14400);
 
   /**
-   *
+   * The maximum amount of time in {@link TimeUnit#SECONDS} that connections
+   * beyond the minimum pool size should remain in the pool. This should always
+   * be less than than the value returned from
+   * {@link #getConnectionPoolMaximumIdle()}. Only used with
+   * {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The maximum amount of time, in seconds, that connections beyond the minimum pool size should remain in the pool. "
+          + "This should always be less than than the value returned from `server.jdbc.connection-pool.max-idle-time`. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.max-idle-time-excess", 0);
 
   /**
-   *
+   * The number of {@link TimeUnit#SECONDS} in between testing each idle
+   * connection in the connection pool for validity. Only used with
+   * {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The number of seconds in between testing each idle connection in the connection pool for validity. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.idle-test-interval", 7200);
 
   /**
-   *
+   * The number of times connections should be retried to be acquired from
+   * the database before giving up. Only used with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The number of times connections should be retried to be acquired from the database before giving up. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.acquisition-retry-attempts", 30);
 
   /**
-   *
+   * The delay in {@link TimeUnit#MILLISECONDS} between connection acquisition
+   * attempts. Only used with {@link ConnectionPoolType#C3P0}.
    */
+  @Markdown(
+      relatedTo = "server.jdbc.connection-pool",
+      description = "The delay, in milliseconds, between connection acquisition attempts. Only used with c3p0.")
   public static final ConfigurationProperty<Integer> SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = new ConfigurationProperty<>(
       "server.jdbc.connection-pool.acquisition-retry-delay", 1000);
 
   /**
-   *
+   * The number of retry attempts for failed API and blueprint operations.
    */
+  @Markdown(description = "The number of retry attempts for failed API and blueprint operations.")
   public static final ConfigurationProperty<Integer> OPERATIONS_RETRY_ATTEMPTS = new ConfigurationProperty<>(
       "server.operations.retry-attempts", 0);
 
   /**
-   *
+   * The user name for connecting to the database which stores RCA information.
    */
+  @Deprecated
+  @Markdown(description = "The user name for connecting to the database which stores RCA information.")
   public static final ConfigurationProperty<String> SERVER_JDBC_RCA_USER_NAME = new ConfigurationProperty<>(
       "server.jdbc.rca.user.name", "mapred");
 
   /**
-   *
+   * The password for the user when connecting to the database which stores RCA information.
    */
+  @Deprecated
+  @Markdown(description = "The password for the user when connecting to the database which stores RCA information.")
   public static final ConfigurationProperty<String> SERVER_JDBC_RCA_USER_PASSWD = new ConfigurationProperty<>(
       "server.jdbc.rca.user.passwd", "mapred");
 
   /**
-   *
+   * The PostgresSQL driver name for the RCA database.
    */
+  @Deprecated
+  @Markdown(description = "The PostgresSQL driver name for the RCA database.")
   public static final ConfigurationProperty<String> SERVER_JDBC_RCA_DRIVER = new ConfigurationProperty<>(
       "server.jdbc.rca.driver", "org.postgresql.Driver");
 
   /**
-   *
+   * The full JDBC URL for connecting to the RCA database.
    */
+  @Deprecated
+  @Markdown(description = "The full JDBC URL for connecting to the RCA database.")
   public static final ConfigurationProperty<String> SERVER_JDBC_RCA_URL = new ConfigurationProperty<>(
       "server.jdbc.rca.url", "jdbc:postgresql://" + HOSTNAME_MACRO + "/ambarirca");
 
   /**
-   *
+   * The table generation strategy to use when initializing JPA.
    */
+  @Markdown(description = "The table generation strategy to use when initializing JPA.")
   public static final ConfigurationProperty<JPATableGenerationStrategy> SERVER_JDBC_GENERATE_TABLES = new ConfigurationProperty<>(
       "server.jdbc.generateTables", JPATableGenerationStrategy.NONE);
 
   /**
-   *
+   * The OS family for the cluster.
    */
+  @Markdown(
+      examples = { "redhat", "ubuntu" },
+      description = "The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.")
   public static final ConfigurationProperty<String> OS_FAMILY = new ConfigurationProperty<>(
       "server.os_family", "");
 
   /**
-   *
+   * The OS version for the cluster.
    */
+  @Markdown(
+      examples = { "6", "7" },
+      description = "The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.")
   public static final ConfigurationProperty<String> OS_VERSION = new ConfigurationProperty<>(
       "server.os_type", "");
 
   /**
-   *
+   * The location on the Ambari Server of the file which is used for mapping host names.
    */
+  @Markdown(description = "The location on the Ambari Server of the file which is used for mapping host names.")
   public static final ConfigurationProperty<String> SRVR_HOSTS_MAPPING = new ConfigurationProperty<>(
       "server.hosts.mapping", null);
 
   /**
-   *
+   * The location of the truststore to use when setting the
+   * {@link #JAVAX_SSL_TRUSTSTORE} property.
    */
+  @Markdown(description = "The location of the truststore to use when setting the `javax.net.ssl.trustStore` property.")
   public static final ConfigurationProperty<String> SSL_TRUSTSTORE_PATH = new ConfigurationProperty<>(
       "ssl.trustStore.path", null);
 
   /**
-   *
+   * The password to use when setting the {@link #JAVAX_SSL_TRUSTSTORE_PASSWORD}
+   * property.
    */
+  @Markdown(description = "The password to use when setting the `javax.net.ssl.trustStorePassword` property")
   public static final ConfigurationProperty<String> SSL_TRUSTSTORE_PASSWORD = new ConfigurationProperty<>(
       "ssl.trustStore.password", null);
 
   /**
-   *
+   * The type of truststore used by the {@link JAVAX_SSL_TRUSTSTORE_TYPE} property.
    */
+  @Markdown(description = "The type of truststore used by the `javax.net.ssl.trustStoreType` property.")
   public static final ConfigurationProperty<String> SSL_TRUSTSTORE_TYPE = new ConfigurationProperty<>(
       "ssl.trustStore.type", null);
 
   /**
-   *
+   * The location on the Ambari Server of the master key file.
    */
+  @Markdown(description = "The location on the Ambari Server of the master key file. This is the key to the master keystore.")
   public static final ConfigurationProperty<String> MASTER_KEY_LOCATION = new ConfigurationProperty<>(
       "security.master.key.location", null);
 
   /**
-   *
+   * The location on the Ambari Server of the master keystore file.
    */
+  @Markdown(description = "The location on the Ambari Server of the master keystore file.")
   public static final ConfigurationProperty<String> MASTER_KEYSTORE_LOCATION = new ConfigurationProperty<>(
       "security.master.keystore.location", null);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MINUTES}, that the temporary, in-memory
+   * credential store retains values.
    */
+  @Markdown(description = "The time, in minutes, that the temporary, in-memory credential store retains values.")
   public static final ConfigurationProperty<Long> TEMPORARYSTORE_RETENTION_MINUTES = new ConfigurationProperty<>(
       "security.temporary.keystore.retention.minutes", 90L);
 
   /**
-   *
+   * Determines whether the temporary keystore should have keys actively purged
+   * on a fixed internal, or only when requested after expiration.
    */
+  @Markdown(description = "Determines whether the temporary keystore should have keys actively purged on a fixed internal. or only when requested after expiration.")
   public static final ConfigurationProperty<Boolean> TEMPORARYSTORE_ACTIVELY_PURGE = new ConfigurationProperty<>(
       "security.temporary.keystore.actibely.purge", Boolean.TRUE);
 
@@ -1175,48 +1549,58 @@ public class Configuration {
    * The URL to use when creating messages which should include the Ambari
    * Server URL.
    */
+  @Markdown(
+      examples = {"http://ambari.apache.org:8080"},
+      description = "The URL to use when creating messages which should include the Ambari Server URL.")
   public static final ConfigurationProperty<String> AMBARI_DISPLAY_URL = new ConfigurationProperty<>(
       "ambari.display.url", null);
 
   /**
    * Key for repo validation suffixes.
    */
+  @Markdown(description = "The suffixes to use when validating Ubuntu repositories.")
   public static final ConfigurationProperty<String> REPO_SUFFIX_KEY_UBUNTU = new ConfigurationProperty<>(
       "repo.validation.suffixes.ubuntu", "/dists/%s/Release");
 
   /**
-   *
+   * The key for validating non-Ubuntu repository.
    */
+  @Markdown(description = "The suffixes to use when validating most types of repositories.")
   public static final ConfigurationProperty<String> REPO_SUFFIX_KEY_DEFAULT = new ConfigurationProperty<>(
       "repo.validation.suffixes.default", "/repodata/repomd.xml");
 
   /**
-   *
+   * Determines whether the Quartz rolling restart jobstore is clustered.
    */
+  @Markdown(description = "Determines whether Quartz will use a clustered job scheduled when performing scheduled actions like rolling restarts.")
   public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_CLUSTERED = new ConfigurationProperty<>(
       "server.execution.scheduler.isClustered", "false");
 
   /**
-   *
+   * The number of threads that the Quartz job scheduler will use.
    */
+  @Markdown(description = "The number of threads that the Quartz job scheduler will use when executing scheduled jobs.")
   public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_THREADS = new ConfigurationProperty<>(
       "server.execution.scheduler.maxThreads", "5");
 
   /**
-   *
+   * The number of concurrent database connections that the Quartz job scheduler can use.
    */
+  @Markdown(description = "The number of concurrent database connections that the Quartz job scheduler can use.")
   public static final ConfigurationProperty<String> EXECUTION_SCHEDULER_CONNECTIONS = new ConfigurationProperty<>(
       "server.execution.scheduler.maxDbConnections", "5");
 
   /**
-   *
+   * The tolerance, in {@link TimeUnit#MINUTES}, that Quartz will allow a misfired job to run.
    */
+  @Markdown(description = "The time, in minutes, that a scheduled job can be run after its missed scheduled execution time.")
   public static final ConfigurationProperty<Long> EXECUTION_SCHEDULER_MISFIRE_TOLERATION = new ConfigurationProperty<>(
       "server.execution.scheduler.misfire.toleration.minutes", 480L);
 
   /**
-   *
+   * The delay, in {@link TimeUnit#SECONDS}, that a Quartz job must wait before it starts.
    */
+  @Markdown(description = "The delay, in seconds, that a Quartz job must wait before it starts.")
   public static final ConfigurationProperty<Integer> EXECUTION_SCHEDULER_START_DELAY = new ConfigurationProperty<>(
       "server.execution.scheduler.start.delay.seconds", 120);
 
@@ -1224,18 +1608,21 @@ public class Configuration {
    * The time that the executions schduler will wait before checking for new
    * commands to schedule. Measure in {@link TimeUnit#SECONDS}.
    */
+  @Markdown(description = "The time, in seconds, that the Quartz execution scheduler will wait before checking for new commands to schedule, such as rolling restarts.")
   public static final ConfigurationProperty<Long> EXECUTION_SCHEDULER_WAIT = new ConfigurationProperty<>(
       "server.execution.scheduler.wait", 1L);
 
   /**
-   *
+   * The location on the Ambari Server where temporary artifacts can be created.
    */
+  @Markdown(description = "The location on the Ambari Server where temporary artifacts can be created.")
   public static final ConfigurationProperty<String> SERVER_TMP_DIR = new ConfigurationProperty<>(
       "server.tmp.dir", AmbariPath.getPath("/var/lib/ambari-server/tmp"));
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, until an external script is killed.
    */
+  @Markdown(description = "The time, in milliseconds, until an external script is killed.")
   public static final ConfigurationProperty<Integer> EXTERNAL_SCRIPT_TIMEOUT = new ConfigurationProperty<>(
       "server.script.timeout", 5000);
 
@@ -1243,59 +1630,103 @@ public class Configuration {
   public static final String DEF_ARCHIVE_CONTENT_TYPE;
 
   /**
-   *
+   * The port used to communicate with the Kerberos Key Distribution Center.
    */
+  @Markdown(description = "The port used to communicate with the Kerberos Key Distribution Center.")
   public static final ConfigurationProperty<String> KDC_PORT = new ConfigurationProperty<>(
       "default.kdcserver.port", "88");
 
   /**
-   *
+   * The timeout, in {@link TimeUnit#MILLISECONDS}, to wait when communicating
+   * with a Kerberos Key Distribution Center.
    */
+  @Markdown(description = "The timeout, in milliseconds, to wait when communicating with a Kerberos Key Distribution Center.")
   public static final ConfigurationProperty<Integer> KDC_CONNECTION_CHECK_TIMEOUT = new ConfigurationProperty<>(
       "kdcserver.connection.check.timeout", 10000);
 
   /**
-   *
+   * The location on the Ambari Server where kerberos keytabs are cached.
    */
+  @Markdown(description = "The location on the Ambari Server where Kerberos keytabs are cached.")
   public static final ConfigurationProperty<String> KERBEROSTAB_CACHE_DIR = new ConfigurationProperty<>(
       "kerberos.keytab.cache.dir", AmbariPath.getPath("/var/lib/ambari-server/data/cache"));
 
   /**
-   *
+   * Determines whether Kerberos-enabled Ambari deployments should use JAAS to
+   * validate login credentials.
    */
+  @Markdown(description = "Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials.")
   public static final ConfigurationProperty<Boolean> KERBEROS_CHECK_JAAS_CONFIGURATION = new ConfigurationProperty<>(
       "kerberos.check.jaas.configuration", Boolean.FALSE);
 
   /**
-   *
+   * The type of automatic recovery of failed services and components to use.
    */
+  @Markdown(
+      examples = {"DEFAULT", "AUTO_START", "FULL"},
+      description = "The type of automatic recovery of failed services and components to use.")
   public static final ConfigurationProperty<String> RECOVERY_TYPE = new ConfigurationProperty<>(
       "recovery.type", null);
 
   /**
-   *
+   * The maximum number of recovery attempts of a failed component during the lifetime
+   * of an Ambari Agent instance. This is reset when the Ambari Agent is
+   * restarted.
    */
+  @Markdown(
+      description = "The maximum number of recovery attempts of a failed component during the lifetime of an Ambari Agent instance. "
+      + "This is reset when the Ambari Agent is restarted.")
   public static final ConfigurationProperty<String> RECOVERY_LIFETIME_MAX_COUNT = new ConfigurationProperty<>(
       "recovery.lifetime_max_count", null);
 
+  /**
+   * The maximum number of recovery attempts of a failed component during a
+   * specified recovery window.
+   */
+  @Markdown(description = "The maximum number of recovery attempts of a failed component during a specified recovery window.")
   public static final ConfigurationProperty<String> RECOVERY_MAX_COUNT = new ConfigurationProperty<>(
       "recovery.max_count", null);
 
+  /**
+   * The length of a recovery window, in {@link TimeUnit#MINUTES}, in which
+   * recovery attempts can be retried.
+   */
+  @Markdown(
+      relatedTo = "recovery.max_count",
+      description = "The length of a recovery window, in minutes, in which recovery attempts can be retried.")
   public static final ConfigurationProperty<String> RECOVERY_WINDOW_IN_MIN = new ConfigurationProperty<>(
       "recovery.window_in_minutes", null);
 
+  /**
+   * The delay, in {@link TimeUnit#MINUTES}, between automatic retry windows.
+   */
+  @Markdown(description = "The delay, in minutes, between automatic retry windows.")
   public static final ConfigurationProperty<String> RECOVERY_RETRY_GAP = new ConfigurationProperty<>(
       "recovery.retry_interval", null);
 
+  /**
+   * A comma-separated list of component names which are not included in automatic recovery attempts.
+   */
+  @Markdown(
+      examples = {"NAMENODE,ZOOKEEPER_SERVER"},
+      description = "A comma-separated list of component names which are not included in automatic recovery attempts.")
   public static final ConfigurationProperty<String> RECOVERY_DISABLED_COMPONENTS = new ConfigurationProperty<>(
       "recovery.disabled_components", null);
 
+  /**
+   * A comma-separated list of component names which are included in automatic
+   * recovery attempts.
+   */
+  @Markdown(
+    examples = {"NAMENODE,ZOOKEEPER_SERVER"},
+    description = "A comma-separated list of component names which are included in automatic recovery attempts.")
   public static final ConfigurationProperty<String> RECOVERY_ENABLED_COMPONENTS = new ConfigurationProperty<>(
       "recovery.enabled_components", null);
 
   /**
    * Allow proxy calls to these hosts and ports only
    */
+  @Markdown(description = "A comma-separated whitelist of host and port values which Ambari Server can use to determine if a proxy value is valid.")
   public static final ConfigurationProperty<String> PROXY_ALLOWED_HOST_PORTS = new ConfigurationProperty<>(
       "proxy.allowed.hostports", "*:*");
 
@@ -1304,18 +1735,22 @@ public class Configuration {
    * parallel or sequentally. Only stages from different requests
    * running on not interfering host sets may be executed in parallel.
    */
+  @Markdown(description = "Determines whether operations in different execution requests can be run concurrently.")
   public static final ConfigurationProperty<Boolean> PARALLEL_STAGE_EXECUTION = new ConfigurationProperty<>(
       "server.stages.parallel", Boolean.TRUE);
 
   /**
-   *
+   * The time, in {@link TimeUnit#SECONDS}, before agent commands are killed.
+   * This does not include package installation commands.
    */
+  @Markdown(description = "The time, in seconds, before agent commands are killed. This does not include package installation commands.")
   public static final ConfigurationProperty<Long> AGENT_TASK_TIMEOUT = new ConfigurationProperty<>(
       "agent.task.timeout", 900L);
 
   /**
-   *
+   * The time, in {@link TimeUnit#SECONDS}, before package installation commands are killed.
    */
+  @Markdown(description = "The time, in seconds, before package installation commands are killed.")
   public static final ConfigurationProperty<Long> AGENT_PACKAGE_INSTALL_TASK_TIMEOUT = new ConfigurationProperty<>(
       "agent.package.install.task.timeout", 1800L);
 
@@ -1324,32 +1759,37 @@ public class Configuration {
    * This limitation is used for tasks that when executed in a 1000+ node cluster,
    * may DDOS servers providing downloadable resources
    */
+  @Markdown(description = "The maximum number of tasks which can run within a single operational request. If there are more tasks, then they will be broken up between multiple operations.")
   public static final ConfigurationProperty<Integer> AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT = new ConfigurationProperty<>(
       "agent.package.parallel.commands.limit", 100);
 
   /**
    * Server side task (default) timeout value
    */
+  @Markdown(description = "The time, in seconds, before a server-side operation is terminated.")
   public static final ConfigurationProperty<Integer> SERVER_TASK_TIMEOUT = new ConfigurationProperty<>(
       "server.task.timeout", 1200);
 
   /**
-   *
+   * The location on the Ambari Server where custom actions are defined.
    */
+  @Markdown(description = "The location on the Ambari Server where custom actions are defined.")
   public static final ConfigurationProperty<String> CUSTOM_ACTION_DEFINITION = new ConfigurationProperty<>(
       "custom.action.definitions",
       AmbariPath.getPath("/var/lib/ambari-server/resources/custom_action_definitions"));
 
   /**
-   *
+   * The location on the Ambari Server where resources are stored. This is exposed via HTTP in order for Ambari Agents to access them.
    */
+  @Markdown(description = "The location on the Ambari Server where resources are stored. This is exposed via HTTP in order for Ambari Agents to access them.")
   public static final ConfigurationProperty<String> SHARED_RESOURCES_DIR = new ConfigurationProperty<>(
       "shared.resources.dir",
       AmbariPath.getPath("/usr/lib/ambari-server/lib/ambari_commons/resources"));
 
   /**
-   *
+   * The name of the user given to requests which are executed without any credentials.
    */
+  @Markdown(description = "The name of the user given to requests which are executed without any credentials.")
   public static final ConfigurationProperty<String> ANONYMOUS_AUDIT_NAME = new ConfigurationProperty<>(
       "anonymous.audit.name", "_anonymous");
 
@@ -1358,12 +1798,14 @@ public class Configuration {
    * It is possible the some nodes are sys prepped and some are not. This can be enabled later
    * by agent over-writing global indicator from ambari-server
    */
+  @Markdown(description = "Determines whether Ambari Agent instances have already have the necessary stack software installed")
   public static final ConfigurationProperty<String> SYS_PREPPED_HOSTS = new ConfigurationProperty<>(
       "packages.pre.installed", "false");
 
   /**
-   *
+   * Determines if the request generated by a blueprint should include the package installation tasks.
    */
+  @Markdown(description = "Determines if the request generated by a blueprint should include the package installation tasks.")
   public static final ConfigurationProperty<Boolean> BLUEPRINT_SKIP_INSTALL_TASKS = new ConfigurationProperty<>(
       "blueprint.skip_install_tasks", Boolean.FALSE);
 
@@ -1373,75 +1815,117 @@ public class Configuration {
   private static final String LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT = "";
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that agent connections can remain open and idle.
    */
+  @Markdown(description = "The time, in milliseconds, that Ambari Agent connections can remain open and idle.")
   public static final ConfigurationProperty<Integer> SERVER_CONNECTION_MAX_IDLE_TIME = new ConfigurationProperty<>(
       "server.connection.max.idle.millis", 900000);
 
   /**
-   *
+   * The size of the Jetty connection pool used for handling incoming REST API requests.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.JETTY_THREAD_POOL,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "25"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "35"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "50"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "65") },
+      markdown = @Markdown(description = "The size of the Jetty connection pool used for handling incoming REST API requests. This should be large enough to handle requests from both web browsers and embedded Views."))
   public static final ConfigurationProperty<Integer> CLIENT_THREADPOOL_SIZE = new ConfigurationProperty<>(
       "client.threadpool.size.max", 25);
 
   /**
-   *
+   * The size of the Jetty connection pool used for handling incoming Ambari
+   * Agent requests.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.JETTY_THREAD_POOL,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "25"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "35"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "75"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "100") },
+      markdown = @Markdown(description = "The size of the Jetty connection pool used for handling incoming Ambari Agent requests."))
   public static final ConfigurationProperty<Integer> AGENT_THREADPOOL_SIZE = new ConfigurationProperty<>(
       "agent.threadpool.size.max", 25);
 
   /**
-   *
+   * The maximum number of threads used to extract Ambari Views when Ambari
+   * Server is starting up.
    */
+  @Markdown(description = "The maximum number of threads used to extract Ambari Views when Ambari Server is starting up.")
   public static final ConfigurationProperty<Integer> VIEW_EXTRACTION_THREADPOOL_MAX_SIZE = new ConfigurationProperty<>(
       "view.extraction.threadpool.size.max", 20);
 
   /**
-   *
+   * The number of threads used to extract Ambari Views when Ambari Server is
+   * starting up.
    */
+  @Markdown(description = "The number of threads used to extract Ambari Views when Ambari Server is starting up.")
   public static final ConfigurationProperty<Integer> VIEW_EXTRACTION_THREADPOOL_CORE_SIZE = new ConfigurationProperty<>(
       "view.extraction.threadpool.size.core", 10);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that non-core threads will live
+   * when extraction views on Ambari Server startup.
    */
+  @Markdown(description = "The time, in milliseconds, that non-core threads will live when extraction views on Ambari Server startup.")
   public static final ConfigurationProperty<Long> VIEW_EXTRACTION_THREADPOOL_TIMEOUT = new ConfigurationProperty<>(
       "view.extraction.threadpool.timeout", 100000L);
 
   /**
-   *
+   * The maximum number of threads which will be allocated to handling REST API
+   * requests from embedded views. This value should be smaller than
+   * {@link #AGENT_THREADPOOL_SIZE}.
    */
+  @Markdown(
+      relatedTo = "agent.threadpool.size.max",
+      description = "The maximum number of threads which will be allocated to handling REST API requests from embedded views. This value should be smaller than `agent.threadpool.size.max`")
   public static final ConfigurationProperty<Integer> VIEW_REQUEST_THREADPOOL_MAX_SIZE = new ConfigurationProperty<>(
       "view.request.threadpool.size.max", 0);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that REST API requests from
+   * embedded views can wait if the view threadpool size is currently exhausted.
+   * Setting this value too low can result in errors loading views.
    */
+  @Markdown(description = "The time, milliseconds, that REST API requests from embedded views can wait if there are no threads available to service the view's request. "
+      + "Setting this too low can cause views to timeout.")
   public static final ConfigurationProperty<Integer> VIEW_REQUEST_THREADPOOL_TIMEOUT = new ConfigurationProperty<>(
       "view.request.threadpool.timeout", 2000);
 
   /**
-   *
+   * The maximum number of threads that will be used to retrieve data from
+   * {@link PropertyProvider}s such as remote JMX endpoints.
    */
+  @Markdown(description = "The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints.")
   public static final ConfigurationProperty<Integer> PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE = new ConfigurationProperty<>(
       "server.property-provider.threadpool.size.max", PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT);
 
   /**
-   *
+   * The core number of threads that will be used to retrieve data from
+   * {@link PropertyProvider}s, such as remote JMX endpoints.
    */
+  @Markdown(description = "The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints.")
   public static final ConfigurationProperty<Integer> PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE = new ConfigurationProperty<>(
       "server.property-provider.threadpool.size.core",
       PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT);
 
   /**
-   *
+   * The maximum size of pending {@link PropertyProvider} requests which can be
+   * queued before rejecting new requests.
    */
+  @Markdown(description = "The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests.")
   public static final ConfigurationProperty<Integer> PROPERTY_PROVIDER_THREADPOOL_WORKER_QUEUE_SIZE = new ConfigurationProperty<>(
       "server.property-provider.threadpool.worker.size", Integer.MAX_VALUE);
 
   /**
-   *
+   * The maximum time, in {@link TimeUnit#MILLISECONDS}, that a synchronous
+   * request to a {@link PropertyProvider} can run before being terminated.
    */
+  @Markdown(description = "The maximum time, in milliseconds, that federated requests for data can execute before being terminated. "
+      + "Increasing this value could result in degraded performanc from the REST APIs.")
   public static final ConfigurationProperty<Long> PROPERTY_PROVIDER_THREADPOOL_COMPLETION_TIMEOUT = new ConfigurationProperty<>(
       "server.property-provider.threadpool.completion.timeout", 5000L);
 
@@ -1449,66 +1933,98 @@ public class Configuration {
    * The time, in {@link TimeUnit#SECONDS}, that HTTP requests remain valid when
    * inactive.
    */
+  @Markdown(description = "The time, in seconds, that open HTTP sessions will remain valid while they are inactive.")
   public static final ConfigurationProperty<Integer> SERVER_HTTP_SESSION_INACTIVE_TIMEOUT = new ConfigurationProperty<>(
       "server.http.session.inactive_timeout", 1800);
 
   /**
-   *
+   * Determines whether Ambari Metric data is cached.
    */
+  @Markdown(description = "Determines whether Ambari Metric data is cached.")
   public static final ConfigurationProperty<Boolean> TIMELINE_METRICS_CACHE_DISABLE = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.disabled", Boolean.FALSE);
 
   /**
-   *
+   * The time, in {@link TimeUnit#SECONDS}, that Ambari Metric timeline data is cached by Ambari Server.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in seconds, that Ambari Metric timeline data is cached by Ambari Server.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_TTL = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.entry.ttl.seconds", 3600);
 
   /**
-   *
+   * The time, in {@link TimeUnit#SECONDS}, that Ambari Metric data can remain in the cache without being accessed.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in seconds, that Ambari Metric data can remain in the cache without being accessed.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_CACHE_IDLE_TIME = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.entry.idle.seconds", 1800);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that initial requests made to
+   * Ambari Metrics will wait while reading from the socket before timing out.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in milliseconds, that initial requests to populate metric data will wait while reading from Ambari Metrics.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_READ_TIMEOUT = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.read.timeout.millis", 10000);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that cache update requests made to
+   * Ambari Metrics will wait while reading from the socket before timing out.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in milliseconds, that requests to update stale metric data will wait while reading from Ambari Metrics. "
+          + "This allows for greater control by allowing stale values to be returned instead of waiting for Ambari Metrics to always populate responses with the latest data.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_INTERVAL_READ_TIMEOUT = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.interval.read.timeout.millis", 10000);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, to wait while attempting to connect to Ambari Metrics.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in milliseconds, to wait while attempting to connect to Ambari Metrics.")
   public static final ConfigurationProperty<Integer> TIMELINE_METRICS_REQUEST_CONNECT_TIMEOUT = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.connect.timeout.millis", 5000);
 
   /**
-   *
+   * The time, in {@link TimeUnit#MILLISECONDS}, that Ambari Metrics intervals should use when
+   * extending the boundaries of the original request.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.")
   public static final ConfigurationProperty<Long> TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.catchup.interval", 300000L);
 
   /**
-   *
+   * The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "The amount of heap on the Ambari Server dedicated to the caching values from Ambari Metrics. Measured as part of the total heap of Ambari Server.")
   public static final ConfigurationProperty<String> TIMELINE_METRICS_CACHE_HEAP_PERCENT = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.heap.percent", "15%");
 
   /**
-   *
+   * Determines if a custom engine should be used to increase performance of
+   * calculating the current size of the cache for Ambari Metric data.
    */
+  @Markdown(
+      relatedTo = "server.timeline.metrics.cache.disabled",
+      description = "Determines if a custom engine should be used to increase performance of calculating the current size of the cache for Ambari Metric data.")
   public static final ConfigurationProperty<Boolean> TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE = new ConfigurationProperty<>(
       "server.timeline.metrics.cache.use.custom.sizing.engine", Boolean.TRUE);
 
   /**
    * Timeline Metrics SSL settings
    */
+  @Markdown(description = "Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data.")
   public static final ConfigurationProperty<Boolean> AMBARI_METRICS_HTTPS_ENABLED = new ConfigurationProperty<>(
       "server.timeline.metrics.https.enabled", Boolean.FALSE);
 
@@ -1516,6 +2032,9 @@ public class Configuration {
    * Governs the use of {@link Parallel} to process {@link StageEntity}
    * instances into {@link Stage}.
    */
+  @Markdown(
+      internal = true,
+      description = "Determines whether to allow stages retrieved from the database to be processed by multiple threads.")
   public static final ConfigurationProperty<Boolean> EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED = new ConfigurationProperty<>(
       "experimental.concurrency.stage_processing.enabled", Boolean.FALSE);
 
@@ -1529,6 +2048,15 @@ public class Configuration {
   /**
    * The maximum number of threads which will handle published alert events.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "2"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "2"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "4"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "4") },
+      markdown = @Markdown(
+          description = "The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases."))
   public static final ConfigurationProperty<Integer> ALERTS_EXECUTION_SCHEDULER_THREADS = new ConfigurationProperty<>(
       "alerts.execution.scheduler.maxThreads", 2);
 
@@ -1536,6 +2064,16 @@ public class Configuration {
    * If {@code true} then alert information is cached and not immediately
    * persisted in the database.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "false" ),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "false"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "false"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "true") },
+      markdown = @Markdown(
+          description = "Determines whether current alerts should be cached. "
+              + "Enabling this can increase performance on large cluster, but can also result in lost alert data if the cache is not flushed frequently."))
   public static final ConfigurationProperty<Boolean> ALERTS_CACHE_ENABLED = new ConfigurationProperty<>(
       "alerts.cache.enabled", Boolean.FALSE);
 
@@ -1543,87 +2081,135 @@ public class Configuration {
    * The time after which cached alert information is flushed to the database.
    * Measure in {@link TimeUnit#MINUTES}.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "10" ),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "10"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "10"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "10") },
+      markdown = @Markdown(
+          relatedTo = "alerts.cache.enabled",
+          description = "The time, in minutes, after which cached alert information is flushed to the database"))
   public static final ConfigurationProperty<Integer> ALERTS_CACHE_FLUSH_INTERVAL = new ConfigurationProperty<>(
       "alerts.cache.flush.interval", 10);
 
   /**
    * The size of the alert cache.
    */
+  @ConfigurationMarkdown(
+      group = ConfigurationGrouping.ALERTS,
+      scaleValues = {
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_10, value = "50000" ),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_50, value = "50000"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_100, value = "100000"),
+          @ClusterScale(clusterSize = ClusterSizeType.HOSTS_500, value = "100000") },
+      markdown = @Markdown(
+          relatedTo = "alerts.cache.enabled",
+          description = "The size of the alert cache."))
   public static final ConfigurationProperty<Integer> ALERTS_CACHE_SIZE = new ConfigurationProperty<>(
       "alerts.cache.size", 50000);
 
+  /**
+   * When using SSL, this will be used to set the {@code Strict-Transport-Security} response header.
+   */
+  @Markdown(description = "When using SSL, this will be used to set the `Strict-Transport-Security` response header.")
   public static final ConfigurationProperty<String> HTTP_STRICT_TRANSPORT_HEADER_VALUE = new ConfigurationProperty<>(
       "http.strict-transport-security", "max-age=31536000");
 
   /**
-   *
+   * The value that will be used to set the {@code X-Frame-Options} HTTP response header.
    */
+  @Markdown(description = "The value that will be used to set the `X-Frame-Options` HTTP response header.")
   public static final ConfigurationProperty<String> HTTP_X_FRAME_OPTIONS_HEADER_VALUE = new ConfigurationProperty<>(
       "http.x-frame-options", "DENY");
 
   /**
-   *
+   * The value that will be used to set the {@code X-XSS-Protection} HTTP response header.
    */
+  @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header.")
   public static final ConfigurationProperty<String> HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "http.x-xss-protection", "1; mode=block");
 
   /**
-   *
+   * The value that will be used to set the {@code Strict-Transport-Security}
+   * HTTP response header for Ambari View requests.
    */
+  @Markdown(description = "The value that will be used to set the `Strict-Transport-Security` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.strict-transport-security", "max-age=31536000");
 
   /**
+   * The value that will be used to set the {@code X-Frame-Options}
+   * HTTP response header for Ambari View requests.
    *
    */
+  @Markdown(description = "The value that will be used to set the `X-Frame-Options` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-frame-options", "SAMEORIGIN");
 
   /**
-   *
+   * The value that will be used to set the {@code X-XSS-Protection}
+   * HTTP response header for Ambari View requests.
    */
+  @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
 
   /**
-   * The connection timeout for reading version definitions.
+   * The time, in milliseconds, that requests to connect to a URL to retrieve
+   * Version Definition Files (VDF) will wait before being terminated.
    */
+  @Markdown(description = "The time, in milliseconds, that requests to connect to a URL to retrieve Version Definition Files (VDF) will wait before being terminated.")
   public static final ConfigurationProperty<Integer> VERSION_DEFINITION_CONNECT_TIMEOUT = new ConfigurationProperty<>(
       "server.version_definition.connect.timeout.millis", 5000);
 
   /**
-   * The read timeout for reading version definitions.
+   * The time, in milliseconds, that requests to read from a connected URL to retrieve
+   * Version Definition Files (VDF) will wait before being terminated.
    */
+  @Markdown(description = "The time, in milliseconds, that requests to read from a connected URL to retrieve Version Definition Files (VDF) will wait before being terminated.")
   public static final ConfigurationProperty<Integer> VERSION_DEFINITION_READ_TIMEOUT = new ConfigurationProperty<>(
       "server.version_definition.read.timeout.millis", 5000);
 
   /**
-   *
+   * Determines whether agents should retrying installation commands when the
+   * repository is not available.
    */
+  @Markdown(description = "Determines whether agents should retrying installation commands when the repository is not available. "
+      + "This can prevent false installation errors with repositories that are sporadically inaccessible.")
   public static final ConfigurationProperty<Boolean> AGENT_STACK_RETRY_ON_REPO_UNAVAILABILITY = new ConfigurationProperty<>(
       "agent.stack.retry.on_repo_unavailability", Boolean.FALSE);
 
   /**
-   *
+   * The number of times an Ambari Agent should retry package installation when it fails due to a repository error.
    */
+  @Markdown(
+      relatedTo = "agent.stack.retry.on_repo_unavailability",
+      description = "The number of times an Ambari Agent should retry package installation when it fails due to a repository error. ")
   public static final ConfigurationProperty<Integer> AGENT_STACK_RETRY_COUNT = new ConfigurationProperty<>(
       "agent.stack.retry.tries", 5);
 
   /**
-   * Main switch for audit log feature
+   * Determines whether audit logging is enabled.
    */
+  @Markdown(description = "Determines whether audit logging is enabled.")
   public static final ConfigurationProperty<Boolean> AUDIT_LOG_ENABLED = new ConfigurationProperty<>(
       "auditlog.enabled", Boolean.TRUE);
 
   /**
-   * Audit logger capacity
+   * The size of the worker queue for audit logger events.
    */
+  @Markdown(
+      relatedTo = "auditlog.enabled",
+      description = "The size of the worker queue for audit logger events.")
   public static final ConfigurationProperty<Integer> AUDIT_LOGGER_CAPACITY = new ConfigurationProperty<>(
       "auditlog.logger.capacity", 10000);
 
   /**
-   *
+   * The UDP port to use when binding the SNMP dispatcher on Ambari Server startup.
    */
+  @Markdown(description = "The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used.")
   public static final ConfigurationProperty<String> ALERTS_SNMP_DISPATCH_UDP_PORT = new ConfigurationProperty<>(
       "alerts.snmp.dispatcher.udp.port", null);
 
@@ -1631,6 +2217,7 @@ public class Configuration {
    * The amount of time, in {@link TimeUnit#MINUTES}, that the
    * {@link MetricsRetrievalService} will cache retrieved metric data.
    */
+  @Markdown(description = "The amount of time, in minutes, that JMX and REST metrics retrieved directly can remain in the cache.")
   public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_CACHE_TIMEOUT = new ConfigurationProperty<>(
       "metrics.retrieval-service.cache.timeout", 30);
 
@@ -1639,6 +2226,7 @@ public class Configuration {
    * {@link MetricsRetrievalService}. This is a value in between
    * {@link Thread#MIN_PRIORITY} and {@link Thread#MAX_PRIORITY}.
    */
+  @Markdown(description = "The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints.")
   public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_THREAD_PRIORITY = new ConfigurationProperty<>(
       "server.metrics.retrieval-service.thread.priority", Thread.NORM_PRIORITY);
 
@@ -1648,6 +2236,7 @@ public class Configuration {
    * {@link #METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE} is small
    * enough to trigger the {@link ThreadPoolExecutor} to create new threads.
    */
+  @Markdown(description = "The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints.")
   public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_THREADPOOL_MAX_SIZE = new ConfigurationProperty<>(
       "server.metrics.retrieval-service.threadpool.size.max",
       PROCESSOR_BASED_THREADPOOL_MAX_SIZE_DEFAULT);
@@ -1655,6 +2244,7 @@ public class Configuration {
   /**
    * The core size of the threadpool for the {@link MetricsRetrievalService}.
    */
+  @Markdown(description = "The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints.")
   public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_THREADPOOL_CORE_SIZE = new ConfigurationProperty<>(
       "server.metrics.retrieval-service.threadpool.size.core",
       PROCESSOR_BASED_THREADPOOL_CORE_SIZE_DEFAULT);
@@ -1664,6 +2254,7 @@ public class Configuration {
    * larger this queue is, the less likely it will be to create more threads
    * beyond the core size.
    */
+  @Markdown(description = "The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled.")
   public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_THREADPOOL_WORKER_QUEUE_SIZE = new ConfigurationProperty<>(
       "server.metrics.retrieval-service.threadpool.worker.size",
       10 * METRIC_RETRIEVAL_SERVICE_THREADPOOL_MAX_SIZE.getDefaultValue());
@@ -1673,6 +2264,7 @@ public class Configuration {
    * In the case of more tasks, multiple queries are issued
    * @return
    */
+  @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
   public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
       "task.query.parameterlist.size", 999);
 
@@ -1831,8 +2423,6 @@ public class Configuration {
     configsMap.put(CLIENT_API_SSL_TSTR_NAME.getKey(), getProperty(CLIENT_API_SSL_TSTR_NAME));
     configsMap.put(CLIENT_API_SSL_TSTR_TYPE.getKey(), getProperty(CLIENT_API_SSL_TSTR_TYPE));
     configsMap.put(CLIENT_API_SSL_CRT_PASS_FILE_NAME.getKey(), getProperty(CLIENT_API_SSL_CRT_PASS_FILE_NAME));
-    configsMap.put(CLIENT_API_SSL_KEY_NAME.getKey(),getProperty(CLIENT_API_SSL_KEY_NAME));
-    configsMap.put(CLIENT_API_SSL_CRT_NAME.getKey(), getProperty(CLIENT_API_SSL_CRT_NAME));
     configsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
     configsMap.put(PARALLEL_STAGE_EXECUTION.getKey(), getProperty(PARALLEL_STAGE_EXECUTION));
     configsMap.put(SERVER_TMP_DIR.getKey(), getProperty(SERVER_TMP_DIR));
@@ -1938,6 +2528,12 @@ public class Configuration {
     return properties.getProperty(configurationProperty.getKey(), defaultStringValue);
   }
 
+  /**
+   * Sets the value for the specified {@link ConfigurationProperty}.
+   *
+   * @param configurationProperty the property to set (not {@code null}).
+   * @param value the value to set on the property, or {@code null} for none.
+   */
   public void setProperty(ConfigurationProperty<String> configurationProperty, String value) {
     properties.setProperty(configurationProperty.getKey(), value);
   }
@@ -2710,7 +3306,7 @@ public class Configuration {
     ldapServerProperties.setDnAttribute(getProperty(LDAP_DN_ATTRIBUTE));
     ldapServerProperties.setGroupBase(getProperty(LDAP_GROUP_BASE));
     ldapServerProperties.setGroupObjectClass(getProperty(LDAP_GROUP_OBJECT_CLASS));
-    ldapServerProperties.setGroupMembershipAttr(getProperty(LDAP_GROUP_MEMEBERSHIP_ATTR));
+    ldapServerProperties.setGroupMembershipAttr(getProperty(LDAP_GROUP_MEMBERSHIP_ATTR));
     ldapServerProperties.setGroupNamingAttr(getProperty(LDAP_GROUP_NAMING_ATTR));
     ldapServerProperties.setAdminGroupMappingRules(getProperty(LDAP_ADMIN_GROUP_MAPPING_RULES));
     ldapServerProperties.setAdminGroupMappingMemberAttr(getProperty(LDAP_ADMIN_GROUP_MAPPING_MEMBER_ATTR_DEFAULT));
@@ -2718,15 +3314,15 @@ public class Configuration {
     ldapServerProperties.setAlternateUserSearchFilter(getProperty(LDAP_ALT_USER_SEARCH_FILTER));
     ldapServerProperties.setGroupSearchFilter(getProperty(LDAP_GROUP_SEARCH_FILTER));
     ldapServerProperties.setReferralMethod(getProperty(LDAP_REFERRAL));
-    ldapServerProperties.setSyncUserMemberReplacePattern(getProperty(LDAP_SYCN_USER_MEMBER_REPLACE_PATTERN));
+    ldapServerProperties.setSyncUserMemberReplacePattern(getProperty(LDAP_SYNC_USER_MEMBER_REPLACE_PATTERN));
     ldapServerProperties.setSyncGroupMemberReplacePattern(getProperty(LDAP_SYCN_GROUP_MEMBER_REPLACE_PATTERN));
-    ldapServerProperties.setSyncUserMemberFilter(getProperty(LDAP_SYCN_USER_MEMBER_FILTER));
-    ldapServerProperties.setSyncGroupMemberFilter(getProperty(LDAP_SYCN_GROUP_MEMBER_FILTER));
+    ldapServerProperties.setSyncUserMemberFilter(getProperty(LDAP_SYNC_USER_MEMBER_FILTER));
+    ldapServerProperties.setSyncGroupMemberFilter(getProperty(LDAP_SYNC_GROUP_MEMBER_FILTER));
     ldapServerProperties.setPaginationEnabled(
         Boolean.parseBoolean(getProperty(LDAP_PAGINATION_ENABLED)));
 
     if (properties.containsKey(LDAP_GROUP_BASE) || properties.containsKey(LDAP_GROUP_OBJECT_CLASS)
-        || properties.containsKey(LDAP_GROUP_MEMEBERSHIP_ATTR)
+        || properties.containsKey(LDAP_GROUP_MEMBERSHIP_ATTR)
         || properties.containsKey(LDAP_GROUP_NAMING_ATTR)
         || properties.containsKey(LDAP_ADMIN_GROUP_MAPPING_RULES)
         || properties.containsKey(LDAP_GROUP_SEARCH_FILTER)) {
@@ -4049,51 +4645,148 @@ public class Configuration {
    * Generates a markdown table which includes:
    * <ul>
    * <li>Property key name</li>
-   * <li>Default value</li>
    * <li>Description</li>
+   * <li>Default value</li>
+   * <li>Recommendended baseline values</li>
    * <ul>
    *
    * @param args
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    Set<ConfigurationProperty<?>> orderedProperties = new TreeSet<>();
+    final String OUTPUT_ARGUMENT = "output";
 
-    StringBuilder buffer = new StringBuilder("| Property Name | Default | Description |");
-    buffer.append(System.lineSeparator());
-    buffer.append("| --- | --- | --- |");
-    buffer.append(System.lineSeparator());
+    Options options = new Options();
+    options.addOption(Option.builder().longOpt(OUTPUT_ARGUMENT).desc(
+        "The absolute location of the index.md file to generate").required().type(
+            String.class).hasArg().valueSeparator(' ').build());
 
-    Field[] fields = Configuration.class.getFields();
-    for (Field field : fields) {
+    CommandLineParser parser = new DefaultParser();
+    CommandLine line = parser.parse(options, args);
+    String outputFile = (String) line.getParsedOptionValue(OUTPUT_ARGUMENT);
+
+    // first, sort all of the fields by their keys
+    SortedMap<String, Field> sortedFields = new TreeMap<>();
+    List<Field> fields = new ArrayList<>(500);
+    for (Field field : Configuration.class.getFields()) {
       if (field.getType() != ConfigurationProperty.class) {
         continue;
       }
 
+      fields.add(field);
       ConfigurationProperty<?> configurationProperty = (ConfigurationProperty<?>) field.get(null);
-      orderedProperties.add(configurationProperty);
+      sortedFields.put(configurationProperty.getKey(), field);
     }
 
-    for (ConfigurationProperty<?> configurationProperty : orderedProperties){
-      Markdown markdown = configurationProperty.getClass().getAnnotation(Markdown.class);
+    // build the table header
+    StringBuilder allPropertiesBuffer = new StringBuilder("| Property Name | Description | Default |");
+    allPropertiesBuffer.append(System.lineSeparator());
+    allPropertiesBuffer.append("| --- | --- | --- |");
+    allPropertiesBuffer.append(System.lineSeparator());
 
-      buffer.append("| ");
-      buffer.append(configurationProperty.getKey());
-      buffer.append(" | ");
-      buffer.append(configurationProperty.getDefaultValue());
-      buffer.append(" | ");
-
-      String description = StringUtils.EMPTY;
-      if (markdown != null && StringUtils.isNotBlank(markdown.description())) {
-        description = markdown.description();
+    // now that the keys are ordered, generate  the bulk of the Markdown - the property table
+    for (String fieldKey : sortedFields.keySet()) {
+      // see which annotation the element has - we only care about the base Markdown one now
+      Field field = sortedFields.get(fieldKey);
+      Markdown markdown = field.getAnnotation(Markdown.class);
+      if( null == markdown ){
+        ConfigurationMarkdown configMarkdown = field.getAnnotation(ConfigurationMarkdown.class);
+        markdown = configMarkdown.markdown();
       }
 
-      buffer.append(description);
-      buffer.append(" |");
-      buffer.append(System.lineSeparator());
+      // skip internal properties
+      if( markdown.internal() ) {
+        continue;
+      }
+
+      ConfigurationProperty<?> configurationProperty = (ConfigurationProperty<?>) field.get(null);
+      String key = configurationProperty.getKey();
+      Object defaultValue = configurationProperty.getDefaultValue();
+
+      // | foo.key | description |
+      // build the description, which includes examples and related properties
+      allPropertiesBuffer.append("| ").append(key).append(" | ");
+      StringBuilder description = new StringBuilder(markdown.description());
+      if( StringUtils.isNotEmpty(markdown.relatedTo()) ){
+        String relatedTo = String.format(MARKDOWN_RELATED_TO_TEMPLATE, markdown.relatedTo());
+        description.append(HTML_BREAK_TAG).append(HTML_BREAK_TAG).append(relatedTo);
+      }
+
+      // use HTML to build a list of examples inside of the markdown table
+      if( markdown.examples().length > 0 ){
+        description.append(HTML_BREAK_TAG).append(HTML_BREAK_TAG);
+        description.append("The following are examples of valid values:").append("<ul>");
+        for( String example : markdown.examples() ){
+          description.append("<li>").append("`").append(example).append("`");
+        }
+        description.append("</ul>");
+      }
+
+      allPropertiesBuffer.append(description);
+      allPropertiesBuffer.append(" |");
+
+      // append the default value and then close the table row
+      if( null != defaultValue && StringUtils.isNotEmpty(defaultValue.toString()) ){
+        allPropertiesBuffer.append("`").append(defaultValue).append("`");
+      }
+
+      allPropertiesBuffer.append(" | ").append(System.lineSeparator());
     }
 
-    System.out.println(buffer.toString());
+    // now write out specific groupings
+    StringBuilder baselineBuffer = new StringBuilder(1024);
+    for( ConfigurationGrouping grouping : ConfigurationGrouping.values() ){
+      baselineBuffer.append("####" + grouping);
+      baselineBuffer.append(System.lineSeparator());
+      baselineBuffer.append("| Property Name | ");
+
+      // 10 Hosts | 100 Hosts | 500 Hosts |
+      for( ClusterSizeType clusterSizeType : ClusterSizeType.values() ){
+        baselineBuffer.append(clusterSizeType).append( " | ");
+      }
+
+      // print the table heading separator
+      baselineBuffer.append(System.lineSeparator());
+      baselineBuffer.append("| --- | --- | --- | --- | --- |");
+      baselineBuffer.append(System.lineSeparator());
+
+      for (Field field : fields) {
+        ConfigurationMarkdown configMarkdown = field.getAnnotation(ConfigurationMarkdown.class);
+        if( null == configMarkdown || configMarkdown.group() != grouping ) {
+          continue;
+        }
+
+        ConfigurationProperty<?> configurationProperty = (ConfigurationProperty<?>) field.get(null);
+
+        ClusterScale[] scaleValues = configMarkdown.scaleValues();
+        SortedMap<ClusterSizeType, String> miniSort = new TreeMap<>();
+        for( ClusterScale clusterScale : scaleValues ){
+          miniSort.put(clusterScale.clusterSize(), clusterScale.value());
+        }
+
+        baselineBuffer.append("| ").append(configurationProperty.getKey()).append(" | ");
+        for( ClusterSizeType clusterSizeType : miniSort.keySet() ){
+          baselineBuffer.append(miniSort.get(clusterSizeType)).append( " | ");
+        }
+
+        baselineBuffer.append(System.lineSeparator());
+      }
+    }
+
+    // replace the tokens in the markdown template and write out the final MD file
+    InputStream inputStream = null;
+    try {
+      inputStream = Configuration.class.getResourceAsStream(MARKDOWN_TEMPLATE_FILE);
+      String template = IOUtils.toString(inputStream);
+      String markdown = template.replace(MARKDOWN_CONFIGURATION_TABLE_KEY, allPropertiesBuffer.toString());
+      markdown = markdown.replace(MARKDOWN_BASELINE_VALUES_KEY, baselineBuffer.toString());
+
+      File file = new File(outputFile);
+      FileUtils.writeStringToFile(file, markdown);
+      System.out.print("Successfully created " + outputFile);
+    } finally {
+      IOUtils.closeQuietly(inputStream);
+    }
   }
 
   /**
@@ -4184,4 +4877,132 @@ public class Configuration {
       return this.m_key.compareTo(o.m_key);
     }
   }
+
+  /**
+   * The {@link ConfigurationGrouping} represents a logical grouping of configurations.
+   */
+  private enum ConfigurationGrouping {
+    /**
+     * Alerts & Notifications.
+     */
+    ALERTS("Alerts & Notifications"),
+
+    /**
+     * Jetty API & Agent Thread Pools
+     */
+    JETTY_THREAD_POOL("Jetty API & Agent Thread Pools");
+
+    /**
+     * A decription of the grouping.
+     */
+    private String m_description;
+
+    /**
+     * Constructor.
+     *
+     * @param description
+     */
+    ConfigurationGrouping(String description){
+      m_description = description;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return m_description;
+    }
+  }
+
+  /**
+   * The {@link ClusterSizeType} is used to represent fixed sizes of clusters
+   * for easy table generation when creating documentation.
+   */
+  private enum ClusterSizeType {
+    /**
+     * 10 Hosts.
+     */
+    HOSTS_10("10 Hosts"),
+
+    /**
+     * About 50 hosts.
+     */
+    HOSTS_50("~50 Hosts"),
+
+    /**
+     * About 100 hosts.
+     */
+    HOSTS_100("~100 Hosts"),
+
+    /**
+     * 500 or more hosts.
+     */
+    HOSTS_500("500+ Hosts");
+
+    /**
+     * A description of the number of cluster hosts.
+     */
+    private String m_description;
+
+    /**
+     * Constructor.
+     *
+     * @param description
+     */
+    ClusterSizeType(String description){
+      m_description = description;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return m_description;
+    }
+  }
+
+  /**
+   * The {@link ConfigurationMarkdown} is used to represent more complex
+   * Markdown for {@link ConfigurationProperty} fields. It wraps the traditional
+   * {@link Markdown} along with extra metadata used to generate documentation.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
+  static @interface ConfigurationMarkdown {
+    /**
+     * The base Markdown.
+     *
+     * @return
+     */
+    Markdown markdown();
+
+    /**
+     * The logic grouping that the configuration property belongs to.
+     *
+     * @return
+     */
+    ConfigurationGrouping group();
+
+    /**
+     * All of the recommended values for the property based on cluster size.
+     *
+     * @return
+     */
+    ClusterScale[] scaleValues() default {};
+  }
+
+  /**
+   * The {@link ClusterScale} class is a representation of the size of the
+   * cluster combined with a value. It's used to represent different
+   * configuration values depending on how many hosts are in the cluster.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
+  private static @interface ClusterScale {
+    ClusterSizeType clusterSize();
+    String value();
+  }
+
 }

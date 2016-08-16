@@ -28,11 +28,15 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration.ConfigurationMarkdown;
+import org.apache.ambari.server.configuration.Configuration.ConfigurationProperty;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
@@ -40,6 +44,7 @@ import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -178,8 +183,6 @@ public class ConfigurationTest {
     //Different certificates for two-way SSL and HTTPS
     Assert.assertFalse(conf.getConfigsMap().get(Configuration.KSTR_NAME.getKey()).
       equals(conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey())));
-    Assert.assertFalse(conf.getConfigsMap().get(Configuration.SRVR_CRT_NAME.getKey()).
-      equals(conf.getConfigsMap().get(Configuration.CLIENT_API_SSL_CRT_NAME.getKey())));
 
     Assert.assertEquals("keystore.p12", conf.getConfigsMap().get(
         Configuration.KSTR_NAME.getKey()));
@@ -437,7 +440,7 @@ public class ConfigurationTest {
     ambariProperties.setProperty(Configuration.LDAP_USER_OBJECT_CLASS.getKey(), "10");
     ambariProperties.setProperty(Configuration.LDAP_GROUP_BASE.getKey(), "11");
     ambariProperties.setProperty(Configuration.LDAP_GROUP_OBJECT_CLASS.getKey(), "12");
-    ambariProperties.setProperty(Configuration.LDAP_GROUP_MEMEBERSHIP_ATTR.getKey(), "13");
+    ambariProperties.setProperty(Configuration.LDAP_GROUP_MEMBERSHIP_ATTR.getKey(), "13");
     ambariProperties.setProperty(Configuration.LDAP_GROUP_NAMING_ATTR.getKey(), "14");
     ambariProperties.setProperty(Configuration.LDAP_ADMIN_GROUP_MAPPING_RULES.getKey(), "15");
     ambariProperties.setProperty(Configuration.LDAP_GROUP_SEARCH_FILTER.getKey(), "16");
@@ -885,5 +888,36 @@ public class ConfigurationTest {
     Assert.assertTrue(corePoolSize > 2 && corePoolSize <= 32);
     Assert.assertTrue(maxPoolSize > 2 && maxPoolSize <= processorCount * 4);
     Assert.assertTrue(workerQueueSize >= processorCount * 10);
+  }
+
+  /**
+   * Tests that every {@link ConfigurationProperty} field in
+   * {@link Configuration} has a property {@link Markdown} annotation.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAllPropertiesHaveMarkdownDescriptions() throws Exception {
+    Field[] fields = Configuration.class.getDeclaredFields();
+    for (Field field : fields) {
+      if (field.getType() != ConfigurationProperty.class) {
+        continue;
+      }
+
+      ConfigurationProperty<?> configurationProperty = (ConfigurationProperty<?>) field.get(null);
+      Markdown markdown = field.getAnnotation(Markdown.class);
+      if( null == markdown ){
+        ConfigurationMarkdown configMarkdown = field.getAnnotation(ConfigurationMarkdown.class);
+        markdown = configMarkdown.markdown();
+      }
+
+      Assert.assertNotNull("The configuration property " + configurationProperty.getKey()
+          + " is missing the Markdown annotation", markdown);
+
+      Assert.assertFalse(
+          "The configuration property " + configurationProperty.getKey()
+              + " has a Markdown annotation with no description",
+          StringUtils.isEmpty(markdown.description()));
+    }
   }
 }

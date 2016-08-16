@@ -69,11 +69,11 @@ public class InMemoryDefaultTestModule extends AbstractModule {
       sharedResourcesDir = ClassLoader.getSystemClassLoader().getResource("").getPath();
     }
 
-    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
-    properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
-    properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
-    properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), stacks);
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), version);
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), sharedResourcesDir);
 
     try {
       install(new BeanDefinitionsCachingTestControllerModule(properties));
