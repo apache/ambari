@@ -800,7 +800,7 @@ public class AmbariServer {
       users.createUser("user", "user");
 
       MetainfoEntity schemaVersion = new MetainfoEntity();
-      schemaVersion.setMetainfoName(Configuration.SERVER_VERSION.getKey());
+      schemaVersion.setMetainfoName(Configuration.SERVER_VERSION_KEY);
       schemaVersion.setMetainfoValue(VersionUtils.getVersionSubstring(ambariMetaInfo.getServerVersion()));
 
       metainfoDAO.create(schemaVersion);

@@ -17,20 +17,17 @@
  */
 package org.apache.ambari.annotations;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
  * The {@link Markdown} annotation is used to add information when creating <a
  * href=https://en.wikipedia.org/wiki/Markdown>Markdown</a> content.
  */
-@Retention(RUNTIME)
-@Target({ TYPE, FIELD, METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
 public @interface Markdown {
   /**
    * A description to add for this element when generating Markdown.
@@ -38,4 +35,23 @@ public @interface Markdown {
    * @return
    */
   String description();
+
+  /**
+   * An optional list of example values.
+   *
+   * @return
+   */
+  String[] examples() default {};
+
+  /**
+   * A way of expressing a relationship.
+   */
+  String relatedTo() default "";
+
+  /**
+   * If {@code true}, indicates that the annotated content is for internal-use only.
+   *
+   * @return {@code true} for internal-only content.
+   */
+  boolean internal() default false;
 }

@@ -67,7 +67,7 @@ public class LdapPerformanceTest {
     configuration.setProperty(Configuration.LDAP_USERNAME_ATTRIBUTE.getKey(), "uid");
     configuration.setProperty(Configuration.LDAP_GROUP_OBJECT_CLASS.getKey(), "posixGroup");
     configuration.setProperty(Configuration.LDAP_GROUP_NAMING_ATTR.getKey(), "cn");
-    configuration.setProperty(Configuration.LDAP_GROUP_MEMEBERSHIP_ATTR.getKey(), "memberUid");
+    configuration.setProperty(Configuration.LDAP_GROUP_MEMBERSHIP_ATTR.getKey(), "memberUid");
     configuration.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=apache,dc=org");
     configuration.setProperty(Configuration.LDAP_BIND_ANONYMOUSLY.getKey(), String.valueOf(false));
     configuration.setProperty(Configuration.LDAP_MANAGER_DN.getKey(), "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org");
