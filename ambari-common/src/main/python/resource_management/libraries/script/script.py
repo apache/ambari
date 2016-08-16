@@ -278,6 +278,9 @@ class Script(object):
           self.pre_start()
         
         method(env)
+    except Fail as ex:
+      ex.pre_raise()
+      raise
     finally:
       if self.should_expose_component_version(self.command_name):
         self.save_component_version_to_structured_out()

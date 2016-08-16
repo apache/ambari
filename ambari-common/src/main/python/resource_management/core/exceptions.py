@@ -20,10 +20,22 @@ Ambari Agent
 
 """
 
+import sys
+import traceback
+
 __all__ = ["Fail", "ExecuteTimeoutException", "InvalidArgument", "ClientComponentHasNoStatus", "ComponentIsNotRunning"]
 
 class Fail(Exception):
-  pass
+  def __init__(self, message="", print_cause=True):
+    self.print_cause = print_cause
+    self.cause_traceback = traceback.format_exc()
+
+    super(Fail, self).__init__(message)
+
+  def pre_raise(self):
+    if self.print_cause and self.cause_traceback != 'None\n':
+      sys.stderr.write(self.cause_traceback)
+      sys.stderr.write("\nThe above exception was the cause of the following exception:\n\n")
 
 class ExecuteTimeoutException(Fail):
   pass
