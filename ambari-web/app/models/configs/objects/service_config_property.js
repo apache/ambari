@@ -121,6 +121,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
+  disabledAsComponentAction: false, // is true for component action configs
   isNotEditable: Em.computed.not('isEditable'),
   hideFinalIcon: Em.computed.and('!isFinal', 'isNotEditable'),
   isVisible: true,
