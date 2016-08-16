@@ -25,7 +25,6 @@ import akka.testkit.JavaTestKit;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive2.ConnectionDelegate;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
 import org.apache.ambari.view.hive2.actor.OperationController;
 import org.apache.ambari.view.hive2.actor.message.Connect;
@@ -45,13 +44,11 @@ import org.apache.hive.jdbc.HiveQueryResultSet;
 import org.apache.hive.jdbc.HiveStatement;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.ResultSet;
 
 import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
 
 public class JobExecutionTest {
 
@@ -68,7 +65,6 @@ public class JobExecutionTest {
   }
 
   @Test
-  @Ignore
   public void testExecuteJob() throws Exception {
     ViewContext viewContext = createNiceMock(ViewContext.class);
     ConnectionSupplier connectionSupplier = createNiceMock(ConnectionSupplier.class);
@@ -98,6 +94,7 @@ public class JobExecutionTest {
     expect(delegate.createStatement(hiveConnection)).andReturn(statement);
     expect(delegate.execute("select * from test")).andReturn(Optional.of(resultSet));
     expect(statement.getQueryLog()).andReturn(Lists.<String>newArrayList());
+    expect(jobImpl.getDateSubmitted()).andReturn(0L).times(2);
     jobImpl.setStatus(Job.JOB_STATE_RUNNING);
     storage.store(JobImpl.class, jobImpl);
     connectionWrapper.connect();
