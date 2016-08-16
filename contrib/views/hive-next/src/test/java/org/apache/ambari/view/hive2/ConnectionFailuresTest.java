@@ -22,7 +22,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.JavaTestKit;
-import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
@@ -44,7 +43,6 @@ import org.apache.hive.jdbc.HiveQueryResultSet;
 import org.apache.hive.jdbc.HiveStatement;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.ResultSet;
@@ -58,7 +56,7 @@ public class ConnectionFailuresTest {
 
   @Before
   public void setUp() throws Exception {
-    actorSystem = ActorSystem.create("TestingActorSystem");
+      actorSystem = ActorSystem.create("TestingActorSystem");
   }
 
   @After
@@ -67,7 +65,6 @@ public class ConnectionFailuresTest {
   }
 
   @Test
-  @Ignore
   public void testConnectionFailure() throws Exception {
     ViewContext viewContext = createNiceMock(ViewContext.class);
     ConnectionSupplier connectionSupplier = createNiceMock(ConnectionSupplier.class);
@@ -95,6 +92,7 @@ public class ConnectionFailuresTest {
     expect(dataStorageSupplier.get(viewContext)).andReturn(storage);
     expect(connectionSupplier.get(viewContext)).andReturn(delegate);
     expect(storage.load(JobImpl.class, "1")).andReturn(jobImpl).anyTimes();
+    expect(jobImpl.getDateSubmitted()).andReturn(0L).times(1);
     connectionWrapper.connect();
     jobImpl.setStatus(Job.JOB_STATE_ERROR);
     storage.store(JobImpl.class, jobImpl);
@@ -109,7 +107,6 @@ public class ConnectionFailuresTest {
   }
 
   @Test
-  @Ignore
   public void testExecutionFailure() throws Exception {
     ViewContext viewContext = createNiceMock(ViewContext.class);
     ConnectionSupplier connectionSupplier = createNiceMock(ConnectionSupplier.class);
@@ -138,7 +135,7 @@ public class ConnectionFailuresTest {
     expect(storage.load(JobImpl.class, "1")).andReturn(jobImpl).anyTimes();
     expect(delegate.createStatement(hiveConnection)).andReturn(statement);
     expect(delegate.execute("select * from test")).andThrow(new SQLException("Syntax error"));
-    expect(statement.getQueryLog()).andReturn(Lists.<String>newArrayList());
+    expect(jobImpl.getDateSubmitted()).andReturn(0L).times(2);
     jobImpl.setStatus(Job.JOB_STATE_RUNNING);
     storage.store(JobImpl.class, jobImpl);
     connectionWrapper.connect();
