@@ -40,6 +40,32 @@ describe('App.NumberWidgetView', function () {
     view.destroy();
   });
 
+  describe("#displayValue", function () {
+    var testCases = [
+      {
+        value: '',
+        expected: Em.I18n.t('common.na')
+      },
+      {
+        value: 'a',
+        expected: Em.I18n.t('common.na')
+      },
+      {
+        value: '1',
+        expected: '1u'
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("value = " + test.value, function() {
+        view.set('value', test.value);
+        view.set('content.properties.display_unit', 'u');
+        view.propertyDidChange('displayValue');
+        expect(view.get('displayValue')).to.be.equal(test.expected);
+      });
+    });
+  });
+
   describe("#contentColor()", function() {
     var testCases = [
       {

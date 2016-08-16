@@ -105,6 +105,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
 
   /**
    * calculate value for heatmap widgets
+   * @returns {Object}
    */
   calculateValues: function () {
     return this.computeExpression(this.extractExpressions(this.get('content.values')[0]), this.get('metrics'));
@@ -113,8 +114,8 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
 
   /**
    * compute expression
-   * @param expressions
-   * @param metrics
+   * @param {Array} expressions
+   * @param {Array} metrics
    * @returns {object}
    */
   computeExpression: function (expressions, metrics) {
@@ -148,7 +149,7 @@ App.HeatmapWidgetView = Em.View.extend(App.WidgetMixin, {
 
         if (validExpression && this.get('MATH_EXPRESSION_REGEX').test(beforeCompute)) {
           var value = Number(window.eval(beforeCompute)).toString();
-          if (value == "NaN")  {
+          if (value === "NaN")  {
             value = 0
           }
           hostToValueMap[_hostName] = value;

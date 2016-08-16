@@ -20,6 +20,8 @@ var App = require('app');
 
 var fileUtils = require('utils/file_utils');
 
+var CUSTOM_TIME_INDEX = 8;
+
 App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
   templateName: require('templates/common/widget/graph_widget'),
 
@@ -59,7 +61,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     }
 
     // Custom start and end time is specified by user
-    if (this.get('exportTargetView.currentTimeIndex') === 8) {
+    if (this.get('exportTargetView.currentTimeIndex') === CUSTOM_TIME_INDEX) {
       return 0;
     }
 
@@ -290,7 +292,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
      */
     setTimeRange: function () {
       if (this.get('isPopup')) {
-        if (this.get('currentTimeIndex') === 8) {
+        if (this.get('currentTimeIndex') === CUSTOM_TIME_INDEX) {
           // Custom start and end time is specified by user
           this.get('parentView').propertyDidChange('customTimeRange');
         } else {
