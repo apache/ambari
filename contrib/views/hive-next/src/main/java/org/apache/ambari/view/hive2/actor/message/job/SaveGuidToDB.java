@@ -18,15 +18,17 @@
 
 package org.apache.ambari.view.hive2.actor.message.job;
 
-import org.apache.hive.jdbc.HiveStatement;
-
-public class UpdateYarnAtsGuid {
+/**
+ * Message to ask JdbcConnector for job to update the GUID for the current statement in the database for the job.
+ */
+public class SaveGuidToDB {
   private final int statementId;
-  private final HiveStatement statement;
+  private final String guid;
   private final String jobId;
-  public UpdateYarnAtsGuid(int statementId, HiveStatement statement, String jobId) {
+
+  public SaveGuidToDB(int statementId, String guid, String jobId) {
     this.statementId = statementId;
-    this.statement = statement;
+    this.guid = guid;
     this.jobId = jobId;
   }
 
@@ -34,8 +36,8 @@ public class UpdateYarnAtsGuid {
     return statementId;
   }
 
-  public HiveStatement getStatement() {
-    return statement;
+  public String getGuid() {
+    return guid;
   }
 
   public String getJobId() {

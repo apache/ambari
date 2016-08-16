@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive2.resources.jobs;
 
+import akka.actor.ActorRef;
 import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewResourceHandler;
@@ -111,7 +112,8 @@ public class JobService extends BaseService {
   protected Aggregator getAggregator() {
     if (aggregator == null) {
       IATSParser atsParser = getSharedObjectsFactory().getATSParser();
-      aggregator = new Aggregator(getResourceManager(), atsParser);
+      ActorRef operationController = ConnectionSystem.getInstance().getOperationController(context);
+      aggregator = new Aggregator(getResourceManager(), atsParser, operationController);
     }
     return aggregator;
   }

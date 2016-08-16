@@ -19,7 +19,6 @@
 package org.apache.ambari.view.hive2.actor;
 
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.hive2.ConnectionDelegate;
@@ -82,7 +81,7 @@ public class StatementExecutor extends HiveActor {
       }
 
       if (message.shouldStartGUIDFetch() && message.getJobId().isPresent()) {
-        startGUIDFetch(statement, message.getJobId().get());
+        startGUIDFetch(message.getId(), statement, message.getJobId().get());
       }
       LOG.info("Statement executor is executing statement: {}, Statement id: {}, JobId: {}", message.getStatement(), message.getId(), message.getJobId().or("SYNC JOB"));
       Optional<ResultSet> resultSetOptional = connectionDelegate.execute(message.getStatement());
@@ -102,13 +101,13 @@ public class StatementExecutor extends HiveActor {
     }
   }
 
-  private void startGUIDFetch(HiveStatement statement, String jobId) {
+  private void startGUIDFetch(int statementId, HiveStatement statement, String jobId) {
     if (guidFetcher == null) {
-      guidFetcher = getContext().actorOf(Props.create(YarnAtsGUIDFetcher.class, storage)
+      guidFetcher = getContext().actorOf(Props.create(YarnAtsGUIDFetcher.class, sender())
         .withDispatcher("akka.actor.misc-dispatcher"), "YarnAtsGUIDFetcher:" + UUID.randomUUID().toString());
     }
     LOG.info("Fetching guid for Job Id: {}", jobId);
-    guidFetcher.tell(new UpdateYarnAtsGuid(statement, jobId), self());
+    guidFetcher.tell(new UpdateYarnAtsGuid(statementId, statement, jobId), self());
   }
 
   private void stopGUIDFetch() {

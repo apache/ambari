@@ -18,27 +18,35 @@
 
 package org.apache.ambari.view.hive2.actor.message.job;
 
-import org.apache.hive.jdbc.HiveStatement;
-
-public class UpdateYarnAtsGuid {
-  private final int statementId;
-  private final HiveStatement statement;
+/**
+ * Message to save the Dag Information like the dagName, dagId and ApplicationId
+ */
+public class SaveDagInformation {
   private final String jobId;
-  public UpdateYarnAtsGuid(int statementId, HiveStatement statement, String jobId) {
-    this.statementId = statementId;
-    this.statement = statement;
+  private final String dagName;
+  private final String dagId;
+  private final String applicationId;
+
+  public SaveDagInformation(String jobId, String dagName, String dagId, String applicationId) {
     this.jobId = jobId;
-  }
-
-  public int getStatementId() {
-    return statementId;
-  }
-
-  public HiveStatement getStatement() {
-    return statement;
+    this.dagName = dagName;
+    this.dagId = dagId;
+    this.applicationId = applicationId;
   }
 
   public String getJobId() {
     return jobId;
+  }
+
+  public String getDagName() {
+    return dagName;
+  }
+
+  public String getDagId() {
+    return dagId;
+  }
+
+  public String getApplicationId() {
+    return applicationId;
   }
 }
