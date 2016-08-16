@@ -73,7 +73,7 @@ angular.module('ambariAdminConsole')
     // Add user to groups
     angular.forEach(diff.add, function(groupName) {
       promises.push(Group.addMemberToGroup(groupName, $scope.user.user_name).catch(function(data) {
-        Alert.error($t('users.alerts.cannotAddUser'), data.data.message);
+        Alert.error($t('users.alert.cannotAddUser'), data.data.message);
       }));
     });
     $q.all(promises).then(function() {
