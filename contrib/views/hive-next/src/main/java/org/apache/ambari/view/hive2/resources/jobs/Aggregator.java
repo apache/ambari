@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view.hive2.resources.jobs;
 
+import akka.actor.ActorRef;
+import org.apache.ambari.view.hive2.actor.message.job.SaveDagInformation;
 import org.apache.ambari.view.hive2.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive2.persistence.utils.Indexed;
 import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
@@ -63,11 +65,13 @@ public class Aggregator {
 
   private final IATSParser ats;
   private IResourceManager<Job> viewJobResourceManager;
+  private final ActorRef operationController;
 
   public Aggregator(IResourceManager<Job> jobResourceManager,
-                    IATSParser ats) {
+                    IATSParser ats, ActorRef operationController) {
     this.viewJobResourceManager = jobResourceManager;
     this.ats = ats;
+    this.operationController = operationController;
   }
 
   /**
@@ -257,7 +261,7 @@ public class Aggregator {
 
     TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
 
-    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
+    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob, true);
     return mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
   }
 
@@ -298,17 +302,37 @@ public class Aggregator {
   }
 
   protected void saveJobInfoIfNeeded(HiveQueryId hiveQueryId, TezDagId tezDagId, Job viewJob) throws ItemNotFound {
+    saveJobInfoIfNeeded(hiveQueryId, tezDagId, viewJob, false);
+  }
+
+  protected void saveJobInfoIfNeeded(HiveQueryId hiveQueryId, TezDagId tezDagId, Job viewJob, boolean useActorSystem) throws ItemNotFound {
+    boolean updateDb = false;
+    String dagName = null;
+    String dagId = null;
+    String applicationId = null;
     if (viewJob.getDagName() == null || viewJob.getDagName().isEmpty()) {
       if (hiveQueryId.dagNames != null && hiveQueryId.dagNames.size() > 0) {
-        viewJob.setDagName(hiveQueryId.dagNames.get(0));
-        viewJobResourceManager.update(viewJob, viewJob.getId());
+        dagName = hiveQueryId.dagNames.get(0);
+        updateDb = true;
       }
     }
     if (tezDagId.status != null && (tezDagId.status.compareToIgnoreCase(Job.JOB_STATE_UNKNOWN) != 0) &&
-      !viewJob.getStatus().equalsIgnoreCase(tezDagId.status)) {
-      viewJob.setDagId(tezDagId.entity);
-      viewJob.setApplicationId(tezDagId.applicationId);
-      viewJobResourceManager.update(viewJob, viewJob.getId());
+        !viewJob.getStatus().equalsIgnoreCase(tezDagId.status)) {
+      dagId = tezDagId.entity;
+      applicationId = tezDagId.applicationId;
+      updateDb = true;
+    }
+
+    if(updateDb) {
+      if (useActorSystem) {
+        LOG.info("Saving DAG information via actor system for job id: {}", viewJob.getId());
+        operationController.tell(new SaveDagInformation(viewJob.getId(), dagName, dagId, applicationId), ActorRef.noSender());
+      } else {
+        viewJob.setDagName(dagName);
+        viewJob.setDagId(dagId);
+        viewJob.setApplicationId(applicationId);
+        viewJobResourceManager.update(viewJob, viewJob.getId());
+      }
     }
   }
 

@@ -18,11 +18,10 @@
 
 package org.apache.ambari.view.hive2.actor;
 
+import akka.actor.ActorRef;
 import org.apache.ambari.view.hive2.actor.message.HiveMessage;
+import org.apache.ambari.view.hive2.actor.message.job.SaveGuidToDB;
 import org.apache.ambari.view.hive2.actor.message.job.UpdateYarnAtsGuid;
-import org.apache.ambari.view.hive2.persistence.Storage;
-import org.apache.ambari.view.hive2.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive2.resources.jobs.viewJobs.JobImpl;
 import org.apache.hive.jdbc.HiveStatement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,10 +37,10 @@ public class YarnAtsGUIDFetcher extends HiveActor {
 
   private final Logger LOG = LoggerFactory.getLogger(getClass());
 
-  private final Storage storage;
+  private final ActorRef jdbcConnectorActor;
 
-  public YarnAtsGUIDFetcher(Storage storage) {
-    this.storage = storage;
+  public YarnAtsGUIDFetcher(ActorRef jdbcConnectorActor) {
+    this.jdbcConnectorActor = jdbcConnectorActor;
   }
 
   @Override
@@ -65,14 +64,8 @@ public class YarnAtsGUIDFetcher extends HiveActor {
       getContext().system().scheduler()
         .scheduleOnce(Duration.create(1, TimeUnit.SECONDS), getSelf(), message, getContext().dispatcher(), null);
     } else {
-      try {
-        JobImpl job = storage.load(JobImpl.class, jobId);
-        job.setGuid(yarnAtsGuid);
-        storage.store(JobImpl.class, job);
-        LOG.info("Stored guid: {} for job id: {} in database", yarnAtsGuid, jobId);
-      } catch (ItemNotFound itemNotFound) {
-        // Cannot do anything if the job is not present
-      }
+      jdbcConnectorActor.tell(new SaveGuidToDB(message.getStatementId(), yarnAtsGuid, jobId), self());
+      LOG.info("Message send to save GUID for Statement Id: {}, Job id: {}, Guid: {}", message.getStatementId(), message.getJobId(), yarnAtsGuid);
     }
   }
 }
