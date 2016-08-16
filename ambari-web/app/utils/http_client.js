@@ -49,32 +49,10 @@ App.HttpClient = Em.Object.create({
    * @param {string} url
    * @param {Object} ajaxOptions
    * @param {App.ServerDataMapper} mapper - json processor
+   * @param {boolean} isGetAsPost - if true, do POST-request equal to GET-request but with some params put to body
    * @param {callback} errorHandler
    */
-  request: function (url, ajaxOptions, mapper, errorHandler) {
-
-    if (!errorHandler) {
-      errorHandler = this.defaultErrorHandler;
-    }
-
-    var xhr = new XMLHttpRequest();
-    var curTime = App.dateTime();
-
-    xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
-    xhr.send(null);
-
-    this.onReady(xhr, "", ajaxOptions, mapper, errorHandler, url);
-  },
-
-  /**
-   * Do POST-request equal to GET-request but with some params put to body
-   * @param {string} url
-   * @param {{params: string, success: callback, error: callback}} ajaxOptions
-   * @param {App.QuickDataMapper} mapper
-   * @param errorHandler
-   * @method getAsPostRequest
-   */
-  getAsPostRequest: function (url, ajaxOptions, mapper, errorHandler) {
+  request: function (url, ajaxOptions, mapper, errorHandler, isGetAsPost) {
 
     if (!errorHandler) {
       errorHandler = this.defaultErrorHandler;
@@ -82,19 +60,22 @@ App.HttpClient = Em.Object.create({
 
     var xhr = new XMLHttpRequest(),
       curTime = App.dateTime(),
-      params = JSON.stringify({
-        "RequestInfo": {"query" : ajaxOptions.params }
-      });
+      method = isGetAsPost ? 'POST': 'GET',
+      params = isGetAsPost ? JSON.stringify({
+        "RequestInfo": {"query" : ajaxOptions.params}
+      }) : null;
 
-    xhr.open('POST', url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
-    xhr.setRequestHeader("X-Http-Method-Override", "GET");
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.open(method, url + (url.indexOf('?') >= 0 ? '&_=' : '?_=') + curTime, true);
+    if (isGetAsPost) {
+      xhr.setRequestHeader("X-Http-Method-Override", "GET");
+      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    }
     xhr.send(params);
 
     this.onReady(xhr, "", ajaxOptions, mapper, errorHandler, url);
   },
 
-  /*
+  /**
    This function checks if we get response from server
    Not using onreadystatechange cuz of possible closure
    */
@@ -140,12 +121,8 @@ App.HttpClient = Em.Object.create({
     }
     var client = this,
       request = function () {
-        if (data.doGetAsPost && !App.get('testMode')) {
-          client.getAsPostRequest(url, data, mapper, errorHandler);
-        }
-        else {
-          client.request(url, data, mapper, errorHandler);
-        }
+        var isGetAsPost = Boolean(data.doGetAsPost && !App.get('testMode'));
+        client.request(url, data, mapper, errorHandler, isGetAsPost);
         url = null;
         data = null;
         mapper = null;
@@ -169,6 +146,6 @@ App.HttpClient = Em.Object.create({
    * @param {number} interval - frequency request
    */
   post: function (url, data, mapper, errorHandler, interval) {
-    this.get(url, data, mapper, errorHandler, interval);
+    this.get.apply(this, arguments);
   }
 });
