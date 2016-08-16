@@ -562,9 +562,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           var notEditableText = " " + Em.I18n.t('installer.step7.addWizard.notEditable');
           serviceConfig.set('description', serviceConfig.get('description') + notEditableText);
           serviceConfig.set('isReconfigurable', false);
-          config.isReconfigurable = false;
           serviceConfig.set('isEditable', false);
+          serviceConfig.set('disabledAsComponentAction', true);
+          config.isReconfigurable = false;
           config.isEditable = false;
+          config.disabledAsComponentActio = true;
         }
       }
     }, this);
@@ -1178,9 +1180,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var isEditable = config.get('isEditable'),
         isServiceInstalled = this.get('installedServiceNames').contains(this.get('selectedService.serviceName'));
       if (isServiceInstalled) {
-        isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault');
+        isEditable = config.get('isReconfigurable') && selectedGroup.get('isDefault') && !config.get('disabledAsComponentAction');
       } else {
-        isEditable = selectedGroup.get('isDefault');
+        isEditable = selectedGroup.get('isDefault') && !config.get('disabledAsComponentAction');
       }
       if (config.get('group')) {
         isEditable = config.get('group.name') === this.get('selectedConfigGroup.name');
