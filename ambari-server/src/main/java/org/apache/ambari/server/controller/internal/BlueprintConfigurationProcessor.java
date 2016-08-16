@@ -2255,6 +2255,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> yarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> hiveSiteNonTopologyMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
@@ -2355,6 +2356,7 @@ public class BlueprintConfigurationProcessor {
 
     removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
     removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
+    removePropertyUpdaters.put("hive-env", hiveEnvOriginalValueMap);
 
     nonTopologyUpdaters.put("hive-site", hiveSiteNonTopologyMap);
     nonTopologyUpdaters.put("kafka-broker", kafkaBrokerNonTopologyMap);
@@ -2541,7 +2543,17 @@ public class BlueprintConfigurationProcessor {
 
     // register updaters for Oozie properties that may point to an external DB
     oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+    oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+    oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
+    oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+    oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
     oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
+    // register updaters for Hive properties that may point to an external DB
+    hiveEnvOriginalValueMap.put("hive_existing_oracle_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_2_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_postgresql_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mysql_host", new OriginalValuePropertyUpdater());
 
     // ZOOKEEPER_SERVER
     multiHbaseSiteMap.put("hbase.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));

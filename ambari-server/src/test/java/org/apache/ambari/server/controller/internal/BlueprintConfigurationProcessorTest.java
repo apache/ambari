@@ -1645,11 +1645,12 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
     Map<String, String> oozieSiteProperties = new HashMap<String, String>();
     Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    Map<String, String> hiveEnvProperties = new HashMap<String, String>();
     Map<String, String> coreSiteProperties = new HashMap<String, String>();
 
     configProperties.put("oozie-site", oozieSiteProperties);
     configProperties.put("oozie-env", oozieEnvProperties);
-    configProperties.put("hive-env", oozieEnvProperties);
+    configProperties.put("hive-env", hiveEnvProperties);
     configProperties.put("core-site", coreSiteProperties);
 
     oozieSiteProperties.put("oozie.base.url", expectedHostName);
@@ -1658,6 +1659,7 @@ public class BlueprintConfigurationProcessorTest {
     oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
 
     oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
+    hiveEnvProperties.put("hive_existing_oracle_host", expectedExternalHost);
     oozieEnvProperties.put("oozie_heapsize", "1024m");
     oozieEnvProperties.put("oozie_permsize", "2048m");
 
@@ -1705,6 +1707,8 @@ public class BlueprintConfigurationProcessorTest {
     // verify that the oozie properties that can refer to an external DB are not included in the export
     assertFalse("oozie_existing_mysql_host should not have been present in the exported configuration",
       oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
+    assertFalse("hive_existing_oracle_host should not have been present in the exported configuration",
+      hiveEnvProperties.containsKey("hive_existing_oracle_host"));
     assertFalse("oozie.service.JPAService.jdbc.url should not have been present in the exported configuration",
       oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
 
