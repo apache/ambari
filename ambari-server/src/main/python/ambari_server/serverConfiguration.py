@@ -226,20 +226,32 @@ def find_properties_file():
 def get_ambari_properties():
   conf_file = find_properties_file()
 
+  # Try to read ambari properties file. It is OK to fail.
+  # Return -1 on failure.
   properties = None
   try:
     properties = Properties()
     with open(conf_file) as hfR:
       properties.load(hfR)
+  except (Exception), e:
+    print 'Could not read "%s": %s' % (conf_file, str(e))
+    return -1
 
-    root = os.environ["ROOT"].rstrip("/")
+  # Try to replace $ROOT with the value from the OS environment.
+  # OK to fail. Just print the exception and return the properties
+  # dictionary read above
+  try:
+    root_env = 'ROOT'
+    if root_env in os.environ:
+      root = os.environ["ROOT"].rstrip("/")
+    else:
+      root = ''
 
     for k,v in properties.iteritems():
       properties.__dict__[k] = v.replace("$ROOT", root)
       properties._props[k] = v.replace("$ROOT", root)
   except (Exception), e:
-    print 'Could not read "%s": %s' % (conf_file, e)
-    return -1
+    print 'Could not replace %s in "%s": %s' %(conf_file, root_env, str(e))
   return properties
 
 class ServerDatabaseType(object):
@@ -346,9 +358,14 @@ class ServerConfigDefaults(object):
 
     # Configuration defaults
     self.DEFAULT_CONF_DIR = ""
-    self.PID_DIR = properties.get_property(PID_DIR_PROPERTY)
-    self.BOOTSTRAP_DIR = properties.get_property(BOOTSTRAP_DIR_PROPERTY)
-    self.RECOMMENDATIONS_DIR = properties.get_property(RECOMMENDATIONS_DIR_PROPERTY)
+    if properties == -1:
+      self.PID_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server"))
+      self.BOOTSTRAP_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server", "bootstrap"))
+      self.RECOMMENDATIONS_DIR = AmbariPath.get(os.sep + os.path.join("var", "run", "ambari-server", "stack-recommendations"))
+    else:
+      self.PID_DIR = properties.get_property(PID_DIR_PROPERTY)
+      self.BOOTSTRAP_DIR = properties.get_property(BOOTSTRAP_DIR_PROPERTY)
+      self.RECOMMENDATIONS_DIR = properties.get_property(RECOMMENDATIONS_DIR_PROPERTY)
     
     # this directories should be pre-created by user and be writable.
     self.check_if_directories_writable([self.OUT_DIR, self.PID_DIR])
