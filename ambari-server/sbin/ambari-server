@@ -179,7 +179,7 @@ case "$1" in
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   *)
-        echo "Usage: $AMBARI_PYTHON_EXECUTABLE
+        echo "Usage: $AMBARI_EXECUTABLE
         {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database|db-cleanup} [options]
         Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
