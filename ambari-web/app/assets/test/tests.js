@@ -195,6 +195,7 @@ var files = [
   'test/utils/heatmap_test',
   'test/utils/host_progress_popup_test',
   'test/utils/hosts_test',
+  'test/utils/http_client_test',
   'test/utils/misc_test',
   'test/utils/number_utils_test',
   'test/utils/polling_test',
