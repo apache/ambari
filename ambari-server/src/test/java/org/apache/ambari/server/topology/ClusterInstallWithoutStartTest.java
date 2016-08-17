@@ -65,6 +65,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.controller.internal.ProvisionAction.START_ONLY;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -292,6 +293,8 @@ public class ClusterInstallWithoutStartTest {
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group1.containsMasterComponent()).andReturn(true).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group1.getComponentNames(START_ONLY)).andReturn(Collections.<String>emptyList()).anyTimes();
+
     expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getComponents("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
@@ -303,6 +306,7 @@ public class ClusterInstallWithoutStartTest {
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
+    expect(group2.getComponentNames(START_ONLY)).andReturn(Collections.<String>emptyList()).anyTimes();
     expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
     expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
@@ -334,7 +338,6 @@ public class ClusterInstallWithoutStartTest {
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.shouldSkipInstallTasks()).andReturn(false).anyTimes();
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
       andReturn(Collections.singletonList(configurationRequest));
