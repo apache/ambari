@@ -51,5 +51,6 @@ class PropertiesFileProvider(Provider):
           content = config_content,
           owner = self.resource.owner,
           group = self.resource.group,
-          mode = self.resource.mode
+          mode = self.resource.mode,
+          encoding = self.resource.encoding,
     )

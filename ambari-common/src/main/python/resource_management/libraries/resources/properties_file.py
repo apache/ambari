@@ -35,4 +35,6 @@ class PropertiesFile(Resource):
   group = ResourceArgument()
   key_value_delimiter = ResourceArgument(default="=")
 
+  encoding = ResourceArgument(default="UTF-8")
+
   actions = Resource.actions + ["create"]
