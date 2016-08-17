@@ -181,6 +181,7 @@ class HiveMetastoreDefault(HiveMetastore):
     Should not be invoked for a DOWNGRADE; Metastore only supports schema upgrades.
     """
     Logger.info("Upgrading Hive Metastore Schema")
+    import status_params
     import params
     env.set_params(params)
 
@@ -189,9 +190,13 @@ class HiveMetastoreDefault(HiveMetastore):
     self.configure(env)
 
     if params.security_enabled:
-      kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-      Execute(kinit_command,user=params.smokeuser)
-
+      cached_kinit_executor(status_params.kinit_path_local,
+        status_params.hive_user,
+        params.hive_metastore_keytab_path,
+        params.hive_metastore_principal,
+        status_params.hostname,
+        status_params.tmp_dir)
+      
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
