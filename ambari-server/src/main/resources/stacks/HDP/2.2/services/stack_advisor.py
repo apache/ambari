@@ -26,8 +26,6 @@ import socket
 import re
 import xml.etree.ElementTree as ET
 
-from stack_advisor_21 import *
-
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 

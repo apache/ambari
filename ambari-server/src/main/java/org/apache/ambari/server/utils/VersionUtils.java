@@ -76,11 +76,12 @@ public class VersionUtils {
       throw new IllegalArgumentException("maxLengthToCompare cannot be less than 0");
     }
 
-    if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) return 0;
-    
-    String pattern = "^([0-9]+)\\.([0-9]+)\\.([0-9]+).*";
-    String[] version1Parts = version1.replaceAll(pattern, "$1.$2.$3").split("\\.");
-    String[] version2Parts = version2.replaceAll(pattern, "$1.$2.$3").split("\\.");
+    if(BootStrapImpl.DEV_VERSION.equals(version1.trim())) {
+      return 0;
+    }
+
+    String[] version1Parts = version1.split("\\.");
+    String[] version2Parts = version2.split("\\.");
 
     int length = Math.max(version1Parts.length, version2Parts.length);
     length = maxLengthToCompare == 0 || maxLengthToCompare > length ? length : maxLengthToCompare;
