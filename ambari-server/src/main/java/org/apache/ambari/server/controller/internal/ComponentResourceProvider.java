@@ -119,8 +119,8 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
     super(propertyIds, keyPropertyIds, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
 
-    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
-    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES, RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES, RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
     setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
     setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
     setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
@@ -285,7 +285,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       Validate.notEmpty(request.getComponentName(), "component name should be non-empty");
       Cluster cluster = getClusterForRequest(request, clusters);
 
-      isAuthorized(cluster, RoleAuthorization.SERVICE_ADD_DELETE_SERVICES);
+      isAuthorized(cluster, getRequiredCreateAuthorizations());
 
       setServiceNameIfAbsent(request, cluster, ambariMetaInfo);
       debug("Received a createComponent request: {}", request);
@@ -774,8 +774,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   private void isAuthorized(final Cluster cluster, final RoleAuthorization roleAuthorization) throws AuthorizationException {
-    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), roleAuthorization)) {
-      throw new AuthorizationException("The user is not authorized to for role " + roleAuthorization.name());
+    isAuthorized(cluster, EnumSet.of(roleAuthorization));
+  }
+
+  private void isAuthorized(final Cluster cluster, final Set<RoleAuthorization> requiredAuthorizations) throws AuthorizationException {
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), requiredAuthorizations)) {
+      throw new AuthorizationException("The user is not authorized to for roles " + requiredAuthorizations);
     }
   }
 
