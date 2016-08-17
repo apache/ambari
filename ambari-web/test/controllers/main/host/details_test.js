@@ -1369,6 +1369,56 @@ describe('App.MainHostDetailsController', function () {
             }
           }
         }
+      },
+      {
+        m: 'ATLAS configs',
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          'application-properties': {
+            'atlas.audit.hbase.zookeeper.quorum': '',
+            'atlas.graph.index.search.solr.zookeeper-url': '',
+            'atlas.graph.storage.hostname': '',
+            'atlas.kafka.zookeeper.connect': ''
+          }
+        },
+        e: {
+          configs: {
+            'application-properties': {
+              'atlas.audit.hbase.zookeeper.quorum': 'host1,host2',
+              'atlas.graph.index.search.solr.zookeeper-url': 'host1:2181/ambari-solr,host2:2181/ambari-solr',
+              'atlas.graph.storage.hostname': 'host1,host2',
+              'atlas.kafka.zookeeper.connect': 'host1:2181,host2:2181'
+            }
+          }
+        }
+      },
+      {
+        m: 'ATLAS configs with custom solr',
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          'infra-solr-env': {
+            'infra_solr_znode': '/custom-solr'
+          },
+          'application-properties': {
+            'atlas.audit.hbase.zookeeper.quorum': '',
+            'atlas.graph.index.search.solr.zookeeper-url': '',
+            'atlas.graph.storage.hostname': '',
+            'atlas.kafka.zookeeper.connect': ''
+          }
+        },
+        e: {
+          configs: {
+            'infra-solr-env': {
+              'infra_solr_znode': '/custom-solr'
+            },
+            'application-properties': {
+              'atlas.audit.hbase.zookeeper.quorum': 'host1,host2',
+              'atlas.graph.index.search.solr.zookeeper-url': 'host1:2181/custom-solr,host2:2181/custom-solr',
+              'atlas.graph.storage.hostname': 'host1,host2',
+              'atlas.kafka.zookeeper.connect': 'host1:2181,host2:2181'
+            }
+          }
+        }
       }
     ];
 

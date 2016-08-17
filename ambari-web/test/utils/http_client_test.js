@@ -69,9 +69,7 @@ describe('App.HttpClient', function () {
         beforeEach(function () {
           sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
           sinon.spy(Em, 'assert');
-          try {
-            App.HttpClient.defaultErrorHandler(jqXHR, '', '', 'http://localhost');
-          } catch (e) {}
+          App.HttpClient.defaultErrorHandler(jqXHR, '', '', 'http://localhost');
         });
 
         afterEach(function () {

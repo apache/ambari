@@ -34,14 +34,8 @@ describe('App.KerberosWizardStep1Controller', function() {
     it("test", function() {
       var options=controller.get('options');
       controller.propertyDidChange('selectedOption');
-      options.forEach(function(option) {
-        if (option.value === controller.get('selectedItem')) {
-          var preConditions=option.preConditions;
-          preConditions.forEach(function(condition) {
-            expect(condition.get('checked')).to.be.false;
-          });
-        }          
-      }, this);
+      var option = options.findProperty('value', controller.get('selectedItem'));
+      expect(option.preConditions.everyProperty('checked', false)).to.be.true;
     });
     
   });

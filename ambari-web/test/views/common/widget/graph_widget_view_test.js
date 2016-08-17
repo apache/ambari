@@ -424,7 +424,7 @@ describe('App.GraphWidgetView', function () {
 
     beforeEach(function() {
       sinon.stub(view, 'adjustData', function (dataLinks) {
-        dataLinks['m1'][1] = [3, 1112];
+        dataLinks.m1[1] = [3, 1112];
       });
     });
 

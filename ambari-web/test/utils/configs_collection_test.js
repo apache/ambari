@@ -34,18 +34,7 @@ describe('App.configsCollection', function () {
 
   describe('#add', function () {
 
-    var cases = [
-      {
-        collection: [],
-        isError: false,
-        title: 'initial state'
-      },
-      {
-        obj: undefined,
-        collection: [],
-        isError: true,
-        title: 'no item passed'
-      },
+    var throwCases = [
       {
         obj: undefined,
         collection: [],
@@ -57,6 +46,20 @@ describe('App.configsCollection', function () {
         collection: [],
         isError: true,
         title: 'no id passed'
+      },
+      {
+        obj: undefined,
+        collection: [],
+        isError: true,
+        title: 'no item passed'
+      }
+    ];
+
+    var cases = [
+      {
+        collection: [],
+        isError: false,
+        title: 'initial state'
       },
       {
         obj: {
@@ -114,20 +117,22 @@ describe('App.configsCollection', function () {
       }
     ];
 
+    throwCases.forEach(function (item) {
+
+      it(item.title, function () {
+        expect(function () {configsCollection.add(item.obj);}).to.throw(Error);
+      });
+
+    });
+
     cases.forEach(function (item) {
 
       describe(item.title, function () {
 
         beforeEach(function () {
-          try {
-            if (item.hasOwnProperty('obj')) {
-              configsCollection.add(item.obj);
-            }
-          } catch (e) {}
-        });
-
-        it('thrown error', function () {
-          expect(Em.assert.threw()).to.equal(item.isError);
+          if (item.hasOwnProperty('obj')) {
+            configsCollection.add(item.obj);
+          }
         });
 
         it('configs array', function () {
@@ -148,7 +153,7 @@ describe('App.configsCollection', function () {
 
   describe('#getConfig', function () {
 
-    var cases = [
+    var throwCases = [
       {
         result: undefined,
         isError: true,
@@ -159,7 +164,10 @@ describe('App.configsCollection', function () {
         result: undefined,
         isError: true,
         title: 'invalid id passed'
-      },
+      }
+    ];
+
+    var cases = [
       {
         id: 1,
         result: {
@@ -184,6 +192,17 @@ describe('App.configsCollection', function () {
       }
     ];
 
+    throwCases.forEach(function (item) {
+
+      it(item.title, function () {
+        configsCollection.add({
+          id: 1
+        });
+        expect(function () {configsCollection.getConfig(item.id);}).to.throw(Error);
+      });
+
+    });
+
     cases.forEach(function (item) {
 
       describe(item.title, function () {
@@ -194,13 +213,7 @@ describe('App.configsCollection', function () {
           configsCollection.add({
             id: 1
           });
-          try {
-            result = configsCollection.getConfig(item.id);
-          } catch (e) {}
-        });
-
-        it('thrown error', function () {
-          expect(Em.assert.threw()).to.equal(item.isError);
+          result = configsCollection.getConfig(item.id);
         });
 
         it('returned value', function () {
@@ -215,20 +228,22 @@ describe('App.configsCollection', function () {
 
   describe('#getConfigByName', function () {
 
-    var configIds = ['n0_f0', 'n1_f1'],
-      cases = [
-        {
-          fileName: 'f0',
-          result: undefined,
-          isError: true,
-          title: 'no name passed'
-        },
-        {
-          name: 'n0',
-          result: undefined,
-          isError: true,
-          title: 'no filename passed'
-        },
+    var configIds = ['n0_f0', 'n1_f1'];
+    var throwCases = [
+      {
+        fileName: 'f0',
+        result: undefined,
+        isError: true,
+        title: 'no name passed'
+      },
+      {
+        name: 'n0',
+        result: undefined,
+        isError: true,
+        title: 'no filename passed'
+      }
+    ];
+    var cases = [
         {
           name: 'n0',
           fileName: 'f0',
@@ -247,6 +262,25 @@ describe('App.configsCollection', function () {
         }
       ];
 
+    beforeEach(function () {
+      sinon.stub(App.config, 'configId', function (name, fileName) {
+        return name + '_' + fileName;
+      });
+    });
+
+    afterEach(function () {
+      configsCollection.clearAll();
+      App.config.configId.restore();
+    });
+
+    throwCases.forEach(function (item) {
+
+      it(item.title, function () {
+        expect(function () {configsCollection.getConfigByName(item.name, item.fileName);}).to.throw(Error);
+      });
+
+    });
+
     cases.forEach(function (item) {
 
       describe(item.title, function () {
@@ -254,27 +288,13 @@ describe('App.configsCollection', function () {
         var result;
 
         beforeEach(function () {
-          sinon.stub(App.config, 'configId', function (name, fileName) {
-            return name + '_' + fileName;
-          });
+
           configIds.forEach(function (id) {
             configsCollection.add({
               id: id
             });
           });
-          try {
-            result = configsCollection.getConfigByName(item.name, item.fileName);
-          } catch (e) {}
-        });
-
-        afterEach(function () {
-          App.config.configId.restore();
-          configsCollection.clearAll();
-        });
-
-
-        it('thrown error', function () {
-          expect(Em.assert.threw()).to.equal(item.isError);
+          result = configsCollection.getConfigByName(item.name, item.fileName);
         });
 
         it('returned value', function () {

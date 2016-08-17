@@ -34,11 +34,9 @@ describe('App.config', function() {
     ];
 
     tests.forEach(function(t) {
-      describe(t.m, function() {
-        it('' , function() {
+        it(t.m, function() {
           expect(App.config.getOriginalFileName(t.input)).to.equal(t.output);
-        })
-      })
+        });
     });
   });
 
@@ -49,11 +47,9 @@ describe('App.config', function() {
     ];
 
     tests.forEach(function(t) {
-      describe(t.m, function() {
-        it('' , function() {
-          expect(App.config.getConfigTagFromFileName(t.input)).to.equal(t.output);
-        })
-      })
+      it(t.m, function() {
+        expect(App.config.getConfigTagFromFileName(t.input)).to.equal(t.output);
+      });
     });
   });
 
@@ -537,6 +533,19 @@ describe('App.config', function() {
 
   describe('#addYarnCapacityScheduler', function () {
     var input, res, configs, csConfig;
+    res = {
+      'value': 'n1=v1\nn2=v2\n',
+      'serviceName': 'YARN',
+      'savedValue': 'n1=sv1\nn2=sv2\n',
+      'recommendedValue': 'n1=rv1\nn2=rv2\n',
+      'isFinal': true,
+      'savedIsFinal': true,
+      'recommendedIsFinal': true,
+      'category': 'CapacityScheduler',
+      'displayName': 'Capacity Scheduler',
+      'description': 'Capacity Scheduler properties',
+      'displayType': 'capacityScheduler'
+    };
     beforeEach(function () {
       sinon.stub(App.config, 'getPropertiesFromTheme').returns([]);
       input = [
@@ -566,19 +575,6 @@ describe('App.config', function() {
         })
       ];
 
-      res = {
-        'value': 'n1=v1\nn2=v2\n',
-        'serviceName': 'YARN',
-        'savedValue': 'n1=sv1\nn2=sv2\n',
-        'recommendedValue': 'n1=rv1\nn2=rv2\n',
-        'isFinal': true,
-        'savedIsFinal': true,
-        'recommendedIsFinal': true,
-        'category': 'CapacityScheduler',
-        'displayName': 'Capacity Scheduler',
-        'description': 'Capacity Scheduler properties',
-        'displayType': 'capacityScheduler'
-      };
       configs = App.config.addYarnCapacityScheduler(input);
       csConfig = configs.findProperty('category', 'CapacityScheduler');
     });
@@ -586,12 +582,12 @@ describe('App.config', function() {
       App.config.getPropertiesFromTheme.restore();
     });
 
-    it('check result config', function () {
-      for (var k in res) {
-        if (res.hasOwnProperty(k)) {
+    describe('check result config', function () {
+      Object.keys(res).forEach(function (k) {
+        it(k, function () {
           expect(csConfig.get(k)).to.eql(res[k]);
-        }
-      }
+        });
+      });
     });
   });
 
@@ -777,7 +773,7 @@ describe('App.config', function() {
   });
 
   describe('#createCustomGroupConfig', function() {
-    var override, configGroup, result, expected;
+    var override, configGroup, result;
     beforeEach(function () {
       sinon.stub(App.config, 'createDefaultConfig', function (name, filename) {
         return { propertyName: name, filename: filename };
@@ -787,23 +783,27 @@ describe('App.config', function() {
         propertyName: 'p1',
         filename: 'f1'
       };
-      expected = {
-        propertyName: 'p1',
-        filename: 'f1',
-        isOriginalSCP: false,
-        overrides: null,
-        group: configGroup,
-        parentSCP: null
-      }
       result = App.config.createCustomGroupConfig(override, configGroup);
     });
     afterEach(function () {
       App.config.createDefaultConfig.restore();
     });
-    it('createsCustomOverride', function () {
-      for (var k in expected) {
-        expect(result.get(k)).to.eql(expected[k]);
-      }
+    describe('createsCustomOverride', function () {
+      var expected = {
+        propertyName: 'p1',
+        filename: 'f1',
+        isOriginalSCP: false,
+        overrides: null,
+        parentSCP: null
+      };
+      Object.keys(expected).forEach(function (k) {
+        it(k, function () {
+          expect(result.get(k)).to.be.eql(expected[k]);
+        });
+      });
+      it('config group is valid', function () {
+        expect(result.get('group')).to.be.eql(configGroup);
+      });
     });
 
     it('updates configGroup properties', function () {
@@ -1242,22 +1242,30 @@ describe('App.config', function() {
 
     beforeEach(function() {
       sinon.stub(App.config, 'parseIdentities');
+      App.config.parseDescriptor(input);
     });
 
     afterEach(function() {
       App.config.parseIdentities.restore();
     });
-    it('runs parseIdentities for each service and component', function() {
-      App.config.parseDescriptor(input);
+
+    it('`parseIdentities` called 3 times', function () {
+      expect(App.config.parseIdentities.calledThrice).to.be.true;
+    });
+
+    it('1st call', function () {
       expect(App.config.parseIdentities.calledWith({
-        serviceName: 'serviceName',
-        components: [
-          { componentName: 'componentName1' },
-          { componentName: 'componentName2' }
-        ]
-      }));
-      expect(App.config.parseIdentities.calledWith({ componentName: 'componentName2' }));
-      expect(App.config.parseIdentities.calledWith({ componentName: 'componentName2' }));
+        "serviceName": "serviceName",
+        "components": [{"componentName": "componentName2"}, {"componentName": "componentName2"}]
+      }, {})).to.be.true;
+    });
+
+    it('2nd call', function () {
+      expect(App.config.parseIdentities.calledWith({ componentName: 'componentName2' })).to.be.true;
+    });
+
+    it('3rd call', function () {
+      expect(App.config.parseIdentities.calledWith({ componentName: 'componentName2' })).to.be.true;
     });
   });
 
@@ -1385,7 +1393,7 @@ describe('App.config', function() {
       App.config.get.restore();
     });
 
-    it('create service config object based on input', function () {
+    describe('create service config object based on input', function () {
       var res = {
         serviceName: 'serviceName1',
         displayName: 'displayName1',
@@ -1395,12 +1403,14 @@ describe('App.config', function() {
         initConfigsLength: 1,
         dependentServiceNames: []
       };
-      for (var k in res) {
-        expect(App.config.createServiceConfig('serviceName1', configGroups, configs, 1).get(k)).to.eql(res[k]);
-      }
+      Object.keys(res).forEach(function (k) {
+        it(k, function () {
+          expect(App.config.createServiceConfig('serviceName1', configGroups, configs, 1).get(k)).to.eql(res[k]);
+        });
+      });
     });
 
-    it('create default service config object', function () {
+    describe('create default service config object', function () {
       var res = {
         serviceName: 'serviceName1',
         displayName: 'displayName1',
@@ -1409,9 +1419,11 @@ describe('App.config', function() {
         initConfigsLength: 0,
         dependentServiceNames: []
       };
-      for (var k in res) {
-        expect(App.config.createServiceConfig('serviceName1').get(k)).to.eql(res[k]);
-      }
+      Object.keys(res).forEach(function (k) {
+        it(k, function() {
+          expect(App.config.createServiceConfig('serviceName1').get(k)).to.eql(res[k]);
+        });
+      });
     });
   });
 
@@ -1475,7 +1487,7 @@ describe('App.config', function() {
     });
     it('runs mapper', function () {
       App.config.saveConfigsToModel({configs: 'configs'});
-      expect(App.stackConfigPropertiesMapper.map.calledWith({configs: 'configs'}));
+      expect(App.stackConfigPropertiesMapper.map.calledWith({configs: 'configs'})).to.be.true;
     });
   });
 
