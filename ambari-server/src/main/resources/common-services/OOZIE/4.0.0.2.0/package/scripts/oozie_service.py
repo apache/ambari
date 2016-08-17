@@ -17,8 +17,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+# Python Imports
 import os
 
+# Local Imports
+from oozie import copy_atlas_hive_hook_to_dfs_share_lib
+
+# Resource Managemente Imports
 from resource_management.core import sudo
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
@@ -146,6 +151,8 @@ def oozie_service(action = 'start', upgrade_type=None):
       # start oozie
       Execute( start_cmd, environment=environment, user = params.oozie_user,
         not_if = no_op_test )
+
+      copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type, params.upgrade_direction)
     except:
       show_logs(params.oozie_log_dir, params.oozie_user)
       raise

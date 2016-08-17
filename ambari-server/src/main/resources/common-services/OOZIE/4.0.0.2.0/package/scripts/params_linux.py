@@ -26,6 +26,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.functions.get_not_managed_resources import get_not_managed_resources
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 from resource_management.libraries.functions.expect import expect
@@ -41,6 +42,10 @@ import re
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
+
+
+# Needed since this writes out the Atlas Hive Hook config file.
+cluster_name = config['clusterName']
 
 hostname = config["hostname"]
 
@@ -276,6 +281,10 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 falcon_host = default("/clusterHostInfo/falcon_server_hosts", [])
 has_falcon_host = not len(falcon_host)  == 0
 
+oozie_server_hostnames = default("/clusterHostInfo/oozie_server", [])
+oozie_server_hostnames = sorted(oozie_server_hostnames)
+
+
 #oozie-log4j.properties
 if (('oozie-log4j' in config['configurations']) and ('content' in config['configurations']['oozie-log4j'])):
   log4j_props = config['configurations']['oozie-log4j']['content']
@@ -291,6 +300,17 @@ hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
 dfs_type = default("/commandParams/dfs_type", "")
+
+
+########################################################
+############# Atlas related params #####################
+########################################################
+#region Atlas Hooks needed by Hive on Oozie
+hive_atlas_application_properties = default('/configurations/hive-atlas-application.properties', {})
+
+if has_atlas_in_cluster():
+  atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
+#endregion
 
 import functools
 #create partial functions with common arguments for every HdfsResource call

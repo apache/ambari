@@ -269,6 +269,11 @@
       "min_version": "2.5.0.0"
     },
     {
+      "name": "atlas_hook_support",
+      "description": "Atlas support for hooks in Hive, Storm, Falcon, and Sqoop",
+      "min_version": "2.5.0.0"
+    },
+    {
       "name": "ranger_pid_support",
       "description": "Ranger Service support pid generation AMBARI-16756",
       "min_version": "2.5.0.0"

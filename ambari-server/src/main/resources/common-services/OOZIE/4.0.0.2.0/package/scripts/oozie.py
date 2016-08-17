@@ -17,26 +17,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+# Python Imports
 import os
+import re
 
+# Resource Management Imports
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import StackFeature
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
-from resource_management.core.shell import as_user
-from resource_management.core.shell import as_sudo
+from resource_management.core.shell import as_user, as_sudo, call
+from resource_management.core.exceptions import Fail
+
+from resource_management.libraries.functions.setup_atlas_hook import has_atlas_in_cluster, setup_atlas_hook
+from ambari_commons.constants import SERVICE, UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from resource_management.libraries.functions.constants import Direction
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from ambari_commons.inet_utils import download_file
+
+from resource_management.core import Logger
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -294,11 +305,138 @@ def oozie_server_specific():
         group = params.user_group,
         mode = 0664
     )
+
+    # If Atlas is also installed, need to generate Atlas Hive hook (hive-atlas-application.properties file) in directory
+    # {stack_root}/{version}/atlas/hook/hive/
+    # Because this is a .properties file instead of an xml file, it will not be read automatically by Oozie.
+    # However, should still save the file on this host so that can upload it to the Oozie Sharelib in DFS.
+    if has_atlas_in_cluster():
+      atlas_hook_filepath = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
+      Logger.info("Has atlas in cluster, will save Atlas Hive hook into location %s" % str(atlas_hook_filepath))
+      setup_atlas_hook(SERVICE.HIVE, params.hive_atlas_application_properties, atlas_hook_filepath, params.oozie_user, params.user_group)
+
   Directory(params.oozie_server_dir,
     owner = params.oozie_user,
     group = params.user_group,
     recursive_ownership = True,  
   )
+
+def __parse_sharelib_from_output(output):
+  """
+  Return the parent directory of the first path from the output of the "oozie admin -shareliblist command $comp"
+  Output will match pattern like:
+
+  Potential errors
+  [Available ShareLib]
+  hive
+    hdfs://server:8020/user/oozie/share/lib/lib_20160811235630/hive/file1.jar
+    hdfs://server:8020/user/oozie/share/lib/lib_20160811235630/hive/file2.jar
+  """
+  if output is not None:
+    pattern = re.compile(r"\[Available ShareLib\]\n\S*?\n(.*share.*)", re.IGNORECASE)
+    m = pattern.search(output)
+    if m and len(m.groups()) == 1:
+      jar_path = m.group(1)
+      # Remove leading/trailing spaces and get the containing directory
+      sharelib_dir = os.path.dirname(jar_path.strip())
+      return sharelib_dir
+  return None
+
+def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=None):
+  """
+   If the Atlas Hive Hook direcotry is present, Atlas is installed, and this is the first Oozie Server,
+  then copy the entire contents of that directory to the Oozie Sharelib in DFS, e.g.,
+  /usr/$stack/$version/atlas/hook/hive/ -> hdfs:///user/oozie/share/lib/lib_$timetamp/hive
+
+  :param upgrade_type: If in the middle of a stack upgrade, the type as UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_NON_ROLLING
+  :param upgrade_direction: If in the middle of a stack upgrade, the direction as Direction.UPGRADE or Direction.DOWNGRADE.
+  """
+  import params
+
+  # Calculate the effective version since this code can also be called during EU/RU in the upgrade direction.
+  effective_version = params.stack_version_formatted if upgrade_type is None else format_stack_version(params.version)
+  if not check_stack_feature(StackFeature.ATLAS_HOOK_SUPPORT, effective_version):
+    return
+    
+  # Important that oozie_server_hostnames is sorted by name so that this only runs on a single Oozie server.
+  if not (len(params.oozie_server_hostnames) > 0 and params.hostname == params.oozie_server_hostnames[0]):
+    Logger.debug("Will not attempt to copy Atlas Hive hook to DFS since this is not the first Oozie Server "
+                 "sorted by hostname.")
+    return
+
+  if not has_atlas_in_cluster():
+    Logger.debug("Will not attempt to copy Atlas Hve hook to DFS since Atlas is not installed on the cluster.")
+    return
+
+  if upgrade_type is not None and upgrade_direction == Direction.DOWNGRADE:
+    Logger.debug("Will not attempt to copy Atlas Hve hook to DFS since in the middle of Rolling/Express upgrade "
+                 "and performing a Downgrade.")
+    return
+
+  atlas_hive_hook_dir = format("{stack_root}/{version}/atlas/hook/hive/")
+  if not os.path.exists(atlas_hive_hook_dir):
+    Logger.error(format("ERROR. Atlas is installed in cluster but this Oozie server doesn't "
+                        "contain directory {atlas_hive_hook_dir}"))
+    return
+
+  num_files = len([name for name in os.listdir(atlas_hive_hook_dir) if os.path.exists(os.path.join(atlas_hive_hook_dir, name))])
+  Logger.info("Found %d files/directories inside Atlas Hive hook directory %s"% (num_files, atlas_hive_hook_dir))
+
+  # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
+  command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
+
+  try:
+    code, out = call(command, user=params.oozie_user, tries=10, try_sleep=5, logoutput=True)
+    if code == 0 and out is not None:
+      hive_sharelib_dir = __parse_sharelib_from_output(out)
+
+      if hive_sharelib_dir is None:
+        raise Fail("Could not parse Hive sharelib from output.")
+
+      Logger.info("Parsed Hive sharelib = %s and will attempt to copy/replace %d files to it from %s" %
+                  (hive_sharelib_dir, num_files, atlas_hive_hook_dir))
+
+      params.HdfsResource(hive_sharelib_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          source=atlas_hive_hook_dir,
+                          user=params.hdfs_user,
+                          owner=params.oozie_user,
+                          group=params.hdfs_user,
+                          mode=0755,
+                          recursive_chown=True,
+                          recursive_chmod=True,
+                          replace_existing_files=True
+                          )
+                          
+      Logger.info("Copying Atlas Hive hook properties file to Oozie Sharelib in DFS.")
+      atlas_hook_filepath_source = os.path.join(params.hive_conf_dir, params.atlas_hook_filename)
+      atlas_hook_file_path_dest_in_dfs = os.path.join(hive_sharelib_dir, params.atlas_hook_filename)
+      params.HdfsResource(atlas_hook_file_path_dest_in_dfs,
+                          type="file",
+                          source=atlas_hook_filepath_source,
+                          action="create_on_execute",
+                          owner=params.oozie_user,
+                          group=params.hdfs_user,
+                          mode=0755,
+                          replace_existing_files=True
+                          )
+      params.HdfsResource(None, action="execute")
+
+      # Update the sharelib after making any changes
+      # Since calling oozie-env.sh, don't have to specify -oozie http(s):localhost:{oozie_server_admin_port}/oozie
+      command = format("source {conf_dir}/oozie-env.sh ; oozie admin -sharelibupdate")
+      code, out = call(command, user=params.oozie_user, tries=5, try_sleep=5, logoutput=True)
+      if code == 0 and out is not None:
+        Logger.info("Successfully updated the Oozie ShareLib")
+      else:
+        raise Exception("Could not update the Oozie ShareLib after uploading the Atlas Hive hook directory to DFS. "
+                        "Code: %s" % str(code))
+    else:
+      raise Exception("Code is non-zero or output is empty. Code: %s" % str(code))
+  except Fail, e:
+    Logger.error("Failed to get Hive sharelib directory in DFS. %s" % str(e))
+
 
 def download_database_library_if_needed(target_directory = None):
   """
