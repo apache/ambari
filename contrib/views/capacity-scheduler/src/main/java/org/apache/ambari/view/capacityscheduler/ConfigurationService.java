@@ -390,10 +390,10 @@ public class ConfigurationService {
    * @return the http response
    */
   @PUT
-  @Consumes(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.TEXT_PLAIN)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response writeConfiguration(JSONObject request) {
-    LOG.debug("writeConfiguration for request : {} ", request);
+  public Response writeConfiguration(String requestBody) {
+    LOG.debug("writeConfiguration for request : {} ", requestBody);
     JSONObject response;
     try {
 
@@ -404,7 +404,7 @@ public class ConfigurationService {
 
       Map<String, String> headers = new HashMap<String, String>();
       headers.put("Content-Type", "application/x-www-form-urlencoded");
-      String responseString = ambariApi.requestClusterAPI("", "PUT", request.toJSONString(), headers);
+      String responseString = ambariApi.requestClusterAPI("", "PUT",requestBody, headers);
       response = getJsonObject(responseString);
 
     } catch (WebApplicationException ex) {
