@@ -774,6 +774,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   updateZkConfigs: function (configs) {
     var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
     var zkPort = typeof portValue === 'undefined' ? '2181' : portValue;
+    var infraSolrZnode = configs['infra-solr-env'] ? Em.get(configs['infra-solr-env'], 'infra_solr_znode') : '/ambari-solr';
     var initializer = App.AddZooKeeperComponentsInitializer;
     var hostComponentsTopology = {
       masterComponentHosts: []
@@ -788,7 +789,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     }
     var dependencies = {
-      zkClientPort: zkPort
+      zkClientPort: zkPort,
+      infraSolrZnode: infraSolrZnode
     };
     hostComponentsTopology.masterComponentHosts = masterComponents;
     Em.keys(configs).forEach(function(fileName) {
@@ -1337,6 +1339,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (services.someProperty('serviceName', 'KAFKA')) {
       urlParams.push('(type=kafka-broker&tag=' + data.Clusters.desired_configs['kafka-broker'].tag + ')');
     }
+    if (services.someProperty('serviceName', 'ATLAS')) {
+      urlParams.push('(type=application-properties&tag=' + data.Clusters.desired_configs['application-properties'].tag + ')');
+      urlParams.push('(type=infra-solr-env&tag=' + data.Clusters.desired_configs['infra-solr-env'].tag + ')');
+    }
     return urlParams;
   },
 
@@ -1411,6 +1417,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           properties_attributes: {
             'kafka-broker': attributes['kafka-broker']
+          }
+        }
+      );
+    }
+    if (installedServiceNames.contains('ATLAS')) {
+      groups.push(
+        {
+          properties: {
+            'application-properties': configs['application-properties']
+          },
+          properties_attributes: {
+            'application-properties': attributes['application-properties']
           }
         }
       );

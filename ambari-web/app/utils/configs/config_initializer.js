@@ -174,9 +174,9 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
   _initHiveDatabaseValue: function (configProperty) {
     var newMySQLDBOption = Em.get(configProperty, 'options').findProperty('displayName', 'New MySQL Database');
     if (newMySQLDBOption) {
-      var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') != 'configs' &&
+      var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') !== 'configs' &&
         !App.get('isManagedMySQLForHiveEnabled');
-      if (isNewMySQLDBOptionHidden && Em.get(configProperty, 'value') == 'New MySQL Database') {
+      if (isNewMySQLDBOptionHidden && Em.get(configProperty, 'value') === 'New MySQL Database') {
         Em.set(configProperty, 'value', 'Existing MySQL Database');
       }
       Em.set(newMySQLDBOption, 'hidden', isNewMySQLDBOptionHidden);
