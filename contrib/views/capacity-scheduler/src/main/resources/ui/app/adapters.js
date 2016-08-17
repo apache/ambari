@@ -158,7 +158,7 @@ App.QueueAdapter = DS.Adapter.extend({
     });
 
     return new Ember.RSVP.Promise(function(resolve, reject) {
-      _ajax(uri,'PUT',{contentType:'application/json; charset=utf-8',data:data}).then(function(data) {
+      _ajax(uri,'PUT',{contentType:'text/plain; charset=utf-8',data:data}).then(function(data) {
         store.setProperties({'current_tag':new_tag,'tag':new_tag});
         Ember.run(null, resolve, data.resources.objectAt(0).configurations.objectAt(0).configs);
       }, function(jqXHR) {
