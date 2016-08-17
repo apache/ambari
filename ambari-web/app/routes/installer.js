@@ -422,8 +422,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         controller.saveServiceConfigGroups(wizardStep7Controller);
         controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
         controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
-        controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('recommendationsHostGroup'));
-        controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('masterComponentHosts'));
+        controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('content.recommendationsHostGroup'));
+        controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('content.masterComponentHosts'));
         router.transitionTo('step8');
         console.timeEnd('step7 next');
       }
