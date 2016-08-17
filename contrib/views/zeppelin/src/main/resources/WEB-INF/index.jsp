@@ -42,9 +42,8 @@
 var $ = jQuery = parent.jQuery;
 var iframe = document.querySelector('#zeppelinIFrame');
 var messageContainer = document.querySelector('#messageContainer');
-var port = "${port}";
-var publicName = "${publicName}";
-var serviceCheckResponse = $.parseJSON('${serviceCheckResponse}');
+
+var serviceCheckResponse = $.parseJSON('<%= request.getAttribute("serviceCheckResponse") %>');
 
 if (serviceCheckResponse.status === "SUCCESS") {
     messageContainer.style.display = "none";
