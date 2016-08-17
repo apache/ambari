@@ -536,7 +536,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     'SECONDARY_NAMENODE': ['hdfs-site', 'core-site'],
     'JOBTRACKER': ['mapred-site'],
     'RESOURCEMANAGER': ['yarn-site'],
-    'WEBHCAT_SERVER': ['webhcat-site'],
+    'WEBHCAT_SERVER': ['hive-env', 'webhcat-site', 'core-site'],
     'APP_TIMELINE_SERVER': ['yarn-site', 'yarn-env'],
     'OOZIE_SERVER': ['oozie-site', 'core-site', 'oozie-env'],
     'HIVE_SERVER': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
@@ -684,13 +684,26 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    * Settings used to the App.MoveHsConfigInitializer and App.MoveHmConfigInitializer setup
    *
    * @param {object} configs
-   * @returns {{hiveUser: string, webhcatUser: string}}
+   * @returns {{hiveUser: string}}
    * @private
    * @method _getHiveInitializerSettings
    */
   _getHiveInitializerSettings: function (configs) {
     return {
-      hiveUser: configs['hive-env']['hive_user'],
+      hiveUser: configs['hive-env']['hive_user']
+    };
+  },
+
+  /**
+   * Settings used to the App.MoveWsConfigInitializer setup
+   *
+   * @param {object} configs
+   * @returns {{webhcatUser: string}}
+   * @private
+   * @method _getWsInitializerSettings
+   */
+  _getWsInitializerSettings: function (configs) {
+    return {
       webhcatUser: configs['hive-env']['webhcat_user']
     };
   },
@@ -768,6 +781,11 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         App.MoveHsConfigInitializer.setup(this._getHiveInitializerSettings(configs));
         configs = this.setDynamicConfigs(configs, App.MoveHsConfigInitializer);
         App.MoveHsConfigInitializer.cleanup();
+        break;
+      case 'WEBHCAT_SERVER':
+        App.MoveWsConfigInitializer.setup(this._getWsInitializerSettings(configs));
+        configs = this.setDynamicConfigs(configs, App.MoveWsConfigInitializer);
+        App.MoveWsConfigInitializer.cleanup();
         break;
       case 'OOZIE_SERVER':
         App.MoveOSConfigInitializer.setup(this._getOsInitializerSettings(configs));
