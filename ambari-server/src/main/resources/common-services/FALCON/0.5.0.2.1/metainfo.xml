@@ -122,6 +122,7 @@
         <config-type>falcon-startup.properties</config-type>
         <config-type>falcon-runtime.properties</config-type>
         <config-type>falcon-client.properties</config-type>
+        <config-type>falcon-log4j.xml</config-type>
         <config-type>application.properties</config-type>
         <config-type>falcon-atlas-application.properties</config-type>
       </configuration-dependencies>
