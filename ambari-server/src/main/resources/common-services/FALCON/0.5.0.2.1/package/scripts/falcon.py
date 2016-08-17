@@ -219,7 +219,8 @@ def falcon(type, action = None, upgrade_type=None):
       if not os.path.exists(params.target_jar_file):
         try :
           File(params.target_jar_file,
-           content = DownloadSource(params.bdb_resource_name))
+           content = DownloadSource(params.bdb_resource_name),
+           mode = 0755)
         except :
            exc_msg = traceback.format_exc()
            exception_message = format("Caught Exception while downloading {bdb_resource_name}:\n{exc_msg}")
@@ -228,7 +229,7 @@ def falcon(type, action = None, upgrade_type=None):
         if not os.path.isfile(params.target_jar_file) :
           error_message = """
 If you are using bdb as the Falcon graph db store, please run
-ambari-server setup --jdbc-db=bdb --jdbc-driver=<path to je5.0.73.jar
+ambari-server setup --jdbc-db=bdb --jdbc-driver=<path to je5.0.73.jar>
 on the ambari server host.  Otherwise falcon startup will fail.
 Otherwise please configure Falcon to use HBase as the backend as described
 in the Falcon documentation.
