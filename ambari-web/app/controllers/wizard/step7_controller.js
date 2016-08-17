@@ -221,9 +221,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var dependencies = {};
     var hiveMetastore = App.configsCollection.getConfigByName('hive.metastore.uris', 'hive-site.xml');
     var clientPort = App.configsCollection.getConfigByName('clientPort', 'zoo.cfg.xml');
+    var atlasTls = App.configsCollection.getConfigByName('atlas.enableTLS', 'application-properties.xml');
+    var atlasHttpPort = App.configsCollection.getConfigByName('atlas.server.http.port', 'application-properties.xml');
+    var atlasHttpsPort = App.configsCollection.getConfigByName('atlas.server.https.port', 'application-properties.xml');
 
     if (hiveMetastore) dependencies['hive.metastore.uris'] = hiveMetastore.recommendedValue;
     if (clientPort) dependencies.clientPort = clientPort.recommendedValue;
+    if (atlasTls) dependencies['atlas.enableTLS'] = atlasTls.recommendedValue;
+    if (atlasHttpPort) dependencies['atlas.server.http.port'] = atlasHttpPort.recommendedValue;
+    if (atlasHttpsPort) dependencies['atlas.server.https.port'] = atlasHttpsPort.recommendedValue;
     return dependencies;
   }.property(),
 
@@ -1040,6 +1046,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (config.name === 'clientPort') {
           this.get('configDependencies').clientPort = config.savedValue;
         }
+    }
+    if (config.filename === 'application-properties.xml') {
+      if (this.get('configDependencies').hasOwnProperty(config.name)) {
+        this.get('configDependencies')[config.name] = config.savedValue;
+      }
     }
   },
 
