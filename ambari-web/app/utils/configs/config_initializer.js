@@ -141,7 +141,8 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
     'hbase.zookeeper.quorum': '_initHBaseZookeeperQuorum',
     'yarn.resourcemanager.zk-address': '_initYarnRMzkAddress',
     'RANGER_HOST': '_initRangerHost',
-    'hive.metastore.uris': '_initHiveMetastoreUris'
+    'hive.metastore.uris': '_initHiveMetastoreUris',
+    'atlas.rest.address': '_initAtlasRestAddress'
   },
 
   initializerTypes: [
@@ -309,6 +310,31 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
         this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
       }
     }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>atlas.rest.address</code>
+   *
+   * @param {configProperty} configProperty
+   * @param {topologyLocalDB} localDB
+   * @param {object} dependencies
+   * @return {Object}
+   * @private
+   */
+  _initAtlasRestAddress: function (configProperty, localDB, dependencies) {
+    var atlasTls = dependencies['atlas.enableTLS'];
+    var httpPort = dependencies['atlas.server.http.port'];
+    var httpsPort = dependencies['atlas.server.https.port'];
+    var protocol = atlasTls ? 'https': 'http';
+    var port = atlasTls ? httpsPort : httpPort;
+    var value = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').map(function (component) {
+      return protocol + '://' + component.hostName + ':' + port;
+    }).join(',');
+    Em.setProperties(configProperty, {
+      value: value,
+      recommendedValue: value
+    });
     return configProperty;
   },
 

@@ -263,8 +263,64 @@ describe('App.ConfigInitializer', function () {
         },
         value: ['h0', 'h1'],
         title: 'array that contains names of hosts with Knox Gateway'
-      }
+      },
+      'atlas.rest.address': [
+        {
+          localDB: {
+            masterComponentHosts: [
+              {
+                component: 'ZOOKEEPER_SERVER',
+                hostName: 'h0'
+              },
+              {
+                component: 'ZOOKEEPER_SERVER',
+                hostName: 'h1'
+              }
+            ]
+          },
+          dependencies: {
+            'atlas.enableTLS': false,
+            'atlas.server.http.port': 21000,
+            'atlas.server.https.port': 21443
+          },
+          value: 'http://h0:21000,http://h1:21000',
+          title: 'TLS is not enabled'
+        },
+        {
+          localDB: {
+            masterComponentHosts: [
+              {
+                component: 'ZOOKEEPER_SERVER',
+                hostName: 'h0'
+              },
+              {
+                component: 'ZOOKEEPER_SERVER',
+                hostName: 'h1'
+              }
+            ]
+          },
+          dependencies: {
+            'atlas.enableTLS': true,
+            'atlas.server.http.port': 21000,
+            'atlas.server.https.port': 21443
+          },
+          value: 'https://h0:21443,https://h1:21443',
+          title: 'TLS is enabled'
+        }
+      ]
     };
+
+    cases['atlas.rest.address'].forEach(function (test) {
+      it(test.title, function () {
+        serviceConfigProperty.setProperties({
+          name: 'atlas.rest.address',
+          value: ''
+        });
+        App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
+        expect(serviceConfigProperty.get('value')).to.equal(test.value);
+        expect(serviceConfigProperty.get('recommendedValue')).to.equal(test.value);
+      });
+    });
 
     cases['kafka.ganglia.metrics.host'].forEach(function (item) {
       it(item.message, function () {
