@@ -60,4 +60,3 @@ class BigInsights41StackAdvisor(BigInsights40StackAdvisor):
         componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] in componentHostnames]
         return componentHosts
     return []
-
