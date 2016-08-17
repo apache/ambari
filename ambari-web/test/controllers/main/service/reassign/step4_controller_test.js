@@ -577,7 +577,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       {
         componentName: 'WEBHCAT_SERVER',
         result: [
-          "(type=webhcat-site&tag=7)"
+          "(type=hive-env&tag=11)",
+          "(type=webhcat-site&tag=7)",
+          "(type=core-site&tag=2)"
         ]
       },
       {
@@ -1322,8 +1324,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it("reassign component is HIVE_METASTORE", function() {
       var configs = {
         'hive-env': {
-          'hive_user': 'hive_user',
-          'webhcat_user': 'webhcat_user'
+          'hive_user': 'hive_user'
         },
         'hive-site': {
           'hive.metastore.uris': ''
@@ -1332,8 +1333,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'templeton.hive.properties': 'thrift'
         },
         'core-site': {
-          'hadoop.proxyuser.hive_user.hosts': '',
-          'hadoop.proxyuser.webhcat_user.hosts': ''
+          'hadoop.proxyuser.hive_user.hosts': ''
         }
       };
       App.MoveHmConfigInitializer.setup(controller._getHiveInitializerSettings(configs));
@@ -1341,14 +1341,33 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host3:9083,thrift://host2:9083');
       expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
       expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host2,host3,host4');
-      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host2,host3,host4');
     });
 
     it("reassign component is HIVE_SERVER", function() {
       controller.get('content.masterComponentHosts').pushObject({component: 'HIVE_SERVER', hostName: 'host1'});
       var configs = {
         'hive-env': {
-          'hive_user': 'hive_user',
+          'hive_user': 'hive_user'
+        },
+        'hive-site': {
+          'hive.metastore.uris': ''
+        },
+        'webhcat-site': {
+          'templeton.hive.properties': 'thrift'
+        },
+        'core-site': {
+          'hadoop.proxyuser.hive_user.hosts': ''
+        }
+      };
+      App.MoveHsConfigInitializer.setup(controller._getHiveInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveHsConfigInitializer);
+      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host1,host2,host3,host4');
+    });
+
+    it("reassign component is WEBHCAT_SERVER", function() {
+      controller.get('content.masterComponentHosts').pushObject({component: 'WEBHCAT_SERVER', hostName: 'host1'});
+      var configs = {
+        'hive-env': {
           'webhcat_user': 'webhcat_user'
         },
         'hive-site': {
@@ -1358,14 +1377,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'templeton.hive.properties': 'thrift'
         },
         'core-site': {
-          'hadoop.proxyuser.hive_user.hosts': '',
           'hadoop.proxyuser.webhcat_user.hosts': ''
         }
       };
-      App.MoveHsConfigInitializer.setup(controller._getHiveInitializerSettings(configs));
-      configs = controller.setDynamicConfigs(configs, App.MoveHsConfigInitializer);
-      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host1,host2,host3,host4');
-      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host1,host2,host3,host4');
+      App.MoveWsConfigInitializer.setup(controller._getWsInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveWsConfigInitializer);
+      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host2');
     });
   });
 
