@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.ClusterController;
@@ -83,7 +84,7 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
-public class ClusterDeployWithHostsSyspreppedTest {
+public class ClusterDeployWithStartOnlyTest {
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
@@ -145,7 +146,10 @@ public class ClusterDeployWithHostsSyspreppedTest {
   private HostRoleCommand hostRoleCommandInstallComponent3;
   @Mock(type = MockType.NICE)
   private HostRoleCommand hostRoleCommandInstallComponent4;
-
+  @Mock(type = MockType.NICE)
+  private HostRoleCommand hostRoleCommandStartComponent1;
+  @Mock(type = MockType.NICE)
+  private HostRoleCommand hostRoleCommandStartComponent2;
 
   @Mock(type = MockType.NICE)
   private ComponentInfo serviceComponentInfo;
@@ -286,7 +290,7 @@ public class ClusterDeployWithHostsSyspreppedTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
-    expect(request.getProvisionAction()).andReturn(INSTALL_ONLY).anyTimes();
+    expect(request.getProvisionAction()).andReturn(ProvisionAction.START_ONLY).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
 
@@ -294,6 +298,7 @@ public class ClusterDeployWithHostsSyspreppedTest {
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group1.containsMasterComponent()).andReturn(true).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group1.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.<String>emptyList()).anyTimes();
     expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getComponents("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getConfiguration()).andReturn(topoGroup1Config).anyTimes();
@@ -305,6 +310,7 @@ public class ClusterDeployWithHostsSyspreppedTest {
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
+    expect(group2.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.<String>emptyList()).anyTimes();
     expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
     expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
@@ -330,13 +336,12 @@ public class ClusterDeployWithHostsSyspreppedTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String)isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
     expect(ambariContext.getClusterId(CLUSTER_NAME)).andReturn(CLUSTER_ID).anyTimes();
     expect(ambariContext.getClusterName(CLUSTER_ID)).andReturn(CLUSTER_NAME).anyTimes();
-    expect(ambariContext.shouldSkipInstallTasks()).andReturn(true).anyTimes();
     // so only INITIAL config
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture))).
       andReturn(Collections.singletonList(configurationRequest));
@@ -362,6 +367,23 @@ public class ClusterDeployWithHostsSyspreppedTest {
     expect(hostRoleCommandInstallComponent4.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();
     expect(hostRoleCommandInstallComponent4.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
 
+    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component1"),
+      anyString(), eq(AmbariContext.TaskType.START), anyBoolean())).andReturn(hostRoleCommandStartComponent1).times
+      (1);
+    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), eq("component2"),
+      anyString(), eq(AmbariContext.TaskType.START), anyBoolean())).andReturn(hostRoleCommandStartComponent2).times(1);
+
+    expect(hostRoleCommandStartComponent1.getTaskId()).andReturn(3L).anyTimes();
+    expect(hostRoleCommandStartComponent1.getRoleCommand()).andReturn(RoleCommand.START).atLeastOnce();
+    expect(hostRoleCommandStartComponent1.getRole()).andReturn(Role.DATANODE).atLeastOnce();
+    expect(hostRoleCommandStartComponent1.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+
+    expect(hostRoleCommandStartComponent2.getTaskId()).andReturn(4L).anyTimes();
+    expect(hostRoleCommandStartComponent2.getRoleCommand()).andReturn(RoleCommand.START).atLeastOnce();
+    expect(hostRoleCommandStartComponent2.getRole()).andReturn(Role.NAMENODE).atLeastOnce();
+    expect(hostRoleCommandStartComponent2.getStatus()).andReturn(HostRoleStatus.COMPLETED).atLeastOnce();
+
+
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
     expectLastCall().times(3);
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
@@ -381,7 +403,8 @@ public class ClusterDeployWithHostsSyspreppedTest {
       configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
       persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
       mockFuture, managementController, clusters, cluster, hostRoleCommandInstallComponent3,
-      hostRoleCommandInstallComponent4, serviceComponentInfo, clientComponentInfo);
+      hostRoleCommandInstallComponent4, hostRoleCommandStartComponent1, hostRoleCommandStartComponent2,
+      serviceComponentInfo, clientComponentInfo);
 
     Class clazz = TopologyManager.class;
 
@@ -397,12 +420,14 @@ public class ClusterDeployWithHostsSyspreppedTest {
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
       logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
       requestStatusResponse, executor, persistedState, mockFuture,
-      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4);
+      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4,
+      hostRoleCommandStartComponent1, hostRoleCommandStartComponent2);
 
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
       logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
       requestStatusResponse, executor, persistedState, mockFuture,
-      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4);
+      managementController, clusters, cluster, hostRoleCommandInstallComponent3, hostRoleCommandInstallComponent4,
+      hostRoleCommandStartComponent1, hostRoleCommandStartComponent2);
   }
 
   @Test

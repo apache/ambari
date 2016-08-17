@@ -117,11 +117,6 @@ public class AmbariContext {
     return cluster.getSecurityType() == SecurityType.KERBEROS;
   }
 
-  public boolean shouldSkipInstallTasks() {
-    return configs.skipInstallTasks();
-  }
-
-
   //todo: change return type to a topology abstraction
   public HostRoleCommand createAmbariTask(long requestId, long stageId, String component, String host,
                                           TaskType type, boolean skipFailure) {
@@ -349,11 +344,12 @@ public class AmbariContext {
     }
   }
 
-  public RequestStatusResponse installHost(String hostName, String clusterName, boolean skipFailure) {
+  public RequestStatusResponse installHost(String hostName, String clusterName, Collection<String> skipInstallForComponents, Collection<String> dontSkipInstallForComponents, boolean skipFailure) {
     try {
-      return getHostResourceProvider().install(clusterName, hostName, skipFailure);
+      return getHostResourceProvider().install(clusterName, hostName, skipInstallForComponents,
+        dontSkipInstallForComponents, skipFailure);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("INSTALL Host request submission failed:", e);
       throw new RuntimeException("INSTALL Host request submission failed: " + e, e);
     }
   }
@@ -362,7 +358,7 @@ public class AmbariContext {
     try {
       return getHostComponentResourceProvider().start(clusterName, hostName, installOnlyComponents, skipFailure);
     } catch (Exception e) {
-      e.printStackTrace();
+      LOG.error("START Host request submission failed:", e);
       throw new RuntimeException("START Host request submission failed: " + e, e);
     }
   }
