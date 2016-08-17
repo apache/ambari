@@ -44,7 +44,8 @@ class TestFalconServer(RMFTestCase):
     self.assert_configure_default()
 
     self.assertResourceCalled('File', '/usr/lib/falcon/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
-      content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar')
+      content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar'),
+      mode=0755
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-start -port 15000',
