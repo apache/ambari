@@ -1,0 +1,510 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_hbase_dashboard",
+      "display_name": "Standard HBase Dashboard",
+      "section_name": "HBASE_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "Reads and Writes",
+          "description": "Rate (per second) of read and write requests on all regions in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.Server.Get_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Append_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Delete_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Increment_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Mutate_num_ops._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Read Requests",
+              "value": "${regionserver.Server.Get_num_ops._rate + regionserver.Server.ScanNext_num_ops._rate}"
+            },
+            {
+              "name": "Write Requests",
+              "value": "${regionserver.Server.Append_num_ops._rate + regionserver.Server.Delete_num_ops._rate + regionserver.Server.Increment_num_ops._rate + regionserver.Server.Mutate_num_ops._rate}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Read Latency",
+          "description": "maximum of 95% read latency.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.Server.Get_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Cluster wide maximum of 95% Get Latency",
+              "value": "${regionserver.Server.Get_95th_percentile._max}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% ScanNext Latency",
+              "value": "${regionserver.Server.ScanNext_95th_percentile._max}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Write Latency",
+          "description": "maximum of 95% write latency.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.Server.Mutate_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Increment_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Append_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Delete_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Cluster wide maximum of 95% Mutate Latency",
+              "value": "${regionserver.Server.Mutate_95th_percentile._max}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% Increment Latency",
+              "value": "${regionserver.Server.Increment_95th_percentile._max}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% Append Latency",
+              "value": "${regionserver.Server.Append_95th_percentile._max}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% Delete Latency",
+              "value": "${regionserver.Server.Delete_95th_percentile._max}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Open Connections",
+          "description": "Count of open connections across all RegionServer. This is indicative of RegionServer load in the cluster.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.RegionServer.numOpenConnections._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections._sum",
+              "category": "",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Open Connections",
+              "value": "${regionserver.RegionServer.numOpenConnections._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Request Handlers",
+          "description": "Count of Active handlers vs count of calls waiting in the general queue.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.RegionServer.numActiveHandler._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numActiveHandler._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.RegionServer.numCallsInGeneralQueue._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numCallsInGeneralQueue._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Active Handlers",
+              "value": "${regionserver.RegionServer.numActiveHandler._sum}"
+            },
+            {
+              "name": "Calls in General Queue",
+              "value": "${regionserver.RegionServer.numCallsInGeneralQueue._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Files Local",
+          "description": "Average percentage of local files to RegionServer in the cluster.",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.Server.percentFilesLocal",
+              "metric_path": "metrics/hbase/regionserver/Server/percentFilesLocal",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Files Local",
+              "value": "${regionserver.Server.percentFilesLocal}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "error_threshold":"25",
+            "warning_threshold": "75"
+          }
+        },
+        {
+          "widget_name": "Blocked Updates",
+          "description": "Number of milliseconds updates have been blocked so the memstore can be flushed.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "regionserver.Server.updatesBlockedTime._rate",
+              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._rate",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Updates Blocked Time",
+              "value": "${regionserver.Server.updatesBlockedTime._rate}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster CPU",
+          "description": "Percentage of CPU utilized across all RegionServer hosts.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system._sum",
+              "metric_path": "metrics/cpu/cpu_system._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "cpu_user._sum",
+              "metric_path": "metrics/cpu/cpu_user._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "cpu_nice._sum",
+              "metric_path": "metrics/cpu/cpu_nice._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "cpu_idle._sum",
+              "metric_path": "metrics/cpu/cpu_idle._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "cpu_wio._sum",
+              "metric_path": "metrics/cpu/cpu_wio._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization",
+              "value": "${((cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)) * 100}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
+        },
+        {
+          "widget_name": "Cluster Network",
+          "description": "Average of Network IO utilized across all RegionServer hosts.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "pkts_in._avg",
+              "metric_path": "metrics/network/pkts_in._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "pkts_out._avg",
+              "metric_path": "metrics/network/pkts_out._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Packets In",
+              "value": "${pkts_in._avg}"
+            },
+            {
+              "name": "Packets Out",
+              "value": "${pkts_out._avg}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Disk",
+          "description": "Sum of disk throughput for all RegionServer hosts.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "read_bps._sum",
+              "metric_path": "metrics/disk/read_bps._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "write_bps._sum",
+              "metric_path": "metrics/disk/write_bps._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Read throughput",
+              "value": "${read_bps._sum/1048576}"
+            },
+            {
+              "name": "Write throughput",
+              "value": "${write_bps._sum/1048576}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Mbps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        }
+      ]
+    },
+    {
+      "layout_name": "default_hbase_heatmap",
+      "display_name": "HBase Heatmaps",
+      "section_name": "HBASE_HEATMAPS",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "HBase Compaction Queue Size",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=HBase,name=RegionServer,sub=Server.compactionQueueLength",
+              "metric_path": "metrics/hbase/regionserver/compactionQueueSize",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "HBase Compaction Queue Size",
+              "value": "${Hadoop:service=HBase,name=RegionServer,sub=Server.compactionQueueLength} "
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "10"
+          }
+        },
+        {
+          "widget_name": "HBase Memstore Sizes",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize",
+              "metric_path": "metrics/hbase/regionserver/memstoreSize",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "HBase Memstore Sizes",
+              "value": "${Hadoop:service=HBase,name=RegionServer,sub=Server.memStoreSize}"
+            }
+          ],
+          "properties": {
+            "display_unit": "B",
+            "max_limit": "104857600"
+          }
+        },
+        {
+          "widget_name": "HBase Read Request Count",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=HBase,name=RegionServer,sub=Server.readRequestCount",
+              "metric_path": "metrics/hbase/regionserver/readRequestsCount",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "HBase Read Request Count",
+              "value": "${Hadoop:service=HBase,name=RegionServer,sub=Server.readRequestCount}"
+            }
+          ],
+          "properties": {
+            "max_limit": "200"
+          }
+        },
+        {
+          "widget_name": "HBase Write Request Count",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=HBase,name=RegionServer,sub=Server.writeRequestCount",
+              "metric_path": "metrics/hbase/regionserver/writeRequestsCount",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "HBase Write Request Count",
+              "value": "${Hadoop:service=HBase,name=RegionServer,sub=Server.writeRequestCount}"
+            }
+          ],
+          "properties": {
+            "max_limit": "200"
+          }
+        },
+        {
+          "widget_name": "HBase Regions",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=HBase,name=RegionServer,sub=Server.regionCount",
+              "metric_path": "metrics/hbase/regionserver/regions",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "HBase Regions",
+              "value": "${Hadoop:service=HBase,name=RegionServer,sub=Server.regionCount}"
+            }
+          ],
+          "properties": {
+            "max_limit": "10"
+          }
+        }
+      ]
+    }
+  ]
+}

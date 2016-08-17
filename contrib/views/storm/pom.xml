@@ -19,7 +19,7 @@
   <parent>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>ambari-contrib-views</artifactId>
-    <version>2.4.0.0.0</version>
+    <version>2.4.0_IBM_000000-SNAPSHOT</version>
   </parent>
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
@@ -28,7 +28,7 @@
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>storm-view</artifactId>
   <name>Storm_Monitoring</name>
-  <version>0.1.0.0</version>
+  <version>2.4.0_IBM_000000-SNAPSHOT</version>
   <description>Storm Monitoring View</description>
 
   <build>

@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="true">
+
+  <!--
+    <property>
+      <name>slider.security.protocol.acl</name>
+      <value>*</value>
+      <description>When security is enabled, set appropriate acl. Default value means allow everyone.</description>
+    </property>
+    -->
+
+  <!--
+     The recommended approach is to configure slider-env.sh and set HADOOP_CONF_DIR.
+     Otherwise, appropriate configurations from hdfs-site, yarn-site, can be dropped in this file
+     for Slider client to work. The following list is not an exhaustive list but the minimal config
+     needed to interact with a non-secure cluster.
+  -->
+
+  <!--
+      <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>localhost:8050</value>
+        <description>The address of the applications manager interface in the RM.</description>
+      </property>
+
+      <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>localhost:8030</value>
+        <description>The address of the scheduler interface.</description>
+      </property>
+
+      <property>
+        <name>fs.defaultFS</name>
+        <value>hdfs://localhost:8020</value>
+        <description>The name of the default file system.  Either the
+          literal string "local" or a host:port for HDFS.</description>
+      </property>
+    -->
+
+</configuration>

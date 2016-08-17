@@ -1,0 +1,93 @@
+{#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#}
+
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License. See accompanying LICENSE file.
+#
+
+# If the Java System property 'oozie.log.dir' is not defined at Oozie start up time
+# XLogService sets its value to '${oozie.home}/logs'
+
+log4j.appender.oozie=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozie.File=${oozie.log.dir}/oozie.log
+log4j.appender.oozie.Append=true
+log4j.appender.oozie.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozie.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - SERVER[${oozie.instance.id}] %m%n
+log4j.appender.oozie.RollingPolicy.FileNamePattern=${log4j.appender.oozie.File}-%d{yyyy-MM-dd}
+log4j.appender.oozie.DatePattern='.'yyyy-MM-dd
+
+log4j.appender.oozieops=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieops.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieops.File=${oozie.log.dir}/oozie-ops.log
+log4j.appender.oozieops.Append=true
+log4j.appender.oozieops.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieops.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.oozieinstrumentation=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieinstrumentation.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieinstrumentation.File=${oozie.log.dir}/oozie-instrumentation.log
+log4j.appender.oozieinstrumentation.Append=true
+log4j.appender.oozieinstrumentation.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieinstrumentation.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.oozieaudit=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.oozieaudit.DatePattern='.'yyyy-MM-dd
+log4j.appender.oozieaudit.File=${oozie.log.dir}/oozie-audit.log
+log4j.appender.oozieaudit.Append=true
+log4j.appender.oozieaudit.layout=org.apache.log4j.PatternLayout
+log4j.appender.oozieaudit.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.appender.openjpa=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.openjpa.DatePattern='.'yyyy-MM-dd
+log4j.appender.openjpa.File=${oozie.log.dir}/oozie-jpa.log
+log4j.appender.openjpa.Append=true
+log4j.appender.openjpa.layout=org.apache.log4j.PatternLayout
+log4j.appender.openjpa.layout.ConversionPattern=%d{ISO8601} %5p %c{1}:%L - %m%n
+
+log4j.logger.openjpa=INFO, openjpa
+log4j.logger.oozieops=INFO, oozieops
+log4j.logger.oozieinstrumentation=ALL, oozieinstrumentation
+log4j.logger.oozieaudit=ALL, oozieaudit
+log4j.logger.org.apache.oozie=INFO, oozie
+log4j.logger.org.apache.hadoop=WARN, oozie
+log4j.logger.org.mortbay=WARN, oozie
+log4j.logger.org.hsqldb=WARN, oozie
+log4j.logger.org.apache.hadoop.security.authentication.server=INFO, oozie

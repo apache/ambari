@@ -18,7 +18,7 @@
   <groupId>org.apache.ambari</groupId>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>ambari-metrics</artifactId>
-  <version>2.4.0.0.0</version>
+  <version>2.4.0_IBM_000000-SNAPSHOT</version>
   <packaging>pom</packaging>
   <modules>
     <module>ambari-metrics-common</module>
@@ -139,8 +139,8 @@
             <configuration>
               <name>ambariVersion</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-              <replacement>$1.$2.$3.$4</replacement>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)_(IBM)_([0-9]+).*</regex>
+              <replacement>$1.$2.$3_$4</replacement>
               <failIfNoMatch>false</failIfNoMatch>
             </configuration>
           </execution>
@@ -206,8 +206,8 @@
             <configuration>
               <name>package-version</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
-              <replacement>$1.$2.$3.$4</replacement>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)_(IBM)_([0-9]+).*</regex>
+              <replacement>$1.$2.$3_$4</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>
           </execution>
@@ -219,10 +219,8 @@
             <configuration>
               <name>package-release</name>
               <value>${project.version}</value>
-              <regex>
-                ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)((([a-zA-Z]+)?([0-9]+))|(SNAPSHOT)).*
-              </regex>
-              <replacement>$7</replacement>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)_(IBM)_(([0-9]+)|(([0-9]+)(-SNAPSHOT))).*</regex>
+              <replacement>$5</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>
           </execution>

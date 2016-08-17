@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "TITAN",
+      "components": [
+        {
+          "name": "TITAN",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
