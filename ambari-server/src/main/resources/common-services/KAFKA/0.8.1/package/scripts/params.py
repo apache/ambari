@@ -143,6 +143,14 @@ if has_metric_collector:
   else:
     metric_collector_protocol = 'http'
   pass
+
+  # Collector hosts
+  metric_collector_hosts = ""
+  if ams_collector_hosts:
+    for host in ams_collector_hosts:
+      metric_collector_hosts += host + ':' + metric_collector_port + ','
+    metric_collector_hosts = metric_collector_hosts[:-1]
+
 # Security-related params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and

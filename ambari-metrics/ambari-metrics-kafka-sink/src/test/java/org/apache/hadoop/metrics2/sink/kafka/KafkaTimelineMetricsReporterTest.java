@@ -79,7 +79,7 @@ public class KafkaTimelineMetricsReporterTest {
     properties.setProperty("zookeeper.connect", "localhost:2181");
     properties.setProperty("kafka.timeline.metrics.sendInterval", "5900");
     properties.setProperty("kafka.timeline.metrics.maxRowCacheSize", "10000");
-    properties.setProperty("kafka.timeline.metrics.host", "localhost");
+    properties.setProperty("kafka.timeline.metrics.hosts", "localhost:6188");
     properties.setProperty("kafka.timeline.metrics.port", "6188");
     properties.setProperty("kafka.timeline.metrics.reporter.enabled", "true");
     properties.setProperty("external.kafka.metrics.exclude.prefix", "a.b.c");
