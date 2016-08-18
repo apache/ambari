@@ -118,13 +118,6 @@
         <component>ZOOKEEPER_SERVER</component>
       </service>
     </group>
-
-    <group name="KAFKA" title="Kafka">
-      <skippable>true</skippable>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
     
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
@@ -140,6 +133,13 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="RANGER_KMS">
         <component>RANGER_KMS_SERVER</component>
+      </service>
+    </group>
+
+    <group name="KAFKA" title="Kafka">
+      <skippable>true</skippable>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
       </service>
     </group>
 
