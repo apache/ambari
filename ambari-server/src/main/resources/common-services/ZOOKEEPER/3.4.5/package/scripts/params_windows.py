@@ -37,7 +37,7 @@ except:
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 zk_user = hadoop_user
 
-# notused zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
+zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = ensure_double_backslashes(config['configurations']['zoo.cfg']['dataDir'])
 tickTime = config['configurations']['zoo.cfg']['tickTime']
 initLimit = config['configurations']['zoo.cfg']['initLimit']

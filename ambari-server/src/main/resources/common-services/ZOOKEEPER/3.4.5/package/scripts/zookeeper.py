@@ -93,7 +93,7 @@ def zookeeper(type = None, upgrade_type=None):
          mode=0644,
          group=params.user_group,
          owner=params.zk_user,
-         content=params.log4j_props
+         content=InlineTemplate(params.log4j_props)
     )
   elif (os.path.exists(os.path.join(params.config_dir, "log4j.properties"))):
     File(os.path.join(params.config_dir, "log4j.properties"),
