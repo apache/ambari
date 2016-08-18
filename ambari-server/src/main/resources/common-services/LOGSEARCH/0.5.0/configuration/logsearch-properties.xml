@@ -115,8 +115,8 @@
   <property>
     <name>logsearch.logfeeder.include.default.level</name>
     <value>FATAL,ERROR,WARN</value>
-    <description>Include default Logfeeder log levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
-    <display-name>Logfeeder log levels</display-name>
+    <description>Include default Log Feeder Log Levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
+    <display-name>Log Feeder Log Levels</display-name>
     <value-attributes>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
