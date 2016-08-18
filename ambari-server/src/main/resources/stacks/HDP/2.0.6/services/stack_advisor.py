@@ -1679,6 +1679,97 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             leafQueueNames.add(leafQueueName)
     return leafQueueNames
 
+  def get_service_component_meta(self, service, component, services):
+    """
+    Function retrieve service component meta information as dict from services.json
+    If no service or component found, would be returned empty dict
+
+    Return value example:
+        "advertise_version" : true,
+        "bulk_commands_display_name" : "",
+        "bulk_commands_master_component_name" : "",
+        "cardinality" : "1+",
+        "component_category" : "CLIENT",
+        "component_name" : "HBASE_CLIENT",
+        "custom_commands" : [ ],
+        "decommission_allowed" : false,
+        "display_name" : "HBase Client",
+        "has_bulk_commands_definition" : false,
+        "is_client" : true,
+        "is_master" : false,
+        "reassign_allowed" : false,
+        "recovery_enabled" : false,
+        "service_name" : "HBASE",
+        "stack_name" : "HDP",
+        "stack_version" : "2.5",
+        "hostnames" : [ "host1", "host2" ]
+
+    :type service str
+    :type component str
+    :type services dict
+    :rtype dict
+    """
+    __stack_services = "StackServices"
+    __stack_service_components = "StackServiceComponents"
+
+    if not services:
+      return {}
+
+    service_meta = [item for item in services["services"] if item[__stack_services]["service_name"] == service]
+    if len(service_meta) == 0:
+      return {}
+
+    service_meta = service_meta[0]
+    component_meta = [item for item in service_meta["components"] if item[__stack_service_components]["component_name"] == component]
+
+    if len(component_meta) == 0:
+      return {}
+
+    return component_meta[0][__stack_service_components]
+
+  def is_secured_cluster(self, services):
+    """
+    Detects if cluster is secured or not
+    :type services dict
+    :rtype bool
+    """
+    return services and "cluster-env" in services["configurations"] and\
+           "security_enabled" in services["configurations"]["cluster-env"]["properties"] and\
+           services["configurations"]["cluster-env"]["properties"]["security_enabled"].lower() == "true"
+
+  def get_services_list(self, services):
+    """
+    Returns available services as list
+
+    :type services dict
+    :rtype list
+    """
+    if not services:
+      return []
+
+    return [service["StackServices"]["service_name"] for service in services["services"]]
+
+  def get_components_list(self, service, services):
+    """
+    Return list of components for specific service
+    :type service str
+    :type services dict
+    :rtype list
+    """
+    __stack_services = "StackServices"
+    __stack_service_components = "StackServiceComponents"
+
+    if not services:
+      return []
+
+    service_meta = [item for item in services["services"] if item[__stack_services]["service_name"] == service]
+    if len(service_meta) == 0:
+      return []
+
+    service_meta = service_meta[0]
+    return [item[__stack_service_components]["component_name"] for item in service_meta["components"]]
+
+
 def getOldValue(self, services, configType, propertyName):
   if services:
     if 'changed-configurations' in services.keys():
