@@ -51,8 +51,12 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   isAllServicesInstalled: function () {
     if (!this.get('content')) return false;
-    var availableServices = App.StackService.find().mapProperty('serviceName');
-    return this.get('content').length == availableServices.length;
+    var notAvailableServices = App.ServiceSimple.find().filterProperty('doNotShowAndInstall').mapProperty('name');
+    var availableServices = App.ServiceSimple.find().filterProperty('doNotShowAndInstall', false);
+    var installedServices = this.get('content').filter(function (service) {
+      return !notAvailableServices.contains(service.get('serviceName'));
+    });
+    return installedServices.length == availableServices.length;
   }.property('content.@each', 'content.length'),
 
   /**
