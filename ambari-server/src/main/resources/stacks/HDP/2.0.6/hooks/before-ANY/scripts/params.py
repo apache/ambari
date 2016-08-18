@@ -98,6 +98,7 @@ mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 # upgrades would cause these directories to have a version instead of "current"
 # which would cause a lot of problems when writing out hadoop-env.sh; instead
 # force the use of "current" in the hook
+hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_limit", "128000")
 hadoop_home = stack_select.get_hadoop_dir("home", force_latest_on_upgrade=True)
 hadoop_libexec_dir = stack_select.get_hadoop_dir("libexec", force_latest_on_upgrade=True)
 
