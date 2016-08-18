@@ -26,54 +26,47 @@ import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.spi.LoggingEvent;
 
 public class LogsearchConversion extends EnhancedPatternLayout {
-  //
-  protected final int BUF_SIZE = 256;
-  protected final int MAX_CAPACITY = 1024;
 
-  private StringBuffer sbuf = new StringBuffer(BUF_SIZE);
-
-  private String newLine = System.getProperty("line.separator");
+  private static final String NEW_LINE = System.getProperty("line.separator");
 
   public LogsearchConversion() {
   }
 
   public String format(LoggingEvent event) {
-    if (sbuf.capacity() > MAX_CAPACITY) {
-      sbuf = new StringBuffer(BUF_SIZE);
-    } else {
-      sbuf.setLength(0);
-    }
     String outputStr = createOutput(event);
-    sbuf.append(outputStr + newLine);
-    return sbuf.toString();
+    return outputStr + NEW_LINE;
   }
 
   public String createOutput(LoggingEvent event) {
-    VOutput vOutput = new VOutput();
-    vOutput.setLevel(event.getLevel().toString());
-    vOutput.setFile(event.getLocationInformation().getFileName());
-    vOutput.setLine_number(Integer.parseInt(event.getLocationInformation().getLineNumber()));
-    String logmsg = event.getMessage() != null ? event.getMessage().toString() : "";
-    if (event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
-      logmsg += newLine + stackTraceToString(event.getThrowableInformation().getThrowable());
-    }
-    vOutput.setLog_message(logmsg);
-    vOutput.setLogtime("" + event.getTimeStamp());
-    vOutput.setLogger_name("" + event.getLoggerName());
-    vOutput.setThread_name(event.getThreadName());
-    return vOutput.toJson();
+    Output output = new Output();
+    
+    output.setLevel(event.getLevel().toString());
+    output.setFile(event.getLocationInformation().getFileName());
+    output.setLineNumber(Integer.parseInt(event.getLocationInformation().getLineNumber()));
+    output.setLogtime(Long.toString(event.getTimeStamp()));
+    output.setLoggerName(event.getLoggerName());
+    output.setThreadName(event.getThreadName());
+    output.setLogMessage(getLogMessage(event));
+    
+    return output.toJson();
   }
 
-  public String stackTraceToString(Throwable e) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    e.printStackTrace(pw);
-    return sw.toString();
+  public String getLogMessage(LoggingEvent event) {
+    String logMessage = event.getMessage() != null ? event.getMessage().toString() : "";
+
+    if (event.getThrowableInformation() != null && event.getThrowableInformation().getThrowable() != null) {
+      logMessage += NEW_LINE;
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      event.getThrowableInformation().getThrowable().printStackTrace(pw);
+      logMessage += sw.toString();
+    }
+
+    return logMessage;
   }
-  
+
   @Override
   public boolean ignoresThrowable() {
-    //set false to ignore exception stacktrace
     return false;
   }
 }
