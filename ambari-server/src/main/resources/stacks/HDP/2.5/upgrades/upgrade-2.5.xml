@@ -122,13 +122,6 @@
       </service>
     </group>
 
-    <group name="KAFKA" title="Kafka">
-      <skippable>true</skippable>
-      <service name="KAFKA">
-        <component>KAFKA_BROKER</component>
-      </service>
-    </group>
-
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
@@ -144,6 +137,14 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="RANGER_KMS">
         <component>RANGER_KMS_SERVER</component>
+      </service>
+    </group>
+
+
+    <group name="KAFKA" title="Kafka">
+      <skippable>true</skippable>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
       </service>
     </group>
 
@@ -478,14 +479,6 @@
       </component>
     </service>
 
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
-    </service>
-
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
@@ -547,6 +540,14 @@
           </task>
         </pre-downgrade>
 
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

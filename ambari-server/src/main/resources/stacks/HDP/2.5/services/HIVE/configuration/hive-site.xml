@@ -22,5 +22,6 @@ limitations under the License.
     <name>atlas.rest.address</name>
     <value>http://localhost:21000</value>
     <deleted>true</deleted>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
