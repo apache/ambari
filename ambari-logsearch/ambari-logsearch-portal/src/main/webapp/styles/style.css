@@ -2910,6 +2910,7 @@ td.filterName {
   content: "";
   display: table;
 }
+
 table.backgrid{
   overflow: auto !important;
 }
@@ -2926,12 +2927,6 @@ button.defaultCancelBtn{
   color: #333333 !important;
   background-color: #ffffff;
 }
-ul.user-profile{
-  list-style: none;
-  margin: 0;
-  -webkit-padding-start: 0;
-}
-ul.user-profile i{
-  font-size: 26px;
-  margin-right: 20px;
+.comparisonTab .daterangepicker .ranges{
+  float: right !important;
 }
