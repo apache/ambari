@@ -749,7 +749,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-      "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+      "KAFKA": {"kafka-broker": self.validateKAFKAConfigurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "RANGER": {"admin-properties": self.validateRangerAdminConfigurations,
                  "ranger-env": self.validateRangerConfigurationsEnv}

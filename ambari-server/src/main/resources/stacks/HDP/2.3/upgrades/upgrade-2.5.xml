@@ -534,19 +534,6 @@
       </component>
     </service>
 
-    <service name="KAFKA">
-      <component name="KAFKA_BROKER">
-        <pre-upgrade>
-          <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_deprecate_port"/>
-          <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db" />
-        </pre-upgrade>
-
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
-    </service>
-
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
@@ -969,6 +956,7 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <pre-downgrade/>
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db" />
         </pre-upgrade>
