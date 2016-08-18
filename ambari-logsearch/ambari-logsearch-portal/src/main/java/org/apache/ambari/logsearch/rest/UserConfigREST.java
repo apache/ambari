@@ -29,6 +29,10 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.manager.UserConfigMgr;
@@ -38,6 +42,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigDescriptions.*;
+import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigOperationDescriptions.*;
+
+@Api(value = "userconfig", description = "User config operations")
 @Path("userconfig")
 @Component
 @Scope("request")
@@ -52,6 +60,7 @@ public class UserConfigREST {
   @POST
   @Path("/saveUserConfig")
   @Produces({"application/json"})
+  @ApiOperation(SAVE_USER_CONFIG_OD)
   public String saveUserConfig(VUserConfig vhist) {
     return userConfigMgr.saveUserConfig(vhist);
   }
@@ -59,12 +68,14 @@ public class UserConfigREST {
   @PUT
   @Path("/updateUserConfig")
   @Produces({"application/json"})
+  @ApiOperation(UPDATE_USER_CONFIG_OD)
   public String updateUserConfig(VUserConfig vhist) {
     return userConfigMgr.updateUserConfig(vhist);
   }
 
   @DELETE
   @Path("/deleteUserConfig/{id}")
+  @ApiOperation(DELETE_USER_CONFIG_OD)
   public void deleteUserConfig(@PathParam("id") String id) {
     userConfigMgr.deleteUserConfig(id);
   }
@@ -72,6 +83,12 @@ public class UserConfigREST {
   @GET
   @Path("/getUserConfig")
   @Produces({"application/json"})
+  @ApiOperation(GET_USER_CONFIG_OD)
+  @ApiImplicitParams(value = {
+    @ApiImplicitParam(value = USER_ID_D, name = "userId", paramType = "query", dataType = "string"),
+    @ApiImplicitParam(value = FILTER_NAME_D, name = "filterName", paramType = "query", dataType = "string"),
+    @ApiImplicitParam(value = ROW_TYPE_D, name = "rowType", paramType = "query", dataType = "string")
+  })
   public String getUserConfig(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria(request);
     searchCriteria.addParam(LogSearchConstants.USER_NAME,
@@ -86,6 +103,7 @@ public class UserConfigREST {
   @GET
   @Path("/user_filter")
   @Produces({"application/json"})
+  @ApiOperation(GET_USER_FILTER_OD)
   public String getUserFilter(@Context HttpServletRequest request) {
     return userConfigMgr.getUserFilter();
   }
@@ -93,6 +111,7 @@ public class UserConfigREST {
   @POST
   @Path("/user_filter")
   @Produces({"application/json"})
+  @ApiOperation(UPDATE_USER_FILTER_OD)
   public String createUserFilter(String json) {
     return userConfigMgr.saveUserFiter(json);
   }
@@ -100,6 +119,7 @@ public class UserConfigREST {
   @PUT
   @Path("/user_filter/{id}")
   @Produces({"application/json"})
+  @ApiOperation(GET_USER_FILTER_BY_ID_OD)
   public String updateUserFilter(String json) {
     return userConfigMgr.saveUserFiter(json);
   }
@@ -107,6 +127,7 @@ public class UserConfigREST {
   @GET
   @Path("/getAllUserName")
   @Produces({"application/json"})
+  @ApiOperation(GET_ALL_USER_NAMES_OD)
   public String getAllUserName() {
     return userConfigMgr.getAllUserName();
   }
