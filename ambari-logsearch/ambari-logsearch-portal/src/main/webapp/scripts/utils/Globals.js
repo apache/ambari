@@ -39,8 +39,8 @@ define(['require','App'], function(require, App){
 			totalCount : 50
 	};
 
-	//Globals.baseURL = '../';
-	Globals.baseURL = App.baseUrl;
+	Globals.baseURL = '../api/v1/';
+	//Globals.baseURL = App.baseUrl;
 
 	Globals.AppTabs = {
 			DASHBOARD 			: { value:1, valStr: 'Dashboard'},

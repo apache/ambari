@@ -65,8 +65,7 @@
 	</servlet>
 	  <servlet-mapping>
 		<servlet-name>REST service</servlet-name>
-		<url-pattern>/service/*</url-pattern>
+		<url-pattern>/api/v1/*</url-pattern>
 	</servlet-mapping>
-	
-	
+
 </web-app>

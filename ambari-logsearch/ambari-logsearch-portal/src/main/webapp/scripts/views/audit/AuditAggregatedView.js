@@ -408,7 +408,7 @@ define(['require',
 			obj.utcOffset = moment().utcOffset();
 			obj.startIndex =  this.topUsers.state.currentPage * this.topUsers.state.pageSize;
 			var params = $.param(_.extend({},this.topUsers.queryParams,obj));
-			var url = "service/audit/exportUserTableToTextFile?"+ params;
+			var url = "api/v1/audit/exportUserTableToTextFile?"+ params;
 			window.open(url);
 			this.onDialogClosed();
 		}

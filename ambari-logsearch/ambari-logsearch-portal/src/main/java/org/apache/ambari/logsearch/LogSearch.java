@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -38,6 +39,9 @@ import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -79,14 +83,13 @@ public class LogSearch {
   
   public void run(String[] argv) throws Exception {
     Server server = buildSever(argv);
-    URI webResourceBase = findWebResourceBase(server.getClass()
-        .getClassLoader());
-    WebAppContext context = new WebAppContext();
-    context.setBaseResource(Resource.newResource(webResourceBase));
-    context.setContextPath(ROOT_CONTEXT);
-    context.setParentLoaderPriority(true);
-    server.setHandler(context);
+    HandlerList handlers = new HandlerList();
+    handlers.addHandler(createSwaggerContext());
+    handlers.addHandler(createBaseWebappContext());
+
+    server.setHandler(handlers);
     server.start();
+
     logger
         .debug("============================Server Dump=======================================");
     logger.debug(server.dump());
@@ -95,7 +98,7 @@ public class LogSearch {
     ConfigUtil.initializeApplicationConfig();
     server.join();
   }
-  
+
   public Server buildSever(String argv[]) {
     Server server = new Server();
     ServerConnector connector = new ServerConnector(server);
@@ -143,6 +146,26 @@ public class LogSearch {
         port));
     logger.info("Starting logsearch server URI=" + logsearchURI);
     return server;
+  }
+
+  private WebAppContext createBaseWebappContext() throws MalformedURLException {
+    URI webResourceBase = findWebResourceBase(LogSearch.class.getClassLoader());
+    WebAppContext context = new WebAppContext();
+    context.setBaseResource(Resource.newResource(webResourceBase));
+    context.setContextPath(ROOT_CONTEXT);
+    context.setParentLoaderPriority(true);
+    return context;
+  }
+
+  private ServletContextHandler createSwaggerContext() throws URISyntaxException {
+    ResourceHandler resourceHandler = new ResourceHandler();
+    resourceHandler.setResourceBase(LogSearch.class.getClassLoader()
+      .getResource("META-INF/resources/webjars/swagger-ui/2.1.0")
+      .toURI().toString());
+    ServletContextHandler context = new ServletContextHandler();
+    context.setContextPath("/docs/");
+    context.setHandler(resourceHandler);
+    return context;
   }
 
   private URI findWebResourceBase(ClassLoader classLoader) {

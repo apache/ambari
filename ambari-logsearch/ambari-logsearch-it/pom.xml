@@ -113,6 +113,7 @@
                 <include>**/*Stories.java</include>
                 <include>**/*Story.java</include>
               </includes>
+              <skip>${it.skip}</skip>
             </configuration>
           </execution>
           <execution>

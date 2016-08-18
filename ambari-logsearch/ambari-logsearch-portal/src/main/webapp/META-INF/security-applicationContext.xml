@@ -31,8 +31,9 @@ http://www.springframework.org/schema/security/spring-security-4.0.xsd">
     <security:http pattern="/libs/**" security="none" />
     <security:http pattern="/images/**" security="none" />
     <security:http pattern="/templates/**" security="none" />
-    <security:http pattern="/service/public/**" security="none" />
     <security:http pattern="/favicon.ico" security="none" />
+    <security:http pattern="/api/v1/public/**" security="none" />
+    <security:http pattern="/api/v1/swagger.json" security="none"/>
   	
 	<security:http disable-url-rewriting="true" use-expressions="true" create-session="always" entry-point-ref="authenticationProcessingFilterEntryPoint">
 		<csrf disabled="true"/> 

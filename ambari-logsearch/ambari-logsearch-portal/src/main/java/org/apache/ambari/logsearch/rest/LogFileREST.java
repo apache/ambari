@@ -24,12 +24,20 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.manager.LogFileMgr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import static org.apache.ambari.logsearch.doc.DocConstants.LogFileDescriptions.*;
+import static org.apache.ambari.logsearch.doc.DocConstants.LogFileOperationDescriptions.*;
+
+@Api(value = "logfile", description = "Logfile operations")
 @Path("logfile")
 @Component
 @Scope("request")
@@ -40,6 +48,12 @@ public class LogFileREST {
 
   @GET
   @Produces({"application/json"})
+  @ApiOperation(SEARCH_LOG_FILES_OD)
+  @ApiImplicitParams(value = {
+    @ApiImplicitParam(value = COMPONENT_D, name = "component", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(value = HOST_D, name = "host", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(value = LOG_TYPE_D, name = "logType", dataType = "string", paramType = "query")
+  })
   public String searchLogFiles(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria(request);
     searchCriteria.addParam("component", request.getParameter("component"));
@@ -51,6 +65,12 @@ public class LogFileREST {
   @GET
   @Path("/getLogFileTail")
   @Produces({"application/json"})
+  @ApiOperation(GET_LOG_FILE_TAIL_OD)
+  @ApiImplicitParams(value = {
+    @ApiImplicitParam(value = COMPONENT_D, name = "component", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(value = HOST_D, name = "host", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(value = LOG_TYPE_D, name = "logType", dataType = "string", paramType = "query")
+  })
   public String getLogFileTail(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria();
     searchCriteria.addParam("host", request.getParameter("host"));

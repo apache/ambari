@@ -49,5 +49,21 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 		</property>
 		<property name="propertiesPersister" ref="xmlPropertyConfigurer" />
 	</bean>
+
+  <bean id="host" class="java.net.InetAddress" factory-method="getLocalHost"/>
+  <bean id="apiListingResource" class="io.swagger.jaxrs.listing.ApiListingResource"/>
+  <bean id="swaggerSerializers" class="io.swagger.jaxrs.listing.SwaggerSerializers" scope="singleton"/>
+  <bean id="beanConfig" class="io.swagger.jaxrs.config.BeanConfig">
+    <property name="schemes" value="http" /> <!-- TODO: set this from property -->
+    <property name="resourcePackage" value="org.apache.ambari.logsearch.rest"/>
+    <property name="version" value="1.0.0"/>
+    <property name="host" value="#{host.hostAddress}:61888"/> <!-- TODO: set port from property -->
+    <property name="basePath" value="/api/v1"/>
+    <property name="title" value="Log Search REST API"/>
+    <property name="description" value="Log aggregation, analysis, and visualization."/>
+    <property name="license" value="Apache 2.0"/>
+    <property name="licenseUrl" value="http://www.apache.org/licenses/LICENSE-2.0.html"/>
+    <property name="scan" value="true"/>
+  </bean>
 	
 </beans>

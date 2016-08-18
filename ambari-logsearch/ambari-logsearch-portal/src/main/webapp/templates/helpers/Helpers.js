@@ -292,9 +292,9 @@
 		var path;
 			if(_.has(options,'profileImageGId')){
 				if(_.isUndefined(size)) 
-					path = "service/content/multimedia/image/"+options.profileImageGId;
+					path = "api/v1/content/multimedia/image/"+options.profileImageGId;
 				else
-					path = "service/content/multimedia/image/"+options.profileImageGId+"/small";
+					path = "api/v1/content/multimedia/image/"+options.profileImageGId+"/small";
 			}else{
 				path = "styles/images/s-avatar.png";
 			}

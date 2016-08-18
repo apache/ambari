@@ -203,7 +203,7 @@ define(['require',
                 //				{startIndex : this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize},obj),
                 //				'component','from','to','host','level','unit','startIndex','pageSize','format','utcOffset'));
                 var params = $.param(_.extend({}, this.logFileCollection.queryParams, obj));
-                var url = "service/dashboard/exportToTextFile?" + params;
+                var url = "api/v1/dashboard/exportToTextFile?" + params;
                 window.open(url);
                 this.onDialogClosed();
             },
