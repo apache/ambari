@@ -275,7 +275,7 @@ define(['backbone',
     					hideFireButton : false,
     					buttonLabel : "Apply",
     					parentEl: that.$el.find(".row").first(),
-    					datePickerPosition : "right"
+    					datePickerPosition : "left"
     				}));
                 });
             },

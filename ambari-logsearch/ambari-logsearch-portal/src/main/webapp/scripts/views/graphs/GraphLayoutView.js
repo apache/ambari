@@ -205,7 +205,8 @@ define(['require',
                         parentEl: that.$el,
                         fetch: true,
                         rangeLabel: true,
-                        width: '55%'
+                        datePickerPosition : "left",
+                        width: '65%'
                     }));
                 });
             },
