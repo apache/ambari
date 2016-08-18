@@ -116,18 +116,17 @@ describe('App.MainServiceController', function () {
   describe("#isAllServicesInstalled", function() {
 
     beforeEach(function() {
-      sinon.stub(App.StackService, 'find').returns([
-        Em.Object.create({serviceName: 'S1'})
-      ]);
+      this.mock = sinon.stub(App.ServiceSimple, 'find');
     });
     afterEach(function() {
-      App.StackService.find.restore();
+      App.ServiceSimple.find.restore();
     });
 
     it("content is null", function() {
       mainServiceController.reopen({
         'content': null
       });
+      this.mock.returns([]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
@@ -136,6 +135,9 @@ describe('App.MainServiceController', function () {
       mainServiceController.reopen({
         'content': []
       });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
@@ -144,8 +146,22 @@ describe('App.MainServiceController', function () {
       mainServiceController.reopen({
         'content': [Em.Object.create({serviceName: 'S1'})]
       });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
       mainServiceController.propertyDidChange('isAllServicesInstalled');
       expect(mainServiceController.get('isAllServicesInstalled')).to.be.true;
+    });
+    it("content doesn't match stack services", function() {
+      mainServiceController.reopen({
+        'content': [Em.Object.create({serviceName: 'S1'})]
+      });
+      this.mock.returns([
+        {serviceName: 'S1', doNotShowAndInstall: false},
+        {serviceName: 'S1', doNotShowAndInstall: false}
+      ]);
+      mainServiceController.propertyDidChange('isAllServicesInstalled');
+      expect(mainServiceController.get('isAllServicesInstalled')).to.be.false;
     });
   });
 
