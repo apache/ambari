@@ -1,0 +1,440 @@
+{
+  "version": "1.0",
+  "stacks": [
+    {
+      "name": "HDP",
+      "old-version": "2.1",
+      "target-version": "2.3",
+      "options": {
+        "config-types": {
+          "core-site": {
+            "merged-copy": "yes"
+          },
+          "hdfs-site": {
+            "merged-copy": "yes"
+          },
+          "yarn-site": {
+            "merged-copy": "yes"
+          },
+          "capacity-scheduler": {
+            "merged-copy": "yes",
+            "required-services": ["YARN"]
+          },
+          "mapred-site": {
+            "merged-copy": "yes"
+          },
+          "hbase-site": {
+            "merged-copy": "yes"
+          },
+          "hive-site": {
+            "merged-copy": "yes"
+          },
+          "hive-env": {
+            "merged-copy": "yes",
+            "required-services": ["HIVE"]
+          },
+          "oozie-site": {
+            "merged-copy": "yes"
+          },
+          "webhcat-site": {
+            "merged-copy": "yes"
+          },
+          "tez-site":{
+            "merged-copy": "yes"
+          },
+          "falcon-startup.properties": {
+            "merged-copy": "yes"
+          },
+          "storm-site":{
+            "merged-copy": "yes"
+          },
+          "storm-env": {
+            "merged-copy": "yes",
+            "required-services": [
+              "STORM"
+            ]
+          },
+          "storm-cluster-log4j": {
+            "merged-copy": "yes",
+            "required-services": [
+              "STORM"
+            ]
+          },
+          "storm-worker-log4j": {
+            "merged-copy": "yes",
+            "required-services": [
+              "STORM"
+            ]
+          }
+        }
+      },
+      "properties": {
+        "storm-env": {
+          "nimbus_seeds_supported": "true",
+          "storm_logs_supported": "true"
+        },
+        "storm-cluster-log4j": {
+          "content": "\n    \n<!--\n Licensed to the Apache Software Foundation (ASF) under one or more\n contributor license agreements.  See the NOTICE file distributed with\n this work for additional information regarding copyright ownership.\n The ASF licenses this file to You under the Apache License, Version 2.0\n (the \"License\"); you may not use this file except in compliance with\n the License.  You may obtain a copy of the License at\n\n     http://www.apache.org/licenses/LICENSE-2.0\n\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \"AS IS\" BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n See the License for the specific language governing permissions and\n limitations under the License.\n-->\n\n<configuration monitorInterval=\"60\">\n<properties>\n    <property name=\"pattern\">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} [%p] %msg%n</property>\n    <property name=\"patternMetris\">%d %-8r %m%n</property>\n</properties>\n<appenders>\n    <RollingFile name=\"A1\"\n                 fileName=\"${sys:storm.log.dir}/${sys:logfile.name}\"\n                 filePattern=\"${sys:storm.log.dir}/${sys:logfile.name}.%i\">\n        <PatternLayout>\n            <pattern>${pattern}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"100 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"9\"/>\n    </RollingFile>\n    <RollingFile name=\"ACCESS\"\n                 fileName=\"${sys:storm.log.dir}/access.log\"\n                 filePattern=\"${sys:storm.log.dir}/access.log.%i\">\n        <PatternLayout>\n            <pattern>${pattern}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"100 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"9\"/>\n    </RollingFile>\n    <RollingFile name=\"METRICS\"\n                 fileName=\"${sys:storm.log.dir}/metrics.log\"\n                 filePattern=\"${sys:storm.log.dir}/metrics.log.%i\">\n        <PatternLayout>\n            <pattern>${patternMetris}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"2 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"9\"/>\n    </RollingFile>\n    <Syslog name=\"syslog\" format=\"RFC5424\" host=\"localhost\" port=\"514\"\n            protocol=\"UDP\" appName=\"[${sys:daemon.name}]\" mdcId=\"mdc\" includeMDC=\"true\"\n            facility=\"LOCAL5\" enterpriseNumber=\"18060\" newLine=\"true\" exceptionPattern=\"%rEx{full}\"\n            messageId=\"[${sys:user.name}:S0]\" id=\"storm\"/>\n</appenders>\n<loggers>\n\n    <Logger name=\"backtype.storm.security.auth.authorizer\" level=\"info\">\n        <AppenderRef ref=\"ACCESS\"/>\n    </Logger>\n    <Logger name=\"backtype.storm.metric.LoggingMetricsConsumer\" level=\"info\">\n        <AppenderRef ref=\"METRICS\"/>\n    </Logger>\n    <root level=\"info\"> <!-- We log everything -->\n        <appender-ref ref=\"A1\"/>\n        <appender-ref ref=\"syslog\"/>\n    </root>\n</loggers>\n</configuration>\n    \n    "
+        },
+        "storm-worker-log4j": {
+          "content": "\n    \n<!--\n Licensed to the Apache Software Foundation (ASF) under one or more\n contributor license agreements.  See the NOTICE file distributed with\n this work for additional information regarding copyright ownership.\n The ASF licenses this file to You under the Apache License, Version 2.0\n (the \"License\"); you may not use this file except in compliance with\n the License.  You may obtain a copy of the License at\n\n     http://www.apache.org/licenses/LICENSE-2.0\n\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \"AS IS\" BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n See the License for the specific language governing permissions and\n limitations under the License.\n-->\n\n<configuration monitorInterval=\"60\">\n<properties>\n    <property name=\"pattern\">%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} [%p] %msg%n</property>\n    <property name=\"patternNoTime\">%msg%n</property>\n</properties>\n<appenders>\n    <RollingFile name=\"A1\"\n                 fileName=\"${sys:storm.log.dir}/${sys:logfile.name}\"\n                 filePattern=\"${sys:storm.log.dir}/${sys:logfile.name}.%i.gz\">\n        <PatternLayout>\n            <pattern>${pattern}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"100 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"9\"/>\n    </RollingFile>\n    <RollingFile name=\"STDOUT\"\n                 fileName=\"${sys:storm.log.dir}/${sys:logfile.name}.out\"\n                 filePattern=\"${sys:storm.log.dir}/${sys:logfile.name}.out.%i.gz\">\n        <PatternLayout>\n            <pattern>${patternNoTime}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"100 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"4\"/>\n    </RollingFile>\n    <RollingFile name=\"STDERR\"\n                 fileName=\"${sys:storm.log.dir}/${sys:logfile.name}.err\"\n                 filePattern=\"${sys:storm.log.dir}/${sys:logfile.name}.err.%i.gz\">\n        <PatternLayout>\n            <pattern>${patternNoTime}</pattern>\n        </PatternLayout>\n        <Policies>\n            <SizeBasedTriggeringPolicy size=\"100 MB\"/> <!-- Or every 100 MB -->\n        </Policies>\n        <DefaultRolloverStrategy max=\"4\"/>\n    </RollingFile>\n    <Syslog name=\"syslog\" format=\"RFC5424\" host=\"localhost\" port=\"514\"\n        protocol=\"UDP\" appName=\"[${sys:storm.id}:${sys:worker.port}]\" mdcId=\"mdc\" includeMDC=\"true\"\n        facility=\"LOCAL5\" enterpriseNumber=\"18060\" newLine=\"true\" exceptionPattern=\"%rEx{full}\"\n        messageId=\"[${sys:user.name}:${sys:logging.sensitivity}]\" id=\"storm\"/>\n</appenders>\n<loggers>\n    <root level=\"info\"> <!-- We log everything -->\n        <appender-ref ref=\"A1\"/>\n        <appender-ref ref=\"syslog\"/>\n    </root>\n    <Logger name=\"STDERR\" level=\"INFO\">\n        <appender-ref ref=\"STDERR\"/>\n        <appender-ref ref=\"syslog\"/>\n    </Logger>\n    <Logger name=\"STDOUT\" level=\"INFO\">\n        <appender-ref ref=\"STDOUT\"/>\n        <appender-ref ref=\"syslog\"/>\n    </Logger>\n</loggers>\n</configuration>\n    \n    "
+        },
+        "storm-site": {
+          "supervisor.childopts": "-Xmx256m _JAAS_PLACEHOLDER -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port={{jmxremote_port}} -javaagent:/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-supervisor/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM",
+          "nimbus.childopts": "-Xmx1024m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-nimbus/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM",
+          "worker.childopts": "-Xmx768m _JAAS_PLACEHOLDER -javaagent:/usr/hdp/current/storm-client/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/hdp/current/storm-client/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM"
+        },
+        "hive-env": {
+          "hive_security_authorization": {
+            "value": "{HIVE_SECURITY_AUTHORIZATION}",
+            "template": "yes",
+            "resolve-dependency": "yes"
+          }
+        },
+        "falcon-startup.properties": {
+          "*.application.services": "org.apache.falcon.security.AuthenticationInitializationService, org.apache.falcon.workflow.WorkflowJobEndNotificationService, org.apache.falcon.service.ProcessSubscriberService, org.apache.falcon.entity.store.ConfigurationStore, org.apache.falcon.rerun.service.RetryService, org.apache.falcon.rerun.service.LateRunService, org.apache.falcon.service.LogCleanupService",
+          "*.dfs.namenode.kerberos.principal": "nn/_HOST@EXAMPLE.COM",
+          "*.falcon.enableTLS": "false",
+          "*.falcon.http.authentication.cookie.domain": "EXAMPLE.COM",
+          "*.falcon.http.authentication.kerberos.keytab": "/etc/security/keytabs/spnego.service.keytab",
+          "*.falcon.http.authentication.kerberos.principal": "HTTP/_HOST@EXAMPLE.COM",
+          "*.falcon.security.authorization.admin.groups": "falcon",
+          "*.falcon.security.authorization.admin.users": "falcon,ambari-qa",
+          "*.falcon.security.authorization.enabled": "false",
+          "*.falcon.security.authorization.provider": "org.apache.falcon.security.DefaultAuthorizationProvider",
+          "*.falcon.security.authorization.superusergroup": "falcon",
+          "*.falcon.service.authentication.kerberos.keytab": "/etc/security/keytabs/falcon.service.keytab",
+          "*.falcon.service.authentication.kerberos.principal": "falcon/_HOST@EXAMPLE.COM",
+          "*.journal.impl": "org.apache.falcon.transaction.SharedFileSystemJournal",
+          "prism.application.services": "org.apache.falcon.entity.store.ConfigurationStore",
+          "prism.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph, org.apache.falcon.entity.ColoClusterRelation, org.apache.falcon.group.FeedGroupMap",
+          "*.shared.libs": "activemq-core,ant,geronimo-j2ee-management,jms,json-simple,oozie-client,spring-jms,commons-lang3,commons-el",
+          "*.configstore.listeners": "org.apache.falcon.entity.v0.EntityGraph,\\\n      org.apache.falcon.entity.ColoClusterRelation,\\\n      org.apache.falcon.group.FeedGroupMap,\\\n      org.apache.falcon.service.SharedLibraryHostingService"
+        },
+        "tez-site":{
+          "tez.am.container.idle.release-timeout-max.millis": "20000",
+          "tez.am.container.idle.release-timeout-min.millis": "10000",
+          "tez.am.launch.cluster-default.cmd-opts": "-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}",
+          "tez.am.launch.cmd-opts": "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC",
+          "tez.am.launch.env": "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64",
+          "tez.am.max.app.attempts": "2",
+          "tez.am.maxtaskfailures.per.node": "10",
+          "tez.cluster.additional.classpath.prefix": "/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure",
+          "tez.counters.max": "2000",
+          "tez.counters.max.groups": "1000",
+          "tez.generate.debug.artifacts": "false",
+          "tez.grouping.max-size": "1073741824",
+          "tez.grouping.min-size": "16777216",
+          "tez.grouping.split-waves": "1.7",
+          "tez.history.logging.service.class": "org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService",
+          "tez.runtime.compress": "true",
+          "tez.runtime.compress.codec": "org.apache.hadoop.io.compress.SnappyCodec",
+          "tez.runtime.io.sort.mb": "272",
+          "tez.runtime.unordered.output.buffer.size-mb": "51",
+          "tez.shuffle-vertex-manager.max-src-fraction": "0.4",
+          "tez.shuffle-vertex-manager.min-src-fraction": "0.2",
+          "tez.task.am.heartbeat.counter.interval-ms.max": "4000",
+          "tez.task.launch.cluster-default.cmd-opts": "-server -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}",
+          "tez.task.launch.cmd-opts": "-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC",
+          "tez.task.launch.env": "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64",
+          "tez.task.max-events-per-heartbeat": "500",
+          "tez.task.resource.memory.mb": "682",
+          "tez.am.container.reuse.non-local-fallback.enabled": "false",
+          "tez.am.resource.memory.mb": "1364",
+          "tez.lib.uris": "/hdp/apps/${hdp.version}/tez/tez.tar.gz",
+          "tez.session.client.timeout.secs": "-1",
+          "tez.am.view-acls": "*",
+          "tez.tez-ui.history-url.base": {
+            "value": "{TEZ_HISTORY_URL_BASE}",
+            "template": "yes"
+          },
+          "tez.am.container.session.delay-allocation-millis": {"remove": "yes"},
+          "tez.am.env": {"remove": "yes"},
+          "tez.am.grouping.max-size": {"remove": "yes"},
+          "tez.am.grouping.min-size": {"remove": "yes"},
+          "tez.am.grouping.split-waves": {"remove": "yes"},
+          "tez.am.java.opt": {"remove": "yes"},
+          "tez.am.shuffle-vertex-manager.max-src-fraction": {"remove": "yes"},
+          "tez.am.shuffle-vertex-manager.min-src-fraction": {"remove": "yes"},
+          "tez.runtime.intermediate-input.compress.codec": {"remove": "yes"},
+          "tez.runtime.intermediate-input.is-compressed": {"remove": "yes"},
+          "tez.runtime.intermediate-output.compress.codec": {"remove": "yes"},
+          "tez.runtime.intermediate-output.should-compress": {"remove": "yes"},
+          "tez.yarn.ats.enabled": {"remove": "yes"}
+        },
+        "webhcat-site": {
+          "templeton.storage.class": "org.apache.hive.hcatalog.templeton.tool.ZooKeeperStorage",
+          "templeton.port": "50111"
+        },
+        "oozie-site": {
+          "oozie.service.coord.check.maximum.frequency": "false",
+          "oozie.service.HadoopAccessorService.kerberos.enabled": "false",
+          "oozie.authentication.simple.anonymous.allowed": "true",
+          "oozie.service.AuthorizationService.authorization.enabled": "true",
+          "oozie.authentication.kerberos.name.rules": "RULE:[2:$1@$0]([jt]t@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-MAPREDUSER/\nRULE:[2:$1@$0]([nd]n@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HDFSUSER/\nRULE:[2:$1@$0](hm@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nRULE:[2:$1@$0](rs@.*TODO-KERBEROS-DOMAIN)s/.*/TODO-HBASE-USER/\nDEFAULT",
+          "oozie.credentials.credentialclasses": "hcat=org.apache.oozie.action.hadoop.HCatCredentials,hive2=org.apache.oozie.action.hadoop.Hive2Credentials",
+          "oozie.service.CallableQueueService.callable.concurrency": {"remove": "yes"},
+          "oozie.service.CallableQueueService.queue.size": {"remove": "yes"},
+          "oozie.service.CallableQueueService.threads": {"remove": "yes"},
+          "oozie.service.JPAService.create.db.schema": {"remove": "yes"},
+          "oozie.service.JPAService.pool.max.active.conn": {"remove": "yes"},
+          "oozie.service.PurgeService.older.than": {"remove": "yes"},
+          "oozie.service.PurgeService.purge.interval": {"remove": "yes"},
+          "oozie.service.SchemaService.wf.ext.schemas": {"remove": "yes"},
+          "oozie.service.WorkflowAppService.system.libpath": {"remove": "yes"},
+          "oozie.service.coord.normal.default.timeout": {"remove": "yes"},
+          "oozie.service.coord.push.check.requeue.interval": {"remove": "yes"},
+          "oozie.services": {"remove": "yes"},
+          "oozie.system.id": {"remove": "yes"},
+          "oozie.systemmode": {"remove": "yes"},
+          "use.system.libpath.for.mapreduce.and.pig.jobs": {"remove": "yes"}
+
+        },
+        "hive-site": {
+          "hive.auto.convert.sortmerge.join.to.mapjoin": "false",
+          "hive.cbo.enable": "true",
+          "hive.cli.print.header": "false",
+          "hive.cluster.delegation.token.store.class": "org.apache.hadoop.hive.thrift.ZooKeeperTokenStore",
+          "hive.cluster.delegation.token.store.zookeeper.znode": "/hive/cluster/delegation",
+          "hive.conf.restricted.list": "hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role",
+          "hive.convert.join.bucket.mapjoin.tez": "false",
+          "hive.exec.compress.intermediate": "false",
+          "hive.exec.compress.output": "false",
+          "hive.exec.dynamic.partition": "true",
+          "hive.exec.dynamic.partition.mode": "nonstrict",
+          "hive.exec.max.created.files": "100000",
+          "hive.exec.max.dynamic.partitions": "5000",
+          "hive.exec.max.dynamic.partitions.pernode": "2000",
+          "hive.exec.orc.compression.strategy": "SPEED",
+          "hive.exec.orc.default.compress": "ZLIB",
+          "hive.exec.orc.default.stripe.size": "67108864",
+          "hive.exec.parallel": "false",
+          "hive.exec.parallel.thread.number": "8",
+          "hive.exec.reducers.bytes.per.reducer": "67108864",
+          "hive.exec.reducers.max": "1009",
+          "hive.exec.scratchdir": "/tmp/hive",
+          "hive.exec.submit.local.task.via.child": "true",
+          "hive.exec.submitviachild": "false",
+          "hive.fetch.task.aggr": "false",
+          "hive.fetch.task.conversion": "more",
+          "hive.fetch.task.conversion.threshold": "1073741824",
+          "hive.map.aggr.hash.force.flush.memory.threshold": "0.9",
+          "hive.map.aggr.hash.min.reduction": "0.5",
+          "hive.map.aggr.hash.percentmemory": "0.5",
+          "hive.mapjoin.optimized.hashtable": "true",
+          "hive.merge.mapfiles": "true",
+          "hive.merge.mapredfiles": "false",
+          "hive.merge.orcfile.stripe.level": "true",
+          "hive.merge.rcfile.block.level": "true",
+          "hive.merge.size.per.task": "256000000",
+          "hive.merge.smallfiles.avgsize": "16000000",
+          "hive.merge.tezfiles": "false",
+          "hive.metastore.authorization.storage.checks": "false",
+          "hive.metastore.client.connect.retry.delay": "5s",
+          "hive.metastore.connect.retries": "24",
+          "hive.metastore.failure.retries": "24",
+          "hive.metastore.server.max.threads": "100000",
+          "hive.optimize.constant.propagation": "true",
+          "hive.optimize.metadataonly": "true",
+          "hive.optimize.null.scan": "true",
+          "hive.optimize.sort.dynamic.partition": "false",
+          "hive.orc.compute.splits.num.threads": "10",
+          "hive.prewarm.enabled": "false",
+          "hive.prewarm.numcontainers": "10",
+          "hive.security.metastore.authenticator.manager": "org.apache.hadoop.hive.ql.security.HadoopDefaultMetastoreAuthenticator",
+          "hive.security.metastore.authorization.auth.reads": "true",
+          "hive.server2.allow.user.substitution": "true",
+          "hive.server2.logging.operation.enabled": "true",
+          "hive.server2.logging.operation.log.location": "/tmp/hive/operation_logs",
+          "hive.server2.table.type.mapping": "CLASSIC",
+          "hive.server2.thrift.http.path": "cliservice",
+          "hive.server2.thrift.http.port": "10001",
+          "hive.server2.thrift.max.worker.threads": "500",
+          "hive.server2.thrift.sasl.qop": "auth",
+          "hive.server2.transport.mode": "binary",
+          "hive.server2.use.SSL": "false",
+          "hive.smbjoin.cache.rows": "10000",
+          "hive.stats.dbclass": "fs",
+          "hive.stats.fetch.column.stats": "false",
+          "hive.stats.fetch.partition.stats": "true",
+          "hive.support.concurrency": "false",
+          "hive.tez.auto.reducer.parallelism": "false",
+          "hive.tez.cpu.vcores": "-1",
+          "hive.tez.dynamic.partition.pruning": "true",
+          "hive.tez.dynamic.partition.pruning.max.data.size": "104857600",
+          "hive.tez.dynamic.partition.pruning.max.event.size": "1048576",
+          "hive.tez.log.level": "INFO",
+          "hive.tez.max.partition.factor": "2.0",
+          "hive.tez.min.partition.factor": "0.25",
+          "hive.tez.smb.number.waves": "0.5",
+          "hive.user.install.directory": "/user/",
+          "hive.vectorized.execution.reduce.enabled": "false",
+          "hive.zookeeper.client.port": "2181",
+          "hive.zookeeper.namespace": "hive_zookeeper_namespace",
+          "hive.metastore.client.socket.timeout": "1800s",
+          "hive.optimize.reducededuplication.min.reducer": "4",
+          "hive.security.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory",
+          "hive.security.metastore.authorization.manager": "org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly",
+          "hive.server2.support.dynamic.service.discovery": "true",
+          "hive.vectorized.groupby.checkinterval": "4096",
+          "fs.file.impl.disable.cache": "true",
+          "fs.hdfs.impl.disable.cache": "true"
+        },
+        "hbase-site": {
+          "hbase.hregion.majorcompaction.jitter": "0.50",
+          "hbase.hregion.majorcompaction": "604800000",
+          "hbase.hregion.memstore.block.multiplier": "4",
+          "hbase.hstore.flush.retries.number": {"remove": "yes"},
+          "hbase.region.server.rpc.scheduler.factory.class": {
+            "value": "{HBASE_REGION_SERVER_RPC_SCHEDULER_FACTORY_CLASS}",
+            "required-services": [
+              "HBASE"
+            ],
+            "template": "yes"
+          },
+          "hbase.rpc.controllerfactory.class": {
+            "value": "{HBASE_RPC_CONTROLLERFACTORY_CLASS}",
+            "template": "yes",
+            "required-services": [
+              "HBASE"
+            ]
+          },
+          "hbase.regionserver.wal.codec": {
+            "value": "{HBASE_REGIONSERVER_WAL_CODEC}",
+            "template": "yes",
+            "required-services": [
+              "HBASE"
+            ]
+          },
+          "phoenix.functions.allowUserDefinedFunctions": "true",
+          "fs.hdfs.impl": "org.apache.hadoop.hdfs.DistributedFileSystem",
+          "hbase.bucketcache.percentage.in.combinedcache": {"remove": "yes"},
+          "hbase.coprocessor.enabled": {
+            "value": "true",
+            "override": "yes"
+          },
+          "hbase.bulkload.staging.dir": {
+            "value": "/apps/hbase/staging",
+            "override": "no"
+          }
+        },
+        "mapred-site": {
+          "mapreduce.job.emit-timeline-data": "false",
+          "mapreduce.jobhistory.bind-host": "0.0.0.0",
+          "mapreduce.reduce.shuffle.fetch.retry.enabled": "1",
+          "mapreduce.reduce.shuffle.fetch.retry.interval-ms": "1000",
+          "mapreduce.reduce.shuffle.fetch.retry.timeout-ms": "30000",
+          "mapreduce.application.framework.path": "/hdp/apps/${hdp.version}/mapreduce/mapreduce.tar.gz#mr-framework",
+          "mapreduce.admin.map.child.java.opts": "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}",
+          "mapreduce.admin.reduce.child.java.opts": "-server -XX:NewRatio=8 -Djava.net.preferIPv4Stack=true -Dhdp.version=${hdp.version}",
+          "yarn.app.mapreduce.am.admin-command-opts": "-Dhdp.version=${hdp.version}",
+          "yarn.app.mapreduce.am.command-opts": "-Xmx546m -Dhdp.version=${hdp.version}",
+          "mapreduce.application.classpath": "$PWD/mr-framework/hadoop/share/hadoop/mapreduce/*:$PWD/mr-framework/hadoop/share/hadoop/mapreduce/lib/*:$PWD/mr-framework/hadoop/share/hadoop/common/*:$PWD/mr-framework/hadoop/share/hadoop/common/lib/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/*:$PWD/mr-framework/hadoop/share/hadoop/yarn/lib/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/*:$PWD/mr-framework/hadoop/share/hadoop/hdfs/lib/*:$PWD/mr-framework/hadoop/share/hadoop/tools/lib/*:/usr/hdp/${hdp.version}/hadoop/lib/hadoop-lzo-0.6.0.${hdp.version}.jar:/etc/hadoop/conf/secure",
+          "mapreduce.admin.user.env": "LD_LIBRARY_PATH=/usr/hdp/${hdp.version}/hadoop/lib/native:/usr/hdp/${hdp.version}/hadoop/lib/native/Linux-amd64-64",
+          "mapreduce.fileoutputcommitter.algorithm.version": "1",
+          "mapreduce.task.tmp.dir": {"remove": "yes"}
+        },
+        "core-site": {
+          "hadoop.http.authentication.simple.anonymous.allowed": "true"
+        },
+        "hdfs-site": {
+          "dfs.namenode.startup.delay.block.deletion.sec": "3600",
+          "dfs.datanode.max.transfer.threads": "4096",
+          "dfs.namenode.inode.attributes.provider.class": {
+            "value": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
+            "required-services": ["RANGER"]
+          }
+        },
+        "yarn-site": {
+          "yarn.application.classpath": "$HADOOP_CONF_DIR,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*",
+          "hadoop.registry.rm.enabled": "false",
+          "yarn.client.nodemanager-connect.max-wait-ms": "900000",
+          "yarn.client.nodemanager-connect.retry-interval-ms": "10000",
+          "yarn.node-labels.fs-store.retry-policy-spec": "2000, 500",
+          "yarn.node-labels.fs-store.root-dir": "/system/yarn/node-labels",
+          "yarn.node-labels.manager-class": "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.MemoryRMNodeLabelsManager",
+          "yarn.nodemanager.bind-host": "0.0.0.0",
+          "yarn.nodemanager.disk-health-checker.max-disk-utilization-per-disk-percentage": "90",
+          "yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb": "1000",
+          "yarn.nodemanager.linux-container-executor.cgroups.hierarchy": "hadoop-yarn",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount": "false",
+          "yarn.nodemanager.linux-container-executor.cgroups.strictresource-usage": "false",
+          "yarn.nodemanager.linux-container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.DefaultLCEResourcesHandler",
+          "yarn.nodemanager.log-aggregation.debug-enabled": "false",
+          "yarn.nodemanager.log-aggregation.num-log-files-er-app": "30",
+          "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1",
+          "yarn.nodemanager.recovery.dir": "/var/log/hadoop-yarn/nodemanager/recovery-state",
+          "yarn.nodemanager.recovery.enabled": "false",
+          "yarn.nodemanager.resource.cpu-vcores": "1",
+          "yarn.nodemanager.resource.percentage-physical-cpu-limit": "100",
+          "yarn.resourcemanager.bind-host": "0.0.0.0",
+          "yarn.resourcemanager.connect.max-wait.ms": "900000",
+          "yarn.resourcemanager.connect.retry-interval.ms": "30000",
+          "yarn.resourcemanager.fs.state-store.retry-policy-spec": "2000, 500",
+          "yarn.resourcemanager.fs.state-store.uri": " ",
+          "yarn.resourcemanager.ha.enabled": "false",
+          "yarn.resourcemanager.recovery.enabled": "false",
+          "yarn.resourcemanager.state-store.max-completed-applications": "${yarn.resourcemanager.max-completed-applications}",
+          "yarn.resourcemanager.store.class": "org.apache.hadoop.yarn.server.resourcemanager.recovery.ZKRMStateStore",
+          "yarn.resourcemanager.system-metrics-publisher.dispatcher.pool-size": "10",
+          "yarn.resourcemanager.system-metrics-publisher.enabled": "true",
+          "yarn.resourcemanager.webapp.delegation-token-auth-filter.enabled": "false",
+          "yarn.resourcemanager.work-preserving-recovery.enabled": "false",
+          "yarn.resourcemanager.work-preserving-recovery.scheduling-wait-ms": "10000",
+          "yarn.resourcemanager.zk-acl": "world:anyone:rwcda",
+          "yarn.resourcemanager.zk-address": {
+            "value": "{ZOOKEEPER_QUORUM}",
+            "template": "yes"
+          },
+          "hadoop.registry.zk.quorum": {
+            "value": "{ZOOKEEPER_QUORUM}",
+            "template": "yes"
+          },
+          "yarn.resourcemanager.zk-num-retries": "1000",
+          "yarn.resourcemanager.zk-retry-interval-ms": "1000",
+          "yarn.resourcemanager.zk-state-store.parent-path": "/rmstore",
+          "yarn.resourcemanager.zk-timeout-ms": "10000",
+          "yarn.timeline-service.bind-host": "0.0.0.0",
+          "yarn.timeline-service.client.max-retries": "30",
+          "yarn.timeline-service.client.retry-interval-ms": "1000",
+          "yarn.timeline-service.http-authentication.simple.anonymous.allowed": "true",
+          "yarn.timeline-service.http-authentication.type": "simple",
+          "yarn.timeline-service.leveldb-timeline-store.read-cache-size": "104857600",
+          "yarn.timeline-service.leveldb-timeline-store.start-time-read-cache-size": "10000",
+          "yarn.timeline-service.leveldb-timeline-store.start-time-write-cache-size": "10000",
+          "yarn.node-labels.enabled": false,
+          "yarn.timeline-service.recovery.enabled": "true",
+          "yarn.timeline-service.state-store-class": "org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore",
+          "yarn.timeline-service.leveldb-state-store.path": "/var/log/hadoop-yarn/timeline"
+        },
+        "capacity-scheduler": {
+          "yarn.scheduler.capacity.root.default-node-label-expression": "",
+          "yarn.scheduler.capacity.root.accessible-node-labels.default.capacity": {
+            "remove": "yes"
+          },
+          "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": {
+            "remove": "yes"
+          }
+        }
+      },
+      "property-mapping": {
+        "nimbus.host": {
+          "map-to": "nimbus.seeds",
+          "coerce-to": "yaml-array"
+        },
+        "mapreduce.job.speculative.speculativecap": {
+          "map-to": "mapreduce.job.speculative.speculative-cap-running-tasks",
+          "from-catalog": "mapred-site",
+          "to-catalog": "mapred-site",
+          "default": "0.1"
+        },
+        "hive.heapsize": {
+          "map-to": "hive.heapsize",
+          "from-catalog": "hive-site",
+          "to-catalog": "hive-env",
+          "required-services": ["HIVE"]
+        }
+      }
+    }
+  ]
+}
