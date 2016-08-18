@@ -1055,41 +1055,45 @@ public class Configuration {
       "authentication.ldap.pagination.enabled", "true");
 
   /**
-   * The default regex pattern to use when replacing the user member attribute
+   * Regex pattern to use when replacing the user member attribute
    * ID value with a placeholder. This is used in cases where a UID of an LDAP
    * member is not a full CN or unique ID.
    */
   @Markdown(
-      description = "The default regex pattern to use when replacing the user member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID",
-      examples = { "`${member}`" })
+      description = "Regex pattern to use when replacing the user member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID (e.g.: `member: <SID=123>;<GID=123>;cn=myCn,dc=org,dc=apache`)",
+      examples = { "(?<sid>.*);(?<guid>.*);(?<member>.*)" })
   public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
       "authentication.ldap.sync.userMemberReplacePattern",
       LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
 
   /**
-   * The default regex pattern to use when replacing the group member attribute
+   * Regex pattern to use when replacing the group member attribute
    * ID value with a placeholder. This is used in cases where a UID of an LDAP
    * member is not a full CN or unique ID.
    */
   @Markdown(
-      description = "The default regex pattern to use when replacing the group member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID",
-      examples = { "`${member}`" })
+      description = "Regex pattern to use when replacing the group member attribute ID value with a placeholder. This is used in cases where a UID of an LDAP member is not a full CN or unique ID (e.g.: `member: <SID=123>;<GID=123>;cn=myCn,dc=org,dc=apache`)",
+      examples = { "(?<sid>.*);(?<guid>.*);(?<member>.*)" })
   public static final ConfigurationProperty<String> LDAP_SYCN_GROUP_MEMBER_REPLACE_PATTERN = new ConfigurationProperty<>(
       "authentication.ldap.sync.groupMemberReplacePattern",
       LDAP_SYNC_MEMBER_REPLACE_PATTERN_DEFAULT);
 
   /**
-   * The default filter to use for syncing users from LDAP.
+   * Filter to use for syncing user members of group from LDAP. (by default it is not used)
    */
-  @Markdown(description = "The default filter to use for syncing users from LDAP.")
+  @Markdown(
+    description = "Filter to use for syncing user members of a group from LDAP (by default it is not used).",
+    examples = {"(&(objectclass=posixaccount)(uid={member}))"})
   public static final ConfigurationProperty<String> LDAP_SYNC_USER_MEMBER_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.sync.userMemberFilter",
       LDAP_SYNC_MEMBER_FILTER_DEFAULT);
 
   /**
-   * The default filter to use for syncing member from LDAP.
+   * Filter to use for syncing group members of a group from LDAP. (by default it is not used)
    */
-  @Markdown(description = "The default filter to use for syncing member from LDAP.")
+  @Markdown(
+    description = "Filter to use for syncing group members of a group from LDAP. (by default it is not used)",
+    examples = {"(&(objectclass=posixgroup)(cn={member}))"})
   public static final ConfigurationProperty<String> LDAP_SYNC_GROUP_MEMBER_FILTER = new ConfigurationProperty<>(
       "authentication.ldap.sync.groupMemberFilter",
       LDAP_SYNC_MEMBER_FILTER_DEFAULT);
