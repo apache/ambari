@@ -1598,6 +1598,74 @@ public class UpgradeHelperTest {
     assertTrue(ht.hosts.contains("h1"));
   }
 
+  @Test
+  public void testResolverBadJmx() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+    String version = "2.1.1.0-1234";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      host.persist();
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // Add services
+    c.addService(serviceFactory.createNew(c, "HDFS"));
+
+    Service s = c.getService("HDFS");
+    ServiceComponent sc = s.addServiceComponent("NAMENODE");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+
+    List<ServiceComponentHost> schs = c.getServiceComponentHosts("HDFS", "NAMENODE");
+    assertEquals(2, schs.size());
+
+    setConfigMocks();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.internal.nameservices")).andReturn("ha").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.ha.namenodes.ha")).andReturn("nn1,nn2").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.http.policy")).andReturn("HTTP_ONLY").anyTimes();
+
+    // Notice that these names are all caps.
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn1")).andReturn("H1:50070").anyTimes();
+    expect(m_configHelper.getValueFromDesiredConfigurations(c, "hdfs-site", "dfs.namenode.http-address.ha.nn2")).andReturn("H2:50070").anyTimes();
+    replay(m_configHelper);
+
+    MasterHostResolver mhr = new BadMasterHostResolver(m_configHelper, c, version);
+
+    HostsType ht = mhr.getMasterAndHosts("HDFS", "NAMENODE");
+    assertNotNull(ht.master);
+    assertNotNull(ht.secondary);
+    assertEquals(2, ht.hosts.size());
+
+    // Should be stored in lowercase.
+    assertTrue(ht.hosts.contains("h1"));
+    assertTrue(ht.hosts.contains("h2"));
+  }
+
+
   /**
    * Tests that advanced {@link Grouping} instances like {@link StopGrouping}
    * work with rolling upgrade packs.
@@ -1743,10 +1811,6 @@ public class UpgradeHelperTest {
    */
   private class MockMasterHostResolver extends MasterHostResolver {
 
-    public MockMasterHostResolver(ConfigHelper configHelper, Cluster cluster) {
-      this(configHelper, cluster, null);
-    }
-
     public MockMasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
       super(configHelper, cluster, version);
     }
@@ -1785,5 +1849,19 @@ public class UpgradeHelperTest {
     public void configure(Binder binder) {
       binder.bind(ConfigHelper.class).toInstance(m_configHelper);
     }
+  }
+
+  private static class BadMasterHostResolver extends MasterHostResolver {
+
+    public BadMasterHostResolver(ConfigHelper configHelper, Cluster cluster, String version) {
+      super(configHelper, cluster, version);
+    }
+
+    @Override
+    protected String queryJmxBeanValue(String hostname, int port, String beanName,
+        String attributeName, boolean asQuery, boolean encrypted) {
+      return null;
+    }
+
   }
 }

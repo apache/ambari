@@ -17,9 +17,6 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.proxy.ProxyService;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +25,10 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.proxy.ProxyService;
 
 /**
  * Static Helper methods for HTTP requests.
@@ -46,7 +47,8 @@ public class HTTPUtils {
     String url = urlToRead;
 
     try {
-      URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT, ProxyService.URL_READ_TIMEOUT, null, null, null);
+      URLStreamProvider urlStreamProvider = new URLStreamProvider(ProxyService.URL_CONNECT_TIMEOUT,
+          ProxyService.URL_READ_TIMEOUT, ComponentSSLConfiguration.instance());
 
       Map<String, List<String>> headers = new HashMap<String, List<String>>();
 

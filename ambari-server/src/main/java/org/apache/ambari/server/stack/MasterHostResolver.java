@@ -23,6 +23,7 @@ import java.net.MalformedURLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,7 +146,14 @@ public class MasterHostResolver {
               hostsType.master = pair.containsKey(Status.ACTIVE) ? pair.get(Status.ACTIVE) :  null;
               hostsType.secondary = pair.containsKey(Status.STANDBY) ? pair.get(Status.STANDBY) :  null;
             } else {
-              hostsType.master = componentHosts.iterator().next();
+              // !!! we KNOW we have 2 componentHosts if we're here.
+              Iterator<String> iterator = componentHosts.iterator();
+              hostsType.master = iterator.next();
+              hostsType.secondary = iterator.next();
+
+              LOG.warn("Could not determine the active/standby states from NameNodes {}. " +
+                  "Using {} as active and {} as standby.",
+                  StringUtils.join(componentHosts, ','), hostsType.master, hostsType.secondary);
             }
           }
           break;
