@@ -116,11 +116,11 @@ def metadata(type='server'):
       solr_cloud_util.setup_solr_client(params.config)
       check_znode()
       jaasFile=params.atlas_jaas_file if params.security_enabled else None
-      upload_conf_set('basic_configs', jaasFile)
+      upload_conf_set('atlas_configs', jaasFile)
 
-      create_collection('vertex_index', 'basic_configs', jaasFile)
-      create_collection('edge_index', 'basic_configs', jaasFile)
-      create_collection('fulltext_index', 'basic_configs', jaasFile)
+      create_collection('vertex_index', 'atlas_configs', jaasFile)
+      create_collection('edge_index', 'atlas_configs', jaasFile)
+      create_collection('fulltext_index', 'atlas_configs', jaasFile)
 
     File(params.atlas_hbase_setup,
          content=Template("atlas_hbase_setup.rb.j2")
