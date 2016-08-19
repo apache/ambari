@@ -270,6 +270,89 @@ class TestHDP21StackAdvisor(TestCase):
     self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionURL'], "jdbc:mysql://example.com/hive_name")
     self.assertEquals(configurations['hive-site']['properties']['javax.jdo.option.ConnectionDriverName'], "com.mysql.jdbc.Driver")
 
+  def test_recommendHiveConfigurationsSecure(self):
+    services = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "HIVE",
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "WEBHCAT_SERVER",
+                "service_name": "HIVE",
+                "hostnames": ["example.com"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": {}
+    }
+
+    configurations = {
+      "hive-site": {
+        "properties": {
+          "javax.jdo.option.ConnectionDriverName": "",
+          "ambari.hive.db.schema.name": "hive_name",
+          "javax.jdo.option.ConnectionURL": "jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true"
+        }
+      },
+      "hive-env": {
+        "properties": {
+          "hive_database": "New MySQL Database"
+        }
+      },
+      "cluster-env": {
+        "properties": {
+          "security_enabled": "true"
+        }
+      }
+    }
+
+    services['configurations'] = configurations
+    clusterData = {
+      "mapMemory": 3000,
+      "reduceMemory": 2056,
+      "containers": 3,
+      "ramPerContainer": 256
+    }
+    services['changed-configurations'] = []
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "host_name": "example.com"
+          }
+        },
+        {
+          "Hosts": {
+            "host_name": "example.org"
+          }
+        }
+      ]
+    }
+
+    # new mysql
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals("core-site" in configurations, True)
+    self.assertEqual("hadoop.proxyuser.HTTP.hosts" in configurations["core-site"]["properties"], True)
+    self.assertEqual(configurations["core-site"]["properties"]["hadoop.proxyuser.HTTP.hosts"] == "example.com", True)
+
+    newhost_list = ["example.com", "example.org"]
+    services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] = newhost_list
+    configurations["core-site"]["properties"]["hadoop.proxyuser.HTTP.hosts"] = ""
+
+    self.stackAdvisor.recommendHiveConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals("core-site" in configurations, True)
+    self.assertEqual("hadoop.proxyuser.HTTP.hosts" in configurations["core-site"]["properties"], True)
+
+    fetch_list = sorted(configurations["core-site"]["properties"]["hadoop.proxyuser.HTTP.hosts"].split(","))
+    self.assertEqual(sorted(newhost_list), fetch_list)
+
+
+
   def test_recommendHiveConfigurations_containersRamIsLess(self):
     configurations = {}
     clusterData = {
