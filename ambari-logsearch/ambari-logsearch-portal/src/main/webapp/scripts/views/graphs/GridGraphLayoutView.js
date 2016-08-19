@@ -72,7 +72,7 @@ define(['require',
 
                         }
                     });
-                	this.collection.url = Globals.baseURL + "audit/getAnyGraphData";
+                	this.collection.url = Globals.baseURL + "audit/logs/anygraph";
                     this.collection.modelAttrName = "graphData";
                 }
                 this.dateUtil = Utils.dateUtil;

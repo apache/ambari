@@ -27,9 +27,9 @@ define(['require',
 	'hbs!tmpl/audit/AuditTabLayoutView_tmpl',
 	'moment'
 ],function(require,Backbone,Globals,Utils,ViewUtils,VGroupList,VAuditLogList,VAuditLog,AuditTabLayoutViewTmpl,moment){
-    
+
     'use strict';
-    
+
     return Backbone.Marionette.Layout.extend(
 	/** @lends LogLevelView */
 	{
@@ -91,14 +91,14 @@ define(['require',
                     pageSize: 25
                 }
 			});
-			
+
 			this.componentsList = new VGroupList([],{
 				state: {
                     firstPage: 0,
                     pageSize: 99999
                 }
 			});
-			this.componentsList.url = Globals.baseURL + "audit/getAuditComponents";
+			this.componentsList.url = Globals.baseURL + "audit/logs/components";
 		},
 		bindEvents : function(){
 			this.listenTo(this.componentsList, "reset", function(col, abc){
@@ -115,13 +115,13 @@ define(['require',
 			this.listenTo(this.vent,"reinitialize:filter:mustNot",function(value){
             	this.reinitializeFilterMustNot(value);
             },this);
-			
+
 			this.listenTo(this.globalVent,"reinitialize:auditLogs",function(options){
             	this.vent.trigger("reinitialize:filter:mustNot reinitialize:filter:mustBe reinitialize:filter:logtime "+
             			"reinitialize:TopTenGraph",options);
             	this.fetchAuditLogs(options);
             },this);
-			
+
 		},
 		onRender : function(){
 			this.renderHistogram();
@@ -154,7 +154,7 @@ define(['require',
 					params : that.defaultParams
 				}));
 			})
-			
+
 		},
 		fetchAuditColumns : function(){
 			var that =this;
@@ -184,7 +184,7 @@ define(['require',
 		renderVSSearch : function(){
 			var that = this;
 			require(['views/tabs/VisualSearchView'], function(VisualSearchView){
-				
+
 				_.each(that.columns,function(v,i){
 					if(v.toLowerCase().indexOf("time") > 0 ){
 						//that.columns.splice(i, 1);
@@ -421,7 +421,7 @@ define(['require',
 					that.$("#loaderFeed").show();
 				},
 				success : function(data){
-					var dd=[]; 
+					var dd=[];
 					that.$("#spark").parent().show();
 					_.each(data.vnameValues,function(d){
 						dd.push(d.value);
@@ -452,7 +452,7 @@ define(['require',
 			if(values.mustNot){
 				this.ui.excludeComponents.select2('val',values.mustNot.split(","));
 			}else{
-				this.ui.excludeComponents.select2('val',[]);	
+				this.ui.excludeComponents.select2('val',[]);
 			}
 		}
 	});

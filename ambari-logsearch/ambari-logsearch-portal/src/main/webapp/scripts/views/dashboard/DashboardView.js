@@ -26,7 +26,7 @@ define(['require',
 ],function(require,Backbone,Globals,DashboardviewTmpl,VGroupList){
     'use strict';
 
-	
+
 	var DashboardView = Backbone.Marionette.Layout.extend(
 	/** @lends DashboardView */
 	{
@@ -69,7 +69,7 @@ define(['require',
 			this.logRegions = new Backbone.Collection();
 			this.hostCollection = new VGroupList([],{});
 			this.cComponents = new VGroupList([],{});
-			this.cComponents.url = Globals.baseURL + "dashboard/components";
+			this.cComponents.url = Globals.baseURL + "service/logs/components";
 			this.cTime = new VGroupList(Globals.timeQueryLOV,{});
 		},
 		/** all events binding here */
@@ -115,7 +115,7 @@ define(['require',
 		},
 		onSearchLogClick : function(e){
 			var searchParams = this.getSearchparams();
-			
+
 			if(this.logRegions.length == 0){
 				var model = new Backbone.Model({
 					id : 1,
@@ -123,7 +123,7 @@ define(['require',
 				});
 				this.generateView(model);
 			}else{
-				
+
 				var existsMod = this.logRegions.find(function(m){
 					return JSON.stringify(searchParams) === JSON.stringify(m.get('params'))
 				});
@@ -159,7 +159,7 @@ define(['require',
 			require(['views/dashboard/LogDetailView'],function(LogDetailView){
 				region.show(new LogDetailView({model: model}));
 			})
-			
+
 		},
 		getSearchparams : function(){
 			var obj={hosts : null, components : null, time:null};
@@ -176,7 +176,7 @@ define(['require',
 					obj.time = this.ui.time.select2("val");
 			}
 			return obj;
-				
+
 		},
 		/** on close */
 		onClose: function(){

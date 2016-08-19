@@ -52,7 +52,7 @@ define(['require',
                 events["click [data-value]"] = 'onLogLevelHeaderClick';
                 events["click #filterContent input[type='checkbox']"] = 'onAnyCheckboxClick';
                 events["click .overrideRow a"] = 'onEditHost';
-                
+
                 return events;
             },
 
@@ -76,8 +76,8 @@ define(['require',
                     }
                 });
 
-                this.componentsList.url = Globals.baseURL + "dashboard/components";
-                this.hostList.url = Globals.baseURL + "dashboard/hosts";
+                this.componentsList.url = Globals.baseURL + "service/logs/components";
+                this.hostList.url = Globals.baseURL + "service/logs/hosts";
                 this.model = new VUserFilter();
 
                 this.levelCollection = new Backbone.Collection();
@@ -100,7 +100,7 @@ define(['require',
             onRender: function() {
                 var that = this;
                 // this.setupSelect2Fields(this.levelCollection, "type", "type", "levelSelect2", 'Select Level');
-                
+
                 $.when(this.hostList.fetch({ reset: true }), this.componentsList.fetch({ reset: true }), this.model.fetch({})).then(function(c1, c2, m1) {
                     // if (!_.isUndefined(that.model.get('components'))) {
                     //     that.ui.componentSelect2.select2('val', that.model.get('components'));
@@ -116,7 +116,7 @@ define(['require',
 
                     //that.dataLevels = [];
                     //that.dataLevels = _.pluck(that.levelCollection.models, 'attributes');
-                    
+
                     //that.dataList = [];
                     //that.dataList = _.pluck(that.componentsList.models, 'attributes');
                     that.renderComponents();
@@ -148,13 +148,13 @@ define(['require',
             		var components = this.model.get("filter");
             		_.each(components,function(value,key){
             			var obj = components[key];
-            			
-            			if((_.isArray(obj.overrideLevels) && obj.overrideLevels.length) || 
+
+            			if((_.isArray(obj.overrideLevels) && obj.overrideLevels.length) ||
             					(_.isArray(obj.hosts) && obj.hosts.length) || obj.expiryTime){
             				var $el = that.$("input[data-name='"+key+"']").filter("[data-override]");
         					$el.click();
             			}
-            			
+
             			//setting override data
             			if(_.isArray(obj.overrideLevels)){
             				if(obj.overrideLevels.length){
@@ -202,7 +202,7 @@ define(['require',
             	_.each(this.levelCollection.models,function(model){
             		that.setCheckAllValue(model.get("type"));
             	});
-            	
+
             },
             onAnyCheckboxClick : function(e){
             	var $el = $(e.currentTarget);

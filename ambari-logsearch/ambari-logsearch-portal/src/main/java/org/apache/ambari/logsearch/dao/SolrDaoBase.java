@@ -547,7 +547,7 @@ public abstract class SolrDaoBase {
       QueryResponse queryResponse = solrClient.query(solrQuery,
         METHOD.POST);
 
-      if (event != null && !"/getLiveLogsCount".equalsIgnoreCase(event)) {
+      if (event != null && !"/audit/logs/live/count".equalsIgnoreCase(event)) {
         logPerformance.info("\n Username :- "
           + LogsearchContextUtil.getCurrentUsername()
           + " Event :- " + event + " SolrQuery :- " + solrQuery

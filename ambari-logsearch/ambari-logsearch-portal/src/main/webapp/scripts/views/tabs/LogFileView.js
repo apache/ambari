@@ -99,7 +99,7 @@ define(['require',
                         pageSize: 25
                     }
                 });
-                this.logFileCollection.url = Globals.baseURL + "dashboard/solr/logs_search";
+                this.logFileCollection.url = Globals.baseURL + "service/logs";
                 this.vent = new Backbone.Wreqr.EventAggregator();
                 this.bindEvents();
                 this.commonTableOptions = {
@@ -203,7 +203,7 @@ define(['require',
                 //				{startIndex : this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize},obj),
                 //				'component','from','to','host','level','unit','startIndex','pageSize','format','utcOffset'));
                 var params = $.param(_.extend({}, this.logFileCollection.queryParams, obj));
-                var url = "api/v1/dashboard/exportToTextFile?" + params;
+                var url = "api/v1/service/logs/export?" + params;
                 window.open(url);
                 this.onDialogClosed();
             },
@@ -256,7 +256,7 @@ define(['require',
                             var top = element.offset().top;
                             element.addClass('highlightLog');
                             $("html, body").animate({ scrollTop: (top - 200) }, 1);
-                            /*setTimeout(function(){ 
+                            /*setTimeout(function(){
                             	element.addClass('fadeOutColor')
                             	setTimeout(function(){element.removeClass('fadeOutColor highlightLog');},4000)
                             },6000);*/
@@ -599,7 +599,7 @@ define(['require',
             },
             initializeContextMenu: function() {
                 var that = this;
-                
+
                 $('body').on("mouseup.contextMenuLogFile", function(e) {
                     var selection;
                     if (window.getSelection) {
@@ -657,7 +657,7 @@ define(['require',
                     }else if(type === "IA" || type === "EA"){
     					this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
     						key:Globals.serviceLogsColumns["log_message"],value:"*"+this.selectionText+"*"});
-    				} 
+    				}
                     else {
                         //this.vent.trigger("add:include:exclude",{type:type,value:this.selectionText});
                         this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns", key: Globals.serviceLogsColumns["log_message"], value: this.selectionText });

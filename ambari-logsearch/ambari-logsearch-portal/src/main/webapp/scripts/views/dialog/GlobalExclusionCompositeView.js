@@ -50,7 +50,7 @@ define(['require',
                         pageSize: 1000
                     }
                 });
-                this.componentsList.url = Globals.baseURL + "dashboard/components";
+                this.componentsList.url = Globals.baseURL + "service/logs/components";
 
                 this.collection = this.exclusionObj.logMessageCollection;
                 if (this.collection.length == 0) {

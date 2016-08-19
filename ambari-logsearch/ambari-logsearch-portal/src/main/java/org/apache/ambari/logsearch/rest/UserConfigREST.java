@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -58,7 +58,6 @@ public class UserConfigREST {
   UserConfigMgr userConfigMgr;
 
   @POST
-  @Path("/saveUserConfig")
   @Produces({"application/json"})
   @ApiOperation(SAVE_USER_CONFIG_OD)
   public String saveUserConfig(VUserConfig vhist) {
@@ -66,7 +65,6 @@ public class UserConfigREST {
   }
 
   @PUT
-  @Path("/updateUserConfig")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_USER_CONFIG_OD)
   public String updateUserConfig(VUserConfig vhist) {
@@ -74,14 +72,13 @@ public class UserConfigREST {
   }
 
   @DELETE
-  @Path("/deleteUserConfig/{id}")
+  @Path("/{id}")
   @ApiOperation(DELETE_USER_CONFIG_OD)
   public void deleteUserConfig(@PathParam("id") String id) {
     userConfigMgr.deleteUserConfig(id);
   }
 
   @GET
-  @Path("/getUserConfig")
   @Produces({"application/json"})
   @ApiOperation(GET_USER_CONFIG_OD)
   @ApiImplicitParams(value = {
@@ -101,7 +98,7 @@ public class UserConfigREST {
   }
 
   @GET
-  @Path("/user_filter")
+  @Path("/users/filter")
   @Produces({"application/json"})
   @ApiOperation(GET_USER_FILTER_OD)
   public String getUserFilter(@Context HttpServletRequest request) {
@@ -109,7 +106,7 @@ public class UserConfigREST {
   }
 
   @POST
-  @Path("/user_filter")
+  @Path("/users/filter")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_USER_FILTER_OD)
   public String createUserFilter(String json) {
@@ -117,7 +114,7 @@ public class UserConfigREST {
   }
 
   @PUT
-  @Path("/user_filter/{id}")
+  @Path("/users/filter/{id}")
   @Produces({"application/json"})
   @ApiOperation(GET_USER_FILTER_BY_ID_OD)
   public String updateUserFilter(String json) {
@@ -125,7 +122,7 @@ public class UserConfigREST {
   }
 
   @GET
-  @Path("/getAllUserName")
+  @Path("/users/names")
   @Produces({"application/json"})
   @ApiOperation(GET_ALL_USER_NAMES_OD)
   public String getAllUserName() {

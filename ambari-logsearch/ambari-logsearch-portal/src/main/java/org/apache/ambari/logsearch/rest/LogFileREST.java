@@ -63,13 +63,14 @@ public class LogFileREST {
   }
 
   @GET
-  @Path("/getLogFileTail")
+  @Path("/tail")
   @Produces({"application/json"})
   @ApiOperation(GET_LOG_FILE_TAIL_OD)
   @ApiImplicitParams(value = {
     @ApiImplicitParam(value = COMPONENT_D, name = "component", dataType = "string", paramType = "query"),
     @ApiImplicitParam(value = HOST_D, name = "host", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = LOG_TYPE_D, name = "logType", dataType = "string", paramType = "query")
+    @ApiImplicitParam(value = LOG_TYPE_D, name = "logType", dataType = "string", paramType = "query"),
+    @ApiImplicitParam(value = TAIL_SIZE_D, name = "tailSize", dataType = "string", paramType = "query")
   })
   public String getLogFileTail(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria();

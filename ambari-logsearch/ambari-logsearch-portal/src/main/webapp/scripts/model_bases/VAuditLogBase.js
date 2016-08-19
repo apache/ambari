@@ -42,7 +42,7 @@ define(['require',
 			this.modelName = 'VAuditLogBase';
 		},
 		auditLiveFeed : function(token, options){
-			var url = Globals.baseURL  + 'audit/getLiveLogsCount';
+			var url = Globals.baseURL  + 'audit/logs/live/count';
 			
 			options = _.extend({
 				data : $.param(token),

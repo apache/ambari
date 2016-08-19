@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -45,11 +45,11 @@ import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.*;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.*;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceOperationDescriptions.*;
 
-@Api(value = "dashboard", description = "Dashboard operations")
-@Path("dashboard")
+@Api(value = "service/logs", description = "Service log operations")
+@Path("service/logs")
 @Component
 @Scope("request")
-public class DashboardREST {
+public class ServiceLogsREST {
 
   @Autowired
   LogsMgr logMgr;
@@ -58,7 +58,6 @@ public class DashboardREST {
   RESTErrorUtil restErrorUtil;
 
   @GET
-  @Path("/solr/logs_search")
   @Produces({"application/json"})
   @ApiOperation(SEARCH_LOGS_OD)
   @ApiImplicitParams(value = {
@@ -131,7 +130,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/aggregatedData")
+  @Path("/aggregated")
   @Produces({"application/json"})
   @ApiOperation(GET_AGGREGATED_INFO_OD)
   @ApiImplicitParams(value = {
@@ -161,7 +160,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/levels_count")
+  @Path("/levels/count")
   @Produces({"application/json"})
   @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
   @ApiImplicitParams(value = {
@@ -179,7 +178,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/components_count")
+  @Path("/components/count")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENTS_COUNT_OD)
   @ApiImplicitParams(value = {
@@ -197,7 +196,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/hosts_count")
+  @Path("/hosts/count")
   @Produces({"application/json"})
   @ApiOperation(GET_HOSTS_COUNT_OD)
   @ApiImplicitParams(value = {
@@ -221,7 +220,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getTreeExtension")
+  @Path("/tree")
   @Produces({"application/json"})
   @ApiOperation(GET_TREE_EXTENSION_OD)
   @ApiImplicitParams(value = {
@@ -257,7 +256,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getLogLevelCounts")
+  @Path("/levels/counts/namevalues")
   @Produces({"application/json"})
   @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
   @ApiImplicitParams(value = {
@@ -292,7 +291,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getHistogramData")
+  @Path("/histogram")
   @Produces({"application/json"})
   @ApiOperation(GET_HISTOGRAM_DATA_OD)
   @ApiImplicitParams(value = {
@@ -329,15 +328,19 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/cancelFindRequest")
+  @Path("/request/cancel")
   @Produces({"application/json"})
   @ApiOperation(CANCEL_FIND_REQUEST_OD)
+  @ApiImplicitParams(value = {
+    @ApiImplicitParam(value = TOKEN_D, name = "token", dataType = "string", paramType = "query"),
+  })
   public String cancelFindRequest(@Context HttpServletRequest request) {
-    return logMgr.cancelFindRequestByDate(request);
+    String uniqueId = request.getParameter("token");
+    return logMgr.cancelFindRequestByDate(uniqueId);
   }
 
   @GET
-  @Path("/exportToTextFile")
+  @Path("/export")
   @Produces({"application/json"})
   @ApiOperation(EXPORT_TO_TEXT_FILE_OD)
   @ApiImplicitParams(value = {
@@ -378,7 +381,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getHostListByComponent")
+  @Path("/hosts/components")
   @Produces({"application/json"})
   @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
   @ApiImplicitParams(value = {
@@ -415,7 +418,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getComponentListWithLevelCounts")
+  @Path("/components/level/counts")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD)
   @ApiImplicitParams(value = {
@@ -451,7 +454,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/solr/getBundleIdBoundaryDates")
+  @Path("/solr/boundarydates")
   @Produces({"application/json"})
   @ApiOperation(GET_EXTREME_DATES_FOR_BUNDLE_ID_OD)
   public String getExtremeDatesForBundelId(@Context HttpServletRequest request) {
@@ -465,7 +468,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getServiceLogsFieldsName")
+  @Path("/fields")
   @Produces({"application/json"})
   @ApiOperation(GET_SERVICE_LOGS_FIELD_NAME_OD)
   public String getServiceLogsFieldsName() {
@@ -473,7 +476,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getServiceLogsSchemaFieldsName")
+  @Path("/schema/fields")
   @Produces({"application/json"})
   @ApiOperation(GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD)
   public String getServiceLogsSchemaFieldsName() {
@@ -481,7 +484,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getAnyGraphData")
+  @Path("/anygraph")
   @Produces({"application/json"})
   @ApiOperation(GET_ANY_GRAPH_DATA_OD)
   @ApiImplicitParams(value = {
@@ -523,7 +526,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getAfterBeforeLogs")
+  @Path("/truncated")
   @Produces({"application/json"})
   @ApiOperation(GET_AFTER_BEFORE_LOGS_OD)
   @ApiImplicitParams(value = {
@@ -566,7 +569,7 @@ public class DashboardREST {
   }
 
   @GET
-  @Path("/getHadoopServiceConfigJSON")
+  @Path("/serviceconfig")
   @Produces({"application/json"})
   @ApiOperation(GET_HADOOP_SERVICE_CONFIG_JSON_OD)
   public String getHadoopServiceConfigJSON() {

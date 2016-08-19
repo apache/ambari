@@ -40,7 +40,7 @@ public class PublicREST {
   PublicMgr generalMgr;
 
   @GET
-  @Path("/getGeneralConfig")
+  @Path("/config")
   @ApiOperation(OBTAIN_GENERAL_CONFIG_OD)
   public String getGeneralConfig() {
     return generalMgr.getGeneralConfig();

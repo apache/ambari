@@ -105,6 +105,7 @@ public class DocConstants {
     public static final String HOST_D = "";
     public static final String COMPONENT_D = "";
     public static final String LOG_TYPE_D = "";
+    public static final String TAIL_SIZE_D = "";
   }
 
   public class LogFileOperationDescriptions {

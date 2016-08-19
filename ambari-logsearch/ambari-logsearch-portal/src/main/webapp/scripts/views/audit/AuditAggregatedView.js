@@ -98,7 +98,7 @@ define(['require',
                     pageSize: 9999
                 }
 			});
-			this.topUsers.url = Globals.baseURL + "audit/getTopAuditUsers";
+			this.topUsers.url = Globals.baseURL + "audit/logs/users";
 			this.topUsers.modelAttrName = "graphData";
 			this.topResources = new VNameValueList([],{
 				state: {
@@ -106,7 +106,7 @@ define(['require',
                     pageSize: 9999
                 }
 			});
-			this.topResources.url = Globals.baseURL + "audit/getTopAuditResources";
+			this.topResources.url = Globals.baseURL + "audit/logs/resources";
 			this.topResources.modelAttrName = "graphData";		
 			//initialize colors
 			this.colors = (new d3.scale.category20c().range().slice().reverse()).concat(new d3.scale.category20b().range().slice().reverse());
@@ -408,7 +408,7 @@ define(['require',
 			obj.utcOffset = moment().utcOffset();
 			obj.startIndex =  this.topUsers.state.currentPage * this.topUsers.state.pageSize;
 			var params = $.param(_.extend({},this.topUsers.queryParams,obj));
-			var url = "api/v1/audit/exportUserTableToTextFile?"+ params;
+			var url = "api/v1/audit/logs/users/export?"+ params;
 			window.open(url);
 			this.onDialogClosed();
 		}

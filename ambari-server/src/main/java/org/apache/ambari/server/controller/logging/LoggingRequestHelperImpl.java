@@ -62,9 +62,9 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static final String LOGSEARCH_ADMIN_PASSWORD_PROPERTY_NAME = "logsearch_admin_password";
 
-  private static final String LOGSEARCH_QUERY_PATH = "/service/dashboard/solr/logs_search";
+  private static final String LOGSEARCH_QUERY_PATH = "/api/v1/service/logs";
 
-  private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/service/dashboard/getLogLevelCounts";
+  private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/api/v1/service/logs/levels/counts/namevalues";
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 

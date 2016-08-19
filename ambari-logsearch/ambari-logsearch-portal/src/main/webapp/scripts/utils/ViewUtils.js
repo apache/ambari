@@ -58,7 +58,7 @@ define(['require',
         if (params.bundle_id && !params.start_time && !params.end_time) {
             var collection = new VNameValueList();
 
-            collection.url = Globals.baseURL + "dashboard/solr/getBundleIdBoundaryDates";
+            collection.url = Globals.baseURL + "service/logs/solr/boundarydates";
             collection.modelAttrName = "vNameValues";
             _.extend(collection.queryParams, {
                 "bundle_id": params.bundle_id
