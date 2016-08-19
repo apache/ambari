@@ -107,7 +107,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
           dbConnection = self.getDBConnectionString(hiveEnvProperties['hive_database']).format(hiveServerHost['Hosts']['host_name'], hiveSiteProperties['ambari.hive.db.schema.name'])
           putHiveProperty('javax.jdo.option.ConnectionURL', dbConnection)
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    servicesList = self.get_services_list(services)
     if "PIG" in servicesList:
         ambari_user = self.getAmbariUser(services)
         ambariHostName = socket.getfqdn()
@@ -120,6 +120,28 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
             webHcatSitePropertyAttributes("webhcat.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
+    if self.is_secured_cluster(services):
+      appendCoreSiteProperty = self.updateProperty(configurations, "core-site", services)
+
+      def updateCallback(originalValue, newValue):
+        """
+        :type originalValue str
+        :type newValue list
+        """
+        if originalValue and not originalValue.isspace():
+          hosts = originalValue.split(',')
+
+          if newValue:
+            hosts.extend(newValue)
+
+          result = ','.join(set(hosts))
+          return result
+        else:
+          return ','.join(set(newValue))
+
+      meta = self.get_service_component_meta("HIVE", "WEBHCAT_SERVER", services)
+      if "hostnames" in meta:
+        appendCoreSiteProperty('hadoop.proxyuser.HTTP.hosts', meta["hostnames"], updateCallback)
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")

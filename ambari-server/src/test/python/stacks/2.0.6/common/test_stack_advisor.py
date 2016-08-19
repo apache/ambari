@@ -188,6 +188,59 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+  def test_get_components_list(self):
+    servicesInfo = [
+      {
+        "name": "GANGLIA",
+        "components": [
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "1+", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "3+", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+        ]
+      }
+    ]
+    expected = sorted(["GANGLIA_MONITOR", "GANGLIA_SERVER"])
+
+    services = self.prepareServices(servicesInfo)
+    result = sorted(self.stackAdvisor.get_components_list("GANGLIA", services))
+
+    self.assertEqual(expected, result)
+
+  def test_get_services_list(self):
+    servicesInfo = [
+      {
+        "name": "GANGLIA",
+        "components": [
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "1+", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "3+", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+        ]
+      }
+    ]
+    expected = ["GANGLIA"]
+
+    services = self.prepareServices(servicesInfo)
+    result = self.stackAdvisor.get_services_list(services)
+
+    self.assertEqual(expected, result)
+
+  def test_get_service_component_meta(self):
+    servicesInfo = [
+      {
+        "name": "GANGLIA",
+        "components": [
+          {"name": "GANGLIA_MONITOR", "display_name": "Ganglia Monitor", "cardinality": "1+", "category": "SLAVE", "is_master": False, "hostnames": ["host1"]},
+          {"name": "GANGLIA_SERVER", "display_name": "Ganglia Server", "cardinality": "3+", "category": "MASTER", "is_master": True, "hostnames": ["host2", "host1"]}
+        ]
+      }
+    ]
+    expected = ["host1"]
+
+    services = self.prepareServices(servicesInfo)
+    result = self.stackAdvisor.get_service_component_meta("GANGLIA", "GANGLIA_MONITOR", services)
+
+    self.assertEquals(True, "hostnames" in result)
+    self.assertEqual(expected, result["hostnames"])
+
+
   def test_validationWarnMessagesIfLessThanDefault(self):
     servicesInfo = [
       {
