@@ -176,6 +176,10 @@ class TestAtlasServer(RMFTestCase):
                        )
 
     self.configureResourcesCalled()
+
+    self.assertResourceCalled('File', '/tmp/atlas_hbase_setup.rb',
+                              content=Template("atlas_hbase_setup.rb.j2"))
+
     self.assertNoMoreResources()
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")

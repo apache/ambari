@@ -19,7 +19,7 @@ limitations under the License.
 """
 
 from resource_management.core.resources.system import Directory, File
-from resource_management.core.source import StaticFile, InlineTemplate
+from resource_management.core.source import StaticFile, InlineTemplate, Template
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
@@ -108,6 +108,10 @@ def metadata(type='server'):
          group=params.user_group
     )
 
+    if params.security_enabled:
+      TemplateConfig(format(params.atlas_jaas_file),
+                     owner=params.metadata_user)
+
     if type == 'server' and params.search_backend_solr and params.has_infra_solr:
       solr_cloud_util.setup_solr_client(params.config)
       check_znode()
@@ -118,9 +122,9 @@ def metadata(type='server'):
       create_collection('edge_index', 'basic_configs', jaasFile)
       create_collection('fulltext_index', 'basic_configs', jaasFile)
 
-    if params.security_enabled:
-        TemplateConfig(format(params.atlas_jaas_file),
-                         owner=params.metadata_user)
+    File(params.atlas_hbase_setup,
+         content=Template("atlas_hbase_setup.rb.j2")
+    )
 
 def upload_conf_set(config_set, jaasFile):
   import params

@@ -90,32 +90,6 @@ class HbaseRegionServerDefault(HbaseRegionServer):
   def post_start(self, env, upgrade_type=None):
     import params
 
-    self.apply_atlas_acl(params.hbase_user)
-
-  def apply_atlas_acl(self, hbase_user):
-    import params
-
-    if params.security_enabled and params.has_atlas and params.atlas_with_managed_hbase:
-      current_host = params.hostname.lower()
-      sorted_rs_hosts = sorted([host.lower() for host in params.rs_hosts])
-
-      # if list of rs_hosts are empty, try to apply permissions regardless of host
-      if len(sorted_rs_hosts) == 0:
-        can_apply_permissions = True
-      else:
-        can_apply_permissions = current_host == sorted_rs_hosts[0]
-
-      if can_apply_permissions:
-        kinit_cmd = format("{kinit_path_local} -kt {regionserver_keytab_path} {regionserver_jaas_princ}")
-        permissions_cmd = [
-          format("echo \"grant '{metadata_user}', 'RWXCA', '{atlas_graph_storage_hbase_table}'\" | hbase shell -n"),
-          format("echo \"grant '{metadata_user}', 'RWXCA', '{atlas_audit_hbase_tablename}'\" | hbase shell -n"),
-        ]
-
-        # no additional logging required, as it supported by checked_call itself
-        # re-tries needed to suffer fails on Kerberos wizard as RegionServer update security features status over some time
-        for perm_cmd in permissions_cmd:
-          shell.checked_call(format("{kinit_cmd}; {perm_cmd}"), user=params.hbase_user, tries=10, try_sleep=10)
 
   def start(self, env, upgrade_type=None):
     import params
