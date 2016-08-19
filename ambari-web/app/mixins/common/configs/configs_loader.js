@@ -125,9 +125,10 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    */
   loadCurrentVersionsSuccess: function (data, opt, params) {
     var self = this;
-    var serviceGroups = App.ServiceConfigGroup.find().filterProperty('serviceName', this.get('content.serviceName'));
+    var serviceGroups;
     App.configGroupsMapper.map(data, true, params.serviceNames.split(','));
     this.loadConfigGroups(params.serviceNames.split(',')).done(function () {
+      serviceGroups = App.ServiceConfigGroup.find().filterProperty('serviceName', self.get('content.serviceName'));
       if (self.get('isHostsConfigsPage')) {
         self.set('selectedConfigGroup', serviceGroups.find(function (cg) {
               return !cg.get('isDefault') && cg.get('hosts').contains(self.get('host.hostName'));
