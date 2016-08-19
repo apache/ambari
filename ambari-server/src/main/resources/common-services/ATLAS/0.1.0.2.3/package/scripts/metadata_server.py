@@ -19,7 +19,8 @@ limitations under the License.
 from metadata import metadata
 from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.core.resources.system import Execute, File
-from resource_management.libraries.script.script import Script, format_stack_version
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
