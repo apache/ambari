@@ -300,11 +300,6 @@
     </file>
     <file>
       <fileMode>755</fileMode>
-      <source>src/main/python/upgradeHelper.py</source>
-      <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
-    </file>
-    <file>
-      <fileMode>755</fileMode>
       <source>src/main/resources/stacks/stack_advisor.py</source>
       <outputDirectory>/var/lib/ambari-server/resources/stacks</outputDirectory>
     </file>
