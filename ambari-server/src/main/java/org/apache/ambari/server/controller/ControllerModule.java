@@ -77,6 +77,8 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.metrics.system.MetricsService;
+import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
@@ -371,6 +373,8 @@ public class ControllerModule extends AbstractModule {
 
     // factory to create LoggingRequestHelper instances for LogSearch integration
     bind(LoggingRequestHelperFactory.class).to(LoggingRequestHelperFactoryImpl.class);
+
+    bind(MetricsService.class).to(MetricsServiceImpl.class).in(Scopes.SINGLETON);
 
     requestStaticInjection(DatabaseConsistencyCheckHelper.class);
     requestStaticInjection(KerberosChecker.class);

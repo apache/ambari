@@ -75,6 +75,7 @@ import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvide
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -157,6 +158,10 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 @Singleton
 public class AmbariServer {
@@ -615,6 +620,14 @@ public class AmbariServer {
        * Start the server after controller state is recovered.
        */
       server.start();
+
+      // TODO, start every other tread.
+      final ExecutorService executor = Executors.newSingleThreadExecutor();
+      MetricsService metricsService = injector.getInstance(
+              MetricsService.class);
+      metricsService.init();
+      executor.submit(metricsService);
+      LOG.info("********* Started Ambari Metrics **********");
 
       serverForAgent.start();
       LOG.info("********* Started Server **********");
