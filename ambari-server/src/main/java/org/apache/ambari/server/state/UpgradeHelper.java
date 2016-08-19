@@ -409,6 +409,9 @@ public class UpgradeHelper {
 
                   builder.add(context, hostsType, service.serviceName,
                       svc.isClientOnlyService(), pc, null);
+                } else {
+                  LOG.warn("Could not orchestrate NameNode.  Hosts could not be resolved: hosts={}, active={}, standby={}",
+                      StringUtils.join(hostsType.hosts, ','), hostsType.master, hostsType.secondary);
                 }
                 break;
               case NON_ROLLING:
