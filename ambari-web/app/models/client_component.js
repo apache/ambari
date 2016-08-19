@@ -37,19 +37,19 @@ App.ClientComponent = DS.Model.extend({
    *
    * @type {boolean}
    */
-  allowToDelete: function() {
+  allowToDelete: function () {
     return this.get('totalCount') === (this.get('installedCount') + this.get('installFailedCount') + this.get('initCount') + this.get('unknownCount'));
   }.property('totalCount', 'installedCount', 'installFailedCount', 'initCount', 'unknownCount'),
 
-  summaryLabelClassName:function(){
+  summaryLabelClassName: function () {
     return 'label_for_'+this.get('componentName').toLowerCase();
   }.property('componentName'),
 
-  summaryValueClassName:function(){
+  summaryValueClassName: function () {
     return 'value_for_'+this.get('componentName').toLowerCase();
   }.property('componentName'),
 
-  displayNamePluralized: function() {
+  displayNamePluralized: function () {
     return stringUtils.pluralize(this.get('installedCount'), this.get('displayName'));
   }.property('installedCount')
 });
