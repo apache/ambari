@@ -61,7 +61,7 @@ define(['require',
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'vent','globalVent','params'));
 			this.logLevelList = new VLogLevelList();
-			this.logLevelList.url = Globals.baseURL + "dashboard/getLogLevelCounts";
+			this.logLevelList.url = Globals.baseURL + "service/logs/levels/counts/namevalues";
 			this.logLevelList.modelAttrName = "vNameValues";
 			this.bindEvents();
 		},

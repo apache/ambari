@@ -68,14 +68,14 @@ define(['require',
 		                    pageSize: 99999
 		                }
 					});
-					this.componentsList.url = Globals.baseURL + "dashboard/getComponentListWithLevelCounts";
+					this.componentsList.url = Globals.baseURL + "service/logs/components/level/counts";
 					this.hostList = new VNodeList([],{
 						state: {
 		                    firstPage: 0,
 		                    pageSize: 99999
 		                }
 					});
-					this.hostList.url = Globals.baseURL + "dashboard/getHostListByComponent";
+					this.hostList.url = Globals.baseURL + "service/logs/hosts/components";
 				},
 				/** all events binding here */
 				bindEvents : function(){

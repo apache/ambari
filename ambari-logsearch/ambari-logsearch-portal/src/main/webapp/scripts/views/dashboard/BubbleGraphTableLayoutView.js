@@ -31,7 +31,7 @@ define(['require',
 	'select2'
 ],function(require,Backbone,moment,Globals,Utils,ViewUtils,tip,VLogLevel,VLogList,VGraphInfo,BubbleGraphTableLayoutViewTmpl,JBDialog){
 	'use strict';
-	
+
 	return Backbone.Marionette.Layout.extend(
 	/** @lends BubbleGraphTableLayoutView */
 	{
@@ -96,7 +96,7 @@ define(['require',
                     pageSize: 25
                 }
             });
-			this.collection.url = Globals.baseURL + "dashboard/solr/logs_search";
+			this.collection.url = Globals.baseURL + "service/logs";
 			this.graphModel = new VGraphInfo();
 			this.bindEvents();
 			this.graphParams = this.params;
@@ -257,7 +257,7 @@ define(['require',
 					filterOpts : {},
 					paginatorOpts : {}
 				}));
-			});	
+			});
 		},
 		renderComponentList : function(){
 			var that = this;
@@ -416,7 +416,7 @@ define(['require',
 						displayOrder :6,
 						width : 6
 					}
-					
+
 			};
 			_.each(cols,function(c,k){
 				if(columns[k] == undefined){
@@ -502,7 +502,7 @@ define(['require',
 				this.ui.hostList.show();
 			}else
 				this.ui.componentList.show();
-				
+
 		},
 		bindContextMenuClick : function(){
 			var that = this;
@@ -543,13 +543,13 @@ define(['require',
 		        	that.selectionCallBack(selection,e)
 		        },1);
 
-		        
+
 		    });
 		},
 		selectionCallBack : function(selection,e){
 			this.RLogTable.currentView.$el.removeHighlight(true);
 			if(this.selectionText != selection.toString()){
-				this.selectionText = selection.toString(); 
+				this.selectionText = selection.toString();
 			}else{
 				$(".contextMenuBody [data-id='F']").show();
 				$(".contextMenuBody").hide();
@@ -561,8 +561,8 @@ define(['require',
 				$(".contextMenuBody").show();
 				$(".contextMenuBody").css({
 					'top':e.pageY - 40,
-					'left':e.pageX 
-				});  
+					'left':e.pageX
+				});
 			}else{
 				this.RLogTable.currentView.$el.removeHighlight(true);
 				$(".contextMenuBody [data-id='F']").show();
@@ -607,7 +607,7 @@ define(['require',
 			}else if ($el.data("id") === "C_M"){
 				this.globalVent.trigger("add:compare",$el.find('a'));
 			}
-			
+
 		},
 		renderDetailLogFileView : function(view){
 			var that = this;
@@ -655,12 +655,12 @@ define(['require',
 				this.ui.graph.text("no data");
 				return
 			}
-				
+
 			var root = {
 				name : "",
 				dataList : this.graphModel.get("graphData")
 			};
-			
+
 			var margin = 20;
 			this.ui.graph.empty();
 			//		var color = d3.scale.linear()
@@ -813,6 +813,6 @@ define(['require',
 			$('body').unbind("mouseup.contextMenu");
 		}
 	});
-	
-	
+
+
 });

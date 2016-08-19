@@ -65,7 +65,7 @@ define(['require',
                     }
                 });
                 this.dateUtil = Utils.dateUtil;
-                this.collection.url = Globals.baseURL + "dashboard/solr/logs_search";
+                this.collection.url = Globals.baseURL + "service/logs";
                 this.bindEvents();
                 this.dateRangeLabel = "Last 1 Hour"
             },

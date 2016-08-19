@@ -78,10 +78,10 @@ define(['require',
                 this.firstRender = true;
                 if (!this.viewType || this.viewType == Globals.graphType.HISTOGRAM.value) {
                     this.histogramView = true;
-                    this.collection.url = Globals.baseURL + "dashboard/getHistogramData";
+                    this.collection.url = Globals.baseURL + "service/logs/histogram";
                     this.collection.modelAttrName = "graphData";
                 } else {
-                    this.collection.url = Globals.baseURL + "audit/getAuditLineGraphData";
+                    this.collection.url = Globals.baseURL + "audit/logs/linegraph";
                     this.collection.modelAttrName = "graphData";
                     this.lineView = true;
                 }
@@ -323,7 +323,7 @@ define(['require',
                     generate: function() {
                         /* var parentWidth = (that.ui.histoGraph.find('svg').parent().width()),
                              parentHeight = (that.ui.histoGraph.find('svg').parent().height())
-                             width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding 
+                             width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding
                               height = ((parentHeight === 0) ? (640) : (parentHeight)) // -15 because  parent has 15 padding */
                         if (that.histogramView) {
                             that.chart = nv.models.multiBarChart()
@@ -331,7 +331,7 @@ define(['require',
                                  .height(height)*/
                                 .stacked(true)
                                 .showControls(false);
-                            that.chart.groupSpacing(0.6) // for bar width and aspace 
+                            that.chart.groupSpacing(0.6) // for bar width and aspace
                         } else {
                             that.chart = nv.models.lineChart().options({
                                 transitionDuration: 300,
@@ -444,8 +444,8 @@ define(['require',
                         that.$(".box").resize(function() {
                             //                             var parentWidth = (that.ui.histoGraph.find('svg').parent().width()),
                             //                                 parentHeight = (that.ui.histoGraph.find('svg').parent().height()),
-                            //                                 width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding 
-                            //                                 height = ((parentHeight === 0) ? (240) : (parentHeight)) // -15 because  parent has 15 padding 
+                            //                                 width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding
+                            //                                 height = ((parentHeight === 0) ? (240) : (parentHeight)) // -15 because  parent has 15 padding
                             //                             graph.width(width).height(height);
                             //                          if (that.parentView) {
                             //                                  var elem = that.parentView.$el.find('[data-id="rHistogramGraph"] svg');

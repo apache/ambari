@@ -1,4 +1,4 @@
-<!-- 
+<!--
   Licensed to the Apache Software Foundation (ASF) under one or more
   contributor license agreements.  See the NOTICE file distributed with
   this work for additional information regarding copyright ownership.
@@ -35,27 +35,27 @@
 				var passDiv = $('#passCont');
 
 		        $.ajax({
-					url : "/api/v1/public/getGeneralConfig",
+					url : "/api/v1/public/config",
 					type: "GET",
 					async: true,
 					dataType: 'json',
-						success:function(results,status) 
+						success:function(results,status)
 						{
 							for(var i in results.vNameValues){
 								if ((results.vNameValues[i].name === "simpleAuth") && (results.vNameValues[i].value === "true")){
 									$("#password").val("");
 									passDiv.hide();
-								}	
+								}
 								if (passDiv.is(':hidden'))
 								   $("#password").prop('required',false);
 							}
 						},
-						error: function(errorThrown) 
+						error: function(errorThrown)
 						{
 						    passDiv.show();
 						},
 			            complete : function(){
-			                $('[data-id="loader"]').hide();            
+			                $('[data-id="loader"]').hide();
 			            }
 				});
 			});
@@ -105,7 +105,7 @@
 						</div>
 						<div data-id="loader" class="loading"></div>
 					</div>
-					</div>			
+					</div>
 		</div>
 
 		<script type="text/javascript">
@@ -116,20 +116,20 @@
 				    var postData = {};
 				    var formURL = ($(this).attr("action")) ? $(this).attr("action") : "/login";
 				    postData = {"username" : $("#username").val() , "password" : $("#password").val()};
-				 
+
 					$.ajax({
 						url : formURL,
 						type: "POST",
 						data : postData,
-							success:function(results,status) 
+							success:function(results,status)
 							{
 							    window.location = 'index.html'+window.location.search;
 							},
-							error: function(errorThrown) 
+							error: function(errorThrown)
 							{
 							    showError(errorThrown);
 							}
-						});				    
+						});
 				 		return false;
 				});
 
@@ -139,11 +139,11 @@
 
 				function showError(errorThrown){
 					var errorMsg = errorThrown.status;
-					
+
 				    switch(errorMsg){
-		                case 401: $('.errorBox').show(); 
+		                case 401: $('.errorBox').show();
 		                        break;
-		              
+
 		                default: $('.errorBox').hide();
 				    }
 				}

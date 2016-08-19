@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -88,7 +88,7 @@ public class LogsMgr extends MgrBase {
   public static List<String> cancelByDate = new CopyOnWriteArrayList<String>();
 
   public static Map<String, String> mapUniqueId = new ConcurrentHashMap<String, String>();
-  
+
   public static enum CONDITION {
     OR, AND
   }
@@ -140,7 +140,7 @@ public class LogsMgr extends MgrBase {
       SolrQuery solrQuery = queryGenerator
           .commonServiceFilterQuery(searchCriteria);
 
-      solrQuery.setParam("event", "/solr/logs_search");
+      solrQuery.setParam("event", "/service/logs");
 
       VSolrLogList collection = getLogAsPaginationProvided(solrQuery,
           serviceLogsSolrDao);
@@ -151,7 +151,7 @@ public class LogsMgr extends MgrBase {
   public String getHosts(SearchCriteria searchCriteria) {
     return getFields(searchCriteria, LogSearchConstants.SOLR_HOST);
   }
-  
+
   public String getFields(SearchCriteria searchCriteria,String field){
 
     SolrQuery solrQuery = new SolrQuery();
@@ -185,7 +185,7 @@ public class LogsMgr extends MgrBase {
         solrDoc.put(field, temp);
         docList.add(solrDoc);
       }
-      
+
       collection.setGroupDocuments(docList);
       if(!docList.isEmpty()){
         collection.setStartIndex((int) docList.getStart());
@@ -197,7 +197,7 @@ public class LogsMgr extends MgrBase {
       throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-  
+
   }
 
   public String getComponents(SearchCriteria searchCriteria) {
@@ -274,11 +274,11 @@ public class LogsMgr extends MgrBase {
         return collection;
       }
       List<Count> fieldList = facetFields.getValues();
-      
+
       if(fieldList == null){
         return collection;
       }
-      
+
       for (Count cnt : fieldList) {
         if (cnt != null) {
           VCount vCount = new VCount();
@@ -293,11 +293,11 @@ public class LogsMgr extends MgrBase {
       throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-    
+
     collection.setCounts(vCounts);
     return collection;
   }
-  
+
   public VCountList getLogLevelCount(SearchCriteria searchCriteria) {
     return getFieldCount(searchCriteria, LogSearchConstants.SOLR_LEVEL);
   }
@@ -331,7 +331,7 @@ public class LogsMgr extends MgrBase {
           if(!stringUtil.isEmpty(firstPriority)){
             hostNode.setType(firstPriority);
           }
-          
+
           hostNode.setParent(true);
           hostNode.setRoot(true);
           PivotField hostPivot = null;
@@ -467,7 +467,7 @@ public class LogsMgr extends MgrBase {
 
   public String getHostListByComponent(SearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
-    solrQuery.setParam("event", "/getHostListByComponent");
+    solrQuery.setParam("event", "/service/hosts/component");
 
     VNodeList list = new VNodeList();
     if (searchCriteria.getSortBy() == null) {
@@ -484,10 +484,10 @@ public class LogsMgr extends MgrBase {
     } else {
       return convertObjToString(list);
     }
-    
+
     String firstHirarchy = "type,host,level";
     String secondHirarchy = "type,level";
-   
+
     try {
       queryGenerator.setFacetPivot(solrQuery, 1, firstHirarchy,
         secondHirarchy);
@@ -528,7 +528,7 @@ public class LogsMgr extends MgrBase {
   public VNameValueList getLogsLevelCount(SearchCriteria sc) {
     VNameValueList nameValueList = new VNameValueList();
     SolrQuery query = queryGenerator.commonServiceFilterQuery(sc);
-    query.setParam("event", "/getLogLevelCounts");
+    query.setParam("event", "/service/logs/levels/counts/namevalues");
     List<VNameValue> logsCounts = getLogLevelFacets(query);
     nameValueList.setVNameValues(logsCounts);
 
@@ -628,40 +628,40 @@ public class LogsMgr extends MgrBase {
   public List<Count> getFacetCounts(SolrQuery solrQuery, String facetField)
     throws SolrServerException, IOException, SolrException {
     List<Count> list = new ArrayList<FacetField.Count>();
-    
+
     QueryResponse response = serviceLogsSolrDao.process(solrQuery);
     if(response == null){
       return list;
     }
-    
+
     FacetField field = response.getFacetField(facetField);
     if (field == null) {
       return list;
     }
     list = field.getValues();
-    
-    
+
+
     return list;
   }
 
   public String getPageByKeyword(SearchCriteria searchCriteria)
     throws SolrServerException {
     String defaultChoice = "0";
-    
+
     String key = (String) searchCriteria.getParamValue("keyword");
     if(stringUtil.isEmpty(key)){
       throw restErrorUtil.createRESTException("Keyword was not given",
           MessageEnums.DATA_NOT_FOUND);
     }
-    
+
     String keyword = solrUtil.escapeForStandardTokenizer(key);
-    
+
     if(keyword.startsWith("\"") && keyword.endsWith("\"")){
       keyword = keyword.substring(1);
       keyword = keyword.substring(0, keyword.length()-1);
     }
     keyword = "*" + keyword + "*";
-   
+
 
     String keyType = (String) searchCriteria.getParamValue("keywordType");
     QueryResponse queryResponse = null;
@@ -684,7 +684,7 @@ public class LogsMgr extends MgrBase {
         nextPageLogTimeQuery.remove("rows");
         nextPageLogTimeQuery.setStart(lastLogIndexNumber);
         nextPageLogTimeQuery.setRows(1);
-        
+
         queryResponse = serviceLogsSolrDao.process(
             nextPageLogTimeQuery);
         if(queryResponse == null){
@@ -697,7 +697,7 @@ public class LogsMgr extends MgrBase {
           throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
-        
+
         SolrDocument solrDoc = docList.get(0);
 
         Date logDate = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
@@ -765,7 +765,7 @@ public class LogsMgr extends MgrBase {
 
         if (!stringUtil.isEmpty(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
-          
+
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, nextPageLogTime,
             endTime);
@@ -774,7 +774,7 @@ public class LogsMgr extends MgrBase {
               + LogSearchConstants.ASCENDING_ORDER);
 
         } else {
-          
+
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, startTime,
             nextPageLogTime);
@@ -803,7 +803,7 @@ public class LogsMgr extends MgrBase {
         if (!documentList.isEmpty()){
           solrDocument = documentList.get(0);
         }
-        
+
         Date keywordLogDate = (Date) solrDocument.get(LogSearchConstants.LOGTIME);
         if(keywordLogDate == null){
           throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
@@ -837,9 +837,9 @@ public class LogsMgr extends MgrBase {
 
 
         long countNumberLogs = countQuery(rangeLogQuery,serviceLogsSolrDao) - 1;
-      
 
-        //Adding numbers on 
+
+        //Adding numbers on
 
 
         try {
@@ -854,7 +854,7 @@ public class LogsMgr extends MgrBase {
             String id = (String) solrDocumenent
               .getFieldValue(LogSearchConstants.ID);
             countNumberLogs++;
-           
+
             if (stringUtil.isEmpty(id) && id.equals(keywordId)){
               break;
             }
@@ -980,8 +980,8 @@ public class LogsMgr extends MgrBase {
           logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.DESCENDING_ORDER);
-          
-          
+
+
           queryGenerator.setSingleRangeFilter(
             logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, startTime,
@@ -993,7 +993,7 @@ public class LogsMgr extends MgrBase {
           logTimeThroughRangeQuery.set(LogSearchConstants.SORT,
             LogSearchConstants.LOGTIME + " "
               + LogSearchConstants.ASCENDING_ORDER);
-          
+
 
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
             LogSearchConstants.LOGTIME, lastLogsLogTime, endTime);
@@ -1054,7 +1054,7 @@ public class LogsMgr extends MgrBase {
 
 
         long countNumberLogs = countQuery(rangeLogQuery,serviceLogsSolrDao) - 1;
-        
+
         //Adding numbers on
         try {
           SolrQuery sameIdQuery = queryGenerator
@@ -1123,9 +1123,9 @@ public class LogsMgr extends MgrBase {
           .process(logTimeByIdQuery);
 
       if(queryResponse == null){
-        return convertObjToString(new VSolrLogList()); 
+        return convertObjToString(new VSolrLogList());
       }
-      
+
       SolrDocumentList docList = queryResponse.getResults();
       Date dateOfLogId = null;
       if (docList != null && !docList.isEmpty()) {
@@ -1162,10 +1162,10 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setSingleIncludeFilter(sameIdQuery,
           LogSearchConstants.LOGTIME, "\"" + logTime + "\"");
       sameIdQuery.set("fl", LogSearchConstants.ID);
-      
+
       QueryResponse sameIdResponse = serviceLogsSolrDao.process(sameIdQuery);
       SolrDocumentList docList = sameIdResponse.getResults();
-      
+
       for (SolrDocument solrDocumenent : docList) {
         String id = (String) solrDocumenent
             .getFieldValue(LogSearchConstants.ID);
@@ -1216,14 +1216,14 @@ public class LogsMgr extends MgrBase {
         return logsCounts;
 
       }
-      
+
       @SuppressWarnings("rawtypes")
       RangeFacet rangeFacet=rangeFacetList.get(0);
       if (rangeFacet == null) {
         return logsCounts;
       }
       logLevelCounts = rangeFacet.getCounts();
-      
+
       if(logLevelCounts == null){
         return logsCounts;
       }
@@ -1254,7 +1254,7 @@ public class LogsMgr extends MgrBase {
     String deafalutValue = "0";
     VBarDataList dataList = new VBarDataList();
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
-    solrQuery.set("event", "/getHistogramData");
+    solrQuery.set("event", "/audit/logs/histogram");
     String from = getFrom((String) searchCriteria.getParamValue("from"));
     String to = getTo((String) searchCriteria.getParamValue("to"));
     String unit = getUnit((String) searchCriteria.getParamValue("unit"));
@@ -1339,10 +1339,7 @@ public class LogsMgr extends MgrBase {
     }
   }
 
-  public String cancelFindRequestByDate(HttpServletRequest request) {
-    String uniqueId = null;
-
-    uniqueId = (String) request.getParameter("token");
+  public String cancelFindRequestByDate(String uniqueId) {
     if (stringUtil.isEmpty(uniqueId)) {
       logger.error("Unique id is Empty");
       throw restErrorUtil.createRESTException("Unique id is Empty",
@@ -1377,21 +1374,21 @@ public class LogsMgr extends MgrBase {
     String to = (String) searchCriteria.getParamValue("to");
     String utcOffset = (String) searchCriteria.getParamValue("utcOffset");
     String format = (String) searchCriteria.getParamValue("format");
-    
+
     format = defaultFormat.equalsIgnoreCase(format) && format != null ? ".txt"
         : ".json";
-    
+
     if(stringUtil.isEmpty(utcOffset)){
       utcOffset = "0";
     }
-    
+
     if (!dateUtil.isDateValid(from) || !dateUtil.isDateValid(to)) {
       logger.error("Not valid date format. Valid format should be"
           + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
       throw restErrorUtil.createRESTException("Not valid date format. Valid format should be"
           + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z,
           MessageEnums.INVALID_INPUT_DATA);
-      
+
     } else {
       from = from.replace("T", " ");
       from = from.replace(".", ",");
@@ -1411,7 +1408,7 @@ public class LogsMgr extends MgrBase {
       fileName = searchCriteria.getParamValue("hostLogFile") + "_"
         + searchCriteria.getParamValue("compLogFile");
     }
-    
+
     String textToSave = "";
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
@@ -1516,7 +1513,7 @@ public class LogsMgr extends MgrBase {
 
   public String getComponentListWithLevelCounts(SearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
-    solrQuery.setParam("event", "/getComponentListWithLevelCounts");
+    solrQuery.setParam("event", "/service/logs/components/level/counts");
 
     if (searchCriteria.getSortBy() == null) {
       searchCriteria.setSortBy(LogSearchConstants.SOLR_COMPONENT);
@@ -1586,10 +1583,10 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setMainQuery(solrQuery, null);
       solrQuery.setSort(LogSearchConstants.LOGTIME, SolrQuery.ORDER.asc);
       queryGenerator.setRowCount(solrQuery, 1);
-     
+
       List<VNameValue> vNameValues = new ArrayList<VNameValue>();
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      
+
       if(response == null){
         return convertObjToString(nameValueList);
       }
@@ -1635,7 +1632,7 @@ public class LogsMgr extends MgrBase {
         }
       }
       nameValueList.setVNameValues(vNameValues);
-      
+
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error(e.getMessage() + "SolrQuery"+solrQuery);
@@ -1789,7 +1786,7 @@ public class LogsMgr extends MgrBase {
     if(stringUtil.isEmpty(scrollType)){
       scrollType = "";
     }
-    
+
     String logTime = null;
     String sequenceId = null;
     try {
@@ -1827,7 +1824,7 @@ public class LogsMgr extends MgrBase {
       }
       vSolrLogList.setSolrDocuments(solrDocList);
         return convertObjToString(vSolrLogList);
-     
+
     } else if (LogSearchConstants.SCROLL_TYPE_AFTER.equals(scrollType)) {
       SolrDocumentList solrDocList = new SolrDocumentList();
       vSolrLogList = new VSolrLogList();
@@ -1859,9 +1856,9 @@ public class LogsMgr extends MgrBase {
       }
 
       vSolrLogList.setSolrDocuments(initial);
-     
+
         return convertObjToString(vSolrLogList);
-      
+
     }
   }
 

@@ -79,7 +79,7 @@ define(['require',
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'globalVent'));
 //			this.logLevelList = new VLogLevelList();
-//			this.logLevelList.url = Globals.baseURL + "dashboard/getLogLevelCounts";
+//			this.logLevelList.url = Globals.baseURL + "service/logs/levels/counts/namevalues";
 //			this.logLevelList.modelAttrName = "vNameValues";
 			this.columnCollection = new VLogList([],{
 				state: {
@@ -93,15 +93,15 @@ define(['require',
                     pageSize: 99999
                 }
 			});
-			this.componentsList.url = Globals.baseURL + "dashboard/components";
+			this.componentsList.url = Globals.baseURL + "service/logs/components";
 			this.vent = new Backbone.Wreqr.EventAggregator();
-			
+
 			this.defaultParams = ViewUtils.getDefaultParamsForHierarchy();
 			this.bindEvents();
 		},
 		applyParamsDate:function(date){
 			if (date) {
-				var dateString  = date.split(','); 
+				var dateString  = date.split(',');
 				 if(dateString.length){
 				 	var checkDate = Utils.dateUtil.getMomentUTC(dateString[0]);
 				 	if(checkDate.isValid()){
@@ -112,7 +112,7 @@ define(['require',
 				 		}
 				 		return  checkDate.toJSON();
 				 	}
-				 }	
+				 }
 			}
 		},
 		bindEvents : function(){
@@ -144,7 +144,7 @@ define(['require',
 			this.listenTo(this.vent,"tab:refresh",function(params){
 				this.reRenderComponents(params);
 			},this);
-			
+
 			this.listenTo(this.globalVent,"reinitialize:serviceLogs",function(options){
             	this.vent.trigger("reinitialize:filter:tree reinitialize:filter:include:exclude reinitialize:filter:bubbleTable"+
             			" reinitialize:filter:mustNot reinitialize:filter:mustBe reinitialize:filter:level reinitialize:filter:logtime",options);
@@ -163,7 +163,7 @@ define(['require',
 			this.componentsList.fetch({reset:true});
 		},
 		onShow:function(){
-			
+
 			//this.REventHistory.currentView.genrateTimeline();
 
 		},
@@ -267,7 +267,7 @@ define(['require',
 					params : that.defaultParams,
 				}));
             });
-		
+
 
 		},
 		renderVSSearch : function(){
@@ -294,7 +294,7 @@ define(['require',
 								query : query
 							};
 						}
-					
+
 				}));
             });
 		},
@@ -309,7 +309,7 @@ define(['require',
 					placeholder : "Include Search",
 					vent : that.vent,
 					globalVent:that.globalVent,
-					customOptions : columns,  
+					customOptions : columns,
 					eventName : Globals.eventName.serviceLogsIncludeColumns,
 					myFormatData : function(query,searchCollection){
 						var obj=[];
@@ -431,7 +431,7 @@ define(['require',
 				this.ui.excludeComponents.select2('val',values.mustNot.split(","));
 			else
 				this.ui.excludeComponents.select2('val',[]);
-				
+
 		},
 		reRenderComponents : function(params){
 			var iComponents = this.ui.includeComponents.val(),eComponents = this.ui.excludeComponents.val(),that=this;
@@ -455,20 +455,20 @@ define(['require',
 			} else{
 				this.ui.advanceSearch.hide();
 				this.ui.applySearch.hide();
-				this.ui.basicSearch.show();	
+				this.ui.basicSearch.show();
 				obj = this.getIncludeExcludeColValues();
 				obj.advanceSearch = null;
 			}
-			
+
 			this.vent.trigger('main:search',obj);
-			
+
 		},
 		applySearchBtn : function(){
 			var obj = {}
 			obj.advanceSearch = this.RAdvanceSearch.currentView.ui.searchArea.val();
 
 				this.vent.trigger('main:search',obj);
-			
+
 		},
 		getIncludeExcludeColValues : function(){
 			return _.extend(this.RVisualSearchIncCol.currentView.formatData(this.RVisualSearchIncCol.currentView.visualSearch.searchBox.value(),this.RVisualSearchIncCol.currentView.visualSearch.searchQuery),
@@ -483,6 +483,6 @@ define(['require',
 			}
 		}
 	});
-	
-	
+
+
 });

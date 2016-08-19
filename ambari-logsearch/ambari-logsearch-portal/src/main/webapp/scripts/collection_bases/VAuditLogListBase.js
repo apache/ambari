@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,18 +17,18 @@
  * under the License.
  */
 
- 
+
 define(['require',
 	'collections/BaseCollection',
 	'utils/Globals',
 	'models/VAuditLog'
 ],function(require,BaseCollection,Globals,VAuditLog){
-	'use strict';	
+	'use strict';
 
 	var VAuditLogListBase = BaseCollection.extend(
 	/** @lends VAuditLogListBase.prototype */
 	{
-		url: Globals.baseURL + 'audit/getAuditLogs',
+		url: Globals.baseURL + 'audit/logs',
 
 		model : VAuditLog,
 
@@ -49,8 +49,8 @@ define(['require',
 		 *************************/
 
 		getAuditSchemaFieldsName : function(token, options){
-			var url = Globals.baseURL  + 'audit/getAuditSchemaFieldsName';
-			
+			var url = Globals.baseURL  + 'audit/logs/schema/fields';
+
 			options = _.extend({
 				data : $.param(token),
 				contentType : 'application/json',
@@ -71,5 +71,3 @@ define(['require',
 
     return VAuditLogListBase;
 });
-
-

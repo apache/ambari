@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
@@ -39,17 +40,17 @@ import org.springframework.stereotype.Component;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.*;
 import static org.apache.ambari.logsearch.doc.DocConstants.AuditOperationDescriptions.*;
 
-@Api(value = "audit", description = "Audit operations")
-@Path("audit")
+@Api(value = "audit/logs", description = "Audit log operations")
+@Path("audit/logs")
 @Component
 @Scope("request")
-public class AuditREST {
+public class AuditLogsREST {
 
   @Autowired
   AuditMgr auditMgr;
 
   @GET
-  @Path("/getAuditSchemaFieldsName")
+  @Path("/schema/fields")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_SCHEMA_FIELD_LIST_OD)
   public String getSolrFieldList(@Context HttpServletRequest request) {
@@ -57,7 +58,6 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getAuditLogs")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_LOGS_OD)
   @ApiImplicitParams(value = {
@@ -82,7 +82,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getAuditComponents")
+  @Path("/components")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_COMPONENTS_OD)
   @ApiImplicitParams(value = {
@@ -96,7 +96,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getAuditLineGraphData")
+  @Path("/linegraph")
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_LINE_GRAPH_DATA_OD)
   @ApiImplicitParams(value = {
@@ -121,7 +121,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getTopAuditUsers")
+  @Path("/users")
   @Produces({"application/json"})
   @ApiOperation(GET_TOP_AUDIT_USERS_OD)
   @ApiImplicitParams(value = {
@@ -146,7 +146,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getTopAuditResources")
+  @Path("/resources")
   @Produces({"application/json"})
   @ApiOperation(GET_TOP_AUDIT_RESOURCES_OD)
   @ApiImplicitParams(value = {
@@ -170,38 +170,10 @@ public class AuditREST {
     //return auditMgr.getTopAuditFieldCount(searchCriteria);
     return auditMgr.topTenResources(searchCriteria);
 
-
   }
 
   @GET
-  @Path("/getTopAuditComponents")
-  @Produces({"application/json"})
-  @ApiOperation(GET_TOP_AUDIT_COMPONENTS_OD)
-  @ApiImplicitParams(value = {
-    @ApiImplicitParam(value = QUERY_D, name = "q", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = COLUMN_QUERY_D, name = "columnQuery", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = I_MESSAGE_D, name = "iMessage", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = G_E_MESSAGE_D, name = "gEMessage", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = E_MESSAGE_D, name = "eMessage", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = MUST_BE_D, name = "mustBe", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = MUST_NOT_D, name = "mustNot", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = EXCLUDE_QUERY_D, name = "excludeQuery", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = INCLUDE_QUERY_D, name = "includeQuery", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = FROM_D, name = "from", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = TO_D, name = "to", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = FIELD_D, name = "field", dataType = "string", paramType = "query"),
-    @ApiImplicitParam(value = UNIT_D, name = "unit", dataType = "string", paramType = "query")
-  })
-  public String getTopAuditComponents(@Context HttpServletRequest request) {
-    SearchCriteria searchCriteria = new SearchCriteria(request);
-    searchCriteria.addRequiredAuditLogsParams(request);
-    searchCriteria.addParam("field", request.getParameter("field"));
-    searchCriteria.addParam("unit", request.getParameter("unit"));
-    return auditMgr.getTopAuditFieldCount(searchCriteria);
-  }
-
-  @GET
-  @Path("/getLiveLogsCount")
+  @Path("/live/count")
   @Produces({"application/json"})
   @ApiOperation(GET_LIVE_LOGS_COUNT_OD)
   public String getLiveLogsCount() {
@@ -209,7 +181,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getRequestUserLineGraph")
+  @Path("/request/user/linegraph")
   @Produces({"application/json"})
   @ApiOperation(GET_REQUEST_USER_LINE_GRAPH_OD)
   @ApiImplicitParams(value = {
@@ -236,7 +208,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getAnyGraphData")
+  @Path("/anygraph")
   @Produces({"application/json"})
   @ApiOperation(GET_ANY_GRAPH_DATA_OD)
   @ApiImplicitParams(value = {
@@ -259,7 +231,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/exportUserTableToTextFile")
+  @Path("/users/export")
   @Produces({"application/json"})
   @ApiOperation(EXPORT_USER_TALBE_TO_TEXT_FILE_OD)
   @ApiImplicitParams(value = {
@@ -286,7 +258,7 @@ public class AuditREST {
   }
 
   @GET
-  @Path("/getServiceLoad")
+  @Path("/serviceload")
   @Produces({"application/json"})
   @ApiOperation(GET_SERVICE_LOAD_OD)
   @ApiImplicitParams(value = {
@@ -309,4 +281,3 @@ public class AuditREST {
   }
 
 }
- 

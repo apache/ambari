@@ -80,7 +80,7 @@ define(['require',
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'vent','globalVent','params'));
 //			this.collection = new VLogLevel();
-//			this.collection.url = Globals.baseURL+"dashboard/components_count";
+//			this.collection.url = Globals.baseURL+"service/logs/components/count";
 			this.treeModel = new VCommonModel();
 			this.searchParams = (this.params)? this.params :{};
 			this.bindEvents();

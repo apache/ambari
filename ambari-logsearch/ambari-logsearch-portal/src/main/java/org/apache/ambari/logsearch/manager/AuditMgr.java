@@ -258,7 +258,7 @@ public class AuditMgr extends MgrBase {
   public String getLiveLogCounts() {
     VNameValueList nameValueList = new VNameValueList();
     SolrQuery solrQuery = new SolrQuery();
-    solrQuery.setParam("event", "/getLiveLogsCount");
+    solrQuery.setParam("event", "/audit/logs/live/count");
     try {
       String startDate = dateUtil
         .convertGivenDateFormatToSolrDateFormat(ManageStartEndTime.startDate);

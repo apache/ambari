@@ -27,7 +27,7 @@ define(['require',
 	'd3.tip'
 ],function(require,Backbone,Utils,ViewUtils,Globals,MainLayoutViewTmpl){
     'use strict';
-	
+
 	var MainLayoutView = Backbone.Marionette.Layout.extend(
 	/** @lends MainLayoutView */
 	{
@@ -93,7 +93,7 @@ define(['require',
 //                    pageSize: 50
 //                }
 //            });
-//			this.collection.url = Globals.baseURL + "dashboard/solr/logs_search";
+//			this.collection.url = Globals.baseURL + "service/logs";
 			this.vent = new Backbone.Wreqr.EventAggregator();
 			this.dateUtil = Utils.dateUtil;
 			this.bindEvents();
@@ -107,7 +107,7 @@ define(['require',
             	setTimeout(function(){
             		that.reAdjustTab()
             	},1000);
-            	
+
             },this);
             this.listenTo(this.globalVent,"render:comparison:tab",function(options){
 				this.hideContextMenu();
@@ -211,7 +211,7 @@ define(['require',
 				$("html, body").animate({ scrollTop: 0 }, 500);
 				that.showTab(tabName);
 			});
-		
+
 		},
 		showTab : function(tabId){
 			this.$(".nav.nav-tabs li").removeClass("active");
@@ -242,7 +242,7 @@ define(['require',
 					globalVent:that.globalVent
 				}));
 			})
-			
+
 		},
 		renderComponents : function(){
 			var that = this;
@@ -274,7 +274,7 @@ define(['require',
 		renderTroubleShootTab:function(){
 			var that = this;
 			require(['views/troubleshoot/TroubleShootLayoutView'], function(TroubleShootLayoutView){
-				
+
 				that.RTroubleShoot.show(new TroubleShootLayoutView({
 					globalVent:that.globalVent
 				}));
@@ -345,7 +345,7 @@ define(['require',
 		var pack = d3.layout.pack()
 		    .padding(2)
 		    .size([diameter - margin, diameter - margin])
-		    .value(function(d) { 
+		    .value(function(d) {
 		    	return d.count; })
 		    .children(function(d){
 		    	return d.dataList;
@@ -381,9 +381,9 @@ define(['require',
 		  var circle = svg.selectAll("circle")
 		      .data(nodes)
 		    .enter().append("circle")
-		      .attr("class", function(d) { 
+		      .attr("class", function(d) {
 		    	  return d.parent ? d.children ? "node" : "node node--leaf "+d.name : "node node--root"; })
-		      .style("fill", function(d) { 
+		      .style("fill", function(d) {
 		    	  return d.children ? color(d.depth) : null; })
 		      .on("click", function(d) {
 		    	  if(d3.event.shiftKey){
@@ -391,7 +391,7 @@ define(['require',
 		    	  }else{
 		    		  if (focus !== d) zoom(d), d3.event.stopPropagation();
 		    	  }
-		    		   
+
 		      })
 		      .on('mouseover', function (d,i) {
                     if (d.x) {
@@ -403,7 +403,7 @@ define(['require',
                         tipCirclePack.hide(d);
                     }
                 });
-		  
+
 		  var text = svg.selectAll("text")
 		      .data(nodes)
 		    .enter().append("text")
@@ -418,7 +418,7 @@ define(['require',
 		    			  return "";
 		    	  }else
 		    		  return d.name;
-		    	   
+
 		      });
 
 		  var node = svg.selectAll("circle,text");
@@ -472,7 +472,7 @@ define(['require',
 			    		el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
 			    		this.quickMenuCompare = false;
 			    		this.onCompareLink(el);
-			    	}        
+			    	}
 			    }else{
 			    	el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
 			    }
@@ -643,7 +643,7 @@ define(['require',
 			  else {
 			    that.$('.scroller-right').hide();
 			  }
-			  
+
 			  if (getLeftPosi()<0) {
 			    that.$('.scroller-left').show();
 			  }
@@ -655,7 +655,7 @@ define(['require',
 
 
 			this.$('.scroller-right').click(function(e) {
-			  
+
 			 /* that.$('.scroller-left').fadeIn('slow');
 			  that.$('.scroller-right').fadeOut('slow');*/
 			  //console.log(widthOfHidden())
@@ -664,23 +664,23 @@ define(['require',
 			  		that.reAdjustTab();
 			 	 });
 			  }
-			 
+
 			});
 
 			this.$('.scroller-left').click(function() {
-			  
+
 				/*that.$('.scroller-right').fadeIn('slow');
 				that.$('.scroller-left').fadeOut('slow');*/
 			  	//console.log(getLeftPosi())
 			  	if(getLeftPosi() < 0){
 			  		that.$('.list').animate({left:"-="+(-40)+"px"},0,function(){
 			  		that.reAdjustTab();
-			  	});	
+			  	});
 			  	}
-			  	
-			});    
+
+			});
 		},
 	});
 	return MainLayoutView;
-	
+
 });
