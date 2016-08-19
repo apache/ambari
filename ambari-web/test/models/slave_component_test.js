@@ -17,28 +17,43 @@
  */
 
 var App = require('app');
+require('models/slave_component');
 
-/**
- * This model loads the rootService (Ambari)
- * The model maps to the  http://localhost:8080/api/v1/services/AMBARI?fields=components/RootServiceComponents
- * @type {*}
- */
-App.RootService = DS.Model.extend({
-  serviceName: DS.attr('string'),
-  displayName: Em.computed.formatRole('serviceName', true),
-  components: DS.hasMany('App.RootServiceComponents')
+describe('App.SlaveComponent', function () {
+
+  var slaveComponent;
+
+  beforeEach(function () {
+    slaveComponent = App.SlaveComponent.createRecord();
+  });
+
+  describe('#displayNamePluralized', function () {
+
+    var cases = [
+      {
+        startedCount: 1,
+        displayNamePluralized: 'DataNode',
+        title: 'singular'
+      },
+      {
+        startedCount: 2,
+        displayNamePluralized: 'DataNodes',
+        title: 'plural'
+      }
+    ];
+
+    cases.forEach(function (item) {
+
+      it(item.title, function () {
+        slaveComponent.setProperties({
+          displayName: 'DataNode',
+          startedCount: item.startedCount
+        });
+        expect(slaveComponent.get('displayNamePluralized')).to.equal(item.displayNamePluralized);
+      });
+
+    });
+
+  });
+
 });
-
-App.RootService.FIXTURES = [];
-
-App.RootServiceComponents = DS.Model.extend({
-  componentName: DS.attr('string'),
-  displayName: Em.computed.formatRole('componentName', false),
-  componentVersion: DS.attr('string'),
-  serverClock: DS.attr('number'),
-  serviceName: DS.attr('string'),
-  properties: DS.attr('object')
-});
-
-App.RootServiceComponents.FIXTURES = [];
-
