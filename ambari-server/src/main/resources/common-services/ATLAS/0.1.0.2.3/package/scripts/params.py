@@ -70,6 +70,7 @@ def configs_for_ha(atlas_hosts, metadata_port, is_atlas_ha_enabled):
 
 # server configurations
 config = Script.get_config()
+exec_tmp_dir = Script.get_tmp_dir()
 stack_root = Script.get_stack_root()
 
 # Needed since this is an Atlas Hook service.
@@ -224,6 +225,19 @@ enable_ranger_atlas = False
 
 atlas_server_xmx = default("configurations/atlas-env/atlas_server_xmx", 2048)
 atlas_server_max_new_size = default("configurations/atlas-env/atlas_server_max_new_size", 614)
+
+hbase_master_hosts = default('/clusterHostInfo/hbase_master_hosts', [])
+has_hbase_master = not len(hbase_master_hosts) == 0
+
+ranger_admin_hosts = default('/clusterHostInfo/ranger_admin_hosts', [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
+
+atlas_hbase_setup = format("{exec_tmp_dir}/atlas_hbase_setup.rb")
+atlas_graph_storage_hbase_table = default('/configurations/application-properties/atlas.graph.storage.hbase.table', None)
+atlas_audit_hbase_tablename = default('/configurations/application-properties/atlas.audit.hbase.tablename', None)
+
+hbase_user_keytab = default('/configurations/hbase-env/hbase_user_keytab', None)
+hbase_principal_name = default('/configurations/hbase-env/hbase_principal_name', None)
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory

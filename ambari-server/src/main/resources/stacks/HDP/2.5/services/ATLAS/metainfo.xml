@@ -22,6 +22,42 @@
       <name>ATLAS</name>
       <version>0.7.0.2.5</version>
       <extends>common-services/ATLAS/0.7.0.2.5</extends>
+      <components>
+        <component>
+          <name>ATLAS_SERVER</name>
+          <displayName>Atlas Metadata Server</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <dependencies>
+            <dependency>
+              <name>HBASE/HBASE_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/metadata_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <logs>
+            <log>
+              <logId>atlas_app</logId>
+              <primary>true</primary>
+            </log>
+          </logs>
+        </component>
+      </components>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,amazon2015,redhat6,suse11,suse12</osFamily>
