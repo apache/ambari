@@ -99,3 +99,4 @@ class StackFeature:
   RANGER_ADMIN_PASSWD_CHANGE = "ranger_admin_password_change"
   STORM_METRICS_APACHE_CLASSES = "storm_metrics_apache_classes"
   SPARK_JAVA_OPTS_SUPPORT = "spark_java_opts_support"
+  ATLAS_HBASE_SETUP="atlas_hbase_setup"
