@@ -38,7 +38,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
 
     if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       ha = '_ha';
-      var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(sourceHost);
+      var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(sourceHost).without(targetHost);
     }
 
     if (this.get('controller.content.reassign.component_name') === 'APP_TIMELINE_SERVER') {

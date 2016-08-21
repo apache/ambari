@@ -968,9 +968,16 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     this.updateComponent('ZOOKEEPER_SERVER', components.mapProperty('hostName'), "ZOOKEEPER", "Start");
   },
 
+  /**
+   * Start the namenode that is not being moved (applicable only in NameNode HA environment)
+   * @private {startNameNode}
+   */
   startNameNode: function () {
     var components = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE');
-    this.updateComponent('NAMENODE', components.mapProperty('hostName').without(this.get('content.reassignHosts.source')), "HDFS", "Start");
+    var sourceHost =  this.get('content.reassignHosts.source');
+    var targetHost =  this.get('content.reassignHosts.target');
+    var hostname = components.mapProperty('hostName').without(sourceHost).without(targetHost);
+    this.updateComponent('NAMENODE', hostname, "HDFS", "Start");
   },
 
   /**
