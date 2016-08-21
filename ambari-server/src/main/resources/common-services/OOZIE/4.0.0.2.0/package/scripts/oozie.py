@@ -383,7 +383,8 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   Logger.info("Found %d files/directories inside Atlas Hive hook directory %s"% (num_files, atlas_hive_hook_dir))
 
   # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
-  command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
+  # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
+  command = format(r'source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -shareliblist hive | grep "\[Available ShareLib\]" -A 5')
 
   try:
     code, out = call(command, user=params.oozie_user, tries=10, try_sleep=5, logoutput=True)
@@ -424,8 +425,8 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
       params.HdfsResource(None, action="execute")
 
       # Update the sharelib after making any changes
-      # Since calling oozie-env.sh, don't have to specify -oozie http(s):localhost:{oozie_server_admin_port}/oozie
-      command = format("source {conf_dir}/oozie-env.sh ; oozie admin -sharelibupdate")
+      # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
+      command = format("source {conf_dir}/oozie-env.sh ; oozie admin -oozie {oozie_base_url} -sharelibupdate")
       code, out = call(command, user=params.oozie_user, tries=5, try_sleep=5, logoutput=True)
       if code == 0 and out is not None:
         Logger.info("Successfully updated the Oozie ShareLib")
