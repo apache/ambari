@@ -932,17 +932,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#startNameNode()', function () {
     beforeEach(function () {
       sinon.stub(controller, 'updateComponent', Em.K);
-      controller.set('content.masterComponentHosts', [{
-        component: 'NAMENODE',
-        hostName: 'host1'
-      }]);
+      controller.set('content.masterComponentHosts', [
+        {
+          component: 'NAMENODE',
+          hostName: 'host1'
+        },
+        {
+          component: 'NAMENODE',
+          hostName: 'host2'
+        }
+      ]);
     });
     afterEach(function () {
       controller.updateComponent.restore();
     });
 
     it('reassign host does not match current', function () {
-      controller.set('content.reassignHosts.source', 'host2');
+      controller.set('content.reassignHosts.source', 'host3');
+      controller.set('content.reassignHosts.target', 'host2');
       controller.startNameNode();
       expect(controller.updateComponent.getCall(0).args[0]).to.be.equal('NAMENODE');
       expect(controller.updateComponent.getCall(0).args[1][0]).to.be.equal('host1');
@@ -951,9 +958,9 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
 
     it('reassign host matches current', function () {
-      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassignHosts.target', 'host2');
       controller.startNameNode();
-      expect(controller.updateComponent.calledWith('NAMENODE', [], 'HDFS', 'Start')).to.be.true;
+      expect(controller.updateComponent.calledWith('NAMENODE', ['host1'], 'HDFS', 'Start')).to.be.true;
     });
   });
 
