@@ -158,7 +158,7 @@ def oozie_service(action = 'start', upgrade_type=None):
       raise
 
   elif action == 'stop':
-    stop_cmd  = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozied.sh stop 60 force")
+    stop_cmd  = format("cd {oozie_tmp_dir} && {oozie_home}/bin/oozied.sh stop 60 -force")
 
     try:
       # stop oozie
