@@ -21,6 +21,7 @@ package org.apache.ambari.view.utils.hdfs;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.NoClusterAssociatedException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.azure.NativeAzureFileSystem;
@@ -224,7 +225,9 @@ public class ConfigurationBuilder {
 
   private String copyClusterProperty(String propertyName, String instancePropertyName) {
     String value = getProperty(HDFS_SITE, propertyName, instancePropertyName);
-    conf.set(propertyName, value);
+    if (!StringUtils.isEmpty(value)) {
+      conf.set(propertyName, value);
+    }
     LOG.debug("set " + propertyName + " = " + value);
     return value;
   }
