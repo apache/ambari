@@ -36,16 +36,15 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.*;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class HiveHistoryQueryMigrationImplementation {
 
@@ -131,27 +130,78 @@ public class HiveHistoryQueryMigrationImplementation {
   }
 
 
-  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+  public void insertRowinAmbaridb(String dirname, int maxcount, long epochtime, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase, String versionName, String username) throws SQLException, IOException {
 
     String maxcount1 = Integer.toString(maxcount);
     String epochtime1 = Long.toString(epochtime);
     PreparedStatement prSt = null;
     String revsql = null;
-
-    prSt = ambaridatabase.insertToHiveHistory(c, id, maxcount1, epochtime, dirname);
-
+    if (versionName.contains("1.5")) {
+      prSt = ambaridatabase.insertToHiveHistoryForHiveNext(c, id, maxcount1, epochtime, dirname, username);
+    }
+    if (versionName.contains("1.0")) {
+      prSt = ambaridatabase.insertToHiveHistoryForHive(c, id, maxcount1, epochtime, dirname, username);
+    }
     logger.info("The actual insert statement is " + prSt);
-
     prSt.executeUpdate();
-
-    revsql = ambaridatabase.RevertSql(id, maxcount1);
-
+    revsql = ambaridatabase.revertSql(id, maxcount1);
     logger.info("adding revert sql hive history");
-
     wrtitetoalternatesqlfile(dirname, revsql, instance, i);
+  }
 
+  public void updateSequenceno(Connection c, int seqNo, int id, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+
+    PreparedStatement prSt;
+    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, id);
+    logger.info("The actual insert statement is " + prSt);
+    prSt.executeUpdate();
+    logger.info("adding revert sql hive history");
+  }
+
+  public String getAllHiveVersionInstance(Connection c, QuerySetAmbariDB ambaridatabase, String viewName) throws PropertyVetoException, SQLException, IOException {
+
+
+    PreparedStatement prSt;
+    ResultSet rs1 = null;
+    String instanceVersion = null;
+    int i = 0;
+    prSt = ambaridatabase.getHiveVersionInstance(c, viewName);
+    rs1 = prSt.executeQuery();
+
+    while (rs1.next()) {
+
+      instanceVersion = rs1.getString(1);
+
+    }
+    rs1.close();
+    prSt.close();
+    return instanceVersion;
 
   }
+
+  public int fetchSequenceno(Connection c, int id, QuerySetAmbariDB ambaridatabase) throws SQLException {
+
+    String ds_id = new String();
+    Statement stmt = null;
+    PreparedStatement prSt = null;
+    int sequencevalue = 0;
+
+
+    ResultSet rs = null;
+
+
+    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, id);
+
+    logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
+
+    rs = prSt.executeQuery();
+
+    while (rs.next()) {
+      sequencevalue = rs.getInt("sequence_value");
+    }
+    return sequencevalue;
+  }
+
 
   public int fetchInstanceTablename(Connection c, String instance, QuerySetAmbariDB ambaridatabase) throws SQLException {
 
@@ -177,7 +227,7 @@ public class HiveHistoryQueryMigrationImplementation {
   }
 
   public long getEpochTime() throws ParseException {
-    long seconds = System.currentTimeMillis() / 1000l;
+    long seconds = System.currentTimeMillis();
     return seconds;
 
   }
@@ -364,7 +414,7 @@ public class HiveHistoryQueryMigrationImplementation {
 
   }
 
-  public void createDir(final String dir, final String namenodeuri) throws IOException,
+  public void createDir(final String dir, final String namenodeuri, final String username) throws IOException,
     URISyntaxException {
 
     try {
@@ -387,8 +437,10 @@ public class HiveHistoryQueryMigrationImplementation {
         public Boolean run() throws Exception {
 
           FileSystem fs = FileSystem.get(conf);
+
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
           return b;
         }
       });
@@ -397,7 +449,7 @@ public class HiveHistoryQueryMigrationImplementation {
     }
   }
 
-  public void createDirKerberorisedSecured(final String dir, final String namenodeuri) throws IOException,
+  public void createDirKerberorisedSecured(final String dir, final String namenodeuri, final String username,final String principalName) throws IOException,
     URISyntaxException {
 
     try {
@@ -410,16 +462,18 @@ public class HiveHistoryQueryMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
       ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
         public Boolean run() throws Exception {
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
           Boolean b = fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
           return b;
         }
       });
@@ -429,7 +483,7 @@ public class HiveHistoryQueryMigrationImplementation {
   }
 
 
-  public void putFileinHdfs(final String source, final String dest, final String namenodeuri)
+  public void putFileinHdfs(final String source, final String dest, final String namenodeuri,final String username)
     throws IOException {
 
     try {
@@ -476,6 +530,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
           return null;
         }
@@ -486,7 +541,7 @@ public class HiveHistoryQueryMigrationImplementation {
 
   }
 
-  public void putFileinHdfsKerborizedSecured(final String source, final String dest, final String namenodeuri)
+  public void putFileinHdfsKerborizedSecured(final String source, final String dest, final String namenodeuri,final String username,final String principalName)
     throws IOException {
 
     try {
@@ -500,11 +555,11 @@ public class HiveHistoryQueryMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
-
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
       ugi.doAs(new PrivilegedExceptionAction<Void>() {
 
         public Void run() throws Exception {
@@ -537,6 +592,7 @@ public class HiveHistoryQueryMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
           return null;
         }

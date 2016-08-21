@@ -34,6 +34,20 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
+  public PreparedStatement updateSequenceNoInAmbariSequence(Connection connection, int seqNo, int id) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlUpdateSequenceNo(id));
+
+    prSt.setInt(1, seqNo);
+
+    return prSt;
+  }
+
+  public PreparedStatement getSequenceNoFromAmbariSequence(Connection connection,int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(getSqlSequenceNoFromAmbariSequence(id));
+    return prSt;
+  }
+
   public PreparedStatement getTableIdFromInstanceNameHistoryquery(Connection connection, String instance) throws SQLException {
 
     PreparedStatement prSt = connection.prepareStatement(getTableIdSqlFromInstanceNameHistoryQuery());
@@ -70,7 +84,7 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
-  public PreparedStatement insertToHiveSavedQuery(Connection connection, int id, String maxcount, String database, String dirname, String query, String name) throws SQLException {
+  public PreparedStatement insertToHiveSavedQuery(Connection connection, int id, String maxcount, String database, String dirname, String query, String name,String username) throws SQLException {
 
     String Logfile = dirname + "logs";
     String queryHqlFile = dirname + "query.hql";
@@ -79,9 +93,10 @@ public abstract class QuerySetAmbariDB {
 
     prSt.setString(1, maxcount);
     prSt.setString(2, database);
-    prSt.setString(3, queryHqlFile);
-    prSt.setString(4, query);
-    prSt.setString(5, name);
+    prSt.setString(3, username);
+    prSt.setString(4, queryHqlFile);
+    prSt.setString(5, query);
+    prSt.setString(6, name);
 
     return prSt;
   }
@@ -101,7 +116,7 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getTableIdSqlFromInstanceNameSavedQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.savedQueries.SavedQuery' and view_instance_name=?;";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.savedQueries.SavedQuery' and view_instance_name=?;";
   }
 
   protected String getSqlMaxDSidFromTableIdHistoryQuery(int id) {
@@ -109,7 +124,7 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getTableIdSqlFromInstanceNameHistoryQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
   }
 
   protected String getSqlInsertHiveHistory(int id) {
@@ -117,7 +132,7 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getSqlInsertSavedQuery(int id) {
-    return "INSERT INTO ds_savedquery_" + id + " values (?,?,'" + "admin" + "',?,?,?);";
+    return "INSERT INTO ds_savedquery_" + id + " values (?,?,?,?,?,?);";
   }
 
   protected String getRevSqlSavedQuery(int id, String maxcount) {
@@ -126,6 +141,14 @@ public abstract class QuerySetAmbariDB {
 
   protected String getRevSqlHistoryQuery(int id, String maxcount) {
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "';";
+  }
+
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_savedquery_"+id+"_id_seq';";
+  }
+
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_savedquery_"+id+"_id_seq';";
   }
 
 }

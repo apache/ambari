@@ -33,11 +33,19 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getSqlinsertToPigScript(int id) {
-    return  "INSERT INTO DS_PIGSCRIPT_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00',0,'admin',?,'','',?);";
+    return  "INSERT INTO DS_PIGSCRIPT_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00',0,?,?,'','',?);";
   }
   @Override
   protected String getRevSql(int id,String maxcount){
     return "delete from  DS_PIGSCRIPT_" + id + " where ds_id='" + maxcount + "';";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_pigscript_"+id+"_id_seq';";
+  }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_pigscript_"+id+"_id_seq';";
   }
 
 }

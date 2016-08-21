@@ -41,7 +41,7 @@ import org.apache.ambari.view.huetoambarimigration.datasource.DataSourceHueDatab
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset.*;
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.jobqueryset.*;
 
-public class PigJobMigrationUtility  {
+public class PigJobMigrationUtility {
 
   protected MigrationResourceManager resourceManager = null;
 
@@ -70,40 +70,28 @@ public class PigJobMigrationUtility  {
 
     PigJobMigrationImplementation pigjobimpl = new PigJobMigrationImplementation();// creating the implementation object
 
-    QuerySet huedatabase=null;
+    QuerySet huedatabase = null;
 
-    if(view.getProperties().get("huedrivername").contains("mysql"))
-    {
-      huedatabase=new MysqlQuerySet();
-    }
-    else if(view.getProperties().get("huedrivername").contains("postgresql"))
-    {
-      huedatabase=new PostgressQuerySet();
-    }
-    else if(view.getProperties().get("huedrivername").contains("sqlite"))
-    {
-      huedatabase=new SqliteQuerySet();
-    }
-    else if (view.getProperties().get("huedrivername").contains("oracle"))
-    {
-      huedatabase=new OracleQuerySet();
+    if (view.getProperties().get("huedrivername").contains("mysql")) {
+      huedatabase = new MysqlQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("postgresql")) {
+      huedatabase = new PostgressQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("sqlite")) {
+      huedatabase = new SqliteQuerySet();
+    } else if (view.getProperties().get("huedrivername").contains("oracle")) {
+      huedatabase = new OracleQuerySet();
     }
 
-    QuerySetAmbariDB ambaridatabase=null;
+    QuerySetAmbariDB ambaridatabase = null;
 
-    if(view.getProperties().get("ambaridrivername").contains("mysql"))
-    {
-      ambaridatabase=new MysqlQuerySetAmbariDB();
+    if (view.getProperties().get("ambaridrivername").contains("mysql")) {
+      ambaridatabase = new MysqlQuerySetAmbariDB();
+    } else if (view.getProperties().get("ambaridrivername").contains("postgresql")) {
+      ambaridatabase = new PostgressQuerySetAmbariDB();
+    } else if (view.getProperties().get("ambaridrivername").contains("oracle")) {
+      ambaridatabase = new OracleQuerySetAmbariDB();
     }
-    else if(view.getProperties().get("ambaridrivername").contains("postgresql"))
-    {
-      ambaridatabase=new PostgressQuerySetAmbariDB();
-    }
-    else if (view.getProperties().get("ambaridrivername").contains("oracle"))
-    {
-      ambaridatabase= new OracleQuerySetAmbariDB();
-    }
-    int maxCountforPigScript = 0,i=0;
+    int maxCountforPigScript = 0, i = 0;
 
     String time = null, timeIndorder = null;
     Long epochtime = null;
@@ -114,11 +102,10 @@ public class PigJobMigrationUtility  {
 
       connectionHuedb = DataSourceHueDatabase.getInstance(view.getProperties().get("huedrivername"), view.getProperties().get("huejdbcurl"), view.getProperties().get("huedbusername"), view.getProperties().get("huedbpassword")).getConnection();//connecting to hue database
 
-      pigJobDbPojo = pigjobimpl.fetchFromHueDB(username, startDate, endDate, connectionHuedb,huedatabase);// fetching the PigJobs details from hue
+      pigJobDbPojo = pigjobimpl.fetchFromHueDB(username, startDate, endDate, connectionHuedb, huedatabase);// fetching the PigJobs details from hue
 
-      for(int j=0;j<pigJobDbPojo.size();j++)
-      {
-        logger.info("the query fetched from hue="+pigJobDbPojo.get(i).getScript());
+      for (int j = 0; j < pigJobDbPojo.size(); j++) {
+        logger.info("the query fetched from hue=" + pigJobDbPojo.get(i).getScript());
 
       }
 
@@ -137,54 +124,52 @@ public class PigJobMigrationUtility  {
         connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();
         connectionAmbaridb.setAutoCommit(false);
 
+        int fetchPigTablenameInstance = pigjobimpl.fetchInstanceTablename(connectionAmbaridb, instance, ambaridatabase);
+        int sequence = pigjobimpl.fetchSequenceno(connectionAmbaridb, fetchPigTablenameInstance, ambaridatabase);
+
         for (i = 0; i < pigJobDbPojo.size(); i++) {
 
           float calc = ((float) (i + 1)) / pigJobDbPojo.size() * 100;
           int progressPercentage = Math.round(calc);
           migrationresult.setIsNoQuerySelected("no");
           migrationresult.setProgressPercentage(progressPercentage);
-          migrationresult.setNumberOfQueryTransfered(i+1);
+          migrationresult.setNumberOfQueryTransfered(i + 1);
           migrationresult.setTotalNoQuery(pigJobDbPojo.size());
           getResourceManager(view).update(migrationresult, jobid);
-
-
-
 
           logger.info("Loop No." + (i + 1));
           logger.info("________________");
           logger.info("the title of script " + pigJobDbPojo.get(i).getTitle());
 
-          int fetchPigTablenameInstance = pigjobimpl.fetchInstanceTablename(connectionAmbaridb, instance,ambaridatabase);
-
-          maxCountforPigScript = (pigjobimpl.fetchMaxIdforPigJob(connectionAmbaridb, fetchPigTablenameInstance,ambaridatabase) + 1);
+          maxCountforPigScript = i + sequence + 1;
 
           time = pigjobimpl.getTime();
           timeIndorder = pigjobimpl.getTimeInorder();
           epochtime = pigjobimpl.getEpochTime();
 
-          pigJobDirName = "/user/admin/pig/jobs/" + pigJobDbPojo.get(i).getTitle() + "_" + time + "/";
+          pigJobDirName = "/user/"+username+"/pig/jobs/" + pigJobDbPojo.get(i).getTitle() + "_" + time + "/";
 
-          pigjobimpl.insertRowPigJob(pigJobDirName, maxCountforPigScript, time, timeIndorder, epochtime, pigJobDbPojo.get(i).getTitle(), connectionAmbaridb, fetchPigTablenameInstance, pigJobDbPojo.get(i).getStatus(), instance, i,ambaridatabase);
+          pigjobimpl.insertRowPigJob(pigJobDirName, maxCountforPigScript, time, timeIndorder, epochtime, pigJobDbPojo.get(i).getTitle(), connectionAmbaridb, fetchPigTablenameInstance, pigJobDbPojo.get(i).getStatus(), instance, i, ambaridatabase, username);
 
           if (view.getProperties().get("KerberoseEnabled").equals("y")) {
-
-            pigjobimpl.createDirPigJobSecured(pigJobDirName, view.getProperties().get("namenode_URI_Ambari"));
-            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/script.pig", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
-            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/stderr", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
-            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/stdout", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
+            pigjobimpl.createDirPigJobSecured(pigJobDirName, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));
+            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/script.pig", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username,view.getProperties().get("PrincipalUserName"));
+            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/stderr", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username,view.getProperties().get("PrincipalUserName"));
+            pigjobimpl.copyFileBetweenHdfsSecured(pigJobDbPojo.get(i).getDir() + "/stdout", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username,view.getProperties().get("PrincipalUserName"));
 
           } else {
 
-            pigjobimpl.createDirPigJob(pigJobDirName, view.getProperties().get("namenode_URI_Ambari"));
-            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/script.pig", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
-            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/stderr", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
-            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/stdout", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"));
+            pigjobimpl.createDirPigJob(pigJobDirName, view.getProperties().get("namenode_URI_Ambari"),username);
+            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/script.pig", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username);
+            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/stderr", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username);
+            pigjobimpl.copyFileBetweenHdfs(pigJobDbPojo.get(i).getDir() + "/stdout", pigJobDirName, view.getProperties().get("namenode_URI_Ambari"), view.getProperties().get("namenode_URI_Hue"),username);
 
           }
 
           logger.info(pigJobDbPojo.get(i).getTitle() + "has been migrated to Ambari");
 
         }
+        pigjobimpl.updateSequenceno(connectionAmbaridb, maxCountforPigScript, fetchPigTablenameInstance, ambaridatabase);
         connectionAmbaridb.commit();
       }
 
@@ -194,16 +179,16 @@ public class PigJobMigrationUtility  {
         connectionAmbaridb.rollback();
         logger.info("roll back done");
       } catch (SQLException e1) {
-        logger.error("roll back  exception:",e1);
+        logger.error("roll back  exception:", e1);
       }
     } catch (ClassNotFoundException e2) {
-      logger.error("class not found exception:",e2);
+      logger.error("class not found exception:", e2);
     } catch (ParseException e) {
-      logger.error("ParseException: " ,e);
+      logger.error("ParseException: ", e);
     } catch (URISyntaxException e) {
-      logger.error("URISyntaxException" ,e);
+      logger.error("URISyntaxException", e);
     } catch (PropertyVetoException e) {
-      logger.error("PropertyVetoException" ,e);
+      logger.error("PropertyVetoException", e);
     } finally {
       if (null != connectionAmbaridb)
         try {
@@ -216,13 +201,6 @@ public class PigJobMigrationUtility  {
     logger.info("------------------------------");
     logger.info("pig Job Migration End");
     logger.info("------------------------------");
-
-    //session.setAttribute(ProgressBarStatus.TASK_PROGRESS_VARIABLE, 0);
-
-//    CheckProgresStatus.setProgressPercentage(0);
-//    CheckProgresStatus.setNoOfQueryCompleted(0);
-//    CheckProgresStatus.setTotalNoOfQuery(0);
-//    CheckProgresStatus.setNoOfQueryLeft(0);
 
     long stopTime = System.currentTimeMillis();
     long elapsedTime = stopTime - startTime;

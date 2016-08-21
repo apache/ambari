@@ -32,8 +32,8 @@ import java.util.GregorianCalendar;
 import java.io.*;
 import java.net.URISyntaxException;
 ;
+import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.jobqueryset.QuerySetAmbariDB;
 import org.apache.ambari.view.huetoambarimigration.datasource.queryset.huequeryset.pig.jobqueryset.QuerySet;
-import org.apache.ambari.view.huetoambarimigration.datasource.queryset.ambariqueryset.pig.jobqueryset.*;
 import org.apache.ambari.view.huetoambarimigration.resources.scripts.models.PigModel;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -141,6 +141,29 @@ public class PigJobMigrationImplementation {
 
   }
 
+  public int fetchSequenceno(Connection c, int id, QuerySetAmbariDB ambaridatabase) throws SQLException {
+
+    String ds_id = new String();
+    Statement stmt = null;
+    PreparedStatement prSt = null;
+    int sequencevalue=0;
+
+
+    ResultSet rs = null;
+
+
+    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, id);
+
+    logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
+
+    rs = prSt.executeQuery();
+
+    while (rs.next()) {
+      sequencevalue = rs.getInt("sequence_value");
+    }
+    return sequencevalue;
+  }
+
   public int fetchInstanceTablename(Connection c, String instance, QuerySetAmbariDB ambaridatabase) throws SQLException {
 
 
@@ -165,7 +188,7 @@ public class PigJobMigrationImplementation {
     return id;
   }
 
-  public void insertRowPigJob(String dirname, int maxcountforpigjob, String time, String time2, long epochtime, String title, Connection c, int id, String status, String instance, int i, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+  public void insertRowPigJob(String dirname, int maxcountforpigjob, String time, String time2, long epochtime, String title, Connection c, int id, String status, String instance, int i, QuerySetAmbariDB ambaridatabase,String username) throws SQLException, IOException {
 
     String epochtime1 = Long.toString(epochtime);
     String maxcountforpigjob1 = Integer.toString(maxcountforpigjob);
@@ -174,7 +197,7 @@ public class PigJobMigrationImplementation {
 
     PreparedStatement prSt = null;
 
-    prSt = ambaridatabase.insertToPigJob(dirname, maxcountforpigjob1, epochtime, title, c, id, status);
+    prSt = ambaridatabase.insertToPigJob(dirname, maxcountforpigjob1, epochtime, title, c, id, status,username);
 
     prSt.executeUpdate();
 
@@ -341,7 +364,23 @@ public class PigJobMigrationImplementation {
 
   }
 
-  public void createDirPigJob(final String dir, final String namenodeuri) throws IOException,
+  public void updateSequenceno(Connection c, int seqNo, int id, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+
+    PreparedStatement prSt;
+
+    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, id);
+
+    logger.info("The actual insert statement is " + prSt);
+
+    prSt.executeUpdate();
+
+
+    logger.info("adding revert sql hive history");
+
+
+
+  }
+  public void createDirPigJob(final String dir, final String namenodeuri,final String username) throws IOException,
     URISyntaxException {
 
     try {
@@ -365,6 +404,7 @@ public class PigJobMigrationImplementation {
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
           fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
           return null;
         }
       });
@@ -374,9 +414,8 @@ public class PigJobMigrationImplementation {
   }
 
   /**/
-  public void createDirPigJobSecured(final String dir, final String namenodeuri) throws IOException,
+  public void createDirPigJobSecured(final String dir, final String namenodeuri,final String username,final String principalName) throws IOException,
     URISyntaxException {
-
     try {
       final Configuration conf = new Configuration();
 
@@ -387,30 +426,28 @@ public class PigJobMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
+      ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
-      ugi.doAs(new PrivilegedExceptionAction<Void>() {
-
-        public Void run() throws Exception {
-
-
+        public Boolean run() throws Exception {
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
-          fs.mkdirs(src);
-          return null;
+          Boolean b = fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
+          return b;
         }
       });
     } catch (Exception e) {
-      logger.error("Webhdfs exception: ", e);
+      logger.error("Exception in Webhdfs", e);
     }
   }
 
   /**/
-  public void copyFileBetweenHdfs(final String source, final String dest, final String nameNodeuriAmbari, final String nameNodeuriHue)
+  public void copyFileBetweenHdfs(final String source, final String dest, final String nameNodeuriAmbari, final String nameNodeuriHue,final String username)
     throws IOException {
 
     try {
@@ -457,6 +494,7 @@ public class PigJobMigrationImplementation {
           }
           in1.close();
           out.close();
+          fileSystemAmbari.setOwner(path,username,"hadoop");
           fileSystemAmbari.close();
           return null;
         }
@@ -468,7 +506,7 @@ public class PigJobMigrationImplementation {
   }
 
   /**/
-  public void copyFileBetweenHdfsSecured(final String source, final String dest, final String nameNodeuriAmbari, final String nameNodeuriHue)
+  public void copyFileBetweenHdfsSecured(final String source, final String dest, final String nameNodeuriAmbari, final String nameNodeuriHue,final String username,final String pricipalName)
     throws IOException {
 
     try {
@@ -484,8 +522,10 @@ public class PigJobMigrationImplementation {
       confAmbari.set("hadoop.security.authentication", "Kerberos");
       confHue.set("hadoop.security.authentication", "Kerberos");
 
-      UserGroupInformation ugi = UserGroupInformation
-        .createRemoteUser("hdfs");
+      UserGroupInformation.setConfiguration(confAmbari);
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(pricipalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
 
       ugi.doAs(new PrivilegedExceptionAction<Void>() {
 
@@ -519,6 +559,7 @@ public class PigJobMigrationImplementation {
           }
           in1.close();
           out.close();
+          fileSystemAmbari.setOwner(path,username,"hadoop");
           fileSystemAmbari.close();
           return null;
         }

@@ -44,8 +44,6 @@ public class HiveSavedQueryStartJob extends Thread{
     this.view=view;
   }
 
-
-
   @Override
   public void run() {
 

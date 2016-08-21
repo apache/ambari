@@ -34,10 +34,18 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
   }
   @Override
   protected String getSqlinsertToPigJob(int id) {
-    return "INSERT INTO DS_PIGJOB_" + id + " values (?,?,0,'','f','','','admin',0,?,'',?,'','',?,?,'',?);";
+    return "INSERT INTO DS_PIGJOB_" + id + " values (?,?,0,'',0,'','',?,0,?,'',?,'','',?,?,'',?);";
   }
   @Override
   protected String getRevSql(int id, String maxcount) {
     return "delete from  DS_PIGJOB_" + id + " where ds_id='" + maxcount + "';";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_pigjob_"+id+"_id_seq';";
+  }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_pigjob_"+id+"_id_seq';";
   }
 }

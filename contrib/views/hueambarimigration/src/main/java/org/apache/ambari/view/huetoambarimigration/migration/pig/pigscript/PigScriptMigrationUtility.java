@@ -34,6 +34,7 @@ import org.apache.log4j.Logger;
 
 import java.beans.PropertyVetoException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -98,11 +99,11 @@ public class PigScriptMigrationUtility {
       ambaridatabase = new OracleQuerySetAmbariDB();
     }
 
-    int maxcountforsavequery = 0, maxcountforpigsavedscript;
+    int maxcountforsavequery = 0, maxcountforpigsavedscript = 0;
     String time = null, timetobeInorder = null;
     Long epochTime = null;
     String dirNameForPigScript, completeDirandFilePath, pigscriptFilename = "";
-    int pigInstanceTableName;
+    int pigInstanceTableName, sequence;
 
     ArrayList<PigModel> dbpojoPigSavedscript = new ArrayList<PigModel>();
 
@@ -132,9 +133,14 @@ public class PigScriptMigrationUtility {
 
         connectionAmbaridb = DataSourceAmbariDatabase.getInstance(view.getProperties().get("ambaridrivername"), view.getProperties().get("ambarijdbcurl"), view.getProperties().get("ambaridbusername"), view.getProperties().get("ambaridbpassword")).getConnection();// connecting to ambari db
         connectionAmbaridb.setAutoCommit(false);
+
         logger.info("loop will continue for " + dbpojoPigSavedscript.size() + "times");
 
         //for each pig script found in Hue Database
+
+        pigInstanceTableName = pigsavedscriptmigration.fetchInstanceTablenamePigScript(connectionAmbaridb, instance, ambaridatabase);// finding the table name in ambari from the given instance
+
+        sequence = pigsavedscriptmigration.fetchSequenceno(connectionAmbaridb, pigInstanceTableName, ambaridatabase);
 
         for (i = 0; i < dbpojoPigSavedscript.size(); i++) {
 
@@ -151,17 +157,15 @@ public class PigScriptMigrationUtility {
           logger.info("________________");
           logger.info("the title of script:  " + dbpojoPigSavedscript.get(i).getTitle());
 
-          pigInstanceTableName = pigsavedscriptmigration.fetchInstanceTablenamePigScript(connectionAmbaridb, instance, ambaridatabase);// finding the table name in ambari from the given instance
-
-          maxcountforpigsavedscript = (pigsavedscriptmigration.fetchmaxIdforPigSavedScript(connectionAmbaridb, pigInstanceTableName, ambaridatabase) + 1);// maximum count of the primary key of pig Script table
-
           time = pigsavedscriptmigration.getTime();
 
           timetobeInorder = pigsavedscriptmigration.getTimeInorder();
 
           epochTime = pigsavedscriptmigration.getEpochTime();
 
-          dirNameForPigScript = "/user/admin/pig/scripts/";
+          maxcountforpigsavedscript = i + sequence + 1;
+
+          dirNameForPigScript = "/user/"+username+"/pig/scripts/";
 
           pigscriptFilename = dbpojoPigSavedscript.get(i).getTitle() + "-" + time + ".pig";
 
@@ -169,12 +173,16 @@ public class PigScriptMigrationUtility {
 
           pigsavedscriptmigration.writetPigScripttoLocalFile(dbpojoPigSavedscript.get(i).getScript(), dbpojoPigSavedscript.get(i).getTitle(), dbpojoPigSavedscript.get(i).getDt(), ConfigurationCheckImplementation.getHomeDir(), pigscriptFilename);
 
-          pigsavedscriptmigration.insertRowForPigScript(completeDirandFilePath, maxcountforsavequery, maxcountforpigsavedscript, time, timetobeInorder, epochTime, dbpojoPigSavedscript.get(i).getTitle(), connectionAmbaridb, pigInstanceTableName, instance, i, ambaridatabase);
+          pigsavedscriptmigration.insertRowForPigScript(completeDirandFilePath, maxcountforsavequery, maxcountforpigsavedscript, time, timetobeInorder, epochTime, dbpojoPigSavedscript.get(i).getTitle(), connectionAmbaridb, pigInstanceTableName, instance, i, ambaridatabase, username);
 
           if (view.getProperties().get("KerberoseEnabled").equals("y")) {
-            pigsavedscriptmigration.putFileinHdfsSecured(ConfigurationCheckImplementation.getHomeDir() + pigscriptFilename, dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"));
+
+            pigsavedscriptmigration.createDirPigScriptSecured(dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));
+            pigsavedscriptmigration.putFileinHdfsSecured(ConfigurationCheckImplementation.getHomeDir() + pigscriptFilename, dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));
           } else {
-            pigsavedscriptmigration.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + pigscriptFilename, dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"));
+
+            pigsavedscriptmigration.createDirPigScript(dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"),username);
+            pigsavedscriptmigration.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + pigscriptFilename, dirNameForPigScript, view.getProperties().get("namenode_URI_Ambari"),username);
           }
 
           logger.info(dbpojoPigSavedscript.get(i).getTitle() + "Migrated to Ambari");
@@ -182,7 +190,9 @@ public class PigScriptMigrationUtility {
           pigsavedscriptmigration.deletePigScriptLocalFile(ConfigurationCheckImplementation.getHomeDir(), pigscriptFilename);
 
         }
+        pigsavedscriptmigration.updateSequenceno(connectionAmbaridb, maxcountforpigsavedscript, pigInstanceTableName, ambaridatabase);
         connectionAmbaridb.commit();
+
 
       }
 
@@ -201,6 +211,8 @@ public class PigScriptMigrationUtility {
       logger.error("ParseException: ", e);
     } catch (PropertyVetoException e) {
       logger.error("PropertyVetoException: ", e);
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
     } finally {
       if (null != connectionAmbaridb)
         try {

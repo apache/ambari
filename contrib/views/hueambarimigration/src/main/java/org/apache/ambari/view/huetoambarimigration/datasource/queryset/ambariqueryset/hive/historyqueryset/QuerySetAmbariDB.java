@@ -33,6 +33,20 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
+  public PreparedStatement getSequenceNoFromAmbariSequence(Connection connection,int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(getSqlSequenceNoFromAmbariSequence(id));
+    return prSt;
+  }
+
+  public PreparedStatement updateSequenceNoInAmbariSequence(Connection connection, int seqNo, int id) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlUpdateSequenceNo(id));
+
+    prSt.setInt(1, seqNo);
+
+    return prSt;
+  }
+
   public PreparedStatement getMaxDsIdFromTableId(Connection connection, int id) throws SQLException {
 
     PreparedStatement prSt = connection.prepareStatement(getSqlMaxDSidFromTableId(id));
@@ -40,23 +54,50 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
-  public PreparedStatement insertToHiveHistory(Connection connection, int id, String maxcount, long epochtime, String dirname) throws SQLException {
+  public PreparedStatement insertToHiveHistoryForHive(Connection connection, int id, String maxcount, long epochtime, String dirname,String username) throws SQLException {
 
     String Logfile=  dirname + "logs";
     String queryHqlFile= dirname + "query.hql";
 
-    PreparedStatement prSt = connection.prepareStatement(getSqlInsertHiveHistory(id));
+    PreparedStatement prSt = connection.prepareStatement(getSqlInsertHiveHistoryForHive(id));
 
     prSt.setString(1, maxcount);
     prSt.setLong(2, epochtime);
     prSt.setString(3, Logfile);
-    prSt.setString(4, queryHqlFile);
-    prSt.setString(5, dirname);
+    prSt.setString(4, username);
+    prSt.setString(5, queryHqlFile);
+    prSt.setString(6, dirname);
 
     return prSt;
   }
 
-  public String RevertSql(int id,String maxcount) throws SQLException {
+  public PreparedStatement insertToHiveHistoryForHiveNext(Connection connection, int id, String maxcount, long epochtime, String dirname,String username) throws SQLException {
+
+    String Logfile=  dirname + "logs";
+    String queryHqlFile= dirname + "query.hql";
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlInsertHiveHistoryForHiveNext(id));
+
+    prSt.setString(1, maxcount);
+    prSt.setLong(2, epochtime);
+    prSt.setString(3, Logfile);
+    prSt.setString(4, username);
+    prSt.setString(5, queryHqlFile);
+    prSt.setString(6, dirname);
+
+    return prSt;
+  }
+
+  public PreparedStatement getHiveVersionInstance(Connection connection,String viewName) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(getHiveVersionDetailSql());
+    prSt.setString(1, viewName);
+    return prSt;
+  }
+
+  protected String getHiveVersionDetailSql(){
+    return "select distinct(view_name) as viewname from viewentity where view_instance_name =?;";
+  }
+  public String revertSql(int id, String maxcount) throws SQLException {
     return getRevSql(id,maxcount);
   }
 
@@ -65,15 +106,26 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getTableIdSqlFromInstanceName() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
   }
 
-  protected String getSqlInsertHiveHistory(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','',?,'admin',?,'','job','','','Unknown',?,'','Worksheet');";
+  protected String getSqlInsertHiveHistoryForHive(int id) {
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
+  }
+
+  protected String getSqlInsertHiveHistoryForHiveNext(int id) {
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet');";
   }
 
   protected String getRevSql(int id,String maxcount){
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "';";
+  }
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_jobimpl_"+id+"_id_seq';";
+  }
+
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_jobimpl_"+id+"_id_seq';";
   }
 
 }

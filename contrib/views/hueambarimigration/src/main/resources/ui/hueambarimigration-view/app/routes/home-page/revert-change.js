@@ -29,6 +29,11 @@ export default Ember.Route.extend({
 
   actions: {
     submitResult: function() {
+
+    if(this.controller.get('instancename') ===undefined){
+      alert("Mandatory fields can not left blank");
+    }
+    else{
       this.controller.set('jobstatus', null);
       this.controller.set('progressBar', null);
       this.controller.set('completionStatus', null);
@@ -46,11 +51,12 @@ export default Ember.Route.extend({
           revertdate: control.get('revertdate'),
           jobid: jobid
         });
-        hivehistoryqueryjobstart.then(function() {  
+        hivehistoryqueryjobstart.then(function() {
           control.set('jobstatus', "0");
           repeat.progresscheck(jobid);
         });
       });
+     }
     }
   },
 
