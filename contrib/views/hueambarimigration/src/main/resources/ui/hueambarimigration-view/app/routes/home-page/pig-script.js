@@ -31,6 +31,11 @@ export default Ember.Route.extend({
 
   actions: {
     submitResult: function() {
+    if(this.controller.get('usernamehue')===undefined || this.controller.get('instancename') ===undefined){
+      alert("Mandatory fields can not left blank");
+    }
+    else
+    {
       this.controller.set('jobstatus', null);
       this.controller.set('progressBar', null);
       this.controller.set('completionStatus', null);
@@ -60,6 +65,7 @@ export default Ember.Route.extend({
           repeat.progresscheck(jobid);
         });
       });
+    }
     }
   },
   progresscheck: function(jobid) {

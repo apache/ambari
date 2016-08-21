@@ -150,6 +150,39 @@ public class HiveSavedQueryMigrationImplementation {
     return num;
   }
 
+
+  public int fetchSequenceno(Connection c, int id, QuerySetAmbariDB ambaridatabase) throws SQLException {
+
+    String ds_id = new String();
+    Statement stmt = null;
+    PreparedStatement prSt = null;
+    int sequencevalue=0;
+
+
+    ResultSet rs = null;
+
+
+    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, id);
+
+    logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
+
+    rs = prSt.executeQuery();
+
+    while (rs.next()) {
+      sequencevalue = rs.getInt("sequence_value");
+    }
+    return sequencevalue;
+  }
+
+  public void updateSequenceno(Connection c, int seqNo, int id, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+
+    PreparedStatement prSt;
+    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, id);
+    logger.info("The actual insert statement is " + prSt);
+    prSt.executeUpdate();
+    logger.info("adding revert sql hive history");
+  }
+
   public int fetchInstancetablenameForSavedqueryHive(Connection c, String instance, QuerySetAmbariDB ambaridatabase) throws SQLException {
 
     String ds_id = new String();
@@ -245,14 +278,14 @@ public class HiveSavedQueryMigrationImplementation {
     wrtitetoalternatesqlfile(dirname, revsql, instance, i);
   }
 
-  public void insertRowinSavedQuery(int maxcount, String database, String dirname, String query, String name, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+  public void insertRowinSavedQuery(int maxcount, String database, String dirname, String query, String name, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase,String username) throws SQLException, IOException {
 
     String maxcount1 = Integer.toString(maxcount);
     String revsql = null;
 
     PreparedStatement prSt = null;
 
-    prSt = ambaridatabase.insertToHiveSavedQuery(c, id, maxcount1, database, dirname, query, name);
+    prSt = ambaridatabase.insertToHiveSavedQuery(c, id, maxcount1, database, dirname, query, name,username);
 
     System.out.println("the actual query is " + prSt);
 
@@ -480,7 +513,7 @@ public class HiveSavedQueryMigrationImplementation {
 
   }
 
-  public void createDirHive(final String dir, final String namenodeuri)
+  public void createDirHive(final String dir, final String namenodeuri,final String username)
     throws IOException, URISyntaxException {
 
     try {
@@ -506,6 +539,7 @@ public class HiveSavedQueryMigrationImplementation {
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
           fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
           return null;
         }
       });
@@ -514,9 +548,8 @@ public class HiveSavedQueryMigrationImplementation {
     }
   }
 
-  public void createDirHiveSecured(final String dir, final String namenodeuri)
+  public void createDirHiveSecured(final String dir, final String namenodeuri,final String username,final String principalName)
     throws IOException, URISyntaxException {
-
     try {
       final Configuration conf = new Configuration();
 
@@ -527,29 +560,28 @@ public class HiveSavedQueryMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
+      ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
 
-      ugi.doAs(new PrivilegedExceptionAction<Void>() {
-
-        public Void run() throws Exception {
-
+        public Boolean run() throws Exception {
           FileSystem fs = FileSystem.get(conf);
           Path src = new Path(dir);
-          fs.mkdirs(src);
-          return null;
+          Boolean b = fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
+          return b;
         }
       });
     } catch (Exception e) {
-      logger.error("Webhdfs: ", e);
+      logger.error("Exception in Webhdfs", e);
     }
   }
 
   public void putFileinHdfs(final String source, final String dest,
-                            final String namenodeuri) throws IOException {
+                            final String namenodeuri,final String username) throws IOException {
 
     try {
       final Configuration conf = new Configuration();
@@ -596,6 +628,7 @@ public class HiveSavedQueryMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
           return null;
         }
@@ -607,10 +640,10 @@ public class HiveSavedQueryMigrationImplementation {
   }
 
 
-  public void putFileinHdfsSecured(final String source, final String dest,
-                                   final String namenodeuri) throws IOException {
+  public void putFileinHdfsSecured(final String source, final String dest,final String namenodeuri,final String username,final String principalName) throws IOException {
 
     try {
+
       final Configuration conf = new Configuration();
 
       conf.set("fs.hdfs.impl",
@@ -620,15 +653,14 @@ public class HiveSavedQueryMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
       ugi.doAs(new PrivilegedExceptionAction<Void>() {
 
         public Void run() throws Exception {
-
 
           FileSystem fileSystem = FileSystem.get(conf);
 
@@ -645,7 +677,7 @@ public class HiveSavedQueryMigrationImplementation {
           if (fileSystem.exists(path)) {
 
           }
-          // Path pathsource = new Path(source);
+
           FSDataOutputStream out = fileSystem.create(path);
 
           InputStream in = new BufferedInputStream(
@@ -658,14 +690,14 @@ public class HiveSavedQueryMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
-
-
           return null;
         }
       });
     } catch (Exception e) {
       logger.error("Webhdfs exception", e);
+
     }
 
   }

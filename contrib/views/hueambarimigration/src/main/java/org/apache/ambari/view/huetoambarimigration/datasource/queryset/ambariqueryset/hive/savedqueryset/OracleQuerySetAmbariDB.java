@@ -40,11 +40,11 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
   protected String getSqlInsertHiveHistory(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','',?,'admin',?,'','job','','','Unknown',?,'','Worksheet')";
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','',?,?,?,'','job','','','Unknown',?,'','Worksheet')";
   }
   @Override
   protected String getSqlInsertSavedQuery(int id) {
-    return "INSERT INTO ds_savedquery_" + id + " values (?,?,'" + "admin" + "',?,?,?)";
+    return "INSERT INTO ds_savedquery_" + id + " values (?,?,?,?,?,?)";
   }
 
   @Override
@@ -54,5 +54,13 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   @Override
   protected String getRevSqlHistoryQuery(int id, String maxcount) {
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "'";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_savedquery_"+id+"_id_seq'";
+  }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_savedquery_"+id+"_id_seq'";
   }
 }
