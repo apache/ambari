@@ -379,8 +379,10 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                         "contain directory {atlas_hive_hook_dir}"))
     return
 
-  num_files = len([name for name in os.listdir(atlas_hive_hook_dir) if os.path.exists(os.path.join(atlas_hive_hook_dir, name))])
-  Logger.info("Found %d files/directories inside Atlas Hive hook directory %s"% (num_files, atlas_hive_hook_dir))
+  atlas_hive_hook_impl_dir = os.path.join(atlas_hive_hook_dir, "atlas-hive-plugin-impl")
+
+  num_files = len([name for name in os.listdir(atlas_hive_hook_impl_dir) if os.path.exists(os.path.join(atlas_hive_hook_impl_dir, name))])
+  Logger.info("Found %d files/directories inside Atlas Hive hook impl directory %s"% (num_files, atlas_hive_hook_impl_dir))
 
   # This can return over 100 files, so take the first 5 lines after "Available ShareLib"
   # Use -oozie http(s):localhost:{oozie_server_admin_port}/oozie as oozie-env does not export OOZIE_URL
@@ -395,12 +397,12 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
         raise Fail("Could not parse Hive sharelib from output.")
 
       Logger.info("Parsed Hive sharelib = %s and will attempt to copy/replace %d files to it from %s" %
-                  (hive_sharelib_dir, num_files, atlas_hive_hook_dir))
+                  (hive_sharelib_dir, num_files, atlas_hive_hook_impl_dir))
 
       params.HdfsResource(hive_sharelib_dir,
                           type="directory",
                           action="create_on_execute",
-                          source=atlas_hive_hook_dir,
+                          source=atlas_hive_hook_impl_dir,
                           user=params.hdfs_user,
                           owner=params.oozie_user,
                           group=params.hdfs_user,
