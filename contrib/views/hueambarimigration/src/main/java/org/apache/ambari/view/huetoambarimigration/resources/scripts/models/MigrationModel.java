@@ -34,25 +34,25 @@ public class MigrationModel implements Serializable,PersonalResource{
   private String intanceName="";
   private String userNameofhue="";
   private int totalNoQuery;
-  private String ProgressPercentage="";
+  private String progressPercentage="";
   private String owner = "";
-  private Boolean IfSuccess;
-  private String TimeTakentotransfer="";
+  private Boolean ifSuccess;
+  private String timeTakentotransfer="";
 
   public String getTimeTakentotransfer() {
-    return TimeTakentotransfer;
+    return timeTakentotransfer;
   }
 
   public void setTimeTakentotransfer(String timeTakentotransfer) {
-    TimeTakentotransfer = timeTakentotransfer;
+    timeTakentotransfer = timeTakentotransfer;
   }
 
   public Boolean getIfSuccess() {
-    return IfSuccess;
+    return ifSuccess;
   }
 
   public void setIfSuccess(Boolean ifSuccess) {
-    IfSuccess = ifSuccess;
+    ifSuccess = ifSuccess;
   }
 
   public MigrationModel(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
@@ -113,11 +113,11 @@ public class MigrationModel implements Serializable,PersonalResource{
   }
 
   public String getProgressPercentage() {
-    return ProgressPercentage;
+    return progressPercentage;
   }
 
   public void setProgressPercentage(String progressPercentage) {
-    ProgressPercentage = progressPercentage;
+    progressPercentage = progressPercentage;
   }
 
   public String getOwner() {

@@ -122,8 +122,15 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
   <parameter>
     <name>KerberoseEnabled</name>
     <description>Kerberose enable</description>
-    <label>Kerberose enabled on Ambari cluster?(y/n)</label>
+    <label>Kerberos enabled on Ambari cluster?(y/n)</label>
     <placeholder>y/n</placeholder>
+  </parameter>
+
+  <parameter>
+    <name>PrincipalUserName</name>
+    <description>Kerberos enable</description>
+    <label>principal name (if kerberos is enabled)</label>
+    <placeholder>Please enter the principal name is kerberos is enabled</placeholder>
   </parameter>
 
 

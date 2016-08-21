@@ -30,7 +30,7 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
   protected String getTableIdSqlFromInstanceNameSavedQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.savedQueries.SavedQuery' and view_instance_name=?;";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.savedQueries.SavedQuery' and view_instance_name=?;";
   }
 
   @Override
@@ -40,17 +40,17 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
 
   @Override
   protected String getTableIdSqlFromInstanceNameHistoryQuery() {
-    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
+    return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.%hive%.resources.jobs.viewJobs.JobImpl' and view_instance_name=?;";
   }
 
   @Override
   protected String getSqlInsertHiveHistory(int id) {
-    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','',?,'admin',?,'','job','','','Unknown',?,'','Worksheet');";
+    return "INSERT INTO DS_JOBIMPL_" + id + " values (?,'','','','','default',?,0,'','',?,?,?,'','job','','','Unknown',?,'','Worksheet');";
   }
 
   @Override
   protected String getSqlInsertSavedQuery(int id) {
-    return "INSERT INTO DS_SAVEDQUERY_" + id + " values (?,?,'" + "admin" + "',?,?,?);";
+    return "INSERT INTO DS_SAVEDQUERY_" + id + " values (?,?,?,?,?,?);";
   }
 
   @Override
@@ -61,5 +61,13 @@ public class MysqlQuerySetAmbariDB extends QuerySetAmbariDB {
   @Override
   protected String getRevSqlHistoryQuery(int id, String maxcount) {
     return "delete from  DS_JOBIMPL_" + id + " where ds_id='" + maxcount + "';";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_savedquery_"+id+"_id_seq';";
+  }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_savedquery_"+id+"_id_seq';";
   }
 }

@@ -34,13 +34,27 @@ public abstract class QuerySetAmbariDB {
     return prSt;
   }
 
+  public PreparedStatement getSequenceNoFromAmbariSequence(Connection connection,int id) throws SQLException {
+    PreparedStatement prSt = connection.prepareStatement(getSqlSequenceNoFromAmbariSequence(id));
+    return prSt;
+  }
+
   public PreparedStatement getMaxDsIdFromTableId(Connection connection, int id) throws SQLException {
 
     PreparedStatement prSt = connection.prepareStatement(getSqlMaxDSidFromTableId(id));
     return prSt;
   }
 
-  public PreparedStatement insertToPigJob(String dirname, String maxcountforpigjob, long epochtime1, String title, Connection connection, int id, String status) throws SQLException {
+  public PreparedStatement updateSequenceNoInAmbariSequence(Connection connection, int seqNo, int id) throws SQLException {
+
+    PreparedStatement prSt = connection.prepareStatement(getSqlUpdateSequenceNo(id));
+
+    prSt.setInt(1, seqNo);
+
+    return prSt;
+  }
+
+  public PreparedStatement insertToPigJob(String dirname, String maxcountforpigjob, long epochtime1, String title, Connection connection, int id, String status,String username) throws SQLException {
 
     String pigScriptFile = dirname + "script.pig";
 
@@ -48,11 +62,12 @@ public abstract class QuerySetAmbariDB {
 
     prSt.setString(1, maxcountforpigjob);
     prSt.setLong(2, epochtime1);
-    prSt.setString(3, pigScriptFile);
-    prSt.setString(4, maxcountforpigjob);
-    prSt.setString(5, status);
-    prSt.setString(6, dirname);
-    prSt.setString(7, title);
+    prSt.setString(3, username);
+    prSt.setString(4, pigScriptFile);
+    prSt.setString(5, maxcountforpigjob);
+    prSt.setString(6, status);
+    prSt.setString(7, dirname);
+    prSt.setString(8, title);
 
     return prSt;
   }
@@ -70,11 +85,19 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getSqlinsertToPigJob(int id) {
-    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'','f','','','admin',0,?,'',?,'','',?,?,'',?);";
+    return "INSERT INTO ds_pigjob_" + id + " values (?,?,0,'','f','','',?,0,?,'',?,'','',?,?,'',?);";
   }
 
   protected String getRevSql(int id, String maxcount) {
     return "delete from  ds_pigjob_" + id + " where ds_id='" + maxcount + "';";
+  }
+
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_pigjob_"+id+"_id_seq';";
+  }
+
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_pigjob_"+id+"_id_seq';";
   }
 
 }

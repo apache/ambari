@@ -32,13 +32,28 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   protected String getTableIdSqlFromInstanceName() {
     return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl' and view_instance_name=?";
   }
+
   @Override
-  protected String getSqlInsertHiveHistory(int id) {
-    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','',?,'admin',?,'','job','','','Unknown',?,'','Worksheet')";
+  protected String getSqlInsertHiveHistoryForHive(int id) {
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet')";
   }
+  @Override
+  protected String getSqlInsertHiveHistoryForHiveNext(int id) {
+    return "INSERT INTO ds_jobimpl_" + id + " values (?,'','','','','default',?,0,'','','','',?,?,?,'','job','','','UNKNOWN',?,'','Worksheet')";
+  }
+
   @Override
   protected String getRevSql(int id,String maxcount){
     return "delete from  ds_jobimpl_" + id + " where ds_id='" + maxcount + "'";
   }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_jobimpl_"+id+"_id_seq'";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_jobimpl_"+id+"_id_seq'";
+  }
+
 
 }

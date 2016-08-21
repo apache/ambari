@@ -38,11 +38,11 @@ public abstract class QuerySetAmbariDB {
   }
 
   protected String getHiveInstanceSql(){
-    return "select distinct(view_instance_name) as instancename from viewentity where view_name='HIVE{1.0.0}';";
+    return "select distinct(view_instance_name) as instancename from viewentity where view_name like '%HIVE%';";
   }
 
   protected String getAllInstanceDetailSql(){
-    return "select distinct(view_instance_name) as instancename from viewentity where view_name='HIVE{1.0.0}' or view_name='PIG{1.0.0}';";
+    return "select distinct(view_instance_name) as instancename from viewentity where view_name like '%HIVE%' or view_name like '%PIG%';";
   }
 
 }

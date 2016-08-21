@@ -21,21 +21,29 @@ public class OracleQuerySetAmbariDB extends QuerySetAmbariDB {
   /*
   * Overriding methods for Oracle specific queries
   * */
-
+  @Override
   protected String getSqlMaxDSidFromTableId(int id) {
     return "select MAX(cast(ds_id as integer)) as max from ds_pigscript_" + id + "";
   }
-
+  @Override
   protected String getTableIdSqlFromInstanceName() {
     return "select id from viewentity where class_name LIKE 'org.apache.ambari.view.pig.resources.scripts.models.PigScript' and view_instance_name=?";
   }
-
+  @Override
   protected String getSqlinsertToPigScript(int id) {
-    return "INSERT INTO ds_pigscript_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00','f','admin',?,'','',?)";
+    return "INSERT INTO ds_pigscript_" + id + " values (?,'1970-01-17 20:28:55.586000 +00:00:00','f',?,?,'','',?)";
   }
-
+  @Override
   protected String getRevSql(int id, String maxcount) {
     return "delete from  ds_pigscript_" + id + " where ds_id='" + maxcount + "'";
+  }
+  @Override
+  protected String getSqlSequenceNoFromAmbariSequence(int id) {
+    return "select sequence_value from ambari_sequences where sequence_name ='ds_pigscript_"+id+"_id_seq'";
+  }
+  @Override
+  protected String getSqlUpdateSequenceNo(int id) {
+    return "update ambari_sequences set sequence_value=? where sequence_name='ds_pigscript_"+id+"_id_seq'";
   }
 
 }

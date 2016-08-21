@@ -39,6 +39,7 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.text.ParseException;
@@ -127,6 +128,29 @@ public class PigScriptMigrationImplementation {
 
   }
 
+  public int fetchSequenceno(Connection c, int id, QuerySetAmbariDB ambaridatabase) throws SQLException {
+
+    String ds_id = new String();
+    Statement stmt = null;
+    PreparedStatement prSt = null;
+    int sequencevalue=0;
+
+
+    ResultSet rs = null;
+
+
+    prSt = ambaridatabase.getSequenceNoFromAmbariSequence(c, id);
+
+    logger.info("sql statement to fetch is from ambari instance:= =  " + prSt);
+
+    rs = prSt.executeQuery();
+
+    while (rs.next()) {
+      sequencevalue = rs.getInt("sequence_value");
+    }
+    return sequencevalue;
+  }
+
   public int fetchInstanceTablenamePigScript(Connection c, String instance, QuerySetAmbariDB ambaridatabase) throws SQLException {
 
     String ds_id = new String();
@@ -175,7 +199,16 @@ public class PigScriptMigrationImplementation {
     return num;
   }
 
-  public void insertRowForPigScript(String dirname, int maxcountforpigjob, int maxcount, String time, String time2, long epochtime, String title, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+  public void updateSequenceno(Connection c, int seqNo, int id, QuerySetAmbariDB ambaridatabase) throws SQLException, IOException {
+
+    PreparedStatement prSt;
+    prSt = ambaridatabase.updateSequenceNoInAmbariSequence(c, seqNo, id);
+    logger.info("The actual insert statement is " + prSt);
+    prSt.executeUpdate();
+    logger.info("adding revert sql hive history");
+  }
+
+  public void insertRowForPigScript(String dirname, int maxcountforpigjob, int maxcount, String time, String time2, long epochtime, String title, Connection c, int id, String instance, int i, QuerySetAmbariDB ambaridatabase,String username) throws SQLException, IOException {
 
     String maxcount1 = Integer.toString(maxcount);
     String epochtime1 = Long.toString(epochtime);
@@ -183,7 +216,7 @@ public class PigScriptMigrationImplementation {
 
     PreparedStatement prSt = null;
 
-    prSt = ambaridatabase.insertToPigScript(c, id, maxcount1, dirname, title);
+    prSt = ambaridatabase.insertToPigScript(c, id, maxcount1, dirname, title,username);
 
     prSt.executeUpdate();
 
@@ -383,7 +416,77 @@ public class PigScriptMigrationImplementation {
 
   }
 
-  public void putFileinHdfs(final String source, final String dest, final String namenodeuri)
+  public void createDirPigScriptSecured(final String dir, final String namenodeuri,final String username,final String principalName)
+    throws IOException, URISyntaxException {
+    try {
+      final Configuration conf = new Configuration();
+
+      conf.set("fs.hdfs.impl",
+        org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+      );
+      conf.set("fs.file.impl",
+        org.apache.hadoop.fs.LocalFileSystem.class.getName()
+      );
+      conf.set("fs.defaultFS", namenodeuri);
+      conf.set("hadoop.security.authentication", "Kerberos");
+      UserGroupInformation.setConfiguration(conf);
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
+      ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
+
+        public Boolean run() throws Exception {
+          FileSystem fs = FileSystem.get(conf);
+          Path src = new Path(dir);
+          Boolean b = fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
+          return b;
+        }
+      });
+    } catch (Exception e) {
+      logger.error("Exception in Webhdfs", e);
+    }
+  }
+
+  public void createDirPigScript(final String dir, final String namenodeuri,final String username)
+    throws IOException, URISyntaxException {
+
+    try {
+      final Configuration conf = new Configuration();
+
+      conf.set("fs.hdfs.impl",
+        org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
+      );
+      conf.set("fs.file.impl",
+        org.apache.hadoop.fs.LocalFileSystem.class.getName()
+      );
+      conf.set("fs.defaultFS", namenodeuri);
+      conf.set("hadoop.job.ugi", "hdfs");
+      conf.set("hadoop.security.authentication", "Kerberos");
+
+      UserGroupInformation.setConfiguration(conf);
+      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
+
+      ugi.doAs(new PrivilegedExceptionAction<Void>() {
+
+        public Void run() throws Exception {
+
+          FileSystem fs = FileSystem.get(conf);
+          Path src = new Path(dir);
+          fs.mkdirs(src);
+          fs.setOwner(src,username,"hadoop");
+          return null;
+        }
+      });
+    } catch (Exception e) {
+      logger.error("Webhdfs: ", e);
+    }
+  }
+
+
+
+
+  public void putFileinHdfs(final String source, final String dest, final String namenodeuri,final String username)
     throws IOException {
 
     try {
@@ -430,6 +533,7 @@ public class PigScriptMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
           return null;
         }
@@ -440,10 +544,11 @@ public class PigScriptMigrationImplementation {
 
   }
 
-  public void putFileinHdfsSecured(final String source, final String dest, final String namenodeuri)
+  public void putFileinHdfsSecured(final String source, final String dest, final String namenodeuri,final String username,final String principalName)
     throws IOException {
 
     try {
+
       final Configuration conf = new Configuration();
 
       conf.set("fs.hdfs.impl",
@@ -453,12 +558,11 @@ public class PigScriptMigrationImplementation {
         org.apache.hadoop.fs.LocalFileSystem.class.getName()
       );
       conf.set("fs.defaultFS", namenodeuri);
-      conf.set("hadoop.job.ugi", "hdfs");
       conf.set("hadoop.security.authentication", "Kerberos");
-
       UserGroupInformation.setConfiguration(conf);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser("hdfs");
-
+      UserGroupInformation proxyUser ;
+      proxyUser = UserGroupInformation.createRemoteUser(principalName);
+      UserGroupInformation ugi = UserGroupInformation.createProxyUser("hdfs", proxyUser);
       ugi.doAs(new PrivilegedExceptionAction<Void>() {
 
         public Void run() throws Exception {
@@ -478,7 +582,7 @@ public class PigScriptMigrationImplementation {
           if (fileSystem.exists(path)) {
 
           }
-          //	Path pathsource = new Path(source);
+
           FSDataOutputStream out = fileSystem.create(path);
 
           InputStream in = new BufferedInputStream(
@@ -491,12 +595,13 @@ public class PigScriptMigrationImplementation {
           }
           in.close();
           out.close();
+          fileSystem.setOwner(path,username,"hadoop");
           fileSystem.close();
           return null;
         }
       });
     } catch (Exception e) {
-      logger.error("Webhdfs Exception: ", e);
+      logger.error("Webhdfs exception", e);
 
     }
 

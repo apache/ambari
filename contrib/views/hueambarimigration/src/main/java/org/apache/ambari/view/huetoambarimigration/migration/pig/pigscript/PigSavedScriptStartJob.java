@@ -43,8 +43,6 @@ public class PigSavedScriptStartJob extends Thread{
     this.view=view;
   }
 
-
-
   @Override
   public void run() {
 

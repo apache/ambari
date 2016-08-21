@@ -79,7 +79,7 @@ public class HiveHistoryMigrationUtility {
 
     MigrationModel model = new MigrationModel();
 
-    int maxCountOfAmbariDb, i = 0;
+    int maxCountOfAmbariDb = 0, i = 0, sequence;
     String time = null;
     Long epochTime = null;
     String dirNameforHiveHistroy;
@@ -145,6 +145,12 @@ public class HiveHistoryMigrationUtility {
 
         // for each queries fetched from Hue database//
 
+        //
+        int id = 0;
+
+        id = hiveHistoryQueryImpl.fetchInstanceTablename(connectionAmbaridb, instance, ambaridatabase); // feching table name according to the given instance name
+        sequence = hiveHistoryQueryImpl.fetchSequenceno(connectionAmbaridb, id, ambaridatabase);
+        //
         for (i = 0; i < dbpojoHiveHistoryQuery.size(); i++) {
 
           float calc = ((float) (i + 1)) / dbpojoHiveHistoryQuery.size() * 100;
@@ -159,9 +165,6 @@ public class HiveHistoryMigrationUtility {
           logger.info("Loop No." + (i + 1));
           logger.info("_____________________");
           logger.info("Hue query that has been fetched" + dbpojoHiveHistoryQuery.get(i).getQuery());
-          int id = 0;
-
-          id = hiveHistoryQueryImpl.fetchInstanceTablename(connectionAmbaridb, instance, ambaridatabase); // feching table name according to the given instance name
 
           logger.info("Table name has been fetched from intance name");
 
@@ -173,35 +176,38 @@ public class HiveHistoryMigrationUtility {
 
           logger.info("Log file created in Temp directory");
 
-          maxCountOfAmbariDb = (hiveHistoryQueryImpl.fetchMaximumIdfromAmbaridb(connectionAmbaridb, id, ambaridatabase) + 1);// fetching the maximum count for ambari db to insert
+          maxCountOfAmbariDb = i + sequence + 1;
 
           time = hiveHistoryQueryImpl.getTime();// getting the system current time.
 
           epochTime = hiveHistoryQueryImpl.getEpochTime();// getting system time as epoch format
 
-          dirNameforHiveHistroy = "/user/admin/migration/jobs/migration-job-" + maxCountOfAmbariDb + "-" + time + "/";// creating the directory name
+          dirNameforHiveHistroy = "/user/"+username+"/hive/jobs/hive-job-" + maxCountOfAmbariDb + "-" + time + "/";// creating the directory name
 
           logger.info("Directory name where .hql will be saved: " + dirNameforHiveHistroy);
 
-          hiveHistoryQueryImpl.insertRowinAmbaridb(dirNameforHiveHistroy, maxCountOfAmbariDb, epochTime, connectionAmbaridb, id, instance, i, ambaridatabase);// inserting in ambari database
+          String versionName = hiveHistoryQueryImpl.getAllHiveVersionInstance(connectionAmbaridb, ambaridatabase, instance);
+
+          hiveHistoryQueryImpl.insertRowinAmbaridb(dirNameforHiveHistroy, maxCountOfAmbariDb, epochTime, connectionAmbaridb, id, instance, i, ambaridatabase, versionName, username);// inserting in ambari database
 
           if (view.getProperties().get("KerberoseEnabled").equals("y")) {
 
             logger.info("kerberose enabled");
-            hiveHistoryQueryImpl.createDirKerberorisedSecured(dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// creating directory in kerborized secured hdfs
+            hiveHistoryQueryImpl.createDirKerberorisedSecured(dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));// creating directory in kerborized secured hdfs
             logger.info("Directory created in hdfs");
-            hiveHistoryQueryImpl.putFileinHdfsKerborizedSecured(ConfigurationCheckImplementation.getHomeDir() + "query.hql", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// copying the .hql file to kerborized hdfs
-            hiveHistoryQueryImpl.putFileinHdfsKerborizedSecured(ConfigurationCheckImplementation.getHomeDir() + "logs", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// copying the log file to kerborized hdfs
+            hiveHistoryQueryImpl.putFileinHdfsKerborizedSecured(ConfigurationCheckImplementation.getHomeDir() + "query.hql", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));// copying the .hql file to kerborized hdfs
+            hiveHistoryQueryImpl.putFileinHdfsKerborizedSecured(ConfigurationCheckImplementation.getHomeDir() + "logs", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username,view.getProperties().get("PrincipalUserName"));// copying the log file to kerborized hdfs
           } else {
 
             logger.info("kerberose not enabled");
-            hiveHistoryQueryImpl.createDir(dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// creating directory in hdfs
+            hiveHistoryQueryImpl.createDir(dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username);// creating directory in hdfs
             logger.info("Directory created in hdfs");
-            hiveHistoryQueryImpl.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + "query.hql", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// copying the .hql file to hdfs
-            hiveHistoryQueryImpl.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + "logs", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"));// copying the log file to hdfs
+            hiveHistoryQueryImpl.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + "query.hql", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username);// copying the .hql file to hdfs
+            hiveHistoryQueryImpl.putFileinHdfs(ConfigurationCheckImplementation.getHomeDir() + "logs", dirNameforHiveHistroy, view.getProperties().get("namenode_URI_Ambari"),username);// copying the log file to hdfs
           }
 
         }
+        hiveHistoryQueryImpl.updateSequenceno(connectionAmbaridb, maxCountOfAmbariDb, id, ambaridatabase);
         connectionAmbaridb.commit();
 
 
