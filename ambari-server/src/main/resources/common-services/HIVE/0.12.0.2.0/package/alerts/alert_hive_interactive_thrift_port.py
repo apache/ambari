@@ -43,8 +43,8 @@ SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 HIVE_SSL = '{{hive-site/hive.server2.use.SSL}}'
-HIVE_SSL_KEYSTORE_PATH = '{{hive-site/hive.server2.keystore.path}}'
-HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-site/hive.server2.keystore.password}}'
+HIVE_SSL_KEYSTORE_PATH = '{{hive-interactive-site/hive.server2.keystore.path}}'
+HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-interactive-site/hive.server2.keystore.password}}'
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
