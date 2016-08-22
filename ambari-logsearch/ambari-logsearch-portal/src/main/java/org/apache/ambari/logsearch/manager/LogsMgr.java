@@ -36,7 +36,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
@@ -62,6 +61,8 @@ import org.apache.ambari.logsearch.view.VNode;
 import org.apache.ambari.logsearch.view.VNodeList;
 import org.apache.ambari.logsearch.view.VSolrLogList;
 import org.apache.ambari.logsearch.view.VSummary;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -83,29 +84,24 @@ import com.google.common.collect.Lists;
 
 @Component
 public class LogsMgr extends MgrBase {
-  private static Logger logger = Logger.getLogger(LogsMgr.class);
+  private static final Logger logger = Logger.getLogger(LogsMgr.class);
 
-  public static List<String> cancelByDate = new CopyOnWriteArrayList<String>();
+  private static List<String> cancelByDate = new CopyOnWriteArrayList<String>();
 
-  public static Map<String, String> mapUniqueId = new ConcurrentHashMap<String, String>();
-
-  public static enum CONDITION {
+  private static Map<String, String> mapUniqueId = new ConcurrentHashMap<String, String>();
+  
+  private static enum CONDITION {
     OR, AND
   }
 
   @Autowired
-  ServiceLogsSolrDao serviceLogsSolrDao;
-
+  private ServiceLogsSolrDao serviceLogsSolrDao;
   @Autowired
-  BizUtil bizUtil;
-
+  private BizUtil bizUtil;
   @Autowired
-  FileUtil fileUtil;
-
-
+  private FileUtil fileUtil;
   @Autowired
-  GraphDataGenerator graphDataGenerator;
-
+  private GraphDataGenerator graphDataGenerator;
 
   public String searchLogs(SearchCriteria searchCriteria) {
     String keyword = (String) searchCriteria.getParamValue("keyword");
@@ -113,7 +109,7 @@ public class LogsMgr extends MgrBase {
     String lastPage = (String)  searchCriteria.getParamValue("isLastPage");
     Boolean isLastPage = Boolean.parseBoolean(lastPage);
 
-    if (!stringUtil.isEmpty(keyword)) {
+    if (!StringUtils.isBlank(keyword)) {
       try {
         return getPageByKeyword(searchCriteria);
       } catch (SolrException | SolrServerException e) {
@@ -121,7 +117,7 @@ public class LogsMgr extends MgrBase {
         throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
-    } else if (!stringUtil.isEmpty(logId)) {
+    } else if (!StringUtils.isBlank(logId)) {
       try {
         return getPageByLogId(searchCriteria);
       } catch (SolrException e) {
@@ -148,11 +144,11 @@ public class LogsMgr extends MgrBase {
     }
   }
 
-  public String getHosts(SearchCriteria searchCriteria) {
-    return getFields(searchCriteria, LogSearchConstants.SOLR_HOST);
+  public String getHosts() {
+    return getFields(LogSearchConstants.SOLR_HOST);
   }
-
-  public String getFields(SearchCriteria searchCriteria,String field){
+  
+  private String getFields(String field){
 
     SolrQuery solrQuery = new SolrQuery();
     VGroupList collection = new VGroupList();
@@ -200,8 +196,8 @@ public class LogsMgr extends MgrBase {
 
   }
 
-  public String getComponents(SearchCriteria searchCriteria) {
-    return getFields(searchCriteria, LogSearchConstants.SOLR_COMPONENT);
+  public String getComponents() {
+    return getFields(LogSearchConstants.SOLR_COMPONENT);
   }
 
   public String getAggregatedInfo(SearchCriteria searchCriteria) {
@@ -255,7 +251,7 @@ public class LogsMgr extends MgrBase {
     return logList;
   }
 
-  public VCountList getFieldCount(SearchCriteria searchCriteria, String field){
+  public VCountList getFieldCount(String field){
     VCountList collection = new VCountList();
     List<VCount> vCounts = new ArrayList<VCount>();
     SolrQuery solrQuery = new SolrQuery();
@@ -297,17 +293,17 @@ public class LogsMgr extends MgrBase {
     collection.setCounts(vCounts);
     return collection;
   }
-
-  public VCountList getLogLevelCount(SearchCriteria searchCriteria) {
-    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_LEVEL);
+  
+  public VCountList getLogLevelCount() {
+    return getFieldCount(LogSearchConstants.SOLR_LEVEL);
   }
 
-  public VCountList getComponentsCount(SearchCriteria searchCriteria) {
-    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_COMPONENT);
+  public VCountList getComponentsCount() {
+    return getFieldCount(LogSearchConstants.SOLR_COMPONENT);
   }
 
-  public VCountList getHostsCount(SearchCriteria searchCriteria) {
-    return getFieldCount(searchCriteria, LogSearchConstants.SOLR_HOST);
+  public VCountList getHostsCount() {
+    return getFieldCount(LogSearchConstants.SOLR_HOST);
   }
 
   public List<VNode> buidTreeData(List<PivotField> pivotFields,
@@ -322,13 +318,13 @@ public class LogsMgr extends MgrBase {
           VNode hostNode = new VNode();
           String name = (pivotHost.getValue() == null ? "" : ""+ pivotHost.getValue());
           String value = "" + pivotHost.getCount();
-          if(!stringUtil.isEmpty(name)){
+          if(!StringUtils.isBlank(name)){
             hostNode.setName(name);
           }
-          if(!stringUtil.isEmpty(value)){
+          if(!StringUtils.isBlank(value)){
             hostNode.setValue(value);
           }
-          if(!stringUtil.isEmpty(firstPriority)){
+          if(!StringUtils.isBlank(firstPriority)){
             hostNode.setType(firstPriority);
           }
 
@@ -336,7 +332,7 @@ public class LogsMgr extends MgrBase {
           hostNode.setRoot(true);
           PivotField hostPivot = null;
           for (PivotField searchHost : pivotFieldHost) {
-            if (!stringUtil.isEmpty(hostNode.getName())
+            if (!StringUtils.isBlank(hostNode.getName())
                 && hostNode.getName().equals(searchHost.getValue())) {
               hostPivot = searchHost;
               break;
@@ -369,7 +365,7 @@ public class LogsMgr extends MgrBase {
                 String compName = (pivotComp.getValue() == null ? "" : ""
                     + pivotComp.getValue());
                 compNode.setName(compName);
-                if (!stringUtil.isEmpty(secondPriority)) {
+                if (!StringUtils.isBlank(secondPriority)) {
                   compNode.setType(secondPriority);
                 }
                 compNode.setValue("" + pivotComp.getCount());
@@ -414,7 +410,7 @@ public class LogsMgr extends MgrBase {
     String hostName = ""
       + ((searchCriteria.getParamValue("hostName") == null) ? ""
       : searchCriteria.getParamValue("hostName"));
-    if (!stringUtil.isEmpty(hostName)){
+    if (!StringUtils.isBlank(hostName)){
       solrQuery.addFilterQuery(LogSearchConstants.SOLR_HOST + ":*"
         + hostName + "*");
     }
@@ -478,7 +474,7 @@ public class LogsMgr extends MgrBase {
     String componentName = ""
       + ((searchCriteria.getParamValue("componentName") == null) ? ""
       : searchCriteria.getParamValue("componentName"));
-    if (!stringUtil.isEmpty(componentName)){
+    if (!StringUtils.isBlank(componentName)){
       solrQuery.addFilterQuery(LogSearchConstants.SOLR_COMPONENT + ":"
         + componentName);
     } else {
@@ -552,7 +548,7 @@ public class LogsMgr extends MgrBase {
       for (String level : LogSearchConstants.SUPPORTED_LOG_LEVEL) {
         VNameValue nameValue = new VNameValue();
         String value = map.get(level);
-        if (stringUtil.isEmpty(value)) {
+        if (StringUtils.isBlank(value)) {
           value = defalutValue;
         }
         nameValue.setName(level);
@@ -590,7 +586,7 @@ public class LogsMgr extends MgrBase {
     String defaultChoice = "0";
 
     String key = (String) searchCriteria.getParamValue("keyword");
-    if(stringUtil.isEmpty(key)){
+    if(StringUtils.isBlank(key)){
       throw restErrorUtil.createRESTException("Keyword was not given",
           MessageEnums.DATA_NOT_FOUND);
     }
@@ -651,7 +647,7 @@ public class LogsMgr extends MgrBase {
         nextPageLogID = ""
           + solrDoc.get(LogSearchConstants.ID);
 
-        if (stringUtil.isEmpty(nextPageLogID)){
+        if (StringUtils.isBlank(nextPageLogID)){
           nextPageLogID = "0";
         }
 
@@ -698,13 +694,13 @@ public class LogsMgr extends MgrBase {
         logTimeThroughRangeQuery.remove("start");
         logTimeThroughRangeQuery.remove("rows");
         logTimeThroughRangeQuery.setRows(1);
-        if (!stringUtil.isEmpty(filterQueryListIds)){
+        if (!StringUtils.isBlank(filterQueryListIds)){
           logTimeThroughRangeQuery.setFilterQueries(filterQueryListIds);
         }
 
         String sortByType = searchCriteria.getSortType();
 
-        if (!stringUtil.isEmpty(sortByType) && sortByType
+        if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
 
           queryGenerator.setSingleRangeFilter(logTimeThroughRangeQuery,
@@ -759,16 +755,16 @@ public class LogsMgr extends MgrBase {
         rangeLogQuery.remove("start");
         rangeLogQuery.remove("rows");
 
-        if (!stringUtil.isEmpty(sortByType) && sortByType
+        if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
-          keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, 1);
+          keywordLogDate = DateUtils.addMilliseconds(keywordLogDate, 1);
           String keywordDateTime = dateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, startTime,
             keywordDateTime);
         } else {
-          keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, -1);
+          keywordLogDate = DateUtils.addMilliseconds(keywordLogDate, -1);
           String keywordDateTime = dateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
@@ -795,8 +791,8 @@ public class LogsMgr extends MgrBase {
             String id = (String) solrDocumenent
               .getFieldValue(LogSearchConstants.ID);
             countNumberLogs++;
-
-            if (stringUtil.isEmpty(id) && id.equals(keywordId)){
+           
+            if (StringUtils.isBlank(id) && id.equals(keywordId)){
               break;
             }
           }
@@ -910,11 +906,11 @@ public class LogsMgr extends MgrBase {
         logTimeThroughRangeQuery.setRows(1);
         queryGenerator.setSingleExcludeFilter(logTimeThroughRangeQuery,
           LogSearchConstants.ID, lastLogsLogId);
-        if (!stringUtil.isEmpty(filterQueryListIds)){
+        if (!StringUtils.isBlank(filterQueryListIds)){
           logTimeThroughRangeQuery.setFilterQueries(filterQueryListIds);
         }
 
-        if (!stringUtil.isEmpty(sortByType) && sortByType
+        if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
 
           logTimeThroughRangeQuery.remove(LogSearchConstants.SORT);
@@ -974,7 +970,7 @@ public class LogsMgr extends MgrBase {
         rangeLogQuery.remove("start");
         rangeLogQuery.remove("rows");
 
-        if (!stringUtil.isEmpty(sortByType) && sortByType
+        if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
        //   keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, 1);
           String keywordDateTime = dateUtil
@@ -1010,7 +1006,7 @@ public class LogsMgr extends MgrBase {
               String id = (String) solrDocumenent
                   .getFieldValue(LogSearchConstants.ID);
               countNumberLogs++;
-              if ( stringUtil.isEmpty(id) && id.equals(keywordId)) {
+              if ( StringUtils.isBlank(id) && id.equals(keywordId)) {
                 break;
               }
             }
@@ -1039,13 +1035,13 @@ public class LogsMgr extends MgrBase {
   private String getPageByLogId(SearchCriteria searchCriteria) {
     VSolrLogList vSolrLogList = new VSolrLogList();
     String endLogTime = (String) searchCriteria.getParamValue("to");
-    if(stringUtil.isEmpty(endLogTime)){
+    if(StringUtils.isBlank(endLogTime)){
       return convertObjToString(vSolrLogList);
     }
     long startIndex = 0l;
 
     String logId = (String) searchCriteria.getParamValue("sourceLogId");
-    if(stringUtil.isEmpty(logId)){
+    if(StringUtils.isBlank(logId)){
       return convertObjToString(vSolrLogList);
     }
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
@@ -1078,7 +1074,7 @@ public class LogsMgr extends MgrBase {
 
       if (dateOfLogId != null) {
         logTime = dateUtil.convertDateWithMillisecondsToSolrDate(dateOfLogId);
-        Date endDate = dateUtil.addMilliSecondsToDate(dateOfLogId, 1);
+        Date endDate = DateUtils.addMilliseconds(dateOfLogId, 1);
         endTimeMinusOneMilli = (String) dateUtil
             .convertDateWithMillisecondsToSolrDate(endDate);
       }
@@ -1111,7 +1107,7 @@ public class LogsMgr extends MgrBase {
         String id = (String) solrDocumenent
             .getFieldValue(LogSearchConstants.ID);
         startIndex++;
-        if (!stringUtil.isEmpty(id)) {
+        if (!StringUtils.isBlank(id)) {
           if (id.equals(logId)) {
             break;
           }
@@ -1280,7 +1276,7 @@ public class LogsMgr extends MgrBase {
   }
 
   public String cancelFindRequestByDate(String uniqueId) {
-    if (stringUtil.isEmpty(uniqueId)) {
+    if (StringUtils.isEmpty(uniqueId)) {
       logger.error("Unique id is Empty");
       throw restErrorUtil.createRESTException("Unique id is Empty",
         MessageEnums.DATA_NOT_FOUND);
@@ -1294,7 +1290,7 @@ public class LogsMgr extends MgrBase {
   }
 
   public boolean cancelRequest(String uniqueId) {
-    if (stringUtil.isEmpty(uniqueId)) {
+    if (StringUtils.isBlank(uniqueId)) {
       logger.error("Unique id is Empty");
       throw restErrorUtil.createRESTException("Unique id is Empty",
         MessageEnums.DATA_NOT_FOUND);
@@ -1317,8 +1313,8 @@ public class LogsMgr extends MgrBase {
 
     format = defaultFormat.equalsIgnoreCase(format) && format != null ? ".txt"
         : ".json";
-
-    if(stringUtil.isEmpty(utcOffset)){
+    
+    if(StringUtils.isBlank(utcOffset)){
       utcOffset = "0";
     }
 
@@ -1368,7 +1364,7 @@ public class LogsMgr extends MgrBase {
       vsummary.setTo(to);
 
       String includeString = (String) searchCriteria.getParamValue("iMessage");
-      if (stringUtil.isEmpty(includeString)) {
+      if (StringUtils.isBlank(includeString)) {
         includeString = "";
       }
 
@@ -1378,7 +1374,7 @@ public class LogsMgr extends MgrBase {
         includeString = includeString + ",\"" + inc + "\"";
       }
       includeString = includeString.replaceFirst(",", "");
-      if (!stringUtil.isEmpty(includeString)) {
+      if (!StringUtils.isBlank(includeString)) {
         vsummary.setIncludeString(includeString);
       }
 
@@ -1386,7 +1382,7 @@ public class LogsMgr extends MgrBase {
       boolean isNormalExcluded = false;
 
       excludeString = (String) searchCriteria.getParamValue("eMessage");
-      if (stringUtil.isEmpty(excludeString)) {
+      if (StringUtils.isBlank(excludeString)) {
         excludeString = "";
       }
 
@@ -1396,14 +1392,14 @@ public class LogsMgr extends MgrBase {
       }
 
       excludeString = excludeString.replaceFirst(",", "");
-      if (!stringUtil.isEmpty(excludeString)) {
+      if (!StringUtils.isBlank(excludeString)) {
         vsummary.setExcludeString(excludeString);
         isNormalExcluded = true;
       }
 
       String globalExcludeString = (String) searchCriteria
           .getParamValue("gEMessage");
-      if (stringUtil.isEmpty(globalExcludeString)) {
+      if (StringUtils.isBlank(globalExcludeString)) {
         globalExcludeString = "";
       }
 
@@ -1414,7 +1410,7 @@ public class LogsMgr extends MgrBase {
         excludeString = excludeString + ",\"" + exc + "\"";
       }
 
-      if (!stringUtil.isEmpty(excludeString)) {
+      if (!StringUtils.isBlank(excludeString)) {
         if (!isNormalExcluded) {
           excludeString = excludeString.replaceFirst(",", "");
         }
@@ -1513,7 +1509,7 @@ public class LogsMgr extends MgrBase {
     try {
       String bundelId = (String) searchCriteria
         .getParamValue(LogSearchConstants.BUNDLE_ID);
-      if(stringUtil.isEmpty(bundelId)){
+      if(StringUtils.isBlank(bundelId)){
         bundelId = "";
       }
 
@@ -1709,18 +1705,18 @@ public class LogsMgr extends MgrBase {
     SolrDocumentList docList = null;
     String id = (String) searchCriteria
       .getParamValue(LogSearchConstants.ID);
-    if (stringUtil.isEmpty(id)) {
+    if (StringUtils.isBlank(id)) {
       return convertObjToString(vSolrLogList);
 
     }
     String maxRows = "";
 
     maxRows = (String) searchCriteria.getParamValue("numberRows");
-    if (stringUtil.isEmpty(maxRows)){
+    if (StringUtils.isBlank(maxRows)){
       maxRows = ""+maxRows;
     }
     String scrollType = (String) searchCriteria.getParamValue("scrollType");
-    if(stringUtil.isEmpty(scrollType)){
+    if(StringUtils.isBlank(scrollType)){
       scrollType = "";
     }
 
@@ -1744,7 +1740,7 @@ public class LogsMgr extends MgrBase {
           + docList.get(0).getFieldValue(
           LogSearchConstants.SEQUNCE_ID);
       }
-      if (stringUtil.isEmpty(logTime)) {
+      if (StringUtils.isBlank(logTime)) {
         return convertObjToString(vSolrLogList);
       }
     } catch (SolrServerException | SolrException | IOException e) {
@@ -1874,10 +1870,10 @@ public class LogsMgr extends MgrBase {
     TimeZone gmtTimeZone = TimeZone.getTimeZone("GMT");
     GregorianCalendar utc = new GregorianCalendar(gmtTimeZone);
     utc.setTimeInMillis(new Date().getTime());
-    utc.set(GregorianCalendar.HOUR, 0);
-    utc.set(GregorianCalendar.MINUTE, 0);
-    utc.set(GregorianCalendar.MILLISECOND, 001);
-    utc.set(GregorianCalendar.SECOND, 0);
+    utc.set(Calendar.HOUR, 0);
+    utc.set(Calendar.MINUTE, 0);
+    utc.set(Calendar.MILLISECOND, 001);
+    utc.set(Calendar.SECOND, 0);
     dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
     String from = dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
     utc.set(Calendar.MILLISECOND, 999);
@@ -1889,7 +1885,7 @@ public class LogsMgr extends MgrBase {
         LogSearchConstants.LOGTIME, from,to);
     String level = LogSearchConstants.FATAL+","+LogSearchConstants.ERROR+","+LogSearchConstants.WARN;
     queryGenerator.setFilterClauseWithFieldName(solrQuery, level,
-        LogSearchConstants.SOLR_LEVEL, "", QueryGenerationBase.CONDITION.OR);
+        LogSearchConstants.SOLR_LEVEL, "", QueryGenerationBase.Condition.OR);
     try {
       serviceLogsSolrDao.process(solrQuery);
     } catch (SolrServerException | IOException e) {

@@ -27,12 +27,13 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.MgrBase;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 public class ConfigUtil {
-  static Logger logger = Logger.getLogger(MgrBase.class);
+  private static final Logger logger = Logger.getLogger(MgrBase.class);
 
   public static HashMap<String, String> serviceLogsColumnMapping = new HashMap<String, String>();
 
@@ -43,9 +44,7 @@ public class ConfigUtil {
     initializeColumnMapping();
   }
 
-  private static void intializeUISolrColumnMapping(
-    String columnMappingArray[],
-    HashMap<String, String> columnMappingMap) {
+  private static void intializeUISolrColumnMapping(String columnMappingArray[], HashMap<String, String> columnMappingMap) {
 
     if (columnMappingArray != null && columnMappingArray.length > 0) {
       for (String columnMapping : columnMappingArray) {
@@ -54,32 +53,24 @@ public class ConfigUtil {
           String solrField = mapping[0];
           String uiField = mapping[1];
           
-          columnMappingMap.put(solrField + LogSearchConstants.SOLR_SUFFIX,
-              uiField);
-          columnMappingMap.put(uiField + LogSearchConstants.UI_SUFFIX,
-              solrField);
+          columnMappingMap.put(solrField + LogSearchConstants.SOLR_SUFFIX, uiField);
+          columnMappingMap.put(uiField + LogSearchConstants.UI_SUFFIX, solrField);
         }
       }
     }
   }
   private static void initializeColumnMapping() {
-    String serviceLogsColumnMappingArray[] = PropertiesUtil
-      .getPropertyStringList("logsearch.solr.service.logs.column.mapping");
-    String auditLogsColumnMappingArray[] = PropertiesUtil
-      .getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
+    String serviceLogsColumnMappingArray[] = PropertiesUtil.getPropertyStringList("logsearch.solr.service.logs.column.mapping");
+    String auditLogsColumnMappingArray[] = PropertiesUtil.getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
 
     // Initializing column mapping for Service Logs
-    intializeUISolrColumnMapping(serviceLogsColumnMappingArray,
-      serviceLogsColumnMapping);
+    intializeUISolrColumnMapping(serviceLogsColumnMappingArray, serviceLogsColumnMapping);
 
     // Initializing column mapping for Audit Logs
-    intializeUISolrColumnMapping(auditLogsColumnMappingArray,
-      auditLogsColumnMapping);
+    intializeUISolrColumnMapping(auditLogsColumnMappingArray, auditLogsColumnMapping);
   }
 
-  
-  public static void extractSchemaFieldsName(String responseString,
-      HashMap<String, String> schemaFieldsNameMap,
+  public static void extractSchemaFieldsName(String responseString, HashMap<String, String> schemaFieldsNameMap,
       HashMap<String, String> schemaFieldTypeMap) {
     try {
       JSONObject jsonObject = new JSONObject(responseString);
@@ -118,17 +109,14 @@ public class ConfigUtil {
       schemaFieldsNameMap.putAll(_schemaFieldsNameMap);
       schemaFieldTypeMap.putAll(_schemaFieldTypeMap);
     } catch (Exception e) {
-      logger.error(e + "Credentials not specified in logsearch.properties "
-          + MessageEnums.ERROR_SYSTEM);
+      logger.error(e + "Credentials not specified in logsearch.properties " + MessageEnums.ERROR_SYSTEM);
     }
   }
 
   @SuppressWarnings("rawtypes")
-  public static void getSchemaFieldsName(String excludeArray[],
-      List<String> fieldNames, SolrDaoBase solrDaoBase) {
+  public static void getSchemaFieldsName(String excludeArray[], List<String> fieldNames, SolrDaoBase solrDaoBase) {
     if (!solrDaoBase.schemaFieldsNameMap.isEmpty()) {
-      Iterator iteratorSechmaFieldsName = solrDaoBase.schemaFieldsNameMap
-          .entrySet().iterator();
+      Iterator iteratorSechmaFieldsName = solrDaoBase.schemaFieldsNameMap.entrySet().iterator();
       while (iteratorSechmaFieldsName.hasNext()) {
         Map.Entry fieldName = (Map.Entry) iteratorSechmaFieldsName.next();
         String field = "" + fieldName.getKey();
@@ -140,7 +128,7 @@ public class ConfigUtil {
   }
 
   private static boolean isExclude(String name, String excludeArray[]) {
-    if (excludeArray != null && excludeArray.length > 0) {
+    if (!ArrayUtils.isEmpty(excludeArray)) {
       for (String exclude : excludeArray) {
         if (name.equals(exclude)){
           return true;

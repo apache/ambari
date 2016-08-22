@@ -24,7 +24,6 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Timer;
 
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.solr.metrics.SolrMetricsLoader;
@@ -45,7 +44,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
-
 
 public class LogSearch {
   private static final Logger logger = Logger.getLogger(LogSearch.class);
@@ -71,8 +69,7 @@ public class LogSearch {
  
   public static void main(String[] argv) {
     LogSearch logSearch = new LogSearch();
-    Timer timer = new Timer();
-    timer.schedule(new ManageStartEndTime(), 0, 40000);
+    ManageStartEndTime.manage();
     try {
       logSearch.run(argv);
     } catch (Throwable e) {
@@ -149,7 +146,7 @@ public class LogSearch {
   }
 
   private WebAppContext createBaseWebappContext() throws MalformedURLException {
-    URI webResourceBase = findWebResourceBase(LogSearch.class.getClassLoader());
+    URI webResourceBase = findWebResourceBase();
     WebAppContext context = new WebAppContext();
     context.setBaseResource(Resource.newResource(webResourceBase));
     context.setContextPath(ROOT_CONTEXT);
@@ -168,7 +165,7 @@ public class LogSearch {
     return context;
   }
 
-  private URI findWebResourceBase(ClassLoader classLoader) {
+  private URI findWebResourceBase() {
     URL fileCompleteUrl = Thread.currentThread().getContextClassLoader()
         .getResource(WEB_RESOURCE_FOLDER);
     if (fileCompleteUrl != null) {

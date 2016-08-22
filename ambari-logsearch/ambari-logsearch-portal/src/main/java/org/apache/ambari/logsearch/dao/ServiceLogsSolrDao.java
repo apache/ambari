@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
+import org.apache.ambari.logsearch.manager.MgrBase.LogType;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -29,10 +29,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServiceLogsSolrDao extends SolrDaoBase {
 
-  static private Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
+  private static final Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
   
   public ServiceLogsSolrDao() {
-    super(LOG_TYPE.SERVICE);
+    super(LogType.SERVICE);
   }
 
   @PostConstruct
@@ -40,27 +40,18 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
     logger.info("postConstructor() called.");
     String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
     String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",
-      "hadoop_logs");
-    String splitInterval = PropertiesUtil.getProperty(
-      "logsearch.service.logs.split.interval.mins", "none");
-    String configName = PropertiesUtil.getProperty(
-      "logsearch.solr.service.logs.config.name", "hadoop_logs");
-    int numberOfShards = PropertiesUtil.getIntProperty(
-      "logsearch.collection.service.logs.numshards", 1);
-    int replicationFactor = PropertiesUtil.getIntProperty(
-      "logsearch.collection.service.logs.replication.factor", 1);
+    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs", "hadoop_logs");
+    String splitInterval = PropertiesUtil.getProperty("logsearch.service.logs.split.interval.mins", "none");
+    String configName = PropertiesUtil.getProperty("logsearch.solr.service.logs.config.name", "hadoop_logs");
+    int numberOfShards = PropertiesUtil.getIntProperty("logsearch.collection.service.logs.numshards", 1);
+    int replicationFactor = PropertiesUtil.getIntProperty("logsearch.collection.service.logs.replication.factor", 1);
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
-      setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor,true);
+      setupCollections(splitInterval, configName, numberOfShards, replicationFactor, true);
     } catch (Exception e) {
-      logger.error(
-        "error while connecting to Solr for service logs : solrUrl="
-          + solrUrl + ", zkConnectString=" + zkConnectString
-          + ", collection=" + collection, e);
+      logger.error("error while connecting to Solr for service logs : solrUrl=" + solrUrl + ", zkConnectString=" +
+          zkConnectString + ", collection=" + collection, e);
     }
   }
-
 }

@@ -33,7 +33,6 @@ public class LogSearchConstants {
 
   // Application Constants
   public static final String HOST = "H";
-  public static final String SERVICE = "S";
   public static final String COMPONENT = "C";
   public static final String SCROLL_TYPE_AFTER = "after";
   public static final String SCROLL_TYPE_BEFORE = "before";
@@ -44,8 +43,6 @@ public class LogSearchConstants {
   public static final String VALUES = "jsons";
   public static final String FILTER_NAME = "filtername";
   public static final String ROW_TYPE = "rowtype";
-  public static final String USER_CONFIG_DASHBOARD = "dashboard";
-  public static final String USER_CONFIG_HISTORY = "history";
   public static final String COMPOSITE_KEY = "composite_filtername-username";
   public static final String SHARE_NAME_LIST = "share_username_list";
 
@@ -73,16 +70,10 @@ public class LogSearchConstants {
   public static final String MINUS_OPERATOR = "-";
   public static final String NO_OPERATOR = "";
 
-
   //operation
   public static final String EXCLUDE_QUERY = "excludeQuery";
   public static final String INCLUDE_QUERY = "includeQuery";
   public static final String COLUMN_QUERY = "columnQuery";
-
-  //URL PARAMS
-  public static final String GLOBAL_START_TIME = "globalStartTime";
-  public static final String GLOBAL_END_TIME = "globalEndTime";
-
 
   // Seprator's
   public static final String I_E_SEPRATOR = "\\|i\\:\\:e\\|";
@@ -128,7 +119,5 @@ public class LogSearchConstants {
   public static final String FACET_GROUP = "group";
   public static final String FACET_GROUP_MAIN = "group.main";
   public static final String FACET_GROUP_FIELD = "group.field"; 
-  public static final String FACET_LIMIT = "facet.limit";
   
-
 }

@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
-import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
+import org.apache.ambari.logsearch.manager.MgrBase.LogType;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
@@ -48,7 +48,7 @@ public class QueryGeneration extends QueryGenerationBase {
   private static Logger logger = Logger.getLogger(QueryGeneration.class);
 
   public SolrQuery commonServiceFilterQuery(SearchCriteria searchCriteria) {
-    LOG_TYPE logType = LOG_TYPE.SERVICE;
+    LogType logType = LogType.SERVICE;
     SolrQuery solrQuery = new SolrQuery();
     String treeParams = (String) searchCriteria.getParamValue("treeParams");
     String givenQuery = (String) searchCriteria.getParamValue("q");
@@ -59,19 +59,15 @@ public class QueryGeneration extends QueryGenerationBase {
     String eMessage = (String) searchCriteria.getParamValue("eMessage");
     String gEmessage = (String) searchCriteria.getParamValue("gEMessage");
     String selectedComp = (String) searchCriteria.getParamValue("selectComp");
-    String bundleId = (String) searchCriteria
-        .getParamValue(LogSearchConstants.BUNDLE_ID);
-    String globalExcludeComp = (String) searchCriteria
-        .getParamValue("gMustNot");
-    String unselectedComp = (String) searchCriteria
-        .getParamValue("unselectComp");
+    String bundleId = (String) searchCriteria.getParamValue(LogSearchConstants.BUNDLE_ID);
+    String globalExcludeComp = (String) searchCriteria.getParamValue("gMustNot");
+    String unselectedComp = (String) searchCriteria.getParamValue("unselectComp");
     String urlHostName = (String) searchCriteria.getParamValue("host_name");
-    String urlComponentName = (String) searchCriteria
-        .getParamValue("component_name");
+    String urlComponentName = (String) searchCriteria.getParamValue("component_name");
     String file_name = (String) searchCriteria.getParamValue("file_name");
     String advQuery = (String) searchCriteria.getParamValue("advanceSearch");
     // build advance query
-    if (!stringUtil.isEmpty(advQuery)) {
+    if (!StringUtils.isBlank(advQuery)) {
       String advQueryParameters[] = advQuery.split(Pattern.quote("}{"));
       SolrQuery advSolrQuery = new SolrQuery();
       for (String queryParam : advQueryParameters) {
@@ -79,25 +75,13 @@ public class QueryGeneration extends QueryGenerationBase {
         if (params != null && params.length > 1)
           advSolrQuery.setParam(params[0], params[1]);
       }
-      // Building and adding levels to filters
-      setFilterClauseWithFieldName(advSolrQuery, level,
-          LogSearchConstants.SOLR_LEVEL, "", CONDITION.OR);
+      setFilterClauseWithFieldName(advSolrQuery, level, LogSearchConstants.SOLR_LEVEL, "", Condition.OR);
+      setSingleRangeFilter(advSolrQuery, LogSearchConstants.LOGTIME, startTime, endTime);
+      setFilterClauseWithFieldName(advSolrQuery, unselectedComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
+          Condition.AND);
+      setFilterClauseWithFieldName(advSolrQuery, selectedComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.NO_OPERATOR,
+          Condition.OR);
 
-      // Adding Logtime to filters
-      setSingleRangeFilter(advSolrQuery, LogSearchConstants.LOGTIME, startTime,
-          endTime);
-
-      // Building and adding exlcude components to filters
-      setFilterClauseWithFieldName(advSolrQuery, unselectedComp,
-          LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
-          CONDITION.AND);
-
-      // Building and adding exlcude components to filters
-      setFilterClauseWithFieldName(advSolrQuery, selectedComp,
-          LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.NO_OPERATOR,
-          CONDITION.OR);
-
-      // Set Pagination
       setPagination(advSolrQuery, searchCriteria);
 
       return advSolrQuery;
@@ -105,140 +89,71 @@ public class QueryGeneration extends QueryGenerationBase {
 
     setMainQuery(solrQuery, givenQuery);
 
-    // Adding Logtime to filters
-    setSingleRangeFilter(solrQuery, LogSearchConstants.LOGTIME, startTime,
-        endTime);
+    setSingleRangeFilter(solrQuery, LogSearchConstants.LOGTIME, startTime, endTime);
+    addFilter(solrQuery, selectedComp, LogSearchConstants.SOLR_COMPONENT, Condition.OR);
+    addFilterQueryFromArray(solrQuery, treeParams, LogSearchConstants.SOLR_HOST, Condition.OR);
 
-    // String mainFilterQuery = buildQueryFromJSONCompHost(jsonHCNames,
-    // selectedComp);
+    setFilterClauseWithFieldName(solrQuery, level, LogSearchConstants.SOLR_LEVEL, LogSearchConstants.NO_OPERATOR, Condition.OR);
 
-    // if (mainFilterQuery != null && !mainFilterQuery.equals(""))
-    // solrQuery.addFilterQuery(mainFilterQuery);
+    setFilterClauseForSolrSearchableString(solrQuery, iMessage, Condition.OR, LogSearchConstants.NO_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
+    setFilterClauseForSolrSearchableString(solrQuery, gEmessage, Condition.AND, LogSearchConstants.MINUS_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
+    setFilterClauseForSolrSearchableString(solrQuery, eMessage, Condition.AND, LogSearchConstants.MINUS_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
 
-    // add component filter
-    addFilter(solrQuery, selectedComp, LogSearchConstants.SOLR_COMPONENT,
-        CONDITION.OR);
-
-    // add treeParams filter
-    // hosts comma separated list
-    addFilterQueryFromArray(solrQuery, treeParams,
-        LogSearchConstants.SOLR_HOST, CONDITION.OR);
-
-    // Building and adding levels to filters
-    setFilterClauseWithFieldName(solrQuery, level,
-        LogSearchConstants.SOLR_LEVEL, LogSearchConstants.NO_OPERATOR,
-        CONDITION.OR);
-
-    // Building and adding include string to filters
-    setFilterClauseForSolrSearchableString(solrQuery, iMessage, CONDITION.OR,
-        LogSearchConstants.NO_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
-
-    // Building and adding global exclude string to filters
-    setFilterClauseForSolrSearchableString(solrQuery, gEmessage, CONDITION.AND,
-        LogSearchConstants.MINUS_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
-
-    // Building and adding exclude string to filter
-    setFilterClauseForSolrSearchableString(solrQuery, eMessage, CONDITION.AND,
-        LogSearchConstants.MINUS_OPERATOR, LogSearchConstants.SOLR_KEY_LOG_MESSAGE);
-
-    // Building and adding logfile to filters
     applyLogFileFilter(solrQuery, searchCriteria);
 
-    // Building and adding exclude components to filters
-    setFilterClauseWithFieldName(solrQuery, globalExcludeComp,
-        LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
-        CONDITION.AND);
+    setFilterClauseWithFieldName(solrQuery, globalExcludeComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
+    setFilterClauseWithFieldName(solrQuery, unselectedComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
 
-    // Building and adding exlcude components to filters
-    setFilterClauseWithFieldName(solrQuery, unselectedComp,
-        LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
-        CONDITION.AND);
-
-    // Building and adding host names given url
-    // setFilterClauseWithFieldName(solrQuery, urlHostName,
-    // LogSearchConstants.SOLR_HOST,
-    // "", "OR");
     urlHostName = solrUtil.escapeQueryChars(urlHostName);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_HOST, urlHostName);
-    //
-    // //Building and addding component names given url
-    // setFilterClauseWithFieldName(solrQuery, urlComponents,
-    // LogSearchConstants.SOLR_COMPONENT,
-    // "", "OR");
     urlComponentName = solrUtil.escapeQueryChars(urlComponentName);
-    setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_COMPONENT,
-        urlComponentName);
+    setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_COMPONENT, urlComponentName);
 
-    // Set Pagination
     setPagination(solrQuery, searchCriteria);
-
-    // SetSort type (by default Descending)
     setSortOrderDefaultServiceLog(solrQuery, searchCriteria);
-
-    // Set Bundle Id
     setSingleIncludeFilter(solrQuery, LogSearchConstants.BUNDLE_ID, bundleId);
-
-    // Set filename
     file_name = solrUtil.escapeQueryChars(file_name);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_PATH, file_name);
-    // include query
-    this.setUserSpecificFilter(searchCriteria, solrQuery,
-        LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY,
-        logType);
-    // exclude query
-    this.setUserSpecificFilter(searchCriteria, solrQuery,
-        LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY,
-        logType);
+    setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY, logType);
+    setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY, logType);
+    
     return solrQuery;
   }
 
-  public void applyLogFileFilter(SolrQuery solrQuery,
-      SearchCriteria searchCriteria) {
+  public void applyLogFileFilter(SolrQuery solrQuery, SearchCriteria searchCriteria) {
     String hostLogFile = (String) searchCriteria.getParamValue("hostLogFile");
     String compLogFile = (String) searchCriteria.getParamValue("compLogFile");
     String givenQuery = (String) searchCriteria.getParamValue("q");
     String logfileQuery = "";
-    if (!stringUtil.isEmpty(hostLogFile) && !stringUtil.isEmpty(compLogFile)) {
-      logfileQuery = LogSearchConstants.SOLR_HOST + ":" + hostLogFile + " "
-          + CONDITION.AND + " " + LogSearchConstants.SOLR_COMPONENT + ":"
-          + compLogFile;
-      if (!stringUtil.isEmpty(givenQuery)) {
-        logfileQuery = "(" + givenQuery + ") " + CONDITION.AND + " ("
-            + logfileQuery + ")";
+    if (!StringUtils.isBlank(hostLogFile) && !StringUtils.isBlank(compLogFile)) {
+      logfileQuery = LogSearchConstants.SOLR_HOST + ":" + hostLogFile + " " + Condition.AND + " " +
+          LogSearchConstants.SOLR_COMPONENT + ":" + compLogFile;
+      if (!StringUtils.isBlank(givenQuery)) {
+        logfileQuery = "(" + givenQuery + ") " + Condition.AND + " (" + logfileQuery + ")";
       }
-      if (!stringUtil.isEmpty(logfileQuery)) {
+      if (!StringUtils.isBlank(logfileQuery)) {
         solrQuery.addFilterQuery(logfileQuery);
       }
     }
   }
 
-  public void setUserSpecificFilter(SearchCriteria searchCriteria,
-      SolrQuery solrQuery, String paramName, String operation, LOG_TYPE logType) {
+  private void setUserSpecificFilter(SearchCriteria searchCriteria, SolrQuery solrQuery, String paramName, String operation,
+      LogType logType) {
     String queryString = (String) searchCriteria.getParamValue(paramName);
-    String columnQuery = (String) searchCriteria
-        .getParamValue(LogSearchConstants.COLUMN_QUERY);
-    if (stringUtil.isEmpty(queryString)) {
+    String columnQuery = (String) searchCriteria.getParamValue(LogSearchConstants.COLUMN_QUERY);
+    if (StringUtils.isBlank(queryString)) {
       queryString = null;
     }
-    // if (!stringUtil.isEmpty(queryString) && "[]".equals(queryString)) {
-    // queryString = null;
-    // }
-    if (!stringUtil.isEmpty(columnQuery) && stringUtil.isEmpty(queryString)
-        && !paramName.equals(LogSearchConstants.EXCLUDE_QUERY)) {
+    if (!StringUtils.isBlank(columnQuery) && StringUtils.isBlank(queryString) && !paramName.equals(LogSearchConstants.EXCLUDE_QUERY)) {
       queryString = columnQuery;
     }
     List<String> conditionQuries = new ArrayList<String>();
     List<String> referalConditionQuries = new ArrayList<String>();
     List<String> elments = new ArrayList<String>();
-    // convert json to list of hashmap
-    List<HashMap<String, Object>> queryList = jsonUtil
-        .jsonToMapObjectList(queryString);
-    // null and size check
+    List<HashMap<String, Object>> queryList = jsonUtil.jsonToMapObjectList(queryString);
     if (queryList != null && queryList.size() > 0) {
-      if (!stringUtil.isEmpty(columnQuery) && !columnQuery.equals(queryString)
-          && !paramName.equals(LogSearchConstants.EXCLUDE_QUERY)) {
-        List<HashMap<String, Object>> columnQueryList = jsonUtil
-            .jsonToMapObjectList(columnQuery);
+      if (!StringUtils.isBlank(columnQuery) && !columnQuery.equals(queryString) && !paramName.equals(LogSearchConstants.EXCLUDE_QUERY)) {
+        List<HashMap<String, Object>> columnQueryList = jsonUtil.jsonToMapObjectList(columnQuery);
         if (columnQueryList != null && columnQueryList.size() > 0) {
           queryList.addAll(columnQueryList);
         }
@@ -248,12 +163,11 @@ public class QueryGeneration extends QueryGenerationBase {
         StringBuilder field = new StringBuilder();
         if (columnListMap != null) {
           for (String key : columnListMap.keySet()) {
-            if (!stringUtil.isEmpty(key)) {
+            if (!StringUtils.isBlank(key)) {
               String originalKey = getOriginalKey(key, logType);
-              String value = getOriginalValue(originalKey,
-                  "" + columnListMap.get(key));
+              String value = getOriginalValue(originalKey, "" + columnListMap.get(key));
               orQuery = putWildCardByType(value, originalKey, logType);
-              if (stringUtil.isEmpty(orQuery)) {
+              if (StringUtils.isBlank(orQuery)) {
                 logger.debug("Removing invalid filter for key :"+originalKey +" and value :" +value );
                 continue;
               }
@@ -264,8 +178,7 @@ public class QueryGeneration extends QueryGenerationBase {
               if (isSame && !operation.equals(LogSearchConstants.EXCLUDE_QUERY)) {
                 for (String tempCondition : conditionQuries) {
                   if (tempCondition.contains(originalKey)) {
-                    String newCondtion = tempCondition + " "
-                        + CONDITION.OR.name() + " " + orQuery;
+                    String newCondtion = tempCondition + " " + Condition.OR.name() + " " + orQuery;
                     referalConditionQuries.remove(tempCondition);
                     referalConditionQuries.add(newCondtion);
                   }
@@ -283,17 +196,16 @@ public class QueryGeneration extends QueryGenerationBase {
         }
       }
     }
-    if (!referalConditionQuries.isEmpty() && !stringUtil.isEmpty(operation)) {
-      if (operation.equals(LogSearchConstants.INCLUDE_QUERY)
-          || operation.equals(LogSearchConstants.COLUMN_QUERY)) {
+    if (!referalConditionQuries.isEmpty() && !StringUtils.isBlank(operation)) {
+      if (operation.equals(LogSearchConstants.INCLUDE_QUERY) || operation.equals(LogSearchConstants.COLUMN_QUERY)) {
         for (String filter : referalConditionQuries) {
-          if (!stringUtil.isEmpty(filter)) {
+          if (!StringUtils.isBlank(filter)) {
             solrQuery.addFilterQuery(filter);
           }
         }
       } else if (operation.equals(LogSearchConstants.EXCLUDE_QUERY)) {
         for (String filter : referalConditionQuries) {
-          if (!stringUtil.isEmpty(filter)) {
+          if (!StringUtils.isBlank(filter)) {
             filter = LogSearchConstants.MINUS_OPERATOR + filter;
             solrQuery.addFilterQuery(filter);
           }
@@ -303,40 +215,23 @@ public class QueryGeneration extends QueryGenerationBase {
   }
 
   public SolrQuery commonAuditFilterQuery(SearchCriteria searchCriteria) {
-    LOG_TYPE logType = LOG_TYPE.AUDIT;
+    LogType logType = LogType.AUDIT;
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
     String startTime = (String) searchCriteria.getParamValue("startTime");
     String endTime = (String) searchCriteria.getParamValue("endTime");
-    String selectedComp = (String) searchCriteria
-        .getParamValue("includeString");
-    this.setFilterClauseWithFieldName(solrQuery, selectedComp,
-        LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.NO_OPERATOR,
-        CONDITION.OR);
-    String globalExcludeComp = (String) searchCriteria
-        .getParamValue("gMustNot");
-    this.setUserSpecificFilter(searchCriteria, solrQuery,
-        LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY,
-        logType);
-    this.setUserSpecificFilter(searchCriteria, solrQuery,
-        LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY,
-        logType);
-    String unselectedComp = (String) searchCriteria
-        .getParamValue("unselectComp");
-    this.setFilterClauseWithFieldName(solrQuery, globalExcludeComp,
-        LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
-        CONDITION.AND);
-    // Building and adding exlcude components to filters
-    this.setFilterClauseWithFieldName(solrQuery, unselectedComp,
-        LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR,
-        CONDITION.AND);
-    // Adding Logtime to filters
-    this.setSingleRangeFilter(solrQuery, LogSearchConstants.AUDIT_EVTTIME,
-        startTime, endTime);
-    this.setPagination(solrQuery, searchCriteria);
+    String selectedComp = (String) searchCriteria.getParamValue("includeString");
+    setFilterClauseWithFieldName(solrQuery, selectedComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.NO_OPERATOR, Condition.OR);
+    String globalExcludeComp = (String) searchCriteria.getParamValue("gMustNot");
+    setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY, logType);
+    setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY, logType);
+    String unselectedComp = (String) searchCriteria.getParamValue("unselectComp");
+    setFilterClauseWithFieldName(solrQuery, globalExcludeComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
+    setFilterClauseWithFieldName(solrQuery, unselectedComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
+    setSingleRangeFilter(solrQuery, LogSearchConstants.AUDIT_EVTTIME, startTime, endTime);
+    setPagination(solrQuery, searchCriteria);
     try {
-      if (searchCriteria.getSortBy() == null
-          || searchCriteria.getSortBy().isEmpty()) {
+      if (searchCriteria.getSortBy() == null || searchCriteria.getSortBy().isEmpty()) {
         searchCriteria.setSortBy(LogSearchConstants.AUDIT_EVTTIME);
         searchCriteria.setSortType(SolrQuery.ORDER.desc.toString());
       }
@@ -344,11 +239,11 @@ public class QueryGeneration extends QueryGenerationBase {
       searchCriteria.setSortBy(LogSearchConstants.AUDIT_EVTTIME);
       searchCriteria.setSortType(SolrQuery.ORDER.desc.toString());
     }
-    this.setSortOrderDefaultServiceLog(solrQuery, searchCriteria);
+    setSortOrderDefaultServiceLog(solrQuery, searchCriteria);
     return solrQuery;
   }
 
-  private String putWildCardByType(String str, String key, LOG_TYPE logType) {
+  private String putWildCardByType(String str, String key, LogType logType) {
     String fieldType;
     SolrDaoBase solrDaoBase = null;
     switch (logType) {
@@ -368,10 +263,10 @@ public class QueryGeneration extends QueryGenerationBase {
       logger.error("Invalid logtype :" + logType);
       fieldType = null;
     }
-    if (!stringUtil.isEmpty(fieldType)) {
+    if (!StringUtils.isBlank(fieldType)) {
       if (solrUtil.isSolrFieldNumber(fieldType, solrDaoBase)) {
         String value = putEscapeCharacterForNumber(str, fieldType,solrDaoBase);
-        if (!stringUtil.isEmpty(value)) {
+        if (!StringUtils.isBlank(value)) {
           return key + ":" + value;
         } else {
           return null;
@@ -388,7 +283,7 @@ public class QueryGeneration extends QueryGenerationBase {
   }
 
   private String putEscapeCharacterForNumber(String str,String fieldType,SolrDaoBase solrDaoBase) {
-    if (!stringUtil.isEmpty(str)) {
+    if (!StringUtils.isBlank(str)) {
       str = str.replace("*", "");
     }
     String escapeCharSting = parseInputValueAsPerFieldType(str,fieldType,solrDaoBase);
@@ -420,28 +315,25 @@ public class QueryGeneration extends QueryGenerationBase {
 
   private String getOriginalValue(String name, String value) {
     String solrValue = PropertiesUtil.getProperty(name);
-    if (stringUtil.isEmpty(solrValue)) {
+    if (StringUtils.isBlank(solrValue)) {
       return value;
     }
     try {
-      String propertyFieldMappings[] = solrValue
-          .split(LogSearchConstants.LIST_SEPARATOR);
+      String propertyFieldMappings[] = solrValue.split(LogSearchConstants.LIST_SEPARATOR);
       if (propertyFieldMappings != null && propertyFieldMappings.length > 0) {
         HashMap<String, String> propertyFieldValue = new HashMap<String, String>();
         for (String temp : propertyFieldMappings) {
-          if (!stringUtil.isEmpty(temp)) {
+          if (!StringUtils.isBlank(temp)) {
             String arrayValue[] = temp.split(":");
             if (arrayValue.length > 1) {
-              propertyFieldValue.put(arrayValue[0].toLowerCase(Locale.ENGLISH),
-                  arrayValue[1].toLowerCase(Locale.ENGLISH));
+              propertyFieldValue.put(arrayValue[0].toLowerCase(Locale.ENGLISH), arrayValue[1].toLowerCase(Locale.ENGLISH));
             } else {
               logger.warn("array length is less than required length 1");
             }
           }
         }
-        String originalValue = propertyFieldValue.get(value
-            .toLowerCase(Locale.ENGLISH));
-        if (!stringUtil.isEmpty(originalValue)) {
+        String originalValue = propertyFieldValue.get(value.toLowerCase(Locale.ENGLISH));
+        if (!StringUtils.isBlank(originalValue)) {
           return originalValue;
         }
       }
@@ -451,35 +343,29 @@ public class QueryGeneration extends QueryGenerationBase {
     return value;
   }
 
-  private String getOriginalKey(String key, LOG_TYPE logType) {
+  private String getOriginalKey(String key, LogType logType) {
     String originalKey;
     switch (logType) {
     case AUDIT:
-      originalKey = ConfigUtil.auditLogsColumnMapping.get(key
-          + LogSearchConstants.UI_SUFFIX);
+      originalKey = ConfigUtil.auditLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
       break;
     case SERVICE:
-      originalKey = ConfigUtil.serviceLogsColumnMapping.get(key
-          + LogSearchConstants.UI_SUFFIX);
+      originalKey = ConfigUtil.serviceLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
       break;
     default:
       originalKey = null;
-      // set as null
     }
-    if (stringUtil.isEmpty(originalKey)) {
-      // return default values
+    if (StringUtils.isBlank(originalKey)) {
       return key;
     }
     return originalKey;
   }
   
-  public boolean checkTokenizer(String fieldType,Class tokenizerFactoryClass,SolrDaoBase solrDaoBase) {
+  private boolean checkTokenizer(String fieldType, Class tokenizerFactoryClass, SolrDaoBase solrDaoBase) {
     HashMap<String, Object> fieldTypeMap = solrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
-    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap
-        .get("analyzer");
+    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap.get("analyzer");
     if (analyzer != null) {
-      HashMap<String, Object> tokenizerMap = (HashMap<String, Object>) analyzer
-          .get("tokenizer");
+      HashMap<String, Object> tokenizerMap = (HashMap<String, Object>) analyzer.get("tokenizer");
       if (tokenizerMap != null) {
         String tokenizerClass = (String) tokenizerMap.get("class");
         if (!StringUtils.isEmpty(tokenizerClass)) {

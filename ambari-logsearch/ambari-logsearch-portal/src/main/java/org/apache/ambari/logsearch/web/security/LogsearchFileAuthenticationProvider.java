@@ -20,9 +20,9 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.Collection;
 
-import org.apache.ambari.logsearch.dao.UserDao;
-import org.apache.ambari.logsearch.util.StringUtil;
+import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,12 +40,6 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
   private static Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
 
   @Autowired
-  UserDao userDao;
-
-  @Autowired
-  StringUtil stringUtil;
-
-  @Autowired
   private UserDetailsService userDetailsService;
 
   @Override
@@ -56,10 +50,10 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
     }
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
-    if (stringUtil.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
-    if (stringUtil.isEmpty(password)) {
+    if (StringUtils.isBlank(password)) {
       throw new BadCredentialsException("Password can't be null or empty.");
     }
     // html unescape
@@ -76,7 +70,7 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
       throw new BadCredentialsException("Password can't be null or empty.");
     }
 
-    String encPassword = userDao.encryptPassword(username, password);
+    String encPassword = CommonUtil.encryptPassword(username, password);
     if (!encPassword.equals(user.getPassword())) {
       logger.error("Wrong password for user=" + username);
       throw new BadCredentialsException("Wrong password");

@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PublicMgr extends MgrBase {
   @Autowired
-  LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+  private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
 
   public String getGeneralConfig() {
     VNameValueList nameValueList = new VNameValueList();

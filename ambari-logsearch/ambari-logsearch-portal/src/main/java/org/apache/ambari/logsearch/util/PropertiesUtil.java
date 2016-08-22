@@ -34,9 +34,11 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
 public class PropertiesUtil extends PropertyPlaceholderConfigurer {
-  static Logger logger = Logger.getLogger(PropertiesUtil.class);
-  private static Map<String, String> propertiesMap;
+  private static final Logger logger = Logger.getLogger(PropertiesUtil.class);
+  
   private static final String LOGSEARCH_PROP_FILE="logsearch.properties";
+  
+  private static Map<String, String> propertiesMap;
 
   private PropertiesUtil() {
 
@@ -45,8 +47,7 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
  static {
     propertiesMap = new HashMap<String, String>();
     Properties properties = new Properties();
-    URL fileCompleteUrl = Thread.currentThread()
-        .getContextClassLoader().getResource(LOGSEARCH_PROP_FILE);
+    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(LOGSEARCH_PROP_FILE);
     FileInputStream fileInputStream = null;
     try {
       File file = new File(fileCompleteUrl.toURI());
@@ -69,9 +70,7 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
   }
 
   @Override
-  protected void processProperties(
-    ConfigurableListableBeanFactory beanFactory, Properties props)
-    throws BeansException {
+  protected void processProperties(ConfigurableListableBeanFactory beanFactory, Properties props) throws BeansException {
     super.processProperties(beanFactory, props);
 
     propertiesMap = new HashMap<String, String>();
@@ -80,8 +79,7 @@ public class PropertiesUtil extends PropertyPlaceholderConfigurer {
     Set<Object> keySet = System.getProperties().keySet();
     for (Object key : keySet) {
       String keyStr = key.toString();
-      propertiesMap.put(keyStr, System.getProperties()
-        .getProperty(keyStr).trim());
+      propertiesMap.put(keyStr, System.getProperties().getProperty(keyStr).trim());
     }
 
     // add our properties now

@@ -49,44 +49,35 @@ public class SearchCriteria {
 
   public SearchCriteria(HttpServletRequest request) {
     try {
-      if (request.getParameter("startIndex") != null
-        && (!request.getParameter("startIndex").isEmpty())) {
-        this.startIndex = new Integer(
-          request.getParameter("startIndex"));
+      if (request.getParameter("startIndex") != null && (!request.getParameter("startIndex").isEmpty())) {
+        this.startIndex = new Integer(request.getParameter("startIndex"));
       }
-      if (request.getParameter("page") != null
-        && (!request.getParameter("page").isEmpty())) {
+      if (request.getParameter("page") != null && (!request.getParameter("page").isEmpty())) {
         this.page = new Integer(request.getParameter("page"));
       }
-      if (request.getParameter("pageSize") != null
-        && (!request.getParameter("pageSize").isEmpty())) {
+      if (request.getParameter("pageSize") != null && (!request.getParameter("pageSize").isEmpty())) {
         this.maxRows = new Integer(request.getParameter("pageSize"));
       } else {
-        this.maxRows = PropertiesUtil.getIntProperty("db.maxResults",
-          50);
+        this.maxRows = PropertiesUtil.getIntProperty("db.maxResults", 50);
       }
     } catch (NumberFormatException e) {
       // do nothing
     }
 
     // Sort fields
-    if (request.getParameter("sortBy") != null
-      && (!request.getParameter("sortBy").isEmpty())) {
+    if (request.getParameter("sortBy") != null && (!request.getParameter("sortBy").isEmpty())) {
       this.sortBy = "" + request.getParameter("sortBy");
     }
-    if (request.getParameter("sortType") != null
-      && (!request.getParameter("sortType").isEmpty())) {
+    if (request.getParameter("sortType") != null && (!request.getParameter("sortType").isEmpty())) {
       this.sortType = "" + request.getParameter("sortType");
     }
 
     // url params
-    if (request.getParameter("start_time") != null
-      && (!request.getParameter("start_time").isEmpty())) {
+    if (request.getParameter("start_time") != null && (!request.getParameter("start_time").isEmpty())) {
       this.globalStartTime = "" + request.getParameter("start_time");
       this.urlParamMap.put("globalStartTime", request.getParameter("start_time"));
     }
-    if (request.getParameter("end_time") != null
-      && (!request.getParameter("end_time").isEmpty())) {
+    if (request.getParameter("end_time") != null && (!request.getParameter("end_time").isEmpty())) {
       this.globalEndTime = "" + request.getParameter("end_time");
       this.urlParamMap.put("globalEndTime", request.getParameter("end_time"));
     }
@@ -164,31 +155,24 @@ public class SearchCriteria {
   public void addRequiredServiceLogsParams(HttpServletRequest request) {
     this.addParam("advanceSearch", StringEscapeUtils.unescapeXml(request.getParameter("advanceSearch")));
     this.addParam("q", request.getParameter("q"));
-    this.addParam("treeParams", StringEscapeUtils
-      .unescapeHtml(request.getParameter("treeParams")));
+    this.addParam("treeParams", StringEscapeUtils.unescapeHtml(request.getParameter("treeParams")));
     this.addParam("level", request.getParameter("level"));
     this.addParam("gMustNot", request.getParameter("gMustNot"));
     this.addParam("from", request.getParameter("from"));
     this.addParam("to", request.getParameter("to"));
     this.addParam("selectComp", request.getParameter("mustBe"));
     this.addParam("unselectComp", request.getParameter("mustNot"));
-    this.addParam("iMessage", StringEscapeUtils.unescapeXml(request
-      .getParameter("iMessage")));
-    this.addParam("gEMessage", StringEscapeUtils
-      .unescapeXml(request.getParameter("gEMessage")));
-    this
-      .addParam("eMessage", StringEscapeUtils.unescapeXml(request
-        .getParameter("eMessage")));
+    this.addParam("iMessage", StringEscapeUtils.unescapeXml(request.getParameter("iMessage")));
+    this.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getParameter("gEMessage")));
+    this.addParam("eMessage", StringEscapeUtils.unescapeXml(request.getParameter("eMessage")));
     this.addParam(LogSearchConstants.BUNDLE_ID, request.getParameter(LogSearchConstants.BUNDLE_ID));
     this.addParam("host_name", request.getParameter("host_name"));
     this.addParam("component_name", request.getParameter("component_name"));
     this.addParam("file_name", request.getParameter("file_name"));
     this.addParam("startDate", request.getParameter("start_time"));
     this.addParam("endDate", request.getParameter("end_time"));
-    this.addParam("excludeQuery", StringEscapeUtils.unescapeXml(
-      request.getParameter("excludeQuery")));
-    this.addParam("includeQuery", StringEscapeUtils.unescapeXml(
-      request.getParameter("includeQuery")));
+    this.addParam("excludeQuery", StringEscapeUtils.unescapeXml(request.getParameter("excludeQuery")));
+    this.addParam("includeQuery", StringEscapeUtils.unescapeXml(request.getParameter("includeQuery")));
   }
 
   /**
@@ -196,20 +180,14 @@ public class SearchCriteria {
    */
   public void addRequiredAuditLogsParams(HttpServletRequest request) {
     this.addParam("q", request.getParameter("q"));
-    this.addParam("columnQuery", StringEscapeUtils
-      .unescapeXml(request.getParameter("columnQuery")));
-    this.addParam("iMessage", StringEscapeUtils.unescapeXml(request
-      .getParameter("iMessage")));
-    this.addParam("gEMessage", StringEscapeUtils
-      .unescapeXml(request.getParameter("gEMessage")));
-    this.addParam("eMessage", StringEscapeUtils.unescapeXml(request
-      .getParameter("eMessage")));
+    this.addParam("columnQuery", StringEscapeUtils.unescapeXml(request.getParameter("columnQuery")));
+    this.addParam("iMessage", StringEscapeUtils.unescapeXml(request.getParameter("iMessage")));
+    this.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getParameter("gEMessage")));
+    this.addParam("eMessage", StringEscapeUtils.unescapeXml(request.getParameter("eMessage")));
     this.addParam("includeString", request.getParameter("mustBe"));
     this.addParam("unselectComp", request.getParameter("mustNot"));
-    this.addParam("excludeQuery", StringEscapeUtils.unescapeXml(
-      request.getParameter("excludeQuery")));
-    this.addParam("includeQuery", StringEscapeUtils.unescapeXml(
-      request.getParameter("includeQuery")));
+    this.addParam("excludeQuery", StringEscapeUtils.unescapeXml(request.getParameter("excludeQuery")));
+    this.addParam("includeQuery", StringEscapeUtils.unescapeXml(request.getParameter("includeQuery")));
     this.addParam("startTime", request.getParameter("from"));
     this.addParam("endTime", request.getParameter("to"));
   }
@@ -220,9 +198,9 @@ public class SearchCriteria {
    */
   public void addParam(String name, Object value) {
     String solrValue = PropertiesUtil.getProperty(name);
-    if (solrValue == null || solrValue.isEmpty()){
+    if (solrValue == null || solrValue.isEmpty()) {
       paramList.put(name, value);
-    }else {
+    } else {
       try {
         String propertyFieldMappings[] = solrValue.split(",");
         HashMap<String, String> propertyFieldValue = new HashMap<String, String>();
@@ -250,14 +228,6 @@ public class SearchCriteria {
 
   public Object getParamValue(String name) {
     return paramList.get(name);
-  }
-
-  /**
-   * @param string
-   * @param caId
-   */
-  public Object removeParam(String name) {
-    return paramList.remove(name);
   }
 
   /**
