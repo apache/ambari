@@ -24,6 +24,8 @@ import java.util.List;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
+import org.apache.ambari.logsearch.dao.AuditSolrDao;
+import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.QueryBase;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -34,6 +36,7 @@ import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
+import com.sun.jersey.api.spring.Autowire;
 
 public abstract class QueryGenerationBase extends QueryBase {
 
@@ -47,6 +50,14 @@ public abstract class QueryGenerationBase extends QueryBase {
 
   @Autowired
   JSONUtil jsonUtil;
+  
+  @Autowired
+  AuditSolrDao auditSolrDao;
+  
+  @Autowired
+  ServiceLogsSolrDao serviceLogsSolrDao;
+  
+  
 
   public static enum CONDITION {
     OR, AND

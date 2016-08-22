@@ -20,10 +20,16 @@
 package org.apache.ambari.logsearch.util;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Locale;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.log4j.Logger;
+import org.apache.solr.schema.TrieDoubleField;
+import org.apache.solr.schema.TrieFloatField;
+import org.apache.solr.schema.TrieIntField;
+import org.apache.solr.schema.TrieLongField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +39,9 @@ public class SolrUtil {
   
   @Autowired
   StringUtil stringUtil;
+
+  @Autowired
+  JSONUtil jsonUtil;
 
   public String setField(String fieldName, String value) {
     if (value == null || value.trim().length() == 0) {
@@ -295,5 +304,50 @@ public class SolrUtil {
         "\\\\");
 
     return newSearch.replace(" ", "\\ ");
+  }
+  
+
+  public boolean isSolrFieldNumber(String fieldType,SolrDaoBase solrDaoBase) {
+    if (stringUtil.isEmpty(fieldType)) {
+      return false;
+    } else {
+      HashMap<String, Object> typeInfoMap = getFieldTypeInfoMap(fieldType,solrDaoBase);
+      if (typeInfoMap == null || typeInfoMap.isEmpty()) {
+        return false;
+      }
+      String fieldTypeClassName = (String) typeInfoMap.get("class");
+      if (fieldTypeClassName.equalsIgnoreCase(TrieIntField.class
+          .getSimpleName())) {
+        return true;
+      }
+      if (fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class
+          .getSimpleName())) {
+        return true;
+      }
+      if (fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class
+          .getSimpleName())) {
+        return true;
+      }
+      if (fieldTypeClassName.equalsIgnoreCase(TrieLongField.class
+          .getSimpleName())) {
+        return true;
+      }
+      return false;
+    }
+  }
+  
+  public HashMap<String, Object> getFieldTypeInfoMap(String fieldType,SolrDaoBase solrDaoBase) {
+    String fieldTypeMetaData = solrDaoBase.schemaFieldTypeMap.get(fieldType);
+    HashMap<String, Object> fieldTypeMap = jsonUtil
+        .jsonToMapObject(fieldTypeMetaData);
+    if (fieldTypeMap == null) {
+      return new HashMap<String, Object>();
+    }
+    String classname = (String) fieldTypeMap.get("class");
+    if (!stringUtil.isEmpty(classname)) {
+      classname = classname.replace("solr.", "");
+      fieldTypeMap.put("class", classname);
+    }
+    return fieldTypeMap;
   }
 }

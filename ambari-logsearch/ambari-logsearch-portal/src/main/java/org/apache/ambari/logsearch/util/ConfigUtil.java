@@ -23,9 +23,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.MgrBase;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
@@ -38,7 +38,6 @@ public class ConfigUtil {
 
   public static HashMap<String, String> auditLogsColumnMapping = new HashMap<String, String>();
 
-  public static HashMap<String, String> schemaFieldsName = new HashMap<String, String>();
 
   public static void initializeApplicationConfig() {
     initializeColumnMapping();
@@ -78,57 +77,63 @@ public class ConfigUtil {
       auditLogsColumnMapping);
   }
 
+  
   public static void extractSchemaFieldsName(String responseString,
-                                             String suffix) {
+      HashMap<String, String> schemaFieldsNameMap,
+      HashMap<String, String> schemaFieldTypeMap) {
     try {
       JSONObject jsonObject = new JSONObject(responseString);
-      JSONArray jsonArrayList = jsonObject.getJSONArray("fields");
-      
-      if(jsonArrayList == null){
+      JSONObject schemajsonObject = jsonObject.getJSONObject("schema");
+      JSONArray jsonArrayList = schemajsonObject.getJSONArray("fields");
+      JSONArray fieldTypeJsonArray = schemajsonObject
+          .getJSONArray("fieldTypes");
+      if (jsonArrayList == null) {
         return;
+      }
+      if (fieldTypeJsonArray == null) {
+        return;
+      }
+      HashMap<String, String> _schemaFieldTypeMap = new HashMap<String, String>();
+      HashMap<String, String> _schemaFieldsNameMap = new HashMap<String, String>();
+      for (int i = 0; i < fieldTypeJsonArray.length(); i++) {
+        JSONObject typeObject = fieldTypeJsonArray.getJSONObject(i);
+        String name = typeObject.getString("name");
+        String fieldTypeJson = typeObject.toString();
+        _schemaFieldTypeMap.put(name, fieldTypeJson);
       }
 
       for (int i = 0; i < jsonArrayList.length(); i++) {
         JSONObject explrObject = jsonArrayList.getJSONObject(i);
         String name = explrObject.getString("name");
         String type = explrObject.getString("type");
-
         if (!name.contains("@") && !name.startsWith("_")
-          && !name.contains("_md5") && !name.contains("_ms")
-          && !name.contains(LogSearchConstants.NGRAM_SUFFIX)
-          && !name.contains("tags") && !name.contains("_str")) {
-          schemaFieldsName.put(name + suffix, type);
+            && !name.contains("_md5") && !name.contains("_ms")
+            && !name.contains(LogSearchConstants.NGRAM_SUFFIX)
+            && !name.contains("tags") && !name.contains("_str")) {
+          _schemaFieldsNameMap.put(name, type);
         }
       }
-
+      schemaFieldsNameMap.clear();
+      schemaFieldTypeMap.clear();
+      schemaFieldsNameMap.putAll(_schemaFieldsNameMap);
+      schemaFieldTypeMap.putAll(_schemaFieldTypeMap);
     } catch (Exception e) {
-
       logger.error(e + "Credentials not specified in logsearch.properties "
-        + MessageEnums.ERROR_SYSTEM);
-
+          + MessageEnums.ERROR_SYSTEM);
     }
-
   }
 
   @SuppressWarnings("rawtypes")
-  public static void getSchemaFieldsName(String suffix, String excludeArray[],
-                                         List<String> fieldNames) {
-    if (!schemaFieldsName.isEmpty()) {
-      Iterator iteratorSechmaFieldsName = schemaFieldsName.entrySet()
-        .iterator();
-
+  public static void getSchemaFieldsName(String excludeArray[],
+      List<String> fieldNames, SolrDaoBase solrDaoBase) {
+    if (!solrDaoBase.schemaFieldsNameMap.isEmpty()) {
+      Iterator iteratorSechmaFieldsName = solrDaoBase.schemaFieldsNameMap
+          .entrySet().iterator();
       while (iteratorSechmaFieldsName.hasNext()) {
-
-        Map.Entry fieldName = (Map.Entry) iteratorSechmaFieldsName
-          .next();
+        Map.Entry fieldName = (Map.Entry) iteratorSechmaFieldsName.next();
         String field = "" + fieldName.getKey();
-
-        if (field.contains(suffix)) {
-          field = field.replace(suffix, "");
-          if (!isExclude(field, excludeArray)) {
-            fieldNames.add(field);
-          }
-
+        if (!isExclude(field, excludeArray)) {
+          fieldNames.add(field);
         }
       }
     }
@@ -144,5 +149,4 @@ public class ConfigUtil {
     }
     return false;
   }
-
 }

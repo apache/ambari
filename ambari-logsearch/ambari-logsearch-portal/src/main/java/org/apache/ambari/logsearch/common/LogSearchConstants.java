@@ -91,8 +91,6 @@ public class LogSearchConstants {
   public static final String UI_SUFFIX = "@UI@";
   public static final String SOLR_SUFFIX = "@Solr@";
   public static final String NGRAM_SUFFIX = "ngram_";
-  public static final String DEFAULT_SERVICE_COLUMN_SUFFIX = "service"; 
-  public static final String DEFAULT_AUDIT_COLUMN_SUFFIX = "audit";
 
   //Date Format for SOLR
   public static final String SOLR_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";
