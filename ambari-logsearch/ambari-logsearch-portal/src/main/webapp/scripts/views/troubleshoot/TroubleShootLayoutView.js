@@ -369,7 +369,8 @@ define(['backbone',
                                 ( (""+name).toUpperCase() === 'WARN') ? ("#FF8916") :
                                 ( (""+name).toUpperCase() === 'FATAL') ? ("#830A0A") :
                                 ( (""+name).toUpperCase() === 'DEBUG') ? ("#65E8FF") :
-                                ( (""+name).toUpperCase() === 'TRACE') ? ("#888888") : "")
+                                ( (""+name).toUpperCase() === 'TRACE') ? ("#888888") :
+                                ( (""+name).toUpperCase() === 'UNKNOWN') ? ("#bdbdbd") : "")
             			});
             			
             		}

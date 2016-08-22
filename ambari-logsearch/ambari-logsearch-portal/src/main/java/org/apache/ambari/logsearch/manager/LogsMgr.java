@@ -540,84 +540,25 @@ public class LogsMgr extends MgrBase {
     HashMap<String, String> map = new HashMap<String, String>();
     List<VNameValue> logsCounts = new ArrayList<VNameValue>();
     try {
-
       queryGenerator.setFacetField(query, LogSearchConstants.SOLR_LEVEL);
-
       List<Count> logLevelCounts = getFacetCounts(query,
-        LogSearchConstants.SOLR_LEVEL);
-      if(logLevelCounts == null){
+          LogSearchConstants.SOLR_LEVEL);
+      if (logLevelCounts == null) {
         return logsCounts;
       }
       for (Count count : logLevelCounts) {
         map.put(count.getName().toUpperCase(), "" + count.getCount());
       }
-      String level = LogSearchConstants.FATAL;
-      VNameValue nameValue = null;
-
-      String value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
+      for (String level : LogSearchConstants.SUPPORTED_LOG_LEVEL) {
+        VNameValue nameValue = new VNameValue();
+        String value = map.get(level);
+        if (stringUtil.isEmpty(value)) {
+          value = defalutValue;
+        }
+        nameValue.setName(level);
+        nameValue.setValue(value);
+        logsCounts.add(nameValue);
       }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
-      level = LogSearchConstants.ERROR;
-
-      value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
-      }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
-      level = LogSearchConstants.WARN;
-
-      value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
-      }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
-      level = LogSearchConstants.INFO;
-
-      value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
-      }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
-      level = LogSearchConstants.DEBUG;
-
-      value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
-      }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
-      level = LogSearchConstants.TRACE;
-
-      value = map.get(level);
-      if (stringUtil.isEmpty(value)){
-        value = defalutValue;
-      }
-      nameValue = new VNameValue();
-      nameValue.setName(level);
-      nameValue.setValue(value);
-      logsCounts.add(nameValue);
-
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + query, e);
     }
@@ -1260,7 +1201,6 @@ public class LogsMgr extends MgrBase {
     String unit = getUnit((String) searchCriteria.getParamValue("unit"));
 
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
-    List<String> logLevels = ConfigUtil.logLevels;
 
     String jsonHistogramQuery = queryGenerator
       .buildJSONFacetTermTimeRangeQuery(
@@ -1287,7 +1227,7 @@ public class LogsMgr extends MgrBase {
 
       Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
       List<VBarGraphData> graphDatas = new ArrayList<VBarGraphData>();
-      for (String level : logLevels) {
+      for (String level : LogSearchConstants.SUPPORTED_LOG_LEVEL) {
         boolean isLevelPresent = false;
         VBarGraphData vData1 = null;
         for (VBarGraphData vData2 : histogramData) {

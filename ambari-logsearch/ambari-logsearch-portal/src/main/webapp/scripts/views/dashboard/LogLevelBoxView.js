@@ -44,6 +44,7 @@ define(['require',
 			DEBUG : "[data-id='DEBUG']",
 			FATAL : "[data-id='FATAL']",
 			TRACE : "[data-id='TRACE']",
+			UNKNOWN : "[data-id='UNKNOWN']",
 			loader:".server-info .fa-spin"
 		},
 
@@ -80,7 +81,7 @@ define(['require',
 			}
 		},
 		fetchLogLevelCounts : function(params){
-			$.extend(this.logLevelList.queryParams,params,{level: "FATAL,ERROR,WARN,INFO,DEBUG,TRACE"});
+			$.extend(this.logLevelList.queryParams,params,{level: "FATAL,ERROR,WARN,INFO,DEBUG,TRACE,UNKNOWN"});
 			this.ui.loader.show();
 			this.logLevelList.fetch({reset:true});
 		},

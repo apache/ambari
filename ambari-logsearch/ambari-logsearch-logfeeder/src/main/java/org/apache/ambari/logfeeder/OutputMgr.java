@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.logconfig.filter.FilterLogData;
 import org.apache.ambari.logfeeder.output.Output;
 import org.apache.log4j.Level;
@@ -86,7 +87,11 @@ public class OutputMgr {
     if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
       jsonObj.put("ip", LogFeederUtil.ipAddress);
     }
-
+    
+    //Add level
+    if (jsonObj.get("level") == null) {
+      jsonObj.put("level", LogFeederConstants.LOG_LEVEL_UNKNOWN);
+    }
     if (input.isUseEventMD5() || input.isGenEventMD5()) {
       String prefix = "";
       Object logtimeObj = jsonObj.get("logtime");

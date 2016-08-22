@@ -255,7 +255,8 @@ define(['require',
                             (model.get('name') === 'WARN') ? ("#FF8916") :
                             (model.get('name') === 'FATAL') ? ("#830A0A") :
                             (model.get('name') === 'DEBUG') ? ("#65E8FF") :
-                            (model.get('name') === 'TRACE') ? ("#888888") : ("white"));
+                            (model.get('name') === 'TRACE') ? ("#888888") : 
+                            (model.get('name') === 'UNKNOWN') ? ("#bdbdbd") : ("white"));
                     } else {
                         Obj['color'] = color[i];
                     }

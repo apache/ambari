@@ -495,7 +495,7 @@ define(['require',
                         direction: "descending",
                         orderable: true,
                         displayOrder: 1,
-                        width: "10",
+                        width: "17",
                         className: "logTime",
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                             fromRaw: function(rawValue, model) {

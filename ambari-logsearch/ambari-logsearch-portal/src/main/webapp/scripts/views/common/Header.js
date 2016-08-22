@@ -172,7 +172,7 @@ define(['require',
                         content: view,
                         viewType: 'Filter',
                         resizable: false,
-                        width: 950,
+                        width: 1000,
                         height: 550,
                         autoFocus1stElement : false,
                         buttons: [{
