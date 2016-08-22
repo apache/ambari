@@ -279,8 +279,6 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   xa_audit_hdfs_is_enabled = default('/configurations/ranger-atlas-audit/xasecure.audit.destination.hdfs', False)
   enable_ranger_atlas = config['configurations']['ranger-atlas-plugin-properties']['ranger-atlas-plugin-enabled']
   enable_ranger_atlas = not is_empty(enable_ranger_atlas) and enable_ranger_atlas.lower() == 'yes'
-  enable_ranger_hbase = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']
-  enable_ranger_hbase = not is_empty(enable_ranger_hbase) and enable_ranger_hbase.lower() == 'yes'
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 
   downloaded_custom_connector = None
