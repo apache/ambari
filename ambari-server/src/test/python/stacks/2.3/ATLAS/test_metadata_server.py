@@ -322,6 +322,8 @@ class TestMetadataServer(RMFTestCase):
     self.configureResourcesCalled()
 
     self.assertResourceCalled('File', '/tmp/atlas_hbase_setup.rb',
+                              owner = "hbase",
+                              group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertNoMoreResources()
@@ -338,6 +340,8 @@ class TestMetadataServer(RMFTestCase):
     self.configureResourcesCalledSecure()
 
     self.assertResourceCalled('File', '/tmp/atlas_hbase_setup.rb',
+                              owner = "hbase",
+                              group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertNoMoreResources()
@@ -353,6 +357,8 @@ class TestMetadataServer(RMFTestCase):
     self.configureResourcesCalled()
 
     self.assertResourceCalled('File', '/tmp/atlas_hbase_setup.rb',
+                              owner = "hbase",
+                              group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertResourceCalled('Execute', 'source /etc/atlas/conf/atlas-env.sh ; /usr/hdp/current/atlas-server/bin/atlas_start.py',
