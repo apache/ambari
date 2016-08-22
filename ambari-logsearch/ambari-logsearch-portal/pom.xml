@@ -535,6 +535,27 @@
       <artifactId>solr-solrj</artifactId>
       <version>${solr.version}</version>
     </dependency>
+    <dependency>
+    <groupId>org.apache.solr</groupId>
+    <artifactId>solr-core</artifactId>
+    <version>${solr.version}</version>
+    <exclusions>
+      <exclusion>
+        <groupId>*</groupId>
+        <artifactId>*</artifactId>
+      </exclusion>
+    </exclusions>
+  </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>${solr.version}</version>
+    </dependency>
     <!-- Hadoop -->
     <dependency>
       <groupId>org.apache.hadoop</groupId>

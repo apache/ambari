@@ -468,12 +468,11 @@ public class AuditMgr extends MgrBase {
   }
 
   public String getAuditLogsSchemaFieldsName() {
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
     String excludeArray[] = PropertiesUtil
         .getPropertyStringList("logsearch.solr.audit.logs.exclude.columnlist");
     List<String> fieldNames = new ArrayList<String>();
     HashMap<String, String> uiFieldColumnMapping = new HashMap<String, String>();
-    ConfigUtil.getSchemaFieldsName(suffix, excludeArray, fieldNames);
+    ConfigUtil.getSchemaFieldsName(excludeArray, fieldNames,auditSolrDao);
 
     for (String fieldName : fieldNames) {
       String uiField = ConfigUtil.auditLogsColumnMapping.get(fieldName
@@ -492,15 +491,12 @@ public class AuditMgr extends MgrBase {
 
   public String getAnyGraphData(SearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.AUDIT_EVTTIME);
-    String suffix = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
-    searchCriteria.addParam("suffix", suffix);
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
     VBarDataList result = graphDataGenerator.getAnyGraphData(searchCriteria,
         auditSolrDao, solrQuery);
     if (result == null) {
       result = new VBarDataList();
     }
-
     return convertObjToString(result);
 
   }

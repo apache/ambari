@@ -192,6 +192,9 @@ public class UserDao {
    * @return
    */
   public String encryptPassword(String username, String password) {
+    if (!stringUtil.isEmpty(username)) {
+      username = username.toLowerCase();
+    }
     String saltEncodedpasswd = md5Encoder
       .encodePassword(password, username);
     return saltEncodedpasswd;

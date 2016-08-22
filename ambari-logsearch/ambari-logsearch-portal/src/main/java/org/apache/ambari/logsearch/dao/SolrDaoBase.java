@@ -22,10 +22,10 @@ package org.apache.ambari.logsearch.dao;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.apache.ambari.logsearch.common.LogsearchContextUtil;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
@@ -60,7 +60,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class SolrDaoBase {
   static private Logger logger = Logger.getLogger(SolrDaoBase.class);
-
+  
+  public HashMap<String, String> schemaFieldsNameMap = new HashMap<String, String>();
+  public HashMap<String, String> schemaFieldTypeMap = new HashMap<String, String>();
+  
   private static Logger logPerformance = Logger
     .getLogger("org.apache.ambari.logsearch.performance");
 
@@ -95,6 +98,7 @@ public abstract class SolrDaoBase {
   private boolean populateFieldsThreadActive = false;
 
   int SETUP_RETRY_SECOND = 30;
+  int SETUP_UPDATE_SECOND = 10*60; //10 min
   int ALIAS_SETUP_RETRY_SECOND = 30*60; //30 minutes
   
   private boolean isZkConnectString=false;//by default its false
@@ -599,17 +603,16 @@ public abstract class SolrDaoBase {
   }
 
   private void populateSchemaFields() {
-    boolean result = _populateSchemaFields();
-    if (!result && !populateFieldsThreadActive) {
+    if (!populateFieldsThreadActive) {
       populateFieldsThreadActive = true;
       logger.info("Creating thread to populated fields for collection="
-        + collectionName);
+          + collectionName);
       Thread fieldPopulationThread = new Thread("populated_fields_"
-        + collectionName) {
+          + collectionName) {
         @Override
         public void run() {
           logger.info("Started thread to get fields for collection="
-            + collectionName);
+              + collectionName);
           int retryCount = 0;
           while (true) {
             try {
@@ -617,27 +620,25 @@ public abstract class SolrDaoBase {
               retryCount++;
               boolean _result = _populateSchemaFields();
               if (_result) {
-                logger.info("Populate fields for collection "
-                  + collectionName + " is success");
-                break;
+                logger.info("Populate fields for collection " + collectionName
+                    + " is success, Update it after " + SETUP_UPDATE_SECOND
+                    + " sec");
+                Thread.sleep(SETUP_UPDATE_SECOND * 1000);
               }
             } catch (InterruptedException sleepInterrupted) {
-              logger.info("Sleep interrupted while populating fields for collection "
-                + collectionName);
+              logger
+                  .info("Sleep interrupted while populating fields for collection "
+                      + collectionName);
               break;
             } catch (Exception ex) {
               logger.error("Error while populating fields for collection "
-                + collectionName
-                + ", retryCount="
-                + retryCount);
-            } finally {
-              populateFieldsThreadActive = false;
+                  + collectionName + ", retryCount=" + retryCount);
             }
           }
+          populateFieldsThreadActive = false;
           logger.info("Exiting thread for populating fields. collection="
-            + collectionName);
+              + collectionName);
         }
-
       };
       fieldPopulationThread.setDaemon(true);
       fieldPopulationThread.start();
@@ -650,7 +651,7 @@ public abstract class SolrDaoBase {
   private boolean _populateSchemaFields() {
     SolrRequest<SchemaResponse> request = new SchemaRequest();
     request.setMethod(METHOD.GET);
-    request.setPath("/schema/fields");
+    request.setPath("/schema");
     String historyCollection = PropertiesUtil.getProperty("logsearch.solr.collection.history","history");
     if (solrClient != null && !collectionName.equals(historyCollection)) {
       NamedList<Object> namedList = null;
@@ -659,14 +660,13 @@ public abstract class SolrDaoBase {
         logger.info("populateSchemaFields() collection="
           + collectionName + ", fields=" + namedList);
       } catch (SolrException | SolrServerException | IOException e) {
-        
         logger.error(
           "Error occured while popuplating field. collection="
             + collectionName, e);
       }
       if (namedList != null) {
         ConfigUtil.extractSchemaFieldsName(namedList.toString(),
-          collectionName);
+          schemaFieldsNameMap,schemaFieldTypeMap);
         return true;
       }
     }

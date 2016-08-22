@@ -27,11 +27,19 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
+import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
+import org.apache.lucene.analysis.path.PathHierarchyTokenizerFactory;
+import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.schema.TrieDoubleField;
+import org.apache.solr.schema.TrieFloatField;
+import org.apache.solr.schema.TrieLongField;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -245,6 +253,10 @@ public class QueryGeneration extends QueryGenerationBase {
               String value = getOriginalValue(originalKey,
                   "" + columnListMap.get(key));
               orQuery = putWildCardByType(value, originalKey, logType);
+              if (stringUtil.isEmpty(orQuery)) {
+                logger.debug("Removing invalid filter for key :"+originalKey +" and value :" +value );
+                continue;
+              }
               boolean isSame = false;
               if (elments.contains(key)) {
                 isSame = true;
@@ -337,48 +349,72 @@ public class QueryGeneration extends QueryGenerationBase {
   }
 
   private String putWildCardByType(String str, String key, LOG_TYPE logType) {
-    String type;
+    String fieldType;
+    SolrDaoBase solrDaoBase = null;
     switch (logType) {
     case AUDIT:
-      String auditSuffix = PropertiesUtil
-          .getProperty("logsearch.solr.collection.audit.logs",LogSearchConstants.DEFAULT_AUDIT_COLUMN_SUFFIX);
-      type = ConfigUtil.schemaFieldsName.get(key + auditSuffix);
+      fieldType = auditSolrDao.schemaFieldsNameMap.get(key);
+      solrDaoBase = auditSolrDao;
       break;
     case SERVICE:
-      String serviceLogs = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs",LogSearchConstants.DEFAULT_SERVICE_COLUMN_SUFFIX);
-      type = ConfigUtil.schemaFieldsName.get(key + serviceLogs);
+      fieldType = serviceLogsSolrDao.schemaFieldsNameMap.get(key);
+      solrDaoBase = serviceLogsSolrDao;
       if (key.equalsIgnoreCase(LogSearchConstants.SOLR_LOG_MESSAGE)) {
         return solrUtil.escapeForLogMessage(key, str);
       }
       break;
     default:
       // set as null
-      type = null;
+      logger.error("Invalid logtype :" + logType);
+      fieldType = null;
     }
-    if (type == null) {
-      return key + ":" + "*" + str + "*";
-    } else if ("text_std_token_lower_case".equalsIgnoreCase(type)) {
-      return key + ":" + solrUtil.escapeForStandardTokenizer(str);
-    } else if ("key_lower_case".equalsIgnoreCase(type)
-        || "string".equalsIgnoreCase(type)) {
-      return key + ":" + solrUtil.makeSolrSearchStringWithoutAsterisk(str);
-    } else if ("ip_address".equalsIgnoreCase(type)) {
-      return key + ":" + str;
+    if (!stringUtil.isEmpty(fieldType)) {
+      if (solrUtil.isSolrFieldNumber(fieldType, solrDaoBase)) {
+        String value = putEscapeCharacterForNumber(str, fieldType,solrDaoBase);
+        if (!stringUtil.isEmpty(value)) {
+          return key + ":" + value;
+        } else {
+          return null;
+        }
+      } else if (checkTokenizer(fieldType, StandardTokenizerFactory.class,solrDaoBase)) {
+        return key + ":" + solrUtil.escapeForStandardTokenizer(str);
+      } else if (checkTokenizer(fieldType, KeywordTokenizerFactory.class,solrDaoBase)|| "string".equalsIgnoreCase(fieldType)) {
+        return key + ":" + solrUtil.makeSolrSearchStringWithoutAsterisk(str);
+      } else if (checkTokenizer(fieldType, PathHierarchyTokenizerFactory.class,solrDaoBase)) {
+        return key + ":" + str;
+      }
     }
-    return key + ":" + putEscapeCharacterForNumber(str);
+   return key + ":" + "*" + str + "*";
   }
 
-  private String putEscapeCharacterForNumber(String str) {
-    String escapeCharSting = "" + returnDefaultIfValueNotNumber(str);
-    escapeCharSting = str.replace("-", "\\-");
+  private String putEscapeCharacterForNumber(String str,String fieldType,SolrDaoBase solrDaoBase) {
+    if (!stringUtil.isEmpty(str)) {
+      str = str.replace("*", "");
+    }
+    String escapeCharSting = parseInputValueAsPerFieldType(str,fieldType,solrDaoBase);
+    if (escapeCharSting == null || escapeCharSting.isEmpty()) {
+      return null;
+    }
+    escapeCharSting = escapeCharSting.replace("-", "\\-");
     return escapeCharSting;
   }
 
-  private String returnDefaultIfValueNotNumber(String str) {
+  private String parseInputValueAsPerFieldType(String str,String fieldType,SolrDaoBase solrDaoBase ) {
     try {
-      return "" + Integer.parseInt(str);
+      HashMap<String, Object> fieldTypeInfoMap= solrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
+      String className = (String) fieldTypeInfoMap.get("class");
+      if( className.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())){
+        return ""+ Double.parseDouble(str);
+      }else if(className.equalsIgnoreCase(TrieFloatField.class.getSimpleName())){
+        return ""+ Float.parseFloat(str);
+      }else if(className.equalsIgnoreCase(TrieLongField.class.getSimpleName())){
+        return ""+ Long.parseLong(str);
+      }else {
+        return "" + Integer.parseInt(str);
+      }
     } catch (Exception e) {
-      return "0";
+      logger.debug("Invaid input str: " + str + " For fieldType :" + fieldType);
+      return null;
     }
   }
 
@@ -435,5 +471,26 @@ public class QueryGeneration extends QueryGenerationBase {
       return key;
     }
     return originalKey;
+  }
+  
+  public boolean checkTokenizer(String fieldType,Class tokenizerFactoryClass,SolrDaoBase solrDaoBase) {
+    HashMap<String, Object> fieldTypeMap = solrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
+    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap
+        .get("analyzer");
+    if (analyzer != null) {
+      HashMap<String, Object> tokenizerMap = (HashMap<String, Object>) analyzer
+          .get("tokenizer");
+      if (tokenizerMap != null) {
+        String tokenizerClass = (String) tokenizerMap.get("class");
+        if (!StringUtils.isEmpty(tokenizerClass)) {
+          tokenizerClass =tokenizerClass.replace("solr.", "");
+          if (tokenizerClass.equalsIgnoreCase(tokenizerFactoryClass
+              .getSimpleName())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 }

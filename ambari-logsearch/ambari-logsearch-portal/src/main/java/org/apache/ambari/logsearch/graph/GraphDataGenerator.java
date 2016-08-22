@@ -32,6 +32,7 @@ import org.apache.ambari.logsearch.query.QueryGeneration;
 import org.apache.ambari.logsearch.util.ConfigUtil;
 import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.ambari.logsearch.view.VBarDataList;
 import org.apache.ambari.logsearch.view.VBarGraphData;
@@ -45,8 +46,11 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.SimpleOrderedMap;
+import org.apache.solr.schema.TextField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+
 
 @Component
 public class GraphDataGenerator extends GraphDataGeneratorBase {
@@ -62,6 +66,9 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
 
   @Autowired
   DateUtil dateUtil;
+  
+  @Autowired
+  SolrUtil solrUtil;
 
   private static Logger logger = Logger.getLogger(GraphDataGenerator.class);
 
@@ -80,8 +87,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     String from = (String) searchCriteria.getParamValue("from");
     String to = (String) searchCriteria.getParamValue("to");
     String unit = (String) searchCriteria.getParamValue("unit");
-    String suffix = (String) searchCriteria.getParamValue("suffix");
-    String typeXAxis = ConfigUtil.schemaFieldsName.get(xAxisField + suffix);
+    String typeXAxis = solrDaoBase.schemaFieldsNameMap.get(xAxisField);
     typeXAxis = (stringUtil.isEmpty(typeXAxis)) ? "string" : typeXAxis;
 
     // Y axis credentials
@@ -102,8 +108,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
       return nonRangeStackGraph(xAxisField, yAxisField, stackField, from, to,
           solrDaoBase, typeXAxis, fieldTime, solrQuery);
     case RANGE_STACK_GRAPH:
-      return rangeStackGraph(xAxisField, yAxisField, stackField, from, to,
-          unit, solrDaoBase, typeXAxis, fieldTime, solrQuery);
+      return rangeStackGraph(xAxisField, stackField, from, to, unit, solrDaoBase, solrQuery);
     default:
       logger.warn("Invalid graph type :" + garphType.name());
       return null;
@@ -255,7 +260,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     queryGenerator.setMainQuery(solrQuery, mainQuery);
     queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     String jsonQuery = "";
-    if (isTypeNumber(typeXAxis)) {
+    if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       String function = (yAxisField.contains("count")) ? "sum" : yAxisField;
       jsonQuery = queryGenerator.buidlJSONFacetRangeQueryForNumber(stackField,
           xAxisField, function);
@@ -323,7 +328,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     VBarGraphData vBarGraphData = new VBarGraphData();
     Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
     queryGenerator.setMainQuery(solrQuery, null);
-    if (isTypeNumber(typeXAxis)) {
+    if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       queryGenerator.setSingleRangeFilter(solrQuery, fieldTime, from, to);
       return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase,
           typeXAxis, fieldTime, solrQuery);
@@ -363,9 +368,8 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
   }
 
   @SuppressWarnings("unchecked")
-  private VBarDataList rangeStackGraph(String xAxisField, String yAxisField,
-      String stackField, String from, String to, String unit,
-      SolrDaoBase solrDaoBase, String typeXAxis, String fieldTime,
+  private VBarDataList rangeStackGraph(String xAxisField, String stackField,
+      String from, String to, String unit, SolrDaoBase solrDaoBase,
       SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
