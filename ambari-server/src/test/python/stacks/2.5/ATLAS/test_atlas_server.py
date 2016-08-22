@@ -178,6 +178,8 @@ class TestAtlasServer(RMFTestCase):
     self.configureResourcesCalled()
 
     self.assertResourceCalled('File', '/tmp/atlas_hbase_setup.rb',
+                              owner = "hbase",
+                              group = "hadoop",
                               content=Template("atlas_hbase_setup.rb.j2"))
 
     self.assertNoMoreResources()

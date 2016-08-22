@@ -43,6 +43,9 @@
     "mahout-env": {
       "mahout_user": "mahout"
     },
+    "hbase-env": {
+      "hbase_user": "hbase"
+    },
     "yarn-env": {
       "yarn_user": "yarn"
     },
