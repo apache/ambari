@@ -261,7 +261,9 @@ p.log-line:before {
 .bubbleGraph .label,.node--root,.node--leaf {
   pointer-events: none;
 }
-
+.UNKNOWN {
+  fill: #bdbdbd;
+}
 .TRACE {
   fill: #888888;
 }
@@ -489,6 +491,9 @@ div.columnmanager-visibilitycontrol {
   height: 100%;
   float: left;
 }
+.node.UNKNOWN {
+  background-color: #bdbdbd;
+}
 
 .node.TRACE {
   background-color: #888888;
@@ -514,6 +519,9 @@ div.columnmanager-visibilitycontrol {
   background-color: #830A0A;
 }
 
+.label-UNKNOWN {
+  background-color: #bdbdbd;
+}
 .label-TRACE {
   background-color: #888888;
 }
@@ -589,6 +597,15 @@ div.columnmanager-visibilitycontrol {
   top: -3px;
   right: 0;
 }
+.server-info a.node.UNKNOWN {
+  border-color: #bdbdbd;
+  color: #bdbdbd;
+}
+
+.server-info a.node.UNKNOWN.active {
+  background-color: #bdbdbd;
+  color: #fff;
+}
 
 .server-info a.node.TRACE {
   border-color: #888888;
@@ -648,6 +665,9 @@ div.columnmanager-visibilitycontrol {
 .server-info a.node.FATAL.active {
   background-color: #830A0A;
   color: #fff;
+}
+.UNKNOWN {
+  color: #bdbdbd;
 }
 
 .TRACE {
@@ -2348,19 +2368,19 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 
 .logFeederTable {
-  width: 906px;
+  width: 965px;
   display: block;
 }
 
 .logFeederTable tbody {
   height: 365px;
   overflow-y: auto;
-  width: 906px;
+  width: 965px;
   display: block;
 }
 
 .logFeederTable th {
-  width: 90px;
+  width: 106px;
   border-left: 1px solid #CCC;
   border-right: 1px solid #CCC;
   border-top: 1px solid #CCC !important;
@@ -2376,7 +2396,7 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 
 .logFeederTable th:nth-child(2) {
-  width: 190px;
+  width: 165px;
   border-top: 1px solid #CCC !important;
   border-bottom: 1px solid #CCC !important;
 }
@@ -2391,12 +2411,12 @@ input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus
 }
 
 .logFeederTable td:first-of-type {
-  width: 269px;
+  width: 240px;
   padding: 0 10px;
 }
 
 .logFeederTable td:nth-child(2) {
-  width: 178px;
+  width: 135px;
   padding: 0 10px;
 }
 
@@ -2929,4 +2949,16 @@ button.defaultCancelBtn{
 }
 .comparisonTab .daterangepicker .ranges{
   float: right !important;
+}
+
+/*------------New Log Levels Tab CSS--------------*/
+.levelBox{
+  width: 13%;
+  margin: 0 .6%;
+  float: left;
+  position: relative;
+  min-height: 1px;
+}
+.levelBox:last-of-type{
+  clear : right;
 }

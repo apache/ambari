@@ -19,7 +19,6 @@
 
 package org.apache.ambari.logsearch.util;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -35,8 +34,6 @@ import org.codehaus.jettison.json.JSONObject;
 public class ConfigUtil {
   static Logger logger = Logger.getLogger(MgrBase.class);
 
-  public static List<String> logLevels = new ArrayList<String>();
-
   public static HashMap<String, String> serviceLogsColumnMapping = new HashMap<String, String>();
 
   public static HashMap<String, String> auditLogsColumnMapping = new HashMap<String, String>();
@@ -44,7 +41,6 @@ public class ConfigUtil {
   public static HashMap<String, String> schemaFieldsName = new HashMap<String, String>();
 
   public static void initializeApplicationConfig() {
-    intializeLogLevels();
     initializeColumnMapping();
   }
 
@@ -67,16 +63,6 @@ public class ConfigUtil {
       }
     }
   }
-
-  private static void intializeLogLevels() {
-    logLevels.add(LogSearchConstants.TRACE);
-    logLevels.add(LogSearchConstants.DEBUG);
-    logLevels.add(LogSearchConstants.INFO);
-    logLevels.add(LogSearchConstants.WARN);
-    logLevels.add(LogSearchConstants.ERROR);
-    logLevels.add(LogSearchConstants.FATAL);
-  }
-
   private static void initializeColumnMapping() {
     String serviceLogsColumnMappingArray[] = PropertiesUtil
       .getPropertyStringList("logsearch.solr.service.logs.column.mapping");

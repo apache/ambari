@@ -81,7 +81,7 @@ define(['require',
                 this.model = new VUserFilter();
 
                 this.levelCollection = new Backbone.Collection();
-                var levelArr = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"];
+                var levelArr = ["FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "UNKNOWN"];
 
                 for (var i in levelArr) {
                     this.levelCollection.add(new Backbone.Model({ type: levelArr[i] }));

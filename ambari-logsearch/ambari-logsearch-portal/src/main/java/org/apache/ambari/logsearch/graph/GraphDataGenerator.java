@@ -188,15 +188,8 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
           }
         }
         if (xAxisField.equalsIgnoreCase(LogSearchConstants.SOLR_LEVEL)) {
-          List<String> logLevels = new ArrayList<String>();
-          logLevels.add(LogSearchConstants.FATAL);
-          logLevels.add(LogSearchConstants.ERROR);
-          logLevels.add(LogSearchConstants.WARN);
-          logLevels.add(LogSearchConstants.INFO);
-          logLevels.add(LogSearchConstants.DEBUG);
-          logLevels.add(LogSearchConstants.TRACE);
           Collection<VNameValue> sortedVNameValues = new ArrayList<VNameValue>();
-          for (String level : logLevels) {
+          for (String level : LogSearchConstants.SUPPORTED_LOG_LEVEL) {
             VNameValue value = new VNameValue();
             value.setName(level);
             String val = "0";
@@ -292,17 +285,10 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
       if (LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(stackField)
           && LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(xAxisField)) {
         Collection<VBarGraphData> levelVGraphData = dataList.getGraphData();
-        List<String> logLevels = new ArrayList<String>();
-        logLevels.add(LogSearchConstants.FATAL);
-        logLevels.add(LogSearchConstants.ERROR);
-        logLevels.add(LogSearchConstants.WARN);
-        logLevels.add(LogSearchConstants.INFO);
-        logLevels.add(LogSearchConstants.DEBUG);
-        logLevels.add(LogSearchConstants.TRACE);
         for (VBarGraphData garphData : levelVGraphData) {
           Collection<VNameValue> valueList = garphData.getDataCount();
           Collection<VNameValue> valueListSorted = new ArrayList<VNameValue>();
-          for (String level : logLevels) {
+          for (String level : LogSearchConstants.SUPPORTED_LOG_LEVEL) {
             String val = "0";
             for (VNameValue value : valueList) {
               if (value.getName().equalsIgnoreCase(level)) {

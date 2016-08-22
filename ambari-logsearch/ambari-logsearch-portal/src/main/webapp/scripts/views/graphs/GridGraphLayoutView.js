@@ -203,7 +203,8 @@ define(['require',
                                    ( (""+model.get('name')).toUpperCase() === 'WARN') ? ("#FF8916") :
                                    ( (""+model.get('name')).toUpperCase() === 'FATAL') ? ("#830A0A") :
                                    ( (""+model.get('name')).toUpperCase() === 'DEBUG') ? ("#65E8FF") :
-                                   ( (""+model.get('name')).toUpperCase() === 'TRACE') ? ("#888888") : color[i]);
+                                   ( (""+model.get('name')).toUpperCase() === 'TRACE') ? ("#888888") :
+                                   ( (""+model.get('name')).toUpperCase() === 'UNKNOWN') ? ("#bdbdbd") : color[i]);
                            } else {
                                Obj['color'] = color[i];
                            }

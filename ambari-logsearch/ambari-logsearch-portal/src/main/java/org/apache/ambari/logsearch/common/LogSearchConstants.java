@@ -27,6 +27,9 @@ public class LogSearchConstants {
   public static final String ERROR = "ERROR";
   public static final String TRACE = "TRACE";
   public static final String FATAL = "FATAL";
+  public static final String UNKNOWN = "UNKNOWN";
+  
+  public static final String[] SUPPORTED_LOG_LEVEL ={FATAL,ERROR,WARN,INFO,DEBUG,TRACE,UNKNOWN};
 
   // Application Constants
   public static final String HOST = "H";
