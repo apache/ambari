@@ -1886,7 +1886,7 @@ public class LogsMgr extends MgrBase {
     String order1 = LogSearchConstants.LOGTIME + " "
       + LogSearchConstants.DESCENDING_ORDER;
     String order2 = LogSearchConstants.SEQUNCE_ID + " "
-      + LogSearchConstants.ASCENDING_ORDER;
+      + LogSearchConstants.DESCENDING_ORDER;
     List<String> sortOrder = new ArrayList<String>();
     sortOrder.add(order1);
     sortOrder.add(order2);
