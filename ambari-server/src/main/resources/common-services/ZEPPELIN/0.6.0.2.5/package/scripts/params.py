@@ -99,6 +99,7 @@ master_configs = config['clusterHostInfo']
 java64_home = config['hostLevelParams']['java_home']
 ambari_host = str(master_configs['ambari_server_host'][0])
 zeppelin_host = str(master_configs['zeppelin_master_hosts'][0])
+ui_ssl_enabled = config['configurations']['zeppelin-config']['zeppelin.ssl']
 
 # detect HS2 details, if installed
 
