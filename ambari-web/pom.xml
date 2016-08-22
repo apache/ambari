@@ -200,6 +200,32 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>gzip ambari-web images</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <apply executable="${executable.gzip}">
+                  <arg value="-f"/>
+                  <fileset dir="${basedir}/public/img/">
+                    <patternset>
+                      <include name="**/*.png"/>
+                    </patternset>
+                  </fileset>
+                </apply>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <groupId>org.apache.rat</groupId>
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
@@ -255,6 +281,7 @@
         <envClassifier>win</envClassifier>
         <dirsep>\</dirsep>
         <executable.brunch>cmd</executable.brunch>
+        <executable.gzip>${basedir}\gzip-content.cmd</executable.gzip>
         <args.brunch>/C brunch</args.brunch>
         <executable.mkdir>cmd</executable.mkdir>
         <args.mkdir>/C mkdir</args.mkdir>
@@ -278,6 +305,7 @@
         <envClassifier>linux</envClassifier>
         <dirsep>/</dirsep>
         <executable.brunch>brunch</executable.brunch>
+        <executable.gzip>gzip</executable.gzip>
         <args.brunch></args.brunch>
         <executable.mkdir>mkdir</executable.mkdir>
         <args.mkdir></args.mkdir>
