@@ -23,13 +23,16 @@ import akka.actor.ActorSystem;
 import akka.actor.Inbox;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
+import com.google.common.collect.Multimap;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
 import org.apache.ambari.view.hive2.actor.OperationController;
 import org.apache.ambari.view.hive2.internal.ConnectionSupplier;
 import org.apache.ambari.view.hive2.internal.DataStorageSupplier;
 import org.apache.ambari.view.hive2.internal.HdfsApiSupplier;
+import org.apache.ambari.view.hive2.internal.SafeViewContext;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,7 +42,7 @@ public class ConnectionSystem {
   private ActorSystem actorSystem = null;
   private static volatile ConnectionSystem instance = null;
   private static final Object lock = new Object();
-  private static Map<String, ActorRef> operationControllerMap = new ConcurrentHashMap<>();
+  private static Map<String, Map<String, ActorRef>> operationControllerMap = new ConcurrentHashMap<>();
 
   private ConnectionSystem() {
     this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);
@@ -71,27 +74,33 @@ public class ConnectionSystem {
   /**
    * Returns one operationController per View Instance
    *
-   * @param context
+   * @param viewContext
    * @return operationController Instance
    */
-  public ActorRef getOperationController(ViewContext context) {
+  public synchronized ActorRef getOperationController(ViewContext viewContext) {
+    SafeViewContext context = new SafeViewContext(viewContext);
     String instanceName = context.getInstanceName();
-    ActorRef ref = operationControllerMap.get(instanceName);
+    ActorRef ref = null;
+    Map<String, ActorRef> stringActorRefMap = operationControllerMap.get(instanceName);
+    if(stringActorRefMap != null) {
+      ref = stringActorRefMap.get(context.getUsername());
+    }
     if (ref == null) {
-      synchronized (lock) {
-        ref = operationControllerMap.get(instanceName);
-        if (ref == null) {
-          ref = createOperationController(context);
-          operationControllerMap.put(instanceName, ref);
-        }
+      ref = createOperationController(context);
+      if(stringActorRefMap == null) {
+        stringActorRefMap = new HashMap<>();
+        stringActorRefMap.put(context.getUsername(), ref);
+        operationControllerMap.put(instanceName, stringActorRefMap);
+      } else {
+        stringActorRefMap.put(context.getUsername(), ref);
       }
     }
     return ref;
   }
 
   public void removeOperationControllerFromCache(String viewInstanceName) {
-    ActorRef ref = operationControllerMap.remove(viewInstanceName);
-    if (ref != null) {
+    Map<String, ActorRef> refs = operationControllerMap.remove(viewInstanceName);
+    for (ActorRef ref : refs.values()) {
       Inbox inbox = Inbox.create(getActorSystem());
       inbox.send(ref, PoisonPill.getInstance());
     }
