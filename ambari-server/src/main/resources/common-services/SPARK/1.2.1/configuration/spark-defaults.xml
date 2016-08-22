@@ -38,6 +38,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>spark.executor.extraLibraryPath</name>
+    <value>{{spark_hadoop_lib_native}}</value>
+    <description>
+      Set a special library path to use when launching the executor JVM.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>spark.yarn.driver.memoryOverhead</name>
     <value>384</value>
     <description>
