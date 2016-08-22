@@ -329,7 +329,9 @@ hive_server2_authentication = config['configurations']['hive-site']['hive.server
 # ssl options
 hive_ssl = default('/configurations/hive-site/hive.server2.use.SSL', False)
 hive_ssl_keystore_path = default('/configurations/hive-site/hive.server2.keystore.path', None)
+hive_interactive_ssl_keystore_path = default('/configurations/hive-interactive-site/hive.server2.keystore.path', None)
 hive_ssl_keystore_password = default('/configurations/hive-site/hive.server2.keystore.password', None)
+hive_interactive_ssl_keystore_password = default('/configurations/hive-interactive-site/hive.server2.keystore.password', None)
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")
