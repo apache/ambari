@@ -343,13 +343,13 @@ public class JdbcConnector extends HiveActor {
 
   public boolean checkConnection() {
     if (connectable == null) {
-      notifyConnectFailure();
+      notifyConnectFailure(new SQLException("Hive connection is not created"));
       return false;
     }
 
     Optional<HiveConnection> connectionOptional = connectable.getConnection();
     if (!connectionOptional.isPresent()) {
-      notifyConnectFailure();
+      notifyConnectFailure(new SQLException("Hive connection is not created"));
       return false;
     }
     return true;
@@ -375,10 +375,10 @@ public class JdbcConnector extends HiveActor {
     return executionType == HiveJob.Type.ASYNC;
   }
 
-  private void notifyConnectFailure() {
+  private void notifyConnectFailure(Exception ex) {
     executing = false;
     isFailure = true;
-    this.failure = new Failure("Cannot connect to hive", new SQLException("Cannot connect to hive"));
+    this.failure = new Failure("Cannot connect to hive", ex);
     if (isAsync()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
     } else {
@@ -416,9 +416,10 @@ public class JdbcConnector extends HiveActor {
         connectable.connect();
       }
     } catch (ConnectionException e) {
+      LOG.error("Failed to create a hive connection. {}", e);
       // set up job failure
       // notify parent about job failure
-      notifyConnectFailure();
+      notifyConnectFailure(e);
       return;
     }
     startTerminateInactivityScheduler();
@@ -568,6 +569,7 @@ public class JdbcConnector extends HiveActor {
     failure = null;
     resultSetIterator = null;
     isCancelCalled = false;
+    statementQueue = new ArrayDeque<>();
   }
 
   @Override
