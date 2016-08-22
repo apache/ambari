@@ -32,6 +32,7 @@ import org.apache.ambari.logsearch.view.VLogFile;
 import org.apache.ambari.logsearch.view.VLogFileList;
 import org.apache.ambari.logsearch.view.VSolrLogList;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -46,24 +47,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class LogFileMgr extends MgrBase {
 
-  private static Logger logger = Logger.getLogger(LogFileMgr.class);
-
-
-  @Autowired
-  ServiceLogsSolrDao serviceLogsSolrDao;
+  private static final Logger logger = Logger.getLogger(LogFileMgr.class);
 
   @Autowired
-  AuditSolrDao auditSolrDao;
-
+  private ServiceLogsSolrDao serviceLogsSolrDao;
   @Autowired
-  LogsMgr logMgr;
+  private AuditSolrDao auditSolrDao;
 
-  /**
-   * Search logFiles
-   *
-   * @param searchCriteria
-   * @return
-   */
   public String searchLogFiles(SearchCriteria searchCriteria) {
     VLogFileList logFileList = new VLogFileList();
     List<VLogFile> logFiles = new ArrayList<VLogFile>();
@@ -72,31 +62,26 @@ public class LogFileMgr extends MgrBase {
     int minCount = 1;// to remove zero count facet
     SolrQuery solrQuery = new SolrQuery();
     queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetFieldWithMincount(solrQuery, LogSearchConstants.SOLR_PATH,
-        minCount);
+    queryGenerator.setFacetFieldWithMincount(solrQuery, LogSearchConstants.SOLR_PATH, minCount);
     // adding filter
-    queryGenerator.setSingleIncludeFilter(solrQuery,
-        LogSearchConstants.SOLR_COMPONENT, componentName);
-    queryGenerator.setSingleIncludeFilter(solrQuery,
-        LogSearchConstants.SOLR_HOST, host);
+    queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_COMPONENT, componentName);
+    queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_HOST, host);
     try {
       String logType = (String) searchCriteria.getParamValue("logType");
-      if (stringUtil.isEmpty(logType)) {
-        logType = LOG_TYPE.SERVICE.name();// default is service Log
+      if (StringUtils.isBlank(logType)) {
+        logType = LogType.SERVICE.name();// default is service Log
       }
       SolrDaoBase daoMgr = null;
-      if (logType.equalsIgnoreCase(LOG_TYPE.SERVICE.name())) {
+      if (logType.equalsIgnoreCase(LogType.SERVICE.name())) {
         daoMgr = serviceLogsSolrDao;
-      } else if (logType.equalsIgnoreCase(LOG_TYPE.AUDIT.name())) {
+      } else if (logType.equalsIgnoreCase(LogType.AUDIT.name())) {
         daoMgr = auditSolrDao;
       } else {
-        throw restErrorUtil.createRESTException(logType
-            + " is not a valid logType", MessageEnums.INVALID_INPUT_DATA);
+        throw restErrorUtil.createRESTException(logType + " is not a valid logType", MessageEnums.INVALID_INPUT_DATA);
       }
       QueryResponse queryResponse = daoMgr.process(solrQuery);
       if (queryResponse.getFacetField(LogSearchConstants.SOLR_PATH) != null) {
-        FacetField queryFacetField = queryResponse
-            .getFacetField(LogSearchConstants.SOLR_PATH);
+        FacetField queryFacetField = queryResponse.getFacetField(LogSearchConstants.SOLR_PATH);
         if (queryFacetField != null) {
           List<Count> countList = queryFacetField.getValues();
           for (Count count : countList) {
@@ -110,10 +95,8 @@ public class LogFileMgr extends MgrBase {
         }
       }
     } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error in solr query  :" + e.getLocalizedMessage()
-          + "\n Query :" + solrQuery.toQueryString(), e.getCause());
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
-          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      logger.error("Error in solr query  :" + e.getLocalizedMessage() + "\n Query :" + solrQuery.toQueryString(), e.getCause());
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     logFileList.setLogFiles(logFiles);
     String jsonStr = "";
@@ -127,28 +110,22 @@ public class LogFileMgr extends MgrBase {
     String logFile = (String) searchCriteria.getParamValue("name");
     String component = (String) searchCriteria.getParamValue("component");
     String tailSize = (String) searchCriteria.getParamValue("tailSize");
-    if (stringUtil.isEmpty(host)) {
-      throw restErrorUtil.createRESTException("missing Host Name",
-        MessageEnums.ERROR_SYSTEM);
+    if (StringUtils.isBlank(host)) {
+      throw restErrorUtil.createRESTException("missing Host Name", MessageEnums.ERROR_SYSTEM);
     }
-    tailSize = (stringUtil.isEmpty(tailSize)) ? "10" : tailSize;
+    tailSize = (StringUtils.isBlank(tailSize)) ? "10" : tailSize;
     SolrQuery logFileTailQuery = new SolrQuery();
     try {
       int tail = Integer.parseInt(tailSize);
       tail = tail > 100 ? 100 : tail;
       queryGenerator.setMainQuery(logFileTailQuery, null);
-      queryGenerator.setSingleIncludeFilter(logFileTailQuery,
-        LogSearchConstants.SOLR_HOST, host);
-      if (!stringUtil.isEmpty(logFile)) {
-        queryGenerator.setSingleIncludeFilter(logFileTailQuery,
-          LogSearchConstants.SOLR_PATH,
-          solrUtil.makeSolrSearchString(logFile));
-      } else if (!stringUtil.isEmpty(component)) {
-        queryGenerator.setSingleIncludeFilter(logFileTailQuery,
-          LogSearchConstants.SOLR_COMPONENT, component);
+      queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_HOST, host);
+      if (!StringUtils.isBlank(logFile)) {
+        queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_PATH, solrUtil.makeSolrSearchString(logFile));
+      } else if (!StringUtils.isBlank(component)) {
+        queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_COMPONENT, component);
       } else {
-        throw restErrorUtil.createRESTException("component or logfile parameter must be present",
-          MessageEnums.ERROR_SYSTEM);
+        throw restErrorUtil.createRESTException("component or logfile parameter must be present", MessageEnums.ERROR_SYSTEM);
       }
 
       queryGenerator.setRowCount(logFileTailQuery, tail);

@@ -18,11 +18,10 @@
  */
 package org.apache.ambari.logsearch.web.security;
 
-import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,9 +33,6 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
 
   private static Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
 
-  @Autowired
-  StringUtil stringUtil;
-
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     if (!this.isEnable()) {
@@ -46,7 +42,7 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     username = StringEscapeUtils.unescapeHtml(username);
-    if (stringUtil.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
     User user = new User();

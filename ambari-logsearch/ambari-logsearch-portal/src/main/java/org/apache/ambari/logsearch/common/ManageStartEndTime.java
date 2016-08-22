@@ -20,54 +20,36 @@
 package org.apache.ambari.logsearch.common;
 
 import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.lang.time.DateUtils;
 
 public class ManageStartEndTime extends TimerTask {
-  static Logger logger = Logger.getLogger(ManageStartEndTime.class);
+  private static final int UPDATE_TIME_IN_SECONDS = 40;
 
-  public static Date startDate = new Date();
-
-  public static Date endDate = new Date();
-
-  public ManageStartEndTime() {
-    intailizeStartEndTime();
+  private static Date startDate;
+  private static Date endDate;
+  
+  public static void manage() {
+    Timer timer = new Timer();
+    timer.schedule(new ManageStartEndTime(), 0, UPDATE_TIME_IN_SECONDS * 1000);
+  }
+  
+  private ManageStartEndTime() {
+    endDate = new Date();
+    startDate = DateUtils.addHours(endDate, -1);
   }
 
   @Override
-  public void run() {
-    if (startDate == null){
-      intailizeStartEndTime();
-    }else{
-      adjustStartEndTime();
+  public synchronized void run() {
+    synchronized (ManageStartEndTime.class) {
+      startDate = DateUtils.addSeconds(startDate, UPDATE_TIME_IN_SECONDS);
+      endDate = DateUtils.addHours(startDate, 1);
     }
   }
 
-  private void adjustStartEndTime() {
-    startDate = addSecondsToDate(startDate, 40);
-    endDate = addHoursToDate(startDate, 1);
+  public static synchronized Date[] getStartEndTime() {
+    return new Date[] {startDate, endDate};
   }
-
-  private Date addSecondsToDate(Date date, int i) {
-    GregorianCalendar greorianCalendar = new GregorianCalendar();
-    greorianCalendar.setTime(date);
-    greorianCalendar.add(GregorianCalendar.SECOND, i);
-    return greorianCalendar.getTime();
-  }
-
-  private Date addHoursToDate(Date date, int i) {
-    GregorianCalendar greorianCalendar = new GregorianCalendar();
-    greorianCalendar.setTime(date);
-    greorianCalendar.add(GregorianCalendar.HOUR_OF_DAY, i);
-    return greorianCalendar.getTime();
-  }
-
-  private void intailizeStartEndTime() {
-
-    endDate = new Date();
-    startDate = addHoursToDate(endDate, -1);
-  }
-
 }

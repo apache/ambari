@@ -16,31 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.ambari.logsearch.common;
 
-import java.io.Serializable;
+import java.util.Date;
 
-import org.apache.ambari.logsearch.web.model.User;
+import org.junit.Assert;
+import org.junit.Test;
 
-public class UserSessionInfo implements Serializable {
+public class ManageStartEndTimeTest {
 
-  private static final long serialVersionUID = 1L;
-
-  private User user;
-
-  public User getUser() {
-    return user;
+  @Test
+  public void testManageStartEndTime() {
+    ManageStartEndTime.manage();
+    Date[] range = ManageStartEndTime.getStartEndTime();
+    Assert.assertEquals(range[1].getTime() - range[0].getTime(), 60*60*1000);
   }
-
-  public void setUser(User user) {
-    this.user = user;
-  }
-
-  public String getUsername() {
-    if (user != null) {
-      return user.getUsername();
-    }
-    return null;
-  }
-
 }

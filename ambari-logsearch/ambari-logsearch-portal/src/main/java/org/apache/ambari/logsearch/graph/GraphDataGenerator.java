@@ -29,14 +29,12 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.query.QueryGeneration;
-import org.apache.ambari.logsearch.util.ConfigUtil;
-import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
-import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.ambari.logsearch.view.VBarDataList;
 import org.apache.ambari.logsearch.view.VBarGraphData;
 import org.apache.ambari.logsearch.view.VNameValue;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -46,7 +44,6 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.apache.solr.schema.TextField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,32 +52,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class GraphDataGenerator extends GraphDataGeneratorBase {
 
-  @Autowired
-  StringUtil stringUtil;
+  private static final Logger logger = Logger.getLogger(GraphDataGenerator.class);
 
   @Autowired
-  QueryGeneration queryGenerator;
-
+  private QueryGeneration queryGenerator;
   @Autowired
-  RESTErrorUtil restErrorUtil;
-
+  private RESTErrorUtil restErrorUtil;
   @Autowired
-  DateUtil dateUtil;
-  
-  @Autowired
-  SolrUtil solrUtil;
+  private SolrUtil solrUtil;
 
-  private static Logger logger = Logger.getLogger(GraphDataGenerator.class);
-
-  /**
-   *
-   * @param searchCriteria
-   * @param solrDaoBase
-   * @param solrQuery
-   * @return
-   */
-  public VBarDataList getAnyGraphData(SearchCriteria searchCriteria,
-      SolrDaoBase solrDaoBase, SolrQuery solrQuery) {
+  public VBarDataList getAnyGraphData(SearchCriteria searchCriteria, SolrDaoBase solrDaoBase, SolrQuery solrQuery) {
     // X axis credentials
     String xAxisField = (String) searchCriteria.getParamValue("xAxis");
     String stackField = (String) searchCriteria.getParamValue("stackBy");
@@ -88,7 +69,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     String to = (String) searchCriteria.getParamValue("to");
     String unit = (String) searchCriteria.getParamValue("unit");
     String typeXAxis = solrDaoBase.schemaFieldsNameMap.get(xAxisField);
-    typeXAxis = (stringUtil.isEmpty(typeXAxis)) ? "string" : typeXAxis;
+    typeXAxis = (StringUtils.isBlank(typeXAxis)) ? "string" : typeXAxis;
 
     // Y axis credentials
     String yAxisField = (String) searchCriteria.getParamValue("yAxis");
@@ -96,17 +77,14 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     searchCriteria.addParam("type", typeXAxis);
     String fieldTime = (String) searchCriteria.getParamValue("fieldTime");
     // decide graph type based on user request parameter
-    GRAPH_TYPE garphType = getGraphType(searchCriteria);
+    GraphType garphType = getGraphType(searchCriteria);
     switch (garphType) {
     case NORMAL_GRAPH:
-      return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase,
-          typeXAxis, fieldTime, solrQuery);
+      return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase, typeXAxis, fieldTime, solrQuery);
     case RANGE_NON_STACK_GRAPH:
-      return rangeNonStackGraph(xAxisField, yAxisField, from, to, unit,
-          solrDaoBase, typeXAxis, fieldTime, solrQuery);
+      return rangeNonStackGraph(xAxisField, yAxisField, from, to, unit, solrDaoBase, typeXAxis, fieldTime, solrQuery);
     case NON_RANGE_STACK_GRAPH:
-      return nonRangeStackGraph(xAxisField, yAxisField, stackField, from, to,
-          solrDaoBase, typeXAxis, fieldTime, solrQuery);
+      return nonRangeStackGraph(xAxisField, yAxisField, stackField, from, to, solrDaoBase, typeXAxis, fieldTime, solrQuery);
     case RANGE_STACK_GRAPH:
       return rangeStackGraph(xAxisField, stackField, from, to, unit, solrDaoBase, solrQuery);
     default:
@@ -115,9 +93,9 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     }
   }
 
-  private GRAPH_TYPE getGraphType(SearchCriteria searchCriteria) {
+  private GraphType getGraphType(SearchCriteria searchCriteria) {
     // default graph type is unknown
-    GRAPH_TYPE graphType = GRAPH_TYPE.UNKNOWN;
+    GraphType graphType = GraphType.UNKNOWN;
     // X axis credentials
     String xAxisField = (String) searchCriteria.getParamValue("xAxis");
     String stackField = (String) searchCriteria.getParamValue("stackBy");
@@ -127,46 +105,35 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     if (xType != null) {
       // Y axis credentials
       String yAxisField = (String) searchCriteria.getParamValue("yAxis");
-      if (stringUtil.isEmpty(xAxisField) || stringUtil.isEmpty(yAxisField)) {
-        graphType = GRAPH_TYPE.UNKNOWN;
-      } else if (stringUtil.isEmpty(stackField) && !stringUtil.isEmpty(to)
-          && !stringUtil.isEmpty(from)
+      if (StringUtils.isBlank(xAxisField) || StringUtils.isBlank(yAxisField)) {
+        graphType = GraphType.UNKNOWN;
+      } else if (StringUtils.isBlank(stackField) && !StringUtils.isBlank(to) && !StringUtils.isBlank(from)
           && !(xType.contains("date") || xType.contains("time"))) {
-        // Normal Graph Type
-        graphType = GRAPH_TYPE.NORMAL_GRAPH;
-      } else if (stringUtil.isEmpty(stackField) && !stringUtil.isEmpty(to)
-          && !stringUtil.isEmpty(from)
+        graphType = GraphType.NORMAL_GRAPH;
+      } else if (StringUtils.isBlank(stackField) && !StringUtils.isBlank(to) && !StringUtils.isBlank(from)
           && (xType.contains("date") || xType.contains("time"))) {
-        // Range(Non-Stack) Graph Type
-        graphType = GRAPH_TYPE.RANGE_NON_STACK_GRAPH;
-      } else if (!stringUtil.isEmpty(stackField) && !stringUtil.isEmpty(to)
-          && !stringUtil.isEmpty(from)
+        graphType = GraphType.RANGE_NON_STACK_GRAPH;
+      } else if (!StringUtils.isBlank(stackField) && !StringUtils.isBlank(to) && !StringUtils.isBlank(from)
           && !(xType.contains("date") || xType.contains("time"))) {
-        // Non-Range Stack Graph Type
-        graphType = GRAPH_TYPE.NON_RANGE_STACK_GRAPH;
-      } else if (!stringUtil.isEmpty(stackField) && !stringUtil.isEmpty(to)
-          && !stringUtil.isEmpty(from)
+        graphType = GraphType.NON_RANGE_STACK_GRAPH;
+      } else if (!StringUtils.isBlank(stackField) && !StringUtils.isBlank(to) && !StringUtils.isBlank(from)
           && (xType.contains("date") || xType.contains("time"))) {
-        // Range Stack GraphType
-        graphType = GRAPH_TYPE.RANGE_STACK_GRAPH;
+        graphType = GraphType.RANGE_STACK_GRAPH;
       }
     }
     return graphType;
   }
 
   @SuppressWarnings("unchecked")
-  private VBarDataList normalGraph(String xAxisField, String yAxisField, String from,
-      String to, SolrDaoBase solrDaoBase, String typeXAxis, String fieldTime,
-      SolrQuery solrQuery) {
+  private VBarDataList normalGraph(String xAxisField, String yAxisField, String from, String to, SolrDaoBase solrDaoBase,
+      String typeXAxis, String fieldTime, SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     Collection<VBarGraphData> vBarGraphDatas = new ArrayList<VBarGraphData>();
     VBarGraphData vBarGraphData = new VBarGraphData();
     Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
     queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setSingleIncludeFilter(solrQuery, fieldTime, "[" + from
-        + " TO " + to + "]");
-    if (typeXAxis.contains("string") || typeXAxis.contains("key_lower_case")
-        || typeXAxis.contains("text")) {
+    queryGenerator.setSingleIncludeFilter(solrQuery, fieldTime, "[" + from + " TO " + to + "]");
+    if (typeXAxis.contains("string") || typeXAxis.contains("key_lower_case") || typeXAxis.contains("text")) {
       queryGenerator.setFacetField(solrQuery, xAxisField);
       try {
         QueryResponse response = solrDaoBase.process(solrQuery);
@@ -214,20 +181,17 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
         return dataList;
       } catch (SolrException | SolrServerException | IOException e) {
         String query = solrQuery != null ? solrQuery.toQueryString() : "";
-        logger.error("Got exception for solr query :" + query,
-            e.getCause());
+        logger.error("Got exception for solr query :" + query, e.getCause());
       }
     } else {
       queryGenerator.setRowCount(solrQuery, 0);
       String yAxis = yAxisField.contains("count") ? "sum" : yAxisField;
-      String jsonQuery = queryGenerator.buildJSONFacetAggregatedFuncitonQuery(
-          yAxis, xAxisField);
+      String jsonQuery = queryGenerator.buildJSONFacetAggregatedFuncitonQuery(yAxis, xAxisField);
       queryGenerator.setJSONFacet(solrQuery, jsonQuery);
       try {
         QueryResponse response = solrDaoBase.process(solrQuery);
-        SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
-            .getResponse().get("facets");
-        if (jsonFacetResponse.toString().equals("{count=0}")){
+        SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response.getResponse().get("facets");
+        if (jsonFacetResponse.toString().equals("{count=0}")) {
           return dataList;
         }
         VNameValue value = new VNameValue();
@@ -242,31 +206,26 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
         return dataList;
       } catch (SolrException | SolrServerException | IOException e) {
         String query = solrQuery != null ? solrQuery.toQueryString() : "";
-        logger.error("Got exception for solr query :" + query,
-            e.getCause());
+        logger.error("Got exception for solr query :" + query, e.getCause());
       }
     }
     return null;
   }
 
   @SuppressWarnings("unchecked")
-  private VBarDataList nonRangeStackGraph(String xAxisField, String yAxisField,
-      String stackField, String from, String to, SolrDaoBase solrDaoBase,
-      String typeXAxis, String fieldTime, SolrQuery solrQuery) {
+  private VBarDataList nonRangeStackGraph(String xAxisField, String yAxisField, String stackField, String from, String to,
+      SolrDaoBase solrDaoBase, String typeXAxis, String fieldTime, SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     Collection<VBarGraphData> vGraphData = new ArrayList<VBarGraphData>();
-    String mainQuery = queryGenerator.buildInclusiveRangeFilterQuery(fieldTime,
-        from, to);
+    String mainQuery = queryGenerator.buildInclusiveRangeFilterQuery(fieldTime, from, to);
     queryGenerator.setMainQuery(solrQuery, mainQuery);
     queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     String jsonQuery = "";
     if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       String function = (yAxisField.contains("count")) ? "sum" : yAxisField;
-      jsonQuery = queryGenerator.buidlJSONFacetRangeQueryForNumber(stackField,
-          xAxisField, function);
+      jsonQuery = queryGenerator.buidlJSONFacetRangeQueryForNumber(stackField, xAxisField, function);
     } else {
-      jsonQuery = queryGenerator.buildJsonFacetTermsRangeQuery(stackField,
-          xAxisField);
+      jsonQuery = queryGenerator.buildJsonFacetTermsRangeQuery(stackField, xAxisField);
     }
     try {
       queryGenerator.setJSONFacet(solrQuery, jsonQuery);
@@ -279,16 +238,12 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
       if (count <= 0) {
         return dataList;
       }
-      SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
-          .getResponse().get("facets");
-      if (jsonFacetResponse == null
-          || jsonFacetResponse.toString().equals("{count=0}")) {
+      SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response.getResponse().get("facets");
+      if (jsonFacetResponse == null || jsonFacetResponse.toString().equals("{count=0}")) {
         return dataList;
       }
-      extractNonRangeStackValuesFromBucket(jsonFacetResponse, stackField,
-          vGraphData, typeXAxis);
-      if (LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(stackField)
-          && LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(xAxisField)) {
+      extractNonRangeStackValuesFromBucket(jsonFacetResponse, stackField, vGraphData, typeXAxis);
+      if (LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(stackField) && LogSearchConstants.SOLR_LEVEL.equalsIgnoreCase(xAxisField)) {
         Collection<VBarGraphData> levelVGraphData = dataList.getGraphData();
         for (VBarGraphData garphData : levelVGraphData) {
           Collection<VNameValue> valueList = garphData.getDataCount();
@@ -312,17 +267,14 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
       return dataList;
     } catch (SolrException | IOException | SolrServerException e) {
       String query = solrQuery != null ? solrQuery.toQueryString() : "";
-      logger.error("Got exception for solr query :" + query,
-          e.getCause());
-      throw restErrorUtil.createRESTException(MessageEnums.DATA_NOT_FOUND
-          .getMessage().getMessage(), MessageEnums.DATA_NOT_FOUND);
+      logger.error("Got exception for solr query :" + query, e.getCause());
+      throw restErrorUtil.createRESTException(MessageEnums.DATA_NOT_FOUND.getMessage().getMessage(), MessageEnums.DATA_NOT_FOUND);
     }
   }
 
   @SuppressWarnings("unchecked")
-  private VBarDataList rangeNonStackGraph(String xAxisField, String yAxisField,
-      String from, String to, String unit, SolrDaoBase solrDaoBase,
-      String typeXAxis, String fieldTime, SolrQuery solrQuery) {
+  private VBarDataList rangeNonStackGraph(String xAxisField, String yAxisField, String from, String to, String unit,
+      SolrDaoBase solrDaoBase, String typeXAxis, String fieldTime, SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     Collection<VBarGraphData> vBarGraphDatas = new ArrayList<VBarGraphData>();
     VBarGraphData vBarGraphData = new VBarGraphData();
@@ -330,8 +282,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     queryGenerator.setMainQuery(solrQuery, null);
     if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       queryGenerator.setSingleRangeFilter(solrQuery, fieldTime, from, to);
-      return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase,
-          typeXAxis, fieldTime, solrQuery);
+      return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase, typeXAxis, fieldTime, solrQuery);
     } else {
       try {
         queryGenerator.setFacetRange(solrQuery, xAxisField, from, to, unit);
@@ -360,44 +311,36 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
         }
         return dataList;
       } catch (SolrException | SolrServerException | IOException e) {
-        logger.error("Got exception for solr query :" + solrQuery,
-            e.getCause());
+        logger.error("Got exception for solr query :" + solrQuery, e.getCause());
       }
     }
     return null;
   }
 
   @SuppressWarnings("unchecked")
-  private VBarDataList rangeStackGraph(String xAxisField, String stackField,
-      String from, String to, String unit, SolrDaoBase solrDaoBase,
-      SolrQuery solrQuery) {
+  private VBarDataList rangeStackGraph(String xAxisField, String stackField, String from, String to, String unit,
+      SolrDaoBase solrDaoBase, SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
     queryGenerator.setMainQuery(solrQuery, null);
     queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
-    String jsonHistogramQuery = queryGenerator
-        .buildJSONFacetTermTimeRangeQuery(stackField, xAxisField, from, to,
-            unit).replace("\\", "");
+    String jsonHistogramQuery =
+        queryGenerator.buildJSONFacetTermTimeRangeQuery(stackField, xAxisField, from, to, unit).replace("\\", "");
     try {
       solrQuery.set("json.facet", jsonHistogramQuery);
       queryGenerator.setRowCount(solrQuery, 0);
       QueryResponse response = solrDaoBase.process(solrQuery);
       if (response != null) {
-        SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response
-            .getResponse().get("facets");
-        if (jsonFacetResponse == null
-            || jsonFacetResponse.toString().equals("{count=0}")) {
-          // return
+        SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response.getResponse().get("facets");
+        if (jsonFacetResponse == null || jsonFacetResponse.toString().equals("{count=0}")) {
           return dataList;
         }
-        extractRangeStackValuesFromBucket(jsonFacetResponse, "x", "y",
-            histogramData);
+        extractRangeStackValuesFromBucket(jsonFacetResponse, "x", "y", histogramData);
         dataList.setGraphData(histogramData);
       }
       return dataList;
     } catch (SolrException | IOException | SolrServerException e) {
-      logger.error("Got exception for solr query :" + solrQuery,
-          e.getCause());
+      logger.error("Got exception for solr query :" + solrQuery, e.getCause());
     }
     return null;
   }

@@ -54,7 +54,7 @@ public class RESTErrorUtil {
     return webAppEx;
   }
 
-  public WebApplicationException createRESTException(VResponse response, int sc) {
+  private WebApplicationException createRESTException(VResponse response, int sc) {
     Response errorResponse = Response.status(sc).entity(response).build();
     WebApplicationException restException = new WebApplicationException(errorResponse);
     restException.fillInStackTrace();

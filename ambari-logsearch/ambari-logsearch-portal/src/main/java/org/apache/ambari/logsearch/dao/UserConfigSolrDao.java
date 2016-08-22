@@ -21,6 +21,7 @@ package org.apache.ambari.logsearch.dao;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,46 +41,40 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import com.google.gson.JsonParseException;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LOG_TYPE;
+import org.apache.ambari.logsearch.manager.MgrBase.LogType;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 public class UserConfigSolrDao extends SolrDaoBase {
 
-  static private Logger logger = Logger.getLogger(UserConfigSolrDao.class);
+  private static final Logger logger = Logger.getLogger(UserConfigSolrDao.class);
   private static final String DEFAULT_LEVELS = "FATAL,ERROR,WARN,INFO,DEBUG,TRACE";
 
   public UserConfigSolrDao() {
-    super(LOG_TYPE.SERVICE);
+    super(LogType.SERVICE);
   }
 
   @PostConstruct
   public void postConstructor() {
-
     String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
     String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.history",
-      "history");
-    String configName = PropertiesUtil.getProperty(
-      "logsearch.solr.history.config.name", "history");
-    int replicationFactor = PropertiesUtil.getIntProperty(
-      "logsearch.collection.history.replication.factor", 2);
+    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.history", "history");
+    String configName = PropertiesUtil.getProperty("logsearch.solr.history.config.name", "history");
+    int replicationFactor = PropertiesUtil.getIntProperty("logsearch.collection.history.replication.factor", 2);
     String splitInterval = "none";
     int numberOfShards = 1;
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
-      setupCollections(splitInterval, configName, numberOfShards,
-        replicationFactor,true);
+      setupCollections(splitInterval, configName, numberOfShards, replicationFactor, true);
       intializeLogFeederFilter();
 
     } catch (Exception e) {
-      logger.error(
-        "error while connecting to Solr for history logs : solrUrl="
-          + solrUrl + ", zkConnectString=" + zkConnectString
-          + ", collection=" + collection, e);
+      logger.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +
+          ", collection=" + collection, e);
     }
   }
 
@@ -91,8 +86,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     }
   }
 
-  public void saveUserFiter(VLogfeederFilterWrapper logfeederFilterWrapper) throws SolrException,
-      SolrServerException, IOException {
+  public void saveUserFilter(VLogfeederFilterWrapper logfeederFilterWrapper) throws SolrException, SolrServerException, IOException {
     String filterName = LogSearchConstants.LOGFEEDER_FILTER_NAME;
     String json = jsonUtil.objToJson(logfeederFilterWrapper);
     SolrInputDocument configDocument = new SolrInputDocument();
@@ -104,47 +98,32 @@ public class UserConfigSolrDao extends SolrDaoBase {
     addDocs(configDocument);
   }
 
-  public void deleteUserConfig(String id) throws SolrException,
-      SolrServerException, IOException {
+  public void deleteUserConfig(String id) throws SolrException, SolrServerException, IOException {
     removeDoc("id:" + id);
   }
 
 	@SuppressWarnings("unchecked")
-  public VLogfeederFilterWrapper getUserFilter() throws SolrServerException,
-      IOException {
+  public VLogfeederFilterWrapper getUserFilter() throws SolrServerException, IOException {
 
-    String filterName = LogSearchConstants.LOGFEEDER_FILTER_NAME;
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
-    String fq = LogSearchConstants.ROW_TYPE + ":" + filterName;
+    String fq = LogSearchConstants.ROW_TYPE + ":" + LogSearchConstants.LOGFEEDER_FILTER_NAME;
     solrQuery.setFilterQueries(fq);
 
     QueryResponse response = process(solrQuery);
     SolrDocumentList documentList = response.getResults();
     VLogfeederFilterWrapper logfeederFilterWrapper = null;
-    if (documentList != null && documentList.size() > 0) {
+    if (!CollectionUtils.isEmpty(documentList)) {
       SolrDocument configDoc = documentList.get(0);
       String configJson = jsonUtil.objToJson(configDoc);
-      HashMap<String, Object> configMap = (HashMap<String, Object>) jsonUtil
-          .jsonToMapObject(configJson);
+      HashMap<String, Object> configMap = (HashMap<String, Object>) jsonUtil.jsonToMapObject(configJson);
       String json = (String) configMap.get(LogSearchConstants.VALUES);
-      logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(
-          json, VLogfeederFilterWrapper.class);
+      logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(json, VLogfeederFilterWrapper.class);
       logfeederFilterWrapper.setId("" + configDoc.get(LogSearchConstants.ID));
 
     } else {
-      String logfeederDefaultLevels = PropertiesUtil.getProperty(
-          "logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
-      JSONArray levelJsonArray = new JSONArray();
-      try {
-        String levelArray[] = logfeederDefaultLevels.split(",");
-        for (String level : levelArray) {
-          levelJsonArray.put(level.toUpperCase());
-        }
-      } catch (Exception e) {
-        logger.error("Error spliting logfeederDefaultLevels="
-            + logfeederDefaultLevels, e);
-      }
+      String logfeederDefaultLevels = PropertiesUtil.getProperty("logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
+      JSONArray levelJsonArray = new JSONArray(Arrays.asList(logfeederDefaultLevels.split(",")));
 
       String hadoopServiceString = getHadoopServiceConfigJSON();
       String key = null;
@@ -153,13 +132,11 @@ public class UserConfigSolrDao extends SolrDaoBase {
         JSONObject componentList = new JSONObject();
         JSONObject jsonValue = new JSONObject();
 
-        JSONObject hadoopServiceJsonObject = new JSONObject(hadoopServiceString)
-            .getJSONObject("service");
+        JSONObject hadoopServiceJsonObject = new JSONObject(hadoopServiceString).getJSONObject("service");
         Iterator<String> hadoopSerivceKeys = hadoopServiceJsonObject.keys();
         while (hadoopSerivceKeys.hasNext()) {
           key = hadoopSerivceKeys.next();
-          componentArray = hadoopServiceJsonObject.getJSONObject(key)
-              .getJSONArray("components");
+          componentArray = hadoopServiceJsonObject.getJSONObject(key).getJSONArray("components");
           for (int i = 0; i < componentArray.length(); i++) {
             JSONObject compJsonObject = (JSONObject) componentArray.get(i);
             String componentName = compJsonObject.getString("name");
@@ -171,27 +148,24 @@ public class UserConfigSolrDao extends SolrDaoBase {
           }
         }
         jsonValue.put("filter", componentList);
-        logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil
-            .jsonToObj(jsonValue.toString(), VLogfeederFilterWrapper.class);
+        logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(jsonValue.toString(), VLogfeederFilterWrapper.class);
         logfeederFilterWrapper.setId(""+new Date().getTime());
-        saveUserFiter(logfeederFilterWrapper);
+        saveUserFilter(logfeederFilterWrapper);
 
       } catch (JsonParseException | JSONException je) {
-        logger.error("Error parsing JSON. key=" + key + ", componentArray="
-            + componentArray, je);
+        logger.error("Error parsing JSON. key=" + key + ", componentArray=" + componentArray, je);
         logfeederFilterWrapper = new VLogfeederFilterWrapper();
       }
     }
     return logfeederFilterWrapper;
   }
 
-  public String getHadoopServiceConfigJSON() {
+  private String getHadoopServiceConfigJSON() {
     StringBuilder result = new StringBuilder("");
 
     // Get file from resources folder
     ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource("HadoopServiceConfig.json")
-        .getFile());
+    File file = new File(classLoader.getResource("HadoopServiceConfig.json").getFile());
 
     try (Scanner scanner = new Scanner(file)) {
 

@@ -29,12 +29,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.ambari.logsearch.common.RequestContext;
-import org.apache.ambari.logsearch.common.UserSessionInfo;
+import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.manager.SessionMgr;
-import org.apache.ambari.logsearch.security.context.LogsearchContextHolder;
-import org.apache.ambari.logsearch.security.context.LogsearchSecurityContext;
 import org.apache.ambari.logsearch.util.CommonUtil;
+import org.apache.ambari.logsearch.web.model.User;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -89,31 +87,21 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
           httpResponse.addCookie(cookie);
         }
         // [1]get the context from session
-        LogsearchSecurityContext context = (LogsearchSecurityContext) httpSession
+        LogSearchContext context = (LogSearchContext) httpSession
           .getAttribute(LOGSEARCH_SC_SESSION_KEY);
         if (context == null) {
-          context = new LogsearchSecurityContext();
+          context = new LogSearchContext();
           httpSession.setAttribute(LOGSEARCH_SC_SESSION_KEY, context);
         }
-        String userAgent = httpRequest.getHeader(USER_AGENT);
-        // Get the request specific info
-        RequestContext requestContext = new RequestContext();
-        String reqIP = httpRequest.getRemoteAddr();
-        requestContext.setIpAddress(reqIP);
-        requestContext.setMsaCookie(msaCookie);
-        requestContext.setUserAgent(userAgent);
-        requestContext.setServerRequestId(CommonUtil.genGUI());
-        requestContext.setRequestURL(httpRequest.getRequestURI());
-        context.setRequestContext(requestContext);
-        LogsearchContextHolder.setSecurityContext(context);
-        UserSessionInfo userSession = sessionMgr.processSuccessLogin(0, userAgent);
-        context.setUserSession(userSession);
+        LogSearchContext.setContext(context);
+        User user = sessionMgr.processSuccessLogin();
+        context.setUser(user);
       }
       chain.doFilter(request, response);
 
     } finally {
       // [4]remove context from thread-local
-      LogsearchContextHolder.resetSecurityContext();
+      LogSearchContext.resetContext();
     }
   }
 }

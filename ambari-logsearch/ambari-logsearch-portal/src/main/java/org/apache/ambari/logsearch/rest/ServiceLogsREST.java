@@ -113,7 +113,7 @@ public class ServiceLogsREST {
   public String getHosts(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria(request);
     searchCriteria.addParam("q", request.getParameter("q"));
-    return logMgr.getHosts(searchCriteria);
+    return logMgr.getHosts();
   }
 
   @GET
@@ -126,7 +126,7 @@ public class ServiceLogsREST {
   public String getComponents(@Context HttpServletRequest request) {
     SearchCriteria searchCriteria = new SearchCriteria(request);
     searchCriteria.addParam("q", request.getParameter("q"));
-    return logMgr.getComponents(searchCriteria);
+    return logMgr.getComponents();
   }
 
   @GET
@@ -174,7 +174,7 @@ public class ServiceLogsREST {
     searchCriteria
       .addParam("startDate", request.getParameter("start_time"));
     searchCriteria.addParam("endDate", request.getParameter("end_time"));
-    return logMgr.getLogLevelCount(searchCriteria);
+    return logMgr.getLogLevelCount();
   }
 
   @GET
@@ -192,7 +192,7 @@ public class ServiceLogsREST {
     searchCriteria
       .addParam("startDate", request.getParameter("start_time"));
     searchCriteria.addParam("endDate", request.getParameter("end_time"));
-    return logMgr.getComponentsCount(searchCriteria);
+    return logMgr.getComponentsCount();
   }
 
   @GET
@@ -216,7 +216,7 @@ public class ServiceLogsREST {
       .unescapeXml(request.getParameter("excludeQuery")));
     searchCriteria.addParam("includeQuery", StringEscapeUtils
       .unescapeXml(request.getParameter("includeQuery")));
-    return logMgr.getHostsCount(searchCriteria);
+    return logMgr.getHostsCount();
   }
 
   @GET

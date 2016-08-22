@@ -16,13 +16,36 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.dao;
 
-public interface UserInfoAttributes {
+package org.apache.ambari.logsearch.common;
 
-  public static final String USER_NAME = "username";
-  public static final String PASSWORD = "password";
-  public static final String ENC_PASSWORD = "en_password";
-  public static final String NAME = "name";
+import org.apache.ambari.logsearch.web.model.User;
+import org.junit.Before;
+import org.junit.Test;
 
+import junit.framework.Assert;
+
+public class LogSearchContextUtilTest {
+
+  @Before
+  public void resetContext() {
+    LogSearchContext.resetContext();
+  }
+  
+  @Test
+  public void testNoContext() {
+    Assert.assertNull(LogSearchContext.getCurrentUsername());
+  }
+  
+  @Test
+  public void testUserSession() {
+    User user = new User("UserName", "Password", null);
+    
+    LogSearchContext context = new LogSearchContext();
+    context.setUser(user);
+    
+    LogSearchContext.setContext(context);
+    
+    Assert.assertEquals(LogSearchContext.getCurrentUsername(), "UserName");
+  }
 }

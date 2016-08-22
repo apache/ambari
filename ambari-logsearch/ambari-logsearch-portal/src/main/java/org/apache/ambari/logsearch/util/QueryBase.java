@@ -20,13 +20,10 @@
 package org.apache.ambari.logsearch.util;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class QueryBase {
-  
-  @Autowired
-  StringUtil stringUtil;
 
   //Solr Facet Methods
   public void setFacetField(SolrQuery solrQuery, String facetField) {
@@ -48,8 +45,7 @@ public class QueryBase {
     solrQuery.setFacetSort(sortType);
   }
 
-  public void setFacetPivot(SolrQuery solrQuery, int mincount,
-                            String... hirarchy) {
+  public void setFacetPivot(SolrQuery solrQuery, int mincount, String... hirarchy) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
     solrQuery.set(LogSearchConstants.FACET_PIVOT, hirarchy);
@@ -57,8 +53,7 @@ public class QueryBase {
     setFacetLimit(solrQuery, -1);
   }
 
-  public void setFacetDate(SolrQuery solrQuery, String facetField,
-                           String from, String to, String unit) {
+  public void setFacetDate(SolrQuery solrQuery, String facetField, String from, String to, String unit) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
     solrQuery.set(LogSearchConstants.FACET_DATE, facetField);
@@ -69,8 +64,7 @@ public class QueryBase {
     setFacetLimit(solrQuery, -1);
   }
 
-  public void setFacetRange(SolrQuery solrQuery, String facetField,
-                            String from, String to, String unit) {
+  public void setFacetRange(SolrQuery solrQuery, String facetField, String from, String to, String unit) {
     solrQuery.setFacet(true);
     setRowCount(solrQuery, 0);
     solrQuery.set(LogSearchConstants.FACET_RANGE, facetField);
@@ -96,7 +90,7 @@ public class QueryBase {
   //Main Query
   public void setMainQuery(SolrQuery solrQuery, String query) {
     String defalultQuery = "*:*";
-    if (stringUtil.isEmpty(query)){
+    if (StringUtils.isBlank(query)){
       solrQuery.setQuery(defalultQuery);
     }else{
       solrQuery.setQuery(query);

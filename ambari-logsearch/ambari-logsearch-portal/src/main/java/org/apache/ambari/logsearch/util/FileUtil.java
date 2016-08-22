@@ -39,24 +39,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class FileUtil {
 
-  static Logger logger = Logger.getLogger(FileUtil.class);
+  private static final Logger logger = Logger.getLogger(FileUtil.class);
 
   @Autowired
-  RESTErrorUtil restErrorUtil;
+  private RESTErrorUtil restErrorUtil;
 
-  @SuppressWarnings("resource")
   public Response saveToFile(String text, String fileName, VSummary vsummary) {
     String mainExportedFile = "";
     FileOutputStream fis = null;
     try {
-      mainExportedFile = mainExportedFile
-        + "**********************Summary**********************\n";
-      mainExportedFile = mainExportedFile + "Number of Logs : "
-        + vsummary.getNumberLogs() + "\n";
-      mainExportedFile = mainExportedFile + "From           : "
-        + vsummary.getFrom() + "\n";
-      mainExportedFile = mainExportedFile + "To             : "
-        + vsummary.getTo() + "\n";
+      mainExportedFile = mainExportedFile + "**********************Summary**********************\n";
+      mainExportedFile = mainExportedFile + "Number of Logs : " + vsummary.getNumberLogs() + "\n";
+      mainExportedFile = mainExportedFile + "From           : " + vsummary.getFrom() + "\n";
+      mainExportedFile = mainExportedFile + "To             : " + vsummary.getTo() + "\n";
 
       List<VHost> hosts = vsummary.getHosts();
       String blankCharacterForHost = String.format("%-8s", "");
@@ -89,42 +84,30 @@ public class FileUtil {
           blankCharacterForHost = String.format("%-3s", blankCharacterForHost);
         }
         if (numberHost == 1) {
-          mainExportedFile = mainExportedFile + "Host"
-            + blankCharacterForHost + "   : " + h + " [" + c
-            + "] " + "\n";
+          mainExportedFile = mainExportedFile + "Host" + blankCharacterForHost + "   : " + h + " [" + c + "] " + "\n";
         } else if (numberHost > 1) {
-          mainExportedFile = mainExportedFile + "Host_" + numberHost
-            + blankCharacterForHost + " : " + h + " [" + c
-            + "] " + "\n";
+          mainExportedFile = mainExportedFile + "Host_" + numberHost + blankCharacterForHost + " : " + h + " [" + c + "] " + "\n";
         }
 
       }
-      mainExportedFile = mainExportedFile + "Levels"+String.format("%-9s", blankCharacterForHost)+": "
-        + vsummary.getLevels() + "\n";
-      mainExportedFile = mainExportedFile + "Format"+String.format("%-9s", blankCharacterForHost)+": "
-        + vsummary.getFormat() + "\n";
+      mainExportedFile = mainExportedFile + "Levels"+String.format("%-9s", blankCharacterForHost)+": " + vsummary.getLevels() + "\n";
+      mainExportedFile = mainExportedFile + "Format"+String.format("%-9s", blankCharacterForHost)+": " + vsummary.getFormat() + "\n";
       mainExportedFile = mainExportedFile + "\n";
 
-      mainExportedFile = mainExportedFile + "Included String: ["
-        + vsummary.getIncludeString() + "]\n\n";
-      mainExportedFile = mainExportedFile + "Excluded String: ["
-        + vsummary.getExcludeString() + "]\n\n";
-      mainExportedFile = mainExportedFile
-        + "************************Logs***********************"
-        + "\n";
+      mainExportedFile = mainExportedFile + "Included String: [" + vsummary.getIncludeString() + "]\n\n";
+      mainExportedFile = mainExportedFile + "Excluded String: [" + vsummary.getExcludeString() + "]\n\n";
+      mainExportedFile = mainExportedFile + "************************Logs***********************" + "\n";
       mainExportedFile = mainExportedFile + text + "\n";
       File file = File.createTempFile(fileName, vsummary.getFormat());
       fis = new FileOutputStream(file);
       fis.write(mainExportedFile.getBytes());
       return Response
         .ok(file, MediaType.APPLICATION_OCTET_STREAM)
-        .header("Content-Disposition",
-          "attachment;filename=" + fileName
-            + vsummary.getFormat()).build();
+        .header("Content-Disposition", "attachment;filename=" + fileName + vsummary.getFormat())
+        .build();
     } catch (Exception e) {
       logger.error(e.getMessage());
-      throw restErrorUtil.createRESTException(e.getMessage(),
-        MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
     } finally {
       if (fis != null) {
         try {
@@ -135,13 +118,8 @@ public class FileUtil {
     }
   }
 
-  /**
-   * @param filename
-   * @return
-   */
   public File getFileFromClasspath(String filename) {
-    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader()
-      .getResource(filename);
+    URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(filename);
     logger.debug("File Complete URI :" + fileCompleteUrl);
     File file = null;
     try {

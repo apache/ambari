@@ -26,8 +26,8 @@ import javax.annotation.PostConstruct;
 import org.apache.ambari.logsearch.util.ExternalServerClient;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.PropertiesUtil;
-import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -99,9 +99,6 @@ public class LogsearchExternalServerAuthenticationProvider extends
   ExternalServerClient externalServerClient;
 
   @Autowired
-  StringUtil stringUtil;
-
-  @Autowired
   JSONUtil jsonUtil;
 
   private String loginAPIURL = "/api/v1/users/$USERNAME/privileges?fields=*";// default
@@ -130,10 +127,10 @@ public class LogsearchExternalServerAuthenticationProvider extends
     }
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
-    if (stringUtil.isEmpty(username)) {
+    if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
-    if (stringUtil.isEmpty(password)) {
+    if (StringUtils.isBlank(password)) {
       throw new BadCredentialsException("Password can't be null or empty.");
     }
     // html unescape

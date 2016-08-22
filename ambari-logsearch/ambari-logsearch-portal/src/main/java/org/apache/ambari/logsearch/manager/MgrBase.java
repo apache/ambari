@@ -35,8 +35,8 @@ import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
-import org.apache.ambari.logsearch.util.StringUtil;
 import org.apache.ambari.logsearch.view.VSolrLogList;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -57,53 +57,46 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
 public class MgrBase {
-  static private Logger logger = Logger.getLogger(MgrBase.class);
+  private static final Logger logger = Logger.getLogger(MgrBase.class);
 
   @Autowired
-  SolrUtil solrUtil;
+  protected SolrUtil solrUtil;
 
   @Autowired
-  JSONUtil jsonUtil;
+  protected JSONUtil jsonUtil;
 
   @Autowired
-  QueryGeneration queryGenerator;
+  protected QueryGeneration queryGenerator;
 
   @Autowired
-  StringUtil stringUtil;
+  protected RESTErrorUtil restErrorUtil;
 
   @Autowired
-  RESTErrorUtil restErrorUtil;
+  protected DateUtil dateUtil;
 
-  @Autowired
-  DateUtil dateUtil;
+  private JsonSerializer<Date> jsonDateSerialiazer = null;
+  private JsonDeserializer<Date> jsonDateDeserialiazer = null;
 
-  JsonSerializer<Date> jsonDateSerialiazer = null;
-  JsonDeserializer<Date> jsonDateDeserialiazer = null;
-
-  public enum LOG_TYPE {
-    SERVICE {
-      @Override
-      public String getLabel() {
-        return "Service";
-      }
-    },
-    AUDIT {
-      @Override
-      public String getLabel() {
-        return "Audit";
-      }
-    };
-    public abstract String getLabel();
+  public enum LogType {
+    SERVICE("Service"),
+    AUDIT("Audit");
+    
+    private String label;
+    
+    private LogType(String label) {
+      this.label = label;
+    }
+    
+    public String getLabel() {
+      return label;
+    }
   }
 
   public MgrBase() {
     jsonDateSerialiazer = new JsonSerializer<Date>() {
 
       @Override
-      public JsonElement serialize(Date paramT,
-          java.lang.reflect.Type paramType,
-          JsonSerializationContext paramJsonSerializationContext) {
-
+      public JsonElement serialize(Date paramT, java.lang.reflect.Type paramType, JsonSerializationContext paramJsonSerializationContext) {
         return paramT == null ? null : new JsonPrimitive(paramT.getTime());
       }
     };
@@ -111,15 +104,15 @@ public class MgrBase {
     jsonDateDeserialiazer = new JsonDeserializer<Date>() {
 
       @Override
-      public Date deserialize(JsonElement json, java.lang.reflect.Type typeOfT,
-          JsonDeserializationContext context) throws JsonParseException {
+      public Date deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+          throws JsonParseException {
         return json == null ? null : new Date(json.getAsLong());
       }
 
     };
   }
 
-  public String convertObjToString(Object obj) {
+  protected String convertObjToString(Object obj) {
     if (obj == null) {
       return "";
     }
@@ -136,8 +129,7 @@ public class MgrBase {
 
     // Get file from resources folder
     ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource("HadoopServiceConfig.json")
-        .getFile());
+    File file = new File(classLoader.getResource("HadoopServiceConfig.json").getFile());
 
     try (Scanner scanner = new Scanner(file)) {
 
@@ -150,26 +142,25 @@ public class MgrBase {
 
     } catch (IOException e) {
       logger.error("Unable to read HadoopServiceConfig.json", e);
-      throw restErrorUtil.createRESTException(e.getMessage(),
-          MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
     String hadoopServiceConfig = result.toString();
     if (jsonUtil.isJSONValid(hadoopServiceConfig)) {
       return hadoopServiceConfig;
     }
-    throw restErrorUtil.createRESTException("Improper JSON",
-        MessageEnums.ERROR_SYSTEM);
+    throw restErrorUtil.createRESTException("Improper JSON", MessageEnums.ERROR_SYSTEM);
 
   }
   
-  protected VSolrLogList getLastPage(SearchCriteria searchCriteria,String logTimeField,SolrDaoBase solrDoaBase,SolrQuery lastPageQuery){
+  protected VSolrLogList getLastPage(SearchCriteria searchCriteria, String logTimeField, SolrDaoBase solrDoaBase,
+      SolrQuery lastPageQuery) {
     
     Integer maxRows = searchCriteria.getMaxRows();
     String givenSortType = searchCriteria.getSortType();
     searchCriteria = new SearchCriteria();
     searchCriteria.setSortBy(logTimeField);
-    if(givenSortType == null || givenSortType.equals(LogSearchConstants.DESCENDING_ORDER)){
+    if (givenSortType == null || givenSortType.equals(LogSearchConstants.DESCENDING_ORDER)) {
       lastPageQuery.removeSort(LogSearchConstants.LOGTIME);
       searchCriteria.setSortType(LogSearchConstants.ASCENDING_ORDER);
     } else {
@@ -185,8 +176,7 @@ public class MgrBase {
     try {
       queryGenerator.setStart(lastPageQuery, 0);
       queryGenerator.setRowCount(lastPageQuery, maxRows);
-      collection = getLogAsPaginationProvided(lastPageQuery,
-          solrDoaBase);
+      collection = getLogAsPaginationProvided(lastPageQuery, solrDoaBase);
       totalLogs = countQuery(lastPageQuery,solrDoaBase);
       if(maxRows != null){
         startIndex = Integer.parseInt("" + ((totalLogs/maxRows) * maxRows));
@@ -209,14 +199,12 @@ public class MgrBase {
 
     } catch (SolrException | SolrServerException | IOException | NumberFormatException e) {
       logger.error("Count Query was not executed successfully",e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
-          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     return collection;
   }
 
-  public VSolrLogList getLogAsPaginationProvided(SolrQuery solrQuery,
-      SolrDaoBase solrDaoBase) {
+  protected VSolrLogList getLogAsPaginationProvided(SolrQuery solrQuery, SolrDaoBase solrDaoBase) {
     try {
       QueryResponse response = solrDaoBase.process(solrQuery);
       VSolrLogList collection = new VSolrLogList();
@@ -235,14 +223,11 @@ public class MgrBase {
       return collection;
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
-          .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-
   }
   
-  public Long countQuery(SolrQuery query,SolrDaoBase solrDaoBase) throws SolrException,
- SolrServerException, IOException {
+  protected Long countQuery(SolrQuery query,SolrDaoBase solrDaoBase) throws SolrException, SolrServerException, IOException {
     query.setRows(0);
     QueryResponse response = solrDaoBase.process(query);
     if (response == null) {
@@ -256,14 +241,14 @@ public class MgrBase {
   }
 
   protected String getUnit(String unit) {
-    if (stringUtil.isEmpty(unit)) {
+    if (StringUtils.isBlank(unit)) {
       unit = "+1HOUR";
     }
     return unit;
   }
 
   protected String getFrom(String from) {
-    if (stringUtil.isEmpty(from)) {
+    if (StringUtils.isBlank(from)) {
       Date date =  dateUtil.getTodayFromDate();
       try {
         from = dateUtil.convertGivenDateFormatToSolrDateFormat(date);
@@ -275,7 +260,7 @@ public class MgrBase {
   }
 
   protected String getTo(String to) {
-    if (stringUtil.isEmpty(to)) {
+    if (StringUtils.isBlank(to)) {
       to = "NOW";
     }
     return to;

@@ -18,11 +18,7 @@
  */
 package org.apache.ambari.logsearch.manager;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.apache.ambari.logsearch.common.UserSessionInfo;
-import org.apache.ambari.logsearch.security.context.LogsearchContextHolder;
-import org.apache.ambari.logsearch.security.context.LogsearchSecurityContext;
+import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.log4j.Logger;
 import org.springframework.security.core.Authentication;
@@ -33,38 +29,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class SessionMgr {
 
-  static final Logger logger = Logger.getLogger(SessionMgr.class);
+  private static final Logger logger = Logger.getLogger(SessionMgr.class);
 
   public SessionMgr() {
     logger.debug("SessionManager created");
   }
 
-  public UserSessionInfo processSuccessLogin(int authType, String userAgent) {
-    return processSuccessLogin(authType, userAgent, null);
-  }
-
-  public UserSessionInfo processSuccessLogin(int authType, String userAgent, HttpServletRequest httpRequest) {
+  public User processSuccessLogin() {
     boolean newSessionCreation = true;
-    UserSessionInfo userSession = null;
-    LogsearchSecurityContext context = LogsearchContextHolder.getSecurityContext();
-    if (context != null) {
-      userSession = context.getUserSession();
-    }
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
     String currentLoginId = authentication.getName();
-    if (userSession != null) {
-      if (validateUserSession(userSession, currentLoginId)) {
+    LogSearchContext context = LogSearchContext.getContext();
+    User user = context.getUser();
+    if (user != null) {
+      if (validateUser(user, currentLoginId)) {
         newSessionCreation = false;
       }
     }
     //
     if (newSessionCreation) {
-      // // Need to build the UserSession
-      userSession = new UserSessionInfo();
-      User user = new User();
+      user = new User();
       user.setUsername(currentLoginId);
-      userSession.setUser(user);
       if (details != null) {
         logger.info("Login Success: loginId=" + currentLoginId + ", sessionId=" + details.getSessionId()
           + ", requestId=" + details.getRemoteAddress());
@@ -74,15 +60,15 @@ public class SessionMgr {
 
     }
 
-    return userSession;
+    return user;
   }
 
-  protected boolean validateUserSession(UserSessionInfo userSession, String currentUsername) {
-    if (currentUsername.equalsIgnoreCase(userSession.getUser().getUsername())) {
+  private boolean validateUser(User user, String currentUsername) {
+    if (currentUsername.equalsIgnoreCase(user.getUsername())) {
       return true;
     } else {
       logger.info("loginId doesn't match loginId from HTTPSession. Will create new session. loginId="
-        + currentUsername + ", userSession=" + userSession, new Exception());
+        + currentUsername + ", user=" + user, new Exception());
       return false;
     }
   }

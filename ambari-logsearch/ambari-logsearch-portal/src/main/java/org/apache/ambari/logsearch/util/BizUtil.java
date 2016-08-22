@@ -37,27 +37,22 @@ import org.apache.ambari.logsearch.view.VBarGraphData;
 import org.apache.ambari.logsearch.view.VHost;
 import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.ambari.logsearch.view.VSummary;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BizUtil {
-  static Logger logger = Logger.getLogger(BizUtil.class);
-
-  @Autowired
-  RESTErrorUtil restErrorUtil;
-  
-  @Autowired
-  StringUtil stringUtil;
+  private static final Logger logger = Logger.getLogger(BizUtil.class);
 
   public String convertObjectToNormalText(SolrDocumentList docList) {
     String textToSave = "";
     HashMap<String, String> blankFieldsMap = new HashMap<String, String>();
-    if(docList == null){
+    if (docList == null){
       return "no data";
     }
     if (docList.isEmpty()) {
@@ -67,66 +62,50 @@ public class BizUtil {
     if(docForBlankCaculation == null){
       return "no data";
     }
-    Collection<String> fieldsForBlankCaculation = docForBlankCaculation
-      .getFieldNames();
+    Collection<String> fieldsForBlankCaculation = docForBlankCaculation.getFieldNames();
 
     int maxLengthOfField = 0;
-    if(fieldsForBlankCaculation == null){
+    if (fieldsForBlankCaculation == null) {
       return "no data";
     }
-    for (String field : fieldsForBlankCaculation) {  
-      if (!stringUtil.isEmpty(field) && field.length() > maxLengthOfField){
+    for (String field : fieldsForBlankCaculation) {
+      if (!StringUtils.isBlank(field) && field.length() > maxLengthOfField) {
         maxLengthOfField = field.length();
       }
     }
 
     for (String field : fieldsForBlankCaculation) {
-      if(!stringUtil.isEmpty(field)){
-      blankFieldsMap
-        .put(field,
-          addBlanksToString(
-            maxLengthOfField - field.length(), field));
+      if (!StringUtils.isBlank(field)) {
+      blankFieldsMap.put(field, addBlanksToString(maxLengthOfField - field.length(), field));
       }
-    }   
+    }
 
     for (SolrDocument doc : docList) {
       if (doc != null) {
         StringBuffer textTowrite = new StringBuffer();
 
         if (doc.getFieldValue(LogSearchConstants.LOGTIME) != null) {
-          textTowrite.append(doc.getFieldValue(LogSearchConstants.LOGTIME)
-              .toString() + " ");
+          textTowrite.append(doc.getFieldValue(LogSearchConstants.LOGTIME).toString() + " ");
         }
         if (doc.getFieldValue(LogSearchConstants.SOLR_LEVEL) != null) {
-          textTowrite.append(
-              doc.getFieldValue(LogSearchConstants.SOLR_LEVEL).toString())
-              .append(" ");
+          textTowrite.append(doc.getFieldValue(LogSearchConstants.SOLR_LEVEL).toString()).append(" ");
         }
         if (doc.getFieldValue(LogSearchConstants.SOLR_THREAD_NAME) != null) {
-          textTowrite.append(
-              doc.getFieldValue(LogSearchConstants.SOLR_THREAD_NAME).toString()
-                  .trim()).append(" ");
+          textTowrite.append(doc.getFieldValue(LogSearchConstants.SOLR_THREAD_NAME).toString().trim()).append(" ");
         }
         if (doc.getFieldValue(LogSearchConstants.SOLR_LOGGER_NAME) != null) {
-          textTowrite.append(
-              doc.getFieldValue(LogSearchConstants.SOLR_LOGGER_NAME).toString()
-                  .trim()).append(" ");
+          textTowrite.append(doc.getFieldValue(LogSearchConstants.SOLR_LOGGER_NAME).toString().trim()).append(" ");
         }
-        if (doc.getFieldValue(LogSearchConstants.SOLR_FILE) != null
-            && doc.getFieldValue(LogSearchConstants.SOLR_LINE_NUMBER) != null) {
+        if (doc.getFieldValue(LogSearchConstants.SOLR_FILE) != null && doc.getFieldValue(LogSearchConstants.SOLR_LINE_NUMBER) != null) {
           textTowrite
-              .append(
-                  doc.getFieldValue(LogSearchConstants.SOLR_FILE).toString())
+              .append(doc.getFieldValue(LogSearchConstants.SOLR_FILE).toString())
               .append(":")
-              .append(
-                  doc.getFieldValue(LogSearchConstants.SOLR_LINE_NUMBER)
-                      .toString()).append(" ");
+              .append(doc.getFieldValue(LogSearchConstants.SOLR_LINE_NUMBER).toString())
+              .append(" ");
         }
         if (doc.getFieldValue(LogSearchConstants.SOLR_LOG_MESSAGE) != null) {
           textTowrite.append("- ")
-              .append(
-                  doc.getFieldValue(LogSearchConstants.SOLR_LOG_MESSAGE)
-                      .toString());
+              .append(doc.getFieldValue(LogSearchConstants.SOLR_LOG_MESSAGE).toString());
         }
         textTowrite.append("\n");
         textToSave += textTowrite.toString();
@@ -137,7 +116,7 @@ public class BizUtil {
 
   public VSummary buildSummaryForLogFile(SolrDocumentList docList) {
     VSummary vsummary = new VSummary();
-    if(docList == null || docList.isEmpty()){
+    if (CollectionUtils.isEmpty(docList)) {
       return vsummary;
     }
     int numLogs = 0;
@@ -150,14 +129,14 @@ public class BizUtil {
         String hostname = (String) doc.getFieldValue("host");
         String comp = (String) doc.getFieldValue("type");
         String level = (String) doc.getFieldValue("level");
-        if (stringUtil.isEmpty(level)) {
+        if (StringUtils.isBlank(level)) {
           level = "";
         }
         boolean newHost = true;
         for (VHost host : vHosts) {
           if (host != null && host.getName().equals(hostname)) {
             newHost = false;
-            if (stringUtil.isEmpty(comp)) {
+            if (StringUtils.isBlank(comp)) {
               Set<String> compList = host.getComponents();
               if (compList != null) {
                 compList.add(comp);
@@ -168,11 +147,11 @@ public class BizUtil {
         }
         if (newHost) {
           VHost vHost = new VHost();
-          if (!stringUtil.isEmpty(hostname)) {
+          if (!StringUtils.isBlank(hostname)) {
             vHost.setName(hostname);
           }
           Set<String> component = new LinkedHashSet<String>();
-          if (stringUtil.isEmpty(comp)) {
+          if (StringUtils.isBlank(comp)) {
             component.add(comp);
           }
           vHost.setComponents(component);
@@ -191,8 +170,8 @@ public class BizUtil {
     return vsummary;
   }
 
-  public String addBlanksToString(int count, String field) {
-    if (stringUtil.isEmpty(field)) {
+  private String addBlanksToString(int count, String field) {
+    if (StringUtils.isBlank(field)) {
       return field;
     }
     if (count > 0) {
@@ -203,8 +182,7 @@ public class BizUtil {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public VBarDataList buildSummaryForTopCounts(
-    SimpleOrderedMap<Object> jsonFacetResponse,String innerJsonKey,String outerJsonKey) {
+  public VBarDataList buildSummaryForTopCounts(SimpleOrderedMap<Object> jsonFacetResponse,String innerJsonKey,String outerJsonKey) {
 
     VBarDataList vBarDataList = new VBarDataList();
 
@@ -217,14 +195,12 @@ public class BizUtil {
     if (userList.isEmpty()) {
       return vBarDataList;
     }
-    SimpleOrderedMap<Map<String, Object>> userMap = (SimpleOrderedMap<Map<String, Object>>) userList
-      .get(0);
+    SimpleOrderedMap<Map<String, Object>> userMap = (SimpleOrderedMap<Map<String, Object>>) userList.get(0);
     if (userMap == null) {
       logger.info("No top user details found");
       return vBarDataList;
     }
-    List<SimpleOrderedMap> userUsageList = (List<SimpleOrderedMap>) userMap
-      .get("buckets");
+    List<SimpleOrderedMap> userUsageList = (List<SimpleOrderedMap>) userMap.get("buckets");
     if(userUsageList == null){
       return vBarDataList;
     }
@@ -232,13 +208,12 @@ public class BizUtil {
       if (usageMap != null) {
         VBarGraphData vBarGraphData = new VBarGraphData();
         String userName = (String) usageMap.get("val");
-        if (!stringUtil.isEmpty(userName)) {
+        if (!StringUtils.isBlank(userName)) {
           vBarGraphData.setName(userName);
         }
         SimpleOrderedMap repoMap = (SimpleOrderedMap) usageMap.get(innerJsonKey);
         List<VNameValue> componetCountList = new ArrayList<VNameValue>();
-        List<SimpleOrderedMap> repoUsageList = (List<SimpleOrderedMap>) repoMap
-            .get("buckets");
+        List<SimpleOrderedMap> repoUsageList = (List<SimpleOrderedMap>) repoMap.get("buckets");
         if (repoMap != null) {
           for (SimpleOrderedMap repoUsageMap : repoUsageList) {
             VNameValue componetCount = new VNameValue();
@@ -265,9 +240,8 @@ public class BizUtil {
     return vBarDataList;
   }
   
-  public HashMap<String, String> sortHashMapByValues(
-    HashMap<String, String> passedMap) {
-    if(passedMap == null ){
+  public HashMap<String, String> sortHashMapByValues(HashMap<String, String> passedMap) {
+    if (passedMap == null ) {
       return passedMap;
     }
     HashMap<String, String> sortedMap = new LinkedHashMap<String, String>();
