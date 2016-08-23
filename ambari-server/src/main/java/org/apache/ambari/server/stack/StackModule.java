@@ -19,7 +19,6 @@
 package org.apache.ambari.server.stack;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,14 +27,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.stack.StackDefinitionDirectory;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
@@ -48,11 +43,7 @@ import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack.OrderService;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
-import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
-import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -864,7 +855,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       ConfigUpgradePack serviceConfigPack = unmarshaller.unmarshal(ConfigUpgradePack.class, serviceConfig);
       pack.services.addAll(serviceConfigPack.services);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       throw new AmbariException("Unable to parse service config upgrade file at location: " + serviceConfig.getAbsolutePath(), e);
     }
   }
@@ -904,8 +895,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
             throw new AmbariException("Expected class: " + first.getClass() + " instead of " + group.getClass());
           }
           /* If the current group doesn't specify an "after entry" and the first group does
-             then the current group should be added first.  The first group in the list should 
-             never be ordered relative to any other group. */ 
+             then the current group should be added first.  The first group in the list should
+             never be ordered relative to any other group. */
           if (group.addAfterGroupEntry == null && first.addAfterGroupEntry != null) {
             list.add(0, group);
           }
@@ -1013,7 +1004,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     try {
       pack = unmarshaller.unmarshal(UpgradePack.class, serviceFile);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       throw new AmbariException("Unable to parse service upgrade file at location: " + serviceFile.getAbsolutePath(), e);
     }
 

@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -27,14 +32,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Encapsulates IO operations on a stack definition service directory.
@@ -398,7 +395,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 
     try {
       metaInfoXml = unmarshaller.unmarshal(ServiceMetainfoXml.class, f);
-    } catch (JAXBException e) {
+    } catch (Exception e) {
       metaInfoXml = new ServiceMetainfoXml();
       metaInfoXml.setValid(false);
       String msg = String.format("Unable to parse service metainfo.xml file '%s' ", f.getAbsolutePath());

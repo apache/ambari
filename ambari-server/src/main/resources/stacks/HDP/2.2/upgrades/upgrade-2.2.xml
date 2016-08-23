@@ -16,12 +16,11 @@
    limitations under the License.
 -->
 
-
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
+  <target-stack>HDP-2.2</target-stack>
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
-  <target-stack>HDP-2.2</target-stack>
   <type>ROLLING</type>
   <prerequisite-checks>
     <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
@@ -133,8 +132,8 @@
     </group>
     
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -148,8 +147,9 @@
     </group>
     
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
+
       <service name="HDFS">
         <component>DATANODE</component>
       </service>
@@ -164,14 +164,14 @@
 
       <batch>
         <percent>20</percent>
-        <summary>Verification Required</summary>
+        <summary>Verification Required</summary>        
         <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
     
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -281,8 +281,8 @@
     </group>
 
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -444,7 +444,9 @@
 
       <component name="MAPREDUCE2_CLIENT">
         <pre-upgrade>
-          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+            <summary>Verifying LZO codec path for mapreduce</summary>
+          </task>
         </pre-upgrade>
 
         <upgrade>
@@ -503,7 +505,9 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property" />
 
-          <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+            <summary>Verifying LZO codec path for Tez</summary>
+          </task>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -583,29 +587,35 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true">
+            <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
           
-          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
+            <summary>Adjusting Oozie properties</summary>
+          </task>
 
           <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
           <task xsi:type="configure_function" hosts="first" />
 
-          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="first" sequential="true">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true">
+            <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Create a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

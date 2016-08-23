@@ -17,11 +17,12 @@
 -->
 
 
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
-  <type>NON_ROLLING</type>
   <downgrade-allowed>false</downgrade-allowed>
+  <type>NON_ROLLING</type>
+  
   <prerequisite-checks>
     <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
     <check>org.apache.ambari.server.checks.StormRestAPIDeletedCheck</check>
@@ -67,9 +68,9 @@
     </group>
 
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
 
       <service name="FLUME">
@@ -142,9 +143,9 @@
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
 
       <service name="HBASE">
@@ -250,7 +251,9 @@
       </execute-stage>
 
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
-        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+          <summary>Verifying LZO codec path for mapreduce</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
@@ -278,7 +281,9 @@
       </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties">
-        <task xsi:type="server_action" summary="Calculating Yarn Properties" class="org.apache.ambari.server.serveraction.upgrades.YarnConfigCalculation" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.YarnConfigCalculation">
+          <summary>Calculating Yarn Properties</summary>
+        </task>
       </execute-stage>
 
       <!--HBASE-->
@@ -287,7 +292,9 @@
       </execute-stage>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Calculating HBase Properties">
-        <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation">
+          <summary>Calculating HBase Properties</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
@@ -308,12 +315,16 @@
       </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
-        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+          <summary>Verifying LZO codec path for Tez</summary>
+        </task>
       </execute-stage>
 
       <!--HIVE-->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="server_action" summary="Calculating ZooKeeper Quorum Properties for Hive" class="org.apache.ambari.server.serveraction.upgrades.HiveZKQuorumConfigAction" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HiveZKQuorumConfigAction">
+          <summary>Calculating ZooKeeper Quorum Properties for Hive</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
@@ -346,7 +357,9 @@
       </execute-stage>
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
-        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
+          <summary>Adjusting Oozie properties</summary>
+        </task>
       </execute-stage>
 
       <!--FALCON-->
@@ -375,7 +388,6 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -410,7 +422,8 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
-        <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
+        <task xsi:type="execute" hosts="all">
+          <summary>Wait for NameNode to leave Safemode</summary>
           <script>scripts/namenode.py</script>
           <function>wait_for_safemode_off</function>
         </task>
@@ -475,8 +488,8 @@
     </group>
 
     <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -532,8 +545,8 @@
     </group>
 
     <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>HIVE</service>
         <service>OOZIE</service>
@@ -571,11 +584,6 @@
         <component>DRPC_SERVER</component>
       </service>
 
-      <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
-        <task xsi:type="manual">
-          <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="FLUME" title="Flume">
@@ -588,8 +596,8 @@
     </group>
 
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>FALCON</service>
         <service>STORM</service>
@@ -834,14 +842,16 @@
           -->
           <task xsi:type="configure_function"/>
 
-          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="first" sequential="true">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Create a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>
@@ -875,12 +885,14 @@
     <service name="STORM">
       <component name="NIMBUS">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+          <task xsi:type="execute">
+            <summary>Removing Storm data from ZooKeeper</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_zookeeper_data</function>
           </task>
 
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -893,7 +905,8 @@
 
       <component name="SUPERVISOR">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -906,7 +919,8 @@
 
       <component name="STORM_UI_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -919,7 +933,8 @@
 
       <component name="DRPC_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>

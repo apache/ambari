@@ -16,13 +16,12 @@
    limitations under the License.
 -->
 
-
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.4.*.*</target>
   <target-stack>HDP-2.4</target-stack>
-  <type>ROLLING</type>
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
+  <type>ROLLING</type>
 
   <prerequisite-checks>
     <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
@@ -44,9 +43,6 @@
       </check-properties>
     </configuration>
   </prerequisite-checks>
-
-  <skip-failures>false</skip-failures>
-  <skip-service-check-failures>false</skip-service-check-failures>
 
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
@@ -137,7 +133,9 @@
       <skippable>true</skippable>
 
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
-        <task xsi:type="server_action" summary="Update HBase Env Configuration" class="org.apache.ambari.server.serveraction.upgrades.HBaseEnvMaxDirectMemorySizeAction"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HBaseEnvMaxDirectMemorySizeAction">
+          <summary>Update HBase Env Configuration</summary>
+        </task>
       </execute-stage>
 
     </group>
@@ -157,15 +155,17 @@
       </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
-        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+          <summary>Verifying LZO codec path for Tez</summary>
+        </task>
       </execute-stage>
     </group>
 
     <!-- This needs to be done for every Rolling Upgrade pack that changes configurations. -->
     <group xsi:type="cluster" name="CONFIGURE_CLIENT_DEPENDENCIES" title="Write client configs">
+      <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <direction>UPGRADE</direction>
 
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Write Mapreduce2 Client configs">
         <task xsi:type="execute">
@@ -210,8 +210,8 @@
     </group>
 
     <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -226,8 +226,8 @@
     </group>
 
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
       <service name="HDFS">
         <component>DATANODE</component>
         <component>NFS_GATEWAY</component>
@@ -250,8 +250,8 @@
     </group>
 
     <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -275,9 +275,9 @@
     </group>
 
     <group name="SPARK" title="Spark">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
         <component>SPARK_THRIFTSERVER</component>
@@ -292,9 +292,9 @@
     </group>
 
     <group name="OOZIE" title="Oozie">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
       </service>
@@ -308,9 +308,9 @@
     </group>
 
     <group name="FALCON" title="Falcon">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
       </service>
@@ -368,8 +368,8 @@
     </group>
 
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>HDFS</service>
@@ -485,7 +485,8 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="all" summary="Stop Ranger Admin">
+          <task xsi:type="execute" hosts="all">
+            <summary>Stop Ranger Admin</summary>
             <script>scripts/ranger_admin.py</script>
             <function>stop</function>
           </task>
@@ -495,14 +496,16 @@
             <function>set_pre_start</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Upgrading Ranger database schema">
+          <task xsi:type="execute" hosts="any">
+            <summary>Upgrading Ranger database schema</summary>
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_database</function>
           </task>
 
           <task xsi:type="configure_function" hosts="all" />
 
-          <task xsi:type="execute" hosts="any" summary="Applying Ranger java patches">
+          <task xsi:type="execute" hosts="any">
+            <summary>Applying Ranger java patches</summary>
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_java_patches</function>
           </task>
@@ -524,14 +527,16 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
             <function>setup_ranger_kms_database</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
             <function>setup_ranger_kms_database</function>
           </task>
@@ -545,11 +550,12 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_namenode_ha_adjustments"/>
         </pre-upgrade>
+        
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -598,7 +604,9 @@
 
       <component name="MAPREDUCE2_CLIENT">
         <pre-upgrade>
-          <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+            <summary>Verifying LZO codec path for mapreduce</summary>
+          </task>
         </pre-upgrade>
 
         <upgrade>
@@ -618,7 +626,9 @@
 
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
-          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark Shuffle" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig">
+            <summary>Calculating Yarn Properties for Spark Shuffle</summary>
+          </task>
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
@@ -759,31 +769,37 @@
 
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts"/>
         </pre-upgrade>
+
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
       <component name="SPARK_THRIFTSERVER">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts"/>
         </pre-upgrade>
+        
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
-        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_remove_spark_properties_extraJavaOptions"/>
           <task xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts"/>
         </pre-upgrade>
+        
+        <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
+        
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -795,9 +811,12 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
 
-          <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
+            <summary>Adjusting Oozie properties</summary>
+          </task>
 
-          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true">
+            <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
@@ -805,19 +824,22 @@
           <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
           <task xsi:type="configure_function" hosts="first" />
 
-          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="first" sequential="true">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true">
+            <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Create a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

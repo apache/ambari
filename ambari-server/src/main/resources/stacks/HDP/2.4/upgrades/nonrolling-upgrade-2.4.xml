@@ -16,9 +16,7 @@
    limitations under the License.
 -->
 
-
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.4.*.*</target>
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">  <target>2.4.*.*</target>
   <target-stack>HDP-2.4</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
@@ -63,10 +61,10 @@
     </group>
 
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
-      <service-check>false</service-check>
 
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
@@ -169,9 +167,9 @@
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
 
       <service name="HBASE">
@@ -254,12 +252,16 @@
 
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
-        <task xsi:type="server_action" summary="Verifying LZO codec path for mapreduce" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+          <summary>Verifying LZO codec path for mapreduce</summary>
+        </task>
       </execute-stage>
 
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Verify LZO codec path for Tez">
-        <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath">
+          <summary>Verifying LZO codec path for Tez</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
@@ -268,7 +270,9 @@
 
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
-        <task xsi:type="server_action" summary="Adjusting Oozie properties" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
+          <summary>Adjusting Oozie properties</summary>
+        </task>
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
@@ -304,7 +308,6 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>true</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -361,7 +364,8 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
-        <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
+        <task xsi:type="execute" hosts="all">
+          <summary>Wait for NameNode to leave Safemode</summary>
           <script>scripts/namenode.py</script>
           <function>wait_for_safemode_off</function>
         </task>
@@ -440,8 +444,8 @@
     </group>
 
     <group name="SERVICE_CHECK_1" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>ZOOKEEPER</service>
         <service>RANGER</service>
@@ -520,8 +524,8 @@
     </group>
 
     <group name="SERVICE_CHECK_2" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>HIVE</service>
         <service>SPARK</service>
@@ -567,12 +571,6 @@
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
       </service>
-
-      <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
-        <task xsi:type="manual">
-          <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="SLIDER" title="Slider">
@@ -608,8 +606,8 @@
     </group>
 
     <group name="SERVICE_CHECK_3" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
       <priority>
         <service>FALCON</service>
         <service>KNOX</service>
@@ -688,14 +686,16 @@
             <function>set_pre_start</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Upgrading Ranger database schema">
+          <task xsi:type="execute" hosts="any">
+            <summary>Upgrading Ranger database schema</summary>
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_database</function>
           </task>
 
           <task xsi:type="configure_function" hosts="all" />
 
-          <task xsi:type="execute" hosts="any" summary="Applying Ranger java patches">
+          <task xsi:type="execute" hosts="any">
+            <summary>Applying Ranger java patches</summary>
             <script>scripts/ranger_admin.py</script>
             <function>setup_ranger_java_patches</function>
           </task>
@@ -717,14 +717,16 @@
     <service name="RANGER_KMS">
       <component name="RANGER_KMS_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading Ranger KMS database schema">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
             <function>setup_ranger_kms_database</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Downgrading Ranger KMS database schema">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Downgrading Ranger KMS database schema</summary>
             <script>scripts/kms_server.py</script>
             <function>setup_ranger_kms_database</function>
           </task>
@@ -936,14 +938,16 @@
           <!-- It is extremely important that both of these tasks run on the exact same host. Hence, pick the first alphabetically. -->
           <task xsi:type="configure_function" hosts="first" />
 
-          <task xsi:type="execute" hosts="first" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="first" sequential="true">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Create a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.6</target-stack>
   <type>ROLLING</type>
@@ -49,16 +49,21 @@
             <message>pre-manual 1 task to run on all hosts</message>
           </task>
           <task xsi:type="execute">
-            <command>pre-ls 1 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar1</function>
           </task>
           <task xsi:type="execute">
-            <command>pre-ls 2 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar1</function>
           </task>
         </pre-upgrade>
         
+        <upgrade />
+        
         <post-upgrade>
           <task xsi:type="execute">
-            <command>post-ls 1 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar1</function>
           </task>
           <task xsi:type="manual">
             <message>post-manual 1 task to run on all hosts</message>
@@ -67,13 +72,16 @@
             <message>post-manual 2 task to run on all hosts</message>
           </task>
           <task xsi:type="execute">
-            <command>post-ls 2 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar2</function>
           </task>
           <task xsi:type="execute">
-            <command>post-ls 3 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar3</function>
           </task>
           <task xsi:type="execute">
-            <command>post-ls 4 to run on all hosts</command>
+            <script>foo</script>
+            <function>bar4</function>
           </task>
           
         </post-upgrade>

@@ -18,6 +18,25 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
@@ -25,25 +44,25 @@ import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
 import org.apache.ambari.server.state.stack.StackMetainfoXml;
 import org.apache.ambari.server.state.stack.UpgradePack;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 /**
  * Provides functionality to unmarshal stack definition files to their
  * corresponding object representations.
  */
-class ModuleFileUnmarshaller {
+public class ModuleFileUnmarshaller {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ModuleFileUnmarshaller.class);
+
   /**
    * Map of class to JAXB context
    */
-  private static final Map<Class<?>, JAXBContext> jaxbContexts = new HashMap<Class<?>, JAXBContext>();
+  private static final Map<Class<?>, JAXBContext> jaxbContexts = new HashMap<>();
+  private static final Map<String, Schema> jaxbSchemas = new HashMap<>();
+
 
   /**
    * Unmarshal a file to it's corresponding object type.
@@ -53,11 +72,70 @@ class ModuleFileUnmarshaller {
    *
    * @return object representation of the specified file
    * @throws JAXBException if unable to unmarshal the file
+   * @throws XMLStreamException
+   * @throws SAXException
+   * @throws FileNotFoundException
    */
-  public <T> T unmarshal(Class<T> clz, File file) throws JAXBException {
+  public <T> T unmarshal(Class<T> clz, File file) throws JAXBException, IOException, XMLStreamException, SAXException {
+    return unmarshal(clz, file, false);
+  }
+
+  /**
+   * Unmarshal a file to it's corresponding object type.
+   *
+   * @param clz     class of the object representation
+   * @param file    file to unmarshal
+   * @param logXsd  log XSD information
+   *
+   * @return object representation of the specified file
+   * @throws JAXBException if unable to unmarshal the file
+   * @throws XMLStreamException
+   * @throws SAXException
+   * @throws FileNotFoundException
+   */
+  public <T> T unmarshal(Class<T> clz, File file, boolean logXsd) throws JAXBException, IOException, XMLStreamException, SAXException {
     Unmarshaller u = jaxbContexts.get(clz).createUnmarshaller();
 
-    return clz.cast(u.unmarshal(file));
+    XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
+
+    FileReader reader = new FileReader(file);
+    XMLStreamReader xmlReader = xmlFactory.createXMLStreamReader(reader);
+
+    xmlReader.nextTag();
+    String xsdName = xmlReader.getAttributeValue(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "noNamespaceSchemaLocation");
+
+    InputStream xsdStream = null;
+
+    if (null != xsdName) {
+      if (logXsd) {
+        LOG.info("Processing " + file.getAbsolutePath() + " with " + xsdName);
+      }
+      if (jaxbSchemas.containsKey(xsdName)) {
+        u.setSchema(jaxbSchemas.get(xsdName));
+      } else {
+
+        xsdStream = clz.getClassLoader().getResourceAsStream(xsdName);
+
+        if (null != xsdStream) {
+          SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+          Schema schema = factory.newSchema(new StreamSource(xsdStream));
+
+          u.setSchema(schema);
+
+          jaxbSchemas.put(xsdName, schema);
+        } else if (logXsd) {
+          LOG.info("Schema '" + xsdName + "' for " + file.getAbsolutePath() + " was not found, ignoring");
+        }
+      }
+    } else if (logXsd) {
+      LOG.info("NOT processing " + file.getAbsolutePath() + "; there is no XSD");
+    }
+
+    try {
+      return clz.cast(u.unmarshal(file));
+    } finally {
+      IOUtils.closeQuietly(xsdStream);
+    }
   }
 
   /**
@@ -65,7 +143,7 @@ class ModuleFileUnmarshaller {
    */
   static {
     try {
-      // three classes define the top-level element "metainfo", so we need 3 contexts.
+      // three classes define the top-level element "metainfo", so we need 3 contexts for them
       JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class, RepositoryXml.class,
           ConfigurationXml.class, UpgradePack.class, ConfigUpgradePack.class);
 

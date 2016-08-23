@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.xml.bind.JAXBException;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RepositoryResponse;
@@ -95,7 +94,7 @@ public class RepoUtil {
       if (repositoryFile.exists()) {
         try {
           repoFile = unmarshaller.unmarshal(RepositoryXml.class, repositoryFile);
-        } catch (JAXBException e) {
+        } catch (Exception e) {
           repoFile = new RepositoryXml();
           repoFile.setValid(false);
           String msg = "Unable to parse repo file at location: " +
@@ -122,11 +121,12 @@ public class RepoUtil {
     for (OperatingSystemEntity os : operatingSystems) {
       List<RepositoryInfo> serviceReposForOs = stackReposByOs.get(os.getOsType());
       ImmutableSet<String> repoNames = ImmutableSet.copyOf(Lists.transform(os.getRepositories(), REPO_ENTITY_TO_NAME));
-      for (RepositoryInfo repoInfo : serviceReposForOs)
+      for (RepositoryInfo repoInfo : serviceReposForOs) {
         if (!repoNames.contains(repoInfo.getRepoName())) {
           os.getRepositories().add(toRepositoryEntity(repoInfo));
           addedRepos.add(String.format("%s (%s)", repoInfo.getRepoId(), os.getOsType()));
         }
+      }
     }
     LOG.info("Added {} service repos: {}", addedRepos.size(),Iterables.toString(addedRepos));
   }

@@ -18,28 +18,16 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.ExtensionMetainfoXml;
-import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 /**
  * Encapsulates IO operations on a extension definition extension directory.
@@ -150,7 +138,7 @@ public class ExtensionDirectory extends StackDefinitionDirectory {
 
       try {
         metaInfoXml = unmarshaller.unmarshal(ExtensionMetainfoXml.class, extensionMetaInfoFile);
-      } catch (JAXBException e) {
+      } catch (Exception e) {
         metaInfoXml = new ExtensionMetainfoXml();
         metaInfoXml.setValid(false);
         metaInfoXml.addError("Unable to parse extension metainfo.xml file at location: " +
