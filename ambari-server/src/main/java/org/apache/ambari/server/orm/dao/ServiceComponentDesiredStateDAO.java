@@ -117,7 +117,7 @@ public class ServiceComponentDesiredStateDAO {
 
   @Transactional
   public void remove(ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
-    entityManagerProvider.get().remove(merge(serviceComponentDesiredStateEntity));
+    entityManagerProvider.get().remove(serviceComponentDesiredStateEntity);
   }
 
   @Transactional

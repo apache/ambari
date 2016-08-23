@@ -9390,25 +9390,6 @@ public class AmbariManagementControllerTest {
   @Test
   public void testDeleteClusterCreateHost() throws Exception {
 
-    Injector injector = Guice.createInjector(new AuditLoggerModule(), new AbstractModule() {
-      @Override
-      protected void configure() {
-        Properties properties = new Properties();
-        properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
-
-        properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(),"src/test/resources/stacks");
-        properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(),"../version");
-        properties.setProperty(Configuration.OS_VERSION.getKey(), "centos6");
-        properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
-        try {
-          install(new ControllerModule(properties));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-    injector.getInstance(GuiceJpaInitializer.class);
-
     String STACK_ID = "HDP-2.0.1";
 
     String CLUSTER_NAME = getUniqueName();
