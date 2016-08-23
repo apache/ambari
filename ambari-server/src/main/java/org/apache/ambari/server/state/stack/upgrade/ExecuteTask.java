@@ -59,13 +59,6 @@ public class ExecuteTask extends Task {
   @XmlElement(name="function")
   public String function;
 
-  /**
-   * Command to run under normal conditions.
-   *  If both a function and command are defined, only the function will be executed.
-   */
-  @XmlElement(name="command")
-  public String command;
-
   public static final String actionVerb = "Executing";
 
   @Override

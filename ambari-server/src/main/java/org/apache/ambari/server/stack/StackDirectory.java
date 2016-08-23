@@ -18,29 +18,26 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.stack.RepositoryXml;
-import org.apache.ambari.server.state.stack.StackMetainfoXml;
-import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.ambari.server.state.stack.UpgradePack;
-import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.xml.bind.JAXBException;
-
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.RepositoryXml;
+import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.commons.io.FilenameUtils;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.
@@ -331,7 +328,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       if (repositoryFile.exists()) {
         try {
           repoFile = unmarshaller.unmarshal(RepositoryXml.class, repositoryFile);
-        } catch (JAXBException e) {
+        } catch (Exception e) {
           repoFile = new RepositoryXml();
           repoFile.setValid(false);
           String msg = "Unable to parse repo file at location: " +
@@ -367,7 +364,7 @@ public class StackDirectory extends StackDefinitionDirectory {
 
       try {
         metaInfoXml = unmarshaller.unmarshal(StackMetainfoXml.class, stackMetaInfoFile);
-      } catch (JAXBException e) {
+      } catch (Exception e) {
         metaInfoXml = new StackMetainfoXml();
         metaInfoXml.setValid(false);
         String msg = "Unable to parse stack metainfo.xml file at location: " +
@@ -468,7 +465,7 @@ public class StackDirectory extends StackDefinitionDirectory {
       pack = unmarshaller.unmarshal(UpgradePack.class, upgradeFile);
       pack.setName(packName);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       if (upgradeFile == null) {
         throw new AmbariException("Null upgrade pack");
       }
@@ -482,7 +479,7 @@ public class StackDirectory extends StackDefinitionDirectory {
     try {
       pack = unmarshaller.unmarshal(ConfigUpgradePack.class, upgradeFile);
     }
-    catch (JAXBException e) {
+    catch (Exception e) {
       if (upgradeFile == null) {
         throw new AmbariException("Null config upgrade pack");
       }

@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.0.1</target-stack>
   <type>NON_ROLLING</type>
@@ -59,9 +59,9 @@
 
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
       <direction>UPGRADE</direction>
+      <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
 
       <service name="FLUME">
@@ -166,8 +166,8 @@
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
       <direction>UPGRADE</direction>
-      <skippable>true</skippable>
       <service-check>false</service-check>
+      <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
 
@@ -281,7 +281,6 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -322,13 +321,14 @@
     </group>
 
     <group xsi:type="cluster" name="HDFS_LEAVE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+      <direction>UPGRADE</direction>
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <direction>UPGRADE</direction>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
-        <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
+        <task xsi:type="execute" hosts="all">
+          <summary>Wait for NameNode to leave Safemode</summary>
           <script>scripts/namenode.py</script>
           <function>wait_for_safemode_off</function>
         </task>
@@ -393,8 +393,9 @@
     </group>
 
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      
       <priority>
         <service>HDFS</service>
         <service>YARN</service>
@@ -442,7 +443,8 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Upgrade Oozie Database">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
+        <task xsi:type="execute" hosts="any">
+          <summary>Upgrading the Oozie database and creating a new sharelib</summary>
           <script>scripts/oozie_server_upgrade.py</script>
           <function>upgrade_oozie_database_and_sharelib</function>
         </task>
@@ -454,7 +456,8 @@
       <direction>DOWNGRADE</direction>
       <skippable>true</skippable>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Downgrade Oozie ShareLib">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
+        <task xsi:type="execute" hosts="any">
+          <summary>Upgrading the Oozie database and creating a new sharelib</summary>
           <script>scripts/oozie_server_upgrade.py</script>
           <function>create_sharelib</function>
         </task>
@@ -527,12 +530,6 @@
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
       </service>
-
-      <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
-        <task xsi:type="manual">
-          <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="SLIDER" title="Slider">
@@ -809,14 +806,16 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="any">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any">
+            <summary>Create a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>
@@ -866,12 +865,14 @@
     <service name="STORM">
       <component name="NIMBUS">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+          <task xsi:type="execute">
+            <summary>Removing Storm data from ZooKeeper</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_zookeeper_data</function>
           </task>
 
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -882,12 +883,14 @@
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
 
-          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+          <task xsi:type="execute">
+            <summary>Removing Storm data from ZooKeeper</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_zookeeper_data</function>
           </task>
 
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -900,7 +903,8 @@
 
       <component name="SUPERVISOR">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -911,7 +915,8 @@
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
 
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -924,7 +929,8 @@
 
       <component name="STORM_UI_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>
@@ -937,7 +943,8 @@
 
       <component name="DRPC_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" summary="Removing local Storm data">
+          <task xsi:type="execute">
+            <summary>Removing local Storm data</summary>
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_local_data</function>
           </task>

@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.4.*</target>
   <target-stack>HDP-2.4.0</target-stack>
   <type>ROLLING</type>
@@ -70,6 +70,11 @@
       <service name="HBASE">
         <component>REGIONSERVER</component>
       </service>
+      <batch>
+        <percent>1</percent>
+        <summary>Summary</summary>
+        <message>Message</message>
+      </batch>
     </group>
   </order>
 

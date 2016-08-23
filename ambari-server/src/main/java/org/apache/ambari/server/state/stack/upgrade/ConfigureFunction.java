@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-  import javax.xml.bind.annotation.XmlAccessType;
-  import javax.xml.bind.annotation.XmlAccessorType;
-  import javax.xml.bind.annotation.XmlRootElement;
-  import javax.xml.bind.annotation.XmlTransient;
-  import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 /**
  * Used to represent Configuring of a component.
@@ -35,6 +36,14 @@ public class ConfigureFunction extends Task {
   private Task.Type type = Type.CONFIGURE_FUNCTION;
 
   public static final String actionVerb = "Configuring";
+
+  /**
+   * The hosts to run the task on. Default to running on
+   * {@link ExecuteHostType#ALL}.
+   */
+  @XmlAttribute
+  public ExecuteHostType hosts = ExecuteHostType.ALL;
+
 
   @Override
   public Task.Type getType() {

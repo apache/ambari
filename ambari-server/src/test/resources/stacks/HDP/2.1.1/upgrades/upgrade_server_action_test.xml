@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.0</target-stack>
   <type>ROLLING</type>
@@ -54,12 +54,21 @@
       </execute-stage>
 
       <execute-stage title="Calculating Properties">
-        <task xsi:type="server_action" summary="Calculating Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
       </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Calculating HDFS Properties">
-        <task xsi:type="server_action" summary="Calculating Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
       </execute-stage>
 
     </group>
   </order>
+  
+  <processing>
+    <service name="ZOOKEEPER">
+      <component name="ZOOKEEPER_SERVER">
+        <upgrade />
+      </component>
+    </service>
+  </processing>
+  
 </upgrade>

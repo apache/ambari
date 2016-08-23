@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.4</target-stack>
   <type>ROLLING</type>
@@ -45,7 +45,8 @@
       </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Finalize HDFS">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
       <execute-stage title="Confirm 2">
@@ -111,7 +112,8 @@
       
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
       
@@ -122,7 +124,8 @@
       
       <execute-stage title="Run On All {{version}}">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
     </group>
@@ -151,7 +154,8 @@
       <component name="NAMENODE">
         <pre-upgrade>
           <task xsi:type="execute" hosts="master">
-            <command>su - {hdfs-user} -c 'dosomething'</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_nn_test"/>
           <task xsi:type="manual">
@@ -163,7 +167,8 @@
         </upgrade>
         <post-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </post-upgrade>
       </component>
@@ -184,16 +189,20 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </pre-upgrade>
+        <upgrade />
       </component>
       <component name="NODEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </pre-upgrade>
+        <upgrade />
       </component>
     </service>
     
@@ -207,6 +216,7 @@
 
           <task xsi:type="configure" id="hdp_2_1_1_test_properties"/>
         </pre-upgrade>
+        <upgrade />
        </component>
      </service>    
   </processing>

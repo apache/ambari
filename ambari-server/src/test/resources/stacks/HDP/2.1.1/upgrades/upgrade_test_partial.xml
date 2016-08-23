@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>2.2.*.*</target>
   <target-stack>HDP-2.2.0</target-stack>
   <type>ROLLING</type>
@@ -47,7 +47,8 @@
       </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Finalize HDFS">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
       <execute-stage title="Confirm 2">
@@ -131,7 +132,8 @@
       </execute-stage>
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
         <task xsi:type="execute">
-          <command>ls</command>
+          <script>foo</script>
+          <function>list</function>
         </task>
       </execute-stage>
       <execute-stage title="Save Cluster State" service="" component="">
@@ -168,7 +170,8 @@
       <component name="NAMENODE">
         <pre-upgrade>
           <task xsi:type="execute" hosts="master">
-            <command>su - {hdfs-user} -c 'dosomething'</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_nn_pre_upgrade" />
           <task xsi:type="manual">
@@ -180,7 +183,8 @@
         </upgrade>
         <post-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </post-upgrade>
       </component>
@@ -201,17 +205,21 @@
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
         </pre-upgrade>
+        <upgrade />
       </component>
       <component name="NODEMANAGER">
         <pre-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <script>foo</script>
+            <function>list</function>
           </task>
           <task xsi:type="configure" id="hdp_2_1_1_nm_pre_upgrade"/>
         </pre-upgrade>
+        <upgrade />
       </component>
     </service>
     
@@ -225,6 +233,7 @@
           <task xsi:type="configure" id="hdp_2_1_1_set_transport_mode"/>
           <task xsi:type="configure" id="hdp_2_1_1_hive_server_foo"/>
         </pre-upgrade>
+        <upgrade />
        </component>
      </service>
 
@@ -234,12 +243,14 @@
           <!-- This is important, do not remove it since UpgradeHelperTest.java :
           testUpgradeWithMultipleTasksWithMultipleHostTypes() asserts
           that these tasks each run on their own stage. -->
-          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true">
+            <summary>Shut down all Oozie servers</summary>
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true">
+            <summary>Upgrading the Oozie database and creating a new sharelib</summary>
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
