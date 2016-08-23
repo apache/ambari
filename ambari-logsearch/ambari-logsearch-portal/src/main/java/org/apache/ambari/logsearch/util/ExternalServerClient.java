@@ -18,30 +18,23 @@
  */
 package org.apache.ambari.logsearch.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.UnknownHostException;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.ambari.logsearch.web.security.LogsearchAbstractAuthenticationProvider;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.client.JerseyClient;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.springframework.stereotype.Component;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import com.sun.jersey.client.apache.ApacheHttpClient;
-import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * Layer to send REST request to External server using jersey client
@@ -49,8 +42,12 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 @Component
 public class ExternalServerClient {
   private static Logger LOG = Logger.getLogger(ExternalServerClient.class);
-  private static final ThreadLocal<Client> localJerseyClient = new ThreadLocal<Client>();
-  private DefaultApacheHttpClientConfig defaultConfig = new DefaultApacheHttpClientConfig();
+  private static final ThreadLocal<JerseyClient> localJerseyClient = new ThreadLocal<JerseyClient>(){
+    @Override
+    protected JerseyClient initialValue() {
+      return JerseyClientBuilder.createClient();
+    }
+  };
   private String hostURL = "http://host:ip";// default
   private boolean enableLog = false;// default
 
@@ -61,151 +58,39 @@ public class ExternalServerClient {
             + "external_auth.host_url", hostURL);
   }
 
-  private Client getJerseyClient() {
-    Client jerseyClient = localJerseyClient.get();
-    if (jerseyClient == null) {
-      jerseyClient = ApacheHttpClient.create(defaultConfig);
-      localJerseyClient.set(jerseyClient);
-    }
-    return jerseyClient;
-  }
-
   /**
-   * Send GET Request to  External server
-   * @param url
-   * @param klass
-   * @param queryParam
-   * @param username
-   * @param password
-   * @return Response Object 
-   * @throws UnknownHostException
-   * @throws Exception
+   * Send GET request to an external server
    */
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  public Object sendGETRequest(String url, Class klass,
-      MultivaluedMapImpl queryParam, String username, String password)
-      throws UnknownHostException, Exception {
-    // add host url
+  public Object sendGETRequest(String url, Class klass, MultivaluedMap<String, String> queryParam,
+                               String username, String password)
+      throws Exception {
     url = hostURL + url;
-    String parameters = getQueryParameter(queryParam);
-    LOG.debug("URL: " + url + " query parameters are : " + parameters);
-    WebResource.Builder builder = buildWebResourceBuilder(url, queryParam,
-        username, password);
-    try {
-      return builder.get(klass);
-    } catch (WebApplicationException webApplicationException) {
-      String errMsg = webApplicationExceptionHandler(webApplicationException,
-          url);
-      throw new Exception(errMsg);
-    } catch (UniformInterfaceException uniformInterfaceException) {
-      String errMsg = uniformInterfaceExceptionHandler(
-          uniformInterfaceException, url);
-      throw new Exception(errMsg);
-    } catch (ClientHandlerException clientHandlerException) {
-      String errMsg = clientHandlerExceptionHandler(clientHandlerException, url);
-      throw new Exception(errMsg);
-    } catch (Exception e) {
-      Object response = builder.get(Object.class);
-      String errMsg = "URL: " + url + response.toString();
-      LOG.error(errMsg);
-      throw new Exception(errMsg);
-    } finally {
-      cleanup();
-    }
-  }
+    JerseyClient client = localJerseyClient.get();
+    HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().build();
 
-  private WebResource.Builder buildWebResourceBuilder(String url,
-      MultivaluedMapImpl queryParam, String username, String password) {
-    WebResource webResource = getJerseyClient().resource(url);
-    // add filter
+    client.register(authFeature);
     if (enableLog) {
-      webResource.addFilter(new LoggingFilter());
+      client.register(LoggingFilter.class);
     }
-    getJerseyClient().addFilter(new HTTPBasicAuthFilter(username, password));
-    // add query param
-    if (queryParam != null) {
-      webResource = webResource.queryParams(queryParam);
-    }
-    WebResource.Builder builder = webResource.getRequestBuilder();
-    return builder;
-  }
 
-  private String webApplicationExceptionHandler(
-      WebApplicationException webApplicationException, String url) {
-    Object object = null;
+    WebTarget target = client.target(url);
+    LOG.debug("URL: " + url);
+    for (Map.Entry<String, List<String>> entry : queryParam.entrySet()) {
+      target = target.queryParam(entry.getKey(), entry.getValue());
+      LOG.debug(
+        String.format("Query parameter: name - %s  ; value - %s ;" + entry.getKey(), StringUtils.join(entry.getValue(),',')));
+    }
+    target
+      .property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
+      .property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password);
+    Invocation.Builder invocationBuilder =  target.request(MediaType.APPLICATION_JSON_TYPE);
     try {
-      object = webApplicationException.getResponse().getEntity();
+      return invocationBuilder.get().readEntity(klass);
     } catch (Exception e) {
-      LOG.error(e.getLocalizedMessage());
+      throw new Exception(e.getCause());
+    } finally {
+      localJerseyClient.remove();
     }
-    String errMsg = null;
-    if (object != null) {
-      errMsg = object.toString();
-    } else {
-      errMsg = webApplicationException.getMessage();
-    }
-    errMsg = "URL: " + url + errMsg;
-    LOG.error(errMsg);
-    return errMsg;
-  }
-
-  private String uniformInterfaceExceptionHandler(
-      UniformInterfaceException uniformInterfaceException, String url) {
-    Object object = null;
-    String errMsg = null;
-    ClientResponse clientResponse = uniformInterfaceException.getResponse();
-    try {
-      object = clientResponse.getEntity(Object.class);
-      if (object != null) {
-        errMsg = object.toString();
-      }
-    } catch (Exception e) {
-      InputStream inputStream = clientResponse.getEntityInputStream();
-      try {
-        errMsg = IOUtils.toString(inputStream);
-      } catch (IOException e1) {
-        LOG.error(e.getLocalizedMessage());
-      }
-    }
-    if (errMsg == null) {
-      errMsg = uniformInterfaceException.getLocalizedMessage();
-    }
-    LOG.error("url :" + url + " Response : " + errMsg);
-    return errMsg;
-  }
-
-  private String clientHandlerExceptionHandler(
-      ClientHandlerException clientHandlerException, String url) {
-    String errMsg = clientHandlerException.getLocalizedMessage();
-    errMsg = "URL: " + url + errMsg;
-    LOG.error(errMsg);
-    return errMsg;
-  }
-
-  private String getQueryParameter(MultivaluedMapImpl queryParam) {
-    StringBuilder builder = new StringBuilder();
-    if (queryParam != null) {
-      builder.append(" Query param :");
-      for (Entry<String, List<String>> entry : queryParam.entrySet()) {
-        String name = entry.getKey();
-        builder.append(" name : " + name + " " + "values : [");
-        List<String> valuesList = entry.getValue();
-        if (valuesList != null) {
-          for (int index = 0; index < valuesList.size(); index++) {
-            String value = valuesList.get(index);
-            if (index > 0) {
-              builder.append(",");
-            }
-            builder.append(value);
-          }
-        }
-        builder.append("]");
-      }
-    }
-    return builder.toString();
-  }
-
-  private void cleanup() {
-    localJerseyClient.remove();
   }
 }

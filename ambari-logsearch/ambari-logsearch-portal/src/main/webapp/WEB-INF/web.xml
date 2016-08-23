@@ -48,18 +48,10 @@
 	<!-- Servlet mapping for REST -->
 	<servlet>
 		<servlet-name>REST service</servlet-name>
-		<servlet-class>com.sun.jersey.spi.spring.container.servlet.SpringServlet</servlet-class>
+		<servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
 		<init-param>
 			<param-name>jersey.config.server.provider.packages</param-name>
-			<param-value>org.apache.ambari.logsearch.rest</param-value>
-		</init-param>
-		<init-param>
-			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
-			<param-value>org.apache.ambari.logsearch.common.RESTAPIFilter</param-value>
-		</init-param>
-		<init-param>
-			<param-name>com.sun.jersey.spi.container.ContainerResponseFilters</param-name>
-			<param-value>org.apache.ambari.logsearch.common.RESTAPIFilter</param-value>
+			<param-value>org.apache.ambari.logsearch.rest,io.swagger.jaxrs.listing</param-value>
 		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
