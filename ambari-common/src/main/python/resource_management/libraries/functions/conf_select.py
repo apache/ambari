@@ -45,6 +45,12 @@ from resource_management.libraries.functions import StackFeature
 STACK_ROOT_PATTERN = "{{ stack_root }}"
 
 _PACKAGE_DIRS = {
+  "atlas": [
+    {
+      "conf_dir": "/etc/atlas/conf",
+      "current_dir": "{0}/current/atlas-client/conf".format(STACK_ROOT_PATTERN)
+    }
+  ],
   "accumulo": [
     {
       "conf_dir": "/etc/accumulo/conf",
