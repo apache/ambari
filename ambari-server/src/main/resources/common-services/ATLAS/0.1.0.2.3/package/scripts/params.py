@@ -238,6 +238,7 @@ atlas_audit_hbase_tablename = default('/configurations/application-properties/at
 
 hbase_user_keytab = default('/configurations/hbase-env/hbase_user_keytab', None)
 hbase_principal_name = default('/configurations/hbase-env/hbase_principal_name', None)
+enable_ranger_hbase = False
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory
