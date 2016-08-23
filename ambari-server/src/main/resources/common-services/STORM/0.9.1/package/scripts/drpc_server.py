@@ -135,5 +135,9 @@ class DrpcServer(Script):
     import params
     return params.storm_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.pid_drpc]
+
 if __name__ == "__main__":
   DrpcServer().execute()

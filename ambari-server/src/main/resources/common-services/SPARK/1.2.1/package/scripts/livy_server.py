@@ -90,6 +90,10 @@ class LivyServer(Script):
     for dir_path in dirs:
       self.wait_for_dfs_directory_created(dir_path, ignored_dfs_dirs)
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.livy_server_pid_file]
+
 
   @retry(times=8, sleep_time=20, backoff_factor=1, err_class=Fail)
   def wait_for_dfs_directory_created(self, dir_path, ignored_dfs_dirs):

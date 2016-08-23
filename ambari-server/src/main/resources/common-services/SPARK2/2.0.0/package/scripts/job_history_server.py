@@ -98,5 +98,9 @@ class JobHistoryServer(Script):
     import params
     return params.spark_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.spark_history_server_pid_file]
+
 if __name__ == "__main__":
   JobHistoryServer().execute()

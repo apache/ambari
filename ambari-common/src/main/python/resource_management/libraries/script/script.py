@@ -35,6 +35,7 @@ from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLL
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
+from resource_management.core import sudo
 from resource_management.core.resources import File, Directory
 from resource_management.core.source import InlineTemplate
 from resource_management.core.environment import Environment
@@ -278,6 +279,9 @@ class Script(object):
           self.pre_start()
         
         method(env)
+
+        if self.command_name == "start" and not self.is_hook():
+          self.post_start()
     except Fail as ex:
       ex.pre_raise()
       raise
@@ -294,6 +298,9 @@ class Script(object):
   
   def get_user(self):
     return ""
+
+  def get_pid_files(self):
+    return []
         
   def pre_start(self):
     if self.log_out_files:
@@ -309,6 +316,21 @@ class Script(object):
         return
       
       show_logs(log_folder, user, lines_count=COUNT_OF_LAST_LINES_OF_OUT_FILES_LOGGED, mask=OUT_FILES_MASK)
+
+  def post_start(self):
+    pid_files = self.get_pid_files()
+    if pid_files == []:
+      Logger.logger.warning("Pid files for current script are not defined")
+      return
+
+    pids = []
+    for pid_file in pid_files:
+      if not sudo.path_exists(pid_file):
+        raise Fail("Pid file {0} doesn't exist after starting of the component.")
+
+      pids.append(sudo.read_file(pid_file).strip())
+
+    Logger.info("Component has started with pid(s): {0}".format(', '.join(pids)))
 
   def choose_method_to_execute(self, command_name):
     """
@@ -726,6 +748,7 @@ class Script(object):
           self.start(env, rolling_restart=(restart_type == "rolling_upgrade"))
         else:
           self.start(env)
+      self.post_start()
 
       if is_stack_upgrade:
         # Remain backward compatible with the rest of the services that haven't switched to using

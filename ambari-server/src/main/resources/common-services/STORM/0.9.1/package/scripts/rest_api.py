@@ -76,6 +76,10 @@ class StormRestApi(Script):
   def get_user(self):
     import params
     return params.storm_user
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.pid_rest_api]
   
 if __name__ == "__main__":
   StormRestApi().execute()

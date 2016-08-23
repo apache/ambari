@@ -108,6 +108,10 @@ class SupervisorDefault(Supervisor):
     import params
     return params.storm_user
 
+  def get_pid_files(self):
+    import status_params
+    return [status_params.pid_supervisor]
+
 if __name__ == "__main__":
   Supervisor().execute()
 

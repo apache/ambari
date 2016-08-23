@@ -58,7 +58,11 @@ class AmsMonitor(Script):
   def get_log_folder(self):
     import params
     return params.ams_monitor_log_dir
-  
+
+  def get_pid_files(self):
+    import status_params
+    return [status_params.monitor_pid_file]
+
   def get_user(self):
     import params
     return params.ams_user

@@ -42,6 +42,9 @@
     "taskId": 152, 
     "public_hostname": "c6401.ambari.apache.org", 
     "configurations": {
+        "ams-grafana-env" : {
+            "metrics_grafana_pid_dir" : "/var/run/ambari-metrics-monitor"
+        },
         "mapred-site": {
             "mapreduce.jobhistory.address": "c6402.ambari.apache.org:10020", 
             "mapreduce.cluster.administrators": " hadoop", 

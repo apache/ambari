@@ -1540,9 +1540,9 @@ class TestNamenode(RMFTestCase):
     self.assertEquals("rolling_upgrade", Script.structuredOut["upgrade_type"])
     self.assertEquals("UPGRADE", Script.structuredOut["direction"])
 
-
+  @patch("resource_management.libraries.script.Script.post_start")
   @patch("utils.get_namenode_states")
-  def test_upgrade_restart_eu(self, get_namenode_states_mock):
+  def test_upgrade_restart_eu(self, get_namenode_states_mock, post_start_mock):
     active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
     standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
     unknown_namenodes = []
