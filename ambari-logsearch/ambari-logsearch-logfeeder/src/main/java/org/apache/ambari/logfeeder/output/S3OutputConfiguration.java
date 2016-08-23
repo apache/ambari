@@ -18,10 +18,10 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.ConfigBlock;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.ambari.logfeeder.common.ConfigBlock;
 
 /**
  * Holds all configuration relevant for S3 upload.

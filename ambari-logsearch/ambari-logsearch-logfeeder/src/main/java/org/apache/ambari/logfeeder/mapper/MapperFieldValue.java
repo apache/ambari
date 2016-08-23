@@ -21,7 +21,7 @@ package org.apache.ambari.logfeeder.mapper;
 
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

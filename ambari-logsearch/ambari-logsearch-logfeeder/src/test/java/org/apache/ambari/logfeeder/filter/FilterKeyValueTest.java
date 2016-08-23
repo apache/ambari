@@ -21,8 +21,8 @@ package org.apache.ambari.logfeeder.filter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.OutputMgr;
 import org.apache.ambari.logfeeder.input.InputMarker;
+import org.apache.ambari.logfeeder.output.OutputMgr;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.CaptureType;

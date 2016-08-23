@@ -18,7 +18,7 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.s3.S3Util;
+import org.apache.ambari.logfeeder.util.S3Util;
 import org.junit.Test;
 
 import java.io.File;

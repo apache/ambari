@@ -26,13 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.ConfigBlock;
-import org.apache.ambari.logfeeder.InputMgr;
-import org.apache.ambari.logfeeder.MetricCount;
-import org.apache.ambari.logfeeder.OutputMgr;
-import org.apache.ambari.logfeeder.exception.LogfeederException;
+import org.apache.ambari.logfeeder.common.ConfigBlock;
+import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.filter.Filter;
+import org.apache.ambari.logfeeder.metrics.MetricCount;
 import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.output.OutputMgr;
 import org.apache.log4j.Logger;
 
 public abstract class Input extends ConfigBlock implements Runnable {

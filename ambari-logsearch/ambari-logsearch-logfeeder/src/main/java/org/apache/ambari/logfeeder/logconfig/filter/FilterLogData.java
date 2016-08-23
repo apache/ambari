@@ -21,8 +21,8 @@ package org.apache.ambari.logfeeder.logconfig.filter;
 
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.logconfig.filter.ApplyLogFilter;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
 
 /**

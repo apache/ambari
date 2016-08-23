@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.SolrUtil;
 import org.apache.ambari.logfeeder.view.VLogfeederFilter;
 import org.apache.ambari.logfeeder.view.VLogfeederFilterWrapper;

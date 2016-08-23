@@ -17,8 +17,9 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.metrics;
 
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;

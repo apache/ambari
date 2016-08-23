@@ -19,9 +19,9 @@
 package org.apache.ambari.logfeeder.output;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.ambari.logfeeder.LogFeederUtil;
-import org.apache.ambari.logfeeder.s3.S3Util;
+
 import org.apache.ambari.logfeeder.util.CompressionUtil;
+import org.apache.ambari.logfeeder.util.S3Util;
 import org.apache.log4j.Logger;
 
 import java.io.File;

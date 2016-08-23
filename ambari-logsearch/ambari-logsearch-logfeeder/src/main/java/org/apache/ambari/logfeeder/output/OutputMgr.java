@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.output;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,7 +31,8 @@ import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.logconfig.filter.FilterLogData;
-import org.apache.ambari.logfeeder.output.Output;
+import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 

@@ -17,15 +17,15 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder.exception;
+package org.apache.ambari.logfeeder.metrics;
 
-public class LogfeederException extends Exception {
+public class MetricCount {
+  public String metricsName = null;
+  public boolean isPointInTime = false;
 
-  public LogfeederException(String message, Throwable throwable) {
-    super(message, throwable);
-  }
-
-  public LogfeederException(String message) {
-    super(message);
-  }
+  public long count = 0;
+  public long prevLogCount = 0;
+  public long prevLogMS = System.currentTimeMillis();
+  public long prevPublishCount = 0;
+  public int publishCount = 0; // Count of published metrics. Used for first time sending metrics
 }
