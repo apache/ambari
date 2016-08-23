@@ -299,6 +299,10 @@
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hbase_audit_db"/>
       </execute-stage>
 
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
+        <task xsi:type="server_action" summary="Update HBase Env Configuration" class="org.apache.ambari.server.serveraction.upgrades.HBaseEnvMaxDirectMemorySizeAction"/>
+      </execute-stage>
+
       <!-- TEZ -->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_5_0_0_tez_client_adjust_tez_lib_uris_property"/>
