@@ -22,9 +22,9 @@ package org.apache.ambari.logfeeder.logconfig.filter;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.logconfig.FetchConfigFromSolr;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.view.VLogfeederFilter;
 import org.apache.log4j.Logger;
 

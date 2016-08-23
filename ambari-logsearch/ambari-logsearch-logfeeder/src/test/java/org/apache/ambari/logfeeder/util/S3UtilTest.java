@@ -16,16 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.ambari.logfeeder.util;
 
-package org.apache.ambari.logfeeder;
+import static org.junit.Assert.assertEquals;
 
-public class MetricCount {
-  public String metricsName = null;
-  public boolean isPointInTime = false;
+import org.apache.ambari.logfeeder.util.S3Util;
 
-  public long count = 0;
-  public long prevLogCount = 0;
-  public long prevLogMS = System.currentTimeMillis();
-  public long prevPublishCount = 0;
-  public int publishCount = 0; // Count of published metrics. Used for first time sending metrics
+public class S3UtilTest {
+  public void testS3Util_pathToBucketName() throws Exception {
+    String s3Path = "s3://bucket_name/path/file.txt";
+    String expectedBucketName = "bucket_name";
+    String actualBucketName = S3Util.INSTANCE.getBucketName(s3Path);
+    assertEquals(expectedBucketName, actualBucketName);
+  }
+
+  public void testS3Util_pathToS3Key() throws Exception {
+    String s3Path = "s3://bucket_name/path/file.txt";
+    String expectedS3key = "path/file.txt";
+    String actualS3key = S3Util.INSTANCE.getS3Key(s3Path);
+    assertEquals(expectedS3key, actualS3key);
+  }
+
 }

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.s3;
+package org.apache.ambari.logfeeder.util;
 
 import org.apache.log4j.Logger;
 

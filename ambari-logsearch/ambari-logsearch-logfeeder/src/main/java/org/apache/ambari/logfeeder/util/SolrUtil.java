@@ -21,7 +21,6 @@ package org.apache.ambari.logfeeder.util;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

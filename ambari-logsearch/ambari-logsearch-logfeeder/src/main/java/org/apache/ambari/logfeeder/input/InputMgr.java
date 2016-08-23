@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.input;
 
 import java.io.EOFException;
 import java.io.File;
@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.ambari.logfeeder.input.Input;
-import org.apache.ambari.logfeeder.input.InputFile;
+import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.util.Base64;

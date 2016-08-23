@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.util;
 
 import com.google.common.primitives.Ints;
 

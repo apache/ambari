@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.metrics;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;

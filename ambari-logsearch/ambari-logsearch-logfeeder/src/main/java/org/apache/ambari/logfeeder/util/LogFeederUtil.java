@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.ambari.logfeeder;
+package org.apache.ambari.logfeeder.util;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -36,12 +36,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TimeZone;
 
+import org.apache.ambari.logfeeder.LogFeeder;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
 import org.apache.ambari.logfeeder.mapper.Mapper;
+import org.apache.ambari.logfeeder.metrics.MetricCount;
 import org.apache.ambari.logfeeder.output.Output;
-import org.apache.ambari.logfeeder.util.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;

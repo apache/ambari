@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.filter.FilterJSON;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.util.Base64;
 

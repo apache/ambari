@@ -18,10 +18,11 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 
 public class S3LogPathResolverTest {
 

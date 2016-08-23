@@ -22,7 +22,7 @@ package org.apache.ambari.logfeeder.logconfig;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.logfeeder.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
 
 public enum LogfeederScheduler {
