@@ -133,6 +133,15 @@
       </service>
     </group>
 
+    <group name="HBASE" title="Update HBase Configuration">
+      <skippable>true</skippable>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
+        <task xsi:type="server_action" summary="Update HBase Env Configuration" class="org.apache.ambari.server.serveraction.upgrades.HBaseEnvMaxDirectMemorySizeAction"/>
+      </execute-stage>
+
+    </group>
+
     <group name="KAFKA" title="Kafka">
       <skippable>true</skippable>
       <service name="KAFKA">

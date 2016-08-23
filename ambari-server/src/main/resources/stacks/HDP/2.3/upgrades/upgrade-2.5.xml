@@ -150,6 +150,15 @@
       </service>
     </group>
 
+    <group name="HBASE" title="Update HBase Configuration">
+      <skippable>true</skippable>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Update HBase Configuration">
+        <task xsi:type="server_action" summary="Update HBase Env Configuration" class="org.apache.ambari.server.serveraction.upgrades.HBaseEnvMaxDirectMemorySizeAction"/>
+      </execute-stage>
+
+    </group>
+
     <!-- This group should exist for all RUs that cross a major stack version. -->
     <group xsi:type="cluster" name="UPDATE_CLIENT_CONFIGS" title="Update Client Configs">
       <direction>UPGRADE</direction>
