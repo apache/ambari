@@ -29,6 +29,7 @@ import static org.easymock.EasyMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -266,6 +267,64 @@ public class RoleCommandOrderTest {
       }
     }
     assertTrue(isZookeeperStartPresent);
+  }
+
+  @Test
+  public void testMissingRestartDependenciesAdded() throws Exception {
+    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+    ClusterImpl cluster = createMock(ClusterImpl.class);
+    ServiceComponentHost sch1 = createMock(ServiceComponentHostImpl.class);
+    ServiceComponentHost sch2 = createMock(ServiceComponentHostImpl.class);
+    expect(cluster.getService("GLUSTERFS")).andReturn(null);
+
+
+    Map<String, ServiceComponentHost> hostComponents = new HashMap<>();
+    hostComponents.put("1", sch1);
+    hostComponents.put("2", sch2);
+
+    Service yarnService = createMock(Service.class);
+    ServiceComponent resourcemanagerSC = createMock(ServiceComponent.class);
+
+    expect(cluster.getService("YARN")).andReturn(yarnService).atLeastOnce();
+    expect(cluster.getService("HDFS")).andReturn(null);
+    expect(yarnService.getServiceComponent("RESOURCEMANAGER")).andReturn(resourcemanagerSC).anyTimes();
+    expect(resourcemanagerSC.getServiceComponentHosts()).andReturn(hostComponents).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
+
+    replay(cluster, yarnService, sch1, sch2, resourcemanagerSC);
+
+    rco.initialize(cluster);
+
+    verify(cluster, yarnService);
+
+    Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
+    assertNotNull(deps);
+    Map<RoleCommandPair, Set<RoleCommandPair>> startRCOs = new HashMap<>();
+    Map<RoleCommandPair, Set<RoleCommandPair>> restartRCOs = new HashMap<>();
+
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> dep : deps.entrySet()) {
+      if (dep.getKey().getCmd().equals(RoleCommand.START)) {
+        startRCOs.put(dep.getKey(), dep.getValue());
+      }
+      if (dep.getKey().getCmd().equals(RoleCommand.RESTART)) {
+        restartRCOs.put(dep.getKey(), dep.getValue());
+      }
+    }
+
+    assertFalse(startRCOs.isEmpty());
+    assertFalse(restartRCOs.isEmpty());
+    assertEquals(startRCOs.size(), restartRCOs.size());
+    // Verify one
+    Map.Entry<RoleCommandPair, Set<RoleCommandPair>> entry = restartRCOs.entrySet().iterator().next();
+    assertEquals(RoleCommand.RESTART, entry.getKey().getCmd());
+    for (RoleCommandPair pair : entry.getValue()) {
+      assertEquals(RoleCommand.RESTART, pair.getCmd());
+    }
+    // Verify all
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> startEntry : startRCOs.entrySet()) {
+      assertTrue(restartRCOs.containsKey(
+        new RoleCommandPair(startEntry.getKey().getRole(), RoleCommand.RESTART)));
+    }
   }
 
 
