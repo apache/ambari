@@ -26,7 +26,14 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
@@ -44,7 +51,7 @@ import com.google.inject.persist.PersistService;
  * {@link org.apache.ambari.server.orm.dao.HostVersionDAO} unit tests.
  */
 public class HostVersionDAOTest {
-  
+
   private static Injector injector;
   private ResourceTypeDAO resourceTypeDAO;
   private ClusterDAO clusterDAO;
@@ -133,7 +140,7 @@ public class HostVersionDAOTest {
     hostEntities.add(host1);
     hostEntities.add(host2);
     hostEntities.add(host3);
-    
+
     // Both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
@@ -145,7 +152,7 @@ public class HostVersionDAOTest {
 
     clusterEntity.setHostEntities(hostEntities);
     clusterDAO.merge(clusterEntity);
-    
+
     // Create the Host Versions
     HostVersionEntity hostVersionEntity1 = new HostVersionEntity(host1, clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.CURRENT);
     HostVersionEntity hostVersionEntity2 = new HostVersionEntity(host2, clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.INSTALLED);
@@ -332,6 +339,23 @@ public class HostVersionDAOTest {
     Assert.assertEquals(hostVersionEntity1LastExpected, new HostVersionEntity(hostVersionEntity1LastActual));
     Assert.assertEquals(hostVersionEntity2LastExpected, new HostVersionEntity(hostVersionEntity2LastActual));
     Assert.assertEquals(hostVersionEntity3LastExpected, new HostVersionEntity(hostVersionEntity3LastActual));
+  }
+
+  @Test
+  public void testDuplicates() throws Exception {
+    HostEntity host1 = hostDAO.findByName("test_host1");
+
+    RepositoryVersionEntity repoVersion = helper.getOrCreateRepositoryVersion(HDP_22_STACK, repoVersion_2200);
+
+    HostVersionEntity hostVersionEntity1 = new HostVersionEntity(host1, repoVersion, RepositoryVersionState.CURRENT);
+
+    try {
+      hostVersionDAO.create(hostVersionEntity1);
+      Assert.fail("Each host can have a relationship to a repo version, but cannot have more than one for the same repo");
+    } catch (Exception e) {
+      // expected
+    }
+
   }
 
   @After
