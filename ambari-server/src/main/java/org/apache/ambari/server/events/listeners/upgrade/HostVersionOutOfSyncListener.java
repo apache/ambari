@@ -203,6 +203,10 @@ public class HostVersionOutOfSyncListener {
           RepositoryVersionEntity repositoryVersion = clusterVersion.getRepositoryVersion();
           HostVersionEntity missingHostVersion = new HostVersionEntity(hostEntity,
                   repositoryVersion, RepositoryVersionState.OUT_OF_SYNC);
+
+          LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+              missingHostVersion.getHostName(), missingHostVersion.getState(),
+              missingHostVersion.getRepositoryVersion().getVersion(), missingHostVersion.getRepositoryVersion().getId());
           hostVersionDAO.get().create(missingHostVersion);
           cluster.recalculateClusterVersionState(repositoryVersion);
         }

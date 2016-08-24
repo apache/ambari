@@ -296,7 +296,8 @@ CREATE TABLE ambari.host_version (
   state VARCHAR(32) NOT NULL,
   CONSTRAINT PK_host_version PRIMARY KEY (id),
   CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id),
-  CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES ambari.repo_version (repo_version_id)
+  CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES ambari.repo_version (repo_version_id),
+  CONSTRAINT UQ_host_repo UNIQUE(repo_version_id, host_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.host_version TO :username;
 

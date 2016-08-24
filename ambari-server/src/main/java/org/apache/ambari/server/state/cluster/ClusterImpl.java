@@ -1480,6 +1480,10 @@ public class ClusterImpl implements Cluster {
         HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
             sourceClusterVersion.getRepositoryVersion(), repositoryVersionState);
 
+        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
+            hostVersionEntity.getRepositoryVersion().getVersion(), hostVersionEntity.getRepositoryVersion().getId());
+
         hostVersionDAO.create(hostVersionEntity);
       } else {
         // Update existing host stack version
@@ -1731,6 +1735,11 @@ public class ClusterImpl implements Cluster {
           performingInitialBootstrap = true;
         }
         hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.INSTALLING);
+
+        LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+            hostVersionEntity.getHostName(), hostVersionEntity.getState(),
+            hostVersionEntity.getRepositoryVersion().getVersion(), hostVersionEntity.getRepositoryVersion().getId());
+
         hostVersionDAO.create(hostVersionEntity);
       }
 
@@ -1953,6 +1962,10 @@ public class ClusterImpl implements Cluster {
               // state
               HostVersionEntity hve = new HostVersionEntity(hostEntity,
                 existingClusterVersion.getRepositoryVersion(), state);
+
+              LOG.info("Creating host version for {}, state={}, repo={} (repo_id={})",
+                  hve.getHostName(), hve.getState(),
+                  hve.getRepositoryVersion().getVersion(), hve.getRepositoryVersion().getId());
 
               hostVersionDAO.create(hve);
             }
