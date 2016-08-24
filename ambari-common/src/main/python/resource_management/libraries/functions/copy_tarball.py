@@ -80,7 +80,7 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
     Logger.error("Cannot copy {0} tarball to HDFS because stack name could not be determined.".format(str(name)))
     return (False, None, None)
 
-  stack_version = _get_current_version(use_upgrading_version_during_upgrade)
+  stack_version = get_current_version(use_upgrading_version_during_upgrade)
   if not stack_version:
     Logger.error("Cannot copy {0} tarball to HDFS because stack version could be be determined.".format(str(name)))
     return (False, None, None)
@@ -113,7 +113,7 @@ def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_so
   return (True, source_file, dest_file)
 
 
-def _get_current_version(use_upgrading_version_during_upgrade=True):
+def get_current_version(use_upgrading_version_during_upgrade=True):
   """
   Get the effective version to use to copy the tarballs to.
   :param use_upgrading_version_during_upgrade: True, except when the RU/EU hasn't started yet.
