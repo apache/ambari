@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import uuid
 import datetime
 import time
 import json
@@ -36,6 +37,14 @@ has_errors=False
 #request types
 HTTP_REQUEST_GET='GET'
 HTTP_REQUEST_POST='POST'
+HTTP_REQUEST_DELETE='DELETE'
+
+#HTTP CODE
+HTTP_OK=200
+HTTP_CREATED=201
+HTTP_BAD_REQUEST=400
+HTTP_FORBIDDEN=403
+HTTP_CONFLICT=409
 
 #defaults
 EXIT_MESSAGE = "Make sure to provide correct cluster information including port, admin user name and password. Default values will be used if you omit the command parameters.";
@@ -52,15 +61,15 @@ DEFAULT_MINDISKSPACE=2.0 #in GB
 DEFAULT_MINDISKSPACEUSRLIB=1.0 #in GB
 
 #ops
-OPERATION_CHECK='check'
-OPERATIONS=[OPERATION_CHECK]
+OPERATION_HOST_CHECK='host_check'
+OPERATION_VALIDATE_BLUEPRINT='validate_blueprint'
+OPERATIONS=[OPERATION_HOST_CHECK, OPERATION_VALIDATE_BLUEPRINT]
 
 #codes
 CODE_SUCCESS=0
 CODE_ERROR=1
 CODE_WARNING=2
 CODE_CONNECTION_REFUSED=7
-HTTP_FORBIDDEN=403
 
 #labels
 LABEL_OK='[   OK  ]'
@@ -94,8 +103,13 @@ def init_parser_options(parser):
                     default=DEFAULT_LOG_DIR,
                     help="The log file home location. Default log file home is {0}.".format(DEFAULT_LOG_DIR),
                     metavar="DIR")
+  parser.add_option('--blueprint',
+                    dest="blueprint",
+                    default=None,
+                    help="Blueprint to validate",
+                    metavar="FILE")
   parser.add_option('--operation',
-                    dest='operation', default=OPERATION_CHECK,
+                    dest='operation', default=OPERATION_HOST_CHECK,
                     help='Operation can one of the following {0}'.format(', '.join(OPERATIONS)))
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Output verbosity.")
 
@@ -120,7 +134,10 @@ def validate_options(options):
   if not options.operation:
     errors.append('No operation provided')
   elif not options.operation in OPERATIONS:
-      errors.append('Unknow operation {0}. Specify one of the following operations: {1}'.format(options.operation, ', '.join(OPERATIONS)))
+    errors.append('Unknow operation {0}. Specify one of the following operations: {1}'.format(options.operation, ', '.join(OPERATIONS)))
+  elif options.operation == OPERATION_VALIDATE_BLUEPRINT:
+    if not options.blueprint:
+      errors.append('No blueprint file provided')
 
   if not errors:
     return 'Parameters validation finished successfully', CODE_SUCCESS
@@ -296,6 +313,21 @@ def execute_curl_command(url, headers=[], request_type=DEFAULT_HTTP_REQUEST_TYPE
   out, err = exeProcess.communicate()
   exit_code = exeProcess.returncode
   return out, err, exit_code
+
+def get_http_response_code(out):
+  for a_line in out.split('\n'):
+    a_line = a_line.strip()
+    if a_line.endswith('HTTP/1.1 200 OK'):
+      return HTTP_OK
+    elif a_line.endswith('HTTP/1.1 201 Created'):
+      return HTTP_CREATED
+    elif a_line.endswith('HTTP/1.1 400 Bad Request'):
+      return HTTP_BAD_REQUEST
+    elif a_line.endswith('HTTP/1.1 409 Conflict'):
+      return HTTP_CONFLICT
+    elif a_line.endswith('HTTP/1.1 400 Forbidden'):
+      return HTTP_FORBIDDEN
+  return -1
 
 """
 Determine if Ambari Server responded with an error message for the REST API call
@@ -894,10 +926,80 @@ def run_agent_checks(options, agents, server_url):
     reverse_lookup_checks_parser(task_results_by_host, results_to_print)
     print_check_results(results_to_print)
 
+def run_validate_blueprint(options, server_url):
+  results_to_print = []
+  blueprint_file = options.blueprint
+  label_check = 'Blueprint validation'
+  step(label_check)
+  logger.debug('Blueprint file to check {0}'.format(blueprint_file))
+  if os.path.isfile(blueprint_file):
+    """Validate blueprint file is a valid json file"""
+    valid_json_file = False
+    try:
+      with open(blueprint_file) as data_file:
+        data = json.load(data_file)
+        valid_json_file = True
+    except ValueError as value_error:
+      results_to_print.append({'key':label_check, 'status':STATUS_FAILED, 'error':[str(value_error)]})
+
+    if valid_json_file:
+      """Either a timestamp based name or the name defined in the blueprint"""
+      blueprint_metadata = data.get('Blueprints', {})
+      blueprint_name = blueprint_metadata.get('blueprint_name', None)
+      if not blueprint_name:
+        blueprint_name = 'blueprint_validation_{0}'.format(str(uuid.uuid4()))
+      logger.debug('Blueprint name used for server side validation: {0}'.format(blueprint_name))
+      url = '{0}/api/v1/blueprints/{1}'.format(server_url, blueprint_name)
+      out, err, ec = execute_curl_command(url, request_type=HTTP_REQUEST_POST, request_body="@{0}".format(blueprint_file), user=options.user, password=options.password)
+      logger.debug(out)
+      logger.debug(err)
+      if CODE_ERROR == ec:
+        results_to_print.append({'key':label_check, 'status':STATUS_FAILED, 'error':[err]})
+      else:
+        http_response_code = get_http_response_code(err)
+        logger.debug('HTTP response from the Ambari server: {0}'.format(http_response_code))
+        if http_response_code == HTTP_CREATED and not out :
+          results_to_print.append({'key':label_check, 'status':STATUS_PASSED})
+        else:
+          is_erroneous_response, http_ec, http_err = is_erroneous_response_by_server(out)
+          if is_erroneous_response:
+            results_to_print.append({'key':label_check, 'status':STATUS_FAILED, 'error':[http_err]})
+          else:
+            results_to_print.append({'key':label_check, 'status':STATUS_FAILED, 'error':[err]})
+  else:
+    results_to_print.append({'key':label_check, 'status':STATUS_FAILED, 'error':['{0} does not exist'.format(blueprint_file)]})
+  print_check_results(results_to_print)
+  deregister_temporary_blueprint(options, server_url, blueprint_name)
+
+def deregister_temporary_blueprint(options, server_url, blueprint_name):
+  url = '{0}/api/v1/blueprints/{1}'.format(server_url, blueprint_name)
+  out, err, ec = execute_curl_command(url, request_type=HTTP_REQUEST_DELETE, user=options.user, password=options.password)
+  if CODE_ERROR == ec:
+    logger.error(out)
+    logger.error(err)
+  else:
+    logger.debug(out)
+    logger.debug(err)
+    http_response_code = get_http_response_code(err)
+    logger.debug('HTTP response from the Ambari server: {0}'.format(http_response_code))
+    if http_response_code == HTTP_OK and not out :
+      logger.debug("{0} deregistered".format(blueprint_name))
+    else:
+      is_erroneous_response, http_ec, http_err = is_erroneous_response_by_server(out)
+      if is_erroneous_response:
+        logger.error(http_err)
+      else:
+        logger.info(out)
+        if err:
+          logger.error(err)
+
 """
 Execute the operation passed in from the command line
 """
 def run(options):
+  global has_warnings
+  global has_errors
+
   server_url = get_server_url(options.port)
   label_check = 'Ambari server reachable by user credentials'
   step(label_check)
@@ -916,23 +1018,25 @@ def run(options):
     logger.error('No Ambari Agent registered to the Ambari Server. Install Ambari Agent first.')
     return CODE_ERROR
 
-  if OPERATION_CHECK == options.operation:
+  if OPERATION_HOST_CHECK == options.operation:
     run_host_checks(options, agents, server_url)
     run_java_home_checks(options, agents, server_url)
     run_agent_checks(options, agents, server_url)
+  elif OPERATION_VALIDATE_BLUEPRINT == options.operation:
+    run_validate_blueprint(options, server_url)
+
+  if has_errors:
     logger.info('')
-    global has_warnings
-    global has_errors
-    if has_errors:
-      logger.error('Checks finished with errors')
-    elif has_warnings:
-      logger.warning('Checks finished with warnings')
-    else:
-      logger.info('Checks finished')
-    return CODE_SUCCESS
-  else:
-    logger.error('Unknown operation {0}'.options.operation)
+    logger.error('Checks finished with errors')
     return CODE_ERROR
+  elif has_warnings:
+    logger.info('')
+    logger.warning('Checks finished with warnings')
+    return CODE_WARNING
+  else:
+    logger.info('')
+    logger.info('Checks finished')
+    return CODE_SUCCESS
 
 def main():
   parser = optparse.OptionParser(usage="usage: %prog [option] arg ... [option] arg",)
