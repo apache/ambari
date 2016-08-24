@@ -28,7 +28,7 @@
           <displayName>Atlas Metadata Server</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
-          <versionAdvertised>false</versionAdvertised>
+          <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
               <name>HBASE/HBASE_CLIENT</name>
