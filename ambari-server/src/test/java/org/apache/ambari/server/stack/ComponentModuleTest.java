@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.stack;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.BulkCommandDefinition;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
@@ -31,6 +26,11 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.Assert.assertEquals;
@@ -490,45 +490,53 @@ public class ComponentModuleTest {
     // Test cases where the current Component Info explicitly sets the value.
 
     // 1. Chain of versionAdvertised is: true (parent) -> true (current) => true
-    parentInfo.setVersionAdvertised(new Boolean(true));
-    info.setVersionAdvertised(new Boolean(true));
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(new Boolean(true));
     assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 2. Chain of versionAdvertised is: true (parent) -> false (current) => false
-    parentInfo.setVersionAdvertised(new Boolean(true));
-    info.setVersionAdvertised(new Boolean(false));
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(new Boolean(false));
     assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 3. Chain of versionAdvertised is: false (parent) -> true (current) => true
-    parentInfo.setVersionAdvertised(new Boolean(false));
-    info.setVersionAdvertised(new Boolean(true));
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(new Boolean(true));
     assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 4. Chain of versionAdvertised is: null (parent) -> true (current) => true
-    parentInfo.setVersionAdvertised(null);
-    info.setVersionAdvertised(new Boolean(true));
+    parentInfo.setVersionAdvertisedField(null);
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(new Boolean(true));
     assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // Test cases where current Component Info is null so it should inherit from parent.
 
     // 5. Chain of versionAdvertised is: true (parent) -> null (current) => true
-    parentInfo.setVersionAdvertised(new Boolean(true));
-    info.setVersionAdvertised(null);
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(null);
     assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 6. Chain of versionAdvertised is: true (parent) -> inherit (current) => true
-    parentInfo.setVersionAdvertised(new Boolean(true));
-    info.setVersionAdvertised(null);
+    parentInfo.setVersionAdvertisedField(new Boolean(true));
+    parentInfo.setVersionAdvertised(true);
+    info.setVersionAdvertisedField(null);
     assertEquals(true, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 7. Chain of versionAdvertised is: false (parent) -> null (current) => false
-    parentInfo.setVersionAdvertised(new Boolean(false));
-    info.setVersionAdvertised(null);
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(null);
     assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
 
     // 8. Chain of versionAdvertised is: false (parent) -> inherit (current) => false
-    parentInfo.setVersionAdvertised(new Boolean(false));
-    info.setVersionAdvertised(null);
+    parentInfo.setVersionAdvertisedField(new Boolean(false));
+    parentInfo.setVersionAdvertised(false);
+    info.setVersionAdvertisedField(null);
     assertEquals(false, resolveComponent(info, parentInfo).getModuleInfo().isVersionAdvertised());
   }
 

@@ -18,18 +18,18 @@
 
 package org.apache.ambari.server.stack;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.LogDefinition;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Component module which provides all functionality related to parsing and fully
@@ -90,8 +90,11 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
       }
 
       // Inherit versionAdvertised from the parent if the current Component Info has it as null or "inherit".
-      if (null == componentInfo.getVersionAdvertised()) {
+      if (null == componentInfo.getVersionAdvertisedField()) {
         componentInfo.setVersionAdvertised(parentInfo.isVersionAdvertised());
+      } else {
+        // Set to explicit boolean
+        componentInfo.setVersionAdvertised(componentInfo.getVersionAdvertisedField().booleanValue());
       }
 
       if (componentInfo.getDecommissionAllowed() == null) {
