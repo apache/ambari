@@ -41,7 +41,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_epoch()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("date_pattern", "epoch");
+    mapConfigs.put("target_date_pattern", "epoch");
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -61,7 +61,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_pattern()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -101,7 +101,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_notParsableDatePattern()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("date_pattern", "not_parsable_content");
+    mapConfigs.put("target_date_pattern", "not_parsable_content");
 
     MapperDate mapperDate = new MapperDate();
     assertFalse("Was able to initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -112,7 +112,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_invalidEpochValue()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("date_pattern", "epoch");
+    mapConfigs.put("target_date_pattern", "epoch");
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -130,7 +130,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_invalidDateStringValue()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -140,6 +140,62 @@ public class MapperDateTest {
     Object mappedValue = mapperDate.apply(jsonObj, invalidValue);
 
     assertEquals("Invalid value wasn't returned as it is", invalidValue, mappedValue);
+    assertTrue("jsonObj is not empty", jsonObj.isEmpty());
+  }
+  
+  @Test
+  public void testMapperDate_patternWithoutYear_previousYearLog() throws Exception {
+    LOG.info("testMapperDate_patternWithoutYear_previousYearLog()");
+    String fieldName = "logtime";
+    Calendar currentCalendar = Calendar.getInstance();
+    Map<String, Object> mapConfigs = new HashMap<>();
+    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    String srcDatePattern ="MMM dd HH:mm:ss";
+    mapConfigs.put("src_date_pattern", srcDatePattern);
+    MapperDate mapperDate = new MapperDate();
+    assertTrue("Could not initialize!", mapperDate.init(null, fieldName, null, mapConfigs));
+    Map<String, Object> jsonObj = new HashMap<>();
+    Calendar nextMonthCalendar = Calendar.getInstance();
+    
+    nextMonthCalendar.set(Calendar.MONTH, currentCalendar.get(Calendar.MONTH)+1 );
+    String inputDateStr = new SimpleDateFormat("MMM").format(nextMonthCalendar.getTime()) + " 01 12:01:45";
+    Object mappedValue = mapperDate.apply(jsonObj, inputDateStr);
+    Date mappedDateValue = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).parse(mappedValue.toString());
+    String mappedDateValueStr = new SimpleDateFormat(srcDatePattern).format(mappedDateValue);
+    assertEquals(Date.class, mappedDateValue.getClass());
+    
+    int expectedLogYear = currentCalendar.get(Calendar.YEAR)-1;
+    Calendar mapppedValueCalendar = Calendar.getInstance();
+    mapppedValueCalendar.setTime(mappedDateValue);
+    assertEquals("Mapped year wasn't matched properly", expectedLogYear, mapppedValueCalendar.get(Calendar.YEAR));
+    assertEquals("Mapped date wasn't matched properly", inputDateStr, mappedDateValueStr);
+    assertEquals("Value wasn't put into jsonObj",mappedValue, jsonObj.remove(fieldName));
+    assertTrue("jsonObj is not empty", jsonObj.isEmpty());
+  }
+  
+  @Test
+  public void testMapperDate_patternWithoutYear_currentYearLog() throws Exception {
+    LOG.info("testMapperDate_patternWithoutYear_currentYearLog()");
+    String fieldName = "logtime";
+    Calendar currentCalendar = Calendar.getInstance();
+    Map<String, Object> mapConfigs = new HashMap<>();
+    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    String srcDatePattern ="MMM dd HH:mm:ss";
+    mapConfigs.put("src_date_pattern", srcDatePattern);
+    MapperDate mapperDate = new MapperDate();
+    assertTrue("Could not initialize!", mapperDate.init(null, fieldName, null, mapConfigs));
+    Map<String, Object> jsonObj = new HashMap<>();
+    String inputDateStr = new SimpleDateFormat("MMM").format(currentCalendar.getTime()) + " 01 12:01:45";
+    Object mappedValue = mapperDate.apply(jsonObj, inputDateStr);
+    Date mappedDateValue = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).parse(mappedValue.toString());
+    String mappedDateValueStr = new SimpleDateFormat(srcDatePattern).format(mappedDateValue);
+    assertEquals(Date.class, mappedDateValue.getClass());
+    int expectedLogYear = currentCalendar.get(Calendar.YEAR);
+    Calendar mapppedValueCalendar = Calendar.getInstance();
+    mapppedValueCalendar.setTime(mappedDateValue);
+    assertEquals("Mapped year wasn't matched properly", expectedLogYear, mapppedValueCalendar.get(Calendar.YEAR));
+    assertEquals("Mapped date wasn't matched properly", inputDateStr, mappedDateValueStr);
+    assertEquals("Value wasn't put into jsonObj",mappedValue, jsonObj.remove(fieldName));
     assertTrue("jsonObj is not empty", jsonObj.isEmpty());
   }
 }

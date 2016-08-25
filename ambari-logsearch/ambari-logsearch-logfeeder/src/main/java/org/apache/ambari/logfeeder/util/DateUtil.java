@@ -38,10 +38,4 @@ public class DateUtil {
     }
     return "";
   }
-
-  public static void main(String[] args) {
-    Date currentDate = new Date();
-    String fileDateFormat = "yyyy-MM-dd-HH-mm-ss";
-    System.out.println(dateToString(currentDate, fileDateFormat));
-  }
 }
