@@ -20,10 +20,8 @@ package org.apache.ambari.server.configuration;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Writer;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -54,7 +52,6 @@ import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.upgrade.AbstractUpgradeCatalog;
 import org.apache.ambari.server.utils.AmbariPath;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
@@ -65,13 +62,9 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -103,7 +96,6 @@ public class Configuration {
   public static final String VIEWS_REMOVE_UNDEPLOYED = "views.remove.undeployed";
   public static final String VIEWS_REMOVE_UNDEPLOYED_DEFAULT = "false";
   public static final String WEBAPP_DIR = "webapp.dir";
-  public static final String AMBARI_LOG_FILE = "log4j.properties";
   public static final String BOOTSTRAP_SCRIPT = "bootstrap.script";
   public static final String BOOTSTRAP_SCRIPT_DEFAULT = AmbariPath.getPath("/usr/bin/ambari_bootstrap");
   public static final String BOOTSTRAP_SETUP_AGENT_SCRIPT = "bootstrap.setup_agent.script";
@@ -811,8 +803,6 @@ public class Configuration {
     Configuration.class);
 
   private Properties properties;
-  private Properties log4jProperties = new Properties();
-  private String ambariUpgradeConfigUpdatesFilePath;
   private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
   private Map<String, String> agentConfigsMap;
@@ -1167,139 +1157,6 @@ public class Configuration {
 
     return properties;
   }
-
-  /**
-   * Find, read, and parse the log4j.properties file.
-   * @return the properties that were found or empty if no file was found
-   */
-  public Properties getLog4jProperties() {
-    if (!log4jProperties.isEmpty()) {
-      return log4jProperties;
-    }
-
-    //Get log4j.properties file stream from classpath
-    InputStream inputStream = Configuration.class.getClassLoader().getResourceAsStream(AMBARI_LOG_FILE);
-
-    if (inputStream == null) {
-      throw new RuntimeException(AMBARI_LOG_FILE + " not found in classpath");
-    }
-
-    // load the properties
-    try {
-      log4jProperties.load(inputStream);
-      inputStream.close();
-    } catch (FileNotFoundException fnf) {
-      LOG.info("No configuration file " + AMBARI_LOG_FILE + " found in classpath.", fnf);
-    } catch (IOException ie) {
-      throw new IllegalArgumentException("Can't read configuration file " +
-              AMBARI_LOG_FILE, ie);
-    }
-
-    return log4jProperties;
-  }
-
-
-  public void wrtiteToAmbariUpgradeConfigUpdatesFile(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                                     String configType, String serviceName, String wrtiteToAmbariUpgradeConfigUpdatesFile) {
-    try {
-      if (ambariUpgradeConfigUpdatesFilePath == null) {
-        Properties log4jProperties = getLog4jProperties();
-        if (log4jProperties != null) {
-          String logPath = log4jProperties.getProperty("ambari.log.dir");
-          String rootPath = log4jProperties.getProperty("ambari.root.dir");
-          logPath = StringUtils.replace(logPath, "${ambari.root.dir}", rootPath);
-          logPath = StringUtils.replace(logPath, "//", "/");
-          if (StringUtils.isNotEmpty(logPath)) {
-            ambariUpgradeConfigUpdatesFilePath = logPath + File.separator + wrtiteToAmbariUpgradeConfigUpdatesFile;
-          }
-        } else {
-          LOG.warn("Log4j properties are not available");
-        }
-      }
-    } catch(Exception e) {
-      LOG.warn("Failed to create log file name or get path for it:", e);
-    }
-
-    if (StringUtils.isNotEmpty(ambariUpgradeConfigUpdatesFilePath)) {
-      Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      Writer fileWriter = null;
-      try {
-        JsonObject rootJson = readFileToJSON(ambariUpgradeConfigUpdatesFilePath);
-        buildServiceJson(propertiesToLog, configType, serviceName, rootJson);
-
-        fileWriter = new FileWriter(ambariUpgradeConfigUpdatesFilePath);
-        gson.toJson(rootJson, fileWriter);
-      } catch (IllegalArgumentException e) {
-        JsonObject rootJson = new JsonObject();
-        buildServiceJson(propertiesToLog, configType, serviceName, rootJson);
-
-        try {
-          fileWriter = new FileWriter(ambariUpgradeConfigUpdatesFilePath);
-          gson.toJson(rootJson, fileWriter);
-        } catch (IOException e1) {
-          LOG.error("Unable to write data into " + ambariUpgradeConfigUpdatesFilePath, e);
-        }
-      } catch (IOException e) {
-        LOG.error("Unable to write data into " + ambariUpgradeConfigUpdatesFilePath, e);
-      } finally {
-        try {
-          fileWriter.close();
-        } catch (IOException e) {
-          LOG.error("Unable to close file " + ambariUpgradeConfigUpdatesFilePath, e);
-        }
-      }
-    }
-  }
-
-  private void buildServiceJson(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                       String configType, String serviceName, JsonObject rootJson) {
-    JsonElement serviceJson = null;
-    serviceJson = rootJson.get(serviceName);
-    JsonObject serviceJsonObject = null;
-    if (serviceJson != null) {
-      serviceJsonObject = serviceJson.getAsJsonObject();
-    } else {
-      serviceJsonObject = new JsonObject();
-    }
-    buildConfigJson(propertiesToLog, serviceJsonObject, configType);
-    if (serviceName == null) {
-      serviceName = "General";
-    }
-
-    rootJson.add(serviceName, serviceJsonObject);
-  }
-
-  private void buildConfigJson(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                      JsonObject serviceJson, String configType) {
-    JsonElement configJson = null;
-    configJson = serviceJson.get(configType);
-    JsonObject configJsonObject = null;
-    if (configJson != null) {
-      configJsonObject = configJson.getAsJsonObject();
-    } else {
-      configJsonObject = new JsonObject();
-    }
-    buildConfigUpdateTypes(propertiesToLog, configJsonObject);
-    serviceJson.add(configType, configJsonObject);
-  }
-
-  private void buildConfigUpdateTypes(Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog,
-                                            JsonObject configJson) {
-    for (AbstractUpgradeCatalog.ConfigUpdateType configUpdateType : propertiesToLog.keySet()) {
-      JsonElement currentConfigUpdateType = configJson.get(configUpdateType.getDescription());
-      JsonObject currentConfigUpdateTypeJsonObject = null;
-      if (currentConfigUpdateType != null) {
-        currentConfigUpdateTypeJsonObject = currentConfigUpdateType.getAsJsonObject();
-      } else {
-        currentConfigUpdateTypeJsonObject = new JsonObject();
-      }
-      for (Entry<String, String> property : propertiesToLog.get(configUpdateType)) {
-        currentConfigUpdateTypeJsonObject.add(property.getKey(), new JsonPrimitive(property.getValue()));
-      }
-      configJson.add(configUpdateType.getDescription(), currentConfigUpdateTypeJsonObject);
-    }
-  }
-
 
   public Map<String, String> getDatabaseConnectorNames() {
     File file = new File(Configuration.class.getClassLoader().getResource(CONFIG_FILE).getPath());

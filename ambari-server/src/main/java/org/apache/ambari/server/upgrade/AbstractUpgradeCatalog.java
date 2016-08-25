@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -29,7 +24,6 @@ import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -44,6 +38,11 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -85,9 +84,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.inject.Inject;
@@ -142,8 +139,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     (AbstractUpgradeCatalog.class);
   private static final Map<String, UpgradeCatalog> upgradeCatalogMap =
     new HashMap<String, UpgradeCatalog>();
-
-  protected String ambariUpgradeConfigUpdatesFileName;
 
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
@@ -558,22 +553,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           oldConfigProperties = oldConfig.getProperties();
         }
 
-        Multimap<ConfigUpdateType, Entry<String, String>> propertiesToLog = ArrayListMultimap.create();
-        String serviceName = cluster.getServiceByConfigType(configType);
-
         Map<String, String> mergedProperties =
-          mergeProperties(oldConfigProperties, properties, updateIfExists, propertiesToLog);
+          mergeProperties(oldConfigProperties, properties, updateIfExists);
 
         if (removePropertiesList != null) {
-          mergedProperties = removeProperties(mergedProperties, removePropertiesList, propertiesToLog);
-        }
-
-        if (propertiesToLog.size() > 0) {
-          try {
-            configuration.wrtiteToAmbariUpgradeConfigUpdatesFile(propertiesToLog, configType, serviceName, ambariUpgradeConfigUpdatesFileName);
-          } catch(Exception e) {
-            LOG.error("Write to config updates file failed:", e);
-          }
+          mergedProperties = removeProperties(mergedProperties, removePropertiesList);
         }
 
         if (!Maps.difference(oldConfigProperties, mergedProperties).areEqual()) {
@@ -658,51 +642,26 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private Map<String, String> mergeProperties(Map<String, String> originalProperties,
                                Map<String, String> newProperties,
-                               boolean updateIfExists, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog) {
+                               boolean updateIfExists) {
 
     Map<String, String> properties = new HashMap<String, String>(originalProperties);
     for (Map.Entry<String, String> entry : newProperties.entrySet()) {
-      if (!properties.containsKey(entry.getKey())) {
+      if (!properties.containsKey(entry.getKey()) || updateIfExists) {
         properties.put(entry.getKey(), entry.getValue());
-        propertiesToLog.put(ConfigUpdateType.ADDED, entry);
-      }
-      if (updateIfExists)  {
-        properties.put(entry.getKey(), entry.getValue());
-        propertiesToLog.put(ConfigUpdateType.UPDATED, entry);
       }
     }
     return properties;
   }
 
-  private Map<String, String> removeProperties(Map<String, String> originalProperties,
-                                               Set<String> removeList, Multimap<AbstractUpgradeCatalog.ConfigUpdateType, Entry<String, String>> propertiesToLog){
+  private Map<String, String> removeProperties(Map<String, String> originalProperties, Set<String> removeList){
     Map<String, String> properties = new HashMap<String, String>();
     properties.putAll(originalProperties);
     for (String removeProperty: removeList){
       if (originalProperties.containsKey(removeProperty)){
         properties.remove(removeProperty);
-        propertiesToLog.put(ConfigUpdateType.REMOVED, new AbstractMap.SimpleEntry<String, String>(removeProperty, ""));
       }
     }
     return properties;
-  }
-
-  public enum ConfigUpdateType {
-    ADDED("Added"),
-    UPDATED("Updated"),
-    REMOVED("Removed");
-
-
-    private final String description;
-
-
-    private ConfigUpdateType(String description) {
-      this.description = description;
-    }
-
-    public String getDescription() {
-      return description;
-    }
   }
 
   /**
@@ -933,11 +892,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Override
   public void preUpgradeData() throws AmbariException, SQLException {
     executePreDMLUpdates();
-  }
-
-  @Override
-  public void setConfigUpdatesFileName(String ambariUpgradeConfigUpdatesFileName) {
-    this.ambariUpgradeConfigUpdatesFileName = ambariUpgradeConfigUpdatesFileName;
   }
 
   @Override

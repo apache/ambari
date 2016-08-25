@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -75,6 +73,8 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistService;
+
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class UpgradeTest {
@@ -221,7 +221,7 @@ public class UpgradeTest {
 
     schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
-    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, "test");
+    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
 
     schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 
