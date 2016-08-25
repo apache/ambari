@@ -32,10 +32,12 @@ describe('App.ConfigRecommendations', function() {
       sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
         'pFile': Em.Object.create({serviceName: 'sName', displayName: 'sDisplayName'})
       });
+	  sinon.stub(Handlebars, 'SafeString');
     });
     afterEach(function() {
       instanceObject.formatParentProperties.restore();
       App.config.get.restore();
+	  Handlebars.SafeString.restore();
     });
 
     it('adds new recommendation', function() {
@@ -53,7 +55,8 @@ describe('App.ConfigRecommendations', function() {
         serviceName: 'sName',
         allowChangeGroup: false,
         serviceDisplayName: 'sDisplayName',
-        recommendedValue: 'pRecommended'
+        recommendedValue: 'pRecommended',
+		diff: {}
       });
       expect(instanceObject.getRecommendation('pName', 'pFile', 'pGroup')).to.eql(res);
     });
@@ -128,7 +131,8 @@ describe('App.ConfigRecommendations', function() {
 					serviceName: 'sName',
 					allowChangeGroup: false,
 					serviceDisplayName: 'sDisplayName',
-					recommendedValue: 'pRecommended'
+					recommendedValue: 'pRecommended',
+					diff: {}
 				}
 			},
 			{
@@ -148,7 +152,8 @@ describe('App.ConfigRecommendations', function() {
 					serviceName: 'sName',
 					allowChangeGroup: false,
 					serviceDisplayName: 'sDisplayName',
-					recommendedValue: undefined
+					recommendedValue: undefined,
+					diff: {}
 				}
 			}
 		];
@@ -160,11 +165,13 @@ describe('App.ConfigRecommendations', function() {
 					sinon.stub(App.config, 'get').withArgs('serviceByConfigTypeMap').returns({
 						'pFile': c.service
 					});
+					sinon.stub(Handlebars, 'SafeString');
 					recommendation = instanceObject.addRecommendation(c.name, c.file, c.group, c.recommended, c.initial, c.parent);
 				});
 
 				afterEach(function() {
 					App.config.get.restore();
+					Handlebars.SafeString.restore();
 				});
 
 				it(c.title, function() {

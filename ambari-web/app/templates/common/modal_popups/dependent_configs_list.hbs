@@ -19,7 +19,7 @@
 <div class="alert alert-warning">
   {{t popup.dependent.configs.title}}
 </div>
-<div id="config-dependencies" class="limited-height-2">
+<span id="config-dependencies" class="limited-height-2">
   <table class="table table-striped">
     <thead>
     <tr>
@@ -28,8 +28,14 @@
       <th>{{t common.service}}</th>
       <th>{{t common.configGroup}}</th>
       <th>{{t common.fileName}}</th>
-      <th>{{t popup.dependent.configs.table.currentValue}}</th>
-      <th>{{t popup.dependent.configs.table.recommendedValue}}</th>
+      <th class="row-fliud">
+          <div class="span6">
+            {{t popup.dependent.configs.table.currentValue}}
+          </div>
+          <div class="span6">
+            {{t popup.dependent.configs.table.recommendedValue}}
+          </div>
+      </th>
     </tr>
     </thead>
     <tbody>
@@ -45,19 +51,10 @@
           </a></span>
         </td>
         <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
-        <td class="config-dependency-value">
-          {{#if recommendation.notDefined}}
-            <i>{{t popup.dependent.configs.table.not.defined}}</i>
-          {{else}}
-            {{recommendation.initialValue}}
-          {{/if}}
-        </td>
-        <td class="config-dependency-recommended-value">
-          {{#if recommendation.isDeleted}}
-            <i>{{t common.removed}}</i>
-          {{else}}
-            {{recommendation.recommendedValue}}
-          {{/if}}
+        <td>
+          <div>
+            {{recommendation.diff}}
+          </div>
         </td>
       </tr>
     {{/each}}

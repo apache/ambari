@@ -773,8 +773,8 @@ App.config = Em.Object.create({
     return configs.sort(function(a, b) {
       if (Em.get(a, 'index') > Em.get(b, 'index')) return 1;
       if (Em.get(a, 'index') < Em.get(b, 'index')) return -1;
-      if (Em.get(a, 'name') > Em.get(b, 'index')) return 1;
-      if (Em.get(a, 'name') < Em.get(b, 'index')) return -1;
+      if (Em.get(a, 'name') > Em.get(b, 'name')) return 1;
+      if (Em.get(a, 'name') < Em.get(b, 'name')) return -1;
       return 0;
     });
   },
