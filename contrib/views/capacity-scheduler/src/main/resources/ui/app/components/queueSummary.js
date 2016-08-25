@@ -20,13 +20,23 @@
 
  var _runState = 'RUNNING';
  var _stopState = 'STOPPED';
-
- var _notStartedState = 'NOT STARTED';
+ var _notStartedState = 'NOT SAVED';
 
  App.QueueSummaryComponent = Ember.Component.extend({
    layoutName: 'components/queueSummary',
    queue: null,
    allQueues: null,
+   precision: 2,
+   queuesNeedRefresh: null,
+
+   isQueueNeedRefreshOrRestart: function() {
+     var qsNeedRefresh = this.get('queuesNeedRefresh'),
+     qq = this.get('queue');
+     if (qsNeedRefresh && qsNeedRefresh.findBy('path', qq.get('path'))) {
+       return true;
+     }
+     return false;
+   }.property('queuesNeedRefresh.[]', 'queue'),
 
    isRunningState: function() {
      return this.get('queue.state') === _runState || this.get('queue.state') === null;
@@ -44,7 +54,7 @@
 
    qStateColor: function() {
      if (this.get('queue.isNewQueue')) {
-       return 'text-info';
+       return 'text-danger';
      } else if (this.get('isRunningState')) {
        return 'text-success';
      } else {
@@ -56,6 +66,10 @@
      return this.get('queue').changedAttributes().hasOwnProperty('state');
    }.property('queue.state'),
 
+   isNewQueue: function() {
+     return this.get('queue.isNewQueue');
+   }.property('queue.isNewQueue'),
+
    effectiveCapacity: function() {
      var currentQ = this.get('queue'),
      allQueues = this.get('allQueues'),
@@ -64,8 +78,9 @@
        effectiveCapacityRatio *= (currentQ.get('capacity') / 100);
        currentQ = allQueues.findBy('id', currentQ.get('parentPath').toLowerCase()) || null;
      }
-     var effectiveCapacityPercent = effectiveCapacityRatio * 100;
-     this.get('queue').set('absolute_capacity', effectiveCapacityPercent || 0);
-     return effectiveCapacityPercent;
+     var effectiveCapacityPercent = effectiveCapacityRatio * 100,
+     absoluteCapacity = parseFloat(parseFloat(effectiveCapacityPercent).toFixed(this.get('precision')));
+     this.get('queue').set('absolute_capacity', absoluteCapacity || 0);
+     return absoluteCapacity;
    }.property('queue.capacity', 'allQueues.@each.capacity', 'allQueues.length')
  });

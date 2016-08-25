@@ -50,6 +50,15 @@ App.CapschedController = Ember.Controller.extend({
 
   sortedTags: Ember.computed.sort('tags', function(a, b){
     return (+a.id > +b.id)? (+a.id < +b.id)? 0 : -1 : 1;
-  })
+  }),
 
+  showSpinner: false,
+
+  startSpinner: function() {
+    this.set('showSpinner', true);
+  },
+
+  stopSpinner: function() {
+    this.set('showSpinner', false);
+  }
 });

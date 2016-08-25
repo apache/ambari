@@ -255,6 +255,12 @@ App.QueueAdapter = DS.Adapter.extend({
       _ajax(uri,'GET').then(function(data) {
         var parsedData = JSON.parse(data), labels;
 
+        if (parsedData !== null) {
+          store.set('isNodeLabelsEnabledByRM', true);
+        } else {
+          store.set('isNodeLabelsEnabledByRM', false);
+        }
+
         if (stackVersion >= 2.5) {
           if (parsedData && Em.isArray(parsedData.nodeLabelInfo)) {
             labels = parsedData.nodeLabelInfo;

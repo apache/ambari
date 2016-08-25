@@ -28,8 +28,11 @@
             {{#if selectedQueue}}
               <div class="queue-actions-wrapper">
                 <div class="pull-left">
-                  <button type="button" {{bind-attr class=":btn :btn-primary :btn-xs isSelectedQLeafAndRunning:disabled"}} name="addQueueBtn" {{action "addNewQueue"}}>Add Queue</button>
+                  <button type="button" {{bind-attr class=":btn :btn-primary :btn-xs canAddChildrenQueues::disabled"}} name="addQueueBtn" {{action "addNewQueue"}}>Add Queue</button>
                 </div>
+                {{#unless canAddChildrenQueues}}
+                  {{warning-info class="yellow-warning" tooltip="Queue must be STOPPED to add children queues"}}
+                {{/unless}}
                 <div class="pull-right">
                   {{#if isSelectedQRunning}}
                     <button type="button" class="btn btn-primary btn-xs" name="queueStateBtn" {{action "stopQueue"}}>Stop Queue</button>
@@ -38,9 +41,9 @@
                     <button type="button" class="btn btn-primary btn-xs" name="queueStateBtn" {{action "startQueue"}}>Start Queue</button>
                   {{/if}}
                   {{#unless isRootQSelected}}
-                    <button type="button" {{bind-attr class=":btn :btn-danger :btn-xs isSelectedQDeletable::disabled"}} class="btn btn-danger btn-xs" name="deleteQueueBtn" {{action "showDeleteQueueDialog" target="view"}}>Delete Queue</button>
-                    {{#unless isSelectedQDeletable}}
-                      {{warning-info class="yellow-warning" tooltip="Queue should be STOPPED to delete"}}
+                    <button type="button" {{bind-attr class=":btn :btn-danger :btn-xs isSelectedQueueDeletable::disabled"}} class="btn btn-danger btn-xs" name="deleteQueueBtn" {{action "showDeleteQueueDialog" target="view"}}>Delete Queue</button>
+                    {{#unless isSelectedQueueDeletable}}
+                      {{warning-info class="yellow-warning" tooltip="Queue must be STOPPED to delete"}}
                     {{/unless}}
                   {{/unless}}
                 </div>
@@ -66,7 +69,7 @@
           {{/if}}
         </div>
         <div class="col-sm-5">
-          {{queue-summary queue=selectedQueue allQueues=queues}}
+          {{queue-summary queue=selectedQueue allQueues=queues queuesNeedRefresh=queuesNeedRefresh}}
         </div>
       </div>
       <hr>

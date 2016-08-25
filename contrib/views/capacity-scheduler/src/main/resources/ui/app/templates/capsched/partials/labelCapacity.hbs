@@ -31,6 +31,34 @@
               <label>Accessible Node Labels: </label>
               <span>{{accessibleLabelNames}}</span>
             </div>
+            <div class="row">
+              <div class="col-sm-6 col-md-6">
+                <label>Default Label: </label>
+                <span>{{selectedDefaultNodeLabel}}</span>
+                {{#if isDefaultNodeLabelInherited}}
+                  {{#unless isRoot}}
+                    {{#if isValidDefaultNodeLabel}}
+                      <span>(Inherited)</span>
+                    {{/if}}
+                  {{/unless}}
+                {{/if}}
+              </div>
+              <div class="col-sm-6 col-md-6">
+                <label>Set Default Node Label: </label>
+                {{view Ember.Select
+                  class="default-label-options"
+                  content=defaultNodeLabelOptions
+                  optionLabelPath="content.label"
+                  optionValuePath="content.value"
+                  value=queueDefaultNodeLabelExpression
+                }}
+                {{#if queueDirtyFields.default_node_label_expression}}
+                  <div class="btn-group btn-group-xs">
+                    <a {{action 'rollbackProp' 'default_node_label_expression' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                  </div>
+                {{/if}}
+              </div>
+            </div>
             {{#if isRoot}}
               <div class="border-wrapper">
                 <div class="row">
@@ -45,7 +73,7 @@
                   </div>
                 </div>
                 {{#if hasAnyNodeLabelsForQueue}}
-                  {{#each label in allLabelsForQueue}}
+                  {{#each label in sortedAllLabelsForQueue}}
                     {{display-root-label queueLabels=queueNodeLabels nonAccessibleLabels=nonAccessibleLabels label=label isRoot=isRoot}}
                   {{/each}}
                 {{else}}
@@ -100,8 +128,12 @@
               {{/if}}
             {{/if}}
           {{else}}
-            <div>
-              <small>Node labels are disabled by RM. Configure and enable labels to map the labels to queues.</small>
+            <div class="text-warning">
+              {{#if isRmOffline}}
+                <small>Unable to obtain information about the node labels from the resource manager</small>
+              {{else}}
+                <small>Node labels are disabled by resource manager. Enable node labels to map the labels to queues.</small>
+              {{/if}}
             </div>
           {{/if}}
         {{else}}
@@ -120,8 +152,12 @@
               </div>
             {{/if}}
           {{else}}
-            <div>
-              <small>Node labels are disabled</small>
+            <div class="text-warning">
+              {{#if isRmOffline}}
+                <small>Unable to obtain information about the node labels from the resource manager</small>
+              {{else}}
+                <small>Node labels are disabled by resource manager</small>
+              {{/if}}
             </div>
           {{/if}}
         {{/if}}

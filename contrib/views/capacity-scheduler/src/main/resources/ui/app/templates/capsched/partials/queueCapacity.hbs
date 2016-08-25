@@ -20,7 +20,7 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="panel-title">
-        Capacity <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        Queue Capacity <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleQueueCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isCapacityPanelCollapsed::in"}}>
@@ -61,8 +61,16 @@
             </div>
             {{#if warnInvalidCapacity}}
               <div class="row">
-                <div class="col-sm-6 col-md-6">
-                  <span class="text-danger">Total capacity must be equal to 100%</span>
+                <div class="col-sm-6 col-md-6 col-md-offset-2 col-sm-offset-2">
+                  <small class="text-danger">Total capacity must be equal to 100%</small>
+                </div>
+              </div>
+            {{/if}}
+            {{#if parentQueue}}
+              <div class="row">
+                <div class="col-md-10 col-sm-10">
+                  <small>To edit capacity and maximum capacity at parent queue level</small>
+                  <small>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</small>
                 </div>
               </div>
             {{/if}}
@@ -79,8 +87,8 @@
             </div>
             <div class="row">
               <div class="col-md-10 col-sm-10">
-                <span>To edit capacity and maximum capacity at parent queue level</span>
-                <span>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</span>
+                <small>To edit capacity and maximum capacity at parent queue level</small>
+                <small>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</small>
               </div>
             </div>
           {{/unless}}

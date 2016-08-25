@@ -36,7 +36,13 @@ App.Label = DS.Model.extend({
   isDefault: function () {
     return this.get('queue.default_node_label_expression') === this.get('name');
   }.property('queue.default_node_label_expression'),
-  absoluteCapacity: 0
+  absoluteCapacity: 0,
+  setCapacity: function(cap) {
+    this.set('capacity', cap);
+  },
+  setMaxCapacity: function(maxCap) {
+    this.set('maximum_capacity', maxCap);
+  }
 });
 
 App.Scheduler = DS.Model.extend({
@@ -155,6 +161,8 @@ App.Queue = DS.Model.extend({
       if (!this.get('nonAccessibleLabels').contains(qLabel)) {
         this.get('nonAccessibleLabels').addObject(qLabel);
       }
+      qLabel.setCapacity(0);
+      qLabel.setMaxCapacity(100);
       this.notifyPropertyChange('labels');
       this.notifyPropertyChange('nonAccessibleLabels');
     }
@@ -181,6 +189,15 @@ App.Queue = DS.Model.extend({
     }
     this.notifyPropertyChange('labels');
     this.notifyPropertyChange('nonAccessibleLabels');
+  },
+
+  recursiveAddChildQueueLabels: function(qLabel) {
+    qLabel = this.store.getById('label', [this.get('path'), qLabel.get('name')].join('.'));
+    this.addQueueNodeLabel(qLabel);
+    var childrenQs = this.store.all('queue').filterBy('depth', this.get('depth') + 1).filterBy('parentPath', this.get('path'));
+    childrenQs.forEach(function(child) {
+      child.recursiveAddChildQueueLabels(qLabel);
+    }.bind(this));
   },
 
   isAnyDirty: function () {
@@ -231,6 +248,9 @@ App.Queue = DS.Model.extend({
   minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
   maximum_applications: DS.attr('number', { defaultValue: null }),
   maximum_am_resource_percent: DS.attr('number', { defaultValue: null }),
+  disable_preemption: DS.attr('string', {defaultValue: ''}),
+  isPreemptionInherited: DS.attr('boolean', {defaultValue: true}),
+  isPreemptionOverriden: false,
 
   queues: DS.attr('string'),
   queuesArray:function (key,val) {
@@ -259,6 +279,9 @@ App.Queue = DS.Model.extend({
   isInvalidLabelMaxCapacity: false,
 
   nonAccessibleLabels: [],
+
+  //queue state from resource manager
+  rmQueueState: 'UNKNOWN',
 
   //new queue flag
   isNewQueue:DS.attr('boolean', {defaultValue: false}),

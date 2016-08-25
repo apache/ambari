@@ -33,10 +33,9 @@ App.EditLabelCapacityComponent = Ember.Component.extend({
       }
     },
     enableAccess: function() {
-      this.get('queue').addQueueNodeLabel(this.get('label'));
+      this.get('queue').recursiveAddChildQueueLabels(this.get('label'));
     },
     disableAccess: function() {
-      this.get('label').set('capacity', 0);
       this.get('queue').recursiveRemoveChildQueueLabels(this.get('label'));
     }
   },

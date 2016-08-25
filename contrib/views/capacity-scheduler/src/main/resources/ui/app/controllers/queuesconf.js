@@ -26,7 +26,10 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   queues: Ember.computed.alias('controllers.capsched.queues'),
   isOperator: Ember.computed.alias('controllers.capsched.isOperator'),
   allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
+  isRmOffline: Ember.computed.alias('store.isRmOffline'),
+  isNodeLabelsEnabledByRM: Ember.computed.alias('store.isNodeLabelsEnabledByRM'),
   allNodeLabelRecords: [],
+  queuesNeedRefresh: Ember.computed.alias('store.queuesNeedRefresh'),
 
   actions: {
     addNewQueue: function() {
@@ -68,6 +71,13 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       });
       this.set('newQueue', newQueue);
       store.saveAndUpdateQueue(newQueue).then(Em.run.bind(this, 'saveAndUpdateQueueSuccess', newQueue));
+
+      if (!this.get('queuesNeedRefresh').findBy('path', queuePath)) {
+        this.get('queuesNeedRefresh').addObject({
+          path: queuePath,
+          name: queueName
+        });
+      }
     },
     clearCreateQueue: function() {
       this.set('newQueueName', '');
@@ -145,8 +155,7 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     var parentPath = this.get('selectedQueue.path'),
     queueName = this.get('newQueueName'),
     queuePath = [parentPath, queueName].join('.'),
-    qAlreadyExists = this.store.hasRecordForId('queue', queuePath.toLowerCase());
-
+    qAlreadyExists = (this.get('queues').findBy('name', queueName))? true : false;
     if (Ember.isBlank(queueName)) {
       this.set('isInvalidQueueName', true);
       this.set('invalidQueueNameMessage', 'Enter queue name');
@@ -165,6 +174,11 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
   }.observes('newQueueName', 'newQueueName.length'),
 
   initNodeLabelRecords: function() {
+    if (!this.get('isNodeLabelsEnabledByRM') || this.get('isRmOffline')) {
+      return;
+    }
+    this.setDefaultNodeLabelAccesses('root');
+    this.checkNodeLabelsInvalidCapacity('root');
     var allQs = this.get('queues'),
     allLabels = this.get('allNodeLabels'),
     store = this.get('store'),
@@ -183,8 +197,68 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
       queue.set('nonAccessibleLabels', nonAccessible);
     });
     this.set('allNodeLabelRecords', records);
-
   }.on('init'),
+
+  setDefaultNodeLabelAccesses: function(queuePath) {
+    var allLabels = this.get('allNodeLabels'),
+    store = this.get('store'),
+    ctrl = this,
+    queue = store.getById('queue', queuePath.toLowerCase()),
+    parentQ = store.getById('queue', queue.get('parentPath').toLowerCase()),
+    children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
+
+    if (Ember.isEmpty(queue.get('labels'))) {
+      if (parentQ && parentQ.get('labels.length') > 0) {
+        parentQ.get('labels').forEach(function(label) {
+          var qlabel = store.getById('label', [queue.get('path'), label.get('name')].join('.'));
+          queue.addQueueNodeLabel(qlabel);
+        });
+      } else {
+        allLabels.forEach(function(label) {
+          var qlabel = store.getById('label', [queue.get('path'), label.name].join('.'));
+          queue.addQueueNodeLabel(qlabel);
+        });
+      }
+    }
+
+    if (queue.get('name') === 'root') {
+      queue.get('labels').setEach('capacity', 100);
+    }
+
+    children.forEach(function(child) {
+      ctrl.setDefaultNodeLabelAccesses(child.get('path'));
+    });
+  },
+
+  checkNodeLabelsInvalidCapacity: function(queuePath) {
+    var allLabels = this.get('allNodeLabels'),
+    store = this.get('store'),
+    ctrl = this,
+    queue = store.getById('queue', queuePath.toLowerCase()),
+    children = store.all('queue').filterBy('depth', queue.get('depth') + 1).filterBy('parentPath', queue.get('path'));
+
+    allLabels.forEach(function(lab) {
+      var total = 0;
+      children.forEach(function(child) {
+        var cLabel = child.get('labels').findBy('name', lab.name);
+        if (cLabel) {
+          total += cLabel.get('capacity');
+        }
+      });
+      if (total !== 100) {
+        children.forEach(function(child) {
+          var cLabel = child.get('labels').findBy('name', lab.name);
+          if (cLabel) {
+            cLabel.set('overCapacity', true);
+          }
+        });
+      }
+    });
+
+    children.forEach(function(child) {
+      ctrl.checkNodeLabelsInvalidCapacity(child.get('path'));
+    });
+  },
 
   /**
    * Marks each queue in leaf with 'overCapacity' if sum if their capacity values is greater than 100.
@@ -361,24 +435,23 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     return this.get('selectedQueue.state') === _stopState;
   }.property('selectedQueue.state'),
 
-
   isSelectedQLeaf: function() {
     return this.get('selectedQueue.queues') === null;
   }.property('selectedQueue.queues'),
 
-  isSelectedQLeafAndRunning: function() {
-    return this.get('isSelectedQLeaf') && this.get('isSelectedQRunning');
-  }.property('isSelectedQRunning', 'isSelectedQLeaf'),
+  canAddChildrenQueues: function() {
+    return this.get('isRmOffline') || !this.get('isSelectedQLeaf') || this.get('isSelectedQueueRmStateNotRunning');
+  }.property('isRmOffline', 'isSelectedQLeaf', 'isSelectedQueueRmStateNotRunning'),
 
-  /**
-   * Returns true if queue is root.
-   * @type {Boolean}
-   */
    isRootQSelected: Ember.computed.match('selectedQueue.id', /^(root)$/),
 
-   isSelectedQDeletable: function() {
-     return !this.get('isRootQSelected') && !this.get('isSelectedQRunning');
-   }.property('isRootQSelected', 'isSelectedQRunning'),
+   isSelectedQueueRmStateNotRunning: function() {
+     return this.get('selectedQueue.isNewQueue') || this.get('selectedQueue.rmQueueState') === _stopState;
+   }.property('selectedQueue.rmQueueState', 'selectedQueue.isNewQueue'),
+
+   isSelectedQueueDeletable: function() {
+     return !this.get('isRootQSelected') && (this.get('isRmOffline') || this.get('isSelectedQueueRmStateNotRunning'));
+   }.property('isRootQSelected', 'isSelectedQueueRmStateNotRunning', 'isRmOffline'),
 
    configNote: Ember.computed.alias('store.configNote'),
    saveMode: '',
