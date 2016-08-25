@@ -60,6 +60,8 @@ exports.config =
           'vendor/scripts/jquery.sticky-kit.js',
           'vendor/scripts/underscore.js',
           'vendor/scripts/backbone.js',
+          'vendor/scripts/difflib.js',
+          'vendor/scripts/diffview.js',
           'vendor/scripts/visualsearch.js',
           'vendor/scripts/moment.js',
           'vendor/scripts/moment-timezone-with-data-2010-2020.js',
@@ -88,6 +90,7 @@ exports.config =
           'vendor/styles/bootstrap-checkbox.css',
           'vendor/styles/bootstrap-slider.min.css',
           'vendor/styles/bootstrap-switch.min.css',
+          'vendor/styles/diffview.css',
           'vendor/styles/visualsearch-datauri.css'
         ],
         after: ['app/styles/custom-ui.css']

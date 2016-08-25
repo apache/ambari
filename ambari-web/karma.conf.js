@@ -69,6 +69,8 @@ module.exports = function(config) {
       'vendor/scripts/jquery.ui.custom-effects.js',
       'vendor/scripts/jquery.timeago.js',
       'vendor/scripts/jquery.ajax-retry.js',
+      'vendor/scripts/difflib.js',
+      'vendor/scripts/diffview.js',
       'vendor/scripts/underscore.js',
       'vendor/scripts/backbone.js',
       'vendor/scripts/visualsearch.js',
