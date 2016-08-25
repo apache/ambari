@@ -1,0 +1,31 @@
+{
+  "input": [
+    {
+      "type": "system_message",
+      "rowtype": "service",
+      "path": "/root/test-logs/system_message/message_logs.txt"
+    }
+  ],
+  "filter": [
+    {
+      "filter": "grok",
+      "conditions": {
+        "fields": {
+          "type": [
+            "system_message"
+          ]
+        }
+      },
+      "multiline_pattern": "^(%{SYSLOGTIMESTAMP:logtime})",
+      "message_pattern": "(?m)^%{SYSLOGTIMESTAMP:logtime}%{SPACE}%{SYSLOGHOST:host}%{SPACE}%{GREEDYDATA:log_message}",
+      "post_map_values": {
+        "logtime": {
+          "map_date": {
+            "target_date_pattern": "yyyy-MM-dd HH:mm:ss,SSS",
+            "src_date_pattern" :"MMM dd HH:mm:ss"
+          }
+        }
+      }
+    }
+  ]
+}
