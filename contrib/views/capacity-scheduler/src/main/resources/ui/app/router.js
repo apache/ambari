@@ -23,17 +23,15 @@ App.Router.map(function() {
     this.resource('queue', { path: '/:queue_id' });
     this.resource('trace', { path: '/log' });
   });
-  this.route('refuse');
-
   this.resource('capsched', {path: '/capacity-scheduler'}, function() {
     this.route('scheduler', {path: '/scheduler'});
     this.route('advanced', {path: '/advanced'});
     this.route('trace', {path: '/log'});
-    this.route('refuse', {path: '/refuse'});
     this.route('queuesconf', {path: '/queues'}, function() {
       this.route('editqueue', {path: '/:queue_id'});
     });
   });
+  this.route('refuse');
 });
 
 var RANGER_SITE = 'ranger-yarn-plugin-properties';
@@ -226,6 +224,7 @@ App.CapschedRoute = Ember.Route.extend({
         opt = 'saveAndRefresh';
       }
 
+      capschedCtrl.startSpinner();
       Em.RSVP.Promise.all([labels, queues, scheduler]).then(
         Em.run.bind(that,'saveConfigsSuccess'),
         Em.run.bind(that,'saveConfigsError', 'save')
@@ -233,8 +232,13 @@ App.CapschedRoute = Ember.Route.extend({
         if (opt) {
           return store.relaunchCapSched(opt);
         }
-      })
-      .catch(Em.run.bind(this,'saveConfigsError', opt));
+      }).then(function(){
+        return store.getRmSchedulerConfigInfo();
+      }).catch(
+        Em.run.bind(this,'saveConfigsError', opt)
+      ).finally(function(){
+        capschedCtrl.stopSpinner();
+      });
     }
   },
   beforeModel: function(transition) {
@@ -277,6 +281,11 @@ App.CapschedRoute = Ember.Route.extend({
         return store.find('queue');
       }).then(function(queues) {
         controller.set('queues', queues);
+        loadingController.set('model', {
+          message: 'loading rm info'
+        });
+        return store.getRmSchedulerConfigInfo();
+      }).then(function() {
         return store.find('scheduler', 'scheduler');
       }).then(function(scheduler){
         resolve(scheduler);
@@ -326,6 +335,6 @@ App.CapschedQueuesconfEditqueueRoute = Ember.Route.extend({
 
 App.CapschedTraceRoute = Ember.Route.extend({
   model: function() {
-    return this.controllerFor('capsched.queuesconf').get('alertMessage');
+    return this.controllerFor('capsched').get('alertMessage');
   }
 });

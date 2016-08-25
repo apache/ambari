@@ -28,6 +28,8 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
   scheduler: Ember.computed.alias('controllers.capsched.content'),
   allQueues: Ember.computed.alias('controllers.capsched.queues'),
   isNodeLabelsEnabledByRM: Ember.computed.alias('store.isNodeLabelsEnabledByRM'),
+  isRmOffline: Ember.computed.alias('store.isRmOffline'),
+  precision: 2,
 
   isRangerEnabledForYarn: function() {
     var isRanger = this.get('controllers.capsched.isRangerEnabledForYarn');
@@ -77,7 +79,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     originalQName = this.get('content.name'),
     qParentPath = this.get('content.parentPath'),
     qPath = [qParentPath, qName].join('.'),
-    qAlreadyExists = this.store.hasRecordForId('queue', qPath.toLowerCase());
+    qAlreadyExists = (this.get('allQueues').findBy('name', qName))? true : false;
     if (Ember.isBlank(qName)) {
       this.set('isInvalidQName', true);
       this.set('invalidQNameMessage', 'Enter queue name');
@@ -156,24 +158,41 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
 
    /**
     * Returns maximum applications for a queue if defined,
-    * else the inherited value (for all queues)
+    * else the inherited value
     */
    maximumApplications: function(key, val) {
-     if (arguments.length > 1) {
-       if (val !== this.get('scheduler.maximum_applications')) {
-         this.set('content.maximum_applications', val);
-       } else {
-         this.set('content.maximum_applications', null);
-       }
-     }
-     var schedulerMaxApps = this.get('scheduler.maximum_applications'),
-     absoluteCapacity = this.get('content.absolute_capacity');
+    if (arguments.length > 1) {
+      this.set('content.maximum_applications', val);
+    }
+    var queueMaxApps = this.get('content.maximum_applications');
+    if (queueMaxApps) {
+      return queueMaxApps;
+    } else {
+      return this.getInheritedMaximumApplications();
+    }
+   }.property('content.maximum_applications', 'scheduler.maximum_applications'),
+
+   isMaximumApplicationsInherited: function() {
      if (this.get('content.maximum_applications')) {
-       return this.get('content.maximum_applications');
+       return false;
      } else {
-       return Math.round(schedulerMaxApps * (absoluteCapacity / 100));
+       return true;
      }
-   }.property('content.maximum_applications', 'content.absolute_capacity', 'scheduler.maximum_applications'),
+   }.property('content.maximum_applications'),
+
+   /**
+    * Returns inherited maximum applications for a queue
+    */
+   getInheritedMaximumApplications: function() {
+     var parentQ = this.store.getById('queue', this.get('content.parentPath').toLowerCase());
+     while (parentQ !== null) {
+       if (parentQ.get('maximum_applications')) {
+         return parentQ.get('maximum_applications');
+       }
+       parentQ = this.store.getById('queue', parentQ.get('parentPath').toLowerCase());
+     }
+     return this.get('scheduler.maximum_applications');
+   },
 
    /**
     * Returns maximum AM resource percent for a queue if defined,
@@ -181,20 +200,37 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     */
    maximumAMResourcePercent: function(key, val) {
      if (arguments.length > 1) {
-       if (val !== this.get('scheduler.maximum_am_resource_percent')) {
-         this.set('content.maximum_am_resource_percent', val);
-       } else {
-         this.set('content.maximum_am_resource_percent', null);
-       }
+       this.set('content.maximum_am_resource_percent', val);
      }
-     var schedulerResoucePercent = this.get('scheduler.maximum_am_resource_percent'),
-     absoluteCapacity = this.get('content.absolute_capacity');
-     if (this.get('content.maximum_am_resource_percent')) {
-        return this.get('content.maximum_am_resource_percent')
+     var qMaxAmPercent = this.get('content.maximum_am_resource_percent');
+     if (qMaxAmPercent) {
+       return qMaxAmPercent;
      } else {
-       return (schedulerResoucePercent * (absoluteCapacity / 100));
+       return this.getInheritedMaxAmResourcePercent();
      }
-   }.property('content.maximum_am_resource_percent', 'content.absolute_capacity', 'scheduler.maximum_am_resource_percent'),
+   }.property('content.maximum_am_resource_percent', 'scheduler.maximum_am_resource_percent'),
+
+   isMaxAmResourcePercentInherited: function() {
+     if (this.get('content.maximum_am_resource_percent')) {
+       return false;
+     } else {
+       return true;
+     }
+   }.property('content.maximum_am_resource_percent'),
+
+   /**
+    * Returns inherited maximum am resource percent for a queue
+    */
+   getInheritedMaxAmResourcePercent: function() {
+     var parentQ = this.store.getById('queue', this.get('content.parentPath').toLowerCase());
+     while (parentQ !== null) {
+       if (parentQ.get('maximum_am_resource_percent')) {
+         return parentQ.get('maximum_am_resource_percent');
+       }
+       parentQ = this.store.getById('queue', parentQ.get('parentPath').toLowerCase());
+     }
+     return this.get('scheduler.maximum_am_resource_percent');
+   },
 
    /**
     * Sets ACL value to '*' or ' ' and returns '*' and 'custom' respectively.
@@ -344,9 +380,11 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
       var childrenQs = this.get('childrenQueues'),
       totalCapacity = 0;
       childrenQs.forEach(function(currentQ){
-        totalCapacity += currentQ.get('capacity');
+        if (typeof currentQ.get('capacity') === 'number') {
+          totalCapacity += currentQ.get('capacity');
+        }
       });
-      return totalCapacity;
+      return parseFloat(totalCapacity.toFixed(this.get('precision')));
     }.property('childrenQueues.length', 'childrenQueues.@each.capacity'),
 
     widthPattern: 'width: %@%',
@@ -388,11 +426,14 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
      this.set('queueDirtyFields.' + queueProp, this.get('content').changedAttributes().hasOwnProperty(queueProp));
    },
 
+   //Node Labels
    allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
    queueNodeLabels: Ember.computed.alias('content.sortedLabels'),
    hasQueueLabels: Ember.computed.gt('content.sortedLabels.length', 0),
    nonAccessibleLabels: Ember.computed.alias('content.nonAccessibleLabels'),
    allLabelsForQueue: Ember.computed.union('queueNodeLabels', 'nonAccessibleLabels'),
+   sortLabelsBy: ['name'],
+   sortedAllLabelsForQueue: Ember.computed.sort('allLabelsForQueue', 'sortLabelsBy'),
    hasAnyNodeLabelsForQueue: Ember.computed.gt('allLabelsForQueue.length', 0),
 
    accessibleLabelNames: function() {
@@ -435,6 +476,136 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
      return chidrenQLabels;
    }.property('childrenQueues.length', 'childrenQueues.@each.labels.[]', 'content.labels.length'),
 
-   hasChildrenQueueLabels: Ember.computed.gt('childrenQueueLabels.length', 0)
+   hasChildrenQueueLabels: Ember.computed.gt('childrenQueueLabels.length', 0),
+
+   //Default Node Label
+   initDefaultLabelOptions: function() {
+     var optionsObj = [{label: 'None', value: null}],
+     labels = this.get('queueNodeLabels'),
+     len = this.get('queueNodeLabels.length');
+     if (len > 0) {
+       labels.forEach(function(lb){
+         var obj = {label: lb.get('name'), value: lb.get('name')};
+         optionsObj.pushObject(obj);
+       });
+     }
+     this.set('defaultNodeLabelOptions', optionsObj);
+   }.observes('queueNodeLabels.[]').on('init'),
+
+   defaultNodeLabelOptions: [],
+
+   isDefaultNodeLabelInherited: function() {
+     if (this.get('content.default_node_label_expression') !== null) {
+       return false;
+     } else {
+       return true;
+     }
+   }.property('content.default_node_label_expression'),
+
+   queueDefaultNodeLabelExpression: function(key, value) {
+     if (arguments.length > 1) {
+       if (value !== null) {
+         this.set('content.default_node_label_expression', value);
+       } else {
+         this.set('content.default_node_label_expression', null);
+       }
+     }
+     if (this.get('content.default_node_label_expression') !== null) {
+       return this.get('content.default_node_label_expression');
+     } else {
+       return this.getDefaultNodeLabelExpressionInherited();
+     }
+   }.property('content.default_node_label_expression'),
+
+   getDefaultNodeLabelExpressionInherited: function() {
+     var store = this.get('store'),
+     currentQ = this.get('content'),
+     parentQ = store.getById('queue', currentQ.get('parentPath').toLowerCase()),
+     dnlexpr = null;
+     while (parentQ !== null) {
+       if (parentQ.get('default_node_label_expression') !== null) {
+         return parentQ.get('default_node_label_expression');
+       }
+       parentQ = store.getById('queue', parentQ.get('parentPath').toLowerCase());
+     }
+     return dnlexpr;
+   },
+
+   selectedDefaultNodeLabel: function() {
+     var labels = this.get('queueNodeLabels');
+     var dnle = this.get('content.default_node_label_expression') || this.getDefaultNodeLabelExpressionInherited();
+     if (dnle !== null && labels.findBy('name', dnle)) {
+       return dnle;
+     }
+     return 'None';
+   }.property('content.default_node_label_expression'),
+
+   isValidDefaultNodeLabel: function() {
+     return this.get('selectedDefaultNodeLabel') !== 'None';
+   }.property('selectedDefaultNodeLabel'),
+
+   //Preemption
+   isPreemptionSupported: Ember.computed.alias('store.isPreemptionSupported'),
+   currentStack: Ember.computed.alias('store.stackId'),
+
+   isPreemptionOverriden: function(key, value) {
+     if (arguments.length > 1) {
+       this.set('content.isPreemptionOverriden', value);
+     }
+     return this.get('content.isPreemptionOverriden');
+   }.property('content.isPreemptionOverriden'),
+
+   isPreemptionInherited: function() {
+     return this.get('content.isPreemptionInherited');
+   }.property('content.disable_preemption', 'content.isPreemptionInherited'),
+
+   queueDisablePreemption: function() {
+     if (!this.get('isPreemptionInherited')) {
+       return (this.get('content.disable_preemption')==='true')?true:false;
+     } else {
+       return this.getInheritedQueuePreemption();
+     }
+   }.property('content.disable_preemption', 'content.isPreemptionInherited'),
+
+   getInheritedQueuePreemption: function() {
+     var store = this.get('store'),
+     currentQ = this.get('content'),
+     parentQ = store.getById('queue', currentQ.get('parentPath').toLowerCase()),
+     preemption = '';
+     while (parentQ !== null) {
+       if (!parentQ.get('isPreemptionInherited')) {
+         preemption = parentQ.get('disable_preemption');
+         return (preemption==='true')?true:false;
+       }
+       parentQ = store.getById('queue', parentQ.get('parentPath').toLowerCase());
+     }
+     return preemption;
+   },
+
+   isQueuePreemptionDirty: function() {
+     return this.get('queueDirtyFields.disable_preemption');
+   }.property('content.disable_preemption', 'content.isPreemptionInherited'),
+
+   doOverridePreemption: function(key, value) {
+     if (value) {
+       this.set('content.isPreemptionInherited', false);
+       this.set('content.disable_preemption', (value === 'disable')?'true':'false');
+     }
+     if (this.get('content.isPreemptionInherited')) {
+       return '';
+     } else {
+       return (this.get('content.disable_preemption')==='true')?'disable':'enable';
+     }
+   }.property('content.disable_preemption', 'content.isPreemptionInherited'),
+
+   preemptionOvierideWatcher: function() {
+     var override = this.get('content.isPreemptionOverriden'),
+     wasInheritedInitially = (this.get('content').changedAttributes().hasOwnProperty('isPreemptionInherited')
+      && this.get('content').changedAttributes()['isPreemptionInherited'][0] === true);
+     if (override === false && wasInheritedInitially) {
+       this.set('content.isPreemptionInherited', true);
+       this.set('content.disable_preemption', '');
+     }
+   }.observes('content.isPreemptionOverriden')
 
 });

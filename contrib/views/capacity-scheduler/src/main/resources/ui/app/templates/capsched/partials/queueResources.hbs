@@ -96,13 +96,15 @@
                 </div>
               {{/if}}
             </div>
-            <div class="col-sm-2 inherited-value">
-              <span>(Inherited)</span>
-            </div>
+            {{#if isMaximumApplicationsInherited}}
+              <div class="col-sm-2 inherited-value">
+                <span>(Inherited)</span>
+              </div>
+            {{/if}}
           {{else}}
             <div class="col-sm-3">
             {{#if maximumApplications}}
-              <p class="form-control-static">{{maximumApplications}} (Inherited)</p>
+              <p class="form-control-static">{{maximumApplications}} {{#if isMaximumApplicationsInherited}}(Inherited){{/if}}</p>
             {{else}}
               <p class="form-control-static">Inherited</p>
             {{/if}}
@@ -117,28 +119,30 @@
             message='The maximum percentage of total capacity of this specific queue that can be utilized by application masters at any point in time.'
           }}
           {{#if isOperator}}
-          <div class="col-sm-3 control-value input-percent-wrap">
-            <div class="input-group input-percent">
-              {{int-input placeholder="Inherited" value=maximumAMResourcePercent class="input-sm" maxVal=100}}
-              <span class="input-group-addon">%</span>
+            <div class="col-sm-3 control-value input-percent-wrap">
+              <div class="input-group input-percent">
+                {{int-input placeholder="Inherited" value=maximumAMResourcePercent class="input-sm" maxVal=100}}
+                <span class="input-group-addon">%</span>
+              </div>
+              {{#if queueDirtyFields.maximum_am_resource_percent}}
+                <div class="btn-group btn-group-xs">
+                  <a {{action 'rollbackProp' 'maximum_am_resource_percent' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                </div>
+              {{/if}}
             </div>
-            {{#if queueDirtyFields.maximum_am_resource_percent}}
-              <div class="btn-group btn-group-xs">
-                <a {{action 'rollbackProp' 'maximum_am_resource_percent' content}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+            {{#if isMaxAmResourcePercentInherited}}
+              <div class="col-sm-2 inherited-value">
+                <span>(Inherited)</span>
               </div>
             {{/if}}
-          </div>
-          <div class="col-sm-2 inherited-value">
-            <span>(Inherited)</span>
-          </div>
           {{else}}
-          <div class="col-sm-2">
-            {{#if maximumAMResourcePercent}}
-              <p class="form-control-static">{{maximumAMResourcePercent}}% (Inherited)</p>
-            {{else}}
-              <p class="form-control-static">Inherited</p>
-            {{/if}}
-          </div>
+            <div class="col-sm-2">
+              {{#if maximumAMResourcePercent}}
+                <p class="form-control-static">{{maximumAMResourcePercent}}% {{#if isMaxAmResourcePercentInherited}}(Inherited){{/if}}</p>
+              {{else}}
+                <p class="form-control-static">Inherited</p>
+              {{/if}}
+            </div>
           {{/if}}
         </div>
 

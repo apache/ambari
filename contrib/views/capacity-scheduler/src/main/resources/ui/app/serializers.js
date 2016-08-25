@@ -106,7 +106,9 @@ App.SerializerMixin = Em.Mixin.create({
           ordering_policy:               props[base_path + ".ordering-policy"] || null,
           enable_size_based_weight:      props[base_path + ".ordering-policy.fair.enable-size-based-weight"] || null,
           default_node_label_expression: props[base_path + ".default-node-label-expression"] || null,
-          labelsEnabled:                 props.hasOwnProperty(labelsPath)
+          labelsEnabled:                 props.hasOwnProperty(labelsPath),
+          disable_preemption:            props[base_path + '.disable_preemption'] || '',
+          isPreemptionInherited:         (props[base_path + '.disable_preemption'] !== undefined)?false:true
         };
 
     switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
@@ -249,6 +251,11 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
         this.serializeHasMany(record, json, relationship);
       }
     }, this);
+
+    var isPreemptionSupported = record.get('store.isPreemptionSupported');
+    if (isPreemptionSupported && !record.get('isPreemptionInherited')) {
+      json[this.PREFIX + "." + record.get('path') + ".disable_preemption"] = (record.get('disable_preemption')==='true')? true:false;
+    }
 
     return json;
   },

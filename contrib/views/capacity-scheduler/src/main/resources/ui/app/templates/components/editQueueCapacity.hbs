@@ -18,7 +18,7 @@
 
 <div class="row form-inline">
   <div class="col-md-2 col-sm-2">
-    <span class="queue-name">{{queue.name}}</span>
+    {{#link-to 'capsched.queuesconf.editqueue' queue}}{{queue.name}}{{/link-to}}
   </div>
   <div class="col-md-5 col-md-5">
     <div {{bind-attr class=":form-group :input-group :capacity-input-percent warnInvalidTotalCapacity:has-error"}}>
@@ -50,7 +50,7 @@
     {{#if isInvalidQueueMaximumCapacity}}
       <div class="row">
         <div class="col-md-12 col-sm-12">
-          <span class="text-danger">Maximum capacity must be greater than or equal to capacity</span>
+          <small class="text-danger">Maximum capacity must be greater than or equal to capacity</small>
         </div>
       </div>
     {{/if}}

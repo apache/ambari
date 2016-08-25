@@ -19,10 +19,11 @@
 var App = require('app');
 
 App.CapschedQueuesconfEditqueueView = Ember.View.extend({
+  isCapacityPanelCollapsed: true,
+  isLabelsPanelCollapsed: true,
+  isPreemptionPanelCollapsed: true,
   isAclPanelCollapsed: true,
   isResourcesPanelCollapsed: true,
-  isCapacityPanelCollapsed: false,
-  isLabelsPanelCollapsed: true,
 
   doExpandCollapsePanel: function() {
     var that = this;
@@ -46,11 +47,18 @@ App.CapschedQueuesconfEditqueueView = Ember.View.extend({
         this.toggleProperty('isLabelsPanelCollapsed');
       });
     });
+    this.$('#collapseQueuePreemptionPanelBtn').on('click', function(e) {
+      Ember.run.next(that, function() {
+        this.toggleProperty('isPreemptionPanelCollapsed');
+      });
+    });
   }.on('didInsertElement'),
 
   destroyEventListeners: function() {
     this.$('#collapseQueueAclPanelBtn').off('click');
     this.$('#collapseResourcesPanelBtn').off('click');
     this.$('#collapseQueueCapacityPanelBtn').off('click');
+    this.$('#collapseLabelCapacityPanelBtn').off('click');
+    this.$('#collapseQueuePreemptionPanelBtn').off('click');
   }.on('willDestroyElement')
 });

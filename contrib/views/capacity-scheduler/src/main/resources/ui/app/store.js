@@ -105,6 +105,46 @@ function _fetchTagged(adapter, store, type, sinceToken) {
   }, null, "DS: Extract payload of findAll " + type);
 }
 
+function _fillRmQueueStateIntoQueues(data, store) {
+  var parsed = JSON.parse(data),
+  queuesNeedRefresh = store.get('queuesNeedRefresh'),
+  rootQInfo = parsed['scheduler']['schedulerInfo'];
+  var queueStates = _getRmQueueStates(rootQInfo, 'root', []);
+  store.all('queue').forEach(function(queue) {
+    var qInfo = queueStates.findBy('path', queue.get('path'));
+    if (qInfo && qInfo.state) {
+      queue.set('rmQueueState', qInfo.state);
+      if (queuesNeedRefresh.findBy('path', queue.get('path'))) {
+        queuesNeedRefresh.removeObject(queuesNeedRefresh.findBy('path', queue.get('path')));
+      }
+    } else {
+      if (!queuesNeedRefresh.findBy('path', queue.get('path'))) {
+        queuesNeedRefresh.addObject({
+          path: queue.get('path'),
+          name: queue.get('name')
+        });
+      }
+    }
+  });
+}
+
+function _getRmQueueStates(queueInfo, qPath, qStates) {
+  var qObj = {
+    name: queueInfo.queueName,
+    path: qPath.toLowerCase(),
+    state: queueInfo.state || 'RUNNING'
+  };
+  qStates.addObject(qObj);
+  if (queueInfo.queues) {
+    var children = queueInfo.queues.queue || [];
+    children.forEach(function(child) {
+      var cPath = [qPath, child.queueName].join('.');
+      return _getRmQueueStates(child, cPath, qStates);
+    });
+  }
+  return qStates;
+}
+
 App.ApplicationStore = DS.Store.extend({
 
   adapter: App.QueueAdapter,
@@ -119,9 +159,20 @@ App.ApplicationStore = DS.Store.extend({
 
   stackId: '',
 
+  isPreemptionSupported: function() {
+    var stackId = this.get('stackId'),
+    stackVersion = stackId.substr(stackId.indexOf('-') + 1);
+    if (stackVersion >= 2.3) {
+      return true;
+    }
+    return false;
+  }.property('stackId'),
+
   hasDeletedQueues:Em.computed.notEmpty('deletedQueues.[]'),
 
   deletedQueues:[],
+
+  queuesNeedRefresh: [],
 
   buildConfig: function (fmt) {
     var records = [],
@@ -379,5 +430,30 @@ App.ApplicationStore = DS.Store.extend({
   },
   checkCluster:function () {
     return this.get('defaultAdapter').checkCluster(this);
+  },
+  getRmSchedulerConfigInfo: function() {
+    var store = this,
+    adapter = this.get('defaultAdapter');
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      adapter.getRmSchedulerConfigInfo().then(function(data) {
+        if (data) {
+          _fillRmQueueStateIntoQueues(data, store);
+        }
+        store.set('isRmOffline', false);
+        resolve([]);
+      }, function() {
+        store.set('isRmOffline', true);
+        resolve([]);
+      }).finally(function() {
+        store.pollRmSchedulerConfigInfo();
+      });
+    });
+  },
+  pollRmSchedulerConfigInfo: function() {
+    var store = this;
+    //Poll getRmSchedulerConfigInfo every 1 minute.
+    Ember.run.later(store, function() {
+      store.getRmSchedulerConfigInfo();
+    }, 60000);
   }
 });

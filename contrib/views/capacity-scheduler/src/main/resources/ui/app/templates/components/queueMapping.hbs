@@ -48,17 +48,23 @@
             <div class="queue-mapping-options">
               <div class="row">
                 <div class="radio">
-                  <label title="Assign job to queue with same name as user">
+                  <label>
                     {{view view.radioButton selectionBinding="selectedMapping" name="queueMappingType" value="u:%user:%user"}}
-                    User %user -> queue %user
+                    {{tooltip-label
+                      label='Map user to queue with the same name of user'
+                      message='User %user -> queue %user <br/> Ex: User=john will be mapped to queue=john, and user=alice will be mapped to queue=alice'
+                    }}
                   </label>
                 </div>
               </div>
               <div class="row">
                 <div class="radio">
-                  <label title="Assign job to queue with same name as user's primary group">
+                  <label>
                     {{view view.radioButton selectionBinding="selectedMapping" name="queueMappingType" value="u:%user:%primary_group"}}
-                    User %user -> queue %primary_group
+                    {{tooltip-label
+                      label='Map user to queue with the same name of user’s primary group'
+                      message='User %user -> queue %primary_group <br/> Ex: User=john will be mapped to queue=john\'s primary group, and user=alice will be mapped to queue=alice\'s primary group'
+                    }}
                   </label>
                 </div>
               </div>
@@ -66,7 +72,10 @@
                 <div class="radio">
                   <label>
                     {{view view.radioButton selectionBinding="selectedMapping" name="queueMappingType" value="u:%name:%qname"}}
-                    Assign users to queue
+                    {{tooltip-label
+                      label='Assign specific users to given queue'
+                      message='Specified users will be mapped to queue specified'
+                    }}
                   </label>
                 </div>
                 {{#if isCustomUserMapping}}
@@ -100,7 +109,10 @@
                 <div class="radio">
                   <label>
                     {{view view.radioButton selectionBinding="selectedMapping" name="queueMappingType" value="g:%name:%qname"}}
-                    Assign groups to queue
+                    {{tooltip-label
+                      label='Assign users from specific groups to given queue'
+                      message='Users from specified groups will be mapped to queue specified'
+                    }}
                   </label>
                 </div>
                 {{#if isCustomGroupMapping}}
@@ -144,7 +156,10 @@
           <div class="checkbox">
             <label>
               {{input type="checkbox" name="queueMappingOverride" checked=mappingsOverrideEnable}}
-              Allow user to override queue mapping
+              {{tooltip-label
+                label='Allow application to override user-queue mapping'
+                message='When checked, applications submitted with queues specified will be used other than those defined in default queue mapping'
+              }}
             </label>
           </div>
         </div>
