@@ -26,8 +26,6 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
-import org.apache.ambari.logsearch.util.JSONUtil;
-import org.apache.ambari.logsearch.util.QueryBase;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -37,21 +35,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
 
-public abstract class QueryGenerationBase extends QueryBase {
+public abstract class QueryGenerationBase {
 
   private static final Logger logger = Logger.getLogger(QueryGenerationBase.class);
-
-  @Autowired
-  protected SolrUtil solrUtil;
   
   @Autowired
   protected AuditSolrDao auditSolrDao;
   
   @Autowired
   protected ServiceLogsSolrDao serviceLogsSolrDao;
-  
-  @Autowired
-  protected JSONUtil jsonUtil;
 
   public static enum Condition {
     OR, AND
@@ -69,9 +61,9 @@ public abstract class QueryGenerationBase extends QueryBase {
       for (String temp : msgList) {
         count += 1;
         if (LogSearchConstants.SOLR_LOG_MESSAGE.equalsIgnoreCase(messageField)) {
-          queryMsg.append(" " + operator + solrUtil.escapeForLogMessage(messageField, temp));
+          queryMsg.append(" " + operator + SolrUtil.escapeForLogMessage(messageField, temp));
         } else {
-          temp = solrUtil.escapeForStandardTokenizer(temp);
+          temp = SolrUtil.escapeForStandardTokenizer(temp);
           if(temp.startsWith("\"") && temp.endsWith("\"")){
             temp = temp.substring(1);
             temp = temp.substring(0, temp.length()-1);
@@ -95,9 +87,9 @@ public abstract class QueryGenerationBase extends QueryBase {
       String[] arrayOfSepratedString = commaSepratedString.split(LogSearchConstants.LIST_SEPARATOR);
       String filterQuery = null;
       if (Condition.OR.equals(condition)) {
-        filterQuery = solrUtil.orList(operator + field, arrayOfSepratedString,"");
+        filterQuery = SolrUtil.orList(operator + field, arrayOfSepratedString,"");
       } else if (Condition.AND.equals(condition)) {
-        filterQuery = solrUtil.andList(operator + field, arrayOfSepratedString,"");
+        filterQuery = SolrUtil.andList(operator + field, arrayOfSepratedString,"");
       }else{
         logger.warn("Not a valid condition :" + condition.name());
       }
@@ -207,15 +199,15 @@ public abstract class QueryGenerationBase extends QueryBase {
     Integer maxRows = null;
     try {
       startIndex = (Integer) searchCriteria.getStartIndex();
-      setStart(solrQuery, startIndex);
+      SolrUtil.setStart(solrQuery, startIndex);
     } catch (ClassCastException e) {
-      setStart(solrQuery, 0);
+      SolrUtil.setStart(solrQuery, 0);
     }
     try {
       maxRows = (Integer) searchCriteria.getMaxRows();
-      setRowCount(solrQuery, maxRows);
+      SolrUtil.setRowCount(solrQuery, maxRows);
     } catch (ClassCastException e) {
-      setRowCount(solrQuery, 10);
+      SolrUtil.setRowCount(solrQuery, 10);
     }
 
     if (startIndex != null && maxRows != null)
@@ -269,9 +261,9 @@ public abstract class QueryGenerationBase extends QueryBase {
       String[] values = paramValue.split(LogSearchConstants.LIST_SEPARATOR);
       switch (condition) {
       case OR:
-        return solrUtil.orList(solrFieldName, values,"");
+        return SolrUtil.orList(solrFieldName, values,"");
       case AND:
-        return solrUtil.andList(solrFieldName, values, "");
+        return SolrUtil.andList(solrFieldName, values, "");
       default:
         logger.error("Invalid condition " + condition.name());
       }
@@ -292,10 +284,10 @@ public abstract class QueryGenerationBase extends QueryBase {
       String query;;
       switch (condition) {
       case OR:
-        query = solrUtil.orList(solrFieldName, arr,"");
+        query = SolrUtil.orList(solrFieldName, arr,"");
         break;
       case AND:
-        query = solrUtil.andList(solrFieldName, arr, "");
+        query = SolrUtil.andList(solrFieldName, arr, "");
         break;
       default:
         query=null;

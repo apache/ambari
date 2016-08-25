@@ -60,19 +60,7 @@ public class MgrBase {
   private static final Logger logger = Logger.getLogger(MgrBase.class);
 
   @Autowired
-  protected SolrUtil solrUtil;
-
-  @Autowired
-  protected JSONUtil jsonUtil;
-
-  @Autowired
   protected QueryGeneration queryGenerator;
-
-  @Autowired
-  protected RESTErrorUtil restErrorUtil;
-
-  @Autowired
-  protected DateUtil dateUtil;
 
   private JsonSerializer<Date> jsonDateSerialiazer = null;
   private JsonDeserializer<Date> jsonDateDeserialiazer = null;
@@ -142,14 +130,14 @@ public class MgrBase {
 
     } catch (IOException e) {
       logger.error("Unable to read HadoopServiceConfig.json", e);
-      throw restErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
     String hadoopServiceConfig = result.toString();
-    if (jsonUtil.isJSONValid(hadoopServiceConfig)) {
+    if (JSONUtil.isJSONValid(hadoopServiceConfig)) {
       return hadoopServiceConfig;
     }
-    throw restErrorUtil.createRESTException("Improper JSON", MessageEnums.ERROR_SYSTEM);
+    throw RESTErrorUtil.createRESTException("Improper JSON", MessageEnums.ERROR_SYSTEM);
 
   }
   
@@ -174,8 +162,8 @@ public class MgrBase {
     int numberOfLogsOnLastPage = 0;
     VSolrLogList collection = null;
     try {
-      queryGenerator.setStart(lastPageQuery, 0);
-      queryGenerator.setRowCount(lastPageQuery, maxRows);
+      SolrUtil.setStart(lastPageQuery, 0);
+      SolrUtil.setRowCount(lastPageQuery, maxRows);
       collection = getLogAsPaginationProvided(lastPageQuery, solrDoaBase);
       totalLogs = countQuery(lastPageQuery,solrDoaBase);
       if(maxRows != null){
@@ -199,7 +187,7 @@ public class MgrBase {
 
     } catch (SolrException | SolrServerException | IOException | NumberFormatException e) {
       logger.error("Count Query was not executed successfully",e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     return collection;
   }
@@ -223,7 +211,7 @@ public class MgrBase {
       return collection;
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
   
@@ -249,9 +237,9 @@ public class MgrBase {
 
   protected String getFrom(String from) {
     if (StringUtils.isBlank(from)) {
-      Date date =  dateUtil.getTodayFromDate();
+      Date date = DateUtil.getTodayFromDate();
       try {
-        from = dateUtil.convertGivenDateFormatToSolrDateFormat(date);
+        from = DateUtil.convertGivenDateFormatToSolrDateFormat(date);
       } catch (ParseException e) {
         from = "NOW";
       }

@@ -54,12 +54,6 @@ public class LogsearchAuthenticationProvider extends
   @Autowired
   LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
 
-  @Autowired
-  JSONUtil jsonUtil;
-
-  @Autowired
-  private UserDetailsService userService;
-
   @Override
   public Authentication authenticate(Authentication authentication)
     throws AuthenticationException {
@@ -117,7 +111,7 @@ public class LogsearchAuthenticationProvider extends
       }
       return authentication;
     } finally {
-      String jsonStr = jsonUtil.mapToJSON(auditRecord);
+      String jsonStr = JSONUtil.mapToJSON(auditRecord);
       if (isSuccess) {
         auditLogger.info(jsonStr);
       } else {
@@ -126,11 +120,6 @@ public class LogsearchAuthenticationProvider extends
     }
   }
 
-  /**
-   * @param authentication
-   * @param authMethod
-   * @return
-   */
   public Authentication doAuth(Authentication authentication, AUTH_METHOD authMethod) {
     if (authMethod.equals(AUTH_METHOD.LDAP)) {
       authentication = ldapAuthenticationProvider.authenticate(authentication);

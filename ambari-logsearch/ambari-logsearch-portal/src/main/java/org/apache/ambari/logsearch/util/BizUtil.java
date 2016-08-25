@@ -43,13 +43,15 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.springframework.stereotype.Component;
 
-@Component
 public class BizUtil {
   private static final Logger logger = Logger.getLogger(BizUtil.class);
 
-  public String convertObjectToNormalText(SolrDocumentList docList) {
+  private BizUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static String convertObjectToNormalText(SolrDocumentList docList) {
     String textToSave = "";
     HashMap<String, String> blankFieldsMap = new HashMap<String, String>();
     if (docList == null){
@@ -76,7 +78,7 @@ public class BizUtil {
 
     for (String field : fieldsForBlankCaculation) {
       if (!StringUtils.isBlank(field)) {
-      blankFieldsMap.put(field, addBlanksToString(maxLengthOfField - field.length(), field));
+        blankFieldsMap.put(field, StringUtils.rightPad(field, maxLengthOfField - field.length()));
       }
     }
 
@@ -114,7 +116,7 @@ public class BizUtil {
     return textToSave;
   }
 
-  public VSummary buildSummaryForLogFile(SolrDocumentList docList) {
+  public static VSummary buildSummaryForLogFile(SolrDocumentList docList) {
     VSummary vsummary = new VSummary();
     if (CollectionUtils.isEmpty(docList)) {
       return vsummary;
@@ -170,19 +172,8 @@ public class BizUtil {
     return vsummary;
   }
 
-  private String addBlanksToString(int count, String field) {
-    if (StringUtils.isBlank(field)) {
-      return field;
-    }
-    if (count > 0) {
-      return String.format("%-" + count + "s", field);
-    }
-    return field;
-
-  }
-
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public VBarDataList buildSummaryForTopCounts(SimpleOrderedMap<Object> jsonFacetResponse,String innerJsonKey,String outerJsonKey) {
+  public static VBarDataList buildSummaryForTopCounts(SimpleOrderedMap<Object> jsonFacetResponse,String innerJsonKey,String outerJsonKey) {
 
     VBarDataList vBarDataList = new VBarDataList();
 
@@ -240,7 +231,7 @@ public class BizUtil {
     return vBarDataList;
   }
   
-  public HashMap<String, String> sortHashMapByValues(HashMap<String, String> passedMap) {
+  public static HashMap<String, String> sortHashMapByValues(HashMap<String, String> passedMap) {
     if (passedMap == null ) {
       return passedMap;
     }

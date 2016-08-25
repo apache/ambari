@@ -28,6 +28,8 @@ import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
+import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.ambari.logsearch.view.VLogFile;
 import org.apache.ambari.logsearch.view.VLogFileList;
 import org.apache.ambari.logsearch.view.VSolrLogList;
@@ -61,8 +63,8 @@ public class LogFileMgr extends MgrBase {
     String host = (String) searchCriteria.getParamValue("host");
     int minCount = 1;// to remove zero count facet
     SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetFieldWithMincount(solrQuery, LogSearchConstants.SOLR_PATH, minCount);
+    SolrUtil.setMainQuery(solrQuery, null);
+    SolrUtil.setFacetFieldWithMincount(solrQuery, LogSearchConstants.SOLR_PATH, minCount);
     // adding filter
     queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_COMPONENT, componentName);
     queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_HOST, host);
@@ -77,7 +79,7 @@ public class LogFileMgr extends MgrBase {
       } else if (logType.equalsIgnoreCase(LogType.AUDIT.name())) {
         daoMgr = auditSolrDao;
       } else {
-        throw restErrorUtil.createRESTException(logType + " is not a valid logType", MessageEnums.INVALID_INPUT_DATA);
+        throw RESTErrorUtil.createRESTException(logType + " is not a valid logType", MessageEnums.INVALID_INPUT_DATA);
       }
       QueryResponse queryResponse = daoMgr.process(solrQuery);
       if (queryResponse.getFacetField(LogSearchConstants.SOLR_PATH) != null) {
@@ -96,7 +98,7 @@ public class LogFileMgr extends MgrBase {
       }
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error in solr query  :" + e.getLocalizedMessage() + "\n Query :" + solrQuery.toQueryString(), e.getCause());
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     logFileList.setLogFiles(logFiles);
     String jsonStr = "";
@@ -111,31 +113,31 @@ public class LogFileMgr extends MgrBase {
     String component = (String) searchCriteria.getParamValue("component");
     String tailSize = (String) searchCriteria.getParamValue("tailSize");
     if (StringUtils.isBlank(host)) {
-      throw restErrorUtil.createRESTException("missing Host Name", MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException("missing Host Name", MessageEnums.ERROR_SYSTEM);
     }
     tailSize = (StringUtils.isBlank(tailSize)) ? "10" : tailSize;
     SolrQuery logFileTailQuery = new SolrQuery();
     try {
       int tail = Integer.parseInt(tailSize);
       tail = tail > 100 ? 100 : tail;
-      queryGenerator.setMainQuery(logFileTailQuery, null);
+      SolrUtil.setMainQuery(logFileTailQuery, null);
       queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_HOST, host);
       if (!StringUtils.isBlank(logFile)) {
-        queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_PATH, solrUtil.makeSolrSearchString(logFile));
+        queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_PATH, SolrUtil.makeSolrSearchString(logFile));
       } else if (!StringUtils.isBlank(component)) {
         queryGenerator.setSingleIncludeFilter(logFileTailQuery, LogSearchConstants.SOLR_COMPONENT, component);
       } else {
-        throw restErrorUtil.createRESTException("component or logfile parameter must be present", MessageEnums.ERROR_SYSTEM);
+        throw RESTErrorUtil.createRESTException("component or logfile parameter must be present", MessageEnums.ERROR_SYSTEM);
       }
 
-      queryGenerator.setRowCount(logFileTailQuery, tail);
+      SolrUtil.setRowCount(logFileTailQuery, tail);
       queryGenerator.setSortOrderDefaultServiceLog(logFileTailQuery, new SearchCriteria());
       VSolrLogList solrLogList = getLogAsPaginationProvided(logFileTailQuery, serviceLogsSolrDao);
       return convertObjToString(solrLogList);
 
     } catch (NumberFormatException ne) {
 
-      throw restErrorUtil.createRESTException(ne.getMessage(),
+      throw RESTErrorUtil.createRESTException(ne.getMessage(),
         MessageEnums.ERROR_SYSTEM);
 
     }

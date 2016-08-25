@@ -29,19 +29,19 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.view.VMessage;
 import org.apache.ambari.logsearch.view.VResponse;
 import org.apache.log4j.Logger;
-import org.springframework.stereotype.Component;
 
-@Component
 public class RESTErrorUtil {
+  private static final Logger logger = Logger.getLogger(RESTErrorUtil.class);
 
-  private static Logger logger = Logger.getLogger(RESTErrorUtil.class);
-
-  public WebApplicationException createRESTException(VResponse response) {
+  private RESTErrorUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static WebApplicationException createRESTException(VResponse response) {
     return createRESTException(response, HttpServletResponse.SC_BAD_REQUEST);
   }
 
-  public WebApplicationException createRESTException(String errorMessage,
-                                                     MessageEnums messageEnum) {
+  public static WebApplicationException createRESTException(String errorMessage, MessageEnums messageEnum) {
     List<VMessage> messageList = new ArrayList<VMessage>();
     messageList.add(messageEnum.getMessage());
 
@@ -54,7 +54,7 @@ public class RESTErrorUtil {
     return webAppEx;
   }
 
-  private WebApplicationException createRESTException(VResponse response, int sc) {
+  private static WebApplicationException createRESTException(VResponse response, int sc) {
     Response errorResponse = Response.status(sc).entity(response).build();
     WebApplicationException restException = new WebApplicationException(errorResponse);
     restException.fillInStackTrace();

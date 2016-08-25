@@ -37,9 +37,9 @@ http://www.springframework.org/schema/util/spring-util.xsd">
 
 	<context:component-scan base-package="org.apache.ambari.logsearch" />
 	<task:annotation-driven />
-	<bean id="xmlPropertyConfigurer" class="org.apache.ambari.logsearch.util.XMLPropertiesUtil" />
+	<bean id="xmlPropertyConfigurer" class="org.apache.ambari.logsearch.common.XMLPropertiesHelper" />
 	
-	<bean id="propertyConfigurer" class="org.apache.ambari.logsearch.util.PropertiesUtil">
+	<bean id="propertyConfigurer" class="org.apache.ambari.logsearch.common.PropertiesHelper">
 		<property name="locations">
 			<list>
 				<value>classpath:default.properties</value>

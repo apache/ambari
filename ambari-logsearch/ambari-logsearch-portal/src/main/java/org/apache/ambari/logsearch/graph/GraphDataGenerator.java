@@ -47,8 +47,6 @@ import org.apache.solr.common.util.SimpleOrderedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-
-
 @Component
 public class GraphDataGenerator extends GraphDataGeneratorBase {
 
@@ -56,10 +54,6 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
 
   @Autowired
   private QueryGeneration queryGenerator;
-  @Autowired
-  private RESTErrorUtil restErrorUtil;
-  @Autowired
-  private SolrUtil solrUtil;
 
   public VBarDataList getAnyGraphData(SearchCriteria searchCriteria, SolrDaoBase solrDaoBase, SolrQuery solrQuery) {
     // X axis credentials
@@ -131,10 +125,10 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     Collection<VBarGraphData> vBarGraphDatas = new ArrayList<VBarGraphData>();
     VBarGraphData vBarGraphData = new VBarGraphData();
     Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
-    queryGenerator.setMainQuery(solrQuery, null);
+    SolrUtil.setMainQuery(solrQuery, null);
     queryGenerator.setSingleIncludeFilter(solrQuery, fieldTime, "[" + from + " TO " + to + "]");
     if (typeXAxis.contains("string") || typeXAxis.contains("key_lower_case") || typeXAxis.contains("text")) {
-      queryGenerator.setFacetField(solrQuery, xAxisField);
+      SolrUtil.setFacetField(solrQuery, xAxisField);
       try {
         QueryResponse response = solrDaoBase.process(solrQuery);
         if (response != null && response.getResults() != null) {
@@ -184,10 +178,10 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
         logger.error("Got exception for solr query :" + query, e.getCause());
       }
     } else {
-      queryGenerator.setRowCount(solrQuery, 0);
+      SolrUtil.setRowCount(solrQuery, 0);
       String yAxis = yAxisField.contains("count") ? "sum" : yAxisField;
       String jsonQuery = queryGenerator.buildJSONFacetAggregatedFuncitonQuery(yAxis, xAxisField);
-      queryGenerator.setJSONFacet(solrQuery, jsonQuery);
+      SolrUtil.setJSONFacet(solrQuery, jsonQuery);
       try {
         QueryResponse response = solrDaoBase.process(solrQuery);
         SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response.getResponse().get("facets");
@@ -218,17 +212,17 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     VBarDataList dataList = new VBarDataList();
     Collection<VBarGraphData> vGraphData = new ArrayList<VBarGraphData>();
     String mainQuery = queryGenerator.buildInclusiveRangeFilterQuery(fieldTime, from, to);
-    queryGenerator.setMainQuery(solrQuery, mainQuery);
-    queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
+    SolrUtil.setMainQuery(solrQuery, mainQuery);
+    SolrUtil.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     String jsonQuery = "";
-    if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
+    if (SolrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       String function = (yAxisField.contains("count")) ? "sum" : yAxisField;
       jsonQuery = queryGenerator.buidlJSONFacetRangeQueryForNumber(stackField, xAxisField, function);
     } else {
       jsonQuery = queryGenerator.buildJsonFacetTermsRangeQuery(stackField, xAxisField);
     }
     try {
-      queryGenerator.setJSONFacet(solrQuery, jsonQuery);
+      SolrUtil.setJSONFacet(solrQuery, jsonQuery);
       dataList.setGraphData(vGraphData);
       QueryResponse response = solrDaoBase.process(solrQuery);
       if (response == null) {
@@ -268,7 +262,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     } catch (SolrException | IOException | SolrServerException e) {
       String query = solrQuery != null ? solrQuery.toQueryString() : "";
       logger.error("Got exception for solr query :" + query, e.getCause());
-      throw restErrorUtil.createRESTException(MessageEnums.DATA_NOT_FOUND.getMessage().getMessage(), MessageEnums.DATA_NOT_FOUND);
+      throw RESTErrorUtil.createRESTException(MessageEnums.DATA_NOT_FOUND.getMessage().getMessage(), MessageEnums.DATA_NOT_FOUND);
     }
   }
 
@@ -279,13 +273,13 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     Collection<VBarGraphData> vBarGraphDatas = new ArrayList<VBarGraphData>();
     VBarGraphData vBarGraphData = new VBarGraphData();
     Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
-    queryGenerator.setMainQuery(solrQuery, null);
-    if (solrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
+    SolrUtil.setMainQuery(solrQuery, null);
+    if (SolrUtil.isSolrFieldNumber(typeXAxis,solrDaoBase)) {
       queryGenerator.setSingleRangeFilter(solrQuery, fieldTime, from, to);
       return normalGraph(xAxisField, yAxisField, from, to, solrDaoBase, typeXAxis, fieldTime, solrQuery);
     } else {
       try {
-        queryGenerator.setFacetRange(solrQuery, xAxisField, from, to, unit);
+        SolrUtil.setFacetRange(solrQuery, xAxisField, from, to, unit);
         QueryResponse response = solrDaoBase.process(solrQuery);
         if (response != null) {
           Long count = response.getResults().getNumFound();
@@ -322,13 +316,13 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
       SolrDaoBase solrDaoBase, SolrQuery solrQuery) {
     VBarDataList dataList = new VBarDataList();
     List<VBarGraphData> histogramData = new ArrayList<VBarGraphData>();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
+    SolrUtil.setMainQuery(solrQuery, null);
+    SolrUtil.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     String jsonHistogramQuery =
         queryGenerator.buildJSONFacetTermTimeRangeQuery(stackField, xAxisField, from, to, unit).replace("\\", "");
     try {
       solrQuery.set("json.facet", jsonHistogramQuery);
-      queryGenerator.setRowCount(solrQuery, 0);
+      SolrUtil.setRowCount(solrQuery, 0);
       QueryResponse response = solrDaoBase.process(solrQuery);
       if (response != null) {
         SimpleOrderedMap<Object> jsonFacetResponse = (SimpleOrderedMap<Object>) response.getResponse().get("facets");

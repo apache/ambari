@@ -25,12 +25,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.ConfigUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
@@ -87,7 +89,7 @@ public class QueryGeneration extends QueryGenerationBase {
       return advSolrQuery;
     }
 
-    setMainQuery(solrQuery, givenQuery);
+    SolrUtil.setMainQuery(solrQuery, givenQuery);
 
     setSingleRangeFilter(solrQuery, LogSearchConstants.LOGTIME, startTime, endTime);
     addFilter(solrQuery, selectedComp, LogSearchConstants.SOLR_COMPONENT, Condition.OR);
@@ -104,15 +106,15 @@ public class QueryGeneration extends QueryGenerationBase {
     setFilterClauseWithFieldName(solrQuery, globalExcludeComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
     setFilterClauseWithFieldName(solrQuery, unselectedComp, LogSearchConstants.SOLR_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
 
-    urlHostName = solrUtil.escapeQueryChars(urlHostName);
+    urlHostName = SolrUtil.escapeQueryChars(urlHostName);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_HOST, urlHostName);
-    urlComponentName = solrUtil.escapeQueryChars(urlComponentName);
+    urlComponentName = SolrUtil.escapeQueryChars(urlComponentName);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_COMPONENT, urlComponentName);
 
     setPagination(solrQuery, searchCriteria);
     setSortOrderDefaultServiceLog(solrQuery, searchCriteria);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.BUNDLE_ID, bundleId);
-    file_name = solrUtil.escapeQueryChars(file_name);
+    file_name = SolrUtil.escapeQueryChars(file_name);
     setSingleIncludeFilter(solrQuery, LogSearchConstants.SOLR_PATH, file_name);
     setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY, logType);
     setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY, logType);
@@ -150,10 +152,10 @@ public class QueryGeneration extends QueryGenerationBase {
     List<String> conditionQuries = new ArrayList<String>();
     List<String> referalConditionQuries = new ArrayList<String>();
     List<String> elments = new ArrayList<String>();
-    List<HashMap<String, Object>> queryList = jsonUtil.jsonToMapObjectList(queryString);
+    List<HashMap<String, Object>> queryList = JSONUtil.jsonToMapObjectList(queryString);
     if (queryList != null && queryList.size() > 0) {
       if (!StringUtils.isBlank(columnQuery) && !columnQuery.equals(queryString) && !paramName.equals(LogSearchConstants.EXCLUDE_QUERY)) {
-        List<HashMap<String, Object>> columnQueryList = jsonUtil.jsonToMapObjectList(columnQuery);
+        List<HashMap<String, Object>> columnQueryList = JSONUtil.jsonToMapObjectList(columnQuery);
         if (columnQueryList != null && columnQueryList.size() > 0) {
           queryList.addAll(columnQueryList);
         }
@@ -255,7 +257,7 @@ public class QueryGeneration extends QueryGenerationBase {
       fieldType = serviceLogsSolrDao.schemaFieldsNameMap.get(key);
       solrDaoBase = serviceLogsSolrDao;
       if (key.equalsIgnoreCase(LogSearchConstants.SOLR_LOG_MESSAGE)) {
-        return solrUtil.escapeForLogMessage(key, str);
+        return SolrUtil.escapeForLogMessage(key, str);
       }
       break;
     default:
@@ -264,7 +266,7 @@ public class QueryGeneration extends QueryGenerationBase {
       fieldType = null;
     }
     if (!StringUtils.isBlank(fieldType)) {
-      if (solrUtil.isSolrFieldNumber(fieldType, solrDaoBase)) {
+      if (SolrUtil.isSolrFieldNumber(fieldType, solrDaoBase)) {
         String value = putEscapeCharacterForNumber(str, fieldType,solrDaoBase);
         if (!StringUtils.isBlank(value)) {
           return key + ":" + value;
@@ -272,9 +274,9 @@ public class QueryGeneration extends QueryGenerationBase {
           return null;
         }
       } else if (checkTokenizer(fieldType, StandardTokenizerFactory.class,solrDaoBase)) {
-        return key + ":" + solrUtil.escapeForStandardTokenizer(str);
+        return key + ":" + SolrUtil.escapeForStandardTokenizer(str);
       } else if (checkTokenizer(fieldType, KeywordTokenizerFactory.class,solrDaoBase)|| "string".equalsIgnoreCase(fieldType)) {
-        return key + ":" + solrUtil.makeSolrSearchStringWithoutAsterisk(str);
+        return key + ":" + SolrUtil.makeSolrSearchStringWithoutAsterisk(str);
       } else if (checkTokenizer(fieldType, PathHierarchyTokenizerFactory.class,solrDaoBase)) {
         return key + ":" + str;
       }
@@ -296,7 +298,7 @@ public class QueryGeneration extends QueryGenerationBase {
 
   private String parseInputValueAsPerFieldType(String str,String fieldType,SolrDaoBase solrDaoBase ) {
     try {
-      HashMap<String, Object> fieldTypeInfoMap= solrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
+      HashMap<String, Object> fieldTypeInfoMap= SolrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
       String className = (String) fieldTypeInfoMap.get("class");
       if( className.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())){
         return ""+ Double.parseDouble(str);
@@ -314,7 +316,7 @@ public class QueryGeneration extends QueryGenerationBase {
   }
 
   private String getOriginalValue(String name, String value) {
-    String solrValue = PropertiesUtil.getProperty(name);
+    String solrValue = PropertiesHelper.getProperty(name);
     if (StringUtils.isBlank(solrValue)) {
       return value;
     }
@@ -347,10 +349,10 @@ public class QueryGeneration extends QueryGenerationBase {
     String originalKey;
     switch (logType) {
     case AUDIT:
-      originalKey = ConfigUtil.auditLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
+      originalKey = ConfigHelper.auditLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
       break;
     case SERVICE:
-      originalKey = ConfigUtil.serviceLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
+      originalKey = ConfigHelper.serviceLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
       break;
     default:
       originalKey = null;
@@ -362,7 +364,7 @@ public class QueryGeneration extends QueryGenerationBase {
   }
   
   private boolean checkTokenizer(String fieldType, Class tokenizerFactoryClass, SolrDaoBase solrDaoBase) {
-    HashMap<String, Object> fieldTypeMap = solrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
+    HashMap<String, Object> fieldTypeMap = SolrUtil.getFieldTypeInfoMap(fieldType,solrDaoBase);
     HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap.get("analyzer");
     if (analyzer != null) {
       HashMap<String, Object> tokenizerMap = (HashMap<String, Object>) analyzer.get("tokenizer");

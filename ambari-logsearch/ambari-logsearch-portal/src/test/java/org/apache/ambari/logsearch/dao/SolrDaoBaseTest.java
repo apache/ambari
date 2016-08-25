@@ -232,7 +232,6 @@ public class SolrDaoBaseTest {
     expectedException.expect(WebApplicationException.class);
     
     SolrDaoBase dao = new SolrDaoBase(LogType.SERVICE) {};
-    dao.restErrorUtil = new RESTErrorUtil();
     dao.process(new SolrQuery());
   }
   

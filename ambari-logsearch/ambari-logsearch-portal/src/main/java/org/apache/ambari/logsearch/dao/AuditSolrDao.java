@@ -24,8 +24,8 @@ import java.util.Collection;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -41,15 +41,15 @@ public class AuditSolrDao extends SolrDaoBase {
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.audit.logs.url");
-    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.audit.logs.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.audit.logs", "audit_logs");
-    String aliasNameIn = PropertiesUtil.getProperty("logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
-    String rangerAuditCollection = PropertiesUtil.getProperty("logsearch.ranger.audit.logs.collection.name");
-    String splitInterval = PropertiesUtil.getProperty("logsearch.audit.logs.split.interval.mins", "none");
-    String configName = PropertiesUtil.getProperty("logsearch.solr.audit.logs.config.name", "audit_logs");
-    int numberOfShards = PropertiesUtil.getIntProperty("logsearch.collection.audit.logs.numshards", 1);
-    int replicationFactor = PropertiesUtil.getIntProperty("logsearch.collection.audit.logs.replication.factor", 1);
+    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.audit.logs.url");
+    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.audit.logs.zk_connect_string");
+    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.audit.logs", "audit_logs");
+    String aliasNameIn = PropertiesHelper.getProperty("logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
+    String rangerAuditCollection = PropertiesHelper.getProperty("logsearch.ranger.audit.logs.collection.name");
+    String splitInterval = PropertiesHelper.getProperty("logsearch.audit.logs.split.interval.mins", "none");
+    String configName = PropertiesHelper.getProperty("logsearch.solr.audit.logs.config.name", "audit_logs");
+    int numberOfShards = PropertiesHelper.getIntProperty("logsearch.collection.audit.logs.numshards", 1);
+    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.audit.logs.replication.factor", 1);
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);

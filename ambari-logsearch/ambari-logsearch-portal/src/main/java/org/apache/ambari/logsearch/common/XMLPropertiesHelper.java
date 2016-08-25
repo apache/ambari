@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.ambari.logsearch.util;
+package org.apache.ambari.logsearch.common;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,22 +33,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-public class XMLPropertiesUtil extends DefaultPropertiesPersister {
-  private static Logger logger = Logger.getLogger(XMLPropertiesUtil.class);
+public class XMLPropertiesHelper extends DefaultPropertiesPersister {
+  private static Logger logger = Logger.getLogger(XMLPropertiesHelper.class);
 
-  public XMLPropertiesUtil() {
+  public XMLPropertiesHelper() {
   }
 
   @Override
   public void loadFromXml(Properties properties, InputStream inputStream)
       throws IOException {
     try {
-      DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory
-          .newInstance();
+      DocumentBuilderFactory xmlDocumentBuilderFactory = DocumentBuilderFactory.newInstance();
       xmlDocumentBuilderFactory.setIgnoringComments(true);
       xmlDocumentBuilderFactory.setNamespaceAware(true);
-      DocumentBuilder xmlDocumentBuilder = xmlDocumentBuilderFactory
-          .newDocumentBuilder();
+      DocumentBuilder xmlDocumentBuilder = xmlDocumentBuilderFactory.newDocumentBuilder();
       Document xmlDocument = xmlDocumentBuilder.parse(inputStream);
       if (xmlDocument != null) {
         xmlDocument.getDocumentElement().normalize();
@@ -60,15 +58,11 @@ public class XMLPropertiesUtil extends DefaultPropertiesPersister {
               Element eElement = (Element) nNode;
               String propertyName = "";
               String propertyValue = "";
-              if (eElement.getElementsByTagName("name") != null
-                  && eElement.getElementsByTagName("name").item(0) != null) {
-                propertyName = eElement.getElementsByTagName("name").item(0)
-                    .getTextContent().trim();
+              if (eElement.getElementsByTagName("name") != null && eElement.getElementsByTagName("name").item(0) != null) {
+                propertyName = eElement.getElementsByTagName("name").item(0).getTextContent().trim();
               }
-              if (eElement.getElementsByTagName("value") != null
-                  && eElement.getElementsByTagName("value").item(0) != null) {
-                propertyValue = eElement.getElementsByTagName("value").item(0)
-                    .getTextContent().trim();
+              if (eElement.getElementsByTagName("value") != null && eElement.getElementsByTagName("value").item(0) != null) {
+                propertyValue = eElement.getElementsByTagName("value").item(0).getTextContent().trim();
               }
               if (propertyName != null && !propertyName.isEmpty()) {
                 properties.put(propertyName, propertyValue);

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.util;
+package org.apache.ambari.logsearch.common;
 
 import java.util.List;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class ExternalServerClient {
 
   @PostConstruct
   public void initialization() {
-    hostURL = PropertiesUtil.getProperty(
+    hostURL = PropertiesHelper.getProperty(
         LogsearchAbstractAuthenticationProvider.AUTH_METHOD_PROP_START_WITH
             + "external_auth.host_url", hostURL);
   }

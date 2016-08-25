@@ -40,7 +40,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -54,6 +53,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -102,18 +102,18 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   @Override
   public void init(FilterConfig conf) throws ServletException {
     final FilterConfig globalConf = conf;
-    String hostName = PropertiesUtil.getProperty(HOST_NAME, "localhost");
+    String hostName = PropertiesHelper.getProperty(HOST_NAME, "localhost");
     final Map<String, String> params = new HashMap<String, String>();
     if (spnegoEnable) {
       authType = KerberosAuthenticationHandler.TYPE;
     }
     params.put(AUTH_TYPE,authType);
-    params.put(NAME_RULES_PARAM,PropertiesUtil.getProperty(NAME_RULES, "DEFAULT"));
-    params.put(TOKEN_VALID_PARAM, PropertiesUtil.getProperty(TOKEN_VALID, "30"));
-    params.put(COOKIE_DOMAIN_PARAM, PropertiesUtil.getProperty(COOKIE_DOMAIN, hostName));
-    params.put(COOKIE_PATH_PARAM, PropertiesUtil.getProperty(COOKIE_PATH, "/"));
-    params.put(PRINCIPAL_PARAM,PropertiesUtil.getProperty(PRINCIPAL,""));
-    params.put(KEYTAB_PARAM,PropertiesUtil.getProperty(KEYTAB,""));
+    params.put(NAME_RULES_PARAM,PropertiesHelper.getProperty(NAME_RULES, "DEFAULT"));
+    params.put(TOKEN_VALID_PARAM, PropertiesHelper.getProperty(TOKEN_VALID, "30"));
+    params.put(COOKIE_DOMAIN_PARAM, PropertiesHelper.getProperty(COOKIE_DOMAIN, hostName));
+    params.put(COOKIE_PATH_PARAM, PropertiesHelper.getProperty(COOKIE_PATH, "/"));
+    params.put(PRINCIPAL_PARAM,PropertiesHelper.getProperty(PRINCIPAL,""));
+    params.put(KEYTAB_PARAM,PropertiesHelper.getProperty(KEYTAB,""));
     FilterConfig myConf = new FilterConfig() {
       @Override
       public ServletContext getServletContext() {
@@ -196,7 +196,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
     }
     if (!isLoginRequest(httpRequest) && spnegoEnable
         && (existingAuth == null || !existingAuth.isAuthenticated())) {
-      KerberosName.setRules(PropertiesUtil.getProperty(NAME_RULES, "DEFAULT"));
+      KerberosName.setRules(PropertiesHelper.getProperty(NAME_RULES, "DEFAULT"));
       String userName = getUsernameFromRequest(httpRequest);
       if ((existingAuth == null || !existingAuth.isAuthenticated())
           && (!StringUtils.isEmpty(userName))) {
@@ -230,12 +230,12 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   }
 
   private void isSpnegoEnable() {
-    spnegoEnable = PropertiesUtil.getBooleanProperty(KERBEROS_ENABLE, false);
+    spnegoEnable = PropertiesHelper.getBooleanProperty(KERBEROS_ENABLE, false);
     if (spnegoEnable) {
       spnegoEnable = false;
-      String keytab = PropertiesUtil.getProperty(KEYTAB);
-      String principal = PropertiesUtil.getProperty(PRINCIPAL);
-      String hostname = PropertiesUtil.getProperty(HOST_NAME);
+      String keytab = PropertiesHelper.getProperty(KEYTAB);
+      String principal = PropertiesHelper.getProperty(PRINCIPAL);
+      String hostname = PropertiesHelper.getProperty(HOST_NAME);
       if (!StringUtils.isEmpty(keytab) && !StringUtils.isEmpty(principal)
           && !StringUtils.isEmpty(hostname)) {
         spnegoEnable = true;

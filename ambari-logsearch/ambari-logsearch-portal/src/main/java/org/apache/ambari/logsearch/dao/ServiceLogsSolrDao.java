@@ -21,8 +21,8 @@ package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -38,13 +38,13 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   @PostConstruct
   public void postConstructor() {
     logger.info("postConstructor() called.");
-    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
-    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.service.logs", "hadoop_logs");
-    String splitInterval = PropertiesUtil.getProperty("logsearch.service.logs.split.interval.mins", "none");
-    String configName = PropertiesUtil.getProperty("logsearch.solr.service.logs.config.name", "hadoop_logs");
-    int numberOfShards = PropertiesUtil.getIntProperty("logsearch.collection.service.logs.numshards", 1);
-    int replicationFactor = PropertiesUtil.getIntProperty("logsearch.collection.service.logs.replication.factor", 1);
+    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.url");
+    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.zk_connect_string");
+    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.service.logs", "hadoop_logs");
+    String splitInterval = PropertiesHelper.getProperty("logsearch.service.logs.split.interval.mins", "none");
+    String configName = PropertiesHelper.getProperty("logsearch.solr.service.logs.config.name", "hadoop_logs");
+    int numberOfShards = PropertiesHelper.getIntProperty("logsearch.collection.service.logs.numshards", 1);
+    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.service.logs.replication.factor", 1);
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);

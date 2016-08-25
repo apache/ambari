@@ -25,30 +25,28 @@ import java.util.Locale;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.schema.TrieDoubleField;
 import org.apache.solr.schema.TrieFloatField;
 import org.apache.solr.schema.TrieIntField;
 import org.apache.solr.schema.TrieLongField;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-@Component
 public class SolrUtil {
-
-  @Autowired
-  private JSONUtil jsonUtil;
-
-  public String setField(String fieldName, String value) {
+  private SolrUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static String setField(String fieldName, String value) {
     if (value == null || value.trim().length() == 0) {
       return "";
     }
     return fieldName + ":" + value.trim().toLowerCase(Locale.ENGLISH);
   }
 
-  public String inList(String fieldName, int[] values) {
+  public static String inList(String fieldName, int[] values) {
     if (ArrayUtils.isEmpty(values)) {
       return "";
     }
@@ -64,7 +62,7 @@ public class SolrUtil {
     }
   }
 
-  public String inList(Collection<Long> values) {
+  public static String inList(Collection<Long> values) {
     if (CollectionUtils.isEmpty(values)) {
       return "";
     }
@@ -81,7 +79,7 @@ public class SolrUtil {
 
   }
 
-  public String orList(String fieldName, String[] valueList, String wildCard) {
+  public static String orList(String fieldName, String[] valueList, String wildCard) {
     if (ArrayUtils.isEmpty(valueList)) {
       return "";
     }
@@ -109,7 +107,7 @@ public class SolrUtil {
 
   }
 
-  public String andList(String fieldName, String[] valueList, String wildCard) {
+  public static String andList(String fieldName, String[] valueList, String wildCard) {
     if (ArrayUtils.isEmpty(valueList)) {
       return "";
     }
@@ -140,7 +138,7 @@ public class SolrUtil {
   /**
    * Copied from Solr ClientUtils.escapeQueryChars and removed escaping *
    */
-  public String escapeQueryChars(String s) {
+  public static String escapeQueryChars(String s) {
     StringBuilder sb = new StringBuilder();
     int prev = 0;
     if (s != null) {
@@ -169,7 +167,7 @@ public class SolrUtil {
     return sb.toString();
   }
 
-  private String escapeForWhiteSpaceTokenizer(String search) {
+  private static String escapeForWhiteSpaceTokenizer(String search) {
     if (search == null) {
       return null;
     }
@@ -188,7 +186,7 @@ public class SolrUtil {
     return newSearch;
   }
 
-  public String escapeForStandardTokenizer(String search) {
+  public static String escapeForStandardTokenizer(String search) {
     if (search == null) {
       return null;
     }
@@ -207,7 +205,7 @@ public class SolrUtil {
     return newSearch;
   }
 
-  private String escapeForKeyTokenizer(String search) {
+  private static String escapeForKeyTokenizer(String search) {
     if (search.startsWith("*") && search.endsWith("*") && !StringUtils.isBlank(search)) {
       // Remove the * from both the sides
       if (search.length() > 1) {
@@ -226,7 +224,7 @@ public class SolrUtil {
    * This is a special case scenario to handle log_message for wild card
    * scenarios
    */
-  public String escapeForLogMessage(String field, String search) {
+  public static String escapeForLogMessage(String field, String search) {
     if (search.startsWith("*") && search.endsWith("*")) {
       field = LogSearchConstants.SOLR_KEY_LOG_MESSAGE;
       search = escapeForKeyTokenizer(search);
@@ -238,7 +236,7 @@ public class SolrUtil {
     return field + ":" + search;
   }
 
-  public String makeSolrSearchString(String search) {
+  public static String makeSolrSearchString(String search) {
     String newString = search.trim();
     String newSearch = newString.replaceAll("(?=[]\\[+&|!(){},:\"^~/=$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
@@ -249,7 +247,7 @@ public class SolrUtil {
     return "*" + newSearch + "*";
   }
 
-  public String makeSolrSearchStringWithoutAsterisk(String search) {
+  public static String makeSolrSearchStringWithoutAsterisk(String search) {
     String newString = search.trim();
     String newSearch = newString.replaceAll("(?=[]\\[+&|!(){}^\"~=/$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
@@ -261,7 +259,7 @@ public class SolrUtil {
     return newSearch;
   }
 
-  public String makeSearcableString(String search) {
+  public static String makeSearcableString(String search) {
     if (StringUtils.isBlank(search)) {
       return "";
     }
@@ -272,7 +270,7 @@ public class SolrUtil {
   }
   
 
-  public boolean isSolrFieldNumber(String fieldType,SolrDaoBase solrDaoBase) {
+  public static boolean isSolrFieldNumber(String fieldType,SolrDaoBase solrDaoBase) {
     if (StringUtils.isBlank(fieldType)) {
       return false;
     } else {
@@ -281,30 +279,25 @@ public class SolrUtil {
         return false;
       }
       String fieldTypeClassName = (String) typeInfoMap.get("class");
-      if (fieldTypeClassName.equalsIgnoreCase(TrieIntField.class
-          .getSimpleName())) {
+      if (fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName())) {
         return true;
       }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class
-          .getSimpleName())) {
+      if (fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())) {
         return true;
       }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class
-          .getSimpleName())) {
+      if (fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName())) {
         return true;
       }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieLongField.class
-          .getSimpleName())) {
+      if (fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName())) {
         return true;
       }
       return false;
     }
   }
   
-  public HashMap<String, Object> getFieldTypeInfoMap(String fieldType,SolrDaoBase solrDaoBase) {
+  public static HashMap<String, Object> getFieldTypeInfoMap(String fieldType,SolrDaoBase solrDaoBase) {
     String fieldTypeMetaData = solrDaoBase.schemaFieldTypeMap.get(fieldType);
-    HashMap<String, Object> fieldTypeMap = jsonUtil
-        .jsonToMapObject(fieldTypeMetaData);
+    HashMap<String, Object> fieldTypeMap = JSONUtil.jsonToMapObject(fieldTypeMetaData);
     if (fieldTypeMap == null) {
       return new HashMap<String, Object>();
     }
@@ -315,4 +308,111 @@ public class SolrUtil {
     }
     return fieldTypeMap;
   }
+  
+  //=============================================================================================================
+  
+  //Solr Facet Methods
+  public static void setFacetField(SolrQuery solrQuery, String facetField) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_FIELD, facetField);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setJSONFacet(SolrQuery solrQuery, String jsonQuery) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_JSON_FIELD, jsonQuery);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setFacetSort(SolrQuery solrQuery, String sortType) {
+    solrQuery.setFacet(true);
+    solrQuery.setFacetSort(sortType);
+  }
+
+  public static void setFacetPivot(SolrQuery solrQuery, int mincount, String... hirarchy) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT, hirarchy);
+    solrQuery.set(LogSearchConstants.FACET_PIVOT_MINCOUNT, mincount);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setFacetDate(SolrQuery solrQuery, String facetField, String from, String to, String unit) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_DATE, facetField);
+    solrQuery.set(LogSearchConstants.FACET_DATE_START, from);
+    solrQuery.set(LogSearchConstants.FACET_DATE_END, to);
+    solrQuery.set(LogSearchConstants.FACET_DATE_GAP, unit);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, 0);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setFacetRange(SolrQuery solrQuery, String facetField, String from, String to, String unit) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_RANGE, facetField);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_START, from);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_END, to);
+    solrQuery.set(LogSearchConstants.FACET_RANGE_GAP, unit);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, 0);
+    setFacetLimit(solrQuery, -1);
+  }
+
+  public static void setFacetLimit(SolrQuery solrQuery, int limit) {
+    solrQuery.set("facet.limit", limit);
+  }
+
+  //Solr Group Mehtods
+  public static void setGroupField(SolrQuery solrQuery, String groupField, int rows) {
+    solrQuery.set(LogSearchConstants.FACET_GROUP, true);
+    solrQuery.set(LogSearchConstants.FACET_GROUP_FIELD, groupField);
+    solrQuery.set(LogSearchConstants.FACET_GROUP_MAIN, true);
+    setRowCount(solrQuery, rows);
+  }
+
+  //Main Query
+  public static void setMainQuery(SolrQuery solrQuery, String query) {
+    String defalultQuery = "*:*";
+    if (StringUtils.isBlank(query)){
+      solrQuery.setQuery(defalultQuery);
+    }else{
+      solrQuery.setQuery(query);
+    }
+  }
+
+  public static void setStart(SolrQuery solrQuery, int start) {
+    int defaultStart = 0;
+    if (start > defaultStart) {
+      solrQuery.setStart(start);
+    } else {
+      solrQuery.setStart(defaultStart);
+    }
+  }
+
+  //Set Number of Rows
+  public static void setRowCount(SolrQuery solrQuery, int rows) {
+    if (rows > 0) {
+      solrQuery.setRows(rows);
+    } else {
+      solrQuery.setRows(0);
+      solrQuery.remove(LogSearchConstants.SORT);
+    }
+  }
+
+  //Solr Facet Methods
+  public static void setFacetFieldWithMincount(SolrQuery solrQuery, String facetField, int minCount) {
+    solrQuery.setFacet(true);
+    setRowCount(solrQuery, 0);
+    solrQuery.set(LogSearchConstants.FACET_FIELD, facetField);
+    solrQuery.set(LogSearchConstants.FACET_MINCOUNT, minCount);
+    setFacetLimit(solrQuery, -1);
+  }
+  
+  public static void setFl(SolrQuery solrQuery,String field){
+    solrQuery.set(LogSearchConstants.FL, field);
+  }
+  
 }

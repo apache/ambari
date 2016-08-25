@@ -27,9 +27,9 @@ import java.util.TreeMap;
 
 import javax.management.MalformedObjectNameException;
 
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientBuilder;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -172,15 +172,15 @@ public class SolrMetricsLoader extends TimerTask {
 
   public static void startSolrMetricsLoaderTasks() {
     try {
-      String collectorHosts = PropertiesUtil.getProperty("logsearch.solr.metrics.collector.hosts");
+      String collectorHosts = PropertiesHelper.getProperty("logsearch.solr.metrics.collector.hosts");
       if (StringUtils.isEmpty(collectorHosts)) {
         LOG.warn("No Ambari Metrics service is available, no Solr metrics will be loaded!");
         return;
       }
 
-      int solrJmxPort = PropertiesUtil.getIntProperty("logsearch.solr.jmx.port");
+      int solrJmxPort = PropertiesHelper.getIntProperty("logsearch.solr.jmx.port");
 
-      String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
+      String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.zk_connect_string");
       AmbariSolrCloudClient ambariSolrCloudClient = new AmbariSolrCloudClientBuilder()
           .withZkConnectString(zkConnectString)
           .build();

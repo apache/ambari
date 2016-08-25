@@ -26,12 +26,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.ConfigUtil;
-import org.apache.ambari.logsearch.util.JSONUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -56,7 +55,6 @@ import org.apache.solr.common.cloud.Replica;
 import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.util.NamedList;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -74,11 +72,6 @@ public abstract class SolrDaoBase {
   private static final int ALIAS_SETUP_RETRY_SECOND = 30*60;
 
   private LogType logType;
-
-  @Autowired
-  protected JSONUtil jsonUtil;
-  @Autowired
-  protected RESTErrorUtil restErrorUtil;
 
   @VisibleForTesting
   protected String collectionName = null;
@@ -446,7 +439,7 @@ public abstract class SolrDaoBase {
       }
       return queryResponse;
     } else {
-      throw restErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() +" logs",
+      throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() +" logs",
           MessageEnums.ERROR_SYSTEM);
     }
   }
@@ -468,8 +461,8 @@ public abstract class SolrDaoBase {
   }
 
   private void setupSecurity() {
-    String jaasFile = PropertiesUtil.getProperty("logsearch.solr.jaas.file", "/etc/security/keytabs/logsearch_solr.service.keytab");
-    boolean securityEnabled = PropertiesUtil.getBooleanProperty("logsearch.solr.kerberos.enable", false);
+    String jaasFile = PropertiesHelper.getProperty("logsearch.solr.jaas.file", "/etc/security/keytabs/logsearch_solr.service.keytab");
+    boolean securityEnabled = PropertiesHelper.getBooleanProperty("logsearch.solr.kerberos.enable", false);
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
@@ -519,7 +512,7 @@ public abstract class SolrDaoBase {
     SolrRequest<SchemaResponse> request = new SchemaRequest();
     request.setMethod(METHOD.GET);
     request.setPath("/schema");
-    String historyCollection = PropertiesUtil.getProperty("logsearch.solr.collection.history","history");
+    String historyCollection = PropertiesHelper.getProperty("logsearch.solr.collection.history","history");
     if (solrClient != null && !collectionName.equals(historyCollection)) {
       NamedList<Object> namedList = null;
       try {
@@ -530,7 +523,7 @@ public abstract class SolrDaoBase {
       }
       
       if (namedList != null) {
-        ConfigUtil.extractSchemaFieldsName(namedList.toString(), schemaFieldsNameMap,schemaFieldTypeMap);
+        ConfigHelper.extractSchemaFieldsName(namedList.toString(), schemaFieldsNameMap,schemaFieldTypeMap);
         return true;
       }
     }
