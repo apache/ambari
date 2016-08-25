@@ -47,6 +47,13 @@ public interface UpgradeCatalog {
   void upgradeData() throws AmbariException, SQLException;
 
   /**
+   * Set the file name, to store all config changes during upgrade
+   * @param ambariUpgradeConfigUpdatesFileName
+   */
+  void setConfigUpdatesFileName(String ambariUpgradeConfigUpdatesFileName);
+
+
+  /**
    * Defines if Upgrade Catalog should be executed last
    * @return
    */
