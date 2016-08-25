@@ -1787,6 +1787,44 @@ class TestNamenode(RMFTestCase):
 
     self.assertNoMoreResources()
 
+  @patch.object(time, "sleep")
+  @patch("resource_management.libraries.functions.namenode_ha_utils.get_namenode_states")
+  def test_namenode_active_detection_works_with_tuples(self, get_namenode_states_mock, sleep_mock):
+    """
+    Checks to ensure that when detecting the NN state, we take into account that both NNs could
+    be returned with the same state forcing us to iterate over the tuple to find the right one
+    """
+    import params
+    from hdfs_namenode import is_this_namenode_active
+
+    # mock out the NN ID
+    params.namenode_id = "nn1"
+
+    # first test the singular case
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.assertTrue(is_this_namenode_active())
+
+    # now test the harder tuple
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070'), ('nn2', 'c6402.ambari.apache.org:50070')]
+    standby_namenodes = []
+    unknown_namenodes = []
+
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.assertTrue(is_this_namenode_active())
+
+    # and the negative for good measure
+    active_namenodes = []
+    standby_namenodes = [('nn1', 'c6401.ambari.apache.org:50070'), ('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.assertFalse(is_this_namenode_active())
+
+
 class Popen_Mock:
   return_value = 1
   lines = ['Time Stamp               Iteration#  Bytes Already Moved  Bytes Left To Move  Bytes Being Moved\n',

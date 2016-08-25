@@ -525,23 +525,28 @@ def is_this_namenode_active():
 
   # returns ([('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
   #                  0                                           1                                   2
+  # or
+  # returns ([], [('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
+  #          0                                              1                                             2
   #
   namenode_states = namenode_ha_utils.get_namenode_states(params.hdfs_site, params.security_enabled,
     params.hdfs_user, times=5, sleep_time=5, backoff_factor=2)
 
-  # unwraps ('nn1', 'c6401.ambari.apache.org:50070')
-  active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0][0]
+  # unwraps [('nn1', 'c6401.ambari.apache.org:50070')]
+  active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0]
 
-  # unwraps ('nn2', 'c6402.ambari.apache.org:50070')
-  standby_namenodes = [] if len(namenode_states[1]) < 1 else namenode_states[1][0]
+  # unwraps [('nn2', 'c6402.ambari.apache.org:50070')]
+  standby_namenodes = [] if len(namenode_states[1]) < 1 else namenode_states[1]
 
   # check to see if this is the active NameNode
-  if params.namenode_id in active_namenodes:
-    return True
+  for entry in active_namenodes:
+    if params.namenode_id in entry:
+      return True
 
   # if this is not the active NameNode, then we must wait for it to register as standby
-  if params.namenode_id in standby_namenodes:
-    return False
+  for entry in standby_namenodes:
+    if params.namenode_id in entry:
+      return False
 
   # this this point, this NameNode is neither active nor standby - we must wait to ensure it
   # enters at least one of these roles before returning a verdict - the annotation will catch
