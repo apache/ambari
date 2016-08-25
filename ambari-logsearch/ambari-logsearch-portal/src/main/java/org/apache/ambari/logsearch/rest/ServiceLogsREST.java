@@ -32,7 +32,6 @@ import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.manager.LogsMgr;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.view.VCountList;
 import org.apache.ambari.logsearch.view.VNameValueList;
 import org.apache.ambari.logsearch.view.VNodeList;
@@ -53,9 +52,6 @@ public class ServiceLogsREST {
 
   @Autowired
   LogsMgr logMgr;
-
-  @Autowired
-  RESTErrorUtil restErrorUtil;
 
   @GET
   @Produces({"application/json"})

@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.web.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -61,7 +61,7 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
   public boolean isEnable(AUTH_METHOD method) {
     String methodName = method.name().toLowerCase();
     String property = AUTH_METHOD_PROP_START_WITH + methodName + ".enable";
-    boolean isEnable = PropertiesUtil.getBooleanProperty(property, false);
+    boolean isEnable = PropertiesHelper.getBooleanProperty(property, false);
     return isEnable;
   }
 

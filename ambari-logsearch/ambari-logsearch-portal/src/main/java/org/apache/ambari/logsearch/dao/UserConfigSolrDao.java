@@ -29,6 +29,7 @@ import java.util.Scanner;
 import javax.annotation.PostConstruct;
 import org.apache.ambari.logsearch.view.VLogfeederFilterWrapper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -42,7 +43,7 @@ import org.codehaus.jettison.json.JSONObject;
 import com.google.gson.JsonParseException;
 
 import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -59,11 +60,11 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesUtil.getProperty("logsearch.solr.url");
-    String zkConnectString = PropertiesUtil.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesUtil.getProperty("logsearch.solr.collection.history", "history");
-    String configName = PropertiesUtil.getProperty("logsearch.solr.history.config.name", "history");
-    int replicationFactor = PropertiesUtil.getIntProperty("logsearch.collection.history.replication.factor", 2);
+    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.url");
+    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.zk_connect_string");
+    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.history", "history");
+    String configName = PropertiesHelper.getProperty("logsearch.solr.history.config.name", "history");
+    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.history.replication.factor", 2);
     String splitInterval = "none";
     int numberOfShards = 1;
 
@@ -88,7 +89,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   public void saveUserFilter(VLogfeederFilterWrapper logfeederFilterWrapper) throws SolrException, SolrServerException, IOException {
     String filterName = LogSearchConstants.LOGFEEDER_FILTER_NAME;
-    String json = jsonUtil.objToJson(logfeederFilterWrapper);
+    String json = JSONUtil.objToJson(logfeederFilterWrapper);
     SolrInputDocument configDocument = new SolrInputDocument();
     configDocument.addField(LogSearchConstants.ID, logfeederFilterWrapper.getId());
     configDocument.addField(LogSearchConstants.ROW_TYPE, filterName);
@@ -115,14 +116,14 @@ public class UserConfigSolrDao extends SolrDaoBase {
     VLogfeederFilterWrapper logfeederFilterWrapper = null;
     if (!CollectionUtils.isEmpty(documentList)) {
       SolrDocument configDoc = documentList.get(0);
-      String configJson = jsonUtil.objToJson(configDoc);
-      HashMap<String, Object> configMap = (HashMap<String, Object>) jsonUtil.jsonToMapObject(configJson);
+      String configJson = JSONUtil.objToJson(configDoc);
+      HashMap<String, Object> configMap = (HashMap<String, Object>) JSONUtil.jsonToMapObject(configJson);
       String json = (String) configMap.get(LogSearchConstants.VALUES);
-      logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(json, VLogfeederFilterWrapper.class);
+      logfeederFilterWrapper = (VLogfeederFilterWrapper) JSONUtil.jsonToObj(json, VLogfeederFilterWrapper.class);
       logfeederFilterWrapper.setId("" + configDoc.get(LogSearchConstants.ID));
 
     } else {
-      String logfeederDefaultLevels = PropertiesUtil.getProperty("logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
+      String logfeederDefaultLevels = PropertiesHelper.getProperty("logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
       JSONArray levelJsonArray = new JSONArray(Arrays.asList(logfeederDefaultLevels.split(",")));
 
       String hadoopServiceString = getHadoopServiceConfigJSON();
@@ -148,7 +149,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
           }
         }
         jsonValue.put("filter", componentList);
-        logfeederFilterWrapper = (VLogfeederFilterWrapper) jsonUtil.jsonToObj(jsonValue.toString(), VLogfeederFilterWrapper.class);
+        logfeederFilterWrapper = (VLogfeederFilterWrapper) JSONUtil.jsonToObj(jsonValue.toString(), VLogfeederFilterWrapper.class);
         logfeederFilterWrapper.setId(""+new Date().getTime());
         saveUserFilter(logfeederFilterWrapper);
 
@@ -181,7 +182,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     }
 
     String hadoopServiceConfig = result.toString();
-    if (jsonUtil.isJSONValid(hadoopServiceConfig)) {
+    if (JSONUtil.isJSONValid(hadoopServiceConfig)) {
       return hadoopServiceConfig;
     }
     return null;

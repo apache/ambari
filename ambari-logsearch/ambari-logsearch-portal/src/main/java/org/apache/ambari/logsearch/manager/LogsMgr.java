@@ -38,16 +38,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.common.SearchCriteria;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.query.QueryGenerationBase;
 import org.apache.ambari.logsearch.util.BizUtil;
-import org.apache.ambari.logsearch.util.ConfigUtil;
+import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
+import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.ambari.logsearch.view.VBarDataList;
 import org.apache.ambari.logsearch.view.VBarGraphData;
 import org.apache.ambari.logsearch.view.VCount;
@@ -97,10 +100,6 @@ public class LogsMgr extends MgrBase {
   @Autowired
   private ServiceLogsSolrDao serviceLogsSolrDao;
   @Autowired
-  private BizUtil bizUtil;
-  @Autowired
-  private FileUtil fileUtil;
-  @Autowired
   private GraphDataGenerator graphDataGenerator;
 
   public String searchLogs(SearchCriteria searchCriteria) {
@@ -114,7 +113,7 @@ public class LogsMgr extends MgrBase {
         return getPageByKeyword(searchCriteria);
       } catch (SolrException | SolrServerException e) {
         logger.error("Error while getting keyword=" + keyword, e);
-        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
     } else if (!StringUtils.isBlank(logId)) {
@@ -122,7 +121,7 @@ public class LogsMgr extends MgrBase {
         return getPageByLogId(searchCriteria);
       } catch (SolrException e) {
         logger.error("Error while getting keyword=" + keyword, e);
-        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
     } else if (isLastPage) {
@@ -152,10 +151,10 @@ public class LogsMgr extends MgrBase {
 
     SolrQuery solrQuery = new SolrQuery();
     VGroupList collection = new VGroupList();
-    queryGenerator.setMainQuery(solrQuery, null);
-    queryGenerator.setFacetField(solrQuery,
+    SolrUtil.setMainQuery(solrQuery, null);
+    SolrUtil.setFacetField(solrQuery,
         field);
-    queryGenerator.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
+    SolrUtil.setFacetSort(solrQuery, LogSearchConstants.FACET_INDEX);
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if(response == null){
@@ -190,7 +189,7 @@ public class LogsMgr extends MgrBase {
       return convertObjToString(collection);
     } catch (IOException | SolrServerException | SolrException e) {
       logger.error(e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
@@ -205,8 +204,8 @@ public class LogsMgr extends MgrBase {
     String hierarchy = "host,type,level";
     VGraphInfo graphInfo = new VGraphInfo();
     try {
-      queryGenerator.setMainQuery(solrQuery, null);
-      queryGenerator.setFacetPivot(solrQuery, 1, hierarchy);
+      SolrUtil.setMainQuery(solrQuery, null);
+      SolrUtil.setFacetPivot(solrQuery, 1, hierarchy);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if (response == null) {
         return convertObjToString(graphInfo);
@@ -228,7 +227,7 @@ public class LogsMgr extends MgrBase {
       return convertObjToString(graphInfo);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
@@ -255,11 +254,11 @@ public class LogsMgr extends MgrBase {
     VCountList collection = new VCountList();
     List<VCount> vCounts = new ArrayList<VCount>();
     SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
+    SolrUtil.setMainQuery(solrQuery, null);
     if(field == null){
       return collection;
     }
-    queryGenerator.setFacetField(solrQuery, field);
+    SolrUtil.setFacetField(solrQuery, field);
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if (response == null){
@@ -286,7 +285,7 @@ public class LogsMgr extends MgrBase {
 
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
@@ -419,7 +418,7 @@ public class LogsMgr extends MgrBase {
     VNodeList list = new VNodeList();
     try {
 
-      queryGenerator.setFacetPivot(solrQuery, 1, firstHirarchy,
+      SolrUtil.setFacetPivot(solrQuery, 1, firstHirarchy,
         secondHirarchy);
 
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
@@ -454,7 +453,7 @@ public class LogsMgr extends MgrBase {
       list.setvNodeList(dataList);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
 
@@ -485,7 +484,7 @@ public class LogsMgr extends MgrBase {
     String secondHirarchy = "type,level";
 
     try {
-      queryGenerator.setFacetPivot(solrQuery, 1, firstHirarchy,
+      SolrUtil.setFacetPivot(solrQuery, 1, firstHirarchy,
         secondHirarchy);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       List<List<PivotField>> firstHirarchicalPivotFields = null;
@@ -516,7 +515,7 @@ public class LogsMgr extends MgrBase {
       return convertObjToString(list);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
@@ -536,7 +535,7 @@ public class LogsMgr extends MgrBase {
     HashMap<String, String> map = new HashMap<String, String>();
     List<VNameValue> logsCounts = new ArrayList<VNameValue>();
     try {
-      queryGenerator.setFacetField(query, LogSearchConstants.SOLR_LEVEL);
+      SolrUtil.setFacetField(query, LogSearchConstants.SOLR_LEVEL);
       List<Count> logLevelCounts = getFacetCounts(query,
           LogSearchConstants.SOLR_LEVEL);
       if (logLevelCounts == null) {
@@ -587,11 +586,11 @@ public class LogsMgr extends MgrBase {
 
     String key = (String) searchCriteria.getParamValue("keyword");
     if(StringUtils.isBlank(key)){
-      throw restErrorUtil.createRESTException("Keyword was not given",
+      throw RESTErrorUtil.createRESTException("Keyword was not given",
           MessageEnums.DATA_NOT_FOUND);
     }
 
-    String keyword = solrUtil.escapeForStandardTokenizer(key);
+    String keyword = SolrUtil.escapeForStandardTokenizer(key);
 
     if(keyword.startsWith("\"") && keyword.endsWith("\"")){
       keyword = keyword.substring(1);
@@ -625,13 +624,13 @@ public class LogsMgr extends MgrBase {
         queryResponse = serviceLogsSolrDao.process(
             nextPageLogTimeQuery);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList docList = queryResponse.getResults();
         if(docList ==null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
@@ -639,10 +638,10 @@ public class LogsMgr extends MgrBase {
 
         Date logDate = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
         if(logDate == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
-        nextPageLogTime = dateUtil
+        nextPageLogTime = DateUtil
           .convertDateWithMillisecondsToSolrDate(logDate);
         nextPageLogID = ""
           + solrDoc.get(LogSearchConstants.ID);
@@ -661,17 +660,17 @@ public class LogsMgr extends MgrBase {
           LogSearchConstants.LOGTIME, "\"" + nextPageLogTime + "\"");
         queryGenerator.setSingleExcludeFilter(listRemoveIds,
           LogSearchConstants.ID, nextPageLogID);
-        queryGenerator.setFl(listRemoveIds, LogSearchConstants.ID);
+        SolrUtil.setFl(listRemoveIds, LogSearchConstants.ID);
         queryResponse = serviceLogsSolrDao.process(
             listRemoveIds);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList docListIds = queryResponse.getResults();
         if(docListIds ==null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
         boolean isFirst = true;
@@ -726,13 +725,13 @@ public class LogsMgr extends MgrBase {
         queryResponse = serviceLogsSolrDao.process(
             logTimeThroughRangeQuery);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList documentList = queryResponse.getResults();
         if(documentList ==null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
@@ -743,10 +742,10 @@ public class LogsMgr extends MgrBase {
 
         Date keywordLogDate = (Date) solrDocument.get(LogSearchConstants.LOGTIME);
         if(keywordLogDate == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
-        String originalKeywordDate = dateUtil
+        String originalKeywordDate = DateUtil
           .convertDateWithMillisecondsToSolrDate(keywordLogDate);
         String keywordId = "" + solrDocument.get(LogSearchConstants.ID);
 
@@ -758,14 +757,14 @@ public class LogsMgr extends MgrBase {
         if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
           keywordLogDate = DateUtils.addMilliseconds(keywordLogDate, 1);
-          String keywordDateTime = dateUtil
+          String keywordDateTime = DateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, startTime,
             keywordDateTime);
         } else {
           keywordLogDate = DateUtils.addMilliseconds(keywordLogDate, -1);
-          String keywordDateTime = dateUtil
+          String keywordDateTime = DateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, keywordDateTime,
@@ -784,7 +783,7 @@ public class LogsMgr extends MgrBase {
             .commonServiceFilterQuery(searchCriteria);
           queryGenerator.setSingleIncludeFilter(sameIdQuery,
             LogSearchConstants.LOGTIME, "\"" + originalKeywordDate + "\"");
-          queryGenerator.setFl(sameIdQuery, LogSearchConstants.ID);
+          SolrUtil.setFl(sameIdQuery, LogSearchConstants.ID);
           SolrDocumentList sameQueryDocList = serviceLogsSolrDao.process(sameIdQuery)
             .getResults();
           for (SolrDocument solrDocumenent : sameQueryDocList) {
@@ -819,7 +818,7 @@ public class LogsMgr extends MgrBase {
         int maxRows = searchCriteria.getMaxRows();
 
         if (currentPageNumber == 0) {
-          throw restErrorUtil.createRESTException("This is first Page Not",
+          throw RESTErrorUtil.createRESTException("This is first Page Not",
             MessageEnums.DATA_NOT_FOUND);
         }
 
@@ -838,20 +837,20 @@ public class LogsMgr extends MgrBase {
         queryResponse = serviceLogsSolrDao.process(
             lastLogTime);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList docList = queryResponse.getResults();
         if(docList ==null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
         SolrDocument solrDoc = docList.get(0);
 
         Date logDate = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
         String sortByType = searchCriteria.getSortType();
-        lastLogsLogTime = dateUtil
+        lastLogsLogTime = DateUtil
           .convertDateWithMillisecondsToSolrDate(logDate);
         String lastLogsLogId = ""
           + solrDoc.get(LogSearchConstants.ID);
@@ -867,17 +866,17 @@ public class LogsMgr extends MgrBase {
           LogSearchConstants.LOGTIME, "\"" + lastLogsLogTime + "\"");
         queryGenerator.setSingleExcludeFilter(listRemoveIds,
           LogSearchConstants.ID, lastLogsLogId);
-        queryGenerator.setFl(listRemoveIds, LogSearchConstants.ID);
+        SolrUtil.setFl(listRemoveIds, LogSearchConstants.ID);
         queryResponse = serviceLogsSolrDao.process(
             lastLogTime);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList docListIds = queryResponse.getResults();
         if(docListIds == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
         boolean isFirst = true;
@@ -942,13 +941,13 @@ public class LogsMgr extends MgrBase {
         queryResponse = serviceLogsSolrDao.process(
             logTimeThroughRangeQuery);
         if(queryResponse == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
 
         SolrDocumentList documentList = queryResponse.getResults();
         if(documentList == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
         SolrDocument solrDocument = new SolrDocument();
@@ -958,10 +957,10 @@ public class LogsMgr extends MgrBase {
 
         Date keywordLogDate = (Date) solrDocument.get(LogSearchConstants.LOGTIME);
         if(keywordLogDate == null){
-          throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+          throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
               MessageEnums.ERROR_SYSTEM);
         }
-        String originalKeywordDate = dateUtil
+        String originalKeywordDate = DateUtil
           .convertDateWithMillisecondsToSolrDate(keywordLogDate);
         String keywordId = "" + solrDocument.get(LogSearchConstants.ID);
 
@@ -972,8 +971,8 @@ public class LogsMgr extends MgrBase {
 
         if (!StringUtils.isBlank(sortByType) && sortByType
           .equalsIgnoreCase(LogSearchConstants.ASCENDING_ORDER)) {
-       //   keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, 1);
-          String keywordDateTime = dateUtil
+       //   keywordLogDate = DateUtil.addMilliSecondsToDate(keywordLogDate, 1);
+          String keywordDateTime = DateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, startTime,
@@ -981,8 +980,8 @@ public class LogsMgr extends MgrBase {
 
 
         } else {
-     //     keywordLogDate = dateUtil.addMilliSecondsToDate(keywordLogDate, -1);
-          String keywordDateTime = dateUtil
+     //     keywordLogDate = DateUtil.addMilliSecondsToDate(keywordLogDate, -1);
+          String keywordDateTime = DateUtil
             .convertDateWithMillisecondsToSolrDate(keywordLogDate);
           queryGenerator.setSingleRangeFilter(rangeLogQuery,
             LogSearchConstants.LOGTIME, keywordDateTime,
@@ -998,7 +997,7 @@ public class LogsMgr extends MgrBase {
             .commonServiceFilterQuery(searchCriteria);
           queryGenerator.setSingleIncludeFilter(sameIdQuery,
             LogSearchConstants.LOGTIME, "\"" + originalKeywordDate + "\"");
-          queryGenerator.setFl(sameIdQuery, LogSearchConstants.ID);
+          SolrUtil.setFl(sameIdQuery, LogSearchConstants.ID);
           SolrDocumentList sameQueryDocList = serviceLogsSolrDao.process(sameIdQuery)
             .getResults();
           for (SolrDocument solrDocumenent : sameQueryDocList) {
@@ -1028,7 +1027,7 @@ public class LogsMgr extends MgrBase {
       }
 
     }
-    throw restErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
+    throw RESTErrorUtil.createRESTException("The keyword "+"\""+key+"\""+" was not found",
         MessageEnums.ERROR_SYSTEM);
   }
 
@@ -1051,10 +1050,10 @@ public class LogsMgr extends MgrBase {
     try {
 
       SolrQuery logTimeByIdQuery = new SolrQuery();
-      queryGenerator.setMainQuery(logTimeByIdQuery, null);
+      SolrUtil.setMainQuery(logTimeByIdQuery, null);
       queryGenerator.setSingleIncludeFilter(logTimeByIdQuery,
           LogSearchConstants.ID, logId);
-      queryGenerator.setRowCount(solrQuery, 1);
+      SolrUtil.setRowCount(solrQuery, 1);
 
       QueryResponse queryResponse = serviceLogsSolrDao
           .process(logTimeByIdQuery);
@@ -1073,9 +1072,9 @@ public class LogsMgr extends MgrBase {
       }
 
       if (dateOfLogId != null) {
-        logTime = dateUtil.convertDateWithMillisecondsToSolrDate(dateOfLogId);
+        logTime = DateUtil.convertDateWithMillisecondsToSolrDate(dateOfLogId);
         Date endDate = DateUtils.addMilliseconds(dateOfLogId, 1);
-        endTimeMinusOneMilli = (String) dateUtil
+        endTimeMinusOneMilli = (String) DateUtil
             .convertDateWithMillisecondsToSolrDate(endDate);
       }
 
@@ -1088,7 +1087,7 @@ public class LogsMgr extends MgrBase {
       solrQuery.remove(LogSearchConstants.LOGTIME);
       queryGenerator.setSingleRangeFilter(solrQuery,
           LogSearchConstants.LOGTIME, endTimeMinusOneMilli, endLogTime);
-      queryGenerator.setRowCount(solrQuery, 0);
+      SolrUtil.setRowCount(solrQuery, 0);
       startIndex = countQuery(solrQuery,serviceLogsSolrDao);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error(e);
@@ -1128,7 +1127,7 @@ public class LogsMgr extends MgrBase {
       logger.error(e);
     }
 
-    throw restErrorUtil.createRESTException("LogId not Found",
+    throw RESTErrorUtil.createRESTException("LogId not Found",
         MessageEnums.ERROR_SYSTEM);
   }
 
@@ -1138,7 +1137,7 @@ public class LogsMgr extends MgrBase {
     List<VNameValue> logsCounts = new ArrayList<VNameValue>();
     try {
 
-      queryGenerator.setFacetRange(solrQuery, LogSearchConstants.LOGTIME,
+      SolrUtil.setFacetRange(solrQuery, LogSearchConstants.LOGTIME,
         from, to, unit);
 
       List<RangeFacet.Count> logLevelCounts = null;
@@ -1205,8 +1204,8 @@ public class LogsMgr extends MgrBase {
         "\\", "");
 
     try {
-      queryGenerator.setJSONFacet(solrQuery, jsonHistogramQuery);
-      queryGenerator.setRowCount(solrQuery,Integer.parseInt(deafalutValue));
+      SolrUtil.setJSONFacet(solrQuery, jsonHistogramQuery);
+      SolrUtil.setRowCount(solrQuery,Integer.parseInt(deafalutValue));
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if (response == null){
         return convertObjToString(dataList);
@@ -1259,7 +1258,7 @@ public class LogsMgr extends MgrBase {
 
     } catch (SolrServerException | SolrException | IOException e) {
       logger.error(e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
 
     }
@@ -1278,7 +1277,7 @@ public class LogsMgr extends MgrBase {
   public String cancelFindRequestByDate(String uniqueId) {
     if (StringUtils.isEmpty(uniqueId)) {
       logger.error("Unique id is Empty");
-      throw restErrorUtil.createRESTException("Unique id is Empty",
+      throw RESTErrorUtil.createRESTException("Unique id is Empty",
         MessageEnums.DATA_NOT_FOUND);
     }
 
@@ -1292,7 +1291,7 @@ public class LogsMgr extends MgrBase {
   public boolean cancelRequest(String uniqueId) {
     if (StringUtils.isBlank(uniqueId)) {
       logger.error("Unique id is Empty");
-      throw restErrorUtil.createRESTException("Unique id is Empty",
+      throw RESTErrorUtil.createRESTException("Unique id is Empty",
         MessageEnums.DATA_NOT_FOUND);
     }
     for (String date : cancelByDate) {
@@ -1318,10 +1317,10 @@ public class LogsMgr extends MgrBase {
       utcOffset = "0";
     }
 
-    if (!dateUtil.isDateValid(from) || !dateUtil.isDateValid(to)) {
+    if (!DateUtil.isDateValid(from) || !DateUtil.isDateValid(to)) {
       logger.error("Not valid date format. Valid format should be"
           + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
-      throw restErrorUtil.createRESTException("Not valid date format. Valid format should be"
+      throw RESTErrorUtil.createRESTException("Not valid date format. Valid format should be"
           + LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z,
           MessageEnums.INVALID_INPUT_DATA);
 
@@ -1332,13 +1331,13 @@ public class LogsMgr extends MgrBase {
       to = to.replace("T", " ");
       to = to.replace(".", ",");
 
-      to = dateUtil.addOffsetToDate(to, Long.parseLong(utcOffset),
+      to = DateUtil.addOffsetToDate(to, Long.parseLong(utcOffset),
           "yyyy-MM-dd HH:mm:ss,SSS");
-      from = dateUtil.addOffsetToDate(from, Long.parseLong(utcOffset),
+      from = DateUtil.addOffsetToDate(from, Long.parseLong(utcOffset),
           "yyyy-MM-dd HH:mm:ss,SSS");
     }
 
-    String fileName = dateUtil.getCurrentDateInString();
+    String fileName = DateUtil.getCurrentDateInString();
     if (searchCriteria.getParamValue("hostLogFile") != null
       && searchCriteria.getParamValue("compLogFile") != null) {
       fileName = searchCriteria.getParamValue("hostLogFile") + "_"
@@ -1349,16 +1348,16 @@ public class LogsMgr extends MgrBase {
     try {
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if (response == null) {
-        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
       SolrDocumentList docList = response.getResults();
       if (docList == null) {
-        throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
             .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
 
-      VSummary vsummary = bizUtil.buildSummaryForLogFile(docList);
+      VSummary vsummary = BizUtil.buildSummaryForLogFile(docList);
       vsummary.setFormat(format);
       vsummary.setFrom(from);
       vsummary.setTo(to);
@@ -1421,7 +1420,7 @@ public class LogsMgr extends MgrBase {
 
         Date logTimeDateObj = (Date) solrDoc.get(LogSearchConstants.LOGTIME);
         if(logTimeDateObj != null){
-        String logTime = dateUtil.convertSolrDateToNormalDateFormat(
+        String logTime = DateUtil.convertSolrDateToNormalDateFormat(
             logTimeDateObj.getTime(), Long.parseLong(utcOffset));
         solrDoc.remove(LogSearchConstants.LOGTIME);
         solrDoc.addField(LogSearchConstants.LOGTIME, logTime);
@@ -1429,20 +1428,20 @@ public class LogsMgr extends MgrBase {
       }
 
       if (format.toLowerCase(Locale.ENGLISH).equals(".txt")) {
-        textToSave = bizUtil.convertObjectToNormalText(docList);
+        textToSave = BizUtil.convertObjectToNormalText(docList);
       } else if (format.toLowerCase(Locale.ENGLISH).equals(".json")) {
         textToSave = convertObjToString(docList);
       } else {
-        throw restErrorUtil.createRESTException(
+        throw RESTErrorUtil.createRESTException(
             "unsoported format either should be json or text",
             MessageEnums.ERROR_SYSTEM);
       }
-      return fileUtil.saveToFile(textToSave, fileName, vsummary);
+      return FileUtil.saveToFile(textToSave, fileName, vsummary);
 
     } catch (SolrException | SolrServerException | IOException
       | ParseException e) {
       logger.error("Error during solrQuery=" + solrQuery, e);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
@@ -1460,7 +1459,7 @@ public class LogsMgr extends MgrBase {
     VNodeList list = new VNodeList();
     try {
 
-      queryGenerator.setFacetPivot(solrQuery, 1, componentLevelHirachy);
+      SolrUtil.setFacetPivot(solrQuery, 1, componentLevelHirachy);
 
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
 
@@ -1498,7 +1497,7 @@ public class LogsMgr extends MgrBase {
       return convertObjToString(list);
     } catch (SolrException | SolrServerException | IOException e) {
       logger.error(e.getMessage() + "SolrQuery"+solrQuery);
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
   }
@@ -1516,9 +1515,9 @@ public class LogsMgr extends MgrBase {
       queryGenerator.setSingleIncludeFilter(solrQuery,
         LogSearchConstants.BUNDLE_ID, bundelId);
 
-      queryGenerator.setMainQuery(solrQuery, null);
+      SolrUtil.setMainQuery(solrQuery, null);
       solrQuery.setSort(LogSearchConstants.LOGTIME, SolrQuery.ORDER.asc);
-      queryGenerator.setRowCount(solrQuery, 1);
+      SolrUtil.setRowCount(solrQuery, 1);
 
       List<VNameValue> vNameValues = new ArrayList<VNameValue>();
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
@@ -1544,11 +1543,11 @@ public class LogsMgr extends MgrBase {
       }
 
       solrQuery.clear();
-      queryGenerator.setMainQuery(solrQuery, null);
+      SolrUtil.setMainQuery(solrQuery, null);
       queryGenerator.setSingleIncludeFilter(solrQuery,
         LogSearchConstants.BUNDLE_ID, bundelId);
       solrQuery.setSort(LogSearchConstants.LOGTIME, SolrQuery.ORDER.desc);
-      queryGenerator.setRowCount(solrQuery, 1);
+      SolrUtil.setRowCount(solrQuery, 1);
 
       solrDocList.clear();
       response = serviceLogsSolrDao.process(solrQuery);
@@ -1595,14 +1594,14 @@ public class LogsMgr extends MgrBase {
   }
 
   public String getServiceLogsFieldsName() {
-    String fieldsNameStrArry[] = PropertiesUtil
+    String fieldsNameStrArry[] = PropertiesHelper
       .getPropertyStringList("logsearch.service.logs.fields");
     if (fieldsNameStrArry.length > 0) {
 
       List<String> uiFieldNames = new ArrayList<String>();
       String temp = null;
       for (String field : fieldsNameStrArry) {
-        temp = ConfigUtil.serviceLogsColumnMapping.get(field
+        temp = ConfigHelper.serviceLogsColumnMapping.get(field
             + LogSearchConstants.SOLR_SUFFIX);
         if (temp == null){
           uiFieldNames.add(field);
@@ -1613,7 +1612,7 @@ public class LogsMgr extends MgrBase {
       return convertObjToString(uiFieldNames);
 
     }
-    throw restErrorUtil.createRESTException(
+    throw RESTErrorUtil.createRESTException(
       "No field name found in property file",
       MessageEnums.DATA_NOT_FOUND);
 
@@ -1622,14 +1621,14 @@ public class LogsMgr extends MgrBase {
   public String getServiceLogsSchemaFieldsName() {
 
     List<String> fieldNames = new ArrayList<String>();
-    String excludeArray[] = PropertiesUtil
+    String excludeArray[] = PropertiesHelper
         .getPropertyStringList("logsearch.solr.service.logs.exclude.columnlist");
 
     HashMap<String, String> uiFieldColumnMapping = new LinkedHashMap<String, String>();
-    ConfigUtil.getSchemaFieldsName(excludeArray, fieldNames,serviceLogsSolrDao);
+    ConfigHelper.getSchemaFieldsName(excludeArray, fieldNames,serviceLogsSolrDao);
 
     for (String fieldName : fieldNames) {
-      String uiField = ConfigUtil.serviceLogsColumnMapping.get(fieldName
+      String uiField = ConfigHelper.serviceLogsColumnMapping.get(fieldName
           + LogSearchConstants.SOLR_SUFFIX);
       if (uiField != null) {
         uiFieldColumnMapping.put(fieldName, uiField);
@@ -1641,7 +1640,7 @@ public class LogsMgr extends MgrBase {
     HashMap<String, String> uiFieldColumnMappingSorted = new LinkedHashMap<String, String>();
     uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE, LogSearchConstants.SOLR_LOG_MESSAGE);
 
-    Iterator<Entry<String, String>> it = bizUtil
+    Iterator<Entry<String, String>> it = BizUtil
         .sortHashMapByValues(uiFieldColumnMapping).entrySet().iterator();
     while (it.hasNext()) {
       @SuppressWarnings("rawtypes")
@@ -1674,7 +1673,7 @@ public class LogsMgr extends MgrBase {
         .get(innerField)).get("buckets");
       for (Object temp1 : levelBuckets) {
         SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) temp1;
-        String value = dateUtil
+        String value = DateUtil
           .convertDateWithMillisecondsToSolrDate((Date) countValue
             .getVal(0));
 
@@ -1724,9 +1723,9 @@ public class LogsMgr extends MgrBase {
     String sequenceId = null;
     try {
       SolrQuery solrQuery = new SolrQuery();
-      queryGenerator.setMainQuery(solrQuery,
+      SolrUtil.setMainQuery(solrQuery,
         queryGenerator.buildFilterQuery(LogSearchConstants.ID, id));
-      queryGenerator.setRowCount(solrQuery, 1);
+      SolrUtil.setRowCount(solrQuery, 1);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery);
       if(response == null){
         return convertObjToString(vSolrLogList);
@@ -1735,7 +1734,7 @@ public class LogsMgr extends MgrBase {
       if (docList != null && !docList.isEmpty()) {
         Date date = (Date) docList.get(0).getFieldValue(
           LogSearchConstants.LOGTIME);
-        logTime = dateUtil.convertDateWithMillisecondsToSolrDate(date);
+        logTime = DateUtil.convertDateWithMillisecondsToSolrDate(date);
         sequenceId = ""
           + docList.get(0).getFieldValue(
           LogSearchConstants.SEQUNCE_ID);
@@ -1744,7 +1743,7 @@ public class LogsMgr extends MgrBase {
         return convertObjToString(vSolrLogList);
       }
     } catch (SolrServerException | SolrException | IOException e) {
-      throw restErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR
           .getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     if (LogSearchConstants.SCROLL_TYPE_BEFORE.equals(scrollType)) {
@@ -1798,7 +1797,7 @@ public class LogsMgr extends MgrBase {
   private VSolrLogList whenScrollUp(SearchCriteria searchCriteria,
                                     String logTime, String sequenceId, String maxRows) {
     SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
+    SolrUtil.setMainQuery(solrQuery, null);
     /*queryGenerator.setSingleExcludeFilter(solrQuery,
         LogSearchConstants.SEQUNCE_ID, sequenceId);*/
     try {
@@ -1815,7 +1814,7 @@ public class LogsMgr extends MgrBase {
 
     queryGenerator.setSingleRangeFilter(solrQuery,
       LogSearchConstants.LOGTIME, "*", logTime);
-    queryGenerator.setRowCount(solrQuery, Integer.parseInt(maxRows));
+    SolrUtil.setRowCount(solrQuery, Integer.parseInt(maxRows));
     String order1 = LogSearchConstants.LOGTIME + " "
       + LogSearchConstants.DESCENDING_ORDER;
     String order2 = LogSearchConstants.SEQUNCE_ID + " "
@@ -1832,7 +1831,7 @@ public class LogsMgr extends MgrBase {
   private VSolrLogList whenScrollDown(SearchCriteria searchCriteria,
                                       String logTime, String sequenceId, String maxRows) {
     SolrQuery solrQuery = new SolrQuery();
-    queryGenerator.setMainQuery(solrQuery, null);
+    SolrUtil.setMainQuery(solrQuery, null);
     queryGenerator.applyLogFileFilter(solrQuery, searchCriteria);
 
     /*queryGenerator.setSingleExcludeFilter(solrQuery,
@@ -1848,7 +1847,7 @@ public class LogsMgr extends MgrBase {
       LogSearchConstants.SEQUNCE_ID, sequenceId, "*");
     queryGenerator.setSingleRangeFilter(solrQuery,
       LogSearchConstants.LOGTIME, logTime, "*");
-    queryGenerator.setRowCount(solrQuery, Integer.parseInt(maxRows));
+    SolrUtil.setRowCount(solrQuery, Integer.parseInt(maxRows));
 
     String order1 = LogSearchConstants.LOGTIME + " "
       + LogSearchConstants.ASCENDING_ORDER;
@@ -1874,13 +1873,13 @@ public class LogsMgr extends MgrBase {
     utc.set(Calendar.MINUTE, 0);
     utc.set(Calendar.MILLISECOND, 001);
     utc.set(Calendar.SECOND, 0);
-    dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
-    String from = dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    DateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    String from = DateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
     utc.set(Calendar.MILLISECOND, 999);
     utc.set(Calendar.SECOND, 59);
     utc.set(Calendar.MINUTE, 59);
     utc.set(Calendar.HOUR, 23);
-    String to = dateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
+    String to = DateUtil.convertDateWithMillisecondsToSolrDate(utc.getTime());
     queryGenerator.setSingleRangeFilter(solrQuery,
         LogSearchConstants.LOGTIME, from,to);
     String level = LogSearchConstants.FATAL+","+LogSearchConstants.ERROR+","+LogSearchConstants.WARN;

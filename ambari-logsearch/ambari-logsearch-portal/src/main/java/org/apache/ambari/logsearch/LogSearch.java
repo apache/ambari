@@ -25,10 +25,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.solr.metrics.SolrMetricsLoader;
-import org.apache.ambari.logsearch.util.ConfigUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Connector;
@@ -92,7 +92,7 @@ public class LogSearch {
     logger.debug(server.dump());
     logger
         .debug("==============================================================================");
-    ConfigUtil.initializeApplicationConfig();
+    ConfigHelper.initializeApplicationConfig();
     server.join();
   }
 
@@ -100,7 +100,7 @@ public class LogSearch {
     Server server = new Server();
     ServerConnector connector = new ServerConnector(server);
     boolean portSpecified = argv.length > 0;
-    String protcolProperty = PropertiesUtil.getProperty(LOGSEARCH_PROTOCOL_PROP,HTTP_PROTOCOL);
+    String protcolProperty = PropertiesHelper.getProperty(LOGSEARCH_PROTOCOL_PROP,HTTP_PROTOCOL);
     if (StringUtils.isEmpty(protcolProperty)) {
       protcolProperty = HTTP_PROTOCOL;
     }

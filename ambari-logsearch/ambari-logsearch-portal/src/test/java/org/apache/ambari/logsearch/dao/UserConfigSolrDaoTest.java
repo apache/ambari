@@ -33,19 +33,10 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import junit.framework.Assert;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "/applicationContext.xml" })
 public class UserConfigSolrDaoTest {
-  
-  @Autowired
-  private UserConfigSolrDao dao;
   
   @Test
   public void testUserConfigDaoPostConstructor() throws Exception {
@@ -78,6 +69,8 @@ public class UserConfigSolrDaoTest {
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
     EasyMock.replay(mockSolrClient);
     
+    UserConfigSolrDao dao = new UserConfigSolrDao();
+    dao.postConstructor();
     dao.solrClient = mockSolrClient;
     dao.isZkConnectString = true;
     
@@ -119,6 +112,8 @@ public class UserConfigSolrDaoTest {
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
     EasyMock.replay(mockSolrClient);
     
+    UserConfigSolrDao dao = new UserConfigSolrDao();
+    dao.postConstructor();
     dao.solrClient = mockSolrClient;
     dao.isZkConnectString = true;
     

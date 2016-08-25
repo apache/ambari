@@ -30,12 +30,8 @@ import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class GraphDataGeneratorBase extends MgrBase {
-
-  @Autowired
-  private DateUtil dateUtil;
 
   private static final String BUCKETS = "buckets";
   
@@ -86,7 +82,7 @@ class GraphDataGeneratorBase extends MgrBase {
                   for (Object levelBucket : levelBuckets) {
                     SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) levelBucket;
                     if (countValue != null) {
-                      String innerName = dateUtil.convertDateWithMillisecondsToSolrDate((Date) countValue.getVal(0));
+                      String innerName = DateUtil.convertDateWithMillisecondsToSolrDate((Date) countValue.getVal(0));
                       String innerValue = countValue.getVal(1) != null ? countValue.getVal(1).toString() : "";
                       VNameValue vNameValue = new VNameValue(innerName, innerValue);
                       vNameValues.add(vNameValue);

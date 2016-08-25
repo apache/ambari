@@ -17,14 +17,13 @@
  * under the License.
  */
 
-package org.apache.ambari.logsearch.util;
+package org.apache.ambari.logsearch.common;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.common.MessageEnums;
+
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.MgrBase;
 import org.apache.commons.lang.ArrayUtils;
@@ -32,16 +31,25 @@ import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
-public class ConfigUtil {
+public class ConfigHelper {
   private static final Logger logger = Logger.getLogger(MgrBase.class);
 
   public static HashMap<String, String> serviceLogsColumnMapping = new HashMap<String, String>();
-
   public static HashMap<String, String> auditLogsColumnMapping = new HashMap<String, String>();
 
-
+  private ConfigHelper() {
+    throw new UnsupportedOperationException();
+  }
+  
   public static void initializeApplicationConfig() {
-    initializeColumnMapping();
+    String serviceLogsColumnMappingArray[] = PropertiesHelper.getPropertyStringList("logsearch.solr.service.logs.column.mapping");
+    String auditLogsColumnMappingArray[] = PropertiesHelper.getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
+
+    // Initializing column mapping for Service Logs
+    intializeUISolrColumnMapping(serviceLogsColumnMappingArray, serviceLogsColumnMapping);
+
+    // Initializing column mapping for Audit Logs
+    intializeUISolrColumnMapping(auditLogsColumnMappingArray, auditLogsColumnMapping);
   }
 
   private static void intializeUISolrColumnMapping(String columnMappingArray[], HashMap<String, String> columnMappingMap) {
@@ -58,16 +66,6 @@ public class ConfigUtil {
         }
       }
     }
-  }
-  private static void initializeColumnMapping() {
-    String serviceLogsColumnMappingArray[] = PropertiesUtil.getPropertyStringList("logsearch.solr.service.logs.column.mapping");
-    String auditLogsColumnMappingArray[] = PropertiesUtil.getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
-
-    // Initializing column mapping for Service Logs
-    intializeUISolrColumnMapping(serviceLogsColumnMappingArray, serviceLogsColumnMapping);
-
-    // Initializing column mapping for Audit Logs
-    intializeUISolrColumnMapping(auditLogsColumnMappingArray, auditLogsColumnMapping);
   }
 
   public static void extractSchemaFieldsName(String responseString, HashMap<String, String> schemaFieldsNameMap,
@@ -97,10 +95,8 @@ public class ConfigUtil {
         JSONObject explrObject = jsonArrayList.getJSONObject(i);
         String name = explrObject.getString("name");
         String type = explrObject.getString("type");
-        if (!name.contains("@") && !name.startsWith("_")
-            && !name.contains("_md5") && !name.contains("_ms")
-            && !name.contains(LogSearchConstants.NGRAM_SUFFIX)
-            && !name.contains("tags") && !name.contains("_str")) {
+        if (!name.contains("@") && !name.startsWith("_") && !name.contains("_md5") && !name.contains("_ms") &&
+            !name.contains(LogSearchConstants.NGRAM_SUFFIX) && !name.contains("tags") && !name.contains("_str")) {
           _schemaFieldsNameMap.put(name, type);
         }
       }

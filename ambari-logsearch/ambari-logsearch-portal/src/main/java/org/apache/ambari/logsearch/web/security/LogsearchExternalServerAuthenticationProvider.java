@@ -23,9 +23,9 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.ambari.logsearch.util.ExternalServerClient;
+import org.apache.ambari.logsearch.common.ExternalServerClient;
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.util.JSONUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -98,14 +98,11 @@ public class LogsearchExternalServerAuthenticationProvider extends
   @Autowired
   ExternalServerClient externalServerClient;
 
-  @Autowired
-  JSONUtil jsonUtil;
-
   private String loginAPIURL = "/api/v1/users/$USERNAME/privileges?fields=*";// default
 
   @PostConstruct
   public void initialization() {
-    loginAPIURL = PropertiesUtil.getProperty(AUTH_METHOD_PROP_START_WITH
+    loginAPIURL = PropertiesHelper.getProperty(AUTH_METHOD_PROP_START_WITH
         + "external_auth.login_url", loginAPIURL);
   }
 
@@ -160,11 +157,11 @@ public class LogsearchExternalServerAuthenticationProvider extends
    */
   @SuppressWarnings("static-access")
   private boolean isAllowedRole(String responseJson) {
-    String allowedRoleList[] = PropertiesUtil
+    String allowedRoleList[] = PropertiesHelper
         .getPropertyStringList(ALLOWED_ROLE_PROP);
 
     List<String> values = new ArrayList<String>();
-    jsonUtil.getValuesOfKey(responseJson,
+    JSONUtil.getValuesOfKey(responseJson,
         PRIVILEGE_INFO.PERMISSION_NAME.toString(), values);
     if (values.isEmpty())
       return true;

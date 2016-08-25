@@ -23,6 +23,10 @@ import java.security.SecureRandom;
 import org.springframework.security.authentication.encoding.Md5PasswordEncoder;
 
 public class CommonUtil {
+  private CommonUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
   private static SecureRandom secureRandom = new SecureRandom();
   private static int counter = 0;
 

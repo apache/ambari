@@ -28,11 +28,10 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
-
+import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.ambari.logsearch.web.model.Privilege;
 import org.apache.ambari.logsearch.web.model.Role;
 import org.apache.ambari.logsearch.web.model.User;
@@ -52,10 +51,6 @@ public class UserDao {
   private static final String NAME = "name";
 
   @Autowired
-  private JSONUtil jsonUtil;
-  @Autowired
-  private FileUtil fileUtil;
-  @Autowired
   private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
 
   private ArrayList<HashMap<String, String>> userList = null;
@@ -65,21 +60,21 @@ public class UserDao {
   public void initialization() {
     if (fileAuthenticationProvider.isEnable()) {
       try {
-        String userPassJsonFileName = PropertiesUtil.getProperty("logsearch.login.credentials.file");
+        String userPassJsonFileName = PropertiesHelper.getProperty("logsearch.login.credentials.file");
         logger.info("USER PASS JSON  file NAME:" + userPassJsonFileName);
-        File jsonFile = fileUtil.getFileFromClasspath(userPassJsonFileName);
+        File jsonFile = FileUtil.getFileFromClasspath(userPassJsonFileName);
         if (jsonFile == null || !jsonFile.exists()) {
           logger.fatal("user_pass json file not found in classpath :" + userPassJsonFileName);
           System.exit(1);
         }
-        HashMap<String, Object> userInfos = jsonUtil.readJsonFromFile(jsonFile);
+        HashMap<String, Object> userInfos = JSONUtil.readJsonFromFile(jsonFile);
         userList = (ArrayList<HashMap<String, String>>) userInfos.get("users");
         if (userList != null) {
           boolean isUpdated = this.encryptAllPassword();
           userInfos.put("users", userList);
           if (isUpdated) {
-            String jsonStr = jsonUtil.mapToJSON(userInfos);
-            jsonUtil.writeJSONInFile(jsonStr, jsonFile, true);
+            String jsonStr = JSONUtil.mapToJSON(userInfos);
+            JSONUtil.writeJSONInFile(jsonStr, jsonFile, true);
           }
         } else {
           userList = new ArrayList<HashMap<String, String>>();

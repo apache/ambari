@@ -33,18 +33,15 @@ import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.view.VHost;
 import org.apache.ambari.logsearch.view.VSummary;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class FileUtil {
-
   private static final Logger logger = Logger.getLogger(FileUtil.class);
 
-  @Autowired
-  private RESTErrorUtil restErrorUtil;
-
-  public Response saveToFile(String text, String fileName, VSummary vsummary) {
+  private FileUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
+  public static Response saveToFile(String text, String fileName, VSummary vsummary) {
     String mainExportedFile = "";
     FileOutputStream fis = null;
     try {
@@ -107,7 +104,7 @@ public class FileUtil {
         .build();
     } catch (Exception e) {
       logger.error(e.getMessage());
-      throw restErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
+      throw RESTErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
     } finally {
       if (fis != null) {
         try {
@@ -118,7 +115,7 @@ public class FileUtil {
     }
   }
 
-  public File getFileFromClasspath(String filename) {
+  public static File getFileFromClasspath(String filename) {
     URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(filename);
     logger.debug("File Complete URI :" + fileCompleteUrl);
     File file = null;

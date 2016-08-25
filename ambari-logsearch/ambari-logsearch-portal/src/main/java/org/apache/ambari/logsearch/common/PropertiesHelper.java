@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.util;
+package org.apache.ambari.logsearch.common;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,15 +33,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer;
 
-public class PropertiesUtil extends PropertyPlaceholderConfigurer {
-  private static final Logger logger = Logger.getLogger(PropertiesUtil.class);
+public class PropertiesHelper extends PropertyPlaceholderConfigurer {
+  private static final Logger logger = Logger.getLogger(PropertiesHelper.class);
   
   private static final String LOGSEARCH_PROP_FILE="logsearch.properties";
   
   private static Map<String, String> propertiesMap;
 
-  private PropertiesUtil() {
-
+  private PropertiesHelper() {
   }
   
  static {

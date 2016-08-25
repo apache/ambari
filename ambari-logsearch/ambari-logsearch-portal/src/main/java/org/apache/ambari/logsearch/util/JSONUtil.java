@@ -37,25 +37,22 @@ import org.codehaus.jackson.type.TypeReference;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-@Component
 public class JSONUtil {
-
   private static final Logger logger = Logger.getLogger(JSONUtil.class);
 
-  @Autowired
-  private RESTErrorUtil restErrorUtil;
-
   private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
-  private Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
+  private static final Gson gson = new GsonBuilder().setDateFormat(DATE_FORMAT).create();
 
+  private JSONUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
   @SuppressWarnings("unchecked")
-  public HashMap<String, Object> jsonToMapObject(String jsonStr) {
+  public static HashMap<String, Object> jsonToMapObject(String jsonStr) {
     if (StringUtils.isBlank(jsonStr)) {
       logger.info("jsonString is empty, cannot conver to map");
       return null;
@@ -66,17 +63,17 @@ public class JSONUtil {
       return (HashMap<String, Object>) tempObject;
 
     } catch (JsonParseException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     } catch (JsonMappingException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     } catch (IOException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     }
 
   }
 
   @SuppressWarnings("unchecked")
-  public List<HashMap<String, Object>> jsonToMapObjectList(String jsonStr) {
+  public static List<HashMap<String, Object>> jsonToMapObjectList(String jsonStr) {
     if (StringUtils.isBlank(jsonStr)) {
       return null;
     }
@@ -86,16 +83,16 @@ public class JSONUtil {
       return (List<HashMap<String, Object>>) tempObject;
 
     } catch (JsonParseException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     } catch (JsonMappingException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     } catch (IOException e) {
-      throw restErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
+      throw RESTErrorUtil.createRESTException("Invalid input data: " + e.getMessage(), MessageEnums.INVALID_INPUT_DATA);
     }
 
   }
 
-  public boolean isJSONValid(String jsonString) {
+  public static boolean isJSONValid(String jsonString) {
     try {
       new JSONObject(jsonString);
     } catch (JSONException ex) {
@@ -108,7 +105,7 @@ public class JSONUtil {
     return true;
   }
 
-  public HashMap<String, Object> readJsonFromFile(File jsonFile) {
+  public static HashMap<String, Object> readJsonFromFile(File jsonFile) {
     ObjectMapper mapper = new ObjectMapper();
     try {
       HashMap<String, Object> jsonmap = mapper.readValue(jsonFile, new TypeReference<HashMap<String, Object>>() {});
@@ -119,7 +116,7 @@ public class JSONUtil {
     return new HashMap<String, Object>();
   }
 
-  public String mapToJSON(Map<String, Object> map) {
+  public static String mapToJSON(Map<String, Object> map) {
     ObjectMapper om = new ObjectMapper();
     try {
       String json = om.writeValueAsString(map);
@@ -134,7 +131,7 @@ public class JSONUtil {
   /**
    * WRITE JOSN IN FILE ( Delete existing file and create new file)
    */
-  public synchronized void writeJSONInFile(String jsonStr, File outputFile, boolean beautify) {
+  public static synchronized void writeJSONInFile(String jsonStr, File outputFile, boolean beautify) {
     FileWriter fileWriter = null;
     if (outputFile == null) {
       logger.error("user_pass json file can't be null.");
@@ -170,11 +167,11 @@ public class JSONUtil {
     }
   }
 
-  public String objToJson(Object obj) {
+  public static String objToJson(Object obj) {
     return gson.toJson(obj);
   }
 
-  public Object jsonToObj(String json, Class<?> klass) {
+  public static Object jsonToObj(String json, Class<?> klass) {
     return gson.fromJson(json, klass);
   }
 

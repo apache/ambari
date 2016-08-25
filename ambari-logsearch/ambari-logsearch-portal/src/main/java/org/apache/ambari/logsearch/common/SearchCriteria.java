@@ -26,7 +26,6 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 
 public class SearchCriteria {
@@ -58,7 +57,7 @@ public class SearchCriteria {
       if (request.getParameter("pageSize") != null && (!request.getParameter("pageSize").isEmpty())) {
         this.maxRows = new Integer(request.getParameter("pageSize"));
       } else {
-        this.maxRows = PropertiesUtil.getIntProperty("db.maxResults", 50);
+        this.maxRows = PropertiesHelper.getIntProperty("db.maxResults", 50);
       }
     } catch (NumberFormatException e) {
       // do nothing
@@ -197,7 +196,7 @@ public class SearchCriteria {
    * @param caId
    */
   public void addParam(String name, Object value) {
-    String solrValue = PropertiesUtil.getProperty(name);
+    String solrValue = PropertiesHelper.getProperty(name);
     if (solrValue == null || solrValue.isEmpty()) {
       paramList.put(name, value);
     } else {

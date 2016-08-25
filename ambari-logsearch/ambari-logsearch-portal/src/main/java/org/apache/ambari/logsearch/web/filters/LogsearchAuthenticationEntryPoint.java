@@ -24,22 +24,16 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
-
-  @Autowired
-  RESTErrorUtil restErrorUtil;
+  private static final Logger logger = Logger.getLogger(LogsearchAuthenticationEntryPoint.class);
 
   public LogsearchAuthenticationEntryPoint(String loginFormUrl) {
     super(loginFormUrl);
   }
-
-  private static final Logger logger = Logger.getLogger(LogsearchAuthenticationEntryPoint.class);
 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
