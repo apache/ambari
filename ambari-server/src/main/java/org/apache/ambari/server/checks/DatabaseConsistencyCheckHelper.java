@@ -86,6 +86,12 @@ public class DatabaseConsistencyCheckHelper {
 
   protected static void setInjector(Injector injector) {
     DatabaseConsistencyCheckHelper.injector = injector;
+    // Clean up: new injector means static fields should be reinitalized, though in real life it only occurs during testing
+    closeConnection();
+    connection = null;
+    metainfoDAO = null;
+    ambariMetaInfo = null;
+    dbAccessor = null;
   }
 
   public static void setConnection(Connection connection) {
@@ -448,8 +454,8 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         for (String clusterName : clusterServiceMap.keySet()) {
-          LOG.error("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
-          errorAvailable = true;
+          LOG.warn("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
+          warningAvailable = true;
         }
 
       }

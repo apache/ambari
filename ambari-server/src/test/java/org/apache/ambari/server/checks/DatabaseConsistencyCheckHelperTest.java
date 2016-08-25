@@ -27,6 +27,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
+import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -34,6 +35,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -291,6 +293,95 @@ public class DatabaseConsistencyCheckHelperTest {
     DatabaseConsistencyCheckHelper.checkServiceConfigs();
 
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testCheckServiceConfigs_missingServiceConfigGeneratesWarning() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final ResultSet mockResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet clusterServicesResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet stackResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final ResultSet serviceConfigResultSet = easyMockSupport.createNiceMock(ResultSet.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+    final ServiceInfo mockHDFSServiceInfo = easyMockSupport.createNiceMock(ServiceInfo.class);
+
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+      }
+    });
+
+    Map<String, ServiceInfo> services = new HashMap<>();
+    services.put("HDFS", mockHDFSServiceInfo);
+
+    Map<String, Map<String, Map<String, String>>> configAttributes = new HashMap<>();
+    configAttributes.put("core-site", new HashMap<String, Map<String, String>>());
+
+    expect(mockHDFSServiceInfo.getConfigTypeAttributes()).andReturn(configAttributes);
+    expect(mockAmbariMetainfo.getServices("HDP", "2.2")).andReturn(services);
+    expect(clusterServicesResultSet.next()).andReturn(true);
+    expect(clusterServicesResultSet.getString("service_name")).andReturn("OPENSOFT R");
+    expect(clusterServicesResultSet.getString("cluster_name")).andReturn("My Cluster");
+    expect(serviceConfigResultSet.next()).andReturn(true);
+    expect(serviceConfigResultSet.getString("service_name")).andReturn("HDFS");
+    expect(serviceConfigResultSet.getString("type_name")).andReturn("core-site");
+    expect(stackResultSet.next()).andReturn(true);
+    expect(stackResultSet.getString("stack_name")).andReturn("HDP");
+    expect(stackResultSet.getString("stack_version")).andReturn("2.2");
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement);
+    expect(mockStatement.executeQuery("select c.cluster_name, service_name from clusterservices cs " +
+        "join clusters c on cs.cluster_id=c.cluster_id " +
+        "where service_name not in (select service_name from serviceconfig sc where sc.cluster_id=cs.cluster_id and sc.service_name=cs.service_name and sc.group_id is null)")).andReturn(clusterServicesResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, sc.service_name, sc.version from serviceconfig sc " +
+        "join clusters c on sc.cluster_id=c.cluster_id " +
+        "where service_config_id not in (select service_config_id from serviceconfigmapping) and group_id is null")).andReturn(mockResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, s.stack_name, s.stack_version from clusters c " +
+        "join stack s on c.desired_stack_id = s.stack_id")).andReturn(stackResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, cs.service_name, cc.type_name, sc.version from clusterservices cs " +
+        "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
+        "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
+        "join clusterconfig cc on scm.config_id=cc.config_id and sc.cluster_id=cc.cluster_id " +
+        "join clusters c on cc.cluster_id=c.cluster_id and sc.stack_id=c.desired_stack_id " +
+        "where sc.group_id is null and sc.service_config_id=(select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
+        "group by c.cluster_name, cs.service_name, cc.type_name, sc.version")).andReturn(serviceConfigResultSet);
+    expect(mockStatement.executeQuery("select c.cluster_name, cs.service_name, cc.type_name from clusterservices cs " +
+        "join serviceconfig sc on cs.service_name=sc.service_name and cs.cluster_id=sc.cluster_id " +
+        "join serviceconfigmapping scm on sc.service_config_id=scm.service_config_id " +
+        "join clusterconfig cc on scm.config_id=cc.config_id and cc.cluster_id=sc.cluster_id " +
+        "join clusterconfigmapping ccm on cc.type_name=ccm.type_name and cc.version_tag=ccm.version_tag and cc.cluster_id=ccm.cluster_id " +
+        "join clusters c on ccm.cluster_id=c.cluster_id " +
+        "where sc.group_id is null and sc.service_config_id = (select max(service_config_id) from serviceconfig sc2 where sc2.service_name=sc.service_name and sc2.cluster_id=sc.cluster_id) " +
+        "group by c.cluster_name, cs.service_name, cc.type_name " +
+        "having sum(ccm.selected) < 1")).andReturn(mockResultSet);
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+    DatabaseConsistencyCheckHelper.setConnection(mockConnection);
+
+    easyMockSupport.replayAll();
+
+    mockAmbariMetainfo.init();
+
+    DatabaseConsistencyCheckHelper.resetErrorWarningFlags();
+    DatabaseConsistencyCheckHelper.checkServiceConfigs();
+
+    easyMockSupport.verifyAll();
+
+    Assert.assertTrue("Missing service config for OPENSOFT R should have triggered a warning.",
+        DatabaseConsistencyCheckHelper.isWarningAvailable());
+    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.isErrorAvailable());
   }
 
 
