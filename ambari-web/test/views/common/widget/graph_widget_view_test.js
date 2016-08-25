@@ -782,22 +782,15 @@ describe('App.GraphWidgetView', function () {
     describe("#didInsertElement()", function () {
 
       beforeEach(function() {
-        sinon.stub(graphView, 'setYAxisFormatter');
         sinon.stub(graphView, 'loadData');
         sinon.stub(Em.run, 'next', Em.clb);
         sinon.stub(App, 'tooltip');
       });
 
       afterEach(function() {
-        graphView.setYAxisFormatter.restore();
         graphView.loadData.restore();
         Em.run.next.restore();
         App.tooltip.restore();
-      });
-
-      it("setYAxisFormatter should be called", function() {
-        graphView.didInsertElement();
-        expect(graphView.setYAxisFormatter.calledOnce).to.be.true;
       });
 
       it("loadData should be called", function() {
