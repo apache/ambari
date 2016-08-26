@@ -192,7 +192,10 @@ def status(args):
     print "Ambari Server running"
     print "Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path
   else:
-    print "Ambari Server not running. Stale PID File at: " + pid_file_path
+    if os.path.exists(pid_file_path):
+      print "Ambari Server not running. Stale PID File at: " + pid_file_path
+    else:
+      print "Ambari Server not running."
     args.exit_code = 3
 
 
