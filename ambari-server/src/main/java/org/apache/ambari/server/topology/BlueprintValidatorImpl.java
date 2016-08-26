@@ -135,6 +135,9 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           }
         }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
+            if(!hostGroup.getComponentNames().contains("ZKFC")){
+              throw new InvalidTopologyException("Compoenent ZKFC is mandatory for hostgroup " + hostGroup+" when NAMENODE HA is enabled");
+            }
             Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
             if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
               ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<HostGroup>( blueprint.getHostGroupsForComponent(component));
