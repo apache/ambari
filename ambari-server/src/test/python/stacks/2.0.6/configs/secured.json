@@ -562,7 +562,7 @@
             "yarn.nodemanager.principal": "nm/_HOST@EXAMPLE.COM", 
             "yarn.nodemanager.local-dirs": "/hadoop/yarn/local", 
             "yarn.nodemanager.log-aggregation.compression-type": "gz", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.delete.debug-delay-sec": "0", 
             "yarn.nodemanager.keytab": "/etc/security/keytabs/nm.service.keytab", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 

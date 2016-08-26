@@ -430,7 +430,7 @@
             "yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb": "1000", 
             "yarn.resourcemanager.webapp.spnego-keytab-file": "/etc/security/keytabs/spnego.service.keytab", 
             "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.timeline-service.http-authentication.type": "kerberos", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
             "yarn.resourcemanager.proxyusers.*.groups": "", 

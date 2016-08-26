@@ -695,7 +695,7 @@
             "yarn.nodemanager.resource.percentage-physical-cpu-limit": "100", 
             "yarn.nodemanager.disk-health-checker.min-free-space-per-disk-mb": "1000", 
             "yarn.nodemanager.log-aggregation.roll-monitoring-interval-seconds": "-1", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.timeline-service.principal": "yarn/_HOST@EXAMPLE.COM", 
             "yarn.nodemanager.log-dirs": "/hadoop/yarn/log", 
             "yarn.timeline-service.client.max-retries": "30", 

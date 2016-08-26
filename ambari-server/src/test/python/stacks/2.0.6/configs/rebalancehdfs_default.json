@@ -262,7 +262,7 @@
             "yarn.timeline-service.webapp.address": "c6402.ambari.apache.org:8188", 
             "yarn.timeline-service.enabled": "true", 
             "yarn.timeline-service.address": "c6402.ambari.apache.org:10200", 
-            "yarn.nodemanager.log.retain-second": "604800", 
+            "yarn.nodemanager.log.retain-seconds": "604800",
             "yarn.nodemanager.delete.debug-delay-sec": "0", 
             "yarn.timeline-service.store-class": "org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore", 
             "yarn.nodemanager.log-aggregation.compression-type": "gz", 
