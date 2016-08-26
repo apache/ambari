@@ -269,6 +269,17 @@
             </organization>
         </developer>
         <developer>
+            <id>bosco</id>
+            <name>Don Bosco Durai</name>
+            <email>bosco@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+            </organization>
+        </developer>
+        <developer>
             <id>croberts</id>
             <name>Chad Roberts</name>
             <email>croberts@apache.org</email>
@@ -1254,6 +1265,14 @@
         <contributor>
           <name>Cabir Zounaidou</name>
           <organization>Hortonworks</organization>
+        </contributor>
+        <contributor>
+          <name>Dharmesh Makwana</name>
+          <organization></organization>
+        </contributor>
+        <contributor>
+          <name>Hayat Behlim</name>
+          <organization></organization>
         </contributor>
       </contributors>
 
