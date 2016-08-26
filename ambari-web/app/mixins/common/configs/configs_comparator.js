@@ -107,7 +107,10 @@ App.ConfigsComparator = Em.Mixin.create({
         }
         if (configuration.properties_attributes && configuration.properties_attributes.final) {
           for (var final in configuration.properties_attributes.final) {
-            serviceVersionMap[item.service_config_version][final + '-' + configuration.type].isFinal = (configuration.properties_attributes.final[final] === 'true');
+            var config = serviceVersionMap[item.service_config_version][final + '-' + configuration.type];
+            if (config) {
+              config.isFinal = (configuration.properties_attributes.final[final] === 'true');
+            }
           }
         }
       }, this);
