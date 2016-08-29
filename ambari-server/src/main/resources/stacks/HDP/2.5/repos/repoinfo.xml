@@ -28,11 +28,6 @@
       <repoid>HDP-UTILS-1.1.0.21</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
-    <repo>
-      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/ambari/centos6/2.x/BUILDS/2.4.0.0-1139</baseurl>
-      <repoid>AMBARI-FOO</repoid>
-      <reponame>AMBARI-FOO</reponame>
-    </repo>
   </os>
   <os family="redhat7">
     <repo>
