@@ -19,6 +19,8 @@ package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.locks.Lock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
@@ -52,6 +54,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
+import com.google.common.util.concurrent.Striped;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -101,6 +104,12 @@ public class AlertReceivedListener {
   private AlertEventPublisher m_alertEventPublisher;
 
   /**
+   * Used for ensuring that creation of {@link AlertCurrentEntity} instances has fine-grain
+   * locks to prevent duplicates.
+   */
+  private Striped<Lock> creationLocks = Striped.lazyWeakLock(100);
+
+  /**
    * Constructor.
    *
    * @param publisher
@@ -129,7 +138,7 @@ public class AlertReceivedListener {
     // many transactions/commits
     List<Alert> alerts = event.getAlerts();
 
-    List<AlertCurrentEntity> toCreate = new ArrayList<>();
+    // these can be wrapped in their own transaction
     List<AlertCurrentEntity> toMerge = new ArrayList<>();
     List<AlertCurrentEntity> toCreateHistoryAndMerge = new ArrayList<>();
 
@@ -173,47 +182,63 @@ public class AlertReceivedListener {
       AlertCurrentEntity current;
       AlertState alertState = alert.getState();
 
-      if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
-        current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
-      } else {
-        current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHostName(),
-          alert.getName());
-      }
+      // attempt to lookup the current alert
+      current = getCurrentEntity(clusterId, alert, definition);
 
-      if (null == current) {
-        // if there is no current alert and the state is skipped, then simple
+      // if it doesn't exist then we must create it, ensuring that two or more
+      // aren't created from other threads
+      if( null == current ){
+
+        // if there is no current alert and the state is skipped, then simply
         // skip over this one as there is nothing to update in the databse
         if (alertState == AlertState.SKIPPED) {
           continue;
         }
 
-        AlertHistoryEntity history = createHistory(clusterId, definition, alert);
+        // create a key out of the cluster/definition name/host (possibly null)
+        int key = Objects.hash(clusterId, alert.getName(), alert.getHostName());
+        Lock lock = creationLocks.get(key);
+        lock.lock();
 
-        // this new alert must reflect the correct MM state for the
-        // service/component/host
-        MaintenanceState maintenanceState = MaintenanceState.OFF;
+        // attempt to lookup the current alert again to ensure that a previous
+        // thread didn't already create it
         try {
-          maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
-        } catch (Exception exception) {
-          LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
-              alert, exception);
+          // if it's not null anymore, then there's no work to do here
+          current = getCurrentEntity(clusterId, alert, definition);
+          if( null != current ) {
+            continue;
+          }
+
+          // the current alert is still null, so go through and create it
+          AlertHistoryEntity history = createHistory(clusterId, definition, alert);
+
+          // this new alert must reflect the correct MM state for the
+          // service/component/host
+          MaintenanceState maintenanceState = MaintenanceState.OFF;
+          try {
+            maintenanceState = m_maintenanceStateHelper.get().getEffectiveState(clusterId, alert);
+          } catch (Exception exception) {
+            LOG.error("Unable to determine the maintenance mode state for {}, defaulting to OFF",
+                alert, exception);
+          }
+
+          current = new AlertCurrentEntity();
+          current.setMaintenanceState(maintenanceState);
+          current.setAlertHistory(history);
+          current.setLatestTimestamp(alert.getTimestamp());
+          current.setOriginalTimestamp(alert.getTimestamp());
+
+          // brand new alert instances being received are always HARD
+          current.setFirmness(AlertFirmness.HARD);
+
+          m_alertsDao.create(current);
+
+          // create the event to fire later
+          alertEvents.add(new InitialAlertEvent(clusterId, alert, current));
+        } finally {
+          // release the lock for this alert
+          lock.unlock();
         }
-
-        current = new AlertCurrentEntity();
-        current.setMaintenanceState(maintenanceState);
-        current.setAlertHistory(history);
-        current.setLatestTimestamp(alert.getTimestamp());
-        current.setOriginalTimestamp(alert.getTimestamp());
-
-        // brand new alert instances being received are always HARD
-        current.setFirmness(AlertFirmness.HARD);
-
-        // store the entity for creation later
-        toCreate.add(current);
-
-        // create the event to fire later
-        alertEvents.add(new InitialAlertEvent(clusterId, alert, current));
-
       } else if (alertState == current.getAlertHistory().getAlertState()
           || alertState == AlertState.SKIPPED) {
 
@@ -319,7 +344,7 @@ public class AlertReceivedListener {
 
     // invokes the EntityManager create/merge on various entities in a single
     // transaction
-    saveEntities(toCreate, toMerge, toCreateHistoryAndMerge);
+    saveEntities(toMerge, toCreateHistoryAndMerge);
 
     // broadcast events
     for (AlertEvent eventToFire : alertEvents) {
@@ -343,18 +368,30 @@ public class AlertReceivedListener {
   }
 
   /**
+   * Gets the {@link AlertCurrentEntity} which cooresponds to the new alert being received, if any.
+   *
+   * @param clusterId the ID of the cluster.
+   * @param alert the alert being received (not {@code null}).
+   * @param definition  the {@link AlertDefinitionEntity} for the alert being received (not {@code null}).
+   * @return  the existing current alert or {@code null} for none.
+   */
+  private AlertCurrentEntity getCurrentEntity(long clusterId, Alert alert, AlertDefinitionEntity definition){
+    if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
+      return m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
+    } else {
+      return m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHostName(),
+        alert.getName());
+    }
+  }
+
+  /**
    * Saves alert and alert history entities in single transaction
-   * @param toCreate - new alerts, create alert and history
    * @param toMerge - merge alert only
    * @param toCreateHistoryAndMerge - create new history, merge alert
    */
   @Transactional
-  void saveEntities(List<AlertCurrentEntity> toCreate, List<AlertCurrentEntity> toMerge,
+  void saveEntities(List<AlertCurrentEntity> toMerge,
       List<AlertCurrentEntity> toCreateHistoryAndMerge) {
-    for (AlertCurrentEntity entity : toCreate) {
-      m_alertsDao.create(entity);
-    }
-
     for (AlertCurrentEntity entity : toMerge) {
       m_alertsDao.merge(entity, m_configuration.isAlertCacheEnabled());
     }

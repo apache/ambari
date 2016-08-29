@@ -20,6 +20,7 @@ package org.apache.ambari.server.orm.entities;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Basic;
@@ -593,7 +594,17 @@ public class AlertDefinitionEntity {
   }
 
   /**
-   *
+   * Gets the equality to another historical alert entry based on the following criteria:
+   * <ul>
+   * <li>{@link #definitionId}
+   * <li>{@link #clusterId}
+   * <li>{@link #definitionName}
+   * </ul>
+   * <p/>
+   * However, since we're guaranteed that {@link #definitionId} is unique among persisted entities, we
+   * can return the hashCode based on this value if it is set.
+   * <p/>
+   * {@inheritDoc}
    */
   @Override
   public boolean equals(Object object) {
@@ -607,21 +618,31 @@ public class AlertDefinitionEntity {
 
     AlertDefinitionEntity that = (AlertDefinitionEntity) object;
 
-    if (definitionId != null ? !definitionId.equals(that.definitionId)
-      : that.definitionId != null) {
-      return false;
+    // use the unique ID if it exists
+    if( null != definitionId ){
+      return Objects.equals(definitionId, that.definitionId);
     }
 
-    return true;
+    return Objects.equals(definitionId, that.definitionId) &&
+        Objects.equals(clusterId, that.clusterId) &&
+        Objects.equals(definitionName, that.definitionName);
   }
 
   /**
-   *
+   * Gets a hash to uniquely identify this alert definition. Since we're
+   * guaranteed that {@link #definitionId} is unique among persisted entities,
+   * we can return the hashCode based on this value if it is set.
+   * <p/>
+   * {@inheritDoc}
    */
   @Override
   public int hashCode() {
-    int result = null != definitionId ? definitionId.hashCode() : 0;
-    return result;
+    // use the unique ID if it exists
+    if( null != definitionId ){
+      return definitionId.hashCode();
+    }
+
+    return Objects.hash(definitionId, clusterId, definitionName);
   }
 
   /**
