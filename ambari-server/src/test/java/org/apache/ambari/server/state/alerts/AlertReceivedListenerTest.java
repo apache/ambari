@@ -19,6 +19,7 @@ package org.apache.ambari.server.state.alerts;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -886,5 +887,49 @@ public class AlertReceivedListenerTest {
     allCurrent = m_dao.findCurrent();
     assertEquals(3, (long) allCurrent.get(0).getOccurrences());
     assertEquals(AlertFirmness.HARD, allCurrent.get(0).getFirmness());
+  }
+
+  /**
+   * Tests that multiple threads can't create duplicate new alerts. This will
+   * spawn several threads, each one trying to create the same alert.
+   */
+  @Test
+  public void testMultipleNewAlertEvents() throws Exception {
+    assertEquals(0, m_dao.findCurrent().size());
+
+    final String definitionName = ALERT_DEFINITION + "1";
+    List<Thread> threads = new ArrayList<>();
+    final AlertReceivedListener listener = m_injector.getInstance(AlertReceivedListener.class);
+
+    // spawn a bunch of concurrent threasd which will try to create teh same
+    // alert over and over
+    for (int i = 0; i < 10; i++) {
+      Thread thread = new Thread() {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void run() {
+          Alert alert = new Alert(definitionName, null, "HDFS", null, HOST1, AlertState.OK);
+          alert.setCluster(m_cluster.getClusterName());
+          alert.setLabel(ALERT_LABEL);
+          alert.setText("HDFS is OK ");
+          alert.setTimestamp(System.currentTimeMillis());
+
+          final AlertReceivedEvent event = new AlertReceivedEvent(m_cluster.getClusterId(), alert);
+          listener.onAlertEvent(event);
+        }
+      };
+
+      threads.add(thread);
+      thread.start();
+    }
+
+    // wait for threads
+    for (Thread thread : threads) {
+      thread.join();
+    }
+
+    assertEquals(1, m_dao.findCurrent().size());
   }
 }

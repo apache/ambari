@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -331,7 +333,7 @@ public class AlertHistoryEntity {
    */
   public void setAlertDefinition(AlertDefinitionEntity alertDefinition) {
     this.alertDefinition = alertDefinition;
-    this.alertDefinitionId = alertDefinition.getDefinitionId();
+    alertDefinitionId = alertDefinition.getDefinitionId();
   }
 
   /**
@@ -351,7 +353,25 @@ public class AlertHistoryEntity {
   }
 
   /**
-   *
+   * Gets the equality to another historical alert entry based on the following criteria:
+   * <ul>
+   * <li>{@link #alertId}
+   * <li>{@link #clusterId}
+   * <li>{@link #alertInstance}
+   * <li>{@link #alertLabel}
+   * <li>{@link #alertState}
+   * <li>{@link #alertText}
+   * <li>{@link #alertTimestamp}
+   * <li>{@link #serviceName}
+   * <li>{@link #componentName}
+   * <li>{@link #hostName}
+   * <li>{@link #alertDefinition}
+   * </ul>
+   * <p/>
+   * However, since we're guaranteed that {@link #alertId} is unique among persisted entities, we
+   * can return the hashCode based on this value if it is set.
+   * <p/>
+   * {@inheritDoc}
    */
   @Override
   public boolean equals(Object object) {
@@ -365,20 +385,43 @@ public class AlertHistoryEntity {
 
     AlertHistoryEntity that = (AlertHistoryEntity) object;
 
-    if (alertId != null ? !alertId.equals(that.alertId) : that.alertId != null) {
-      return false;
+    // use the unique ID if it exists
+    if( null != alertId ){
+      return Objects.equals(alertId, that.alertId);
     }
 
-    return true;
+    return Objects.equals(alertId, that.alertId) &&
+        Objects.equals(clusterId, that.clusterId) &&
+        Objects.equals(alertInstance, that.alertInstance) &&
+        Objects.equals(alertLabel, that.alertLabel) &&
+        Objects.equals(alertState, that.alertState) &&
+        Objects.equals(alertText, that.alertText) &&
+        Objects.equals(alertTimestamp, that.alertTimestamp) &&
+        Objects.equals(serviceName, that.serviceName) &&
+        Objects.equals(componentName, that.componentName) &&
+        Objects.equals(hostName, that.hostName) &&
+        Objects.equals(alertDefinition, that.alertDefinition);
   }
 
   /**
-   *
+   * Gets a hash to uniquely identify this historical alert instance. Since historical entries
+   * have no real uniqueness properties, we need to rely on a combination of the fields of this
+   * entity.
+   * <p/>
+   * However, since we're guaranteed that {@link #alertId} is unique among persisted entities, we
+   * can return the hashCode based on this value if it is set.
+   * <p/>
+   * {@inheritDoc}
    */
   @Override
   public int hashCode() {
-    int result = null != alertId ? alertId.hashCode() : 0;
-    return result;
+    // use the unique ID if it exists
+    if( null != alertId ){
+      return alertId.hashCode();
+    }
+
+    return Objects.hash(alertId, clusterId, alertInstance, alertLabel, alertState, alertText,
+        alertTimestamp, serviceName, componentName, hostName, alertDefinition);
   }
 
   /**
