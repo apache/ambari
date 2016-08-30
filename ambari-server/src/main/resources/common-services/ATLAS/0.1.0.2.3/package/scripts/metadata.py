@@ -123,6 +123,8 @@ def metadata(type='server'):
       create_collection('fulltext_index', 'atlas_configs', jaasFile)
 
     File(params.atlas_hbase_setup,
+         group=params.user_group,
+         owner=params.hbase_user,
          content=Template("atlas_hbase_setup.rb.j2")
     )
 

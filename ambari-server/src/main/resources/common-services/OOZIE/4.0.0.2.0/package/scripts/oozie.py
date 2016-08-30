@@ -33,6 +33,7 @@ from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
+from resource_management.libraries.functions.copy_tarball import get_current_version
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
@@ -307,7 +308,7 @@ def oozie_server_specific():
     )
 
     # If Atlas is also installed, need to generate Atlas Hive hook (hive-atlas-application.properties file) in directory
-    # {stack_root}/{version}/atlas/hook/hive/
+    # {stack_root}/{current_version}/atlas/hook/hive/
     # Because this is a .properties file instead of an xml file, it will not be read automatically by Oozie.
     # However, should still save the file on this host so that can upload it to the Oozie Sharelib in DFS.
     if has_atlas_in_cluster():
@@ -346,7 +347,7 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
   """
    If the Atlas Hive Hook direcotry is present, Atlas is installed, and this is the first Oozie Server,
   then copy the entire contents of that directory to the Oozie Sharelib in DFS, e.g.,
-  /usr/$stack/$version/atlas/hook/hive/ -> hdfs:///user/oozie/share/lib/lib_$timetamp/hive
+  /usr/$stack/$current_version/atlas/hook/hive/ -> hdfs:///user/oozie/share/lib/lib_$timetamp/hive
 
   :param upgrade_type: If in the middle of a stack upgrade, the type as UPGRADE_TYPE_ROLLING or UPGRADE_TYPE_NON_ROLLING
   :param upgrade_direction: If in the middle of a stack upgrade, the direction as Direction.UPGRADE or Direction.DOWNGRADE.
@@ -373,7 +374,8 @@ def copy_atlas_hive_hook_to_dfs_share_lib(upgrade_type=None, upgrade_direction=N
                  "and performing a Downgrade.")
     return
 
-  atlas_hive_hook_dir = format("{stack_root}/{version}/atlas/hook/hive/")
+  current_version = get_current_version()
+  atlas_hive_hook_dir = format("{stack_root}/{current_version}/atlas/hook/hive/")
   if not os.path.exists(atlas_hive_hook_dir):
     Logger.error(format("ERROR. Atlas is installed in cluster but this Oozie server doesn't "
                         "contain directory {atlas_hive_hook_dir}"))

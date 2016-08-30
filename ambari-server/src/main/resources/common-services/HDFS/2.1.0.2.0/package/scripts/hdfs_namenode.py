@@ -23,6 +23,8 @@ from resource_management.core import shell
 from resource_management.core.source import Template
 from resource_management.core.resources.system import File, Execute, Directory
 from resource_management.core.resources.service import Service
+from resource_management.libraries.functions import namenode_ha_utils
+from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
@@ -34,7 +36,6 @@ from utils import get_dfsadmin_base_command
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
-from resource_management.core.shell import as_user
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
@@ -162,12 +163,12 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
     # no-HA                 | ON -> OFF                | Yes                      |
     # HA and active         | ON -> OFF                | Yes                      |
-    # HA and standby        | no change                | no check                 |
+    # HA and standby        | no change                | No                       |
     # RU with HA on active  | ON -> OFF                | Yes                      |
     # RU with HA on standby | ON -> OFF                | Yes                      |
-    # EU with HA on active  | ON -> OFF                | Yes                      |
-    # EU with HA on standby | ON -> OFF                | Yes                      |
-    # EU non-HA             | ON -> OFF                | Yes                      |
+    # EU with HA on active  | ON -> OFF                | No                       |
+    # EU with HA on standby | ON -> OFF                | No                       |
+    # EU non-HA             | ON -> OFF                | No                       |
 
     # because we do things like create directories after starting NN,
     # the vast majority of the time this should be True - it should only
@@ -179,20 +180,29 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
 
     if params.dfs_ha_enabled:
       Logger.info("Waiting for the NameNode to broadcast whether it is Active or Standby...")
-      if check_is_active_namenode(hdfs_binary):
-        Logger.info("Waiting for the NameNode to leave Safemode since High Availability is enabled and it is Active...")
-      else:
-        # we are the STANDBY NN
-        ensure_safemode_off = False
-        is_active_namenode = False
-        Logger.info("This is the Standby NameNode; proceeding without waiting for it to leave Safemode")
-    else:
-      Logger.info("Waiting for the NameNode to leave Safemode...")
 
-    # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started
+      if is_this_namenode_active() is False:
+        # we are the STANDBY NN
+        is_active_namenode = False
+
+        # we are the STANDBY NN and this restart is not part of an upgrade
+        if upgrade_type is None:
+          ensure_safemode_off = False
+
+
+    # During an Express Upgrade, NameNode will not leave SafeMode until the DataNodes are started,
+    # so always disable the Safemode check
     if upgrade_type == "nonrolling":
-      Logger.info("An express upgrade has been detected and this NameNode will not leave Safemode until DataNodes are started. Safemode does not need to end before proceeding.")
       ensure_safemode_off = False
+
+    # some informative logging separate from the above logic to keep things a little cleaner
+    if ensure_safemode_off:
+      Logger.info("Waiting for this NameNode to leave Safemode due to the following conditions: HA: {0}, isActive: {1}, upgradeType: {2}".format(
+        params.dfs_ha_enabled, is_active_namenode, upgrade_type))
+    else:
+      Logger.info("Skipping Safemode check due to the following conditions: HA: {0}, isActive: {1}, upgradeType: {2}".format(
+        params.dfs_ha_enabled, is_active_namenode, upgrade_type))
+
 
     # wait for Safemode to end
     if ensure_safemode_off:
@@ -205,7 +215,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
       create_hdfs_directories()
       create_ranger_audit_hdfs_directories()
     else:
-      Logger.info("Skipping creation of HDFS directories since this is not the Active NameNode.")
+      Logger.info("Skipping creation of HDFS directories since this is either not the Active NameNode or we did not wait for Safemode to finish.")
 
   elif action == "stop":
     import params
@@ -500,31 +510,45 @@ def is_namenode_bootstrapped(params):
   return marked
 
 
-def check_is_active_namenode(hdfs_binary):
+@retry(times=5, sleep_time=5, backoff_factor=2, err_class=Fail)
+def is_this_namenode_active():
   """
-  Checks if current NameNode is active. Waits up to 30 seconds. If other NameNode is active returns False.
-  :return: True if current NameNode is active, False otherwise
+  Gets whether the current NameNode is Active. This function will wait until the NameNode is
+  listed as being either Active or Standby before returning a value. This is to ensure that
+  that if the other NameNode is Active, we ensure that this NameNode has fully loaded and
+  registered in the event that the other NameNode is going to be restarted. This prevents
+  a situation where we detect the other NameNode as Active before this NameNode has fully booted.
+  If the other Active NameNode is then restarted, there can be a loss of service if this
+  NameNode has not entered Standby.
   """
   import params
 
-  if params.dfs_ha_enabled:
-    is_active_this_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -ns {dfs_ha_nameservices} -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
-    is_active_other_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -ns {dfs_ha_nameservices} -getServiceState {other_namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+  # returns ([('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
+  #                  0                                           1                                   2
+  # or
+  # returns ([], [('nn1', 'c6401.ambari.apache.org:50070')], [('nn2', 'c6402.ambari.apache.org:50070')], [])
+  #          0                                              1                                             2
+  #
+  namenode_states = namenode_ha_utils.get_namenode_states(params.hdfs_site, params.security_enabled,
+    params.hdfs_user, times=5, sleep_time=5, backoff_factor=2)
 
-    for i in range(0, 5):
-      code, out = shell.call(is_active_this_namenode_cmd) # If active NN, code will be 0
-      if code == 0: # active
-        return True
+  # unwraps [('nn1', 'c6401.ambari.apache.org:50070')]
+  active_namenodes = [] if len(namenode_states[0]) < 1 else namenode_states[0]
 
-      code, out = shell.call(is_active_other_namenode_cmd) # If other NN is active, code will be 0
-      if code == 0: # other NN is active
-        return False
+  # unwraps [('nn2', 'c6402.ambari.apache.org:50070')]
+  standby_namenodes = [] if len(namenode_states[1]) < 1 else namenode_states[1]
 
-      if i < 4: # Do not sleep after last iteration
-        time.sleep(6)
+  # check to see if this is the active NameNode
+  for entry in active_namenodes:
+    if params.namenode_id in entry:
+      return True
 
-    Logger.info("Active NameNode is not found.")
-    return False
+  # if this is not the active NameNode, then we must wait for it to register as standby
+  for entry in standby_namenodes:
+    if params.namenode_id in entry:
+      return False
 
-  else:
-    return True
+  # this this point, this NameNode is neither active nor standby - we must wait to ensure it
+  # enters at least one of these roles before returning a verdict - the annotation will catch
+  # this failure and retry the fuction automatically
+  raise Fail(format("The NameNode {namenode_id} is not listed as Active or Standby, waiting..."))

@@ -238,6 +238,7 @@ atlas_audit_hbase_tablename = default('/configurations/application-properties/at
 
 hbase_user_keytab = default('/configurations/hbase-env/hbase_user_keytab', None)
 hbase_principal_name = default('/configurations/hbase-env/hbase_principal_name', None)
+enable_ranger_hbase = False
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory
@@ -279,6 +280,8 @@ if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   xa_audit_hdfs_is_enabled = default('/configurations/ranger-atlas-audit/xasecure.audit.destination.hdfs', False)
   enable_ranger_atlas = config['configurations']['ranger-atlas-plugin-properties']['ranger-atlas-plugin-enabled']
   enable_ranger_atlas = not is_empty(enable_ranger_atlas) and enable_ranger_atlas.lower() == 'yes'
+  enable_ranger_hbase = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']
+  enable_ranger_hbase = not is_empty(enable_ranger_hbase) and enable_ranger_hbase.lower() == 'yes'
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 
   downloaded_custom_connector = None

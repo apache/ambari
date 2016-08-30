@@ -87,7 +87,7 @@ class MetadataServer(Script):
                   try_sleep = 10,
                   user=params.hbase_user
           )
-        elif params.has_ranger_admin and params.has_hbase_master and not params.security_enabled:
+        elif params.enable_ranger_hbase and not params.security_enabled:
           Execute(atlas_hbase_setup_command,
                   tries = 5,
                   try_sleep = 10,
