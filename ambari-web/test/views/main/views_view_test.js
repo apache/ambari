@@ -18,47 +18,28 @@
 
 
 var App = require('app');
-require('views/main/dashboard');
+require('views/main/views_view');
 
-describe('App.MainDashboardView', function () {
+describe('App.MainViewsView', function () {
   var view;
 
   beforeEach(function() {
-    view = App.MainDashboardView.create()
+    view = App.MainViewsView.create()
   });
 
-  describe("#NavItemView", function () {
-    var navItemView;
+  describe("#views", function () {
 
     beforeEach(function() {
-      navItemView = view.get('NavItemView').create();
+      sinon.stub(App.router, 'get').returns([{}]);
     });
 
-    describe("#elementId", function () {
+    afterEach(function() {
+      App.router.get.restore();
+    });
 
-      it("label is null", function() {
-        navItemView.set('templateData', {
-          keywords: {
-            category: {
-              label: null
-            }
-          }
-        });
-        navItemView.propertyDidChange('elementId');
-        expect(navItemView.get('elementId')).to.be.empty;
-      });
-
-      it("label has value", function() {
-        navItemView.set('templateData', {
-          keywords: {
-            category: {
-              label: 'l1'
-            }
-          }
-        });
-        navItemView.propertyDidChange('elementId');
-        expect(navItemView.get('elementId')).to.be.equal('dashboard-view-tab-l1');
-      });
+    it("should return views", function() {
+      view.propertyDidChange('views');
+      expect(view.get('views')).to.be.eql([{}]);
     });
   });
 });

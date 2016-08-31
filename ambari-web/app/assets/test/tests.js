@@ -247,6 +247,7 @@ var files = [
   'test/views/main/dashboard_test',
   'test/views/main/menu_test',
   'test/views/main/host_test',
+  'test/views/main/views_view_test',
   'test/views/main/alert_definitions_view_test',
   'test/views/main/alerts/manage_alert_groups_view_test',
   'test/views/main/alerts/manage_alert_notifications_view_test',

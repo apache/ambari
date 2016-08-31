@@ -96,4 +96,35 @@ describe('App.MainAdminView', function () {
     });
   });
 
+  describe("#NavItemView", function () {
+    var navItemView;
+
+    beforeEach(function() {
+      navItemView = view.get('NavItemView').create({
+        parentView: Em.Object.create()
+      });
+    });
+
+    describe("#isDisabled", function () {
+
+      it("view should be disabled", function() {
+        navItemView.set('parentView.categories', [
+          {name: 'cat1', disabled: true},
+          {name: 'cat2', disabled: false}
+        ]);
+        navItemView.set('item', 'cat1');
+        expect(navItemView.get('isDisabled')).to.be.true;
+      });
+
+      it("view should not be disabled", function() {
+        navItemView.set('parentView.categories', [
+          {name: 'cat1', disabled: true},
+          {name: 'cat2', disabled: false}
+        ]);
+        navItemView.set('item', 'cat2');
+        expect(navItemView.get('isDisabled')).to.be.false;
+      });
+    });
+  });
+
 });

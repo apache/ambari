@@ -20,96 +20,216 @@
 var App = require('app');
 require('views/main/menu');
 
-var mainMenuView = App.MainMenuView.create();
 describe('App.MainMenuView', function () {
+  var view;
 
-  describe('#itemViewClass', function () {
+  beforeEach(function () {
+    view = App.MainMenuView.create()
+  });
+
+  describe("#views", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').withArgs('mainViewsController.ambariViews').returns([{}]);
+    });
+
+    afterEach(function() {
+      App.router.get.restore();
+    });
+
+    it("should return views", function() {
+      view.propertyDidChange('views');
+      expect(view.get('views')).to.be.eql([{}]);
+    });
+  });
+
+  describe("#itemViewClass", function () {
+    var itemViewClass;
 
     beforeEach(function () {
-      mainMenuView.reopen({
-        content: [
-          mainMenuView.get('itemViewClass').create({
-            content: {
-              routing: 'dashboard'
-            }
-          }),
-          mainMenuView.get('itemViewClass').create({
-            content: {
-              routing: 'admin'
-            }
-          })
-        ]
+      itemViewClass = view.get('itemViewClass').create({
+        content: Em.Object.create({
+          routing: ['firstroute']
+        })
       });
     });
 
-    describe.skip('#dropdownCategories', function () {
-
-      var cases = [
-        {
-          itemName: 'dashboard',
-          dropdownCategories: [],
-          title: 'not Admin item'
-        },
-        {
-          itemName: 'admin',
-          isHadoopWindowsStack: true,
-          dropdownCategories: [
-            {
-              name: 'stackAndUpgrade',
-              url: 'stack',
-              label: Em.I18n.t('admin.stackUpgrade.title')
-            },
-            {
-              name: 'adminServiceAccounts',
-              url: 'serviceAccounts',
-              label: Em.I18n.t('common.serviceAccounts')
-            }
-          ],
-          title: 'Admin item, HDPWIN'
-        },
-        {
-          itemName: 'admin',
-          isHadoopWindowsStack: false,
-          dropdownCategories: [
-            {
-              name: 'stackAndUpgrade',
-              url: 'stack',
-              label: Em.I18n.t('admin.stackUpgrade.title')
-            },
-            {
-              name: 'adminServiceAccounts',
-              url: 'serviceAccounts',
-              label: Em.I18n.t('common.serviceAccounts')
-            },
-            {
-              name: 'kerberos',
-              url: 'kerberos/',
-              label: Em.I18n.t('common.kerberos')
-            }
-          ],
-          title: 'Admin item, not HDPWIN'
-        }
-      ];
+    describe("#active", function () {
 
       beforeEach(function () {
-        this.mock = sinon.stub(App, 'get');
+        this.mock = sinon.stub(App.router, 'get');
       });
 
       afterEach(function () {
         this.mock.restore();
+        App.router.set('location.lastSetURL', '/login');
       });
 
-      cases.forEach(function (item) {
-        it(item.title, function () {
-          this.mock.withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
-          var menuItem = mainMenuView.get('content').findProperty('content.routing', item.itemName);
-          menuItem.propertyDidChange('dropdownCategories');
-          expect(menuItem.get('dropdownCategories')).to.eql(item.dropdownCategories);
+      it("cluster not loaded", function () {
+        this.mock.withArgs('clusterController.isLoaded').returns(false);
+        itemViewClass.propertyDidChange('active');
+        expect(itemViewClass.get('active')).to.be.empty;
+      });
+
+      it("cluster loaded, firstroute should be active", function () {
+        this.mock.withArgs('clusterController.isLoaded').returns(true);
+        App.router.set('location.lastSetURL', '/main/firstroute');
+        itemViewClass.propertyDidChange('active');
+        expect(itemViewClass.get('active')).to.be.equal('active');
+      });
+
+      it("cluster loaded, dashboard should be active", function () {
+        itemViewClass.set('content.routing', ['dashboard']);
+        this.mock.withArgs('clusterController.isLoaded').returns(true);
+        App.router.set('location.lastSetURL', '/main');
+        itemViewClass.propertyDidChange('active');
+        expect(itemViewClass.get('active')).to.be.equal('active');
+      });
+
+      it("cluster loaded, should be undefined", function () {
+        itemViewClass.set('content.routing', ['dashboard']);
+        this.mock.withArgs('clusterController.isLoaded').returns(true);
+        App.router.set('location.lastSetURL', '');
+        itemViewClass.propertyDidChange('active');
+        expect(itemViewClass.get('active')).to.be.undefined;
+      });
+
+      it("cluster loaded, secondroute should not be active", function () {
+        this.mock.withArgs('clusterController.isLoaded').returns(true);
+        App.router.set('location.lastSetURL', '/main/secondroute');
+        itemViewClass.propertyDidChange('active');
+        expect(itemViewClass.get('active')).to.be.empty;
+      });
+    });
+
+    describe("#isViewsItem", function () {
+
+      it("should be false", function() {
+        itemViewClass.set('content.routing', []);
+        itemViewClass.propertyDidChange('isViewsItem');
+        expect(itemViewClass.get('isViewsItem')).to.be.false;
+      });
+
+      it("should be true", function() {
+        itemViewClass.set('content.routing', ['views']);
+        itemViewClass.propertyDidChange('isViewsItem');
+        expect(itemViewClass.get('isViewsItem')).to.be.true;
+      });
+    });
+
+    describe("#goToSection()", function () {
+
+      beforeEach(function() {
+        sinon.stub(App.router, 'set');
+        sinon.stub(App.router, 'route');
+      });
+
+      afterEach(function() {
+        App.router.set.restore();
+        App.router.route.restore();
+      });
+
+      it("should route to main", function() {
+        itemViewClass.goToSection({context: ''});
+        expect(App.router.route.calledWith('main/')).to.be.true;
+      });
+
+      it("should route to hosts", function() {
+        itemViewClass.goToSection({context: 'hosts'});
+        expect(App.router.set.calledWith('mainHostController.showFilterConditionsFirstLoad', false)).to.be.true;
+      });
+
+      it("should route to views", function() {
+        itemViewClass.goToSection({context: 'views'});
+        expect(App.router.route.calledWith('views')).to.be.true;
+      });
+
+      it("should route to alerts", function() {
+        itemViewClass.goToSection({context: 'alerts'});
+        expect(App.router.set.calledWith('mainAlertDefinitionsController.showFilterConditionsFirstLoad', false)).to.be.true;
+      });
+    });
+
+    describe("#AdminDropdownItemView", function () {
+      var adminDropdownItemView;
+
+      beforeEach(function () {
+        adminDropdownItemView = itemViewClass.get('AdminDropdownItemView').create({
+          parentView: Em.Object.create({
+            dropdownCategories: [
+              {name: 'cat1', disabled: true},
+              {name: 'cat2', disabled: false}
+            ],
+            content: Em.Object.create()
+          })
         });
       });
 
+      describe("#isDisabled", function () {
+
+        it("should be true", function () {
+          adminDropdownItemView.set('item', 'cat1');
+          adminDropdownItemView.propertyDidChange('isDisabled');
+          expect(adminDropdownItemView.get('isDisabled')).to.be.true;
+        });
+
+        it("should be false", function () {
+          adminDropdownItemView.set('item', 'cat2');
+          adminDropdownItemView.propertyDidChange('isDisabled');
+          expect(adminDropdownItemView.get('isDisabled')).to.be.false;
+        });
+      });
+
+      describe("#goToCategory()", function () {
+        var testCases = [
+          {
+            routing: '',
+            isActive: true,
+            isDisabled: true,
+            expected: false
+          },
+          {
+            routing: 'admin',
+            isActive: true,
+            isDisabled: true,
+            expected: false
+          },
+          {
+            routing: 'admin',
+            isActive: false,
+            isDisabled: true,
+            expected: false
+          },
+          {
+            routing: 'admin',
+            isActive: false,
+            isDisabled: false,
+            expected: true
+          }
+        ];
+
+        beforeEach(function() {
+          sinon.stub(App.router, 'route');
+        });
+
+        afterEach(function() {
+          App.router.route.restore();
+        });
+
+        testCases.forEach(function(test) {
+          it("routing=" + test.routing +
+             " isActive=" + test.isActive +
+             " isDisabled=" + test.isDisabled, function() {
+            adminDropdownItemView.set('parentView.content.routing', test.routing);
+            adminDropdownItemView.reopen({
+              isActive: test.isActive,
+              isDisabled: test.isDisabled
+            });
+            adminDropdownItemView.goToCategory({context: 'context'});
+            expect(App.router.route.called).to.be.equal(test.expected);
+          });
+        });
+      });
     });
-
   });
-
 });
