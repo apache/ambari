@@ -496,6 +496,18 @@
             </organization>
         </developer>
         <developer>
+            <id>jmarron</id>
+            <name>Juanjo Marron</name>
+            <email>jmarron@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
+            </organization>
+        </developer>
+        <developer>
             <id>jonathanhurley</id>
             <name>Jonathan Hurley</name>
             <email>jonathanhurley@apache.org</email>
@@ -1129,10 +1141,6 @@
         <contributor>
           <name>Jonathan Maron</name>
           <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Juanjo Marron</name>
-          <organization>IBM</organization>
         </contributor>
         <contributor>
           <name>Trevor McKay</name>
