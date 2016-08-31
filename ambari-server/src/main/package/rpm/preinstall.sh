@@ -21,6 +21,15 @@ STACKS_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/stacks_$(date '+%d_%m
 COMMON_SERVICES_FOLDER=${ROOT}"/var/lib/ambari-server/resources/common-services"
 COMMON_SERVICES_FOLDER_OLD="${ROOT}/var/lib/ambari-server/resources/common-services_$(date '+%d_%m_%y_%H_%M').old"
 
+AMBARI_PROPERTIES="${ROOT}/etc/ambari-server/conf/ambari.properties"
+AMBARI_PROPERTIES_OLD="$AMBARI_PROPERTIES.rpmsave"
+
+AMBARI_ENV="${ROOT}/var/lib/ambari-server/ambari-env.sh"
+AMBARI_ENV_OLD="$AMBARI_ENV.rpmsave"
+
+AMBARI_KRB_JAAS_LOGIN_FILE="${ROOT}/etc/ambari-server/conf/krb5JAASLogin.conf"
+AMBARI_KRB_JAAS_LOGIN_FILE_OLD="$AMBARI_KRB_JAAS_LOGIN_FILE.rpmsave"
+
 AMBARI_VIEWS_FOLDER="${ROOT}/var/lib/ambari-server/resources/views"
 AMBARI_VIEWS_BACKUP_FOLDER="$AMBARI_VIEWS_FOLDER/backups"
 
@@ -32,6 +41,24 @@ SERVER_CONF_SAVE_BACKUP="${ROOT}/etc/ambari-server/conf_$(date '+%d_%m_%y_%H_%M'
 if [ -d "$SERVER_CONF_SAVE" ]
 then
     mv "$SERVER_CONF_SAVE" "$SERVER_CONF_SAVE_BACKUP"
+fi
+
+# Creating rpmsave files is done automatically by rpm, however on minor version upgrade (e.g. 2.4.0 -> 2.4.0.1) has to be done manually.
+if [ -f "$AMBARI_PROPERTIES" ]
+then
+    mv -f "$AMBARI_PROPERTIES" "$AMBARI_PROPERTIES_OLD"
+fi
+
+# Creating rpmsave files is done automatically by rpm, however on minor version upgrade (e.g. 2.4.0 -> 2.4.0.1) has to be done manually.
+if [ -f "$AMBARI_ENV" ]
+then
+    mv -f "$AMBARI_ENV" "$AMBARI_ENV_OLD"
+fi
+
+# Creating rpmsave files is done automatically by rpm, however on minor version upgrade (e.g. 2.4.0 -> 2.4.0.1) has to be done manually.
+if [ -f "$AMBARI_KRB_JAAS_LOGIN_FILE" ]
+then
+    mv -f "$AMBARI_KRB_JAAS_LOGIN_FILE" "$AMBARI_KRB_JAAS_LOGIN_FILE_OLD"
 fi
 
 if [ -d "$STACKS_FOLDER" ]
