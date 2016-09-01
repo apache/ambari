@@ -37,7 +37,7 @@ from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
 from ambari_server.setupSecurity import generate_env, \
   ensure_can_start_under_current_user
-from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, looking_for_pid, wait_for_pid, \
+from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, wait_for_pid, \
   save_main_pid_ex, check_exitcode
 from ambari_server.serverClassPath import ServerClassPath
 
@@ -209,9 +209,9 @@ def wait_for_server_start(pidFile, scmStatus):
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
-    save_main_pid_ex(pids, pidFile, [locate_file('sh', '/bin'),
-                                     locate_file('bash', '/bin'),
-                                     locate_file('dash', '/bin')], True, IS_FOREGROUND)
+    save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
+                                     locate_all_file_paths('bash', '/bin') +
+                                     locate_all_file_paths('dash', '/bin'), True, IS_FOREGROUND)
 
 
 def server_process_main(options, scmStatus=None):
