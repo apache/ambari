@@ -63,6 +63,22 @@ def locate_file(filename, default=''):
   else:
     return filename
 
+def locate_all_file_paths(filename, default=''):
+  """Locate command possible paths according to OS environment"""
+  paths = []
+  for path in ENV_PATH:
+    path = os.path.join(path, filename)
+    if os.path.isfile(path):
+      paths.append(path)
+
+  if not paths:
+    if default != '':
+      return [os.path.join(default, filename)]
+    else:
+      return [filename]
+
+  return paths
+
 
 def check_exitcode(exitcode_file_path):
   """
