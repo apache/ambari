@@ -24,7 +24,7 @@
           <span>&nbsp;</span>
           {{view Em.Select
             contentBinding="alertNotifications"
-            optionLabelPath="content.name"
+            optionLabelPath="content.displayName"
             multiple="multiple"
             class="group-select"
             selectionBinding="view.selectedAlertNotification"
@@ -43,16 +43,29 @@
                 <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li {{bindAttr class="view.isEditButtonDisabled:disabled"}}>
-                  <a href="" rel="button-info-dropdown"
-                    {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.editButton"}}
-                    {{action editAlertNotification target="controller"}}>{{t common.edit}}</a>
-                </li>
-                <li {{bindAttr class="view.isDuplicateButtonDisabled:disabled"}}>
-                  <a href="" rel="button-info-dropdown"
-                    {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.duplicateButton"}}
-                    {{action duplicateAlertNotification target="controller"}}>{{t common.duplicate}}</a>
-                </li>
+                  <li {{bindAttr class="view.isEditButtonDisabled:disabled"}}>
+                    <a href="" rel="button-info-dropdown"
+                      {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.editButton"}}
+                      {{action editAlertNotification target="view"}}>{{t common.edit}}</a>
+                  </li>
+                  <li {{bindAttr class="view.isDuplicateButtonDisabled:disabled"}}>
+                    <a href="" rel="button-info-dropdown"
+                      {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.duplicateButton"}}
+                      {{action duplicateAlertNotification target="view"}}>{{t common.duplicate}}</a>
+                  </li>
+                {{#if selectedAlertNotification.enabled}}
+                  <li {{bindAttr class="view.isEnableOrDisableButtonDisabled:disabled"}}>
+                    <a href="" rel="button-info-dropdown"
+                      {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.disableButton"}}
+                      {{action enableOrDisableAlertNotification enableOrDisable.disable target="view"}}>{{t common.disable}}</a>
+                  </li>
+                {{else}}
+                  <li {{bindAttr class="view.isEnableOrDisableButtonDisabled:disabled"}}>
+                    <a href="" rel="button-info-dropdown"
+                      {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.enableButton"}}
+                      {{action enableOrDisableAlertNotification enableOrDisable.enable target="view"}}>{{t common.enable}}</a>
+                  </li>
+                {{/if}}
               </ul>
             </div>
           </div>

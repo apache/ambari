@@ -26,7 +26,8 @@ App.alertNotificationMapper = App.QuickDataMapper.create({
     name: 'AlertTarget.name',
     type: 'AlertTarget.notification_type',
     description: 'AlertTarget.description',
-    global: 'AlertTarget.global'
+    global: 'AlertTarget.global',
+    enabled: 'AlertTarget.enabled'
   },
 
   map: function (json) {
@@ -50,7 +51,7 @@ App.alertNotificationMapper = App.QuickDataMapper.create({
         }
 
         var previousNotification = App.cache['previousAlertNotificationsFullMap'][notification.id] ? App.cache['previousAlertNotificationsFullMap'][notification.id] : {};
-        var changedFields = self.getDiscrepancies(notification, previousNotification, ['name', 'type', 'description', 'global', 'groups']);
+        var changedFields = self.getDiscrepancies(notification, previousNotification, ['name', 'type', 'description', 'global', 'enabled', 'groups']);
         if (Object.keys(changedFields).length) {
           result.push(notification);
         }

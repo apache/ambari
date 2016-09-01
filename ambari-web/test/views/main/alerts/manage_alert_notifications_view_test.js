@@ -217,7 +217,7 @@ describe('App.ManageAlertNotificationsView', function () {
       it("App.tooltip should be called twice", function () {
         view.onLoad();
         this.clock.tick(50);
-        expect(App.tooltip.calledTwice).to.be.true;
+        expect(App.tooltip.calledOnce).to.be.true;
       });
 
       it("selectedAlertNotification should be null", function () {
@@ -247,14 +247,14 @@ describe('App.ManageAlertNotificationsView', function () {
         view.set('controller.alertNotifications', [{}]);
       });
 
-      it("Em.run.later should be called", function () {
+      it("Em.run.later should be called twice", function () {
         view.onLoad();
-        expect(Em.run.later.calledOnce).to.be.true;
+        expect(Em.run.later.calledTwice).to.be.true;
       });
 
       it("App.tooltip should be called twice", function () {
         view.onLoad();
-        this.clock.tick(50);
+        this.clock.tick(100);
         expect(App.tooltip.calledTwice).to.be.true;
       });
 

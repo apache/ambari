@@ -153,6 +153,16 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   }),
 
   /**
+   * List of available options for Enable or Disable
+   * used in settings of SelectedAlertNotification
+   * @type {Object}
+   */
+  enableOrDisable: {
+    enable: "enable",
+    disable: "disable"
+  },
+
+  /**
    * List of available Notification types
    * used in Type combobox
    * @type {Array}
@@ -877,6 +887,40 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
   duplicateAlertNotification: function () {
     this.fillEditCreateInputs(true);
     this.showCreateEditPopup();
+  },
+
+  /**
+   * Enable or Disable Notification button handler
+   * @method enableOrDisableAlertNotification
+   */
+  enableOrDisableAlertNotification: function (e) {
+    var enabled = (e.context === "disable")?false:true;
+    return App.ajax.send({
+      name: 'alerts.update_alert_notification',
+      sender: this,
+      data: {
+        data: {
+          "AlertTarget": {
+            "enabled": enabled
+          }
+        },
+        id: this.get('selectedAlertNotification.id')
+      },
+      success: 'enableOrDisableAlertNotificationSuccessCallback',
+      error: 'saveErrorCallback'
+    });
+  },
+
+  /**
+   * Success callback for <code>enableOrDisableAlertNotification</code>
+   * @method enableOrDisableAlertNotificationSuccessCallback
+   */
+  enableOrDisableAlertNotificationSuccessCallback: function () {
+    this.loadAlertNotifications();
+    var createEditPopup = this.get('createEditPopup');
+    if (createEditPopup) {
+      createEditPopup.hide();
+    }
   },
 
   /**

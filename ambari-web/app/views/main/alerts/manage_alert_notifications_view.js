@@ -41,7 +41,7 @@ App.ManageAlertNotificationsView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isEditButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+  isEditButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator', '!controller.selectedAlertNotification.enabled'),
 
   /**
    * @type {boolean}
@@ -51,7 +51,12 @@ App.ManageAlertNotificationsView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isDuplicateButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
+  isDuplicateButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator', '!controller.selectedAlertNotification.enabled'),
+
+  /**
+   * @type {boolean}
+   */
+  isEnableOrDisableButtonDisabled: Em.computed.or('!someAlertNotificationIsSelected', 'App.isOperator'),
 
   /**
    * Show EMAIL information if selected alert notification has type EMAIL
@@ -76,6 +81,25 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.alertStates').join(', ');
   }.property('controller.selectedAlertNotification.alertStates'),
 
+  editAlertNotification: function () {
+    if(!this.get('isEditButtonDisabled')) {
+      this.get('controller').editAlertNotification();
+    }
+  },
+
+  duplicateAlertNotification: function () {
+    if(!this.get('isDuplicateButtonDisabled')) {
+      this.get('controller').duplicateAlertNotification();
+    }
+  },
+
+  enableOrDisableAlertNotification: function (e) {
+    if(!this.get('isEnableOrDisableButtonDisabled')) {
+      this.$("[rel='button-info-dropdown']").tooltip('destroy');
+      this.get('controller').enableOrDisableAlertNotification(e);
+    }
+  },
+
   /**
    * Prevent user select more than 1 alert notification
    * @method onAlertNotificationSelect
@@ -88,6 +112,12 @@ App.ManageAlertNotificationsView = Em.View.extend({
     if (selectedAlertNotification && selectedAlertNotification.length > 1) {
       this.set('selectedAlertNotification', selectedAlertNotification[selectedAlertNotification.length - 1]);
     }
+    if(this.$("[rel='button-info-dropdown']")) {
+      this.$("[rel='button-info-dropdown']").tooltip('destroy');
+    }
+    Em.run.later(this, function () {
+      App.tooltip(self.$("[rel='button-info-dropdown']").parent().not(".disabled").children(), {placement: 'left'});
+    }, 50);
   }.observes('selectedAlertNotification'),
 
   /**
@@ -106,7 +136,6 @@ App.ManageAlertNotificationsView = Em.View.extend({
       }
       Em.run.later(this, function () {
         App.tooltip(self.$("[rel='button-info']"));
-        App.tooltip(self.$("[rel='button-info-dropdown']"), {placement: 'left'});
       }, 50);
     }
   }.observes('controller.isLoaded'),
