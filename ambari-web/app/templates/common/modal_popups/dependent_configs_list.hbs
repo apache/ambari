@@ -53,11 +53,11 @@
         <td class="config-dependency-filename">{{recommendation.propertyFileName}}</td>
         <td>
           <div>
-            {{recommendation.diff}}
+            {{view App.ConfigDiffView configBinding="recommendation"}}
           </div>
         </td>
       </tr>
     {{/each}}
     </tbody>
   </table>
-</div>
+</span>

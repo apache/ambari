@@ -56,7 +56,6 @@ describe('App.ConfigRecommendations', function() {
         allowChangeGroup: false,
         serviceDisplayName: 'sDisplayName',
         recommendedValue: 'pRecommended',
-		diff: {}
       });
       expect(instanceObject.getRecommendation('pName', 'pFile', 'pGroup')).to.eql(res);
     });
@@ -131,8 +130,7 @@ describe('App.ConfigRecommendations', function() {
 					serviceName: 'sName',
 					allowChangeGroup: false,
 					serviceDisplayName: 'sDisplayName',
-					recommendedValue: 'pRecommended',
-					diff: {}
+					recommendedValue: 'pRecommended'
 				}
 			},
 			{
@@ -152,8 +150,7 @@ describe('App.ConfigRecommendations', function() {
 					serviceName: 'sName',
 					allowChangeGroup: false,
 					serviceDisplayName: 'sDisplayName',
-					recommendedValue: undefined,
-					diff: {}
+					recommendedValue: undefined
 				}
 			}
 		];

@@ -67,6 +67,7 @@ require('views/common/configs/compare_property_view');
 require('views/common/configs/config_history_flow');
 require('views/common/configs/selectable_popup_body_view');
 require('views/common/configs/custom_category_views/notification_configs_view');
+require('views/common/configs/config_diff_view');
 require('views/common/configs/widgets/config_text_field');
 require('views/common/configs/widgets/plain_config_text_field');
 require('views/common/configs/widgets/config_widget_view');
