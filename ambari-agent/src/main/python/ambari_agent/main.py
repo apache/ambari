@@ -50,6 +50,7 @@ import locale
 import platform
 import ConfigParser
 import ProcessHelper
+import resource
 from logging.handlers import SysLogHandler
 from Controller import Controller
 import AmbariConfig
@@ -165,7 +166,22 @@ def check_sudo():
   if run_time > 2:
     logger.warn(("Sudo commands on this host are running slowly ('{0}' took {1} seconds).\n" +
                 "This will create a significant slow down for ambari-agent service tasks.").format(test_command_str, run_time))
-    
+
+# Updates the hard limit for open file handles
+def update_open_files_ulimit(config):
+  global logger
+  # get the current soft and hard limits
+  # if the specified value is greater than or equal to the soft limit
+  # we can update the hard limit
+  (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
+  open_files_ulimit = config.get_ulimit_open_files()
+  if open_files_ulimit >= soft_limit:
+    try:
+      resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, open_files_ulimit))
+      logger.info('open files ulimit = {0}'.format(open_files_ulimit))
+    except ValueError, err:
+      logger.error('Unable to set open files ulimit to {0}: {1}'.format(open_files_ulimit, str(err)))
+      logger.info('open files ulimit = {0}'.format(hard_limit))
 
 def perform_prestart_checks(expected_hostname):
   # Check if current hostname is equal to expected one (got from the server
@@ -328,6 +344,8 @@ def main(heartbeat_stop_callback=None):
   ping_port_listener.start()
 
   update_log_level(config)
+
+  update_open_files_ulimit(config)
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
     daemonize()

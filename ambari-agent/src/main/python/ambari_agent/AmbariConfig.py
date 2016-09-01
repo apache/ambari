@@ -154,6 +154,9 @@ class AmbariConfig:
   SERVER_CONNECTION_INFO = "{0}/connection_info"
   CONNECTION_PROTOCOL = "https"
 
+  # linux open-file limit
+  ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
+
   config = None
   net = None
 
@@ -263,6 +266,15 @@ class AmbariConfig:
 
   def get_parallel_exec_option(self):
     return int(self.get('agent', 'parallel_execution', 0))
+
+  def get_ulimit_open_files(self):
+    open_files_config_val =  int(self.get('agent', self.ULIMIT_OPEN_FILES_KEY, 0))
+    open_files_ulimit = int(open_files_config_val) if (open_files_config_val and int(open_files_config_val) > 0) else 0
+    return open_files_ulimit
+
+  def set_ulimit_open_files(self, value):
+    self.set('agent', self.ULIMIT_OPEN_FILES_KEY, value)
+
 
   def update_configuration_from_registration(self, reg_resp):
     if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:

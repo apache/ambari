@@ -27,6 +27,7 @@ import socket
 import tempfile
 import ConfigParser
 import ambari_agent.hostname as hostname
+import resource
 
 from ambari_commons import OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -125,6 +126,15 @@ class TestMain(unittest.TestCase):
     config.set('agent', 'loglevel', 'WRONG')
     main.update_log_level(config)
     setLevel_mock.assert_called_with(logging.INFO)
+
+  # Set open files ulimit hard limit
+  def test_update_open_files_ulimit(self):
+    config = AmbariConfig()
+    open_files_ulimit = 10240
+    config.set_ulimit_open_files(open_files_ulimit)
+    main.update_open_files_ulimit(config)
+    (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
+    self.assertEquals(hard_limit, open_files_ulimit)
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch("signal.signal")

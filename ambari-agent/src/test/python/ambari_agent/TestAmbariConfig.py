@@ -45,3 +45,11 @@ class TestAmbariConfig(TestCase):
     config.set("security", "keysdir", " /tmp/non-stripped")
     self.assertEqual(config.get("security", "keysdir"), "/tmp/non-stripped")
 
+    # test default value
+    open_files_ulimit = config.get_ulimit_open_files()
+    self.assertEqual(open_files_ulimit, 0)
+
+    # set a value
+    open_files_ulimit = 128000
+    config.set_ulimit_open_files(open_files_ulimit)
+    self.assertEqual(config.get_ulimit_open_files(), open_files_ulimit)
