@@ -20,6 +20,7 @@ limitations under the License.
 import os
 import subprocess
 import sys
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, \
@@ -41,6 +42,7 @@ from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, loc
   save_main_pid_ex, check_exitcode
 from ambari_server.serverClassPath import ServerClassPath
 
+logger = logging.getLogger(__name__)
 
 # debug settings
 SERVER_START_DEBUG = False
@@ -215,6 +217,19 @@ def wait_for_server_start(pidFile, scmStatus):
 
 
 def server_process_main(options, scmStatus=None):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err ="Error getting ambari properties"
+    raise FatalException(-1, err)
+
+  properties_for_print = []
+  logger.info("Ambari server properties config:")
+  for key, value in properties.getPropertyDict().items():
+     if "passwd" not in key and "password" not in key:
+       properties_for_print.append(key + "=" + value)
+
+  logger.info(properties_for_print)
+
   # debug mode, including stop Java process at startup
   try:
     set_debug_mode_from_options(options)
@@ -246,8 +261,6 @@ def server_process_main(options, scmStatus=None):
           "command to install a JDK automatically or install any " \
           "JDK manually to " + configDefaults.JDK_INSTALL_DIR
     raise FatalException(1, err)
-
-  properties = get_ambari_properties()
 
   if not options.skip_properties_validation:
     missing_properties = get_missing_properties(properties)

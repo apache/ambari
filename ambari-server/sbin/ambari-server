@@ -99,8 +99,7 @@ case "$1" in
         ;;
   restart)
         echo -e "Restarting ambari-server"
-        $0 stop
-        $0 start
+        $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
         ;;
   upgrade)
         echo -e "Upgrading ambari-server"
