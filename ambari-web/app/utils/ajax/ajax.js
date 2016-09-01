@@ -1100,7 +1100,7 @@ var urls = {
     'testInProduction': true
   },
   'service.metrics.ambari_metrics.region_server.request': {
-    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests[{fromSeconds},{toSeconds},{stepSeconds}]',
+    'real': '/clusters/{clusterName}/services/AMBARI_METRICS/components/METRICS_COLLECTOR?fields=metrics/hbase/regionserver/requests._rate[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/ambari_metrics/regionserver_requests.json',
     'testInProduction': true
   },
