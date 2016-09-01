@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -256,12 +257,16 @@ public class HeartbeatMonitor implements Runnable {
     //Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
     Collection<Config> clusterConfigs = cluster.getAllConfigs();
 
+    // creating list with desired config types to validate if cluster config actual
+    Set<String> desiredConfigTypes = cluster.getDesiredConfigs().keySet();
+
     // Apply global properties for this host from all config groups
     Map<String, Map<String, String>> allConfigTags = configHelper
         .getEffectiveDesiredTags(cluster, hostname);
 
     for(Config clusterConfig: clusterConfigs) {
-      if(!clusterConfig.getType().endsWith("-env")) {
+      String configType = clusterConfig.getType();
+      if(!configType.endsWith("-env") || !desiredConfigTypes.contains(configType)) {
         continue;
       }
 
