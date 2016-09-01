@@ -96,17 +96,6 @@ App.ConfigRecommendations = Em.Mixin.create({
     Em.assert('name and fileName should be defined', name && fileName);
     var site = App.config.getConfigTagFromFileName(fileName);
     var service = App.config.get('serviceByConfigTypeMap')[site];
-    var trimAndSort = function (value) {
-      if (value == null) {
-        return [];
-      }
-      var values = value.split("\n").filter(function (item) {
-        return item != "";
-      }).sort().join("\n");
-      return difflib.stringAsLines(values);
-    };
-    var initialValues = trimAndSort(initialValue);
-    var recommendedValues = trimAndSort(recommendedValue);
 
     var recommendation = {
       saveRecommended: true,
@@ -124,13 +113,7 @@ App.ConfigRecommendations = Em.Mixin.create({
       allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
       //TODO&& (App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')).length > 1), //TODO
       serviceDisplayName: service.get('displayName'),
-      recommendedValue: recommendedValue,
-
-      diff: new Handlebars.SafeString(diffview.buildView({
-        baseTextLines: initialValues,
-        newTextLines: recommendedValues,
-        opcodes: new difflib.SequenceMatcher(initialValues, recommendedValues).get_opcodes()
-      }).outerHTML)
+      recommendedValue: recommendedValue
     };
     this.get('recommendations').pushObject(recommendation);
     return recommendation;
