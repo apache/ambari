@@ -24,11 +24,12 @@ export ttonhost=$1
 export smoke_test_user=$2
 export templeton_port=$3
 export ttonTestScript=$4
-export smoke_user_keytab=$5
-export security_enabled=$6
-export kinit_path_local=$7
-export smokeuser_principal=$8
-export tmp_dir=$9
+export has_pig=$5
+export smoke_user_keytab=$6
+export security_enabled=$7
+export kinit_path_local=$8
+export smokeuser_principal=$9
+export tmp_dir=${10}
 export ttonurl="http://${ttonhost}:${templeton_port}/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
@@ -72,6 +73,11 @@ fi
 # NOT SURE?? SUHAS
 if [[ $security_enabled == "true" ]]; then
   echo "Templeton Pig Smoke Tests not run in secure mode"
+  exit 0
+fi
+
+if [[ $has_pig != "True" ]]; then
+  echo "Templeton Pig Smoke Tests are not run, because Pig is not installed"
   exit 0
 fi
 

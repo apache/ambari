@@ -574,6 +574,8 @@ HdfsResource = functools.partial(
   dfs_type = dfs_type
  )
 
+has_pig = 'pig-env' in config['configurations']
+
 # Hive Interactive related
 hive_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
 has_hive_interactive = len(hive_interactive_hosts) > 0
