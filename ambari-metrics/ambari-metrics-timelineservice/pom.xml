@@ -182,6 +182,19 @@
               </sources>
             </mapping>
             <mapping>
+              <directory>/usr/lib/ambari-metrics-collector/bin</directory>
+              <filemode>755</filemode>
+              <username>root</username>
+              <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
+              <sources>
+                <source>
+                  <location>conf/unix/sqlline</location>
+                  <filter>false</filter>
+                </source>
+              </sources>
+            </mapping>
+            <mapping>
               <directory>/etc/ambari-metrics-collector/conf</directory>
               <configuration>true</configuration>
               <sources>
