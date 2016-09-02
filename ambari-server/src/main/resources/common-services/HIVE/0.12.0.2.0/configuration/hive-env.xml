@@ -155,18 +155,6 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>hcat_user</name>
-    <display-name>HCat User</display-name>
-    <value>hcat</value>
-    <property-type>USER</property-type>
-    <description>HCat User.</description>
-    <value-attributes>
-      <type>user</type>
-      <overridable>false</overridable>
-    </value-attributes>
-    <on-ambari-upgrade add="true"/>
-  </property>
-  <property>
     <name>webhcat_user</name>
     <display-name>WebHCat User</display-name>
     <value>hcat</value>

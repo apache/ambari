@@ -424,7 +424,6 @@ init_metastore_schema = upgrade_direction is None
 ########## HCAT
 hcat_dbroot = hcat_lib
 
-hcat_user = config['configurations']['hive-env']['hcat_user']
 webhcat_user = config['configurations']['hive-env']['webhcat_user']
 
 hcat_pid_dir = status_params.hcat_pid_dir
@@ -542,7 +541,7 @@ templeton_jar = config['configurations']['webhcat-site']['templeton.jar']
 
 webhcat_server_host = config['clusterHostInfo']['webhcat_server_host']
 
-hcat_hdfs_user_dir = format("/user/{hcat_user}")
+hcat_hdfs_user_dir = format("/user/{webhcat_user}")
 hcat_hdfs_user_mode = 0755
 webhcat_hdfs_user_dir = format("/user/{webhcat_user}")
 webhcat_hdfs_user_mode = 0755

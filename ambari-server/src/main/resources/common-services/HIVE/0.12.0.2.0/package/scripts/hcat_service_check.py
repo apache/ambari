@@ -32,7 +32,7 @@ def hcat_service_check():
   import params
   smoke_cmd = os.path.join(params.stack_root, "Run-SmokeTests.cmd")
   service = "HCatalog"
-  Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
+  Execute(format("cmd /C {smoke_cmd} {service}"), user=params.webhcat_user, logoutput=True)
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)

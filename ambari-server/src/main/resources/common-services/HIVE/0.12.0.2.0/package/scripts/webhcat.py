@@ -44,8 +44,8 @@ def webhcat():
   # Manually overriding service logon user & password set by the installation package
   ServiceConfig(params.webhcat_server_win_service_name,
                 action="change_user",
-                username = params.hcat_user,
-                password = Script.get_password(params.hcat_user))
+                username = params.webhcat_user,
+                password = Script.get_password(params.webhcat_user))
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)

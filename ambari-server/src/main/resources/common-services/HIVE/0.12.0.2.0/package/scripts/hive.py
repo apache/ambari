@@ -122,7 +122,7 @@ def hive(name=None):
       params.HdfsResource(params.hcat_hdfs_user_dir,
                            type="directory",
                            action="create_on_execute",
-                           owner=params.hcat_user,
+                           owner=params.webhcat_user,
                            mode=params.hcat_hdfs_user_mode
       )
 

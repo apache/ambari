@@ -2725,7 +2725,7 @@ public class BlueprintConfigurationProcessor {
 
     if (services.contains("HIVE")) {
       userProps.put("hive_user", "hive-env");
-      userProps.put("hcat_user", "hive-env");
+      userProps.put("webhcat_user", "hive-env");
     }
 
     if (services.contains("HBASE")) {

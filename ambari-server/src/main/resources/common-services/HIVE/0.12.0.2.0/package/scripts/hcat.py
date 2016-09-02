@@ -51,14 +51,14 @@ def hcat():
 
   Directory(params.hive_conf_dir,
             create_parents = True,
-            owner=params.hcat_user,
+            owner=params.webhcat_user,
             group=params.user_group,
   )
 
 
   Directory(params.hcat_conf_dir,
             create_parents = True,
-            owner=params.hcat_user,
+            owner=params.webhcat_user,
             group=params.user_group,
   )
 
@@ -76,7 +76,7 @@ def hcat():
             mode=0644)
 
   File(format("{hcat_conf_dir}/hcat-env.sh"),
-       owner=params.hcat_user,
+       owner=params.webhcat_user,
        group=params.user_group,
        content=InlineTemplate(params.hcat_env_sh_template)
   )
