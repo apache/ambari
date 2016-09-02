@@ -174,6 +174,12 @@ App.ApplicationStore = DS.Store.extend({
 
   queuesNeedRefresh: [],
 
+  lastSavedConfigXML: '',
+
+  setLastSavedConfigXML: function() {
+    this.set('lastSavedConfigXML', this.buildConfig('xml'));
+  },
+
   buildConfig: function (fmt) {
     var records = [],
         config = '',
@@ -214,6 +220,9 @@ App.ApplicationStore = DS.Store.extend({
         this.get('deletedQueues').pushObject(this.buildDeletedQueue(queue));
       }
 
+      if (this.get('queuesNeedRefresh').findBy('path', queue.get('path'))) {
+        this.get('queuesNeedRefresh').removeObject(this.get('queuesNeedRefresh').findBy('path', queue.get('path')));
+      }
     }
     this.all('queue').findBy('path',queue.get('parentPath')).set('queuesArray',{'exclude':queue.get('name')});
     return queue.destroyRecord();
@@ -357,6 +366,8 @@ App.ApplicationStore = DS.Store.extend({
   isRmOffline:false,
 
   isNodeLabelsEnabledByRM: false,
+
+  isNodeLabelsConfiguredByRM: false,
 
   isInitialized: Ember.computed.and('tag', 'clusterName'),
 

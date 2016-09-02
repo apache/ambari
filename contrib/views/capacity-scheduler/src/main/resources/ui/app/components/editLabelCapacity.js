@@ -59,11 +59,15 @@ App.EditLabelCapacityComponent = Ember.Component.extend({
   }.property('parentQueue', 'parentQueue.labels.[]'),
 
   isLabelCapacityDirty: function() {
-    return this.get('label').changedAttributes().hasOwnProperty('capacity');
+    var isDirty = this.get('label').changedAttributes().hasOwnProperty('capacity');
+    this.set('label.isDirtyLabelCapacity', isDirty);
+    return isDirty;
   }.property('label.capacity'),
 
   isLabelMaxCapacityDirty: function() {
-    return this.get('label').changedAttributes().hasOwnProperty('maximum_capacity');
+    var isDirty = this.get('label').changedAttributes().hasOwnProperty('maximum_capacity');
+    this.set('label.isDirtyLabelMaxCapacity', isDirty);
+    return isDirty;
   }.property('label.maximum_capacity'),
 
   isInvalidLabelMaxCapacity: function() {

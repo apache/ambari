@@ -20,7 +20,11 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="panel-title">
-        Access Control List <a id="collapseQueueAclPanelBtn" href="#collapsibleQueueAclPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isAclPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isAclPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        Access Control List
+        {{#if isAnyAccessControlListDirty}}
+          {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
+        {{/if}}
+        <a id="collapseQueueAclPanelBtn" href="#collapsibleQueueAclPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isAclPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isAclPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleQueueAclPanel" {{bind-attr class=":panel-collapse :collapse view.isAclPanelCollapsed::in"}}>

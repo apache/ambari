@@ -20,53 +20,65 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="panel-title">
-        Preemption <a id="collapseQueuePreemptionPanelBtn" href="#collapsibleQueuePreemptionPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isPreemptionPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isPreemptionPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        Preemption
+        {{#if isQueuePreemptionDirty}}
+          {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
+        {{/if}}
+        <a id="collapseQueuePreemptionPanelBtn" href="#collapsibleQueuePreemptionPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isPreemptionPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isPreemptionPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleQueuePreemptionPanel" {{bind-attr class=":panel-collapse :collapse view.isPreemptionPanelCollapsed::in"}}>
       <div class="panel-body">
-        {{#if isPreemptionSupported}}
-          <div class="row">
-            <div class="col-sm-10 col-md-10">
-              <label>Can this queue be preempted by other queues: </label>
-              {{#if queueDisablePreemption}}
-                <span class="text-danger">Disabled </span>
-              {{else}}
-                <span class="text-success">Enabled </span>
-              {{/if}}
-              {{#if isPreemptionInherited}}
-                {{#if isRoot}}
-                  <span>(Inherited from global settings)</span>
+        {{#if isPreemptionEnabledByYarn}}
+          {{#if isPreemptionSupported}}
+            <div class="row">
+              <div class="col-sm-10 col-md-10">
+                <label>Can this queue be preempted by other queues: </label>
+                {{#if queueDisablePreemption}}
+                  <span class="text-danger">Disabled </span>
                 {{else}}
-                  <span>(Inherited)</span>
+                  <span class="text-success">Enabled </span>
                 {{/if}}
-              {{/if}}
-              {{#if isQueuePreemptionDirty}}
-                {{warning-info class="yellow-warning" tooltip="Need refresh queues/restart RM"}}
-              {{/if}}
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-sm-4 col-md-4">
-              <div class="checkbox">
-                <label>
-                  {{input type="checkbox" name="preemptionOverride" checked=isPreemptionOverriden}}
-                  Override Preemption
-                </label>
+                {{#if isPreemptionInherited}}
+                  {{#if isRoot}}
+                    <span>(Inherited from global settings)</span>
+                  {{else}}
+                    <span>(Inherited)</span>
+                  {{/if}}
+                {{/if}}
               </div>
             </div>
-            {{#if isPreemptionOverriden}}
-              <div class="col-sm-3 col-md-3">
-                <div class="btn-group btn-group-sm override-btns" data-toggle="buttons">
-                  {{radio-button label="Enable" classNames="btn-small" selectionBinding="doOverridePreemption" value="enable"}}
-                  {{radio-button label="Disable" classNames="btn-small" selectionBinding="doOverridePreemption" value="disable"}}
+            <div class="row">
+              <div class="col-sm-4 col-md-4">
+                <div class="checkbox">
+                  <label>
+                    {{input type="checkbox" name="preemptionOverride" checked=isPreemptionOverriden}}
+                    Override preempt-able settings
+                  </label>
                 </div>
               </div>
-            {{/if}}
-          </div>
+              {{#if isPreemptionOverriden}}
+                <div class="col-sm-4 col-md-4">
+                  <div class="btn-group btn-group-sm override-btns" data-toggle="buttons">
+                    {{radio-button label="Enable" classNames="btn-small" selectionBinding="doOverridePreemption" value="enable"}}
+                    {{radio-button label="Disable" classNames="btn-small" selectionBinding="doOverridePreemption" value="disable"}}
+                  </div>
+                  {{#if isQueuePreemptionDirty}}
+                    <div class="btn-group btn-group-xs override-btns">
+                      <a {{action 'rollbackPreemptionProps'}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                    </div>
+                  {{/if}}
+                </div>
+              {{/if}}
+            </div>
+          {{else}}
+            <div class="text-warning">
+              <span>Preemption is not supported for your current stack version {{currentStack}}</span>
+            </div>
+          {{/if}}
         {{else}}
           <div class="text-warning">
-            <span>Preemption is not supported for your current stack version {{currentStack}}</span>
+            <span>Preemption is disabled by resource manager </span>
           </div>
         {{/if}}
       </div>

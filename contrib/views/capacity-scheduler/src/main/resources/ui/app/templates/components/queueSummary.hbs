@@ -38,12 +38,12 @@
         </div>
         <div class="row">
           <div class="col-sm-5">
-            <label>Capacity</label>
+            <label>Capacity of my parent</label>
           </div>
           <div class="col-sm-5">
             <span>{{queue.capacity}}%</span>
           </div>
-          {{#if isQueueNeedRefreshOrRestart}}
+          {{#if isQueueCapacityNeedRefresh}}
             <div class="col-sm-2">
               {{warning-info class="yellow-warning" tooltip="Need refresh queues/restart RM to take effect"}}
             </div>
@@ -56,7 +56,7 @@
           <div class="col-sm-5">
             <span>{{effectiveCapacity}}%</span>
           </div>
-          {{#if isQueueNeedRefreshOrRestart}}
+          {{#if isQueueCapacityNeedRefresh}}
             <div class="col-sm-2">
               {{warning-info class="yellow-warning" tooltip="Need refresh queues/restart RM to take effect"}}
             </div>
@@ -69,7 +69,7 @@
           <div class="col-sm-5">
             <span {{bind-attr class="qStateColor"}}>{{queueState}}</span>
           </div>
-          {{#if isQueueNeedRefreshOrRestart}}
+          {{#if isQueueStateNeedRefresh}}
             <div class="col-sm-2">
               {{warning-info class="yellow-warning" tooltip="Need refresh queues/restart RM to take effect"}}
             </div>

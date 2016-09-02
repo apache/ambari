@@ -23,6 +23,7 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
   queueLabels: null,
   labels: null,
   queues: null,
+  warnInvalidTotalLabelCapacity: false,
 
   extractLabels: function() {
     var qLabels = this.get('queueLabels'),
@@ -53,6 +54,7 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
       isInvalid = true;
     }
     this.get('labels').setEach('overCapacity', isInvalid);
+    this.set('warnInvalidTotalLabelCapacity', isInvalid);
     return isInvalid;
   }.property('childrenQueueLabelsTotalCapacity'),
 

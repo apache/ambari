@@ -22,7 +22,7 @@
   </div>
   <div class="col-md-5 col-md-5">
     <div {{bind-attr class=":form-group :input-group :capacity-input-percent warnInvalidTotalCapacity:has-error"}}>
-      {{capacity-input class='input-sm' value=queue.capacity queue=this maxVal=100}}
+      {{decimal-capacity-input class='input-sm' value=queue.capacity queue=queue maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">
@@ -36,7 +36,7 @@
   </div>
   <div class="col-md-5 col-sm-5">
     <div {{bind-attr class=":form-group :input-group :capacity-input-percent isInvalidQueueMaximumCapacity:has-error"}}>
-      {{max-capacity-input class='input-sm' value=queue.maximum_capacity queue=queue maxVal=100}}
+      {{decimal-maxcapacity-input class='input-sm' value=queue.maximum_capacity queue=queue maxVal=100}}
       <span class="input-group-addon">%</span>
     </div>
     <div class="form-group capacity-input-slider">

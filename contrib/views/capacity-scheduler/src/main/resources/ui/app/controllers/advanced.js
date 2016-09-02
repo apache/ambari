@@ -53,6 +53,8 @@ App.CapschedAdvancedController = Ember.Controller.extend({
 
   isQueueMappingsDirty: false,
   queueMappingProps: ['queue_mappings', 'queue_mappings_override_enable'],
+  isRefreshOrRestartNeeded: false,
+  isQueueMappignsNeedSaveOrRefresh: cmp.or('isQueueMappingsDirty', 'isRefreshOrRestartNeeded'),
 
   saveMode: '',
 
@@ -69,6 +71,10 @@ App.CapschedAdvancedController = Ember.Controller.extend({
       return attributes.hasOwnProperty(prop);
     });
     this.set('isQueueMappingsDirty', isDirty);
-  }.observes('scheduler.queue_mappings', 'scheduler.queue_mappings_override_enable')
+    this.set('isRefreshOrRestartNeeded', isDirty);
+  }.observes('scheduler.queue_mappings', 'scheduler.queue_mappings_override_enable'),
 
+  forceRefreshRequired: function() {
+    return !this.get('isQueueMappingsDirty') && this.get('isRefreshOrRestartNeeded');
+  }.property('isQueueMappingsDirty', 'isRefreshOrRestartNeeded')
 });
