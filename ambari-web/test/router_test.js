@@ -102,7 +102,7 @@ describe('App.Router', function () {
           }
         }, {
           'RootServiceComponents': {
-            'component_version': '2.0.0'
+            'component_version': '2.0.0_MyBuild'
           }
         }]
       },
@@ -128,7 +128,7 @@ describe('App.Router', function () {
       mockData: {
         components: [{
           'RootServiceComponents': {
-            component_version: '2.1.0'
+            component_version: '2.1.0_MyBuild'
           }
         }]
       },

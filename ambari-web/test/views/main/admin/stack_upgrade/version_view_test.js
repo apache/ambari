@@ -374,6 +374,50 @@ describe('App.mainAdminStackVersionsView', function () {
     });
   });
 
+  describe("#goToVersionsCustomVersions", function() {
+    var data = {
+      components: [{
+        'RootServiceComponents': {
+          'component_version': '1.9.0'
+        }
+      }, {
+        'RootServiceComponents': {
+          'component_version': '2.1.0_MyBuild'
+        }
+      }, {
+        'RootServiceComponents': {
+          'component_version': '2.0.0'
+        }
+      }]
+    };
+    before(function () {
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(window.location, 'replace', Em.K);
+    });
+    after(function () {
+      App.showConfirmationPopup.restore();
+      window.location.replace.restore();
+    });
+
+    beforeEach(function () {
+      App.ajax.send.restore();
+      sinon.stub(App.ajax, 'send').returns({
+        then: function(callback) {
+          callback(data);
+        }
+      });
+    });
+
+    it("should go to link using the version retrieved by query", function() {
+      var popup = view.goToVersions();
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
+      expect(args[0]).exists;
+      expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/stackVersions')).to.be.true;
+    });
+  });
+
   describe("#willInsertElement()", function() {
     beforeEach(function () {
       sinon.stub(view, 'poll', Em.K);

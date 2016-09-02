@@ -193,7 +193,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
               }
             }),
             sortedMappedVersions = mappedVersions.sort(),
-            latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
+            latestVersion = sortedMappedVersions[sortedMappedVersions.length-1].replace(/[^\d.-]/g, '');
             window.location.replace(App.appURLRoot + 'views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/stackVersions');
         }
       });
