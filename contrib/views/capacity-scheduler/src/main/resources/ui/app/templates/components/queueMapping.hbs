@@ -19,6 +19,9 @@
   <div class="panel-heading">
     <div class="panel-title">
       Queue Mappings
+      {{#if isQueueMappingsDirty}}
+        {{warning-info class="yellow-warning" tooltip="Need refresh queues"}}
+      {{/if}}
       <a href="#queueMappingsCollapsiblePanel" id="collapseQueueMappingsBtn" data-toggle="collapse" {{bind-attr class=":pull-right isCollapsed:collapsed"}}><i {{bind-attr class=":fa isCollapsed:fa-plus:fa-minus"}}></i></a>
     </div>
   </div>
@@ -158,7 +161,7 @@
               {{input type="checkbox" name="queueMappingOverride" checked=mappingsOverrideEnable}}
               {{tooltip-label
                 label='Allow application to override user-queue mapping'
-                message='When checked, applications submitted with queues specified will be used other than those defined in default queue mapping'
+                message='When checked, applications submitted with queues specified will be used other than those defined in configured queue mapping'
               }}
             </label>
           </div>

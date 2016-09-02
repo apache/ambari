@@ -20,7 +20,15 @@
   <div class="panel panel-default">
     <div class="panel-heading">
       <div class="panel-title">
-        Queue Capacity <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        Children Queue Capacites for Default Partition
+        {{#if isAnyChildrenQueueCapacityDirty}}
+          {{#if warnInvalidCapacity}}
+            {{warning-info class="red" tooltip="Invalid queue total capacity"}}
+          {{else}}
+            {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
+          {{/if}}
+        {{/if}}
+        <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleQueueCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isCapacityPanelCollapsed::in"}}>
@@ -69,7 +77,7 @@
             {{#if parentQueue}}
               <div class="row">
                 <div class="col-md-10 col-sm-10">
-                  <small>To edit capacity and maximum capacity at parent queue level</small>
+                  <small><strong>For this queue:</strong> To edit capacity and maximum capacity at parent queue level</small>
                   <small>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</small>
                 </div>
               </div>
@@ -87,7 +95,7 @@
             </div>
             <div class="row">
               <div class="col-md-10 col-sm-10">
-                <small>To edit capacity and maximum capacity at parent queue level</small>
+                <small><strong>For this queue:</strong> To edit capacity and maximum capacity at parent queue level</small>
                 <small>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</small>
               </div>
             </div>

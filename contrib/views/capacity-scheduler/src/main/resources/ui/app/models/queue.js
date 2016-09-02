@@ -42,7 +42,9 @@ App.Label = DS.Model.extend({
   },
   setMaxCapacity: function(maxCap) {
     this.set('maximum_capacity', maxCap);
-  }
+  },
+  isDirtyLabelCapacity: false,
+  isDirtyLabelMaxCapacity: false
 });
 
 App.Scheduler = DS.Model.extend({
@@ -243,11 +245,14 @@ App.Queue = DS.Model.extend({
   capacity: DS.attr('number', { defaultValue: 0 }),
   maximum_capacity: DS.attr('number', { defaultValue: 0 }),
   //unfunded_capacity: DS.attr('number', { defaultValue: 0 }),
+  isDirtyCapacity: false,
+  isDirtyMaxCapacity: false,
 
   user_limit_factor: DS.attr('number', { defaultValue: 1 }),
   minimum_user_limit_percent: DS.attr('number', { defaultValue: 100 }),
   maximum_applications: DS.attr('number', { defaultValue: null }),
   maximum_am_resource_percent: DS.attr('number', { defaultValue: null }),
+
   disable_preemption: DS.attr('string', {defaultValue: ''}),
   isPreemptionInherited: DS.attr('boolean', {defaultValue: true}),
   isPreemptionOverriden: false,

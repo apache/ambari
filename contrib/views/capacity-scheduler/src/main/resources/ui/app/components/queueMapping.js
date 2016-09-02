@@ -33,6 +33,7 @@
    customGroupMappings: '',
    selectedLeafQueueNameForUsers: null,
    selectedLeafQueueNameForGroups: null,
+   isQueueMappingsDirty: false,
 
    actions: {
      showMappingOptions: function(){

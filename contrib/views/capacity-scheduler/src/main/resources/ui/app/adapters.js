@@ -256,9 +256,9 @@ App.QueueAdapter = DS.Adapter.extend({
         var parsedData = JSON.parse(data), labels;
 
         if (parsedData !== null) {
-          store.set('isNodeLabelsEnabledByRM', true);
+          store.set('isNodeLabelsConfiguredByRM', true);
         } else {
-          store.set('isNodeLabelsEnabledByRM', false);
+          store.set('isNodeLabelsConfiguredByRM', false);
         }
 
         if (stackVersion >= 2.5) {
@@ -320,6 +320,21 @@ App.QueueAdapter = DS.Adapter.extend({
         }
       });
     }.bind(this),'App: QueueAdapter#checkCluster');
+  },
+
+  getRmSchedulerConfigInfo: function() {
+    var uri = [_getCapacitySchedulerViewUri(this), 'rmCurrentConfig'].join('/');
+    if (App.testMode) {
+      uri = uri + ".json";
+    }
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      _ajax(uri, 'GET').then(function(data) {
+        Ember.run(null, resolve, data);
+      }, function(jqXHR) {
+        jqXHR.then = null;
+        Ember.run(null, reject, jqXHR);
+      });
+    }.bind(this),'App: QueueAdapter#getRmSchedulerConfigInfo');
   }
 });
 

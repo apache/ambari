@@ -159,11 +159,28 @@ App.DecimalCapacityInputComponent = Ember.TextField.extend({
     return parseFloat(val) <= 100;
   },
 
+  debounceId: null,
+  cancelDebounceCallback: function() {
+    Ember.run.cancel(this.get('debounceId'));
+    this.set('debounceId', null);
+  },
+  initDebounceCallback: function(val, maxVal) {
+    var debounce = Ember.run.debounce(this, function() {
+      this.set('value', (parseFloat(val) > maxVal)? parseFloat(maxVal) : parseFloat(val));
+    }, 3000);
+    this.set('debounceId', debounce);
+  },
+
   valueDidChange: function() {
     var val = this.get('value'),
     maxVal = this.get('maxVal');
-    if (/^\d+(\.\d{1,2})?$/.test(val)) {
-      this.set('value', (parseFloat(val) > maxVal)? parseFloat(maxVal) : parseFloat(val));
+    this.cancelDebounceCallback();
+    if (/^\d+(\.(\d{1,2})?)?$/.test(val)) {
+      if (/^\d+\.[0]$/.test(val) || /^\d+\.$/.test(val)) {
+        this.initDebounceCallback(val, maxVal);
+      } else {
+        this.set('value', (parseFloat(val) > maxVal)? parseFloat(maxVal) : parseFloat(val));
+      }
     }
   }.observes('value').on('change')
 

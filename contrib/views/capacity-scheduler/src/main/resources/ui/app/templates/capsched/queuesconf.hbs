@@ -82,15 +82,19 @@
   </div>
   {{#if isOperator}}
     <div class="btn btn-group-sm col-sm-offset-2">
+      {{#if isQueuesNeedRefreshOrRestart}}
+        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Refresh queues / restart RM is required"}}
+      {{/if}}
       <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needSave::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRefresh::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isQueuesNeedRefreshOrRestart::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isQueuesNeedRefreshOrRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
       <button type="button" {{bind-attr class=":btn :btn-danger isAnyQueueDirty::disabled"}} name="cancelQueuesconfBtn" {{action "showConfirmDialog"}}>Discard Changes</button>
+      <button type="button" {{bind-attr class=":btn :btn-primary isAnyQueueDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}} style="display:none;">View XML Diff</button>
     </div>
   {{/if}}
 </div>
 
-{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode}}
+{{save-config-dialog isDialogOpen=isSaveConfigDialogOpen configNote=configNote action="saveCapSchedConfigs" param=saveMode forceRefresh=forceRefreshOrRestartRequired}}
 
 {{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="discardQueuesChanges"}}
 

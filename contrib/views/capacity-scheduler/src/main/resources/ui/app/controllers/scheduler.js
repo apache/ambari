@@ -24,6 +24,7 @@ App.CapschedSchedulerController = Ember.Controller.extend({
   needs: ['capsched'],
   scheduler: cmp.alias('controllers.capsched.content'),
   schedulerProps: ['maximum_am_resource_percent', 'maximum_applications', 'node_locality_delay', 'resource_calculator'],
+  isRefreshOrRestartNeeded: false,
 
   actions: {
     rollbackSchedulerProps: function() {
@@ -60,21 +61,29 @@ App.CapschedSchedulerController = Ember.Controller.extend({
 
   isSchedulerDirty: false,
 
+  isSchedulerPropsNeedSaveOrRestart: cmp.or('isRefreshOrRestartNeeded', 'isSchedulerDirty'),
+
+  forceRestartRequired: function() {
+    return !this.get('isSchedulerDirty') && this.get('isRefreshOrRestartNeeded');
+  }.property('isSchedulerDirty', 'isRefreshOrRestartNeeded'),
+
   schedulerBecomeDirty: function() {
     var sched = this.get('scheduler'),
-    attributes = sched.changedAttributes(),
-    props = this.schedulerProps;
+      attributes = sched.changedAttributes(),
+      props = this.schedulerProps;
+
     var isDirty = props.any(function(prop){
       return attributes.hasOwnProperty(prop);
     });
     this.set('isSchedulerDirty', isDirty);
+    this.set('isRefreshOrRestartNeeded', isDirty);
   }.observes('scheduler.maximum_am_resource_percent', 'scheduler.maximum_applications', 'scheduler.node_locality_delay', 'scheduler.resource_calculator'),
 
   /**
    * Collection of modified fields in Scheduler.
    * @type {Object} - { [fileldName] : {Boolean} }
    */
-  schedulerDirtyFilelds: {},
+  schedulerDirtyFields: {},
 
   dirtyObserver:function () {
     this.get('scheduler.constructor.transformedAttributes.keys.list').forEach(function(item) {
@@ -84,7 +93,7 @@ App.CapschedSchedulerController = Ember.Controller.extend({
 
   propertyBecomeDirty:function (controller, property) {
     var schedProp = property.split('.').objectAt(1);
-    this.set('schedulerDirtyFilelds.' + schedProp, this.get('scheduler').changedAttributes().hasOwnProperty(schedProp));
+    this.set('schedulerDirtyFields.' + schedProp, this.get('scheduler').changedAttributes().hasOwnProperty(schedProp));
   },
 
   resourceCalculatorValues: [{
