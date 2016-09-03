@@ -540,9 +540,15 @@ public class DatabaseConsistencyCheckHelper {
         Map<String, ServiceInfo> serviceInfoMap = ambariMetaInfo.getServices(stackName, stackVersion);
         for (String serviceName : serviceNames) {
           ServiceInfo serviceInfo = serviceInfoMap.get(serviceName);
-          Set<String> configTypes = serviceInfo.getConfigTypeAttributes().keySet();
-          for (String configType : configTypes) {
-            stackServiceConfigs.put(serviceName, configType);
+          if (serviceInfo != null) {
+            Set<String> configTypes = serviceInfo.getConfigTypeAttributes().keySet();
+            for (String configType : configTypes) {
+              stackServiceConfigs.put(serviceName, configType);
+            }
+          } else {
+            LOG.warn("Service {} is not available for stack {} in cluster {}",
+                    serviceName, stackName + "-" + stackVersion, clusterName);
+            warningAvailable = true;
           }
         }
 
