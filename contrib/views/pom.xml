@@ -42,6 +42,7 @@
     <module>slider</module>
     <module>capacity-scheduler</module>
     <module>tez</module>
+    <module>hawq</module>
     <module>storm</module>
     <module>zeppelin</module>
     <module>hueambarimigration</module>
