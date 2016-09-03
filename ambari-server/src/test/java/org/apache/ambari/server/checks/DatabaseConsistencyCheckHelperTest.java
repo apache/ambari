@@ -249,9 +249,9 @@ public class DatabaseConsistencyCheckHelperTest {
 
     expect(mockHDFSServiceInfo.getConfigTypeAttributes()).andReturn(configAttributes);
     expect(mockAmbariMetainfo.getServices("HDP", "2.2")).andReturn(services);
-    expect(serviceConfigResultSet.next()).andReturn(true);
-    expect(serviceConfigResultSet.getString("service_name")).andReturn("HDFS");
-    expect(serviceConfigResultSet.getString("type_name")).andReturn("core-site");
+    expect(serviceConfigResultSet.next()).andReturn(true).times(2);
+    expect(serviceConfigResultSet.getString("service_name")).andReturn("HDFS").andReturn("HBASE");
+    expect(serviceConfigResultSet.getString("type_name")).andReturn("core-site").andReturn("hbase-env");
     expect(stackResultSet.next()).andReturn(true);
     expect(stackResultSet.getString("stack_name")).andReturn("HDP");
     expect(stackResultSet.getString("stack_version")).andReturn("2.2");
