@@ -46,9 +46,9 @@ AMBARI_LOG4J="${AMBARI_CONFIGS_DIR}/log4j.properties"
 
 clean_pyc_files(){
   # cleaning old *.pyc files
-  find $RESOURCE_MANAGEMENT_DIR/ -name *.pyc -exec rm {} \;
-  find $COMMON_DIR/ -name *.pyc -exec rm {} \;
-  find $AMBARI_SERVER/ -name *.pyc -exec rm {} \;
+  find ${RESOURCE_MANAGEMENT_DIR:?} -name *.pyc -exec rm {} \;
+  find ${COMMON_DIR:?} -name *.pyc -exec rm {} \;
+  find ${AMBARI_SERVER:?} -name *.pyc -exec rm {} \;
 }
 
 
