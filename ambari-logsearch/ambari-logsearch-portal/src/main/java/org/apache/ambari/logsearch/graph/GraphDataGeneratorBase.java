@@ -23,15 +23,15 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.ambari.logsearch.manager.MgrBase;
+import org.apache.ambari.logsearch.manager.ManagerBase;
+import org.apache.ambari.logsearch.model.response.BarGraphData;
+import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.util.DateUtil;
-import org.apache.ambari.logsearch.view.VBarGraphData;
-import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.common.util.SimpleOrderedMap;
 
-class GraphDataGeneratorBase extends MgrBase {
+class GraphDataGeneratorBase {
 
   private static final String BUCKETS = "buckets";
   
@@ -62,19 +62,19 @@ class GraphDataGeneratorBase extends MgrBase {
 
   @SuppressWarnings("unchecked")
   protected void extractRangeStackValuesFromBucket(SimpleOrderedMap<Object> jsonFacetResponse, String outerField,
-      String innerField, List<VBarGraphData> histogramData) {
+      String innerField, List<BarGraphData> histogramData) {
     if (jsonFacetResponse != null) {
       NamedList<Object> stack = (NamedList<Object>) jsonFacetResponse.get(outerField);
       if (stack != null) {
         ArrayList<Object> stackBuckets = (ArrayList<Object>) stack.get(BUCKETS);
         if (stackBuckets != null) {
           for (Object stackBucket : stackBuckets) {
-            VBarGraphData vBarGraphData = new VBarGraphData();
+            BarGraphData vBarGraphData = new BarGraphData();
             SimpleOrderedMap<Object> level = (SimpleOrderedMap<Object>) stackBucket;
             if (level != null) {
               String name = level.getVal(0) != null ? level.getVal(0).toString().toUpperCase() : "";
               vBarGraphData.setName(name);
-              Collection<VNameValue> vNameValues = new ArrayList<VNameValue>();
+              Collection<NameValueData> vNameValues = new ArrayList<NameValueData>();
               NamedList<Object> innerFiledValue = (NamedList<Object>) level.get(innerField);
               if (innerFiledValue != null) {
                 ArrayList<Object> levelBuckets = (ArrayList<Object>) innerFiledValue.get(BUCKETS);
@@ -84,13 +84,15 @@ class GraphDataGeneratorBase extends MgrBase {
                     if (countValue != null) {
                       String innerName = DateUtil.convertDateWithMillisecondsToSolrDate((Date) countValue.getVal(0));
                       String innerValue = countValue.getVal(1) != null ? countValue.getVal(1).toString() : "";
-                      VNameValue vNameValue = new VNameValue(innerName, innerValue);
+                      NameValueData vNameValue = new NameValueData();
+                      vNameValue.setName(innerName);
+                      vNameValue.setValue(innerValue);
                       vNameValues.add(vNameValue);
                     }
                   }
                 }
               }
-              vBarGraphData.setDataCounts(vNameValues);
+              vBarGraphData.setDataCount(vNameValues);
             }
             histogramData.add(vBarGraphData);
           }
@@ -101,7 +103,7 @@ class GraphDataGeneratorBase extends MgrBase {
 
   @SuppressWarnings("unchecked")
   protected boolean extractNonRangeStackValuesFromBucket(SimpleOrderedMap<Object> jsonFacetResponse, String level,
-      Collection<VBarGraphData> vGraphDatas, String typeXAxis) {
+      Collection<BarGraphData> vGraphDatas, String typeXAxis) {
     boolean zeroFlag = true;
     if (jsonFacetResponse == null || jsonFacetResponse.get(level) == null
         || jsonFacetResponse.get(level).toString().equals("{count=0}")) {
@@ -114,11 +116,11 @@ class GraphDataGeneratorBase extends MgrBase {
         for (int index = 0; index < bucketList.size(); index++) {
           SimpleOrderedMap<Object> valueCount = (SimpleOrderedMap<Object>) bucketList.get(index);
           if (valueCount != null && valueCount.size() > 2) {
-            VBarGraphData vGraphData = new VBarGraphData();
-            Collection<VNameValue> levelCounts = new ArrayList<VNameValue>();
+            BarGraphData vGraphData = new BarGraphData();
+            Collection<NameValueData> levelCounts = new ArrayList<NameValueData>();
             String name = valueCount.getVal(0) != null ? valueCount.getVal(0).toString().trim() : "";
             if (isTypeNumber(typeXAxis)) {
-              VNameValue nameValue = new VNameValue();
+              NameValueData nameValue = new NameValueData();
               Double sumValue = (Double) valueCount.getVal(2);
               String value = "0";// default is zero
               if (sumValue != null) {
@@ -137,7 +139,9 @@ class GraphDataGeneratorBase extends MgrBase {
                     if (innerValueCount != null) {
                       String innerName = innerValueCount.getVal(0) != null ? innerValueCount.getVal(0).toString().trim() : "";
                       String innerValue = innerValueCount.getVal(1) != null ? innerValueCount.getVal(1).toString().trim() : "";
-                      VNameValue nameValue = new VNameValue(innerName, innerValue);
+                      NameValueData nameValue = new NameValueData();
+                      nameValue.setValue(innerValue);
+                      nameValue.setName(innerName);
                       levelCounts.add(nameValue);
                     }
                   }
@@ -145,7 +149,7 @@ class GraphDataGeneratorBase extends MgrBase {
               }
             }
             vGraphData.setName(name);
-            vGraphData.setDataCounts(levelCounts);
+            vGraphData.setDataCount(levelCounts);
             vGraphDatas.add(vGraphData);
           }
         }

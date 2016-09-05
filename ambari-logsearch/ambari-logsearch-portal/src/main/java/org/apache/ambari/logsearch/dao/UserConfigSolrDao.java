@@ -21,15 +21,17 @@ package org.apache.ambari.logsearch.dao;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
+import org.apache.ambari.logsearch.conf.SolrUserConfig;
 import org.apache.ambari.logsearch.view.VLogfeederFilterWrapper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -42,7 +44,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import com.google.gson.JsonParseException;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -52,7 +54,9 @@ import org.springframework.util.CollectionUtils;
 public class UserConfigSolrDao extends SolrDaoBase {
 
   private static final Logger logger = Logger.getLogger(UserConfigSolrDao.class);
-  private static final String DEFAULT_LEVELS = "FATAL,ERROR,WARN,INFO,DEBUG,TRACE";
+
+  @Inject
+  private SolrUserConfig solrUserConfig;
 
   public UserConfigSolrDao() {
     super(LogType.SERVICE);
@@ -60,13 +64,13 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.url");
-    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.history", "history");
-    String configName = PropertiesHelper.getProperty("logsearch.solr.history.config.name", "history");
-    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.history.replication.factor", 2);
-    String splitInterval = "none";
-    int numberOfShards = 1;
+    String solrUrl = solrUserConfig.getSolrUrl();
+    String zkConnectString = solrUserConfig.getZkConnectString();
+    String collection = solrUserConfig.getCollection();
+    String configName = solrUserConfig.getConfigName();
+    int replicationFactor = solrUserConfig.getReplicationFactor();
+    String splitInterval = solrUserConfig.getSplitInterval();
+    int numberOfShards = solrUserConfig.getNumberOfShards();
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);
@@ -117,14 +121,14 @@ public class UserConfigSolrDao extends SolrDaoBase {
     if (!CollectionUtils.isEmpty(documentList)) {
       SolrDocument configDoc = documentList.get(0);
       String configJson = JSONUtil.objToJson(configDoc);
-      HashMap<String, Object> configMap = (HashMap<String, Object>) JSONUtil.jsonToMapObject(configJson);
+      HashMap<String, Object> configMap = JSONUtil.jsonToMapObject(configJson);
       String json = (String) configMap.get(LogSearchConstants.VALUES);
       logfeederFilterWrapper = (VLogfeederFilterWrapper) JSONUtil.jsonToObj(json, VLogfeederFilterWrapper.class);
       logfeederFilterWrapper.setId("" + configDoc.get(LogSearchConstants.ID));
 
     } else {
-      String logfeederDefaultLevels = PropertiesHelper.getProperty("logsearch.logfeeder.include.default.level", DEFAULT_LEVELS);
-      JSONArray levelJsonArray = new JSONArray(Arrays.asList(logfeederDefaultLevels.split(",")));
+      List<String> logfeederDefaultLevels = solrUserConfig.getLogLevels();
+      JSONArray levelJsonArray = new JSONArray(logfeederDefaultLevels);
 
       String hadoopServiceString = getHadoopServiceConfigJSON();
       String key = null;

@@ -28,9 +28,11 @@ import java.util.regex.Pattern;
 import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.common.SearchCriteria;
+import org.apache.ambari.logsearch.conf.SolrAuditLogConfig;
+import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
+import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.lang.StringUtils;
@@ -44,10 +46,18 @@ import org.apache.solr.schema.TrieFloatField;
 import org.apache.solr.schema.TrieLongField;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
+
 @Component
 public class QueryGeneration extends QueryGenerationBase {
 
   private static Logger logger = Logger.getLogger(QueryGeneration.class);
+
+  @Inject
+  private SolrServiceLogConfig solrServiceLogConfig;
+
+  @Inject
+  private SolrAuditLogConfig solrAuditLogConfig;
 
   public SolrQuery commonServiceFilterQuery(SearchCriteria searchCriteria) {
     LogType logType = LogType.SERVICE;
@@ -349,10 +359,10 @@ public class QueryGeneration extends QueryGenerationBase {
     String originalKey;
     switch (logType) {
     case AUDIT:
-      originalKey = ConfigHelper.auditLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
+      originalKey = solrAuditLogConfig.getSolrAndUiColumns().get(key + LogSearchConstants.UI_SUFFIX);
       break;
     case SERVICE:
-      originalKey = ConfigHelper.serviceLogsColumnMapping.get(key + LogSearchConstants.UI_SUFFIX);
+      originalKey = solrServiceLogConfig.getSolrAndUiColumns().get(key + LogSearchConstants.UI_SUFFIX);
       break;
     default:
       originalKey = null;

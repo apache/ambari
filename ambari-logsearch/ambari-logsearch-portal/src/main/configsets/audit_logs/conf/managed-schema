@@ -106,7 +106,6 @@
   <field name="file" type="key_lower_case" multiValued="false"/>
   <field name="log_message" type="key_lower_case" multiValued="false" omitNorms="false"/>
   <field name="logfile_line_number" type="tint" omitNorms="false"/>
-  <!-- <field name="message" type="text_std_token_lower_case" indexed="true" stored="true"/> -->
   <field name="message_md5" type="string" multiValued="false"/>
   <field name="type" type="key_lower_case" multiValued="false"/>
   

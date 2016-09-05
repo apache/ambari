@@ -24,11 +24,10 @@ import java.util.Arrays;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
@@ -38,6 +37,10 @@ import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.common.util.NamedList;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.TestSubject;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -45,14 +48,30 @@ import org.junit.rules.ExpectedException;
 import junit.framework.Assert;
 
 public class SolrDaoBaseTest {
+
+  @TestSubject
+  private SolrDaoBase dao = new SolrDaoBase(LogType.SERVICE) {};
+
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
+
+  @Mock
+  private SolrKerberosConfig kerbConfigMock;
+
+  @Before
+  public void setUp() {
+    EasyMockSupport.injectMocks(this);
+  }
   
   // ----------------------------------------------------------- connectToSolr -----------------------------------------------------------
   
   @Test
   public void testConnectToSolrWithConnectString() throws Exception {
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file");
+
+    EasyMock.replay(kerbConfigMock);
+
     SolrClient solrClient = dao.connectToSolr(null, "zk_connect_string", "collection");
     
     Assert.assertEquals(solrClient.getClass(), CloudSolrClient.class);
@@ -60,7 +79,11 @@ public class SolrDaoBaseTest {
   
   @Test
   public void testConnectToSolrWithUrl() throws Exception {
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file");
+
+    EasyMock.replay(kerbConfigMock);
+
     SolrClient solrClient = dao.connectToSolr("url", null, "collection");
     
     Assert.assertEquals(solrClient.getClass(), HttpSolrClient.class);
@@ -68,7 +91,11 @@ public class SolrDaoBaseTest {
   
   @Test
   public void testConnectToSolrWithBoth() throws Exception {
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file");
+
+    EasyMock.replay(kerbConfigMock);
+
     SolrClient solrClient = dao.connectToSolr("url", "zk_connect_string", "collection");
     
     Assert.assertEquals(solrClient.getClass(), CloudSolrClient.class);
@@ -76,10 +103,14 @@ public class SolrDaoBaseTest {
   
   @Test
   public void testConnectToSolrWithNeither() throws Exception {
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file");
+
+    EasyMock.replay(kerbConfigMock);
+
     expectedException.expect(Exception.class);
     expectedException.expectMessage("Both zkConnectString and URL are empty. zkConnectString=null, collection=collection, url=null");
 
-    SolrDaoBase dao = new SolrDaoBase(null) {};
     dao.connectToSolr(null, null, "collection");
   }
   
@@ -88,7 +119,6 @@ public class SolrDaoBaseTest {
     expectedException.expect(Exception.class);
     expectedException.expectMessage("For solr, collection name is mandatory. zkConnectString=zk_connect_string, collection=null, url=url");
 
-    SolrDaoBase dao = new SolrDaoBase(null) {};
     dao.connectToSolr("url", "zk_connect_string", null);
   }
   
@@ -106,8 +136,7 @@ public class SolrDaoBaseTest {
     
     EasyMock.expect(mockSolrClient.request(EasyMock.anyObject(CollectionAdminRequest.List.class), EasyMock.anyString())).andReturn(response);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.solrClient = mockSolrClient;
     
     boolean status = dao.checkSolrStatus(10000);
@@ -120,8 +149,7 @@ public class SolrDaoBaseTest {
   public void testCheckSolrStatusNotSuccessful() throws Exception {
     SolrClient mockSolrClient = EasyMock.strictMock(SolrClient.class);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.solrClient = mockSolrClient;
     
     boolean status = dao.checkSolrStatus(10000);
@@ -148,8 +176,7 @@ public class SolrDaoBaseTest {
     mockSolrClouldClient.setDefaultCollection("alias_name"); EasyMock.expectLastCall();
     
     EasyMock.replay(mockSolrClient, mockSolrClouldClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.isZkConnectString = true;
     dao.solrClient = mockSolrClient;
     dao.solrClouldClient = mockSolrClouldClient;
@@ -177,8 +204,7 @@ public class SolrDaoBaseTest {
     EasyMock.expect(mockSolrClient.request(EasyMock.anyObject(CollectionAdminRequest.List.class), EasyMock.anyString())).andReturn(response);
     EasyMock.expect(mockSolrClient.request(EasyMock.anyObject(CollectionAdminRequest.Create.class), EasyMock.anyString())).andReturn(response);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.isZkConnectString = true;
     dao.solrClient = mockSolrClient;
     dao.collectionName = "test_collection";
@@ -201,8 +227,7 @@ public class SolrDaoBaseTest {
     EasyMock.expect(mockSolrClient.request(EasyMock.anyObject(CollectionAdminRequest.List.class), EasyMock.anyString())).andReturn(response);
     EasyMock.expect(mockSolrClient.request(EasyMock.anyObject(CollectionAdminRequest.Create.class), EasyMock.anyString())).andReturn(response);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.isZkConnectString = true;
     dao.solrClient = mockSolrClient;
     
@@ -218,8 +243,7 @@ public class SolrDaoBaseTest {
     SolrClient mockSolrClient = EasyMock.strictMock(SolrClient.class);
     EasyMock.expect(mockSolrClient.query(EasyMock.anyObject(SolrQuery.class), EasyMock.eq(METHOD.POST))).andReturn(new QueryResponse());
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.solrClient = mockSolrClient;
     
     dao.process(new SolrQuery());
@@ -230,8 +254,7 @@ public class SolrDaoBaseTest {
   @Test
   public void testProcessNoConnection() throws Exception {
     expectedException.expect(WebApplicationException.class);
-    
-    SolrDaoBase dao = new SolrDaoBase(LogType.SERVICE) {};
+
     dao.process(new SolrQuery());
   }
   
@@ -251,8 +274,7 @@ public class SolrDaoBaseTest {
     EasyMock.expect(mockSolrClient.add(EasyMock.anyObject(SolrInputDocument.class))).andReturn(updateResponse);
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.solrClient = mockSolrClient;
     
     dao.addDocs(new SolrInputDocument());
@@ -274,8 +296,7 @@ public class SolrDaoBaseTest {
     EasyMock.expect(mockSolrClient.deleteByQuery(EasyMock.anyString())).andReturn(updateResponse);
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
     EasyMock.replay(mockSolrClient);
-    
-    SolrDaoBase dao = new SolrDaoBase(null) {};
+
     dao.solrClient = mockSolrClient;
     
     dao.removeDoc("query");

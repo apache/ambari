@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.common.SearchCriteria;
+import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -31,21 +31,22 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
+
+import javax.inject.Inject;
 
 public abstract class QueryGenerationBase {
 
   private static final Logger logger = Logger.getLogger(QueryGenerationBase.class);
   
-  @Autowired
+  @Inject
   protected AuditSolrDao auditSolrDao;
   
-  @Autowired
+  @Inject
   protected ServiceLogsSolrDao serviceLogsSolrDao;
 
-  public static enum Condition {
+  public enum Condition {
     OR, AND
   }
 
@@ -98,7 +99,6 @@ public abstract class QueryGenerationBase {
         solrQuery.addFilterQuery(filterQuery);
         logger.debug("Filter added :- " + filterQuery);
       }
-
     }
   }
 

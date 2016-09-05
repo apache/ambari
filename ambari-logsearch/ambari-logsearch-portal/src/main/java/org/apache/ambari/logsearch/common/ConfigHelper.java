@@ -25,47 +25,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
-import org.apache.ambari.logsearch.manager.MgrBase;
+import org.apache.ambari.logsearch.manager.ManagerBase;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 
 public class ConfigHelper {
-  private static final Logger logger = Logger.getLogger(MgrBase.class);
-
-  public static HashMap<String, String> serviceLogsColumnMapping = new HashMap<String, String>();
-  public static HashMap<String, String> auditLogsColumnMapping = new HashMap<String, String>();
+  private static final Logger logger = Logger.getLogger(ManagerBase.class);
 
   private ConfigHelper() {
     throw new UnsupportedOperationException();
-  }
-  
-  public static void initializeApplicationConfig() {
-    String serviceLogsColumnMappingArray[] = PropertiesHelper.getPropertyStringList("logsearch.solr.service.logs.column.mapping");
-    String auditLogsColumnMappingArray[] = PropertiesHelper.getPropertyStringList("logsearch.solr.audit.logs.column.mapping");
-
-    // Initializing column mapping for Service Logs
-    intializeUISolrColumnMapping(serviceLogsColumnMappingArray, serviceLogsColumnMapping);
-
-    // Initializing column mapping for Audit Logs
-    intializeUISolrColumnMapping(auditLogsColumnMappingArray, auditLogsColumnMapping);
-  }
-
-  private static void intializeUISolrColumnMapping(String columnMappingArray[], HashMap<String, String> columnMappingMap) {
-
-    if (columnMappingArray != null && columnMappingArray.length > 0) {
-      for (String columnMapping : columnMappingArray) {
-        String mapping[] = columnMapping.split(":");
-        if (mapping.length > 1) {
-          String solrField = mapping[0];
-          String uiField = mapping[1];
-          
-          columnMappingMap.put(solrField + LogSearchConstants.SOLR_SUFFIX, uiField);
-          columnMappingMap.put(uiField + LogSearchConstants.UI_SUFFIX, solrField);
-        }
-      }
-    }
   }
 
   public static void extractSchemaFieldsName(String responseString, HashMap<String, String> schemaFieldsNameMap,

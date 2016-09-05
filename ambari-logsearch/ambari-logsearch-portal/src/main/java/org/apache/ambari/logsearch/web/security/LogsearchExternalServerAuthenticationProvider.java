@@ -22,14 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.common.ExternalServerClient;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -95,16 +96,11 @@ public class LogsearchExternalServerAuthenticationProvider extends
     };
   }
 
-  @Autowired
-  ExternalServerClient externalServerClient;
+  @Inject
+  private ExternalServerClient externalServerClient;
 
-  private String loginAPIURL = "/api/v1/users/$USERNAME/privileges?fields=*";// default
-
-  @PostConstruct
-  public void initialization() {
-    loginAPIURL = PropertiesHelper.getProperty(AUTH_METHOD_PROP_START_WITH
-        + "external_auth.login_url", loginAPIURL);
-  }
+  @Inject
+  private AuthConfig authConfig;
 
   /**
    * Authenticating user from external-server using REST call
@@ -134,7 +130,7 @@ public class LogsearchExternalServerAuthenticationProvider extends
     password = StringEscapeUtils.unescapeHtml(password);
     username = StringEscapeUtils.unescapeHtml(username);
     try {
-      String finalLoginUrl = loginAPIURL.replace("$USERNAME", username);
+      String finalLoginUrl = authConfig.getExternalAuthLoginUrl().replace("$USERNAME", username);
       String responseObj = (String) externalServerClient.sendGETRequest(
           finalLoginUrl, String.class, null, username, password);
       if (!isAllowedRole(responseObj)) {

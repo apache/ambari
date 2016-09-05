@@ -23,13 +23,14 @@ import java.util.HashMap;
 import org.apache.ambari.logsearch.dao.UserDao;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
+
+import javax.inject.Inject;
 
 @Component
 public class LogsearchAuthenticationProvider extends
@@ -39,19 +40,19 @@ public class LogsearchAuthenticationProvider extends
   private static Logger auditLogger = Logger
     .getLogger("org.apache.ambari.logsearch.audit");
 
-  @Autowired
+  @Inject
   UserDao userDao;
 
-  @Autowired
+  @Inject
   LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
 
-  @Autowired
+  @Inject
   LogsearchFileAuthenticationProvider fileAuthenticationProvider;
 
-  @Autowired
+  @Inject
   LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
-  
-  @Autowired
+
+  @Inject
   LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
 
   @Override
