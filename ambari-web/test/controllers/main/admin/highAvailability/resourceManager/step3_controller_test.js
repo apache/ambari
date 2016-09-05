@@ -19,15 +19,20 @@
 var App = require('app');
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
 var testHelpers = require('test/helpers');
+var blueprintUtils = require('utils/blueprint');
 
 describe('App.RMHighAvailabilityWizardStep3Controller', function () {
+  var controller;
+
+  beforeEach(function() {
+    controller = App.RMHighAvailabilityWizardStep3Controller.create({
+      content: Em.Object.create({})
+    });
+  });
 
   describe('#isSubmitDisabled', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-        content: Em.Object.create({})
-      }),
-      cases = [
+    var cases = [
         {
           isLoaded: false,
           isSubmitDisabled: true,
@@ -50,10 +55,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
   });
 
   describe('#loadConfigTagsSuccessCallback', function () {
-
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-      content: Em.Object.create({})
-    });
 
     it('should send proper ajax request', function () {
       controller.loadConfigTagsSuccessCallback({
@@ -82,10 +83,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-        content: Em.Object.create({})
-      }),
-      cases = [
+    var cases = [
         {
           'items': [],
           'params': {
@@ -184,10 +182,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback=loadConfigsErrorCallback(we have one callback for bouth cases)', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-      content: Em.Object.create({})
-    });
-
     beforeEach(function () {
       sinon.stub(controller, 'setDynamicConfigValues', Em.K);
     });
@@ -232,23 +226,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       ]
     };
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-        content: Em.Object.create({
-          masterComponentHosts: [
-            {component: 'RESOURCEMANAGER', hostName: 'h0', isInstalled: true},
-            {component: 'RESOURCEMANAGER', hostName: 'h1', isInstalled: false},
-            {component: 'ZOOKEEPER_SERVER', hostName: 'h2', isInstalled: true},
-            {component: 'ZOOKEEPER_SERVER', hostName: 'h3', isInstalled: true}
-          ],
-          slaveComponentHosts: [],
-          hosts: {},
-          rmHosts: {
-            currentRM: 'h0',
-            additionalRM: 'h1'
-          }
-        })
-      }),
-      configs = {
+    var configs = {
         configs: [
           Em.Object.create({
             name: 'yarn.resourcemanager.hostname.rm1'
@@ -300,6 +278,20 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           })
         ];
       });
+      controller.set('content', Em.Object.create({
+        masterComponentHosts: [
+          {component: 'RESOURCEMANAGER', hostName: 'h0', isInstalled: true},
+          {component: 'RESOURCEMANAGER', hostName: 'h1', isInstalled: false},
+          {component: 'ZOOKEEPER_SERVER', hostName: 'h2', isInstalled: true},
+          {component: 'ZOOKEEPER_SERVER', hostName: 'h3', isInstalled: true}
+        ],
+        slaveComponentHosts: [],
+        hosts: {},
+        rmHosts: {
+          currentRM: 'h0',
+          additionalRM: 'h1'
+        }
+      }));
       controller.setDynamicConfigValues(configs, data);
     });
 
@@ -363,7 +355,250 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     it('hadoop.proxyuser.yarn.hosts recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'hadoop.proxyuser.yarn.hosts').get('recommendedValue')).to.equal('h0,h1');
     });
+  });
 
+  describe("#loadStep()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'renderConfigs');
+    });
+
+    afterEach(function() {
+      controller.renderConfigs.restore();
+    });
+
+    it("renderConfigs should be called", function() {
+      controller.loadStep();
+      expect(controller.renderConfigs.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#renderConfigs()", function () {
+    var serviceConfig = App.ServiceConfig.create({
+      serviceName: 'MISC',
+      displayName: 'MISC',
+      configCategories: [],
+      showConfig: true,
+      configs: []
+    });
+
+    beforeEach(function() {
+      sinon.stub(controller, 'renderConfigProperties');
+      sinon.stub(App.Service, 'find').returns([Em.Object.create({
+        serviceName: 'S1'
+      })]);
+    });
+
+    afterEach(function() {
+      controller.renderConfigProperties.restore();
+      App.Service.find.restore();
+    });
+
+    it("renderConfigProperties should be called", function() {
+      controller.renderConfigs();
+      expect(controller.renderConfigProperties.getCall(0).args[1]).to.be.eql(serviceConfig);
+    });
+
+    it("App.ajax.send should be called", function() {
+      controller.renderConfigs();
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args[0]).to.be.eql({
+        name: 'config.tags',
+        sender: controller,
+        success: 'loadConfigTagsSuccessCallback',
+        error: 'loadConfigsErrorCallback',
+        data: {
+          serviceConfig: serviceConfig
+        }
+      });
+    });
+  });
+
+  describe("#renderConfigProperties()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App.ServiceConfigProperty, 'create', function(obj) {
+        return obj;
+      });
+    });
+
+    afterEach(function() {
+      App.ServiceConfigProperty.create.restore();
+    });
+
+    it("config should be added", function() {
+      var componentConfig = {
+        configs: []
+      };
+      var _componentConfig = {
+        configs: [
+          Em.Object.create({
+            isReconfigurable: true
+          })
+        ]
+      };
+      controller.renderConfigProperties(_componentConfig, componentConfig);
+      expect(componentConfig.configs[0].get('isEditable')).to.be.true;
+    });
+  });
+
+  describe("#submit()", function () {
+    var container = {
+      getKDCSessionState: Em.clb
+    };
+
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns(container);
+      sinon.stub(App.router, 'send');
+    });
+
+    afterEach(function() {
+      App.get.restore();
+      App.router.send.restore();
+    });
+
+    it("App.router.send should not be called", function() {
+      controller.reopen({
+        isSubmitDisabled: true
+      });
+      controller.submit();
+      expect(App.router.send.called).to.be.false;
+    });
+
+    it("App.router.send should be called", function() {
+      controller.reopen({
+        isSubmitDisabled: false
+      });
+      controller.submit();
+      expect(App.router.send.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#loadRecommendations()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'getCurrentMasterSlaveBlueprint').returns({
+        blueprint: {}
+      });
+      sinon.stub(blueprintUtils, 'getHostGroupByFqdn').returns('g1');
+      sinon.stub(blueprintUtils, 'addComponentToHostGroup');
+      sinon.stub(App.Service, 'find').returns([{serviceName: 'S1'}]);
+      this.mockGet = sinon.stub(App, 'get');
+      this.mockGet.withArgs('allHostNames').returns(['host1']);
+      this.mockGet.withArgs('stackVersionURL').returns('/stacks/HDP/versions/2.2');
+    });
+
+    afterEach(function() {
+      controller.getCurrentMasterSlaveBlueprint.restore();
+      blueprintUtils.getHostGroupByFqdn.restore();
+      blueprintUtils.addComponentToHostGroup.restore();
+      App.Service.find.restore();
+      this.mockGet.restore();
+    });
+
+    it("addComponentToHostGroup should be called", function() {
+      controller.loadRecommendations({});
+      expect(blueprintUtils.addComponentToHostGroup.getCall(0).args).to.be.eql([
+        {blueprint: {configurations:{}}}, 'RESOURCEMANAGER', 'g1'
+      ]);
+    });
+
+    it("App.ajax.send should be called", function() {
+      controller.loadRecommendations({});
+      var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
+      expect(JSON.stringify(args[0])).to.be.equal(JSON.stringify({
+        name: 'config.recommendations',
+        sender: controller,
+        data: {
+          stackVersionUrl: "/stacks/HDP/versions/2.2",
+          dataToSend: {
+            recommend: 'configurations',
+            hosts: ["host1"],
+            services: ['S1'],
+            recommendations: {blueprint: {configurations:{}}}
+          }
+        }
+      }));
+    });
+  });
+
+  describe("#applyRecommendedConfigurations()", function () {
+    var configurations = Em.Object.create({
+        items: [
+          {
+            type: 'yarn-env',
+            properties: {
+              'yarn_user': 'user1'
+            }
+          }
+        ]
+      }),
+      recommendations = {
+        resources: [{
+          recommendations: {
+            blueprint: {
+              configurations: {
+                'core-site': {
+                  properties: {
+                    'hadoop.proxyuser.user1.hosts': 'host1',
+                    'hadoop.proxyuser.user2.hosts': 'host1'
+                  }
+                }
+              }
+            }
+          }
+        }]
+      };
+
+    beforeEach(function() {
+      sinon.stub(App.config, 'createDefaultConfig').returns({});
+      sinon.stub(App.config, 'getConfigTagFromFileName').returns('file1');
+      sinon.stub(App.ServiceConfigProperty, 'create', function(obj) {
+        return obj;
+      });
+    });
+
+    afterEach(function() {
+      App.config.createDefaultConfig.restore();
+      App.config.getConfigTagFromFileName.restore();
+      App.ServiceConfigProperty.create.restore();
+    });
+
+    it("config value should be set", function() {
+      var stepConfigs = Em.Object.create({
+        configs: [
+          Em.Object.create({
+            name: 'hadoop.proxyuser.user1.hosts'
+          })
+        ]
+      });
+      controller.applyRecommendedConfigurations(recommendations, configurations, stepConfigs);
+      expect(stepConfigs.get('configs')[0].get('recommendedValue')).to.be.equal('host1');
+      expect(stepConfigs.get('configs')[0].get('value')).to.be.equal('host1');
+    });
+
+    it("new property should be added", function() {
+      var stepConfigs = Em.Object.create({
+        configs: [
+          Em.Object.create({
+            name: 'hadoop.proxyuser.user2.hosts'
+          })
+        ]
+      });
+      controller.applyRecommendedConfigurations(recommendations, configurations, stepConfigs);
+      expect(App.config.createDefaultConfig.getCall(0).args).to.be.eql(['hadoop.proxyuser.user1.hosts', 'core-site', false, {
+        category : "HDFS",
+        isUserProperty: false,
+        isEditable: false,
+        isOverridable: false,
+        serviceName: 'MISC',
+        value: 'host1',
+        recommendedValue: 'host1'
+      }]);
+      expect(stepConfigs.get('configs')[1]).to.be.eql({
+        filename: 'file1'
+      });
+    });
   });
 
 });

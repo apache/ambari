@@ -30,7 +30,8 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
         reassign: Em.Object.create(),
         reassignHosts: Em.Object.create()
       }),
-      startServices: Em.K
+      startServices: Em.K,
+      tasks: []
     });
   });
 
