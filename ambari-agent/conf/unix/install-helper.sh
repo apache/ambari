@@ -34,10 +34,10 @@ AMBARI_AGENT_VAR="/var/lib/ambari-agent"
 
 clean_pyc_files(){
   # cleaning old *.pyc files
-  find $RESOURCE_MANAGEMENT_DIR/ -name *.pyc -exec rm {} \;
-  find $COMMON_DIR/ -name *.pyc -exec rm {} \;
-  find $AMBARI_AGENT/ -name *.pyc -exec rm {} \;
-  find $AMBARI_AGENT_VAR/ -name *.pyc -exec rm {} \;
+  find ${RESOURCE_MANAGEMENT_DIR:?} -name *.pyc -exec rm {} \;
+  find ${COMMON_DIR:?} -name *.pyc -exec rm {} \;
+  find ${AMBARI_AGENT:?} -name *.pyc -exec rm {} \;
+  find ${AMBARI_AGENT_VAR:?} -name *.pyc -exec rm {} \;
 }
 
 
