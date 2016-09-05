@@ -92,7 +92,6 @@ public class LogSearch {
     logger.debug(server.dump());
     logger
         .debug("==============================================================================");
-    ConfigHelper.initializeApplicationConfig();
     server.join();
   }
 

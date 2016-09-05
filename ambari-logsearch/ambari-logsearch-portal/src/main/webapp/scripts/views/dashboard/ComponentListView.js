@@ -68,7 +68,7 @@ define(['require',
 		                    pageSize: 99999
 		                }
 					});
-					this.componentsList.url = Globals.baseURL + "service/logs/components/level/counts";
+					this.componentsList.url = Globals.baseURL + "service/logs/components/levels/counts";
 					this.hostList = new VNodeList([],{
 						state: {
 		                    firstPage: 0,

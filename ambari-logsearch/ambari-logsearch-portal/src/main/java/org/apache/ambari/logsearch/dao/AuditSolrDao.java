@@ -23,9 +23,11 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
+import org.apache.ambari.logsearch.conf.SolrAuditLogConfig;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -33,23 +35,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class AuditSolrDao extends SolrDaoBase {
 
-  static private Logger logger = Logger.getLogger(AuditSolrDao.class);
-  
+  private static final Logger logger = Logger.getLogger(AuditSolrDao.class);
+
+  @Inject
+  private SolrAuditLogConfig solrAuditLogConfig;
+
   public AuditSolrDao() {
     super(LogType.AUDIT);
   }
 
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.audit.logs.url");
-    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.audit.logs.zk_connect_string");
-    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.audit.logs", "audit_logs");
-    String aliasNameIn = PropertiesHelper.getProperty("logsearch.solr.audit.logs.alias.name", "audit_logs_alias");
-    String rangerAuditCollection = PropertiesHelper.getProperty("logsearch.ranger.audit.logs.collection.name");
-    String splitInterval = PropertiesHelper.getProperty("logsearch.audit.logs.split.interval.mins", "none");
-    String configName = PropertiesHelper.getProperty("logsearch.solr.audit.logs.config.name", "audit_logs");
-    int numberOfShards = PropertiesHelper.getIntProperty("logsearch.collection.audit.logs.numshards", 1);
-    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.audit.logs.replication.factor", 1);
+    String solrUrl = solrAuditLogConfig.getSolrUrl();
+    String zkConnectString = solrAuditLogConfig.getZkConnectString();
+    String collection = solrAuditLogConfig.getCollection();
+    String aliasNameIn = solrAuditLogConfig.getAliasNameIn();
+    String rangerAuditCollection = solrAuditLogConfig.getRangerCollection();
+    String splitInterval = solrAuditLogConfig.getSplitInterval();
+    String configName = solrAuditLogConfig.getConfigName();
+    int numberOfShards = solrAuditLogConfig.getNumberOfShards();
+    int replicationFactor = solrAuditLogConfig.getReplicationFactor();
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);

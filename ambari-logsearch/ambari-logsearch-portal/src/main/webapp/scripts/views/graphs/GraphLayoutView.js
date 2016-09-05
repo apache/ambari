@@ -84,7 +84,7 @@ define(['require',
                     this.collection.url = Globals.baseURL + "service/logs/histogram";
                     this.collection.modelAttrName = "graphData";
                 } else {
-                    this.collection.url = Globals.baseURL + "audit/logs/linegraph";
+                    this.collection.url = Globals.baseURL + "audit/logs/bargraph";
                     this.collection.modelAttrName = "graphData";
                     this.lineView = true;
                 }

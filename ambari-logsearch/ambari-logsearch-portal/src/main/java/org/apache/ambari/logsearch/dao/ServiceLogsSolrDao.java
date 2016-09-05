@@ -20,9 +20,11 @@
 package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
+import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +32,9 @@ import org.springframework.stereotype.Component;
 public class ServiceLogsSolrDao extends SolrDaoBase {
 
   private static final Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
+
+  @Inject
+  private SolrServiceLogConfig solrServiceLogConfig;
   
   public ServiceLogsSolrDao() {
     super(LogType.SERVICE);
@@ -38,13 +43,13 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   @PostConstruct
   public void postConstructor() {
     logger.info("postConstructor() called.");
-    String solrUrl = PropertiesHelper.getProperty("logsearch.solr.url");
-    String zkConnectString = PropertiesHelper.getProperty("logsearch.solr.zk_connect_string");
-    String collection = PropertiesHelper.getProperty("logsearch.solr.collection.service.logs", "hadoop_logs");
-    String splitInterval = PropertiesHelper.getProperty("logsearch.service.logs.split.interval.mins", "none");
-    String configName = PropertiesHelper.getProperty("logsearch.solr.service.logs.config.name", "hadoop_logs");
-    int numberOfShards = PropertiesHelper.getIntProperty("logsearch.collection.service.logs.numshards", 1);
-    int replicationFactor = PropertiesHelper.getIntProperty("logsearch.collection.service.logs.replication.factor", 1);
+    String solrUrl = solrServiceLogConfig.getSolrUrl();
+    String zkConnectString = solrServiceLogConfig.getZkConnectString();
+    String collection = solrServiceLogConfig.getCollection();
+    String splitInterval = solrServiceLogConfig.getSplitInterval();
+    String configName = solrServiceLogConfig.getConfigName();
+    int numberOfShards = solrServiceLogConfig.getNumberOfShards();
+    int replicationFactor = solrServiceLogConfig.getReplicationFactor();
 
     try {
       connectToSolr(solrUrl, zkConnectString, collection);

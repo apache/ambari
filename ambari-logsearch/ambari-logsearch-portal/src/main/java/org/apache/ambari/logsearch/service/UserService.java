@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -26,12 +25,14 @@ import org.apache.ambari.logsearch.dao.UserDao;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.log4j.Logger;
 
+import javax.inject.Inject;
+
 
 @Service
 public class UserService implements UserDetailsService {
   private static final Logger logger = Logger.getLogger(UserService.class);
 
-  @Autowired
+  @Inject
   private UserDao userDao;
 
   @Override

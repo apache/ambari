@@ -20,7 +20,10 @@
 package org.apache.ambari.logsearch.dao;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
+import org.apache.ambari.logsearch.conf.SolrUserConfig;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.request.CollectionAdminRequest;
@@ -32,11 +35,29 @@ import org.apache.solr.common.util.NamedList;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.TestSubject;
+import org.junit.Before;
 import org.junit.Test;
 
 import junit.framework.Assert;
 
 public class UserConfigSolrDaoTest {
+
+  @TestSubject
+  private UserConfigSolrDao dao = new UserConfigSolrDao();
+
+  @Mock
+  private SolrUserConfig configMock;
+
+  @Mock
+  private SolrKerberosConfig kerbConfigMock;
+
+  @Before
+  public void setUp() {
+    EasyMockSupport.injectMocks(this);
+  }
   
   @Test
   public void testUserConfigDaoPostConstructor() throws Exception {
@@ -56,6 +77,17 @@ public class UserConfigSolrDaoTest {
     updateResponseHeader.add("QTime", 1);
     updateResponseContent.add("responseHeader", updateResponseHeader);
     updateResponse.setResponse(updateResponseContent);
+
+    EasyMock.expect(configMock.getSolrUrl()).andReturn(null).times(2);
+    EasyMock.expect(configMock.getZkConnectString()).andReturn("dummyHost1:2181,dummyHost2:2181").times(2);
+    EasyMock.expect(configMock.getConfigName()).andReturn("test_history_logs_config_name").times(2);
+    EasyMock.expect(configMock.getCollection()).andReturn("test_history_logs_collection").times(2);
+    EasyMock.expect(configMock.getSplitInterval()).andReturn("none").times(2);
+    EasyMock.expect(configMock.getNumberOfShards()).andReturn(123).times(2);
+    EasyMock.expect(configMock.getReplicationFactor()).andReturn(234).times(2);
+    EasyMock.expect(configMock.getLogLevels()).andReturn(Arrays.asList("TRACE")).times(2);
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false).times(2);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file").times(2);
     
     Capture<CollectionAdminRequest.Create> captureCreateRequest = EasyMock.newCapture(CaptureType.LAST);
     Capture<SolrParams> captureSolrParams = EasyMock.newCapture(CaptureType.LAST);
@@ -67,9 +99,8 @@ public class UserConfigSolrDaoTest {
     mockSolrClient.query(EasyMock.capture(captureSolrParams), EasyMock.capture(captureMethod)); EasyMock.expectLastCall().andReturn(queryResponse);
     mockSolrClient.add(EasyMock.capture(captureSolrInputDocument)); EasyMock.expectLastCall().andReturn(updateResponse);
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
-    EasyMock.replay(mockSolrClient);
-    
-    UserConfigSolrDao dao = new UserConfigSolrDao();
+    EasyMock.replay(mockSolrClient, configMock, kerbConfigMock);
+
     dao.postConstructor();
     dao.solrClient = mockSolrClient;
     dao.isZkConnectString = true;
@@ -92,7 +123,7 @@ public class UserConfigSolrDaoTest {
     SolrInputDocument solrInputDocument = captureSolrInputDocument.getValue();
     Assert.assertNotNull(solrInputDocument.getFieldValue("id"));
     Assert.assertEquals(solrInputDocument.getFieldValue("rowtype"), "log_feeder_config");
-    Assert.assertEquals(solrInputDocument.getFieldValue("jsons"), "{\"filter\":{\"test_component2\":{\"label\":\"test_component2\",\"hosts\":[],\"defaultLevels\":[\"FATAL\",\"ERROR\",\"WARN\",\"INFO\",\"DEBUG\",\"TRACE\"],\"overrideLevels\":[]},\"test_component1\":{\"label\":\"test_component1\",\"hosts\":[],\"defaultLevels\":[\"FATAL\",\"ERROR\",\"WARN\",\"INFO\",\"DEBUG\",\"TRACE\"],\"overrideLevels\":[]}},\"id\":\"" + solrInputDocument.getFieldValue("id") + "\"}");
+    Assert.assertEquals(solrInputDocument.getFieldValue("jsons"), "{\"filter\":{\"test_component2\":{\"label\":\"test_component2\",\"hosts\":[],\"defaultLevels\":[\"TRACE\"],\"overrideLevels\":[]},\"test_component1\":{\"label\":\"test_component1\",\"hosts\":[],\"defaultLevels\":[\"TRACE\"],\"overrideLevels\":[]}},\"id\":\"" + solrInputDocument.getFieldValue("id") + "\"}");
     Assert.assertEquals(solrInputDocument.getFieldValue("username"), "log_feeder_config");
     Assert.assertEquals(solrInputDocument.getFieldValue("filtername"), "log_feeder_config");
   }
@@ -107,18 +138,27 @@ public class UserConfigSolrDaoTest {
     header.add("QTime", 1);
     response.add("responseHeader", header);
     updateResponse.setResponse(response);
+
+    EasyMock.expect(configMock.getSolrUrl()).andReturn(null);
+    EasyMock.expect(configMock.getZkConnectString()).andReturn("dummyHost1:2181,dummyHost2:2181");
+    EasyMock.expect(configMock.getConfigName()).andReturn("test_history_logs_config_name");
+    EasyMock.expect(configMock.getCollection()).andReturn("test_history_logs_collection");
+    EasyMock.expect(configMock.getSplitInterval()).andReturn("none");
+    EasyMock.expect(configMock.getNumberOfShards()).andReturn(123);
+    EasyMock.expect(configMock.getReplicationFactor()).andReturn(234);
+    EasyMock.expect(kerbConfigMock.isEnabled()).andReturn(false);
+    EasyMock.expect(kerbConfigMock.getJaasFile()).andReturn("jaas_file");
     
     EasyMock.expect(mockSolrClient.deleteByQuery("id:test_id")).andReturn(updateResponse);
     EasyMock.expect(mockSolrClient.commit()).andReturn(updateResponse);
-    EasyMock.replay(mockSolrClient);
-    
-    UserConfigSolrDao dao = new UserConfigSolrDao();
+    EasyMock.replay(mockSolrClient, configMock, kerbConfigMock);
+
     dao.postConstructor();
     dao.solrClient = mockSolrClient;
     dao.isZkConnectString = true;
     
     dao.deleteUserConfig("test_id");
     
-    EasyMock.verify(mockSolrClient);
+    EasyMock.verify(mockSolrClient, configMock, kerbConfigMock);
   }
 }

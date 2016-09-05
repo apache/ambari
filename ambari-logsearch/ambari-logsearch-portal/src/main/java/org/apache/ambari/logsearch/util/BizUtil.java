@@ -32,10 +32,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-import org.apache.ambari.logsearch.view.VBarDataList;
-import org.apache.ambari.logsearch.view.VBarGraphData;
+import org.apache.ambari.logsearch.model.response.BarGraphData;
+import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
+import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.view.VHost;
-import org.apache.ambari.logsearch.view.VNameValue;
 import org.apache.ambari.logsearch.view.VSummary;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -173,41 +173,41 @@ public class BizUtil {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  public static VBarDataList buildSummaryForTopCounts(SimpleOrderedMap<Object> jsonFacetResponse,String innerJsonKey,String outerJsonKey) {
+  public static BarGraphDataListResponse buildSummaryForTopCounts(SimpleOrderedMap<Object> jsonFacetResponse, String innerJsonKey, String outerJsonKey) {
 
-    VBarDataList vBarDataList = new VBarDataList();
+    BarGraphDataListResponse barGraphDataListResponse = new BarGraphDataListResponse();
 
-    Collection<VBarGraphData> dataList = new ArrayList<VBarGraphData>();
+    Collection<BarGraphData> dataList = new ArrayList<>();
     if (jsonFacetResponse == null) {
       logger.info("Solr document list in null");
-      return vBarDataList;
+      return barGraphDataListResponse;
     }
     List<Object> userList = jsonFacetResponse.getAll(outerJsonKey);
     if (userList.isEmpty()) {
-      return vBarDataList;
+      return barGraphDataListResponse;
     }
     SimpleOrderedMap<Map<String, Object>> userMap = (SimpleOrderedMap<Map<String, Object>>) userList.get(0);
     if (userMap == null) {
       logger.info("No top user details found");
-      return vBarDataList;
+      return barGraphDataListResponse;
     }
     List<SimpleOrderedMap> userUsageList = (List<SimpleOrderedMap>) userMap.get("buckets");
     if(userUsageList == null){
-      return vBarDataList;
+      return barGraphDataListResponse;
     }
     for (SimpleOrderedMap usageMap : userUsageList) {
       if (usageMap != null) {
-        VBarGraphData vBarGraphData = new VBarGraphData();
+        BarGraphData barGraphData = new BarGraphData();
         String userName = (String) usageMap.get("val");
         if (!StringUtils.isBlank(userName)) {
-          vBarGraphData.setName(userName);
+          barGraphData.setName(userName);
         }
         SimpleOrderedMap repoMap = (SimpleOrderedMap) usageMap.get(innerJsonKey);
-        List<VNameValue> componetCountList = new ArrayList<VNameValue>();
-        List<SimpleOrderedMap> repoUsageList = (List<SimpleOrderedMap>) repoMap.get("buckets");
+        List<NameValueData> componetCountList = new ArrayList<NameValueData>();
         if (repoMap != null) {
+          List<SimpleOrderedMap> repoUsageList = (List<SimpleOrderedMap>) repoMap.get("buckets");
           for (SimpleOrderedMap repoUsageMap : repoUsageList) {
-            VNameValue componetCount = new VNameValue();
+            NameValueData componetCount = new NameValueData();
             if (repoUsageMap.get("val") != null) {
               componetCount.setName(repoUsageMap.get("val").toString());
             }
@@ -221,19 +221,19 @@ public class BizUtil {
             componetCount.setValue(eventCount);
             componetCountList.add(componetCount);
           }
-          vBarGraphData.setDataCounts(componetCountList);
-          dataList.add(vBarGraphData);
+          barGraphData.setDataCount(componetCountList);
+          dataList.add(barGraphData);
         }
       }}
-    vBarDataList.setGraphData(dataList);
+    barGraphDataListResponse.setGraphData(dataList);
     logger.info("getting graph data");
 
-    return vBarDataList;
+    return barGraphDataListResponse;
   }
   
   public static HashMap<String, String> sortHashMapByValues(HashMap<String, String> passedMap) {
     if (passedMap == null ) {
-      return passedMap;
+      return null;
     }
     HashMap<String, String> sortedMap = new LinkedHashMap<String, String>();
     List<String> mapValues = new ArrayList<String>(passedMap.values());

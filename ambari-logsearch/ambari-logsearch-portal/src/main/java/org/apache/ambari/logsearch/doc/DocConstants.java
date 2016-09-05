@@ -26,18 +26,25 @@ public class DocConstants {
     public static final String STACK_BY_D = "The graph property for stacking the plot";
     public static final String EXCLUDE_QUERY_D = "Exclude the values in query result e.g.: [{message:*timeout*}]";
     public static final String INCLUDE_QUERY_D = "Include the values in query result e.g.: [{message:*exception*}]";
-    public static final String MUST_BE_D = "Include the components, comman separated values";
-    public static final String MUST_NOT_D = "Exclude the components, comman separated values";
+    public static final String MUST_BE_D = "Include the components, comma separated values";
+    public static final String MUST_NOT_D = "Exclude the components, comma separated values";
     public static final String FROM_D = "Date range param, start date";
     public static final String TO_D = "Date range param, end date";
+    public static final String START_TIME_D = "Date range param which is suportted from browser url";
+    public static final String END_TIME_D = "Date range param which is supported from browser url";
+    public static final String START_INDEX_D = "Start index of the queried result";
+    public static final String SORT_TYPE_D = "Type of sorting (osc, desc)";
+    public static final String SORT_BY_D = "Sorting the results based on this field";
+    public static final String PAGE_D = "Number of pages for the results";
+    public static final String PAGE_SIZE_D = "Page size of the results";
     public static final String UNIT_D = "Aggregate the data with time gap as unit i.e 1MINUTE";
     public static final String QUERY_D = "not required";
     public static final String COLUMN_QUERY_D = "not required";
-    public static final String I_MESSAGE_D = "Include query which will query againt message column";
+    public static final String I_MESSAGE_D = "Include query which will query against message column";
     public static final String G_E_MESSAGE_D = "not required";
-    public static final String E_MESSAGE_D = "Exclude query which will query againt message column";
-    public static final String IS_LAST_PAGE_D = "";
-    public static final String FIELD_D = "Get top ten values for particular field";
+    public static final String E_MESSAGE_D = "Exclude query which will query against message column";
+    public static final String IS_LAST_PAGE_D = "Show last page (true/false)";
+    public static final String FIELD_D = "Get values for particular field";
     public static final String FORMAT_D = "File Export format, can be 'txt' or 'json'";
   }
 
@@ -48,7 +55,6 @@ public class DocConstants {
     public static final String GET_AUDIT_LINE_GRAPH_DATA_OD = "Get the data required for line graph";
     public static final String GET_TOP_AUDIT_USERS_OD = "Get the top audit users having maximum access";
     public static final String GET_TOP_AUDIT_RESOURCES_OD = "Get the top audit resources having maximum access";
-    public static final String GET_TOP_AUDIT_COMPONENTS_OD = "not required";
     public static final String GET_LIVE_LOGS_COUNT_OD = "not required";
     public static final String GET_REQUEST_USER_LINE_GRAPH_OD = "not required";
     public static final String GET_ANY_GRAPH_DATA_OD = "Get the data generic enough to use for graph plots";
@@ -59,11 +65,11 @@ public class DocConstants {
   public class ServiceDescriptions {
     public static final String LEVEL_D = "filter for log level";
     public static final String ADVANCED_SEARCH_D = "not required";
-    public static final String TREE_PARAMS_D = "Host hierarchy shown on UI,filtering there is supported by this param";
-    public static final String START_TIME_D = "Date range param which is suportted from browser url";
-    public static final String END_TIME_D = "Date range param which is supported from browser url";
+    public static final String BUNDLE_ID = "filter for host";
+    public static final String TREE_PARAMS_D = "Host hierarchy shown on UI, filtering there is supported by this param";
     public static final String FILE_NAME_D = "File name filter which is supported from browser url";
     public static final String HOST_NAME_D = "Host name filter which is supported from browser url";
+    public static final String DATE_RANGE_LABEL_D = "Date range label (e.g.: Today)";
     public static final String COMPONENT_NAME_D = "Component name filter which is supported from browser url";
     public static final String FIND_D = "Finding particular text on subsequent pages in case of table view with pagination";
     public static final String ID_D = "Log id value for traversing to that particular record with that log id";

@@ -22,11 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.apache.ambari.logsearch.web.security.LogsearchAbstractAuthenticationProvider;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -41,6 +43,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ExternalServerClient {
+
   private static Logger LOG = Logger.getLogger(ExternalServerClient.class);
   private static final ThreadLocal<JerseyClient> localJerseyClient = new ThreadLocal<JerseyClient>(){
     @Override
@@ -48,15 +51,11 @@ public class ExternalServerClient {
       return JerseyClientBuilder.createClient();
     }
   };
-  private String hostURL = "http://host:ip";// default
-  private boolean enableLog = false;// default
 
-  @PostConstruct
-  public void initialization() {
-    hostURL = PropertiesHelper.getProperty(
-        LogsearchAbstractAuthenticationProvider.AUTH_METHOD_PROP_START_WITH
-            + "external_auth.host_url", hostURL);
-  }
+  @Inject
+  private AuthConfig authConfig;
+
+  private boolean enableLog = false;// default
 
   /**
    * Send GET request to an external server
@@ -65,7 +64,7 @@ public class ExternalServerClient {
   public Object sendGETRequest(String url, Class klass, MultivaluedMap<String, String> queryParam,
                                String username, String password)
       throws Exception {
-    url = hostURL + url;
+    url = authConfig.getExternalAuthHostUrl() + url;
     JerseyClient client = localJerseyClient.get();
     HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().build();
 

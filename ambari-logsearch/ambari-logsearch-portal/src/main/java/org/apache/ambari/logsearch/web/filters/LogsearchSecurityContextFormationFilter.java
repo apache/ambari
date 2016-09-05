@@ -20,6 +20,7 @@ package org.apache.ambari.logsearch.web.filters;
 
 import java.io.IOException;
 
+import javax.inject.Inject;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -30,11 +31,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ambari.logsearch.common.LogSearchContext;
-import org.apache.ambari.logsearch.manager.SessionMgr;
+import org.apache.ambari.logsearch.manager.SessionManager;
 import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,8 +47,8 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
   public static final String LOGSEARCH_SC_SESSION_KEY = "LOGSEARCH_SECURITY_CONTEXT";
   public static final String USER_AGENT = "User-Agent";
 
-  @Autowired
-  SessionMgr sessionMgr;
+  @Inject
+  SessionManager sessionManager;
 
   public LogsearchSecurityContextFormationFilter() {
   }
@@ -94,7 +94,7 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
           httpSession.setAttribute(LOGSEARCH_SC_SESSION_KEY, context);
         }
         LogSearchContext.setContext(context);
-        User user = sessionMgr.processSuccessLogin();
+        User user = sessionManager.processSuccessLogin();
         context.setUser(user);
       }
       chain.doFilter(request, response);

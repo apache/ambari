@@ -16,21 +16,20 @@
   limitations under the License.
 -->
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
-  
- 
-	<display-name>LogSearch</display-name>
 
-	<context-param>
-		<param-name>contextConfigLocation</param-name>
-		<param-value>META-INF/applicationContext.xml
-					META-INF/security-applicationContext.xml
-		</param-value>
-	</context-param>
-
-
-	<listener>
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-	</listener>
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  <context-param>
+    <param-name>contextClass</param-name>
+    <param-value>
+      org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+    </param-value>
+  </context-param>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>org.apache.ambari.logsearch.conf.ApplicationConfig</param-value>
+  </context-param>
 
 	<listener>
 		<listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>

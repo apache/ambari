@@ -118,6 +118,60 @@ public class LogSearchConstants {
   public static final String FACET_RANGE_GAP = "facet.range.gap";
   public static final String FACET_GROUP = "group";
   public static final String FACET_GROUP_MAIN = "group.main";
-  public static final String FACET_GROUP_FIELD = "group.field"; 
-  
+  public static final String FACET_GROUP_FIELD = "group.field";
+
+  // Request params
+  public static final String REQUEST_PARAM_QUERY = "q";
+  public static final String REQUEST_PARAM_XAXIS = "xAxis";
+  public static final String REQUEST_PARAM_YAXIS = "yAxis";
+  public static final String REQUEST_PARAM_STACK_BY = "stackBy";
+  public static final String REQUEST_PARAM_UNIT = "unit";
+  public static final String REQUEST_PARAM_BUNDLE_ID = "bundle_id";
+  public static final String REQUEST_PARAM_START_INDEX = "startIndex";
+  public static final String REQUEST_PARAM_PAGE = "page";
+  public static final String REQUEST_PARAM_PAGE_SIZE = "pageSize";
+  public static final String REQUEST_PARAM_SORT_BY = "sortBy";
+  public static final String REQUEST_PARAM_SORT_TYPE = "sortType";
+  public static final String REQUEST_PARAM_START_TIME = "start_time";
+  public static final String REQUEST_PARAM_END_TIME = "end_time";
+  public static final String REQUEST_PARAM_FROM = "from";
+  public static final String REQUEST_PARAM_TO = "to";
+  public static final String REQUEST_PARAM_FIELD = "field";
+  public static final String REQUEST_PARAM_FORMAT = "format";
+  public static final String REQUEST_PARAM_LAST_PAGE = "lastPage";
+  public static final String REQUEST_PARAM_LOG_TYPE = "logType";
+  public static final String REQUEST_PARAM_COMPONENT = "component";
+  public static final String REQUEST_PARAM_HOST = "host";
+  public static final String REQUEST_PARAM_TAIL_SIZE = "tailSize";
+  public static final String REQUEST_PARAM_COLUMN_QUERY = "columnQuery";
+  public static final String REQUEST_PARAM_I_MESSAGE = "iMessage";
+  public static final String REQUEST_PARAM_G_E_MESSAGE = "gEMessage";
+  public static final String REQUEST_PARAM_MUST_BE = "mustBe";
+  public static final String REQUEST_PARAM_MUST_NOT = "mustNot";
+  public static final String REQUEST_PARAM_INCLUDE_QUERY = "includeQuery";
+  public static final String REQUEST_PARAM_EXCLUDE_QUERY = "excludeQuery";
+  public static final String REQUEST_PARAM_ID = "id";
+  public static final String REQUEST_PARAM_SCROLL_TYPE = "scrollType";
+  public static final String REQUEST_PARAM_NUMBER_ROWS = "numberRows";
+  public static final String REQUEST_PARAM_HOST_LOG_FILE = "host";
+  public static final String REQUEST_PARAM_COMPONENT_LOG_FILE = "component";
+  public static final String REQUEST_PARAM_LEVEL = "level";
+  public static final String REQUEST_PARAM_ADVANCED_SEARCH = "advancedSearch";
+  public static final String REQUEST_PARAM_TREE_PARAMS = "treeParams";
+  public static final String REQUEST_PARAM_E_MESSAGE = "eMessage";
+  public static final String REQUEST_PARAM_G_MUST_NOT = "gMustNot";
+  public static final String REQUEST_PARAM_HOST_NAME = "host_name";
+  public static final String REQUEST_PARAM_COMPONENT_NAME = "component_name";
+  public static final String REQUEST_PARAM_FILE_NAME = "file_name";
+  public static final String REQUEST_PARAM_DATE_RANGE_LABEL = "dateRangeLabel";
+  public static final String REQUEST_PARAM_KEYWORD = "find";
+  public static final String REQUEST_PARAM_SOURCE_LOG_ID = "sourceLogId";
+  public static final String REQUEST_PARAM_KEYWORD_TYPE = "keywordType";
+  public static final String REQUEST_PARAM_TOKEN = "token";
+  public static final String REQUEST_PARAM_USER_ID = "userId";
+  public static final String REQUEST_PARAM_FILTER_NAME = "filterName";
+  public static final String REQUEST_PARAM_ROW_TYPE = "rowType";
+  public static final String REQUEST_PARAM_UTC_OFFSET = "utcOffset";
+
+
 }

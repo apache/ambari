@@ -30,7 +30,9 @@ import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.manager.MgrBase.LogType;
+import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
+import org.apache.ambari.logsearch.conf.SolrUserConfig;
+import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -57,6 +59,8 @@ import org.apache.solr.common.cloud.ZkStateReader;
 import org.apache.solr.common.util.NamedList;
 
 import com.google.common.annotations.VisibleForTesting;
+
+import javax.inject.Inject;
 
 public abstract class SolrDaoBase {
   private static final Logger logger = Logger.getLogger(SolrDaoBase.class);
@@ -85,6 +89,11 @@ public abstract class SolrDaoBase {
   private String solrDetail = "";
 
   private boolean populateFieldsThreadActive = false;
+
+  @Inject
+  private SolrKerberosConfig solrKerberosConfig;
+  @Inject
+  private SolrUserConfig solrUserConfig;
   
   protected SolrDaoBase(LogType logType) {
     this.logType = logType;
@@ -461,8 +470,8 @@ public abstract class SolrDaoBase {
   }
 
   private void setupSecurity() {
-    String jaasFile = PropertiesHelper.getProperty("logsearch.solr.jaas.file", "/etc/security/keytabs/logsearch_solr.service.keytab");
-    boolean securityEnabled = PropertiesHelper.getBooleanProperty("logsearch.solr.kerberos.enable", false);
+    String jaasFile = solrKerberosConfig.getJaasFile();
+    boolean securityEnabled = solrKerberosConfig.isEnabled();
     if (securityEnabled) {
       System.setProperty("java.security.auth.login.config", jaasFile);
       HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
@@ -512,12 +521,12 @@ public abstract class SolrDaoBase {
     SolrRequest<SchemaResponse> request = new SchemaRequest();
     request.setMethod(METHOD.GET);
     request.setPath("/schema");
-    String historyCollection = PropertiesHelper.getProperty("logsearch.solr.collection.history","history");
+    String historyCollection = solrUserConfig.getCollection();
     if (solrClient != null && !collectionName.equals(historyCollection)) {
       NamedList<Object> namedList = null;
       try {
         namedList = solrClient.request(request);
-        logger.info("populateSchemaFields() collection=" + collectionName + ", fields=" + namedList);
+        logger.debug("populateSchemaFields() collection=" + collectionName + ", fields=" + namedList);
       } catch (SolrException | SolrServerException | IOException e) {
         logger.error("Error occured while popuplating field. collection=" + collectionName, e);
       }

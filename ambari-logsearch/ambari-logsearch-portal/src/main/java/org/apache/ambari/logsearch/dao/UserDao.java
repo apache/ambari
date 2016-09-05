@@ -24,8 +24,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
@@ -50,8 +51,11 @@ public class UserDao {
   private static final String ENC_PASSWORD = "en_password";
   private static final String NAME = "name";
 
-  @Autowired
+  @Inject
   private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
+
+  @Inject
+  private AuthConfig authConfig;
 
   private ArrayList<HashMap<String, String>> userList = null;
 
@@ -60,7 +64,7 @@ public class UserDao {
   public void initialization() {
     if (fileAuthenticationProvider.isEnable()) {
       try {
-        String userPassJsonFileName = PropertiesHelper.getProperty("logsearch.login.credentials.file");
+        String userPassJsonFileName = authConfig.getCredentialsFile();
         logger.info("USER PASS JSON  file NAME:" + userPassJsonFileName);
         File jsonFile = FileUtil.getFileFromClasspath(userPassJsonFileName);
         if (jsonFile == null || !jsonFile.exists()) {
