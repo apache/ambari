@@ -301,7 +301,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   loadStep: function () {
     var serviceName = this.get('content.serviceName'), self = this;
     this.clearStep();
-    this.set('dependentServiceNames', App.StackService.find(serviceName).get('dependentServiceNames'));
+    this.set('dependentServiceNames', (App.StackService.find(serviceName).get('dependentServiceNames') || []).reduce(function(acc, i) {
+      acc.push(i);
+      return Array.prototype.concat.apply(acc, App.StackService.find(i).get('dependentServiceNames').toArray()).without(serviceName).uniq();
+    }, []));
     this.loadConfigTheme(serviceName).always(function () {
       if (self.get('preSelectedConfigVersion')) {
         self.loadPreSelectedConfigVersion();
