@@ -208,6 +208,9 @@ public class AbstractUpgradeCatalogTest {
     assertEquals("http://ambari:8080/#/main/views/TEZ/2.2/TEZ_CLUSTER_INSTANCE",
       upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/TEZ_CLUSTER_INSTANCE"));
 
+    assertEquals("http://ambari:8080/#/main/views/TEZ/2.2/tezView",
+        upgradeCatalog.getUpdatedTezHistoryUrlBase("http://ambari:8080/#/main/views/TEZ/0.7.0.2.5.0.0-665/tezView"));
+
     reset(viewDirectory, archiveUtility);
 
     expect(viewDirectory.listFiles(anyObject(FilenameFilter.class))).andReturn(new File[] {viewJarFile}).anyTimes();
