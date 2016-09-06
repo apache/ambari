@@ -920,7 +920,9 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             if (tezSite != null) {
               String currentTezHistoryUrlBase = tezSite.getProperties().get("tez.tez-ui.history-url.base");
               if (!StringUtils.isEmpty(currentTezHistoryUrlBase)) {
+                LOG.info("Current Tez History URL base: {} ", currentTezHistoryUrlBase);
                 String newTezHistoryUrlBase = getUpdatedTezHistoryUrlBase(currentTezHistoryUrlBase);
+                LOG.info("New Tez History URL base: {} ", newTezHistoryUrlBase);
                 updateConfigurationProperties("tez-site", Collections.singletonMap("tez.tez-ui.history-url.base", newTezHistoryUrlBase), true, false);
               }
             }
@@ -937,7 +939,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    * @throws AmbariException if currentTezHistoryUrlBase is malformed or is not compatible with the Tez View url REGEX
      */
   protected String getUpdatedTezHistoryUrlBase(String currentTezHistoryUrlBase) throws AmbariException{
-    String pattern = "(.*\\/TEZ\\/)(.*)(\\/TEZ_CLUSTER_INSTANCE)";
+    String pattern = "(.*\\/TEZ\\/)(.*)(\\/.*)";
     Pattern regex = Pattern.compile(pattern);
     Matcher matcher = regex.matcher(currentTezHistoryUrlBase);
     String prefix;
