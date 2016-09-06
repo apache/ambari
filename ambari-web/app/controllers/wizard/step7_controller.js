@@ -1480,10 +1480,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         deferred.resolve();
         this._super();
       },
+      onClose: function () {
+        this.onSecondary();
+      },
       onSecondary: function () {
-        self.set('submitButtonClicked', false);
-        deferred.reject();
         this._super();
+        self.set('submitButtonClicked', false);
+        App.set('router.nextBtnClickInProgress', false);
+        deferred.reject();
       }
     });
   },
