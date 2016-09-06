@@ -65,8 +65,7 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
-import static org.apache.ambari.server.controller.internal.ProvisionAction.START_ONLY;
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_AND_START;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -85,7 +84,7 @@ import static org.easymock.EasyMock.verify;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AmbariServer.class)
-public class ClusterInstallWithoutStartTest {
+public class ClusterInstallWithoutStartOnComponentLevelTest {
   private static final String CLUSTER_NAME = "test-cluster";
   private static final long CLUSTER_ID = 1;
   private static final String BLUEPRINT_NAME = "test-bp";
@@ -286,7 +285,7 @@ public class ClusterInstallWithoutStartTest {
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
-    expect(request.getProvisionAction()).andReturn(INSTALL_ONLY).anyTimes();
+    expect(request.getProvisionAction()).andReturn(INSTALL_AND_START).anyTimes();
     expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
 
 
@@ -294,7 +293,10 @@ public class ClusterInstallWithoutStartTest {
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group1.containsMasterComponent()).andReturn(true).anyTimes();
     expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
-    expect(group1.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.<String>emptyList()).anyTimes();
+    expect(group1.getComponentNames(ProvisionAction.INSTALL_ONLY)).andReturn(Arrays.asList("component1"))
+      .anyTimes();
+    expect(group1.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.<String>emptyList())
+      .anyTimes();
 
     expect(group1.getComponents("service1")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
     expect(group1.getComponents("service2")).andReturn(group1ServiceComponents.get("service1")).anyTimes();
@@ -307,7 +309,9 @@ public class ClusterInstallWithoutStartTest {
     expect(group2.getCardinality()).andReturn("test cardinality").anyTimes();
     expect(group2.containsMasterComponent()).andReturn(false).anyTimes();
     expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
-    expect(group2.getComponentNames(anyObject(ProvisionAction.class))).andReturn(Collections.<String>emptyList()).anyTimes();
+    expect(group2.getComponentNames(ProvisionAction.INSTALL_ONLY)).andReturn(Collections.<String>emptyList()).anyTimes();
+    expect(group2.getComponentNames(ProvisionAction.START_ONLY)).andReturn(Collections.<String>emptyList())
+      .anyTimes();
     expect(group2.getComponents("service1")).andReturn(group2ServiceComponents.get("service1")).anyTimes();
     expect(group2.getComponents("service2")).andReturn(group2ServiceComponents.get("service2")).anyTimes();
     expect(group2.getConfiguration()).andReturn(topoGroup2Config).anyTimes();
@@ -333,7 +337,7 @@ public class ClusterInstallWithoutStartTest {
 
     expect(ambariContext.getPersistedTopologyState()).andReturn(persistedState).anyTimes();
     //todo: don't ignore param
-    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String)isNull());
+    ambariContext.createAmbariResources(isA(ClusterTopology.class), eq(CLUSTER_NAME), (SecurityType) isNull(), (String) isNull());
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_ID)).andReturn(false).anyTimes();
@@ -348,7 +352,9 @@ public class ClusterInstallWithoutStartTest {
       andReturn(Collections.singletonList(configurationRequest3)).once();
     // INSTALL task expectation
     expect(ambariContext.createAmbariTask(anyLong(), anyLong(), anyString(),
-      anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommand).atLeastOnce();
+      anyString(), eq(AmbariContext.TaskType.INSTALL), anyBoolean())).andReturn(hostRoleCommand).times(7);
+    expect(ambariContext.createAmbariTask(anyLong(), anyLong(), anyString(),
+      anyString(), eq(AmbariContext.TaskType.START), anyBoolean())).andReturn(hostRoleCommand).times(1);
     expect(hostRoleCommand.getTaskId()).andReturn(1L).atLeastOnce();
     expect(hostRoleCommand.getRoleCommand()).andReturn(RoleCommand.INSTALL).atLeastOnce();
     expect(hostRoleCommand.getRole()).andReturn(Role.INSTALL_PACKAGES).atLeastOnce();

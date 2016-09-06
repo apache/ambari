@@ -234,8 +234,12 @@ public class HostRequest implements Comparable<HostRequest> {
         logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
       }
 
-      // if component isn't a client, add a start task
-      if (!skipStartTaskCreate && stack != null && !stack.getComponentInfo(component).isClient()) {
+      // Skip START task if component is a client, or ir marked as INSTALL_ONLY or cluster provision_action is
+      // INSTALL_ONLY
+      if (installOnlyComponents.contains(component) || skipStartTaskCreate ||
+        (stack != null && stack.getComponentInfo(component).isClient())) {
+        LOG.info("Skipping create of START task for {} on {}.", component, hostName);
+      } else {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
             getRequestId(), id, component, hostName, AmbariContext.TaskType.START, skipFailure);
         logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);
