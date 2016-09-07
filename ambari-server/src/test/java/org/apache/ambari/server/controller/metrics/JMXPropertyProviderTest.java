@@ -89,7 +89,13 @@ public class JMXPropertyProviderTest {
   @BeforeClass
   public static void setupClass() {
     Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
+
+    // disable request TTL for these tests
+    Configuration configuration = injector.getInstance(Configuration.class);
+    configuration.setProperty(Configuration.METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED.getKey(),
+        "false");
+
+    JMXPropertyProvider.init(configuration);
 
     metricPropertyProviderFactory = injector.getInstance(MetricPropertyProviderFactory.class);
 

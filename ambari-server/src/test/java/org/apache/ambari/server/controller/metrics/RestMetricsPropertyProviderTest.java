@@ -112,7 +112,13 @@ public class RestMetricsPropertyProviderTest {
     clusters = injector.getInstance(Clusters.class);
     clusters.addCluster("c1", new StackId("HDP-2.1.1"));
     c1 = clusters.getCluster("c1");
-    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
+
+    // disable request TTL for these tests
+    Configuration configuration = injector.getInstance(Configuration.class);
+    configuration.setProperty(Configuration.METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED.getKey(),
+        "false");
+
+    JMXPropertyProvider.init(configuration);
 
     MetricsRetrievalService metricsRetrievalService = injector.getInstance(
         MetricsRetrievalService.class);

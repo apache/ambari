@@ -85,9 +85,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -2264,8 +2264,36 @@ public class Configuration {
       10 * METRIC_RETRIEVAL_SERVICE_THREADPOOL_MAX_SIZE.getDefaultValue());
 
   /**
-   * The number of tasks that can be queried from the database at once
-   * In the case of more tasks, multiple queries are issued
+   * {@code true} to enable a TTL per request made by the
+   * {@link MetricsRetrievalService}. Enabling this property will prevent
+   * requests to the same URL endpoint within a fixed amount of time allowing
+   * requests to be throttled.
+   */
+  @Markdown(
+      relatedTo = "metrics.retrieval-service.request.ttl",
+      description = "Enables throttling requests to the same endpoint within a fixed amount of time. "
+          + "This property will prevent Ambari from making new metric requests to update the cache for URLs which have been recently retrieved.")
+  public static final ConfigurationProperty<Boolean> METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED = new ConfigurationProperty<>(
+      "metrics.retrieval-service.request.ttl.enabled", Boolean.TRUE);
+
+  /**
+   * The amount of time, in {@link TimeUnit#SECONDS}, that requests to the same
+   * URL by the {@link MetricsRetrievalService} must be separated. Requests to
+   * the same URL which are too close together will not result in metrics
+   * retrieval. This property is used to throttle requests to the same URL being
+   * made too close together.
+   */
+  @Markdown(
+      relatedTo = "metrics.retrieval-service.request.ttl.enabled",
+      description = "The number of seconds to wait between issuing JMX or REST metric requests to the same endpoint. "
+          + "This property is used to throttle requests to the same URL being made too close together")
+  public static final ConfigurationProperty<Integer> METRIC_RETRIEVAL_SERVICE_REQUEST_TTL = new ConfigurationProperty<>(
+      "metrics.retrieval-service.request.ttl", 5);
+
+  /**
+   * The number of tasks that can be queried from the database at once In the
+   * case of more tasks, multiple queries are issued
+   *
    * @return
    */
   @Markdown(description = "The maximum number of tasks which can be queried by ID from the database.")
@@ -4766,8 +4794,30 @@ public class Configuration {
   }
 
   /**
+   * Gets the number of seconds that requests made to the same URL will be discarded in order to
+   * throttle the retrieval from the same endpoint.
+   *
+   * @return the number of seconds that must elapse between requests to the same endpoint.
+   */
+  public int getMetricsServiceRequestTTL() {
+    return Integer.parseInt(getProperty(METRIC_RETRIEVAL_SERVICE_REQUEST_TTL));
+  }
+
+  /**
+   * Gets whether the TTL request cache in the {@link MetricsRetrievalService}
+   * is enabled. This evicting cache is used to prevent requests to the same URL
+   * within a specified amount of time.
+   *
+   * @return {@code true} if enabled, {@code false} otherwise.
+   */
+  public boolean isMetricsServiceRequestTTLCacheEnabled() {
+    return Boolean.parseBoolean(getProperty(METRIC_RETRIEVAL_SERVICE_REQUEST_TTL_ENABLED));
+  }
+
+  /**
    * Returns the number of tasks that can be queried from the database at once
    * In the case of more tasks, multiple queries are issued
+   *
    * @return
    */
   public int getTaskIdListLimit() {
