@@ -16,12 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.util;
+package org.apache.ambari.logfeeder.logconfig;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
@@ -37,73 +41,57 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
 
-public class SolrUtil {
-
-  private static final Logger logger = Logger.getLogger(SolrUtil.class);
-
-  private static SolrUtil instance = null;
+public class LogConfigFetcher {
+  private static final Logger LOG = Logger.getLogger(LogConfigFetcher.class);
   
-  private SolrClient solrClient = null;
-  private CloudSolrClient solrClouldClient = null;
+  private static LogConfigFetcher instance;
+  public synchronized static LogConfigFetcher getInstance() {
+    if (instance == null) {
+      try {
+        instance = new LogConfigFetcher();
+      } catch (Exception e) {
+        String logMessageKey = LogConfigFetcher.class.getSimpleName() + "_SOLR_UTIL";
+              LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error constructing solrUtil", e, LOG, Level.WARN);
+      }
+    }
+    return instance;
+  }
+
+  private SolrClient solrClient;
 
   private String solrDetail = "";
 
-  private SolrUtil() throws Exception {
+  public LogConfigFetcher() throws Exception {
     String url = LogFeederUtil.getStringProperty("logfeeder.solr.url");
     String zkConnectString = LogFeederUtil.getStringProperty("logfeeder.solr.zk_connect_string");
     String collection = LogFeederUtil.getStringProperty("logfeeder.solr.core.config.name", "history");
     connectToSolr(url, zkConnectString, collection);
   }
 
-  public static SolrUtil getInstance() {
-    if (instance == null) {
-      synchronized (SolrUtil.class) {
-        if (instance == null) {
-          try {
-            instance = new SolrUtil();
-          } catch (Exception e) {
-            final String LOG_MESSAGE_KEY = SolrUtil.class
-                .getSimpleName() + "_SOLR_UTIL";
-              LogFeederUtil.logErrorMessageByInterval(
-                LOG_MESSAGE_KEY,
-                "Error constructing solrUtil", e, logger,
-                Level.WARN);
-          }
-        }
-      }
-    }
-    return instance;
-  }
+  private SolrClient connectToSolr(String url, String zkConnectString, String collection) throws Exception {
+    solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection + ", url=" + url;
 
-  private SolrClient connectToSolr(String url, String zkConnectString,
-                                  String collection) throws Exception {
-    solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection
-      + ", url=" + url;
-
-    logger.info("connectToSolr() " + solrDetail);
-    if (collection == null || collection.isEmpty()) {
-      throw new Exception("For solr, collection name is mandatory. "
-        + solrDetail);
+    LOG.info("connectToSolr() " + solrDetail);
+    if (StringUtils.isEmpty(collection)) {
+      throw new Exception("For solr, collection name is mandatory. " + solrDetail);
     }
-    if (zkConnectString != null && !zkConnectString.isEmpty()) {
+    
+    if (StringUtils.isEmpty(zkConnectString) && StringUtils.isBlank(url))
+      throw new Exception("Both zkConnectString and URL are empty. zkConnectString=" + zkConnectString + ", collection=" +
+          collection + ", url=" + url);
+    
+    if (StringUtils.isNotEmpty(zkConnectString)) {
       solrDetail = "zkConnectString=" + zkConnectString + ", collection=" + collection;
-      logger.info("Using zookeepr. " + solrDetail);
-      solrClouldClient = new CloudSolrClient(zkConnectString);
+      LOG.info("Using zookeepr. " + solrDetail);
+      CloudSolrClient solrClouldClient = new CloudSolrClient(zkConnectString);
       solrClouldClient.setDefaultCollection(collection);
       solrClient = solrClouldClient;
-      int waitDurationMS = 3 * 60 * 1000;
-      checkSolrStatus(waitDurationMS);
+      checkSolrStatus(3 * 60 * 1000);
     } else {
-      if (url == null || url.trim().isEmpty()) {
-        throw new Exception("Both zkConnectString and URL are empty. zkConnectString="
-          + zkConnectString + ", collection=" + collection + ", url="
-          + url);
-      }
       solrDetail = "collection=" + collection + ", url=" + url;
       String collectionURL = url + "/" + collection;
-      logger.info("Connecting to  solr : " + collectionURL);
+      LOG.info("Connecting to  solr : " + collectionURL);
       solrClient = new HttpSolrClient(collectionURL);
-
     }
     return solrClient;
   }
@@ -121,44 +109,31 @@ public class SolrUtil {
           CollectionAdminRequest.List colListReq = new CollectionAdminRequest.List();
           response = colListReq.process(solrClient);
         } catch (Exception ex) {
-          logger.error("Con't connect to Solr. solrDetail=" + solrDetail, ex);
+          LOG.error("Con't connect to Solr. solrDetail=" + solrDetail, ex);
         }
         if (response != null && response.getStatus() == 0) {
-          logger.info("Solr getCollections() is success. solr=" + solrDetail);
+          LOG.info("Solr getCollections() is success. solr=" + solrDetail);
           status = true;
           break;
         }
         if (System.currentTimeMillis() - beginTimeMS > waitDurationMS) {
-          logger.error("Solr is not reachable even after "
-            + (System.currentTimeMillis() - beginTimeMS)
+          LOG.error("Solr is not reachable even after " + (System.currentTimeMillis() - beginTimeMS)
             + " ms. If you are using alias, then you might have to restart LogSearch after Solr is up and running. solr="
             + solrDetail + ", response=" + response);
           break;
         } else {
-          logger.warn("Solr is not reachable yet. getCollections() attempt count=" + pingCount
-            + ". Will sleep for " + waitIntervalMS + " ms and try again." + " solr=" + solrDetail
-            + ", response=" + response);
-
+          LOG.warn("Solr is not reachable yet. getCollections() attempt count=" + pingCount + ". Will sleep for " +
+              waitIntervalMS + " ms and try again." + " solr=" + solrDetail + ", response=" + response);
         }
         Thread.sleep(waitIntervalMS);
       }
     } catch (Throwable t) {
-      logger.error("Seems Solr is not up. solrDetail=" + solrDetail);
+      LOG.error("Seems Solr is not up. solrDetail=" + solrDetail, t);
     }
     return status;
   }
 
-  private QueryResponse process(SolrQuery solrQuery) throws SolrServerException, IOException, SolrException {
-    if (solrClient != null) {
-      QueryResponse queryResponse = solrClient.query(solrQuery, METHOD.POST);
-      return queryResponse;
-    } else {
-      logger.error("solrClient can't be null");
-      return null;
-    }
-  }
-
-  public HashMap<String, Object> getConfigDoc() {
+  public Map<String, Object> getConfigDoc() {
     HashMap<String, Object> configMap = new HashMap<String, Object>();
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
@@ -168,19 +143,26 @@ public class SolrUtil {
       QueryResponse response = process(solrQuery);
       if (response != null) {
         SolrDocumentList documentList = response.getResults();
-        if (documentList != null && documentList.size() > 0) {
+        if (CollectionUtils.isNotEmpty(documentList)) {
           SolrDocument configDoc = documentList.get(0);
           String configJson = LogFeederUtil.getGson().toJson(configDoc);
-          configMap = (HashMap<String, Object>) LogFeederUtil
-              .toJSONObject(configJson);
+          configMap = (HashMap<String, Object>) LogFeederUtil.toJSONObject(configJson);
         }
       }
     } catch (Exception e) {
-      final String logMessageKey = this.getClass().getSimpleName()
-          + "_FETCH_FILTER_CONFIG_ERROR";
-      LogFeederUtil.logErrorMessageByInterval(logMessageKey,
-          "Error getting filter config from solr", e, logger, Level.ERROR);
+      String logMessageKey = this.getClass().getSimpleName() + "_FETCH_FILTER_CONFIG_ERROR";
+      LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error getting filter config from solr", e, LOG, Level.ERROR);
     }
     return configMap;
+  }
+
+  private QueryResponse process(SolrQuery solrQuery) throws SolrServerException, IOException, SolrException {
+    if (solrClient != null) {
+      QueryResponse queryResponse = solrClient.query(solrQuery, METHOD.POST);
+      return queryResponse;
+    } else {
+      LOG.error("solrClient can't be null");
+      return null;
+    }
   }
 }

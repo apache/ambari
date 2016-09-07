@@ -16,34 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.logconfig.filter;
+package org.apache.ambari.logfeeder.common;
 
-import java.util.Map;
+public class LogFeederConstants {
 
-/**
- * Default filter to allow everything
- */
-class DefaultDataFilter {
-  public boolean applyFilter(Map<String, Object> outputJsonObj, boolean defaultValue) {
-    return defaultValue;
-  }
+  public static final String ALL = "all";
+  public static final String LOGFEEDER_FILTER_NAME = "log_feeder_config";
+  public static final String LOG_LEVEL_UNKNOWN = "UNKNOWN";
+  
+  // solr fields
+  public static final String SOLR_LEVEL = "level";
+  public static final String SOLR_COMPONENT = "type";
+  public static final String SOLR_HOST = "host";
 
-  protected boolean isEmpty(Map<String, Object> map) {
-    if (map == null || map.isEmpty()) {
-      return true;
-    }
-    return false;
-  }
-
-  protected boolean isEmpty(String str) {
-    if (str == null || str.trim().isEmpty()) {
-      return true;
-    }
-    return false;
-  }
-
-  protected boolean isNotEmpty(String str) {
-    return !isEmpty(str);
-  }
-
+  // UserConfig Constants History
+  public static final String VALUES = "jsons";
+  public static final String ROW_TYPE = "rowtype";
+  
+  // S3 Constants
+  public static final String S3_PATH_START_WITH = "s3://";
+  public static final String S3_PATH_SEPARATOR = "/";
 }

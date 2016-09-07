@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,38 +21,34 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class PlaceholderUtil {
-
-  private static Pattern placeHolderPattern;
-  static {
-    placeHolderPattern = Pattern.compile("\\$\\s*(\\w+)");
+  private PlaceholderUtil() {
+    throw new UnsupportedOperationException();
   }
+  
+  private static final Pattern placeHolderPattern = Pattern.compile("\\$\\s*(\\w+)");
 
-  public static String replaceVariables(String inputStr,
-      HashMap<String, String> contextParam) {
+  public static String replaceVariables(String inputStr, HashMap<String, String> contextParam) {
     Matcher m = placeHolderPattern.matcher(inputStr);
-    String placeholder;
-    String replacement;
     String output = new String(inputStr);
     while (m.find()) {
-      placeholder = m.group();
+      String placeholder = m.group();
       if (placeholder != null && !placeholder.isEmpty()) {
-        String key = placeholder.replace("$","").toLowerCase();// remove
-                                                                   // brace
-        replacement = getFromContext(contextParam, placeholder, key);
+        String key = placeholder.replace("$","").toLowerCase();// remove brace
+        String replacement = getFromContext(contextParam, placeholder, key);
         output = output.replace(placeholder, replacement);
       }
     }
     return output;
   }
 
-  private static String getFromContext(HashMap<String, String> contextParam,
-      String defaultValue, String key) {
-    String returnValue = defaultValue;// by default set default value as a
-                                      // return
+  private static String getFromContext(HashMap<String, String> contextParam, String defaultValue, String key) {
+    String returnValue = defaultValue; // by default set default value as a return
     if (contextParam != null) {
       String value = contextParam.get(key);
-      if (value != null && !value.trim().isEmpty()) {
+      if (StringUtils.isNotBlank(value)) {
         returnValue = value;
       }
     }

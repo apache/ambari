@@ -31,31 +31,29 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class MapperDate extends Mapper {
-  private static final Logger logger = Logger.getLogger(MapperDate.class);
+  private static final Logger LOG = Logger.getLogger(MapperDate.class);
 
   private SimpleDateFormat targetDateFormatter = null;
   private boolean isEpoch = false;
   private SimpleDateFormat srcDateFormatter=null;
 
   @Override
-  public boolean init(String inputDesc, String fieldName,
-                      String mapClassCode, Object mapConfigs) {
-    super.init(inputDesc, fieldName, mapClassCode, mapConfigs);
+  public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
+    init(inputDesc, fieldName, mapClassCode);
     if (!(mapConfigs instanceof Map)) {
-      logger.fatal("Can't initialize object. mapConfigs class is not of type Map. "
-        + mapConfigs.getClass().getName()
-        + ", map="
-        + this.toString());
+      LOG.fatal("Can't initialize object. mapConfigs class is not of type Map. " + mapConfigs.getClass().getName() +
+        ", map=" + this);
       return false;
     }
+    
     @SuppressWarnings("unchecked")
     Map<String, Object> mapObjects = (Map<String, Object>) mapConfigs;
     String targetDateFormat = (String) mapObjects.get("target_date_pattern");
     String srcDateFormat = (String) mapObjects.get("src_date_pattern");
     if (StringUtils.isEmpty(targetDateFormat)) {
-      logger.fatal("Date format for map is empty. " + this.toString());
+      LOG.fatal("Date format for map is empty. " + this);
     } else {
-      logger.info("Date mapper format is " + targetDateFormat);
+      LOG.info("Date mapper format is " + targetDateFormat);
 
       if (targetDateFormat.equalsIgnoreCase("epoch")) {
         isEpoch = true;
@@ -68,8 +66,7 @@ public class MapperDate extends Mapper {
           }
           return true;
         } catch (Throwable ex) {
-          logger.fatal("Error creating date format. format="
-            + targetDateFormat + ". " + this.toString());
+          LOG.fatal("Error creating date format. format=" + targetDateFormat + ". " + this.toString());
         }
       } 
     }
@@ -84,7 +81,7 @@ public class MapperDate extends Mapper {
           long ms = Long.parseLong(value.toString()) * 1000;
           value = new Date(ms);
         } else if (targetDateFormatter != null) {
-          if(srcDateFormatter!=null){
+          if (srcDateFormatter != null) {
             Date srcDate = srcDateFormatter.parse(value.toString());
             //set year in src_date when src_date does not have year component
             if (!srcDateFormatter.toPattern().contains("yy")) {
@@ -108,12 +105,9 @@ public class MapperDate extends Mapper {
         }
         jsonObj.put(fieldName, value);
       } catch (Throwable t) {
-        LogFeederUtil.logErrorMessageByInterval(this.getClass()
-            .getSimpleName() + ":apply",
-          "Error applying date transformation. isEpoch="
-            + isEpoch + ", targetateFormat=" + (targetDateFormatter!=null ?targetDateFormatter.toPattern():"")
-            + ", value=" + value + ". " + this.toString(),
-          t, logger, Level.ERROR);
+        LogFeederUtil.logErrorMessageByInterval(this.getClass().getSimpleName() + ":apply", "Error applying date transformation." +
+            " isEpoch=" + isEpoch + ", targetateFormat=" + (targetDateFormatter!=null ?targetDateFormatter.toPattern():"")
+            + ", value=" + value + ". " + this.toString(), t, LOG, Level.ERROR);
       }
     }
     return value;

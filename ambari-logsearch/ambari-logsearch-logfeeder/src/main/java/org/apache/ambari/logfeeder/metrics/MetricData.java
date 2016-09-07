@@ -16,19 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.logconfig;
 
-public class LogFeederConstants {
+package org.apache.ambari.logfeeder.metrics;
 
-  public static final String ALL = "all";
-  public static final String LOGFEEDER_FILTER_NAME = "log_feeder_config";
-  public static final String LOG_LEVEL_UNKNOWN = "UNKNOWN";
-  // solr fields
-  public static final String SOLR_LEVEL = "level";
-  public static final String SOLR_COMPONENT = "type";
-  public static final String SOLR_HOST = "host";
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
-  // UserConfig Constants History
-  public static final String VALUES = "jsons";
-  public static final String ROW_TYPE = "rowtype";
+public class MetricData {
+  public final String metricsName;
+  public final boolean isPointInTime;
+
+  public MetricData(String metricsName, boolean isPointInTime) {
+    this.metricsName = metricsName;
+    this.isPointInTime = isPointInTime;
+  }
+  
+  public long value = 0;
+  public long prevPublishValue = 0;
+  
+  public long prevLogValue = 0;
+  public long prevLogTime = System.currentTimeMillis();
+  
+  public int publishCount = 0; // Number of times the metric was published so far
+  
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+  }
 }

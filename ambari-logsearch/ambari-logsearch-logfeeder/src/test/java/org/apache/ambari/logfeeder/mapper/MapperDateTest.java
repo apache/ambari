@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -61,7 +60,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_pattern()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -70,7 +69,7 @@ public class MapperDateTest {
     String dateString = "2016-04-08 15:55:23.548";
     Object mappedValue = mapperDate.apply(jsonObj, dateString);
 
-    Date d = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).parse(dateString);
+    Date d = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(dateString);
 
     assertEquals("Value wasn't matched properly", d, mappedValue);
     assertEquals("Value wasn't put into jsonObj", d, jsonObj.remove("someField"));
@@ -130,7 +129,7 @@ public class MapperDateTest {
     LOG.info("testMapperDate_invalidDateStringValue()");
 
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
 
     MapperDate mapperDate = new MapperDate();
     assertTrue("Could not initialize!", mapperDate.init(null, "someField", null, mapConfigs));
@@ -149,7 +148,7 @@ public class MapperDateTest {
     String fieldName = "logtime";
     Calendar currentCalendar = Calendar.getInstance();
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
     String srcDatePattern ="MMM dd HH:mm:ss";
     mapConfigs.put("src_date_pattern", srcDatePattern);
     MapperDate mapperDate = new MapperDate();
@@ -160,7 +159,7 @@ public class MapperDateTest {
     nextMonthCalendar.set(Calendar.MONTH, currentCalendar.get(Calendar.MONTH)+1 );
     String inputDateStr = new SimpleDateFormat("MMM").format(nextMonthCalendar.getTime()) + " 01 12:01:45";
     Object mappedValue = mapperDate.apply(jsonObj, inputDateStr);
-    Date mappedDateValue = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).parse(mappedValue.toString());
+    Date mappedDateValue = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(mappedValue.toString());
     String mappedDateValueStr = new SimpleDateFormat(srcDatePattern).format(mappedDateValue);
     assertEquals(Date.class, mappedDateValue.getClass());
     
@@ -179,7 +178,7 @@ public class MapperDateTest {
     String fieldName = "logtime";
     Calendar currentCalendar = Calendar.getInstance();
     Map<String, Object> mapConfigs = new HashMap<>();
-    mapConfigs.put("target_date_pattern", LogFeederUtil.DATE_FORMAT);
+    mapConfigs.put("target_date_pattern", "yyyy-MM-dd HH:mm:ss.SSS");
     String srcDatePattern ="MMM dd HH:mm:ss";
     mapConfigs.put("src_date_pattern", srcDatePattern);
     MapperDate mapperDate = new MapperDate();
@@ -187,7 +186,7 @@ public class MapperDateTest {
     Map<String, Object> jsonObj = new HashMap<>();
     String inputDateStr = new SimpleDateFormat("MMM").format(currentCalendar.getTime()) + " 01 12:01:45";
     Object mappedValue = mapperDate.apply(jsonObj, inputDateStr);
-    Date mappedDateValue = new SimpleDateFormat(LogFeederUtil.DATE_FORMAT).parse(mappedValue.toString());
+    Date mappedDateValue = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(mappedValue.toString());
     String mappedDateValueStr = new SimpleDateFormat(srcDatePattern).format(mappedDateValue);
     assertEquals(Date.class, mappedDateValue.getClass());
     int expectedLogYear = currentCalendar.get(Calendar.YEAR);

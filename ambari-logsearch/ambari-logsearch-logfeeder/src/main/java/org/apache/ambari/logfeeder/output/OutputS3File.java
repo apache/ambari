@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.ambari.logfeeder.LogFeeder;
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.filter.Filter;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.spool.LogSpooler;
@@ -47,10 +48,10 @@ import java.util.Map.Entry;
  * </ul>
  */
 public class OutputS3File extends Output implements RolloverCondition, RolloverHandler {
+  private static final Logger LOG = Logger.getLogger(OutputS3File.class);
 
   public static final String INPUT_ATTRIBUTE_TYPE = "type";
   public static final String GLOBAL_CONFIG_S3_PATH_SUFFIX = "global.config.json";
-  static private Logger logger = Logger.getLogger(OutputS3File.class);
 
   private LogSpooler logSpooler;
   private S3OutputConfiguration s3OutputConfiguration;
@@ -72,23 +73,21 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   @Override
   public void copyFile(File inputFile, InputMarker inputMarker) {
     String type = inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE);
-    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration,
-        S3Util.INSTANCE, false, type);
-    String resolvedPath = s3Uploader.uploadFile(inputFile,
-        inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE));
+    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, false, type);
+    String resolvedPath = s3Uploader.uploadFile(inputFile, inputMarker.input.getStringValue(INPUT_ATTRIBUTE_TYPE));
 
     uploadConfig(inputMarker, type, s3OutputConfiguration, resolvedPath);
   }
 
-  private void uploadConfig(InputMarker inputMarker, String type,
-                            S3OutputConfiguration s3OutputConfiguration, String resolvedPath) {
+  private void uploadConfig(InputMarker inputMarker, String type, S3OutputConfiguration s3OutputConfiguration,
+      String resolvedPath) {
 
     ArrayList<Map<String, Object>> filters = new ArrayList<>();
     addFilters(filters, inputMarker.input.getFirstFilter());
     Map<String, Object> inputConfig = new HashMap<>();
     inputConfig.putAll(inputMarker.input.getConfigs());
-    String s3CompletePath = S3Util.S3_PATH_START_WITH + s3OutputConfiguration.getS3BucketName()
-        + S3Util.S3_PATH_SEPARATOR + resolvedPath;
+    String s3CompletePath = LogFeederConstants.S3_PATH_START_WITH + s3OutputConfiguration.getS3BucketName() +
+        LogFeederConstants.S3_PATH_SEPARATOR + resolvedPath;
     inputConfig.put("path", s3CompletePath);
 
     ArrayList<Map<String, Object>> inputConfigList = new ArrayList<>();
@@ -117,17 +116,15 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
     }
   }
 
-  private void writeConfigToS3(Map<String, Object> configToWrite, String s3KeySuffix,
-                              S3OutputConfiguration s3OutputConfiguration) {
+  private void writeConfigToS3(Map<String, Object> configToWrite, String s3KeySuffix, S3OutputConfiguration s3OutputConfiguration) {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     String configJson = gson.toJson(configToWrite);
 
-    String s3ResolvedKey = new S3LogPathResolver().
-        getResolvedPath(getStringValue("s3_config_dir"), s3KeySuffix, s3OutputConfiguration.getCluster());
+    String s3ResolvedKey = new S3LogPathResolver().getResolvedPath(getStringValue("s3_config_dir"), s3KeySuffix,
+        s3OutputConfiguration.getCluster());
 
-    S3Util.INSTANCE.writeIntoS3File(configJson, s3OutputConfiguration.getS3BucketName(),
-        s3ResolvedKey, s3OutputConfiguration.getS3AccessKey(),
-        s3OutputConfiguration.getS3SecretKey());
+    S3Util.writeIntoS3File(configJson, s3OutputConfiguration.getS3BucketName(), s3ResolvedKey,
+        s3OutputConfiguration.getS3AccessKey(), s3OutputConfiguration.getS3SecretKey());
   }
 
   private String getComponentConfigFileName(String componentName) {
@@ -136,7 +133,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
 
 
   private Map<String, Object> getGlobalConfig() {
-    Map<String, Object> globalConfig = LogFeeder.globalMap;
+    Map<String, Object> globalConfig = LogFeeder.globalConfigs;
     if (globalConfig == null) {
       globalConfig = new HashMap<>();
     }
@@ -173,8 +170,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
       globalConfig.put("copy_file", false);
       globalConfig.put("process_file", true);
       globalConfig.put("tail", false);
-      Map<String, Object> addFields = (Map<String, Object>) globalConfig
-          .get("add_fields");
+      Map<String, Object> addFields = (Map<String, Object>) globalConfig.get("add_fields");
       if (addFields == null) {
         addFields = new HashMap<>();
       }
@@ -216,7 +212,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
 
   @VisibleForTesting
   protected S3Uploader createUploader(String logType) {
-    S3Uploader uploader = new S3Uploader(s3OutputConfiguration, S3Util.INSTANCE, true, logType);
+    S3Uploader uploader = new S3Uploader(s3OutputConfiguration, true, logType);
     uploader.startUploaderThread();
     return uploader;
   }
@@ -224,8 +220,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
   @VisibleForTesting
   protected LogSpooler createSpooler(String filePath) {
     String spoolDirectory = LogFeederUtil.getLogfeederTempDir() + "/s3/service";
-    logger.info(String.format("Creating spooler with spoolDirectory=%s, filePath=%s",
-        spoolDirectory, filePath));
+    LOG.info(String.format("Creating spooler with spoolDirectory=%s, filePath=%s", spoolDirectory, filePath));
     return new LogSpooler(spoolDirectory, new File(filePath).getName()+"-", this, this,
         s3OutputConfiguration.getRolloverTimeThresholdSecs());
   }
@@ -244,7 +239,7 @@ public class OutputS3File extends Output implements RolloverCondition, RolloverH
     long currentSize = spoolFile.length();
     boolean result = (currentSize >= s3OutputConfiguration.getRolloverSizeThresholdBytes());
     if (result) {
-      logger.info(String.format("Rolling over %s, current size %d, threshold size %d", spoolFile, currentSize,
+      LOG.info(String.format("Rolling over %s, current size %d, threshold size %d", spoolFile, currentSize,
           s3OutputConfiguration.getRolloverSizeThresholdBytes()));
     }
     return result;

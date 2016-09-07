@@ -16,10 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logfeeder.view;
+package org.apache.ambari.logfeeder.logconfig;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -33,58 +32,24 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class VLogfeederFilter {
+public class LogFeederFilterWrapper {
 
-  private String label;
-  private List<String> hosts;
-  private List<String> defaultLevels;
-  private List<String> overrideLevels;
-  private String expiryTime;
+  private HashMap<String, LogFeederFilter> filter;
+  private String id;
 
-  public VLogfeederFilter() {
-    hosts = new ArrayList<String>();
-    defaultLevels = new ArrayList<String>();
-    overrideLevels = new ArrayList<String>();
+  public HashMap<String, LogFeederFilter> getFilter() {
+    return filter;
   }
 
-  public String getLabel() {
-    return label;
+  public void setFilter(HashMap<String, LogFeederFilter> filter) {
+    this.filter = filter;
   }
 
-  public void setLabel(String label) {
-    this.label = label;
+  public String getId() {
+    return id;
   }
 
-  public List<String> getHosts() {
-    return hosts;
+  public void setId(String id) {
+    this.id = id;
   }
-
-  public void setHosts(List<String> hosts) {
-    this.hosts = hosts;
-  }
-
-  public List<String> getDefaultLevels() {
-    return defaultLevels;
-  }
-
-  public void setDefaultLevels(List<String> defaultLevels) {
-    this.defaultLevels = defaultLevels;
-  }
-
-  public List<String> getOverrideLevels() {
-    return overrideLevels;
-  }
-
-  public void setOverrideLevels(List<String> overrideLevels) {
-    this.overrideLevels = overrideLevels;
-  }
-
-  public String getExpiryTime() {
-    return expiryTime;
-  }
-
-  public void setExpiryTime(String expiryTime) {
-    this.expiryTime = expiryTime;
-  }
-
 }

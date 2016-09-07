@@ -30,26 +30,27 @@ import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class OutputFile extends Output {
-  static Logger logger = Logger.getLogger(OutputFile.class);
+  private static final Logger LOG = Logger.getLogger(OutputFile.class);
 
-  PrintWriter outWriter = null;
-  String filePath = null;
-  String codec;
+  private PrintWriter outWriter;
+  private String filePath = null;
+  private String codec;
 
   @Override
   public void init() throws Exception {
     super.init();
 
     filePath = getStringValue("path");
-    if (filePath == null || filePath.isEmpty()) {
-      logger.error("Filepath config property <path> is not set in config file.");
+    if (StringUtils.isEmpty(filePath)) {
+      LOG.error("Filepath config property <path> is not set in config file.");
       return;
     }
     codec = getStringValue("codec");
-    if (codec == null || codec.trim().isEmpty()) {
+    if (StringUtils.isBlank(codec)) {
       codec = "json";
     } else {
       if (codec.trim().equalsIgnoreCase("csv")) {
@@ -57,12 +58,11 @@ public class OutputFile extends Output {
       } else if (codec.trim().equalsIgnoreCase("json")) {
         codec = "csv";
       } else {
-        logger.error("Unsupported codec type. codec=" + codec
-          + ", will use json");
+        LOG.error("Unsupported codec type. codec=" + codec + ", will use json");
         codec = "json";
       }
     }
-    logger.info("Out filePath=" + filePath + ", codec=" + codec);
+    LOG.info("Out filePath=" + filePath + ", codec=" + codec);
     File outFile = new File(filePath);
     if (outFile.getParentFile() != null) {
       File parentDir = outFile.getParentFile();
@@ -71,16 +71,14 @@ public class OutputFile extends Output {
       }
     }
 
-    outWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile,
-      true)));
+    outWriter = new PrintWriter(new BufferedWriter(new FileWriter(outFile, true)));
 
-    logger.info("init() is successfull. filePath="
-      + outFile.getAbsolutePath());
+    LOG.info("init() is successfull. filePath=" + outFile.getAbsolutePath());
   }
 
   @Override
   public void close() {
-    logger.info("Closing file." + getShortDescription());
+    LOG.info("Closing file." + getShortDescription());
     if (outWriter != null) {
       try {
         outWriter.close();
@@ -92,8 +90,7 @@ public class OutputFile extends Output {
   }
 
   @Override
-  public void write(Map<String, Object> jsonObj, InputMarker inputMarker)
-    throws Exception {
+  public void write(Map<String, Object> jsonObj, InputMarker inputMarker) throws Exception {
     String outStr = null;
     CSVPrinter csvPrinter = null;
     try {
@@ -104,7 +101,7 @@ public class OutputFile extends Output {
         outStr = LogFeederUtil.getGson().toJson(jsonObj);
       }
       if (outWriter != null && outStr != null) {
-        statMetric.count++;
+        statMetric.value++;
 
         outWriter.println(outStr);
         outWriter.flush();
@@ -122,7 +119,7 @@ public class OutputFile extends Output {
   @Override
   synchronized public void write(String block, InputMarker inputMarker) throws Exception {
     if (outWriter != null && block != null) {
-      statMetric.count++;
+      statMetric.value++;
 
       outWriter.println(block);
       outWriter.flush();
@@ -135,10 +132,7 @@ public class OutputFile extends Output {
   }
 
   @Override
-  public void copyFile(File inputFile, InputMarker inputMarker)
-      throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=file");
+  public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("copyFile method is not yet supported for output=file");
   }
-
 }

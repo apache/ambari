@@ -23,27 +23,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
 
 
 public abstract class ConfigBlock {
-  static private Logger logger = Logger.getLogger(ConfigBlock.class);
+  private static final Logger LOG = Logger.getLogger(ConfigBlock.class);
 
   private boolean drain = false;
 
   protected Map<String, Object> configs;
   protected Map<String, String> contextFields = new HashMap<String, String>();
-  public MetricCount statMetric = new MetricCount();
-
-  /**
-   *
-   */
+  public MetricData statMetric = new MetricData(getStatMetricName(), false);
+  protected String getStatMetricName() {
+    return null;
+  }
+  
   public ConfigBlock() {
-    super();
   }
 
   /**
@@ -58,10 +58,7 @@ public abstract class ConfigBlock {
     return this.getClass().getSimpleName();
   }
 
-  /**
-   * @param metricsList
-   */
-  public void addMetricsContainers(List<MetricCount> metricsList) {
+  public void addMetricsContainers(List<MetricData> metricsList) {
     metricsList.add(statMetric);
   }
 
@@ -89,25 +86,21 @@ public abstract class ConfigBlock {
     boolean isEnabled = getBooleanValue("is_enabled", true);
     if (isEnabled) {
       // Let's check for static conditions
-      Map<String, Object> conditions = (Map<String, Object>) configs
-        .get("conditions");
+      Map<String, Object> conditions = (Map<String, Object>) configs.get("conditions");
       boolean allow = true;
-      if (conditions != null && conditions.size() > 0) {
+      if (MapUtils.isNotEmpty(conditions)) {
         allow = false;
         for (String conditionType : conditions.keySet()) {
           if (conditionType.equalsIgnoreCase("fields")) {
-            Map<String, Object> fields = (Map<String, Object>) conditions
-              .get("fields");
+            Map<String, Object> fields = (Map<String, Object>) conditions.get("fields");
             for (String fieldName : fields.keySet()) {
               Object values = fields.get(fieldName);
               if (values instanceof String) {
-                allow = isFieldConditionMatch(fieldName,
-                  (String) values);
+                allow = isFieldConditionMatch(fieldName, (String) values);
               } else {
                 List<String> listValues = (List<String>) values;
                 for (String stringValue : listValues) {
-                  allow = isFieldConditionMatch(fieldName,
-                    stringValue);
+                  allow = isFieldConditionMatch(fieldName, stringValue);
                   if (allow) {
                     break;
                   }
@@ -135,8 +128,7 @@ public abstract class ConfigBlock {
       allow = true;
     } else {
       @SuppressWarnings("unchecked")
-      Map<String, Object> addFields = (Map<String, Object>) configs
-        .get("add_fields");
+      Map<String, Object> addFields = (Map<String, Object>) configs.get("add_fields");
       if (addFields != null && addFields.get(fieldName) != null) {
         String addFieldValue = (String) addFields.get(fieldName);
         if (stringValue.equalsIgnoreCase(addFieldValue)) {
@@ -184,12 +176,7 @@ public abstract class ConfigBlock {
     String strValue = getStringValue(key);
     boolean retValue = defaultValue;
     if (!StringUtils.isEmpty(strValue)) {
-      if (strValue.equalsIgnoreCase("true")
-        || strValue.equalsIgnoreCase("yes")) {
-        retValue = true;
-      } else {
-        retValue = false;
-      }
+      retValue = (strValue.equalsIgnoreCase("true") || strValue.equalsIgnoreCase("yes"));
     }
     return retValue;
   }
@@ -201,8 +188,7 @@ public abstract class ConfigBlock {
       try {
         retValue = Integer.parseInt(strValue);
       } catch (Throwable t) {
-        logger.error("Error parsing integer value. key=" + key
-          + ", value=" + strValue);
+        LOG.error("Error parsing integer value. key=" + key + ", value=" + strValue);
       }
     }
     return retValue;
@@ -215,8 +201,7 @@ public abstract class ConfigBlock {
       try {
         retValue = Long.parseLong(strValue);
       } catch (Throwable t) {
-        logger.error("Error parsing long value. key=" + key + ", value="
-            + strValue);
+        LOG.error("Error parsing long value. key=" + key + ", value=" + strValue);
       }
     }
     return retValue;
@@ -227,29 +212,27 @@ public abstract class ConfigBlock {
   }
 
   public void incrementStat(int count) {
-    statMetric.count += count;
+    statMetric.value += count;
   }
 
-  public void logStatForMetric(MetricCount metric, String prefixStr) {
-    LogFeederUtil.logStatForMetric(metric, prefixStr, ", key="
-      + getShortDescription());
+  public void logStatForMetric(MetricData metric, String prefixStr) {
+    LogFeederUtil.logStatForMetric(metric, prefixStr, ", key=" + getShortDescription());
   }
 
-  synchronized public void logStat() {
+  public synchronized void logStat() {
     logStatForMetric(statMetric, "Stat");
   }
 
   public boolean logConfgs(Priority level) {
-    if (level.toInt() == Priority.INFO_INT && !logger.isInfoEnabled()) {
+    if (level.toInt() == Priority.INFO_INT && !LOG.isInfoEnabled()) {
       return false;
     }
-    if (level.toInt() == Priority.DEBUG_INT && !logger.isDebugEnabled()) {
+    if (level.toInt() == Priority.DEBUG_INT && !LOG.isDebugEnabled()) {
       return false;
     }
-    logger.log(level, "Printing configuration Block="
-      + getShortDescription());
-    logger.log(level, "configs=" + configs);
-    logger.log(level, "contextFields=" + contextFields);
+    LOG.log(level, "Printing configuration Block=" + getShortDescription());
+    LOG.log(level, "configs=" + configs);
+    LOG.log(level, "contextFields=" + contextFields);
     return true;
   }
 

@@ -29,21 +29,19 @@ import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.mapper.Mapper;
-import org.apache.ambari.logfeeder.metrics.MetricCount;
-import org.apache.ambari.logfeeder.output.OutputMgr;
+import org.apache.ambari.logfeeder.metrics.MetricData;
+import org.apache.ambari.logfeeder.output.OutputManager;
 import org.apache.ambari.logfeeder.util.AliasUtil;
-import org.apache.ambari.logfeeder.util.LogFeederUtil;
-import org.apache.ambari.logfeeder.util.AliasUtil.ALIAS_PARAM;
-import org.apache.ambari.logfeeder.util.AliasUtil.ALIAS_TYPE;
+import org.apache.ambari.logfeeder.util.AliasUtil.AliasType;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Priority;
 
 public abstract class Filter extends ConfigBlock {
-  private static final Logger logger = Logger.getLogger(Filter.class);
+  private static final Logger LOG = Logger.getLogger(Filter.class);
 
   protected Input input;
   private Filter nextFilter = null;
-  private OutputMgr outputMgr;
+  private OutputManager outputManager;
 
   private Map<String, List<Mapper>> postFieldValueMappers = new HashMap<String, List<Mapper>>();
 
@@ -74,15 +72,12 @@ public abstract class Filter extends ConfigBlock {
       }
       for (Map<String, Object> mapObject : mapList) {
         for (String mapClassCode : mapObject.keySet()) {
-          Mapper mapper = getMapper(mapClassCode);
+          Mapper mapper = (Mapper) AliasUtil.getClassInstance(mapClassCode, AliasType.MAPPER);
           if (mapper == null) {
             break;
           }
-          if (mapper.init(getInput().getShortDescription(),
-            fieldName, mapClassCode,
-            mapObject.get(mapClassCode))) {
-            List<Mapper> fieldMapList = postFieldValueMappers
-              .get(fieldName);
+          if (mapper.init(getInput().getShortDescription(), fieldName, mapClassCode, mapObject.get(mapClassCode))) {
+            List<Mapper> fieldMapList = postFieldValueMappers.get(fieldName);
             if (fieldMapList == null) {
               fieldMapList = new ArrayList<Mapper>();
               postFieldValueMappers.put(fieldName, fieldMapList);
@@ -94,17 +89,8 @@ public abstract class Filter extends ConfigBlock {
     }
   }
 
-  private Mapper getMapper(String mapClassCode) {
-    String classFullName = AliasUtil.getInstance().readAlias(mapClassCode, ALIAS_TYPE.MAPPER, ALIAS_PARAM.KLASS);
-    if (classFullName != null && !classFullName.isEmpty()) {
-      Mapper mapper = (Mapper) LogFeederUtil.getClassInstance(classFullName, ALIAS_TYPE.MAPPER);
-      return mapper;
-    }
-    return null;
-  }
-
-  public void setOutputMgr(OutputMgr outputMgr) {
-    this.outputMgr = outputMgr;
+  public void setOutputManager(OutputManager outputManager) {
+    this.outputManager = outputManager;
   }
 
   public Filter getNextFilter() {
@@ -131,25 +117,23 @@ public abstract class Filter extends ConfigBlock {
     if (nextFilter != null) {
       nextFilter.apply(inputStr, inputMarker);
     } else {
-      outputMgr.write(inputStr, inputMarker);
+      outputManager.write(inputStr, inputMarker);
     }
   }
 
   public void apply(Map<String, Object> jsonObj, InputMarker inputMarker) throws LogfeederException {
-    if (postFieldValueMappers.size() > 0) {
-      for (String fieldName : postFieldValueMappers.keySet()) {
-        Object value = jsonObj.get(fieldName);
-        if (value != null) {
-          for (Mapper mapper : postFieldValueMappers.get(fieldName)) {
-            value = mapper.apply(jsonObj, value);
-          }
+    for (String fieldName : postFieldValueMappers.keySet()) {
+      Object value = jsonObj.get(fieldName);
+      if (value != null) {
+        for (Mapper mapper : postFieldValueMappers.get(fieldName)) {
+          value = mapper.apply(jsonObj, value);
         }
       }
     }
     if (nextFilter != null) {
       nextFilter.apply(jsonObj, inputMarker);
     } else {
-      outputMgr.write(jsonObj, inputMarker);
+      outputManager.write(jsonObj, inputMarker);
     }
   }
 
@@ -193,16 +177,15 @@ public abstract class Filter extends ConfigBlock {
     if (!super.logConfgs(level)) {
       return false;
     }
-    logger.log(level, "input=" + input.getShortDescription());
+    LOG.log(level, "input=" + input.getShortDescription());
     return true;
   }
 
   @Override
-  public void addMetricsContainers(List<MetricCount> metricsList) {
+  public void addMetricsContainers(List<MetricData> metricsList) {
     super.addMetricsContainers(metricsList);
     if (nextFilter != null) {
       nextFilter.addMetricsContainers(metricsList);
     }
   }
-
 }

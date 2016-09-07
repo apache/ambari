@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -104,7 +104,7 @@ public class InputFileTest {
 
     inputFile = new InputFile();
     inputFile.loadConfig(config);
-    inputFile.setFirstFilter(capture);
+    inputFile.addFilter(capture);
     inputFile.init();
   }
 
@@ -117,10 +117,10 @@ public class InputFileTest {
 
     init(testFile.getAbsolutePath());
 
-    InputMgr inputMgr = EasyMock.createStrictMock(InputMgr.class);
-    EasyMock.expect(inputMgr.getCheckPointFolderFile()).andReturn(checkPointDir);
-    EasyMock.replay(inputMgr);
-    inputFile.setInputMgr(inputMgr);
+    InputManager inputManager = EasyMock.createStrictMock(InputManager.class);
+    EasyMock.expect(inputManager.getCheckPointFolderFile()).andReturn(checkPointDir);
+    EasyMock.replay(inputManager);
+    inputFile.setInputManager(inputManager);
 
     inputFile.isReady();
     inputFile.start();
@@ -129,7 +129,7 @@ public class InputFileTest {
     for (int row = 0; row < 3; row++)
       assertEquals("Row #" + (row + 1) + " not correct", TEST_LOG_FILE_ROWS[row], rows.get(row));
 
-    EasyMock.verify(inputMgr);
+    EasyMock.verify(inputManager);
   }
 
   @Test
@@ -140,10 +140,10 @@ public class InputFileTest {
     File testFile = createFile("process6.log");
     init(testFile.getAbsolutePath());
 
-    InputMgr inputMgr = EasyMock.createStrictMock(InputMgr.class);
-    EasyMock.expect(inputMgr.getCheckPointFolderFile()).andReturn(checkPointDir).times(2);
-    EasyMock.replay(inputMgr);
-    inputFile.setInputMgr(inputMgr);
+    InputManager inputMabager = EasyMock.createStrictMock(InputManager.class);
+    EasyMock.expect(inputMabager.getCheckPointFolderFile()).andReturn(checkPointDir).times(2);
+    EasyMock.replay(inputMabager);
+    inputFile.setInputManager(inputMabager);
 
     inputFile.isReady();
     inputFile.start();
@@ -155,7 +155,7 @@ public class InputFileTest {
     for (int row = 0; row < 6; row++)
       assertEquals("Row #" + (row + 1) + " not correct", TEST_LOG_FILE_ROWS[row], rows.get(row));
 
-    EasyMock.verify(inputMgr);
+    EasyMock.verify(inputMabager);
   }
 
   @Test

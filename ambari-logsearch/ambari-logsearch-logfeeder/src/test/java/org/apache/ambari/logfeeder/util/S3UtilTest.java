@@ -26,14 +26,14 @@ public class S3UtilTest {
   public void testS3Util_pathToBucketName() throws Exception {
     String s3Path = "s3://bucket_name/path/file.txt";
     String expectedBucketName = "bucket_name";
-    String actualBucketName = S3Util.INSTANCE.getBucketName(s3Path);
+    String actualBucketName = S3Util.getBucketName(s3Path);
     assertEquals(expectedBucketName, actualBucketName);
   }
 
   public void testS3Util_pathToS3Key() throws Exception {
     String s3Path = "s3://bucket_name/path/file.txt";
     String expectedS3key = "path/file.txt";
-    String actualS3key = S3Util.INSTANCE.getS3Key(s3Path);
+    String actualS3key = S3Util.getS3Key(s3Path);
     assertEquals(expectedS3key, actualS3key);
   }
 
