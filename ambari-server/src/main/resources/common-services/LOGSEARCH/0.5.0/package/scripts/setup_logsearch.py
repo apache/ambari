@@ -23,6 +23,7 @@ from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.resources.properties_file import PropertiesFile
 
 
 def setup_logsearch():
@@ -51,10 +52,8 @@ def setup_logsearch():
        content=''
        )
 
-  File(format("{logsearch_server_conf}/logsearch.properties"),
-       content=Template("logsearch.properties.j2"),
-       owner=params.logsearch_user,
-       group=params.user_group
+  PropertiesFile(format("{logsearch_server_conf}/logsearch.properties"),
+       properties=params.logsearch_properties
        )
 
   File(format("{logsearch_server_conf}/HadoopServiceConfig.json"),

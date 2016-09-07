@@ -20,12 +20,12 @@ limitations under the License.
 from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.resources.properties_file import PropertiesFile
 
 def setup_logfeeder():
   import params
 
-  Directory([params.logfeeder_log_dir, params.logfeeder_pid_dir,
-             params.logfeeder_checkpoint_folder],
+  Directory([params.logfeeder_log_dir, params.logfeeder_pid_dir, params.logfeeder_checkpoint_folder],
             mode=0755,
             cd_access='a',
             create_parents=True
@@ -43,9 +43,9 @@ def setup_logfeeder():
        content=''
        )
 
-  File(format("{logsearch_logfeeder_conf}/logfeeder.properties"),
-       content=Template("logfeeder.properties.j2"),
-       )
+  PropertiesFile(format("{logsearch_logfeeder_conf}/logfeeder.properties"),
+                 properties = params.logfeeder_properties
+                 )
 
   File(format("{logsearch_logfeeder_conf}/logfeeder-env.sh"),
        content=InlineTemplate(params.logfeeder_env_content),
