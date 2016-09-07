@@ -22,9 +22,9 @@ package org.apache.ambari.logsearch.manager;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
-import org.apache.ambari.logsearch.web.security.LogsearchSimpleAuthenticationProvider;
 import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
@@ -33,14 +33,14 @@ import javax.inject.Inject;
 public class PublicManager extends JsonManagerBase {
 
   @Inject
-  private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+  private AuthConfig authConfig;
 
   public String getGeneralConfig() {
     NameValueDataListResponse nameValueList = new NameValueDataListResponse();
     List<NameValueData> nameValues = new ArrayList<>();
     NameValueData nameValue = new NameValueData();
     nameValue.setName("simpleAuth");
-    nameValue.setValue("" + simpleAuthenticationProvider.isEnable());
+    nameValue.setValue("" + authConfig.isAuthSimpleEnabled());
     nameValues.add(nameValue);
     nameValueList.setvNameValues(nameValues);
     return convertObjToString(nameValueList);

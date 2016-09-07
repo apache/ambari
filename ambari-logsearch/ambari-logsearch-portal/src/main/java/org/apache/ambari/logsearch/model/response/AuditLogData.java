@@ -98,9 +98,9 @@ public interface AuditLogData extends CommonLogData {
   void setRepo(String repo);
 
   @JsonProperty("repoType")
-  String getRepoType();
+  Integer getRepoType();
 
-  void setRepoType(String repoType);
+  void setRepoType(Integer repoType);
 
   @JsonProperty("reqData")
   String getRequestData();

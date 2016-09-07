@@ -28,7 +28,7 @@ public class AuditLogRequestConverter extends AbstractCommonAuditLogRequestConve
   @Override
   public AuditLogSearchCriteria createCriteria(AuditLogRequest request) {
     AuditLogSearchCriteria criteria = new AuditLogSearchCriteria();
-    criteria.addParam("isLastPage", request.isLastPage());
+    criteria.setLastPage(request.isLastPage());
     return criteria;
   }
 }

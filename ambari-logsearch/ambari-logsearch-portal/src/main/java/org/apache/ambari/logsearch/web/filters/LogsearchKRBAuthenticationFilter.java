@@ -61,6 +61,7 @@ import org.apache.hadoop.security.authentication.server.KerberosAuthenticationHa
 import org.apache.hadoop.security.authentication.server.PseudoAuthenticationHandler;
 import org.apache.hadoop.security.authentication.util.KerberosName;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.stereotype.Component;
 
 public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private static final Logger logger = LoggerFactory.getLogger(LogsearchKRBAuthenticationFilter.class);

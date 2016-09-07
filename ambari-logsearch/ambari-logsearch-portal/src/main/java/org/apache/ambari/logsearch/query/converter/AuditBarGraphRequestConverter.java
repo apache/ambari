@@ -28,7 +28,7 @@ public class AuditBarGraphRequestConverter extends AbstractCommonAuditLogRequest
   @Override
   public AuditBarGraphSearchCriteria createCriteria(AuditBarGraphRequest request) {
     AuditBarGraphSearchCriteria criteria = new AuditBarGraphSearchCriteria();
-    criteria.addParam("unit", request.getUnit());
+    criteria.setUnit(request.getUnit());
     return criteria;
   }
 }

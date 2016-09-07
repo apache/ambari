@@ -18,8 +18,15 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_LOG_TAIL_SIZE;
 
-@Marker
-public class LogFileTailSearchCriteria extends SearchCriteria {
+public class LogFileTailSearchCriteria extends LogFileSearchCriteria {
+
+  public String getLogTailSize() {
+    return getParam(PARAM_LOG_TAIL_SIZE, String.class);
+  }
+
+  public void setLogTailSize(String logTailSize) {
+    addParam(PARAM_LOG_TAIL_SIZE, logTailSize);
+  }
 }

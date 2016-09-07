@@ -32,15 +32,15 @@ public abstract class AbstractCommonAuditLogRequestConverter<SOURCE extends Base
     RESULT criteria = createCriteria(request);
     criteria.addParam("q", request.getQuery());
     criteria.addParam("columnQuery", StringEscapeUtils.unescapeXml(request.getColumnQuery()));
-    criteria.addParam("iMessage", StringEscapeUtils.unescapeXml(request.getiMessage()));
     criteria.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
-    criteria.addParam("eMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
-    criteria.addParam("includeString", request.getMustBe());
-    criteria.addParam("unselectComp", request.getMustNot());
-    criteria.addParam("excludeQuery", StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
-    criteria.addParam("includeQuery", StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
-    criteria.addParam("startTime", request.getFrom());
-    criteria.addParam("endTime", request.getTo());
+    criteria.setIncludeMessage(StringEscapeUtils.unescapeXml(request.getiMessage()));
+    criteria.setExcludeMessage(StringEscapeUtils.unescapeXml(request.getgEMessage()));
+    criteria.setMustBe(request.getMustBe());
+    criteria.setMustNot(request.getMustNot());
+    criteria.setExcludeQuery(StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
+    criteria.setIncludeQuery(StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
+    criteria.setStartTime(request.getFrom());
+    criteria.setEndTime(request.getTo());
     return criteria;
   }
 

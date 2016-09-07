@@ -1,0 +1,18 @@
+{
+  "log_message": "Log Message",
+  "bundle_id": "Bundle Id",
+  "case_id": "Case Id",
+  "cluster": "Cluster",
+  "event_count": "Event Count",
+  "file": "File",
+  "host": "Host",
+  "id": "Id",
+  "ip": "IP",
+  "level": "Level",
+  "logfile_line_number": "Logfile Line Number",
+  "logger_name": "Logger Name",
+  "method": "method",
+  "path": "Path",
+  "text": "Text",
+  "type": "Type"
+}

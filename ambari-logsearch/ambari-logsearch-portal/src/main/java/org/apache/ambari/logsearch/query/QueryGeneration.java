@@ -30,6 +30,9 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.SolrAuditLogConfig;
 import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
+import org.apache.ambari.logsearch.query.model.AuditLogSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
@@ -59,32 +62,33 @@ public class QueryGeneration extends QueryGenerationBase {
   @Inject
   private SolrAuditLogConfig solrAuditLogConfig;
 
-  public SolrQuery commonServiceFilterQuery(SearchCriteria searchCriteria) {
+  public SolrQuery commonServiceFilterQuery(CommonServiceLogSearchCriteria searchCriteria) {
     LogType logType = LogType.SERVICE;
     SolrQuery solrQuery = new SolrQuery();
-    String treeParams = (String) searchCriteria.getParamValue("treeParams");
-    String givenQuery = (String) searchCriteria.getParamValue("q");
-    String level = (String) searchCriteria.getParamValue("level");
-    String startTime = (String) searchCriteria.getParamValue("from");
-    String endTime = (String) searchCriteria.getParamValue("to");
-    String iMessage = (String) searchCriteria.getParamValue("iMessage");
-    String eMessage = (String) searchCriteria.getParamValue("eMessage");
+    String advQuery = (String) searchCriteria.getParamValue("advanceSearch"); // TODO: check these are used from the UI or not
     String gEmessage = (String) searchCriteria.getParamValue("gEMessage");
-    String selectedComp = (String) searchCriteria.getParamValue("selectComp");
-    String bundleId = (String) searchCriteria.getParamValue(LogSearchConstants.BUNDLE_ID);
     String globalExcludeComp = (String) searchCriteria.getParamValue("gMustNot");
     String unselectedComp = (String) searchCriteria.getParamValue("unselectComp");
-    String urlHostName = (String) searchCriteria.getParamValue("host_name");
-    String urlComponentName = (String) searchCriteria.getParamValue("component_name");
-    String file_name = (String) searchCriteria.getParamValue("file_name");
-    String advQuery = (String) searchCriteria.getParamValue("advanceSearch");
+
+    String treeParams = searchCriteria.getTreeParams();
+    String givenQuery = (String) searchCriteria.getParamValue("q");
+    String level = searchCriteria.getLevel();
+    String startTime = searchCriteria.getFrom();
+    String endTime = searchCriteria.getTo();
+    String iMessage = searchCriteria.getIncludeMessage();
+    String eMessage = searchCriteria.getExcludeMessage();
+    String selectedComp = searchCriteria.getSelectComp();
+    String bundleId = searchCriteria.getBundleId();
+    String urlHostName = searchCriteria.getHostName();
+    String urlComponentName = searchCriteria.getComponentName();
+    String file_name = searchCriteria.getFileName();
     // build advance query
     if (!StringUtils.isBlank(advQuery)) {
       String advQueryParameters[] = advQuery.split(Pattern.quote("}{"));
       SolrQuery advSolrQuery = new SolrQuery();
       for (String queryParam : advQueryParameters) {
         String params[] = queryParam.split(Pattern.quote("="));
-        if (params != null && params.length > 1)
+        if (params.length > 1)
           advSolrQuery.setParam(params[0], params[1]);
       }
       setFilterClauseWithFieldName(advSolrQuery, level, LogSearchConstants.SOLR_LEVEL, "", Condition.OR);
@@ -226,18 +230,20 @@ public class QueryGeneration extends QueryGenerationBase {
     }
   }
 
-  public SolrQuery commonAuditFilterQuery(SearchCriteria searchCriteria) {
+  public SolrQuery commonAuditFilterQuery(CommonSearchCriteria searchCriteria) {
     LogType logType = LogType.AUDIT;
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
-    String startTime = (String) searchCriteria.getParamValue("startTime");
-    String endTime = (String) searchCriteria.getParamValue("endTime");
-    String selectedComp = (String) searchCriteria.getParamValue("includeString");
+
+    String globalExcludeComp = (String) searchCriteria.getParamValue("gMustNot"); // TODO: check this are used from UI or not
+    String unselectedComp = (String) searchCriteria.getParamValue("unselectComp");
+
+    String startTime = searchCriteria.getStartTime();
+    String endTime = searchCriteria.getEndTime();
+    String selectedComp = searchCriteria.getMustBe();
     setFilterClauseWithFieldName(solrQuery, selectedComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.NO_OPERATOR, Condition.OR);
-    String globalExcludeComp = (String) searchCriteria.getParamValue("gMustNot");
     setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.INCLUDE_QUERY, LogSearchConstants.INCLUDE_QUERY, logType);
     setUserSpecificFilter(searchCriteria, solrQuery, LogSearchConstants.EXCLUDE_QUERY, LogSearchConstants.EXCLUDE_QUERY, logType);
-    String unselectedComp = (String) searchCriteria.getParamValue("unselectComp");
     setFilterClauseWithFieldName(solrQuery, globalExcludeComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
     setFilterClauseWithFieldName(solrQuery, unselectedComp, LogSearchConstants.AUDIT_COMPONENT, LogSearchConstants.MINUS_OPERATOR, Condition.AND);
     setSingleRangeFilter(solrQuery, LogSearchConstants.AUDIT_EVTTIME, startTime, endTime);

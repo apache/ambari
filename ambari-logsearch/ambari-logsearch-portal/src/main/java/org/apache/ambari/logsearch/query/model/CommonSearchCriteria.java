@@ -18,83 +18,78 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_END_TIME;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_EXCLUDE_MESSAGE;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_EXCLUDE_QUERY;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_INCLUDE_MESSAGE;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_INCLUDE_QUERY;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_MUST_BE_STRING;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_MUST_NOT_STRING;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_START_TIME;
+
 public class CommonSearchCriteria extends SearchCriteria {
-  private int startIndex = 0;
-  private int maxRows = Integer.MAX_VALUE;
-  private String sortBy = null;
-  private String sortType = null;
-  private int page = 0;
 
-  private String globalStartTime = null;
-  private String globalEndTime = null;
-
-  @Override
-  public int getStartIndex() {
-    return startIndex;
+  public String getIncludeMessage() {
+    return getParam(PARAM_INCLUDE_MESSAGE, String.class);
   }
 
-  @Override
-  public void setStartIndex(int startIndex) {
-    this.startIndex = startIndex;
+  public void setIncludeMessage(String includeMessage) {
+    addParam(PARAM_INCLUDE_MESSAGE, includeMessage);
   }
 
-  @Override
-  public int getMaxRows() {
-    return maxRows;
+  public String getExcludeMessage() {
+    return getParam(PARAM_EXCLUDE_MESSAGE, String.class);
   }
 
-  @Override
-  public void setMaxRows(int maxRows) {
-    this.maxRows = maxRows;
+  public void setExcludeMessage(String excludeMessage) {
+    addParam(PARAM_EXCLUDE_MESSAGE, excludeMessage);
   }
 
-  @Override
-  public String getSortType() {
-    return sortType;
+  public String getMustBe() {
+    return getParam(PARAM_MUST_BE_STRING, String.class);
   }
 
-  @Override
-  public void setSortType(String sortType) {
-    this.sortType = sortType;
+  public void setMustBe(String mustHave) {
+    addParam(PARAM_MUST_BE_STRING, mustHave);
   }
 
-  @Override
-  public String getSortBy() {
-    return sortBy;
+  public String getMustNot() {
+    return getParam(PARAM_MUST_NOT_STRING, String.class);
   }
 
-  @Override
-  public void setSortBy(String sortBy) {
-    this.sortBy = sortBy;
+  public void setMustNot(String mustNot) {
+    addParam(PARAM_MUST_NOT_STRING, mustNot);
   }
 
-  @Override
-  public int getPage() {
-    return page;
+  public String getIncludeQuery() {
+    return getParam(PARAM_INCLUDE_QUERY, String.class);
   }
 
-  @Override
-  public void setPage(int page) {
-    this.page = page;
+  public void setIncludeQuery(String includeQuery) {
+    addParam(PARAM_INCLUDE_QUERY, includeQuery);
   }
 
-  @Override
-  public String getGlobalStartTime() {
-    return globalStartTime;
+  public String getExcludeQuery() {
+    return getParam(PARAM_EXCLUDE_QUERY, String.class);
   }
 
-  @Override
-  public void setGlobalStartTime(String globalStartTime) {
-    this.globalStartTime = globalStartTime;
+  public void setExcludeQuery(String excludeQuery) {
+    addParam(PARAM_EXCLUDE_QUERY, excludeQuery);
   }
 
-  @Override
-  public String getGlobalEndTime() {
-    return globalEndTime;
+  public String getStartTime() {
+    return getParam(PARAM_START_TIME, String.class);
   }
 
-  @Override
-  public void setGlobalEndTime(String globalEndTime) {
-    this.globalEndTime = globalEndTime;
+  public void setStartTime(String startTime) {
+    addParam(PARAM_START_TIME, startTime);
+  }
+
+  public String getEndTime() {
+    return getParam(PARAM_END_TIME, String.class);
+  }
+
+  public void setEndTime(String endTime) {
+    addParam(PARAM_END_TIME, endTime);
   }
 }

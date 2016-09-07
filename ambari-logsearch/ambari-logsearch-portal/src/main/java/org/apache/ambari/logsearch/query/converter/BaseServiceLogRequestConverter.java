@@ -20,13 +20,14 @@ package org.apache.ambari.logsearch.query.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.BaseServiceLogRequest;
 import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BaseServiceLogRequestConverter extends AbstractCommonServiceLogRequestConverter<BaseServiceLogRequest, CommonSearchCriteria> {
+public class BaseServiceLogRequestConverter extends AbstractCommonServiceLogRequestConverter<BaseServiceLogRequest, CommonServiceLogSearchCriteria> {
 
   @Override
-  public CommonSearchCriteria createCriteria(BaseServiceLogRequest request) {
-    return new CommonSearchCriteria();
+  public CommonServiceLogSearchCriteria createCriteria(BaseServiceLogRequest request) {
+    return new CommonServiceLogSearchCriteria();
   }
 }

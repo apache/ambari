@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 
 public class SearchCriteria {
+
   private int startIndex = 0;
   private int maxRows = Integer.MAX_VALUE;
   private String sortBy = null;
@@ -40,6 +41,30 @@ public class SearchCriteria {
 
   public SearchCriteria() {
     // Auto-generated constructor stub
+  }
+
+
+  public void addParam(String name, Object value) {
+    paramList.put(name, value);
+  }
+
+  public Object getParamValue(String name) {
+    return paramList.get(name);
+  }
+
+  public <T> T getParam(String key, Class<T> type) {
+    if (getParamValue(key) != null) {
+      return (T) getParamValue(key);
+    }
+    return null;
+  }
+
+  public Map<String, Object> getUrlParamMap() {
+    return urlParamMap;
+  }
+
+  public void setUrlParamMap(Map<String, Object> urlParamMap) {
+    this.urlParamMap = urlParamMap;
   }
 
   public int getStartIndex() {
@@ -60,33 +85,6 @@ public class SearchCriteria {
 
   public String getSortType() {
     return sortType;
-  }
-
-
-  public void addParam(String name, Object value) {
-    String solrValue = PropertiesHelper.getProperty(name);
-    if (solrValue == null || solrValue.isEmpty()) {
-      paramList.put(name, value);
-    } else {
-      try {
-        String propertyFieldMappings[] = solrValue.split(",");
-        HashMap<String, String> propertyFieldValue = new HashMap<String, String>();
-        for (String temp : propertyFieldMappings) {
-          String arrayValue[] = temp.split(":");
-          propertyFieldValue.put(arrayValue[0].toLowerCase(Locale.ENGLISH), arrayValue[1].toLowerCase(Locale.ENGLISH));
-        }
-        String originalValue = propertyFieldValue.get(value.toString().toLowerCase(Locale.ENGLISH));
-        if (originalValue != null && !originalValue.isEmpty())
-          paramList.put(name, originalValue);
-
-      } catch (Exception e) {
-        //do nothing
-      }
-    }
-  }
-
-  public Object getParamValue(String name) {
-    return paramList.get(name);
   }
 
   public String getSortBy() {
@@ -123,14 +121,6 @@ public class SearchCriteria {
 
   public void setGlobalEndTime(String globalEndTime) {
     this.globalEndTime = globalEndTime;
-  }
-
-  public Map<String, Object> getUrlParamMap() {
-    return urlParamMap;
-  }
-
-  public void setUrlParamMap(Map<String, Object> urlParamMap) {
-    this.urlParamMap = urlParamMap;
   }
 
 }

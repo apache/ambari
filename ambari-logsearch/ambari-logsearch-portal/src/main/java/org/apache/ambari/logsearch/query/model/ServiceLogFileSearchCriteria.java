@@ -18,8 +18,23 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
-public class ServiceLogFileSearchCriteria extends CommonSearchCriteria {
+public class ServiceLogFileSearchCriteria extends CommonServiceLogSearchCriteria {
+
+  public void setLogFileHostName(String logFileHostName) {
+    addParam(SearchCriteriaConstants.PARAM_HOST_LOG_FILE, logFileHostName);
+  }
+
+  public String getLogFileHostName() {
+    return getParam(SearchCriteriaConstants.PARAM_HOST_LOG_FILE, String.class);
+  }
+
+  public void setLogFileComponentName(String logFileComponentName) {
+    addParam(SearchCriteriaConstants.PARAM_COMPONENT_LOG_FILE, logFileComponentName);
+  }
+
+  public String getLogFileComponentName() {
+    return getParam(SearchCriteriaConstants.PARAM_COMPONENT_LOG_FILE, String.class);
+  }
 }

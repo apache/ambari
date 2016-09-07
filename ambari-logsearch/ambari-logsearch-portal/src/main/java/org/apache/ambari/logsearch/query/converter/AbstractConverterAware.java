@@ -18,21 +18,30 @@
  */
 package org.apache.ambari.logsearch.query.converter;
 
-import org.apache.ambari.logsearch.model.request.impl.LogFileTailRequest;
-import org.apache.ambari.logsearch.query.model.LogFileTailSearchCriteria;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.stereotype.Component;
+import org.springframework.core.convert.converter.ConverterRegistry;
 
-@Component
-public class LogFileTailRequestConverter implements Converter<LogFileTailRequest, LogFileTailSearchCriteria> {
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
-  @Override
-  public LogFileTailSearchCriteria convert(LogFileTailRequest request) {
-    LogFileTailSearchCriteria criteria = new LogFileTailSearchCriteria();
-    criteria.setLogFileComponent(request.getComponent());
-    criteria.setLogFileHost(request.getHost());
-    criteria.setLogType(request.getLogType());
-    criteria.setLogTailSize(request.getTailSize());
-    return criteria;
+public abstract class AbstractConverterAware<SOURCE, RESULT> implements Converter<SOURCE, RESULT> {
+
+  @Inject
+  @Qualifier("conversionService")
+  private ConversionService conversionService;
+
+  public ConversionService getConversionService() {
+    return conversionService;
+  }
+
+  @PostConstruct
+  private void register() {
+    if (conversionService instanceof ConverterRegistry) {
+      ((ConverterRegistry) conversionService).addConverter(this);
+    } else {
+      throw new IllegalStateException("Can't register Converter to ConverterRegistry");
+    }
   }
 }

@@ -30,9 +30,11 @@ public class AuthConfig {
   boolean authLdapEnabled;
   @Value("${logsearch.auth.simple.enable:false}")
   boolean authSimpleEnabled;
+  @Value("${logsearch.auth.external_auth.enable:false}")
+  boolean authExternalEnabled;
   @Value("${logsearch.auth.external_auth.host_url:'http://ip:port'}")
   private String externalAuthHostUrl;
-  @Value("${logsearch.auth.login_url:/api/v1/users/$USERNAME/privileges?fields=*}")
+  @Value("${logsearch.auth.external_auth.login_url:/api/v1/users/$USERNAME/privileges?fields=*}")
   private String externalAuthLoginUrl;
   @Value("${logsearch.login.credentials.file:user_pass.json}")
   private String credentialsFile;
@@ -83,5 +85,13 @@ public class AuthConfig {
 
   public void setExternalAuthLoginUrl(String externalAuthLoginUrl) {
     this.externalAuthLoginUrl = externalAuthLoginUrl;
+  }
+
+  public boolean isAuthExternalEnabled() {
+    return authExternalEnabled;
+  }
+
+  public void setAuthExternalEnabled(boolean authExternalEnabled) {
+    this.authExternalEnabled = authExternalEnabled;
   }
 }

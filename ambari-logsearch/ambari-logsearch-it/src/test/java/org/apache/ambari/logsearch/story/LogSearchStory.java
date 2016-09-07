@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.story;
 
+import org.apache.ambari.logsearch.steps.LogSearchApiSteps;
 import org.apache.ambari.logsearch.steps.SolrSteps;
 import org.apache.ambari.logsearch.steps.LogSearchDockerSteps;
 import org.jbehave.core.configuration.Configuration;
@@ -47,7 +48,8 @@ abstract public class LogSearchStory extends JUnitStory {
   public InjectableStepsFactory stepsFactory() {
     return new InstanceStepsFactory(configuration(),
       new LogSearchDockerSteps(),
-      new SolrSteps());
+      new SolrSteps(),
+      new LogSearchApiSteps());
   }
 
   @Test

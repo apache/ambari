@@ -18,8 +18,16 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_UNIT;
 
-@Marker
 public class AuditBarGraphSearchCriteria extends CommonSearchCriteria {
+
+  public void setUnit(String unit) {
+    addParam(PARAM_UNIT, unit);
+  }
+
+  public String getUnit() {
+    return getParam(PARAM_UNIT, String.class);
+  }
+
 }

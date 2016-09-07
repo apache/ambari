@@ -20,6 +20,33 @@ package org.apache.ambari.logsearch.query.model;
 
 import org.apache.ambari.logsearch.common.Marker;
 
-@Marker
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_LOG_FILE_COMPONENT;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_LOG_FILE_HOST;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_LOG_FILE_TYPE;
+
 public class LogFileSearchCriteria extends SearchCriteria {
+
+  public String getLogFileComponent() {
+    return getParam(PARAM_LOG_FILE_COMPONENT, String.class);
+  }
+
+  public void setLogFileComponent(String logFileComponent) {
+    addParam(PARAM_LOG_FILE_COMPONENT, logFileComponent);
+  }
+
+  public String getLogFileHost() {
+    return getParam(PARAM_LOG_FILE_HOST, String.class);
+  }
+
+  public void setLogFileHost(String logFileHost) {
+    addParam(PARAM_LOG_FILE_HOST, logFileHost);
+  }
+
+  public String getLogType() {
+    return getParam(PARAM_LOG_FILE_TYPE, String.class);
+  }
+
+  public void setLogType(String logType) {
+    addParam(PARAM_LOG_FILE_TYPE, logType);
+  }
 }

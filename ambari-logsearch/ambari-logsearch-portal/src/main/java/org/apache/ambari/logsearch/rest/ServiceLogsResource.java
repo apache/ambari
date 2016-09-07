@@ -45,6 +45,7 @@ import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.manager.ServiceLogsManager;
 import org.apache.ambari.logsearch.query.model.ServiceAnyGraphSearchCriteria;
@@ -100,7 +101,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_AGGREGATED_INFO_OD)
   public GraphDataListResponse getAggregatedInfo(@BeanParam BaseServiceLogRequest request) {
-    return serviceLogsManager.getAggregatedInfo(conversionService.convert(request, CommonSearchCriteria.class));
+    return serviceLogsManager.getAggregatedInfo(conversionService.convert(request, CommonServiceLogSearchCriteria.class));
   }
 
   @GET
@@ -132,7 +133,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_TREE_EXTENSION_OD)
   public NodeListResponse getTreeExtension(@QueryParam("hostName") @ApiParam String hostName, @BeanParam ServiceLogFileRequest request) {
-    SearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
+    ServiceLogFileSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
     searchCriteria.addParam("hostName", hostName); // TODO: use host_name instead - needs UI change
     return serviceLogsManager.getTreeExtension(searchCriteria);
   }
@@ -175,7 +176,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
   public NodeListResponse getHostListByComponent(@BeanParam ServiceLogFileRequest request, @QueryParam("componentName") @ApiParam String componentName) {
-    SearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
+    ServiceLogFileSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
     searchCriteria.addParam("componentName", componentName); // TODO: use component_name instead - needs UI change
     return serviceLogsManager.getHostListByComponent(searchCriteria);
   }

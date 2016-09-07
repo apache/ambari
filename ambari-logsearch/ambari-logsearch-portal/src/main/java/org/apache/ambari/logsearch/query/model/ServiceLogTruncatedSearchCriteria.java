@@ -18,8 +18,31 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class ServiceLogTruncatedSearchCriteria extends ServiceLogFileSearchCriteria {
+
+  public String getId() {
+    return getParam(SearchCriteriaConstants.PARAM_ID, String.class);
+  }
+
+  public void setId(String id) {
+    addParam(SearchCriteriaConstants.PARAM_ID, id);
+  }
+
+  public String getScrollType() {
+    return getParam(SearchCriteriaConstants.PARAM_SCROLL_TYPE, String.class);
+  }
+
+  public void setScrollType(String scrollType) {
+    addParam(SearchCriteriaConstants.PARAM_SCROLL_TYPE, scrollType);
+  }
+
+  public String getNumberRows() {
+    return getParam(SearchCriteriaConstants.PARAM_NUMBER_ROWS, String.class);
+  }
+
+  public void setNumberRows(String numberRows) {
+    addParam(SearchCriteriaConstants.PARAM_NUMBER_ROWS, numberRows);
+  }
 }

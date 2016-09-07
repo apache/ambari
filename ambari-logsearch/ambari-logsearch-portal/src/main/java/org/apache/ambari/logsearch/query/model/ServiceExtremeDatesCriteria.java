@@ -18,8 +18,15 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class ServiceExtremeDatesCriteria extends CommonSearchCriteria {
+
+  public String getBundleId() {
+    return getParam(SearchCriteriaConstants.PARAM_BUNDLE_ID, String.class);
+  }
+
+  public void setBundleId(String bunldeId) {
+    addParam(SearchCriteriaConstants.PARAM_BUNDLE_ID, bunldeId);
+  }
 }

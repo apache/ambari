@@ -19,16 +19,17 @@
 package org.apache.ambari.logsearch.query.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.SimpleQueryRequest;
-import org.apache.ambari.logsearch.query.model.SearchCriteria;
-import org.springframework.core.convert.converter.Converter;
+import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SimpleQueryRequestConverter implements Converter<SimpleQueryRequest, SearchCriteria> {
+public class SimpleQueryRequestConverter extends AbstractConverterAware<SimpleQueryRequest, CommonSearchCriteria> {
+
   @Override
-  public SearchCriteria convert(SimpleQueryRequest simpleQueryRequest) {
-    SearchCriteria searchCriteria = new SearchCriteria();
+  public CommonSearchCriteria convert(SimpleQueryRequest simpleQueryRequest) {
+    CommonSearchCriteria searchCriteria = new CommonSearchCriteria();
     searchCriteria.addParam("q", simpleQueryRequest.getQuery());
     return searchCriteria;
   }
+
 }

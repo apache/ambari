@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.web.security;
 
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.apache.ambari.logsearch.web.model.User;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,14 +29,19 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
+import javax.inject.Inject;
+
 @Component
 public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
   private static Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
 
+  @Inject
+  private AuthConfig authConfig;
+
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    if (!this.isEnable()) {
+    if (!authConfig.isAuthSimpleEnabled()) {
       logger.debug("Simple auth is disabled");
       return authentication;
     }
@@ -63,10 +69,5 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
     } else {
       return false;
     }
-  }
-
-  @Override
-  public boolean isEnable() {
-    return this.isEnable(AUTH_METHOD.SIMPLE);
   }
 }

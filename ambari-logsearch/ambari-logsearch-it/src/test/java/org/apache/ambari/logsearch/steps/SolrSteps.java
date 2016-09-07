@@ -22,25 +22,24 @@ import org.apache.ambari.logsearch.domain.StoryDataRegistry;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
-import org.jbehave.core.annotations.Given;
+import org.jbehave.core.annotations.Named;
 import org.jbehave.core.annotations.Then;
-import org.jbehave.core.annotations.When;
-import org.jbehave.core.model.Story;
 import org.junit.Assert;
 
 import java.io.IOException;
 
 public class SolrSteps {
 
-  @Then("the number of $component docs is: $docSize")
-  public void numberOfDocsForComponent(String component, int docSize) throws IOException, SolrServerException {
+  @Then("the number of <component> docs is: <docSize>")
+  public void numberOfDocsForComponent(@Named("component") String component, @Named("docSize") int docSize)
+    throws IOException, SolrServerException, InterruptedException {
     SolrClient solrClient = StoryDataRegistry.INSTANCE.getCloudSolrClient();
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery(String.format("type:%s", component));
+    solrQuery.setStart(0);
+    solrQuery.setRows(20);
     QueryResponse queryResponse = solrClient.query(StoryDataRegistry.INSTANCE.getServiceLogsCollection(), solrQuery);
     SolrDocumentList list = queryResponse.getResults();
     Assert.assertEquals(docSize, list.size());

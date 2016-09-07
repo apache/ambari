@@ -49,6 +49,12 @@ import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.model.response.LogSearchResponse;
 import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
+import org.apache.ambari.logsearch.query.model.AnyGraphSearchCriteria;
+import org.apache.ambari.logsearch.query.model.AuditBarGraphSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
+import org.apache.ambari.logsearch.query.model.FieldAuditBarGraphSearchCriteria;
+import org.apache.ambari.logsearch.query.model.FieldAuditLogSearchCriteria;
+import org.apache.ambari.logsearch.query.model.UserExportSearchCriteria;
 import org.apache.ambari.logsearch.solr.model.SolrAuditLogData;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.util.BizUtil;
@@ -82,7 +88,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   private SolrAuditLogConfig solrAuditLogConfig;
 
   public AuditLogResponse getLogs(AuditLogSearchCriteria searchCriteria) {
-    Boolean isLastPage = (Boolean) searchCriteria.getParamValue("isLastPage");
+    Boolean isLastPage = searchCriteria.isLastPage();
     if (isLastPage) {
       SolrQuery lastPageQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
       LogSearchResponse logResponse = getLastPage(searchCriteria, LogSearchConstants.AUDIT_EVTTIME, auditSolrDao, lastPageQuery);
@@ -95,7 +101,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     return getLogAsPaginationProvided(solrQuery, auditSolrDao);
   }
 
-  private List<LogData> getComponents(SearchCriteria searchCriteria) {
+  private List<LogData> getComponents(CommonSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
     List<LogData> docList = new ArrayList<>();
     try {
@@ -133,7 +139,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     }
   }
 
-  public GroupListResponse getAuditComponents(SearchCriteria searchCriteria) {
+  public GroupListResponse getAuditComponents(CommonSearchCriteria searchCriteria) {
     GroupListResponse componentResponse = new GroupListResponse();
     List<LogData> docList = getComponents(searchCriteria);
     componentResponse.setGroupList(docList);
@@ -141,13 +147,13 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   }
 
   @SuppressWarnings("unchecked")
-  public BarGraphDataListResponse getAuditBarGraphData(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getAuditBarGraphData(AuditBarGraphSearchCriteria searchCriteria) {
     BarGraphDataListResponse dataList = new BarGraphDataListResponse();
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
 
-    String from = getFrom((String) searchCriteria.getParamValue("startTime"));
-    String to = getTo((String) searchCriteria.getParamValue("endTime"));
-    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
+    String from = getFrom(searchCriteria.getStartTime());
+    String to = getTo(searchCriteria.getEndTime());
+    String unit = getUnit(searchCriteria.getUnit());
 
     List<BarGraphData> histogramData = new ArrayList<BarGraphData>();
     String jsonHistogramQuery = queryGenerator.buildJSONFacetTermTimeRangeQuery(LogSearchConstants.AUDIT_COMPONENT,
@@ -225,7 +231,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     }
   }
 
-  public BarGraphDataListResponse topTenUsers(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse topTenUsers(FieldAuditBarGraphSearchCriteria searchCriteria) {
 
     String jsonUserQuery =
       "{Users:{type:terms, field:reqUser, facet:{ Repo:{ type:terms, field:repo, facet:{eventCount:\"sum(event_count)\"}}}}}";
@@ -262,7 +268,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     }
   }
 
-  public BarGraphDataListResponse topTenResources(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse topTenResources(FieldAuditLogSearchCriteria searchCriteria) {
 
     String jsonUserQuery =
       "{Users:{type:terms,field:resource,facet:{Repo:{type:terms,field:repo,facet:{eventCount:\"sum(event_count)\"}}}}}";
@@ -294,11 +300,11 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   }
 
   @SuppressWarnings("unchecked")
-  public BarGraphDataListResponse getRequestUserLineGraph(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getRequestUserLineGraph(FieldAuditBarGraphSearchCriteria searchCriteria) {
 
-    String from = getFrom((String) searchCriteria.getParamValue("startTime"));
-    String to = getTo((String) searchCriteria.getParamValue("endTime"));
-    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
+    String from = getFrom(searchCriteria.getStartTime());
+    String to = getTo(searchCriteria.getEndTime());
+    String unit = getUnit(searchCriteria.getUnit());
 
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
 
@@ -355,7 +361,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
 
   }
 
-  public BarGraphDataListResponse getAnyGraphData(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getAnyGraphData(AnyGraphSearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.AUDIT_EVTTIME);
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
     BarGraphDataListResponse result = graphDataGenerator.getAnyGraphData(searchCriteria, auditSolrDao, solrQuery);
@@ -396,13 +402,13 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   }
 
   @SuppressWarnings({"unchecked"})
-  public Response exportUserTableToTextFile(SearchCriteria searchCriteria) {
+  public Response exportUserTableToTextFile(UserExportSearchCriteria searchCriteria) {
     String jsonUserQuery =
       "{ Users: { type: terms, field: reqUser, facet:  {Repo: {  type: terms, field: repo, facet: {  eventCount: \"sum(event_count)\"}}}},x:{ type: terms,field: resource, facet: {y: {  type: terms, field: repo,facet: {  eventCount: \"sum(event_count)\"}}}}}";
 
     SolrQuery solrQuery = queryGenerator.commonAuditFilterQuery(searchCriteria);
-    String startTime = (String) searchCriteria.getParamValue("startTime");
-    String endTime = (String) searchCriteria.getParamValue("endTime");
+    String startTime = searchCriteria.getStartTime();
+    String endTime = searchCriteria.getEndTime();
 
     startTime = startTime == null ? "" : startTime;
     endTime = endTime == null ? "" : "_" + endTime;
@@ -410,7 +416,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     SolrUtil.setJSONFacet(solrQuery, jsonUserQuery);
     SolrUtil.setRowCount(solrQuery, 0);
 
-    String dataFormat = (String) searchCriteria.getParamValue("format");
+    String dataFormat = searchCriteria.getFormat();
     FileOutputStream fis = null;
     try {
       QueryResponse queryResponse = auditSolrDao.process(solrQuery);
@@ -543,7 +549,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
     return fieldWithBlank;
   }
 
-  public BarGraphDataListResponse getServiceLoad(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getServiceLoad(CommonSearchCriteria searchCriteria) {
     BarGraphDataListResponse dataList = new BarGraphDataListResponse();
     Collection<BarGraphData> vaDatas = new ArrayList<BarGraphData>();
     dataList.setGraphData(vaDatas);

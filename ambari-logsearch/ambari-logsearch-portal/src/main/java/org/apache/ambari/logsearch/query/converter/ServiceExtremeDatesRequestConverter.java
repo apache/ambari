@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.query.converter;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.impl.ServiceExtremeDatesRequest;
 import org.apache.ambari.logsearch.query.model.ServiceExtremeDatesCriteria;
 import org.springframework.stereotype.Component;
@@ -29,7 +28,7 @@ public class ServiceExtremeDatesRequestConverter extends AbstractCommonSearchReq
   @Override
   public ServiceExtremeDatesCriteria convertToSearchCriteria(ServiceExtremeDatesRequest request) {
     ServiceExtremeDatesCriteria criteria = new ServiceExtremeDatesCriteria();
-    criteria.addParam(LogSearchConstants.BUNDLE_ID, request.getBundleId());
+    criteria.setBundleId(request.getBundleId());
     return criteria;
   }
 }

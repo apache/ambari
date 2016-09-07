@@ -29,13 +29,13 @@ public class ServiceLogRequestConverter extends AbstractCommonServiceLogRequestC
   @Override
   public ServiceLogSearchCriteria createCriteria(ServiceLogRequest request) {
     ServiceLogSearchCriteria criteria = new ServiceLogSearchCriteria();
-    criteria.addParam("hostLogFile", request.getHostLogFile());
-    criteria.addParam("compLogFile", request.getComponentLogFile());
-    criteria.addParam("keyword", StringEscapeUtils.unescapeXml(request.getKeyWord()));
-    criteria.addParam("sourceLogId", request.getSourceLogId());
-    criteria.addParam("keywordType", request.getKeywordType());
-    criteria.addParam("token", request.getToken());
-    criteria.addParam("isLastPage", request.isLastPage());
+    criteria.setLogFileComponentName(request.getHostLogFile());
+    criteria.setLogFileComponentName(request.getComponentLogFile());
+    criteria.setKeyword(StringEscapeUtils.unescapeXml(request.getKeyWord()));
+    criteria.setKeywordType(request.getKeywordType());
+    criteria.setSourceLogId(request.getSourceLogId());
+    criteria.setToken(request.getToken());
+    criteria.setLastPage(request.isLastPage());
     return criteria;
   }
 }
