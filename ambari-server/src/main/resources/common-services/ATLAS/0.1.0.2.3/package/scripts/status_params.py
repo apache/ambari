@@ -46,6 +46,7 @@ pid_file = format("{pid_dir}/atlas.pid")
 
 metadata_user = default("/configurations/atlas-env/metadata_user", None)
 hbase_user = default("/configurations/hbase-env/hbase_user", None)
+kafka_user = default("/configurations/kafka-env/kafka_user", None)
 
 # Security related/required params
 hostname = config['hostname']
