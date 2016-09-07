@@ -113,10 +113,7 @@ public class RoleCommandOrder {
   /**
    * key -> blocked role command value -> set of blocker role commands.
    */
-  private Map<RoleCommandPair, Set<RoleCommandPair>> dependencies =
-          new HashMap<RoleCommandPair, Set<RoleCommandPair>>();
-
-
+  private Map<RoleCommandPair, Set<RoleCommandPair>> dependencies = new HashMap<>();
 
   /**
    * Add a pair of tuples where the tuple defined by the first two parameters are blocked on
@@ -224,6 +221,7 @@ public class RoleCommandOrder {
       addDependencies(ResourceManagerHASection);
     }
     extendTransitiveDependency();
+    addMissingRestartDependencies();
   }
 
   /**
@@ -311,6 +309,40 @@ public class RoleCommandOrder {
           identifyTransitiveDependencies(blockedOn, visited, transitiveDependencies);
         }
       }
+    }
+  }
+
+  /**
+   * RoleCommand.RESTART dependencies that are missing from role_command_order.json
+   * will be added to the RCO graph to make sure RESTART ALL type of
+   * operations respect the RCO. Only those @{@link RoleCommandPair} will be
+   * added which do not have any RESTART definition in the role_command_order.json
+   * by copying dependencies from the START operation.
+   */
+  private void addMissingRestartDependencies() {
+    Map<RoleCommandPair, Set<RoleCommandPair>> missingDependencies = new HashMap<>();
+    for (Map.Entry<RoleCommandPair, Set<RoleCommandPair>> roleCommandPairSetEntry : this.dependencies.entrySet()) {
+      RoleCommandPair roleCommandPair = roleCommandPairSetEntry.getKey();
+      if (roleCommandPair.getCmd().equals(RoleCommand.START)) {
+        RoleCommandPair restartPair = new RoleCommandPair(roleCommandPair.getRole(), RoleCommand.RESTART);
+        if (!this.dependencies.containsKey(restartPair)) {
+          // Assumption that if defined the RESTART deps are complete
+          Set<RoleCommandPair> roleCommandDeps = new HashSet<>();
+          for (RoleCommandPair rco : roleCommandPairSetEntry.getValue()) {
+            // Change dependency Role to match source
+            roleCommandDeps.add(new RoleCommandPair(rco.getRole(), RoleCommand.RESTART));
+          }
+
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Adding dependency for " + restartPair + ", " +
+              "dependencies => " + roleCommandDeps);
+          }
+          missingDependencies.put(restartPair, roleCommandDeps);
+        }
+      }
+    }
+    if (!missingDependencies.isEmpty()) {
+      this.dependencies.putAll(missingDependencies);
     }
   }
 
