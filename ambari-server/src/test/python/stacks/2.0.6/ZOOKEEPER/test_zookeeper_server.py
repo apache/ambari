@@ -167,7 +167,7 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',
-                              content='log4jproperties\nline2',
+                              content=InlineTemplate(self.getConfig()['configurations']['zookeeper-log4j']['content']),
                               mode=0644,
                               group='hadoop',
                               owner='zookeeper'
@@ -225,10 +225,10 @@ class TestZookeeperServer(RMFTestCase):
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',
-                              content='log4jproperties\nline2',
                               mode=0644,
-                              group='hadoop',
-                              owner='zookeeper'
+                              owner='zookeeper',
+                              content=InlineTemplate(self.getConfig()['configurations']['zookeeper-log4j']['content']),
+                              group='hadoop'
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper_jaas.conf',
       owner = 'zookeeper',
