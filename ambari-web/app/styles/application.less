@@ -48,6 +48,16 @@ ul.typeahead.dropdown-menu {
   overflow: visible;
   padding-bottom: @footer-height;
   min-width: 980px;
+
+   .clock-view {
+     top: 10px;
+     left: 4px;
+     position: fixed;
+     color: red;
+     font-weight: bold;
+     padding: 4px;
+     background-color: rgba(0, 0, 0, 0.6);
+  }
 }
 
 footer {
@@ -381,6 +391,7 @@ footer {
   .navbar .nav .top-nav-user > li.right {
     float: right;
   }
+
 }
 
 .nav.top-nav-menu,
@@ -6216,7 +6227,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     padding: 5px 25px;
   }
   .right-stack-info {
-    margin-left: 0px;
+    margin-left: 0;
     .available-repos-dropdown {
       a, a.disbled{
         cursor: pointer;
@@ -6282,7 +6293,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     background-color: #f0f0f0;
     font-weight: bold;
     p {
-      margin-bottom: 0px;
+      margin-bottom: 0;
       display: block;
       padding: 8px 15px;
     }
@@ -6378,7 +6389,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     #use-redhat, #skip-validation {
       input{
-        margin: 0px 10px;
+        margin: 0 10px;
       }
     }
     #use-redhat span.disabled {
@@ -6416,7 +6427,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         background-image: linear-gradient(top, #fdfdfd, #e3e3e3);
       }
       &.is_selected {
-        margin-left: 0px;
+        margin-left: 0;
       }
     }
   }
