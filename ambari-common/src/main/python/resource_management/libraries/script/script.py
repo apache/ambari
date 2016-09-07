@@ -326,7 +326,7 @@ class Script(object):
     pids = []
     for pid_file in pid_files:
       if not sudo.path_exists(pid_file):
-        raise Fail("Pid file {0} doesn't exist after starting of the component.")
+        raise Fail("Pid file {0} doesn't exist after starting of the component.".format(pid_file))
 
       pids.append(sudo.read_file(pid_file).strip())
 

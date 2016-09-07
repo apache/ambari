@@ -87,10 +87,6 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     env.set_params(params)
     upgrade.post_regionserver(env)
 
-  def post_start(self, env, upgrade_type=None):
-    import params
-
-
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
@@ -98,8 +94,6 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     setup_ranger_hbase(upgrade_type=upgrade_type, service_name="hbase-regionserver")
 
     hbase_service('regionserver', action='start')
-
-    self.post_start(env, upgrade_type=upgrade_type)
 
   def stop(self, env, upgrade_type=None):
     import params
