@@ -496,9 +496,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
           }
         }
 
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating Blueprint, name=" + blueprint.getName());
-        }
+        LOG.info("Creating Blueprint, name=" + blueprint.getName());
+        String blueprintSetting = blueprint.getSetting() == null ? "(null)" :
+                jsonSerializer.toJson(blueprint.getSetting().getProperties());
+        LOG.info("Blueprint setting=" + blueprintSetting);
+
         try {
           blueprintDAO.create(blueprint.toEntity());
         } catch (Exception e) {
