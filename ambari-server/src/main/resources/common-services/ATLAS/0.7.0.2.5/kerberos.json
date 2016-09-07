@@ -84,6 +84,9 @@
               "keytab": {
                 "configuration": "ranger-atlas-audit/xasecure.audit.jaas.Client.option.keyTab"
               }
+            },
+            {
+              "name": "/KAFKA/KAFKA_BROKER/kafka_broker"
             }
           ]
         }

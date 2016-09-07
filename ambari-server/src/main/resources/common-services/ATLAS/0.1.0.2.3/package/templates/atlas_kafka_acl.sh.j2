@@ -1,0 +1,9 @@
+#!/usr/bin/bash
+
+{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_HOOK --allow-principal User:* --producer
+{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_HOOK --allow-principal User:{{metadata_user}} --consumer --group atlas
+{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_ENTITIES --allow-principal User:{{metadata_user}} --producer
+
+{% if has_ranger_tagsync %}
+{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_ENTITIES --allow-principal User:{{ranger_user}} --consumer --group ranger_entities_consumer
+{% endif %}

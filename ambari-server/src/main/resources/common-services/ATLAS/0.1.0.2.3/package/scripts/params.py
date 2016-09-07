@@ -22,6 +22,7 @@ import os
 import sys
 
 # Local Imports
+from resource_management import get_bare_principal
 from status_params import *
 from resource_management import format_stack_version, Script
 from resource_management.libraries.functions import format
@@ -233,12 +234,49 @@ ranger_admin_hosts = default('/clusterHostInfo/ranger_admin_hosts', [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 atlas_hbase_setup = format("{exec_tmp_dir}/atlas_hbase_setup.rb")
+atlas_kafka_setup = format("{exec_tmp_dir}/atlas_kafka_acl.sh")
 atlas_graph_storage_hbase_table = default('/configurations/application-properties/atlas.graph.storage.hbase.table', None)
 atlas_audit_hbase_tablename = default('/configurations/application-properties/atlas.audit.hbase.tablename', None)
 
 hbase_user_keytab = default('/configurations/hbase-env/hbase_user_keytab', None)
 hbase_principal_name = default('/configurations/hbase-env/hbase_principal_name', None)
 enable_ranger_hbase = False
+
+# ToDo: Kafka port to Atlas
+# Used while upgrading the stack in a kerberized cluster and running kafka-acls.sh
+hosts_with_kafka = default('/clusterHostInfo/kafka_broker_hosts', [])
+host_with_kafka = hostname in hosts_with_kafka
+
+ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
+has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
+ranger_user = default('/configurations/ranger-env/ranger_user', None)
+
+kafka_keytab = default('/configurations/kafka-env/kafka_keytab', None)
+kafka_principal_name = default('/configurations/kafka-env/kafka_principal_name', None)
+
+if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
+  default_replication_factor = default('/configurations/application-properties/atlas.notification.replicas', None)
+
+  kafka_env_sh_template = config['configurations']['kafka-env']['content']
+  kafka_home = os.path.join(stack_root,  "current", "kafka-broker")
+  kafka_conf_dir = os.path.join(kafka_home, "config")
+
+  kafka_zk_endpoint = default("/configurations/kafka-broker/zookeeper.connect", None)
+  kafka_kerberos_enabled = (('security.inter.broker.protocol' in config['configurations']['kafka-broker']) and
+                            ((config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL") or
+                             (config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "SASL_PLAINTEXT")))
+  if security_enabled and stack_version_formatted != "" and 'kafka_principal_name' in config['configurations']['kafka-env'] \
+    and check_stack_feature(StackFeature.KAFKA_KERBEROS, stack_version_formatted):
+    _hostname_lowercase = config['hostname'].lower()
+    _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
+    kafka_jaas_principal = _kafka_principal_name.replace('_HOST', _hostname_lowercase)
+    kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
+    kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
+    kafka_kerberos_params = "-Djava.security.auth.login.config={0}/kafka_jaas.conf".format(kafka_conf_dir)
+  else:
+    kafka_kerberos_params = ''
+    kafka_jaas_principal = None
+    kafka_keytab_path = None
 
 if has_ranger_admin and stack_supports_atlas_ranger_plugin:
   # for create_hdfs_directory

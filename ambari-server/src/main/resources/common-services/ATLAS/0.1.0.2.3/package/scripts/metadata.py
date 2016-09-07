@@ -17,13 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
+from resource_management import Package
+from resource_management import StackFeature
 from resource_management.core.resources.system import Directory, File
 from resource_management.core.source import StaticFile, InlineTemplate, Template
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.libraries.functions import solr_cloud_util
+from resource_management.libraries.functions.stack_features import check_stack_feature, get_stack_feature_version
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
 
@@ -127,6 +129,26 @@ def metadata(type='server'):
          owner=params.hbase_user,
          content=Template("atlas_hbase_setup.rb.j2")
     )
+
+    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, get_stack_feature_version(params.config)) and\
+      params.security_enabled and not params.host_with_kafka:
+
+      File(params.atlas_kafka_setup,
+           group=params.user_group,
+           owner=params.kafka_user,
+           content=Template("atlas_kafka_acl.sh.j2")
+      )
+
+      File(format("{kafka_conf_dir}/kafka-env.sh"),
+           owner=params.kafka_user,
+           content=InlineTemplate(params.kafka_env_sh_template)
+           )
+
+      File(format("{kafka_conf_dir}/kafka_jaas.conf"),
+           group=params.user_group,
+           owner=params.kafka_user,
+           content=Template("kafka_jaas.conf.j2")
+           )
 
 def upload_conf_set(config_set, jaasFile):
   import params

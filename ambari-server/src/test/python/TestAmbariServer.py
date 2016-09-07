@@ -53,7 +53,18 @@ shutil.copyfile(project_dir+"/ambari-server/conf/unix/ambari.properties", "/tmp/
 
 # We have to use this import HACK because the filename contains a dash
 _search_file = os_utils.search_file
-os_utils.search_file = MagicMock(return_value="/tmp/ambari.properties")
+
+
+def search_file_proxy(filename, searchpatch, pathsep=os.pathsep):
+  global _search_file
+
+  if "ambari.properties" in filename:
+    return "/tmp/ambari.properties"
+
+  return _search_file(filename, searchpatch, pathsep)
+
+
+os_utils.search_file = search_file_proxy
 with patch.object(platform, "linux_distribution", return_value = MagicMock(return_value=('Redhat', '6.4', 'Final'))):
   with patch("os.path.isdir", return_value = MagicMock(return_value=True)):
     with patch("os.access", return_value = MagicMock(return_value=True)):
@@ -62,7 +73,6 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
           with patch("os.symlink"):
             with patch("glob.glob", return_value = ['/etc/init.d/postgresql-9.3']):
               _ambari_server_ = __import__('ambari-server')
-              os_utils.search_file = _search_file
               with patch("__builtin__.open"):
                 from ambari_commons.firewall import Firewall
                 from ambari_commons.os_check import OSCheck, OSConst
@@ -116,7 +126,6 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 from ambari_server.hostUpdate import update_host_names
                 from ambari_server.checkDatabase import check_database
                 from ambari_server import serverConfiguration
-                serverConfiguration.search_file = _search_file
 
 CURR_AMBARI_VERSION = "2.0.0"
 
