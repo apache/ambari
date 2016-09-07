@@ -597,7 +597,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           if (baseConfig != null) {
             String authName = AUTHENTICATED_USER_NAME;
 
-            if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig)) != null) {
+            String configVersionNote = String.format("Updated %s during Ambari Upgrade from %s to %s.", configType, getSourceVersion(), getTargetVersion());
+            if (cluster.addDesiredConfig(authName, Collections.singleton(baseConfig), configVersionNote) != null) {
               String oldConfigString = (oldConfig != null) ? " from='" + oldConfig.getTag() + "'" : "";
               LOG.info("cluster '" + cluster.getClusterName() + "' "
                 + "changed by: '" + authName + "'; "

@@ -303,8 +303,12 @@ public class UpgradeCatalog210Test {
     ServiceConfigVersionResponse r = null;
     expect(mockClusterExpected.getConfig(anyObject(String.class), anyObject(String.class))).
         andReturn(mockHiveServer).anyTimes();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServer))).
-        andReturn(r).times(3);
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServer), "Updated hive-env during Ambari Upgrade from 2.0.0 to 2.1.0.")).
+        andReturn(r).times(1);
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServer), "Updated hiveserver2-site during Ambari Upgrade from 2.0.0 to 2.1.0.")).
+        andReturn(r).times(1);
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServer), "Updated ranger-hive-plugin-properties during Ambari Upgrade from 2.0.0 to 2.1.0.")).
+        andReturn(r).times(1);
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateRangerHiveConfigs();
@@ -364,14 +368,14 @@ public class UpgradeCatalog210Test {
     expect(mockHiveServerSite.getProperties()).andReturn(propertiesExpectedHiveServerSite).anyTimes();
     expect(mockClusterExpected.getConfig(capture(configTypeEnv), anyObject(String.class))).andReturn(mockHiveEnv).once();
     expect(mockClusterExpected.getConfig(capture(configTypeServerSite), anyObject(String.class))).andReturn(mockHiveServerSite).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveEnv))).andReturn(mockServiceConfigVersionResponse).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServerSite))).andReturn(mockServiceConfigVersionResponse).once();
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveEnv), "Updated hive-env during Ambari Upgrade from 2.0.0 to 2.1.0.")).andReturn(mockServiceConfigVersionResponse).once();
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveServerSite), "Updated hiveserver2-site during Ambari Upgrade from 2.0.0 to 2.1.0.")).andReturn(mockServiceConfigVersionResponse).once();
 
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(mockHiveSite).atLeastOnce();
     expect(mockHiveSite.getProperties()).andReturn(propertiesExpectedHiveSite).anyTimes();
     expect(mockClusterExpected.getServices()).andReturn(servicesExpected).once();
     expect(mockClusterExpected.getConfig(capture(configTypeSite), anyObject(String.class))).andReturn(mockHiveSite).once();
-    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveSite))).andReturn(mockServiceConfigVersionResponse).once();
+    expect(mockClusterExpected.addDesiredConfig("ambari-upgrade", Collections.singleton(mockHiveSite), "Updated hive-site during Ambari Upgrade from 2.0.0 to 2.1.0.")).andReturn(mockServiceConfigVersionResponse).once();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog210.class).updateHiveConfigs();
