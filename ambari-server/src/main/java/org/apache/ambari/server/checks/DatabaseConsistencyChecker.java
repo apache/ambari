@@ -110,7 +110,7 @@ public class DatabaseConsistencyChecker {
 
       DatabaseConsistencyCheckHelper.checkForHostsWithoutState();
 
-      DatabaseConsistencyCheckHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
+      DatabaseConsistencyCheckHelper.checkHostComponentStates();
 
       DatabaseConsistencyCheckHelper.checkServiceConfigs();
 

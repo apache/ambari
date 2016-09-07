@@ -19,6 +19,7 @@ package org.apache.ambari.server.checks;
 
 
 import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.easymock.EasyMock.expect;
 
 import java.sql.Connection;
@@ -27,7 +28,6 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -203,6 +202,7 @@ public class DatabaseConsistencyCheckHelperTest {
     expect(mockStatement.executeQuery("select count(*) FROM hostcomponentstate hcs " +
             "JOIN hostcomponentdesiredstate hcds ON hcs.service_name=hcds.service_name AND " +
             "hcs.component_name=hcds.component_name AND hcs.host_id=hcds.host_id")).andReturn(mockResultSet);
+    expect(mockStatement.executeQuery("select component_name, host_id from hostcomponentstate group by component_name, host_id having count(component_name) > 1")).andReturn(mockResultSet);
 
     DatabaseConsistencyCheckHelper.setInjector(mockInjector);
     DatabaseConsistencyCheckHelper.setConnection(mockConnection);
@@ -210,7 +210,7 @@ public class DatabaseConsistencyCheckHelperTest {
     easyMockSupport.replayAll();
 
 
-    DatabaseConsistencyCheckHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
+    DatabaseConsistencyCheckHelper.checkHostComponentStates();
 
     easyMockSupport.verifyAll();
   }

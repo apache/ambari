@@ -318,16 +318,21 @@ public class DatabaseConsistencyCheckHelper {
   * of desired host component states. According to ambari logic these
   * two tables should have the same count of rows. If not then we are
   * showing error for user.
+  *
+  * One more, we are checking if all components has only one host
+  * component state. If some component has more, it can cause issues
   * */
-  public static void checkHostComponentStatesCountEqualsHostComponentsDesiredStates() {
+  public static void checkHostComponentStates() {
     LOG.info("Checking host component states count equals host component desired states count");
 
     String GET_HOST_COMPONENT_STATE_COUNT_QUERY = "select count(*) from hostcomponentstate";
     String GET_HOST_COMPONENT_DESIRED_STATE_COUNT_QUERY = "select count(*) from hostcomponentdesiredstate";
     String GET_MERGED_TABLE_ROW_COUNT_QUERY = "select count(*) FROM hostcomponentstate hcs " +
             "JOIN hostcomponentdesiredstate hcds ON hcs.service_name=hcds.service_name AND hcs.component_name=hcds.component_name AND hcs.host_id=hcds.host_id";
+    String GET_HOST_COMPONENT_STATE_DUPLICATES_QUERY = "select component_name, host_id from hostcomponentstate group by component_name, host_id having count(component_name) > 1";
     int hostComponentStateCount = 0;
     int hostComponentDesiredStateCount = 0;
+    Map<String, String> hostComponentStateDuplicates = new HashMap<>();
     int mergedCount = 0;
     ResultSet rs = null;
     Statement statement = null;
@@ -365,6 +370,19 @@ public class DatabaseConsistencyCheckHelper {
 
       if (hostComponentStateCount != hostComponentDesiredStateCount || hostComponentStateCount != mergedCount) {
         LOG.error("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
+        errorAvailable = true;
+      }
+
+
+      rs = statement.executeQuery(GET_HOST_COMPONENT_STATE_DUPLICATES_QUERY);
+      if (rs != null) {
+        while (rs.next()) {
+          hostComponentStateDuplicates.put(rs.getString("component_name"), rs.getString("host_id"));
+        }
+      }
+
+      for (Map.Entry<String, String> component : hostComponentStateDuplicates.entrySet()) {
+        LOG.error("Component {} on host with id {}, has more than one host component state (hostcomponentstate table)!", component.getKey(), component.getValue());
         errorAvailable = true;
       }
 
