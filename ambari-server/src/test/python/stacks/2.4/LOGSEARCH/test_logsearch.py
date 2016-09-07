@@ -70,10 +70,32 @@ class TestLogSearch(RMFTestCase):
                               mode = 0644,
                               content = ''
     )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
-                              owner = 'logsearch',
-                              group='hadoop',
-                              content = Template('logsearch.properties.j2')
+    self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-portal/conf/logsearch.properties',
+                              properties = {'logsearch.audit.logs.split.interval.mins': '1',
+                                            'logsearch.auth.external_auth.enabled': 'false',
+                                            'logsearch.auth.external_auth.host_url': 'http://c6401.ambari.apache.org:8080',
+                                            'logsearch.auth.external_auth.login_url': '/api/v1/users/$USERNAME/privileges?fields=*',
+                                            'logsearch.auth.file.enable': 'true',
+                                            'logsearch.auth.ldap.enable': 'false',
+                                            'logsearch.auth.simple.enable': 'false',
+                                            'logsearch.collection.audit.logs.numshards': '10',
+                                            'logsearch.collection.audit.logs.replication.factor': '1',
+                                            'logsearch.collection.history.replication.factor': '1',
+                                            'logsearch.collection.service.logs.numshards': '10',
+                                            'logsearch.collection.service.logs.replication.factor': '1',
+                                            'logsearch.login.credentials.file': 'logsearch-admin.json',
+                                            'logsearch.protocol': 'http',
+                                            'logsearch.roles.allowed': 'AMBARI.ADMINISTRATOR',
+                                            'logsearch.service.logs.split.interval.mins': '1',
+                                            'logsearch.solr.audit.logs.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr',
+                                            'logsearch.solr.collection.audit.logs': 'audit_logs',
+                                            'logsearch.solr.collection.history': 'history',
+                                            'logsearch.solr.collection.service.logs': 'hadoop_logs',
+                                            'logsearch.solr.history.config.name': 'history',
+                                            'logsearch.solr.metrics.collector.hosts': '',
+                                            'logsearch.solr.jmx.port': '1',
+                                            'logsearch.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
+                              }
     )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-portal/conf/HadoopServiceConfig.json',
                               owner = 'logsearch',

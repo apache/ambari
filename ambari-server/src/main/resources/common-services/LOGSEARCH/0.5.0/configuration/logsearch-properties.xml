@@ -133,7 +133,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.enabled</name>
+    <name>logsearch.auth.external_auth.enable</name>
     <value>true</value>
     <display-name>External authentication</display-name>
     <description>Enable external authentication</description>
@@ -143,14 +143,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.host_url</name>
+    <name>logsearch.auth.external_auth.host_url</name>
     <value>{ambari_server_auth_host_url}</value>
     <display-name>External authentication url - host and port</display-name>
     <description>The host and port of the external server used to authenticate</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.login_url</name>
+    <name>logsearch.auth.external_auth.login_url</name>
     <value>/api/v1/users/$USERNAME/privileges?fields=*</value>
     <display-name>External authentication url - path and query</display-name>
     <description>The path and query of the external server used to authenticate</description>

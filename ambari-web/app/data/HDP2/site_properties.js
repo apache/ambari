@@ -2215,21 +2215,21 @@ var hdp2properties = [
     "index": 6
   },
   {
-    "name": "logsearch.external.auth.enabled",
+    "name": "logsearch.auth.external_auth.enable",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 7
   },
   {
-    "name": "logsearch.external.auth.host_url",
+    "name": "logsearch.auth.external_auth.host_url",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 8
   },
   {
-    "name": "logsearch.external.auth.login_url",
+    "name": "logsearch.auth.external_auth.login_url",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
