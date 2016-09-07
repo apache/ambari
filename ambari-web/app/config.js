@@ -62,6 +62,7 @@ App.inactivityRemainTime = 60; // in seconds
 App.enableLogger = true;
 App.stackVersionsAvailable = true;
 App.upgradeHistoryAvailable = false;
+App.enableDigitalClock = false;
 
 // experimental features are automatically enabled if running on brunch server
 App.enableExperimental = false;
