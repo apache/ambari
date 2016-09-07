@@ -30,25 +30,25 @@ import org.apache.log4j.Logger;
  * Overrides the value for the field
  */
 public class MapperFieldValue extends Mapper {
-  private Logger logger = Logger.getLogger(MapperFieldValue.class);
+  private static final Logger LOG = Logger.getLogger(MapperFieldValue.class);
+  
   private String prevValue = null;
   private String newValue = null;
 
   @Override
-  public boolean init(String inputDesc, String fieldName,
-      String mapClassCode, Object mapConfigs) {
-    super.init(inputDesc, fieldName, mapClassCode, mapConfigs);
+  public boolean init(String inputDesc, String fieldName, String mapClassCode, Object mapConfigs) {
+    init(inputDesc, fieldName, mapClassCode);
     if (!(mapConfigs instanceof Map)) {
-      logger.fatal("Can't initialize object. mapConfigs class is not of type Map. "
-          + mapConfigs.getClass().getName());
+      LOG.fatal("Can't initialize object. mapConfigs class is not of type Map. " + mapConfigs.getClass().getName());
       return false;
     }
+    
     @SuppressWarnings("unchecked")
     Map<String, Object> mapObjects = (Map<String, Object>) mapConfigs;
     prevValue = (String) mapObjects.get("pre_value");
     newValue = (String) mapObjects.get("post_value");
     if (StringUtils.isEmpty(newValue)) {
-      logger.fatal("Map field value is empty.");
+      LOG.fatal("Map field value is empty.");
       return false;
     }
     return true;
@@ -56,20 +56,15 @@ public class MapperFieldValue extends Mapper {
 
   @Override
   public Object apply(Map<String, Object> jsonObj, Object value) {
-    if (newValue != null) {
-      if (prevValue != null) {
-        if (prevValue.equalsIgnoreCase(value.toString())) {
-          value = newValue;
-          jsonObj.put(fieldName, value);
-        }
+    if (newValue != null && prevValue != null) {
+      if (prevValue.equalsIgnoreCase(value.toString())) {
+        value = newValue;
+        jsonObj.put(fieldName, value);
       }
     } else {
-      LogFeederUtil.logErrorMessageByInterval(
-          this.getClass().getSimpleName() + ":apply",
-          "New value is null, so transformation is not applied. "
-              + this.toString(), null, logger, Level.ERROR);
+      LogFeederUtil.logErrorMessageByInterval(this.getClass().getSimpleName() + ":apply",
+          "New value is null, so transformation is not applied. " + this.toString(), null, LOG, Level.ERROR);
     }
     return value;
   }
-
 }

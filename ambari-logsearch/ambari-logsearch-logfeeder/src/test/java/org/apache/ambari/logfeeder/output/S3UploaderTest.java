@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,6 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.util.S3Util;
 import org.junit.Test;
 
 import java.io.File;
@@ -46,22 +45,20 @@ public class S3UploaderTest {
     Map<String, Object> configs = setupS3Configs();
 
     S3OutputConfiguration s3OutputConfiguration = new S3OutputConfiguration(configs);
-    S3Util s3Util = mock(S3Util.class);
-    String s3Key = String.format("%s/%s/%s.%s", TEST_PATH, LOG_TYPE, fileName, GZ);
-    s3Util.uploadFileTos3(TEST_BUCKET, s3Key, compressedFile, ACCESS_KEY_VALUE, SECRET_KEY_VALUE);
     expect(compressedFile.delete()).andReturn(true);
     expect(fileToUpload.delete()).andReturn(true);
-    replay(fileToUpload, compressedFile, s3Util);
+    replay(fileToUpload, compressedFile);
 
-    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, s3Util, true, LOG_TYPE) {
+    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, true, LOG_TYPE) {
       @Override
       protected File createCompressedFileForUpload(File fileToUpload, String compressionAlgo) {
         return compressedFile;
       }
+      protected void uploadFileToS3(String bucketName, String s3Key, File localFile, String accessKey, String secretKey) {
+      }
     };
     String resolvedPath = s3Uploader.uploadFile(fileToUpload, LOG_TYPE);
 
-    verify(s3Util);
     assertEquals("test_path/hdfs_namenode/hdfs_namenode.log.123343493473948.gz", resolvedPath);
   }
 
@@ -74,17 +71,16 @@ public class S3UploaderTest {
     Map<String, Object> configs = setupS3Configs();
 
     S3OutputConfiguration s3OutputConfiguration = new S3OutputConfiguration(configs);
-    S3Util s3Util = mock(S3Util.class);
-    String s3Key = String.format("%s/%s/%s.%s", TEST_PATH, LOG_TYPE, fileName, GZ);
-    s3Util.uploadFileTos3(TEST_BUCKET, s3Key, compressedFile, ACCESS_KEY_VALUE, SECRET_KEY_VALUE);
     expect(compressedFile.delete()).andReturn(true);
     expect(fileToUpload.delete()).andReturn(true);
-    replay(fileToUpload, compressedFile, s3Util);
+    replay(fileToUpload, compressedFile);
 
-    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, s3Util, true, LOG_TYPE) {
+    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, true, LOG_TYPE) {
       @Override
       protected File createCompressedFileForUpload(File fileToUpload, String compressionAlgo) {
         return compressedFile;
+      }
+      protected void uploadFileToS3(String bucketName, String s3Key, File localFile, String accessKey, String secretKey) {
       }
     };
     s3Uploader.uploadFile(fileToUpload, LOG_TYPE);
@@ -102,16 +98,15 @@ public class S3UploaderTest {
     Map<String, Object> configs = setupS3Configs();
 
     S3OutputConfiguration s3OutputConfiguration = new S3OutputConfiguration(configs);
-    S3Util s3Util = mock(S3Util.class);
-    String s3Key = String.format("%s/%s/%s.%s", TEST_PATH, LOG_TYPE, fileName, GZ);
-    s3Util.uploadFileTos3(TEST_BUCKET, s3Key, compressedFile, ACCESS_KEY_VALUE, SECRET_KEY_VALUE);
     expect(compressedFile.delete()).andReturn(true);
-    replay(fileToUpload, compressedFile, s3Util);
+    replay(fileToUpload, compressedFile);
 
-    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, s3Util, false, LOG_TYPE) {
+    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, false, LOG_TYPE) {
       @Override
       protected File createCompressedFileForUpload(File fileToUpload, String compressionAlgo) {
         return compressedFile;
+      }
+      protected void uploadFileToS3(String bucketName, String s3Key, File localFile, String accessKey, String secretKey) {
       }
     };
     s3Uploader.uploadFile(fileToUpload, LOG_TYPE);
@@ -131,22 +126,19 @@ public class S3UploaderTest {
 
 
     S3OutputConfiguration s3OutputConfiguration = new S3OutputConfiguration(configs);
-    S3Util s3Util = mock(S3Util.class);
-    String s3Key = String.format("%s/%s/%s/%s.%s", "cl1", TEST_PATH, LOG_TYPE, fileName, GZ);
-    s3Util.uploadFileTos3(TEST_BUCKET, s3Key, compressedFile, ACCESS_KEY_VALUE, SECRET_KEY_VALUE);
     expect(compressedFile.delete()).andReturn(true);
     expect(fileToUpload.delete()).andReturn(true);
-    replay(fileToUpload, compressedFile, s3Util);
+    replay(fileToUpload, compressedFile);
 
-    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, s3Util, true, LOG_TYPE) {
+    S3Uploader s3Uploader = new S3Uploader(s3OutputConfiguration, true, LOG_TYPE) {
       @Override
       protected File createCompressedFileForUpload(File fileToUpload, String compressionAlgo) {
         return compressedFile;
       }
+      protected void uploadFileToS3(String bucketName, String s3Key, File localFile, String accessKey, String secretKey) {
+      }
     };
     s3Uploader.uploadFile(fileToUpload, LOG_TYPE);
-
-    verify(s3Util);
   }
 
   private Map<String, Object> setupS3Configs() {

@@ -26,16 +26,19 @@ import java.util.Map.Entry;
 
 import org.apache.ambari.logfeeder.common.ConfigBlock;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.log4j.Logger;
 
 public abstract class Output extends ConfigBlock {
-  private static final Logger logger = Logger.getLogger(Output.class);
+  private static final Logger LOG = Logger.getLogger(Output.class);
 
   private String destination = null;
 
-  protected MetricCount writeBytesMetric = new MetricCount();
+  protected MetricData writeBytesMetric = new MetricData(getWriteBytesMetricName(), false);
+  protected String getWriteBytesMetricName() {
+    return null;
+  }
 
   @Override
   public String getShortDescription() {
@@ -67,7 +70,7 @@ public abstract class Output extends ConfigBlock {
    * Extend this method to clean up
    */
   public void close() {
-    logger.info("Calling base close()." + getShortDescription());
+    LOG.info("Calling base close()." + getShortDescription());
     isClosed = true;
   }
 
@@ -91,7 +94,7 @@ public abstract class Output extends ConfigBlock {
   }
 
   @Override
-  public void addMetricsContainers(List<MetricCount> metricsList) {
+  public void addMetricsContainers(List<MetricData> metricsList) {
     super.addMetricsContainers(metricsList);
     metricsList.add(writeBytesMetric);
   }

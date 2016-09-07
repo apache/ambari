@@ -20,12 +20,17 @@ package org.apache.ambari.logfeeder.util;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.apache.log4j.Logger;
 
 public class DateUtil {
-  private static final Logger logger = Logger.getLogger(DateUtil.class);
-
+  private static final Logger LOG = Logger.getLogger(DateUtil.class);
+  
+  private DateUtil() {
+    throw new UnsupportedOperationException();
+  }
+  
   public static String dateToString(Date date, String dateFormat) {
     if (date == null || dateFormat == null || dateFormat.isEmpty()) {
       return "";
@@ -34,8 +39,36 @@ public class DateUtil {
       SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
       return formatter.format(date).toString();
     } catch (Exception e) {
-      logger.error("Error in coverting dateToString  format :" + dateFormat, e);
+      LOG.error("Error in coverting dateToString  format :" + dateFormat, e);
     }
     return "";
+  }
+
+  private final static String SOLR_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+  private static ThreadLocal<SimpleDateFormat> dateFormatter = new ThreadLocal<SimpleDateFormat>() {
+    @Override
+    protected SimpleDateFormat initialValue() {
+      SimpleDateFormat sdf = new SimpleDateFormat(SOLR_DATE_FORMAT);
+      sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+      return sdf;
+    }
+  };
+
+  public static String getDate(String timeStampStr) {
+    try {
+      return dateFormatter.get().format(new Date(Long.parseLong(timeStampStr)));
+    } catch (Exception ex) {
+      LOG.error(ex);
+      return null;
+    }
+  }
+
+  public static String getActualDateStr() {
+    try {
+      return dateFormatter.get().format(new Date());
+    } catch (Exception ex) {
+      LOG.error(ex);
+      return null;
+    }
   }
 }

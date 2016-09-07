@@ -36,7 +36,7 @@ import oi.thekraken.grok.api.exception.GrokException;
 
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
@@ -45,7 +45,7 @@ import org.apache.log4j.Logger;
 import com.google.gson.reflect.TypeToken;
 
 public class FilterGrok extends Filter {
-  static private Logger logger = Logger.getLogger(FilterGrok.class);
+  private static final Logger LOG = Logger.getLogger(FilterGrok.class);
 
   private static final String GROK_PATTERN_FILE = "grok-patterns";
 
@@ -68,25 +68,23 @@ public class FilterGrok extends Filter {
 
   private Type jsonType = new TypeToken<Map<String, String>>() {}.getType();
 
-  private MetricCount grokErrorMetric = new MetricCount();
+  private MetricData grokErrorMetric = new MetricData("filter.error.grok", false);
 
   @Override
   public void init() throws Exception {
     super.init();
 
     try {
-      grokErrorMetric.metricsName = "filter.error.grok";
       messagePattern = escapePattern(getStringValue("message_pattern"));
       multilinePattern = escapePattern(getStringValue("multiline_pattern"));
       sourceField = getStringValue("source_field");
       removeSourceField = getBooleanValue("remove_source_field",
         removeSourceField);
 
-      logger.info("init() done. grokPattern=" + messagePattern
-        + ", multilinePattern=" + multilinePattern + ", "
-        + getShortDescription());
+      LOG.info("init() done. grokPattern=" + messagePattern + ", multilinePattern=" + multilinePattern + ", " +
+      getShortDescription());
       if (StringUtils.isEmpty(messagePattern)) {
-        logger.error("message_pattern is not set for filter.");
+        LOG.error("message_pattern is not set for filter.");
         return;
       }
       extractNamedParams(messagePattern, namedParamList);
@@ -102,9 +100,7 @@ public class FilterGrok extends Filter {
         grokMultiline.compile(multilinePattern);
       }
     } catch (Throwable t) {
-      logger.fatal(
-        "Caught exception while initializing Grok. multilinePattern="
-          + multilinePattern + ", messagePattern="
+      LOG.fatal("Caught exception while initializing Grok. multilinePattern=" + multilinePattern + ", messagePattern="
           + messagePattern, t);
       grokMessage = null;
       grokMultiline = null;
@@ -123,9 +119,10 @@ public class FilterGrok extends Filter {
   }
 
   private void extractNamedParams(String patternStr, Set<String> paramList) {
-    String grokRegEx = "%\\{" + "(?<name>" + "(?<pattern>[A-z0-9]+)"
-      + "(?::(?<subname>[A-z0-9_:]+))?" + ")" + "(?:=(?<definition>"
-      + "(?:" + "(?:[^{}]+|\\.+)+" + ")+" + ")" + ")?" + "\\}";
+    String grokRegEx = "%\\{" +
+        "(?<name>" + "(?<pattern>[A-z0-9]+)" + "(?::(?<subname>[A-z0-9_:]+))?" + ")" +
+        "(?:=(?<definition>" + "(?:" + "(?:[^{}]+|\\.+)+" + ")+" + ")" + ")?" +
+        "\\}";
 
     Pattern pattern = Pattern.compile(grokRegEx);
     java.util.regex.Matcher matcher = pattern.matcher(patternStr);
@@ -139,28 +136,23 @@ public class FilterGrok extends Filter {
 
   private boolean loadPatterns(Grok grok) {
     InputStreamReader grokPatternsReader = null;
-    logger.info("Loading pattern file " + GROK_PATTERN_FILE);
+    LOG.info("Loading pattern file " + GROK_PATTERN_FILE);
     try {
-      BufferedInputStream fileInputStream = (BufferedInputStream) this
-        .getClass().getClassLoader()
-        .getResourceAsStream(GROK_PATTERN_FILE);
+      BufferedInputStream fileInputStream =
+          (BufferedInputStream) this.getClass().getClassLoader().getResourceAsStream(GROK_PATTERN_FILE);
       if (fileInputStream == null) {
-        logger.fatal("Couldn't load grok-patterns file "
-          + GROK_PATTERN_FILE + ". Things will not work");
+        LOG.fatal("Couldn't load grok-patterns file " + GROK_PATTERN_FILE + ". Things will not work");
         return false;
       }
       grokPatternsReader = new InputStreamReader(fileInputStream);
     } catch (Throwable t) {
-      logger.fatal("Error reading grok-patterns file " + GROK_PATTERN_FILE
-        + " from classpath. Grok filtering will not work.", t);
+      LOG.fatal("Error reading grok-patterns file " + GROK_PATTERN_FILE + " from classpath. Grok filtering will not work.", t);
       return false;
     }
     try {
       grok.addPatternFromReader(grokPatternsReader);
     } catch (GrokException e) {
-      logger.fatal(
-        "Error loading patterns from grok-patterns reader for file "
-          + GROK_PATTERN_FILE, e);
+      LOG.fatal("Error loading patterns from grok-patterns reader for file " + GROK_PATTERN_FILE, e);
       return false;
     }
 
@@ -177,8 +169,7 @@ public class FilterGrok extends Filter {
       String jsonStr = grokMultiline.capture(inputStr);
       if (!"{}".equals(jsonStr)) {
         if (strBuff != null) {
-          Map<String, Object> jsonObj = Collections
-            .synchronizedMap(new HashMap<String, Object>());
+          Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
           try {
             applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
           } finally {
@@ -192,15 +183,13 @@ public class FilterGrok extends Filter {
       if (strBuff == null) {
         strBuff = new StringBuilder();
       } else {
-        strBuff.append('\r');
-        strBuff.append('\n');
+        strBuff.append("\r\n");
       }
       strBuff.append(inputStr);
       savedInputMarker = inputMarker;
     } else {
       savedInputMarker = inputMarker;
-      Map<String, Object> jsonObj = Collections
-        .synchronizedMap(new HashMap<String, Object>());
+      Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
       applyMessage(inputStr, jsonObj, null);
     }
   }
@@ -216,14 +205,8 @@ public class FilterGrok extends Filter {
     }
   }
 
-  /**
-   * @param inputStr
-   * @param jsonObj
-   * @throws LogfeederException 
-   */
-  private void applyMessage(String inputStr, Map<String, Object> jsonObj,
-                            String multilineJsonStr) throws LogfeederException {
-    String jsonStr = grokParse(inputStr);
+  private void applyMessage(String inputStr, Map<String, Object> jsonObj, String multilineJsonStr) throws LogfeederException {
+    String jsonStr = grokMessage.capture(inputStr);
 
     boolean parseError = false;
     if ("{}".equals(jsonStr)) {
@@ -239,8 +222,7 @@ public class FilterGrok extends Filter {
     if (parseError) {
       jsonStr = multilineJsonStr;
     }
-    Map<String, String> jsonSrc = LogFeederUtil.getGson().fromJson(jsonStr,
-      jsonType);
+    Map<String, String> jsonSrc = LogFeederUtil.getGson().fromJson(jsonStr, jsonType);
     for (String namedParam : namedParamList) {
       if (jsonSrc.get(namedParam) != null) {
         jsonObj.put(namedParam, jsonSrc.get(namedParam));
@@ -260,37 +242,26 @@ public class FilterGrok extends Filter {
       }
     }
     super.apply(jsonObj, savedInputMarker);
-    statMetric.count++;
-  }
-
-  public String grokParse(String inputStr) {
-    String jsonStr = grokMessage.capture(inputStr);
-    return jsonStr;
+    statMetric.value++;
   }
 
   private void logParseError(String inputStr) {
-    grokErrorMetric.count++;
-    final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
-      + "_PARSEERROR";
+    grokErrorMetric.value++;
+    String logMessageKey = this.getClass().getSimpleName() + "_PARSEERROR";
     int inputStrLength = inputStr != null ? inputStr.length() : 0;
-    LogFeederUtil.logErrorMessageByInterval(
-      LOG_MESSAGE_KEY,
-      "Error parsing string. length=" + inputStrLength
-        + ", input=" + input.getShortDescription()
-        + ". First upto 100 characters="
-        + LogFeederUtil.subString(inputStr, 100), null, logger,
-      Level.WARN);
+    LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error parsing string. length=" + inputStrLength + ", input=" +
+        input.getShortDescription() + ". First upto 100 characters=" + StringUtils.abbreviate(inputStr, 100), null, LOG,
+        Level.WARN);
   }
 
   @Override
   public void flush() {
     if (strBuff != null) {
-      Map<String, Object> jsonObj = Collections
-        .synchronizedMap(new HashMap<String, Object>());
+      Map<String, Object> jsonObj = Collections.synchronizedMap(new HashMap<String, Object>());
       try {
         applyMessage(strBuff.toString(), jsonObj, currMultilineJsonStr);
       } catch (LogfeederException e) {
-        logger.error(e.getLocalizedMessage(), e.getCause());
+        LOG.error(e.getLocalizedMessage(), e.getCause());
       }
       strBuff = null;
       savedInputMarker = null;
@@ -304,7 +275,7 @@ public class FilterGrok extends Filter {
   }
 
   @Override
-  public void addMetricsContainers(List<MetricCount> metricsList) {
+  public void addMetricsContainers(List<MetricData> metricsList) {
     super.addMetricsContainers(metricsList);
     metricsList.add(grokErrorMetric);
   }
@@ -314,5 +285,4 @@ public class FilterGrok extends Filter {
     super.logStat();
     logStatForMetric(grokErrorMetric, "Stat: Grok Errors");
   }
-
 }

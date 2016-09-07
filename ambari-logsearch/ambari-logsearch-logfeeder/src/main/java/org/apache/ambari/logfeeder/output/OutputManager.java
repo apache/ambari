@@ -27,41 +27,53 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.input.Input;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.logconfig.LogFeederConstants;
-import org.apache.ambari.logfeeder.logconfig.filter.FilterLogData;
-import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.logconfig.FilterLogData;
+import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.ambari.logfeeder.util.MurmurHash;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-public class OutputMgr {
-  private static final Logger logger = Logger.getLogger(OutputMgr.class);
+public class OutputManager {
+  private static final Logger LOG = Logger.getLogger(OutputManager.class);
 
-  private Collection<Output> outputList = new ArrayList<Output>();
+  private static final int HASH_SEED = 31174077;
+  private static final int MAX_OUTPUT_SIZE = 32765; // 32766-1
+
+  private List<Output> outputs = new ArrayList<Output>();
 
   private boolean addMessageMD5 = true;
 
-  private int MAX_OUTPUT_SIZE = 32765; // 32766-1
-  private static long doc_counter = 0;
-  private MetricCount messageTruncateMetric = new MetricCount();
+  private static long docCounter = 0;
+  private MetricData messageTruncateMetric = new MetricData(null, false);
 
-  
-  public Collection<Output> getOutputList() {
-    return outputList;
+  public List<Output> getOutputs() {
+    return outputs;
   }
 
-  public void setOutputList(Collection<Output> outputList) {
-    this.outputList = outputList;
+  public void add(Output output) {
+    this.outputs.add(output);
+  }
+
+  public void retainUsedOutputs(Collection<Output> usedOutputs) {
+    outputs.retainAll(usedOutputs);
+  }
+
+  public void init() throws Exception {
+    for (Output output : outputs) {
+      output.init();
+    }
   }
 
   public void write(Map<String, Object> jsonObj, InputMarker inputMarker) {
     Input input = inputMarker.input;
 
     // Update the block with the context fields
-    for (Map.Entry<String, String> entry : input.getContextFields()
-      .entrySet()) {
+    for (Map.Entry<String, String> entry : input.getContextFields().entrySet()) {
       if (jsonObj.get(entry.getKey()) == null) {
         jsonObj.put(entry.getKey(), entry.getValue());
       }
@@ -69,7 +81,6 @@ public class OutputMgr {
 
     // TODO: Ideally most of the overrides should be configurable
 
-    // Add the input type
     if (jsonObj.get("type") == null) {
       jsonObj.put("type", input.getStringValue("type"));
     }
@@ -79,20 +90,16 @@ public class OutputMgr {
     if (jsonObj.get("path") == null && input.getStringValue("path") != null) {
       jsonObj.put("path", input.getStringValue("path"));
     }
-
-    // Add host if required
     if (jsonObj.get("host") == null && LogFeederUtil.hostName != null) {
       jsonObj.put("host", LogFeederUtil.hostName);
     }
-    // Add IP if required
     if (jsonObj.get("ip") == null && LogFeederUtil.ipAddress != null) {
       jsonObj.put("ip", LogFeederUtil.ipAddress);
     }
-    
-    //Add level
     if (jsonObj.get("level") == null) {
       jsonObj.put("level", LogFeederConstants.LOG_LEVEL_UNKNOWN);
     }
+    
     if (input.isUseEventMD5() || input.isGenEventMD5()) {
       String prefix = "";
       Object logtimeObj = jsonObj.get("logtime");
@@ -103,8 +110,8 @@ public class OutputMgr {
           prefix = logtimeObj.toString();
         }
       }
-      Long eventMD5 = LogFeederUtil.genHash(LogFeederUtil.getGson()
-        .toJson(jsonObj));
+      
+      Long eventMD5 = MurmurHash.hash64A(LogFeederUtil.getGson().toJson(jsonObj).getBytes(), HASH_SEED);
       if (input.isGenEventMD5()) {
         jsonObj.put("event_md5", prefix + eventMD5.toString());
       }
@@ -113,8 +120,7 @@ public class OutputMgr {
       }
     }
 
-    // jsonObj.put("@timestamp", new Date());
-    jsonObj.put("seq_num", new Long(doc_counter++));
+    jsonObj.put("seq_num", new Long(docCounter++));
     if (jsonObj.get("id") == null) {
       jsonObj.put("id", UUID.randomUUID().toString());
     }
@@ -122,71 +128,88 @@ public class OutputMgr {
       jsonObj.put("event_count", new Integer(1));
     }
     if (inputMarker.lineNumber > 0) {
-      jsonObj.put("logfile_line_number", new Integer(
-        inputMarker.lineNumber));
+      jsonObj.put("logfile_line_number", new Integer(inputMarker.lineNumber));
     }
     if (jsonObj.containsKey("log_message")) {
       // TODO: Let's check size only for log_message for now
       String logMessage = (String) jsonObj.get("log_message");
-      if (logMessage != null
-        && logMessage.getBytes().length > MAX_OUTPUT_SIZE) {
-        messageTruncateMetric.count++;
-        final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
-          + "_MESSAGESIZE";
-        LogFeederUtil.logErrorMessageByInterval(LOG_MESSAGE_KEY,
-          "Message is too big. size="
-            + logMessage.getBytes().length + ", input="
-            + input.getShortDescription()
-            + ". Truncating to " + MAX_OUTPUT_SIZE
-            + ", first upto 100 characters="
-            + LogFeederUtil.subString(logMessage, 100),
-          null, logger, Level.WARN);
-        logMessage = new String(logMessage.getBytes(), 0,
-          MAX_OUTPUT_SIZE);
-        jsonObj.put("log_message", logMessage);
-        // Add error tags
-        @SuppressWarnings("unchecked")
-        List<String> tagsList = (List<String>) jsonObj.get("tags");
-        if (tagsList == null) {
-          tagsList = new ArrayList<String>();
-          jsonObj.put("tags", tagsList);
-        }
-        tagsList.add("error_message_truncated");
-
-      }
+      logMessage = truncateLongLogMessage(jsonObj, input, logMessage);
       if (addMessageMD5) {
-        jsonObj.put("message_md5",
-          "" + LogFeederUtil.genHash(logMessage));
+        jsonObj.put("message_md5", "" + MurmurHash.hash64A(logMessage.getBytes(), 31174077));
       }
     }
-    //check log is allowed to send output
+    
     if (FilterLogData.INSTANCE.isAllowed(jsonObj)) {
       for (Output output : input.getOutputList()) {
         try {
           output.write(jsonObj, inputMarker);
         } catch (Exception e) {
-          logger.error("Error writing. to " + output.getShortDescription(), e);
+          LOG.error("Error writing. to " + output.getShortDescription(), e);
         }
       }
     }
   }
 
+  @SuppressWarnings("unchecked")
+  private String truncateLongLogMessage(Map<String, Object> jsonObj, Input input, String logMessage) {
+    if (logMessage != null && logMessage.getBytes().length > MAX_OUTPUT_SIZE) {
+      messageTruncateMetric.value++;
+      String logMessageKey = this.getClass().getSimpleName() + "_MESSAGESIZE";
+      LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Message is too big. size=" + logMessage.getBytes().length +
+          ", input=" + input.getShortDescription() + ". Truncating to " + MAX_OUTPUT_SIZE + ", first upto 100 characters=" +
+          StringUtils.abbreviate(logMessage, 100), null, LOG, Level.WARN);
+      logMessage = new String(logMessage.getBytes(), 0, MAX_OUTPUT_SIZE);
+      jsonObj.put("log_message", logMessage);
+      List<String> tagsList = (List<String>) jsonObj.get("tags");
+      if (tagsList == null) {
+        tagsList = new ArrayList<String>();
+        jsonObj.put("tags", tagsList);
+      }
+      tagsList.add("error_message_truncated");
+    }
+    return logMessage;
+  }
+
   public void write(String jsonBlock, InputMarker inputMarker) {
-    //check log is allowed to send output
     if (FilterLogData.INSTANCE.isAllowed(jsonBlock)) {
       for (Output output : inputMarker.input.getOutputList()) {
         try {
           output.write(jsonBlock, inputMarker);
         } catch (Exception e) {
-          logger.error("Error writing. to " + output.getShortDescription(), e);
+          LOG.error("Error writing. to " + output.getShortDescription(), e);
         }
       }
     }
   }
 
+  public void copyFile(File inputFile, InputMarker inputMarker) {
+    Input input = inputMarker.input;
+    for (Output output : input.getOutputList()) {
+      try {
+        output.copyFile(inputFile, inputMarker);
+      }catch (Exception e) {
+        LOG.error("Error coyping file . to " + output.getShortDescription(), e);
+      }
+    }
+  }
+
+  public void logStats() {
+    for (Output output : outputs) {
+      output.logStat();
+    }
+    LogFeederUtil.logStatForMetric(messageTruncateMetric, "Stat: Messages Truncated", "");
+  }
+
+  public void addMetricsContainers(List<MetricData> metricsList) {
+    metricsList.add(messageTruncateMetric);
+    for (Output output : outputs) {
+      output.addMetricsContainers(metricsList);
+    }
+  }
+
   public void close() {
-    logger.info("Close called for outputs ...");
-    for (Output output : outputList) {
+    LOG.info("Close called for outputs ...");
+    for (Output output : outputs) {
       try {
         output.setDrain(true);
         output.close();
@@ -194,20 +217,17 @@ public class OutputMgr {
         // Ignore
       }
     }
+    
     // Need to get this value from property
     int iterations = 30;
     int waitTimeMS = 1000;
-    int i;
-    boolean allClosed = true;
-    for (i = 0; i < iterations; i++) {
-      allClosed = true;
-      for (Output output : outputList) {
+    for (int i = 0; i < iterations; i++) {
+      boolean allClosed = true;
+      for (Output output : outputs) {
         if (!output.isClosed()) {
           try {
             allClosed = false;
-            logger.warn("Waiting for output to close. "
-              + output.getShortDescription() + ", "
-              + (iterations - i) + " more seconds");
+            LOG.warn("Waiting for output to close. " + output.getShortDescription() + ", " + (iterations - i) + " more seconds");
             Thread.sleep(waitTimeMS);
           } catch (Throwable t) {
             // Ignore
@@ -215,48 +235,15 @@ public class OutputMgr {
         }
       }
       if (allClosed) {
-        break;
+        LOG.info("All outputs are closed. Iterations=" + i);
+        return;
       }
     }
 
-    if (!allClosed) {
-      logger.warn("Some outpus were not closed. Iterations=" + i);
-      for (Output output : outputList) {
-        if (!output.isClosed()) {
-          logger.warn("Output not closed. Will ignore it."
-            + output.getShortDescription() + ", pendingCound="
-            + output.getPendingCount());
-        }
-      }
-    } else {
-      logger.info("All outputs are closed. Iterations=" + i);
-    }
-  }
-
-  public void logStats() {
-    for (Output output : outputList) {
-      output.logStat();
-    }
-    LogFeederUtil.logStatForMetric(messageTruncateMetric,
-      "Stat: Messages Truncated", null);
-  }
-
-  public void addMetricsContainers(List<MetricCount> metricsList) {
-    metricsList.add(messageTruncateMetric);
-    for (Output output : outputList) {
-      output.addMetricsContainers(metricsList);
-    }
-  }
-
-  
-  public void copyFile(File inputFile, InputMarker inputMarker) {
-    Input input = inputMarker.input;
-    for (Output output : input.getOutputList()) {
-      try {
-        output.copyFile(inputFile, inputMarker);
-      }catch (Exception e) {
-        logger.error("Error coyping file . to " + output.getShortDescription(),
-            e);
+    LOG.warn("Some outpus were not closed after " + iterations + "  iterations");
+    for (Output output : outputs) {
+      if (!output.isClosed()) {
+        LOG.warn("Output not closed. Will ignore it." + output.getShortDescription() + ", pendingCound=" + output.getPendingCount());
       }
     }
   }

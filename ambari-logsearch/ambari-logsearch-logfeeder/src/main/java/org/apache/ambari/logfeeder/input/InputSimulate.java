@@ -18,7 +18,7 @@
  */
 package org.apache.ambari.logfeeder.input;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -66,7 +66,7 @@ public class InputSimulate extends Input {
     
     Filter filter = new FilterJSON();
     filter.setInput(this);
-    setFirstFilter(filter);
+    addFilter(filter);
   }
   
   private List<String> getSimulatedLogTypes() {
@@ -88,23 +88,18 @@ public class InputSimulate extends Input {
     
     return LOG_TEXT_PATTERN.replaceAll("<LOG_MESSAGE_PATTERN>", logMessagePattern);
   }
-  
-  @Override
-  public String getNameForThread() {
-    return "Simulated input";
-  }
 
   @Override
-  public String getShortDescription() {
-    return "Simulated input";
+  public boolean isReady() {
+    return true;
   }
-  
+
   @Override
   void start() throws Exception {
     if (types.isEmpty())
       return;
     
-    getFirstFilter().setOutputMgr(outputMgr);
+    getFirstFilter().setOutputManager(outputManager);
     while (true) {
       String type = imitateRandomLogFile();
       
@@ -129,10 +124,7 @@ public class InputSimulate extends Input {
   }
 
   private InputMarker getInputMarker(String type) throws Exception {
-    InputMarker marker = new InputMarker();
-    marker.input = this;
-    marker.lineNumber = getLineNumber(type);
-    marker.base64FileKey = getBase64FileKey();
+    InputMarker marker = new InputMarker(this, getBase64FileKey(), getLineNumber(type));
     return marker;
   }
 
@@ -147,12 +139,28 @@ public class InputSimulate extends Input {
   }
 
   private String getBase64FileKey() throws Exception {
-    String fileKey = Inet4Address.getLocalHost().getHostAddress() + "|" + filePath;
+    String fileKey = InetAddress.getLocalHost().getHostAddress() + "|" + filePath;
     return Base64.byteArrayToBase64(fileKey.getBytes());
   }
 
   private String getLine(InputMarker marker) {
     Date d = new Date();
     return String.format(logText, d.getTime(), level, marker.lineNumber);
+  }
+
+  @Override
+  public void checkIn(InputMarker inputMarker) {}
+
+  @Override
+  public void lastCheckIn() {}
+  
+  @Override
+  public String getNameForThread() {
+    return "Simulated input";
+  }
+
+  @Override
+  public String getShortDescription() {
+    return "Simulated input";
   }
 }

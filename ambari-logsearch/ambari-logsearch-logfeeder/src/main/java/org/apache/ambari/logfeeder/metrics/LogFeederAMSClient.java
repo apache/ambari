@@ -20,25 +20,25 @@
 package org.apache.ambari.logfeeder.metrics;
 
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
 
 public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
-  private static final Logger logger = Logger.getLogger(LogFeederAMSClient.class);
+  private static final Logger LOG = Logger.getLogger(LogFeederAMSClient.class);
 
   private String collectorHosts = null;
 
   public LogFeederAMSClient() {
-    collectorHosts = LogFeederUtil
-      .getStringProperty("logfeeder.metrics.collector.hosts");
-    if (collectorHosts != null && collectorHosts.trim().length() == 0) {
+    collectorHosts = LogFeederUtil.getStringProperty("logfeeder.metrics.collector.hosts");
+    if (StringUtils.isBlank(collectorHosts)) {
       collectorHosts = null;
     }
     if (collectorHosts != null) {
       collectorHosts = collectorHosts.trim();
     }
-    logger.info("AMS collector URL=" + collectorHosts);
+    LOG.info("AMS collector URL=" + collectorHosts);
   }
 
   @Override

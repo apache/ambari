@@ -23,13 +23,18 @@ package org.apache.ambari.logfeeder.input;
  * This file contains the file inode, line number of the log currently been read
  */
 public class InputMarker {
-  public int lineNumber = 0;
-  public Input input;
-  public String base64FileKey = null;
-
+  public final Input input;
+  public final String base64FileKey;
+  public final int lineNumber;
+  
+  public InputMarker(Input input, String base64FileKey, int lineNumber) {
+    this.input = input;
+    this.base64FileKey = base64FileKey;
+    this.lineNumber = lineNumber;
+  }
+  
   @Override
   public String toString() {
-    return "InputMarker [lineNumber=" + lineNumber + ", input="
-      + input.getShortDescription() + "]";
+    return "InputMarker [lineNumber=" + lineNumber + ", input=" + input.getShortDescription() + "]";
   }
 }

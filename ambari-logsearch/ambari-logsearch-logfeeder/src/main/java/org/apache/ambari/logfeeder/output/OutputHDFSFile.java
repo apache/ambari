@@ -43,7 +43,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * The events are spooled on the local file system and uploaded in batches asynchronously.
  */
 public class OutputHDFSFile extends Output implements RolloverHandler, RolloverCondition {
-  private final static Logger logger = Logger.getLogger(OutputHDFSFile.class);
+  private static final Logger LOG = Logger.getLogger(OutputHDFSFile.class);
+  
   private static final long DEFAULT_ROLLOVER_THRESHOLD_TIME_SECONDS = 5 * 60L;// 5 min by default
 
   private ConcurrentLinkedQueue<File> localReadyFiles = new ConcurrentLinkedQueue<File>();
@@ -72,23 +73,20 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
     rolloverThresholdTimeMillis = rolloverThresholdTimeSeconds * 1000L;
     filenamePrefix = getStringValue("file_name_prefix", filenamePrefix);
     if (StringUtils.isEmpty(hdfsOutDir)) {
-      logger
-          .error("HDFS config property <hdfs_out_dir> is not set in config file.");
+      LOG.error("HDFS config property <hdfs_out_dir> is not set in config file.");
       return;
     }
     if (StringUtils.isEmpty(hdfsHost)) {
-      logger
-          .error("HDFS config property <hdfs_host> is not set in config file.");
+      LOG.error("HDFS config property <hdfs_host> is not set in config file.");
       return;
     }
     if (StringUtils.isEmpty(hdfsPort)) {
-      logger
-          .error("HDFS config property <hdfs_port> is not set in config file.");
+      LOG.error("HDFS config property <hdfs_port> is not set in config file.");
       return;
     }
     HashMap<String, String> contextParam = buildContextParam();
     hdfsOutDir = PlaceholderUtil.replaceVariables(hdfsOutDir, contextParam);
-    logger.info("hdfs Output dir=" + hdfsOutDir);
+    LOG.info("hdfs Output dir=" + hdfsOutDir);
     String localFileDir = LogFeederUtil.getLogfeederTempDir() + "hdfs/service/";
     logSpooler = new LogSpooler(localFileDir, filenamePrefix, this, this);
     this.startHDFSCopyThread();
@@ -96,18 +94,17 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
 
   @Override
   public void close() {
-    logger.info("Closing file." + getShortDescription());
+    LOG.info("Closing file." + getShortDescription());
     logSpooler.rollover();
     this.stopHDFSCopyThread();
     isClosed = true;
   }
 
   @Override
-  synchronized public void write(String block, InputMarker inputMarker)
-      throws Exception {
+  public synchronized void write(String block, InputMarker inputMarker) throws Exception {
     if (block != null) {
       logSpooler.add(block);
-      statMetric.count++;
+      statMetric.value++;
     }
   }
 
@@ -127,24 +124,19 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
             Iterator<File> localFileIterator = localReadyFiles.iterator();
             while (localFileIterator.hasNext()) {
               File localFile = localFileIterator.next();
-              fileSystem = LogfeederHDFSUtil.INSTANCE.buildFileSystem(hdfsHost,
-                  hdfsPort);
+              fileSystem = LogfeederHDFSUtil.buildFileSystem(hdfsHost, hdfsPort);
               if (fileSystem != null && localFile.exists()) {
                 String destFilePath = hdfsOutDir + "/" + localFile.getName();
                 String localPath = localFile.getAbsolutePath();
                 boolean overWrite = true;
                 boolean delSrc = true;
-                boolean isCopied = LogfeederHDFSUtil.INSTANCE.copyFromLocal(
-                    localFile.getAbsolutePath(), destFilePath, fileSystem,
+                boolean isCopied = LogfeederHDFSUtil.copyFromLocal(localFile.getAbsolutePath(), destFilePath, fileSystem,
                     overWrite, delSrc);
                 if (isCopied) {
-                  logger.debug("File copy to hdfs hdfspath :" + destFilePath
-                      + " and deleted local file :" + localPath);
+                  LOG.debug("File copy to hdfs hdfspath :" + destFilePath + " and deleted local file :" + localPath);
                 } else {
-                  // TODO Need to write retry logic, in next release we can
-                  // handle it
-                  logger.error("Hdfs file copy  failed for hdfspath :"
-                      + destFilePath + " and localpath :" + localPath);
+                  // TODO Need to write retry logic, in next release we can handle it
+                  LOG.error("Hdfs file copy  failed for hdfspath :" + destFilePath + " and localpath :" + localPath);
                 }
               }
               localFileIterator.remove();
@@ -157,14 +149,11 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
                 }
               }
             } catch (InterruptedException e) {
-              logger.error(e.getLocalizedMessage(),e);
+              LOG.error(e.getLocalizedMessage(),e);
             }
           }
         } catch (Exception e) {
-          logger
-              .error(
-                  "Exception in hdfsCopyThread errorMsg:"
-                      + e.getLocalizedMessage(), e);
+          LOG.error("Exception in hdfsCopyThread errorMsg:" + e.getLocalizedMessage(), e);
         }
       }
     };
@@ -174,24 +163,23 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
 
   private void stopHDFSCopyThread() {
     if (hdfsCopyThread != null) {
-      logger.info("waiting till copy all local files to hdfs.......");
+      LOG.info("waiting till copy all local files to hdfs.......");
       while (!localReadyFiles.isEmpty()) {
         try {
           Thread.sleep(1000);
         } catch (InterruptedException e) {
-          logger.error(e.getLocalizedMessage(), e);
+          LOG.error(e.getLocalizedMessage(), e);
         }
-        logger.debug("still waiting to copy all local files to hdfs.......");
+        LOG.debug("still waiting to copy all local files to hdfs.......");
       }
-      logger.info("calling interrupt method for hdfsCopyThread to stop it.");
+      LOG.info("calling interrupt method for hdfsCopyThread to stop it.");
       try {
         hdfsCopyThread.interrupt();
       } catch (SecurityException exception) {
-        logger.error(" Current thread : '" + Thread.currentThread().getName()
-            + "' does not have permission to interrupt the Thread: '"
-            + hdfsCopyThread.getName() + "'");
+        LOG.error(" Current thread : '" + Thread.currentThread().getName() +
+            "' does not have permission to interrupt the Thread: '" + hdfsCopyThread.getName() + "'");
       }
-      LogfeederHDFSUtil.INSTANCE.closeFileSystem(fileSystem);
+      LogfeederHDFSUtil.closeFileSystem(fileSystem);
     }
   }
 
@@ -208,15 +196,13 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
         readyMonitor.notifyAll();
       }
     } catch (Exception e) {
-      logger.error(e.getLocalizedMessage(),e);
+      LOG.error(e.getLocalizedMessage(),e);
     }
   }
 
   @Override
-  public void copyFile(File inputFile, InputMarker inputMarker)
-      throws UnsupportedOperationException {
-    throw new UnsupportedOperationException(
-        "copyFile method is not yet supported for output=hdfs");     
+  public void copyFile(File inputFile, InputMarker inputMarker) throws UnsupportedOperationException {
+    throw new UnsupportedOperationException("copyFile method is not yet supported for output=hdfs");
   }
 
   /**
@@ -242,8 +228,8 @@ public class OutputHDFSFile extends Output implements RolloverHandler, RolloverC
     long timeSinceCreation = new Date().getTime() - currentSpoolerContext.getActiveLogCreationTime().getTime();
     boolean shouldRollover = timeSinceCreation > rolloverThresholdTimeMillis;
     if (shouldRollover) {
-      logger.info("Detecting that time since file creation time " + currentSpoolerContext.getActiveLogCreationTime() +
-                    " has crossed threshold (msecs) " + rolloverThresholdTimeMillis);
+      LOG.info("Detecting that time since file creation time " + currentSpoolerContext.getActiveLogCreationTime() +
+          " has crossed threshold (msecs) " + rolloverThresholdTimeMillis);
     }
     return shouldRollover;
   }

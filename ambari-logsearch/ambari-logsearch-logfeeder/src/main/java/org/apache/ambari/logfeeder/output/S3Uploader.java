@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,8 +18,12 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
 import com.google.common.annotations.VisibleForTesting;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.CompressionUtil;
 import org.apache.ambari.logfeeder.util.S3Util;
 import org.apache.log4j.Logger;
@@ -39,20 +43,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link org.apache.ambari.logfeeder.input.InputFile}.
  */
 public class S3Uploader implements Runnable {
+  private static final Logger LOG = Logger.getLogger(S3Uploader.class);
+  
   public static final String POISON_PILL = "POISON-PILL";
-  private static Logger logger = Logger.getLogger(S3Uploader.class);
 
   private final S3OutputConfiguration s3OutputConfiguration;
-  private final S3Util s3UtilInstance;
   private final boolean deleteOnEnd;
-  private String logType;
+  private final String logType;
   private final BlockingQueue<String> fileContextsToUpload;
-  private AtomicBoolean stopRunningThread = new AtomicBoolean(false);
+  private final AtomicBoolean stopRunningThread = new AtomicBoolean(false);
 
-  public S3Uploader(S3OutputConfiguration s3OutputConfiguration, S3Util s3UtilInstance, boolean deleteOnEnd,
-                    String logType) {
+  public S3Uploader(S3OutputConfiguration s3OutputConfiguration, boolean deleteOnEnd, String logType) {
     this.s3OutputConfiguration = s3OutputConfiguration;
-    this.s3UtilInstance = s3UtilInstance;
     this.deleteOnEnd = deleteOnEnd;
     this.logType = logType;
     this.fileContextsToUpload = new LinkedBlockingQueue<>();
@@ -81,7 +83,7 @@ public class S3Uploader implements Runnable {
     stopRunningThread.set(true);
     boolean offerStatus = fileContextsToUpload.offer(POISON_PILL);
     if (!offerStatus) {
-      logger.warn("Could not add poison pill to interrupt uploader thread.");
+      LOG.warn("Could not add poison pill to interrupt uploader thread.");
     }
   }
 
@@ -92,7 +94,7 @@ public class S3Uploader implements Runnable {
   void addFileForUpload(String fileToUpload) {
     boolean offerStatus = fileContextsToUpload.offer(fileToUpload);
     if (!offerStatus) {
-      logger.error("Could not add file " + fileToUpload + " for upload.");
+      LOG.error("Could not add file " + fileToUpload + " for upload.");
     }
   }
 
@@ -102,12 +104,12 @@ public class S3Uploader implements Runnable {
       try {
         String fileNameToUpload = fileContextsToUpload.take();
         if (POISON_PILL.equals(fileNameToUpload)) {
-          logger.warn("Found poison pill while waiting for files to upload, exiting");
+          LOG.warn("Found poison pill while waiting for files to upload, exiting");
           return;
         }
         uploadFile(new File(fileNameToUpload), logType);
       } catch (InterruptedException e) {
-        logger.error("Interrupted while waiting for elements from fileContextsToUpload", e);
+        LOG.error("Interrupted while waiting for elements from fileContextsToUpload", e);
         return;
       }
     }
@@ -130,34 +132,44 @@ public class S3Uploader implements Runnable {
     String compressionAlgo = s3OutputConfiguration.getCompressionAlgo();
 
     String keySuffix = fileToUpload.getName() + "." + compressionAlgo;
-    String s3Path = new S3LogPathResolver().
-        getResolvedPath(s3OutputConfiguration.getS3Path()+S3Util.S3_PATH_SEPARATOR+logType,
-            keySuffix, s3OutputConfiguration.getCluster());
-    logger.info(String.format("keyPrefix=%s, keySuffix=%s, s3Path=%s",
-        s3OutputConfiguration.getS3Path(), keySuffix, s3Path));
+    String s3Path = new S3LogPathResolver().getResolvedPath(
+        s3OutputConfiguration.getS3Path() + LogFeederConstants.S3_PATH_SEPARATOR + logType, keySuffix,
+        s3OutputConfiguration.getCluster());
+    LOG.info(String.format("keyPrefix=%s, keySuffix=%s, s3Path=%s", s3OutputConfiguration.getS3Path(), keySuffix, s3Path));
     File sourceFile = createCompressedFileForUpload(fileToUpload, compressionAlgo);
 
-    logger.info("Starting S3 upload " + sourceFile + " -> " + bucketName + ", " + s3Path);
-    s3UtilInstance.uploadFileTos3(bucketName, s3Path, sourceFile, s3AccessKey,
-        s3SecretKey);
+    LOG.info("Starting S3 upload " + sourceFile + " -> " + bucketName + ", " + s3Path);
+    uploadFileToS3(bucketName, s3Path, sourceFile, s3AccessKey, s3SecretKey);
 
     // delete local compressed file
     sourceFile.delete();
     if (deleteOnEnd) {
-      logger.info("Deleting input file as required");
+      LOG.info("Deleting input file as required");
       if (!fileToUpload.delete()) {
-        logger.error("Could not delete file " + fileToUpload.getAbsolutePath() + " after upload to S3");
+        LOG.error("Could not delete file " + fileToUpload.getAbsolutePath() + " after upload to S3");
       }
     }
     return s3Path;
   }
 
   @VisibleForTesting
+  protected void uploadFileToS3(String bucketName, String s3Key, File localFile, String accessKey, String secretKey) {
+    TransferManager transferManager = S3Util.getTransferManager(accessKey, secretKey);
+    try {
+      Upload upload = transferManager.upload(bucketName, s3Key, localFile);
+      upload.waitForUploadResult();
+    } catch (AmazonClientException | InterruptedException e) {
+      LOG.error("s3 uploading failed for file :" + localFile.getAbsolutePath(), e);
+    } finally {
+      S3Util.shutdownTransferManager(transferManager);
+    }
+  }
+
+  @VisibleForTesting
   protected File createCompressedFileForUpload(File fileToUpload, String compressionAlgo) {
-    File outputFile = new File(fileToUpload.getParent(), fileToUpload.getName() + "_"
-        + new Date().getTime() + "." + compressionAlgo);
-    outputFile = CompressionUtil.compressFile(fileToUpload, outputFile,
-        compressionAlgo);
+    File outputFile = new File(fileToUpload.getParent(), fileToUpload.getName() + "_" + new Date().getTime() +
+        "." + compressionAlgo);
+    outputFile = CompressionUtil.compressFile(fileToUpload, outputFile, compressionAlgo);
     return outputFile;
   }
 }

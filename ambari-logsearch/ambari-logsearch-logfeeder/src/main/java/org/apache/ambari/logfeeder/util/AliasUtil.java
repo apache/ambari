@@ -21,69 +21,90 @@ package org.apache.ambari.logfeeder.util;
 import java.io.File;
 import java.util.HashMap;
 
+import org.apache.ambari.logfeeder.filter.Filter;
+import org.apache.ambari.logfeeder.input.Input;
+import org.apache.ambari.logfeeder.mapper.Mapper;
+import org.apache.ambari.logfeeder.output.Output;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 public class AliasUtil {
 
-  private static Logger logger = Logger.getLogger(AliasUtil.class);
+  private static final Logger LOG = Logger.getLogger(AliasUtil.class);
 
-  private static AliasUtil instance = null;
+  private static final String ALIAS_CONFIG_JSON = "alias_config.json";
+  private static HashMap<String, Object> aliasMap = null;
 
-  private static String aliasConfigJson = "alias_config.json";
+  static {
+    File jsonFile = FileUtil.getFileFromClasspath(ALIAS_CONFIG_JSON);
+    if (jsonFile != null) {
+      aliasMap = FileUtil.readJsonFromFile(jsonFile);
+    }
+  }
 
-  private HashMap<String, Object> aliasMap = null;
-
-  public static enum ALIAS_TYPE {
+  public static enum AliasType {
     INPUT, FILTER, MAPPER, OUTPUT
   }
 
-  public static enum ALIAS_PARAM {
-    KLASS
-  }
-
   private AliasUtil() {
-    init();
+    throw new UnsupportedOperationException();
   }
 
-  public static AliasUtil getInstance() {
-    if (instance == null) {
-      synchronized (AliasUtil.class) {
-        if (instance == null) {
-          instance = new AliasUtil();
-        }
+  public static Object getClassInstance(String key, AliasType aliasType) {
+    String classFullName = getClassFullName(key, aliasType);
+    
+    Object instance = null;
+    try {
+      instance = (Object) Class.forName(classFullName).getConstructor().newInstance();
+    } catch (Exception exception) {
+      LOG.error("Unsupported class = " + classFullName, exception.getCause());
+    }
+
+    if (instance != null) {
+      boolean isValid = false;
+      switch (aliasType) {
+        case FILTER:
+          isValid = Filter.class.isAssignableFrom(instance.getClass());
+          break;
+        case INPUT:
+          isValid = Input.class.isAssignableFrom(instance.getClass());
+          break;
+        case OUTPUT:
+          isValid = Output.class.isAssignableFrom(instance.getClass());
+          break;
+        case MAPPER:
+          isValid = Mapper.class.isAssignableFrom(instance.getClass());
+          break;
+        default:
+          LOG.warn("Unhandled aliasType: " + aliasType);
+          isValid = true;
+      }
+      if (!isValid) {
+        LOG.error("Not a valid class :" + classFullName + " AliasType :" + aliasType.name());
       }
     }
     return instance;
   }
 
-  /**
-   */
-  private void init() {
-    File jsonFile = LogFeederUtil.getFileFromClasspath(aliasConfigJson);
-    if (jsonFile != null) {
-      this.aliasMap = LogFeederUtil.readJsonFromFile(jsonFile);
-    }
-
-  }
-
-
-  public String readAlias(String key, ALIAS_TYPE aliastype, ALIAS_PARAM aliasParam) {
-    String result = key;// key as a default value;
+  private static String getClassFullName(String key, AliasType aliastype) {
+    String className = null;// key as a default value;
+    
     HashMap<String, String> aliasInfo = getAliasInfo(key, aliastype);
-    String value = aliasInfo.get(aliasParam.name().toLowerCase());
-    if (value != null && !value.isEmpty()) {
-      result = value;
-      logger.debug("Alias found for key :" + key + ",  param :" + aliasParam.name().toLowerCase() + ", value :"
-        + value + " aliastype:" + aliastype.name());
+    String value = aliasInfo.get("klass");
+    if (!StringUtils.isEmpty(value)) {
+      className = value;
+      LOG.debug("Class name found for key :" + key + ", class name :" + className + " aliastype:" + aliastype.name());
     } else {
-      logger.debug("Alias not found for key :" + key + ", param :" + aliasParam.name().toLowerCase());
+      LOG.debug("Class name not found for key :" + key + " aliastype:" + aliastype.name());
     }
-    return result;
+    
+    return className;
   }
 
   @SuppressWarnings("unchecked")
-  private HashMap<String, String> getAliasInfo(String key, ALIAS_TYPE aliastype) {
-    HashMap<String, String> aliasInfo = null;
+  private static HashMap<String, String> getAliasInfo(String key, AliasType aliastype) {
+    HashMap<String, String> aliasInfo = new HashMap<String, String>();
+    
     if (aliasMap != null) {
       String typeKey = aliastype.name().toLowerCase();
       HashMap<String, Object> typeJson = (HashMap<String, Object>) aliasMap.get(typeKey);
@@ -91,9 +112,7 @@ public class AliasUtil {
         aliasInfo = (HashMap<String, String>) typeJson.get(key);
       }
     }
-    if (aliasInfo == null) {
-      aliasInfo = new HashMap<String, String>();
-    }
+    
     return aliasInfo;
   }
 }

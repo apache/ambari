@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,9 +18,9 @@
 
 package org.apache.ambari.logfeeder.output;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.ambari.logfeeder.util.PlaceholderUtil;
-import org.apache.ambari.logfeeder.util.S3Util;
 
 import java.util.HashMap;
 
@@ -40,7 +40,7 @@ public class S3LogPathResolver {
   public String getResolvedPath(String baseKeyPrefix, String keySuffix, String cluster) {
     HashMap<String, String> contextParam = buildContextParam(cluster);
     String resolvedKeyPrefix = PlaceholderUtil.replaceVariables(baseKeyPrefix, contextParam);
-    return resolvedKeyPrefix + S3Util.S3_PATH_SEPARATOR + keySuffix;
+    return resolvedKeyPrefix + LogFeederConstants.S3_PATH_SEPARATOR + keySuffix;
   }
 
   private HashMap<String, String> buildContextParam(String cluster) {

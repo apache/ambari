@@ -25,38 +25,35 @@ import java.util.StringTokenizer;
 
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
-import org.apache.ambari.logfeeder.metrics.MetricCount;
+import org.apache.ambari.logfeeder.metrics.MetricData;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 public class FilterKeyValue extends Filter {
-  private static final Logger logger = Logger.getLogger(FilterKeyValue.class);
+  private static final Logger LOG = Logger.getLogger(FilterKeyValue.class);
 
   private String sourceField = null;
   private String valueSplit = "=";
   private String fieldSplit = "\t";
 
-  private MetricCount errorMetric = new MetricCount();
+  private MetricData errorMetric = new MetricData("filter.error.keyvalue", false);
 
   @Override
   public void init() throws Exception {
     super.init();
-    errorMetric.metricsName = "filter.error.keyvalue";
 
     sourceField = getStringValue("source_field");
     valueSplit = getStringValue("value_split", valueSplit);
     fieldSplit = getStringValue("field_split", fieldSplit);
 
-    logger.info("init() done. source_field=" + sourceField
-      + ", value_split=" + valueSplit + ", " + ", field_split="
-      + fieldSplit + ", " + getShortDescription());
+    LOG.info("init() done. source_field=" + sourceField + ", value_split=" + valueSplit + ", " + ", field_split=" +
+        fieldSplit + ", " + getShortDescription());
     if (StringUtils.isEmpty(sourceField)) {
-      logger.fatal("source_field is not set for filter. This filter will not be applied");
+      LOG.fatal("source_field is not set for filter. This filter will not be applied");
       return;
     }
-
   }
 
   @Override
@@ -71,40 +68,30 @@ public class FilterKeyValue extends Filter {
     }
     Object valueObj = jsonObj.get(sourceField);
     if (valueObj != null) {
-      StringTokenizer fieldTokenizer = new StringTokenizer(
-        valueObj.toString(), fieldSplit);
+      StringTokenizer fieldTokenizer = new StringTokenizer(valueObj.toString(), fieldSplit);
       while (fieldTokenizer.hasMoreTokens()) {
         String nv = fieldTokenizer.nextToken();
-        StringTokenizer nvTokenizer = new StringTokenizer(nv,
-          valueSplit);
+        StringTokenizer nvTokenizer = new StringTokenizer(nv, valueSplit);
         while (nvTokenizer.hasMoreTokens()) {
           String name = nvTokenizer.nextToken();
           if (nvTokenizer.hasMoreTokens()) {
             String value = nvTokenizer.nextToken();
             jsonObj.put(name, value);
           } else {
-            logParseError("name=" + name + ", pair=" + nv
-              + ", field=" + sourceField + ", field_value="
-              + valueObj);
+            logParseError("name=" + name + ", pair=" + nv + ", field=" + sourceField + ", field_value=" + valueObj);
           }
         }
       }
     }
     super.apply(jsonObj, inputMarker);
-    statMetric.count++;
+    statMetric.value++;
   }
 
   private void logParseError(String inputStr) {
-    errorMetric.count++;
-    final String LOG_MESSAGE_KEY = this.getClass().getSimpleName()
-      + "_PARSEERROR";
-    LogFeederUtil
-      .logErrorMessageByInterval(
-        LOG_MESSAGE_KEY,
-        "Error parsing string. length=" + inputStr.length()
-          + ", input=" + input.getShortDescription()
-          + ". First upto 100 characters="
-          + LogFeederUtil.subString(inputStr, 100), null, logger,
+    errorMetric.value++;
+    String logMessageKey = this.getClass().getSimpleName() + "_PARSEERROR";
+    LogFeederUtil.logErrorMessageByInterval(logMessageKey, "Error parsing string. length=" + inputStr.length() + ", input=" +
+        input.getShortDescription() + ". First upto 100 characters=" + StringUtils.abbreviate(inputStr, 100), null, LOG,
         Level.ERROR);
   }
 
@@ -114,9 +101,8 @@ public class FilterKeyValue extends Filter {
   }
 
   @Override
-  public void addMetricsContainers(List<MetricCount> metricsList) {
+  public void addMetricsContainers(List<MetricData> metricsList) {
     super.addMetricsContainers(metricsList);
     metricsList.add(errorMetric);
   }
-
 }
