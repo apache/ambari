@@ -465,15 +465,20 @@ public class AmbariCustomCommandExecutionHelper {
   private void applyCustomCommandBackendLogic(Cluster cluster, String serviceName, String componentName, String commandName, String hostname) throws AmbariException {
     switch (commandName) {
       case "RESTART":
-        ServiceComponentHost serviceComponentHost = cluster.getService(
-            serviceName).getServiceComponent(componentName).getServiceComponentHost(hostname);
-
+        ServiceComponent serviceComponent = cluster.getService(serviceName).getServiceComponent(componentName);
+        ServiceComponentHost serviceComponentHost = serviceComponent.getServiceComponentHost(hostname);
         State currentDesiredState = serviceComponentHost.getDesiredState();
-        if (currentDesiredState != State.STARTED) {
-          LOG.info("Updating desired state to {} on RESTART for {}/{} because it was {}",
-              State.STARTED, serviceName, componentName, currentDesiredState);
 
-          serviceComponentHost.setDesiredState(State.STARTED);
+        if( !serviceComponent.isClientComponent()) {
+          if (currentDesiredState != State.STARTED) {
+            LOG.info("Updating desired state to {} on RESTART for {}/{} because it was {}",
+                State.STARTED, serviceName, componentName, currentDesiredState);
+
+            serviceComponentHost.setDesiredState(State.STARTED);
+          }
+        } else {
+          LOG.debug("Desired state for client components should not be updated on RESTART. Service/Component {}/{}",
+              serviceName, componentName);
         }
 
         break;
