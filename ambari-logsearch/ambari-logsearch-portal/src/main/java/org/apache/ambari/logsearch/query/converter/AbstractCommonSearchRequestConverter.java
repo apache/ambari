@@ -21,10 +21,12 @@ package org.apache.ambari.logsearch.query.converter;
 import org.apache.ambari.logsearch.model.request.impl.CommonSearchRequest;
 import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.core.convert.converter.Converter;
+
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_GLOBAL_END_TIME;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_GLOBAL_START_TIME;
 
 public abstract class AbstractCommonSearchRequestConverter<SOURCE extends CommonSearchRequest, RESULT extends CommonSearchCriteria>
-  implements Converter<SOURCE, RESULT> {
+  extends AbstractConverterAware<SOURCE, RESULT> {
 
   @Override
   public RESULT convert(SOURCE source) {
@@ -43,11 +45,11 @@ public abstract class AbstractCommonSearchRequestConverter<SOURCE extends Common
     criteria.setSortType(request.getSortType());
     if (StringUtils.isNotEmpty(request.getStartTime())){
       criteria.setGlobalStartTime(request.getStartTime());
-      criteria.getUrlParamMap().put("globalStartTime", request.getStartTime());
+      criteria.getUrlParamMap().put(PARAM_GLOBAL_START_TIME, request.getStartTime());
     }
     if (StringUtils.isNotEmpty(request.getEndTime())){
       criteria.setGlobalEndTime(request.getEndTime());
-      criteria.getUrlParamMap().put("globalEndTime", request.getEndTime());
+      criteria.getUrlParamMap().put(PARAM_GLOBAL_END_TIME, request.getEndTime());
     }
   }
 }

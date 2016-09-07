@@ -28,11 +28,11 @@ public class ServiceLogTruncatedRequestConverter extends AbstractCommonServiceLo
   @Override
   public ServiceLogTruncatedSearchCriteria createCriteria(ServiceLogTruncatedRequest request) {
     ServiceLogTruncatedSearchCriteria criteria = new ServiceLogTruncatedSearchCriteria();
-    criteria.addParam("hostLogFile", request.getHostLogFile());
-    criteria.addParam("compLogFile", request.getComponentLogFile());
-    criteria.addParam("id", request.getId());
-    criteria.addParam("scrollType", request.getScrollType());
-    criteria.addParam("numberRows", request.getNumberRows());
+    criteria.setLogFileHostName(request.getHostLogFile());
+    criteria.setLogFileComponentName(request.getComponentLogFile());
+    criteria.setId(request.getId());
+    criteria.setScrollType(request.getScrollType());
+    criteria.setNumberRows(request.getNumberRows());
     return criteria;
   }
 }

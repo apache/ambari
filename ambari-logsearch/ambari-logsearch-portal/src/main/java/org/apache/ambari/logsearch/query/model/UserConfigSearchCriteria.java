@@ -18,8 +18,31 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class UserConfigSearchCriteria extends CommonSearchCriteria {
+
+  public String getUserName() {
+    return getParam(SearchCriteriaConstants.PARAM_USER_NAME, String.class);
+  }
+
+  public void setUserName(String userName) {
+    addParam(SearchCriteriaConstants.PARAM_USER_NAME, userName);
+  }
+
+  public String getFilterName() {
+    return getParam(SearchCriteriaConstants.PARAM_FILTER_NAME, String.class);
+  }
+
+  public void setFilterName(String filterName) {
+    addParam(SearchCriteriaConstants.PARAM_FILTER_NAME, filterName);
+  }
+
+  public String getRowType() {
+    return getParam(SearchCriteriaConstants.PARAM_ROW_TYPE, String.class);
+  }
+
+  public void setRowType(String rowType) {
+    addParam(SearchCriteriaConstants.PARAM_ROW_TYPE, rowType);
+  }
 }

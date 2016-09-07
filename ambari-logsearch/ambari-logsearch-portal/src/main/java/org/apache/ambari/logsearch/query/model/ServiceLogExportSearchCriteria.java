@@ -18,8 +18,23 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class ServiceLogExportSearchCriteria extends ServiceLogFileSearchCriteria {
+
+  public void setFormat(String format) {
+    addParam(SearchCriteriaConstants.PARAM_FORMAT, format);
+  }
+
+  public String getFormat() {
+    return getParam(SearchCriteriaConstants.PARAM_FORMAT, String.class);
+  }
+
+  public void setUtcOffset(String utcOffset) {
+    addParam(SearchCriteriaConstants.PARAM_UTC_OFFSET, utcOffset);
+  }
+
+  public String getUtcOffset() {
+    return getParam(SearchCriteriaConstants.PARAM_UTC_OFFSET, String.class);
+  }
 }

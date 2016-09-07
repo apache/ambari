@@ -28,7 +28,7 @@ public class FieldAuditLogRequestConverter extends AbstractCommonAuditLogRequest
   @Override
   public FieldAuditLogSearchCriteria createCriteria(FieldAuditLogRequest request) {
     FieldAuditLogSearchCriteria criteria = new FieldAuditLogSearchCriteria();
-    criteria.addParam("field", request.getField());
+    criteria.setField(request.getField());
     return criteria;
   }
 }

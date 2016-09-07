@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
@@ -41,19 +40,19 @@ public class LogsearchAuthenticationProvider extends
     .getLogger("org.apache.ambari.logsearch.audit");
 
   @Inject
-  UserDao userDao;
+  private UserDao userDao;
 
   @Inject
-  LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
+  private LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
 
   @Inject
-  LogsearchFileAuthenticationProvider fileAuthenticationProvider;
+  private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
 
   @Inject
-  LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+  private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
 
   @Inject
-  LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
+  private LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
 
   @Override
   public Authentication authenticate(Authentication authentication)
@@ -128,7 +127,7 @@ public class LogsearchAuthenticationProvider extends
       authentication = fileAuthenticationProvider.authenticate(authentication);
     } else if (authMethod.equals(AUTH_METHOD.SIMPLE)) {
       authentication = simpleAuthenticationProvider.authenticate(authentication);
-    }else if (authMethod.equals(AUTH_METHOD.EXTERNAL_AUTH)) {
+    } else if (authMethod.equals(AUTH_METHOD.EXTERNAL_AUTH)) {
       authentication = externalServerAuthenticationProvider.authenticate(authentication);
     } else {
       logger.error("Invalid authentication method :" + authMethod.name());

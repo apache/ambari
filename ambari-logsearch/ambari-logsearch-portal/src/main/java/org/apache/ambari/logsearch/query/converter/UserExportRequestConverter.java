@@ -28,7 +28,8 @@ public class UserExportRequestConverter extends AbstractCommonAuditLogRequestCon
   @Override
   public UserExportSearchCriteria createCriteria(UserExportRequest request) {
     UserExportSearchCriteria criteria = new UserExportSearchCriteria();
-    criteria.addParam("field", request.getField());
+    criteria.setField(request.getField());
+    criteria.setFormat(request.getFormat());
     return criteria;
   }
 

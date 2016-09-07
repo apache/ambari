@@ -18,38 +18,16 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-import org.apache.ambari.logsearch.query.converter.AnyGraphRequestConverter;
-import org.apache.ambari.logsearch.query.converter.AuditBarGraphRequestConverter;
-import org.apache.ambari.logsearch.query.converter.AuditLogRequestConverter;
-import org.apache.ambari.logsearch.query.converter.BaseAuditLogRequestConverter;
-import org.apache.ambari.logsearch.query.converter.BaseServiceLogRequestConverter;
-import org.apache.ambari.logsearch.query.converter.FieldAuditLogRequestConverter;
-import org.apache.ambari.logsearch.query.converter.FieldBarGraphRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceAnyGraphRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceExtremeDatesRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceGraphRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceLogExportRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceLogFileRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceLogRequestConverter;
-import org.apache.ambari.logsearch.query.converter.ServiceLogTruncatedRequestConverter;
-import org.apache.ambari.logsearch.query.converter.SimpleQueryRequestConverter;
-import org.apache.ambari.logsearch.query.converter.UserExportRequestConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.convert.converter.Converter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 @Configuration
 @ComponentScan("org.apache.ambari.logsearch")
 @PropertySource(value = {"classpath:default.properties", "classpath:logsearch.properties"})
-@ImportResource("META-INF/security-applicationContext.xml")
 public class ApplicationConfig {
 
   @Bean
@@ -60,24 +38,7 @@ public class ApplicationConfig {
   @Bean(name="conversionService")
   public ConversionServiceFactoryBean conversionServiceFactoryBean() {
     ConversionServiceFactoryBean conversionServiceFactoryBean = new ConversionServiceFactoryBean();
-    Set<Converter> converters = new HashSet<>();
-    converters.add(new AnyGraphRequestConverter());
-    converters.add(new AuditBarGraphRequestConverter());
-    converters.add(new AuditLogRequestConverter());
-    converters.add(new BaseAuditLogRequestConverter());
-    converters.add(new BaseServiceLogRequestConverter());
-    converters.add(new FieldAuditLogRequestConverter());
-    converters.add(new FieldBarGraphRequestConverter());
-    converters.add(new SimpleQueryRequestConverter());
-    converters.add(new UserExportRequestConverter());
-    converters.add(new ServiceAnyGraphRequestConverter());
-    converters.add(new ServiceExtremeDatesRequestConverter());
-    converters.add(new ServiceGraphRequestConverter());
-    converters.add(new ServiceLogExportRequestConverter());
-    converters.add(new ServiceLogFileRequestConverter());
-    converters.add(new ServiceLogRequestConverter());
-    converters.add(new ServiceLogTruncatedRequestConverter());
-    conversionServiceFactoryBean.setConverters(converters);
+    conversionServiceFactoryBean.afterPropertiesSet();
     return conversionServiceFactoryBean;
   }
 

@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
-class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
+public class LogsearchAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
   private static final Logger logger = Logger.getLogger(LogsearchAuthenticationEntryPoint.class);
 
   public LogsearchAuthenticationEntryPoint(String loginFormUrl) {

@@ -28,9 +28,9 @@ public class ServiceGraphRequestConverter extends AbstractCommonServiceLogReques
   @Override
   public ServiceGraphSearchCriteria createCriteria(ServiceGraphRequest request) {
     ServiceGraphSearchCriteria criteria = new ServiceGraphSearchCriteria();
-    criteria.addParam("hostLogFile", request.getHostLogFile());
-    criteria.addParam("compLogFile", request.getComponentLogFile());
-    criteria.addParam("unit", request.getUnit());
+    criteria.setLogFileHostName(request.getHostLogFile());
+    criteria.setLogFileComponentName(request.getComponentLogFile());
+    criteria.setUnit(request.getUnit());
     return criteria;
   }
 }

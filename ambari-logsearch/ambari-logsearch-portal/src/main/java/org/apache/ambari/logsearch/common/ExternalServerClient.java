@@ -21,7 +21,6 @@ package org.apache.ambari.logsearch.common;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -29,7 +28,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.ambari.logsearch.conf.AuthConfig;
-import org.apache.ambari.logsearch.web.security.LogsearchAbstractAuthenticationProvider;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
@@ -55,23 +53,18 @@ public class ExternalServerClient {
   @Inject
   private AuthConfig authConfig;
 
-  private boolean enableLog = false;// default
-
   /**
    * Send GET request to an external server
    */
-  @SuppressWarnings({ "unchecked", "rawtypes" })
   public Object sendGETRequest(String url, Class klass, MultivaluedMap<String, String> queryParam,
                                String username, String password)
       throws Exception {
     url = authConfig.getExternalAuthHostUrl() + url;
     JerseyClient client = localJerseyClient.get();
-    HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder().build();
-
+    HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()
+      .credentials(username, password)
+      .build();
     client.register(authFeature);
-    if (enableLog) {
-      client.register(LoggingFilter.class);
-    }
 
     WebTarget target = client.target(url);
     LOG.debug("URL: " + url);
@@ -80,9 +73,6 @@ public class ExternalServerClient {
       LOG.debug(
         String.format("Query parameter: name - %s  ; value - %s ;" + entry.getKey(), StringUtils.join(entry.getValue(),',')));
     }
-    target
-      .property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_USERNAME, username)
-      .property(HttpAuthenticationFeature.HTTP_AUTHENTICATION_BASIC_PASSWORD, password);
     Invocation.Builder invocationBuilder =  target.request(MediaType.APPLICATION_JSON_TYPE);
     try {
       return invocationBuilder.get().readEntity(klass);

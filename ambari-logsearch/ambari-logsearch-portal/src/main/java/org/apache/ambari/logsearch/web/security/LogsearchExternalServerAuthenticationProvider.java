@@ -21,7 +21,6 @@ package org.apache.ambari.logsearch.web.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.common.ExternalServerClient;
@@ -114,7 +113,7 @@ public class LogsearchExternalServerAuthenticationProvider extends
   @Override
   public Authentication authenticate(Authentication authentication)
       throws AuthenticationException {
-    if (!this.isEnable()) {
+    if (!authConfig.isAuthExternalEnabled()) {
       LOG.debug("external server auth is disabled.");
       return authentication;
     }
@@ -172,14 +171,5 @@ public class LogsearchExternalServerAuthenticationProvider extends
       }
     }
     return false;
-  }
-
-  /**
-   * Return true/false based on EXTERNAL_AUTH authentication method is
-   * enabled/disabled return boolean
-   */
-  @Override
-  public boolean isEnable() {
-    return isEnable(AUTH_METHOD.EXTERNAL_AUTH);
   }
 }

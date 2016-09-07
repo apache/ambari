@@ -18,37 +18,38 @@
  */
 package org.apache.ambari.logsearch.query.converter;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.impl.BaseServiceLogRequest;
-import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
+import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.apache.commons.lang.StringEscapeUtils;
 
-public abstract class AbstractCommonServiceLogRequestConverter<SOURCE extends BaseServiceLogRequest, RESULT extends CommonSearchCriteria>
+public abstract class AbstractCommonServiceLogRequestConverter<SOURCE extends BaseServiceLogRequest, RESULT extends CommonServiceLogSearchCriteria>
   extends AbstractCommonSearchRequestConverter<SOURCE, RESULT> {
 
   @Override
   public RESULT convertToSearchCriteria(SOURCE request) {
     RESULT criteria = createCriteria(request);
+    // TODO: check are these used from the UI or not?
     criteria.addParam("advanceSearch", StringEscapeUtils.unescapeXml(request.getAdvancedSearch()));
     criteria.addParam("q", request.getQuery());
-    criteria.addParam("treeParams", StringEscapeUtils.unescapeHtml(request.getTreeParams()));
-    criteria.addParam("level", request.getLevel());
     criteria.addParam("gMustNot", request.getgMustNot());
-    criteria.addParam("from", request.getFrom());
-    criteria.addParam("to", request.getTo());
-    criteria.addParam("selectComp", request.getMustBe());
-    criteria.addParam("unselectComp", request.getMustNot());
-    criteria.addParam("iMessage", StringEscapeUtils.unescapeXml(request.getiMessage()));
     criteria.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
-    criteria.addParam("eMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
-    criteria.addParam(LogSearchConstants.BUNDLE_ID, request.getBundleId());
-    criteria.addParam("host_name", request.getHostName());
-    criteria.addParam("component_name", request.getComponentName());
-    criteria.addParam("file_name", request.getFileName());
-    criteria.addParam("startDate", request.getStartTime());
-    criteria.addParam("endDate", request.getEndTime());
-    criteria.addParam("excludeQuery", StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
-    criteria.addParam("includeQuery", StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
+    criteria.addParam("unselectComp", request.getMustNot());
+
+    criteria.setTreeParams(StringEscapeUtils.unescapeHtml(request.getTreeParams()));
+    criteria.setLevel(request.getLevel());
+    criteria.setFrom(request.getFrom());
+    criteria.setTo(request.getTo());
+    criteria.setSelectComp(request.getMustBe());
+    criteria.setBundleId(request.getBundleId());
+    criteria.setHostName(request.getHostName());
+    criteria.setComponentName(request.getComponentName());
+    criteria.setFileName(request.getFileName());
+    criteria.setIncludeMessage(StringEscapeUtils.unescapeXml(request.getiMessage()));
+    criteria.setExcludeMessage(StringEscapeUtils.unescapeXml(request.getgEMessage()));
+    criteria.setStartTime(request.getStartTime());
+    criteria.setEndTime(request.getEndTime());
+    criteria.setExcludeQuery(StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
+    criteria.setIncludeQuery(StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
     return criteria;
   }
 

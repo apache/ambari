@@ -20,6 +20,7 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.List;
 
+import org.apache.ambari.logsearch.conf.AuthConfig;
 import org.apache.log4j.Logger;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -30,6 +31,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 @Component
 public class LogsearchLdapAuthenticationProvider extends
@@ -42,9 +46,16 @@ public class LogsearchLdapAuthenticationProvider extends
   private static LdapAuthenticationProvider ldapAuthProvider = null;
   private String logStatement = "";
 
+  @Inject
+  private AuthConfig authConfig;
+
   public LogsearchLdapAuthenticationProvider() {
+  }
+
+  @PostConstruct
+  public void postConstruct() {
     logger.debug("Creating object of ldap auth provider ");
-    if (this.isEnable()) {
+    if (authConfig.isAuthLdapEnabled()) {
       ldapAuthProvider = loadLdapAuthenticationProvider();
     } else {
       logger.info("Ldap auth is disabled");
@@ -54,7 +65,7 @@ public class LogsearchLdapAuthenticationProvider extends
   @Override
   public Authentication authenticate(Authentication authentication)
     throws AuthenticationException {
-    if (!this.isEnable()) {
+    if (!authConfig.isAuthLdapEnabled()) {
       logger.debug("Ldap auth is disabled");
       return authentication;
     }
@@ -98,7 +109,7 @@ public class LogsearchLdapAuthenticationProvider extends
    *
    * @return corresponding LDAP authentication provider
    */
-  LdapAuthenticationProvider loadLdapAuthenticationProvider() {
+  private LdapAuthenticationProvider loadLdapAuthenticationProvider() {
     if (reloadLdapServerProperties()) {
       logger.info("LDAP Properties changed - rebuilding Context");
       LdapContextSource springSecurityContextSource = new LdapContextSource();
@@ -171,11 +182,6 @@ public class LogsearchLdapAuthenticationProvider extends
       return true;
     }
     return false;
-  }
-
-  @Override
-  public boolean isEnable() {
-    return isEnable(AUTH_METHOD.LDAP);
   }
 
 }

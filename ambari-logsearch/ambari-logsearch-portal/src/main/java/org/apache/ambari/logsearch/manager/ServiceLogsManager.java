@@ -43,7 +43,6 @@ import javax.ws.rs.core.Response;
 import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
@@ -64,6 +63,13 @@ import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogData;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.query.QueryGenerationBase;
+import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceAnyGraphSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceGraphSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceLogExportSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceLogFileSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceLogSearchCriteria;
+import org.apache.ambari.logsearch.query.model.ServiceLogTruncatedSearchCriteria;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
@@ -83,7 +89,6 @@ import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
 import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
@@ -114,10 +119,10 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   @Inject
   private SolrServiceLogConfig solrServiceLogConfig;
 
-  public ServiceLogResponse searchLogs(SearchCriteria searchCriteria) {
-    String keyword = (String) searchCriteria.getParamValue("keyword");
-    String logId = (String) searchCriteria.getParamValue("sourceLogId");
-    Boolean isLastPage = (Boolean) searchCriteria.getParamValue("isLastPage");
+  public ServiceLogResponse searchLogs(ServiceLogSearchCriteria searchCriteria) {
+    String keyword = searchCriteria.getKeyword();
+    String logId = searchCriteria.getSourceLogId();
+    Boolean isLastPage = searchCriteria.isLastPage();
 
     if (!StringUtils.isBlank(keyword)) {
       try {
@@ -203,7 +208,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return getFields(LogSearchConstants.SOLR_COMPONENT, SolrComponentTypeLogData.class);
   }
 
-  public GraphDataListResponse getAggregatedInfo(SearchCriteria searchCriteria) {
+  public GraphDataListResponse getAggregatedInfo(CommonServiceLogSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     String hierarchy = "host,type,level";
     GraphDataListResponse graphInfo = new GraphDataListResponse();
@@ -401,7 +406,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return extensionTree;
   }
 
-  public NodeListResponse getTreeExtension(SearchCriteria searchCriteria) {
+  public NodeListResponse getTreeExtension(ServiceLogFileSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/getTreeExtension");
 
@@ -464,7 +469,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return list;
   }
 
-  public NodeListResponse getHostListByComponent(SearchCriteria searchCriteria) {
+  public NodeListResponse getHostListByComponent(ServiceLogFileSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/service/hosts/components");
 
@@ -524,7 +529,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public NameValueDataListResponse getLogsLevelCount(SearchCriteria sc) {
+  public NameValueDataListResponse getLogsLevelCount(ServiceLogFileSearchCriteria sc) {
     NameValueDataListResponse nameValueList = new NameValueDataListResponse();
     SolrQuery query = queryGenerator.commonServiceFilterQuery(sc);
     query.setParam("event", "/service/logs/levels/counts/namevalues");
@@ -584,11 +589,11 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return list;
   }
 
-  public LogListResponse getPageByKeyword(SearchCriteria searchCriteria)
+  public LogListResponse getPageByKeyword(ServiceLogSearchCriteria searchCriteria)
     throws SolrServerException {
     String defaultChoice = "0";
 
-    String key = (String) searchCriteria.getParamValue("keyword");
+    String key = (String) searchCriteria.getKeyword();
     if(StringUtils.isBlank(key)){
       throw RESTErrorUtil.createRESTException("Keyword was not given",
           MessageEnums.DATA_NOT_FOUND);
@@ -603,7 +608,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     keyword = "*" + keyword + "*";
 
 
-    String keyType = (String) searchCriteria.getParamValue("keywordType");
+    String keyType = (String) searchCriteria.getKeywordType();
     QueryResponse queryResponse = null;
 
     if (!defaultChoice.equals(keyType)) {
@@ -689,9 +694,8 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
         }
 
         // Keyword Sequence Number Calculation
-        String endTime = (String) searchCriteria.getParamValue("to");
-        String startTime = (String) searchCriteria
-          .getParamValue("from");
+        String endTime = searchCriteria.getTo();
+        String startTime = searchCriteria.getFrom();
         SolrQuery logTimeThroughRangeQuery = queryGenerator
           .commonServiceFilterQuery(searchCriteria);
         logTimeThroughRangeQuery.remove("start");
@@ -809,8 +813,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
         rangeLogQuery.remove("rows");
         logIdQuery.setStart(start);
         logIdQuery.setRows(searchCriteria.getMaxRows());
-        LogListResponse logResponse = getLogAsPaginationProvided(logIdQuery, serviceLogsSolrDao);
-        return logResponse;
+        return getLogAsPaginationProvided(logIdQuery, serviceLogsSolrDao);
 
       } catch (Exception e) {
         //do nothing
@@ -899,9 +902,8 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
 
 
         // Keyword LogTime Calculation
-        String endTime = (String) searchCriteria.getParamValue("to");
-        String startTime = (String) searchCriteria
-          .getParamValue("from");
+        String endTime = (String) searchCriteria.getTo();
+        String startTime = searchCriteria.getFrom();
         SolrQuery logTimeThroughRangeQuery = queryGenerator
           .commonServiceFilterQuery(searchCriteria);
         logTimeThroughRangeQuery.remove("start");
@@ -1034,7 +1036,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
         MessageEnums.ERROR_SYSTEM);
   }
 
-  private LogSearchResponse getPageByLogId(SearchCriteria searchCriteria) {
+  private LogSearchResponse getPageByLogId(ServiceLogSearchCriteria searchCriteria) {
     LogSearchResponse logResponse = new ServiceLogResponse();
     String endLogTime = (String) searchCriteria.getParamValue("to");
     if(StringUtils.isBlank(endLogTime)){
@@ -1135,68 +1137,14 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   }
 
   @SuppressWarnings("unchecked")
-  public List<NameValueData> getHistogramCounts(SolrQuery solrQuery,
-                                             String from, String to, String unit) {
-    List<NameValueData> logsCounts = new ArrayList<>();
-    try {
-
-      SolrUtil.setFacetRange(solrQuery, LogSearchConstants.LOGTIME,
-        from, to, unit);
-
-      List<RangeFacet.Count> logLevelCounts = null;
-
-      QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-      if(response == null){
-        return logsCounts;
-      }
-      @SuppressWarnings("rawtypes")
-      List<RangeFacet> rangeFacetList = response.getFacetRanges();
-      if (rangeFacetList == null) {
-        return logsCounts;
-
-      }
-
-      @SuppressWarnings("rawtypes")
-      RangeFacet rangeFacet=rangeFacetList.get(0);
-      if (rangeFacet == null) {
-        return logsCounts;
-      }
-      logLevelCounts = rangeFacet.getCounts();
-
-      if(logLevelCounts == null){
-        return logsCounts;
-      }
-      for (RangeFacet.Count logCount : logLevelCounts) {
-        NameValueData nameValue = new NameValueData();
-        nameValue.setName(logCount.getValue());
-        nameValue.setValue("" + logCount.getCount());
-        logsCounts.add(nameValue);
-      }
-    } catch (SolrException | SolrServerException | IOException e) {
-      logger.error("Error during solrQuery=" + solrQuery, e);
-    }
-    return logsCounts;
-  }
-
-  public List<Count> getFacetCountsByDate(SolrQuery solrQuery,
-                                          String facetField) throws SolrServerException, IOException,
-    SolrException {
-
-    QueryResponse response = serviceLogsSolrDao.process(solrQuery);
-
-    FacetField field = response.getFacetDate(facetField);
-    return field.getValues();
-  }
-
-  @SuppressWarnings("unchecked")
-  public BarGraphDataListResponse getHistogramData(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getHistogramData(ServiceGraphSearchCriteria searchCriteria) {
     String deafalutValue = "0";
     BarGraphDataListResponse dataList = new BarGraphDataListResponse();
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.set("event", "/audit/logs/histogram");
-    String from = getFrom((String) searchCriteria.getParamValue("from"));
-    String to = getTo((String) searchCriteria.getParamValue("to"));
-    String unit = getUnit((String) searchCriteria.getParamValue("unit"));
+    String from = getFrom(searchCriteria.getFrom());
+    String to = getTo(searchCriteria.getTo());
+    String unit = getUnit(searchCriteria.getUnit());
 
     List<BarGraphData> histogramData = new ArrayList<>();
 
@@ -1267,16 +1215,6 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public void arrangeLevel(String level,
-                           List<BarGraphData> histogramDataLocal,
-                           List<BarGraphData> histogramData) {
-    for (BarGraphData histData : histogramData) {
-      if (histData != null && level.equals(histData.getName())) {
-        histogramDataLocal.add(histData);
-      }
-    }
-  }
-
   public String cancelFindRequestByDate(String uniqueId) {
     if (StringUtils.isEmpty(uniqueId)) {
       logger.error("Unique id is Empty");
@@ -1305,13 +1243,13 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return true;
   }
 
-  public Response exportToTextFile(SearchCriteria searchCriteria) {
+  public Response exportToTextFile(ServiceLogExportSearchCriteria searchCriteria) {
     String defaultFormat = "text";
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
-    String from = (String) searchCriteria.getParamValue("from");
-    String to = (String) searchCriteria.getParamValue("to");
-    String utcOffset = (String) searchCriteria.getParamValue("utcOffset");
-    String format = (String) searchCriteria.getParamValue("format");
+    String from = searchCriteria.getFrom();
+    String to = searchCriteria.getTo();
+    String utcOffset = searchCriteria.getUtcOffset();
+    String format = searchCriteria.getFormat();
 
     format = defaultFormat.equalsIgnoreCase(format) && format != null ? ".txt"
         : ".json";
@@ -1449,7 +1387,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public NodeListResponse getComponentListWithLevelCounts(SearchCriteria searchCriteria) {
+  public NodeListResponse getComponentListWithLevelCounts(ServiceLogFileSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/service/logs/components/levels/counts");
 
@@ -1670,7 +1608,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public BarGraphDataListResponse getAnyGraphData(SearchCriteria searchCriteria) {
+  public BarGraphDataListResponse getAnyGraphData(ServiceAnyGraphSearchCriteria searchCriteria) {
     searchCriteria.addParam("fieldTime", LogSearchConstants.LOGTIME);
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     BarGraphDataListResponse result = graphDataGenerator.getAnyGraphData(searchCriteria, serviceLogsSolrDao, solrQuery);
@@ -1681,7 +1619,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
 
   }
 
-  public ServiceLogResponse getAfterBeforeLogs(SearchCriteria searchCriteria) {
+  public ServiceLogResponse getAfterBeforeLogs(ServiceLogTruncatedSearchCriteria searchCriteria) {
     ServiceLogResponse logResponse = new ServiceLogResponse();
     List<SolrServiceLogData> docList = null;
     String id = (String) searchCriteria
@@ -1692,11 +1630,11 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
     String maxRows = "";
 
-    maxRows = (String) searchCriteria.getParamValue("numberRows");
+    maxRows = searchCriteria.getNumberRows();
     if (StringUtils.isBlank(maxRows)){
       maxRows = ""+maxRows;
     }
-    String scrollType = (String) searchCriteria.getParamValue("scrollType");
+    String scrollType = searchCriteria.getScrollType();
     if(StringUtils.isBlank(scrollType)){
       scrollType = "";
     }
@@ -1803,7 +1741,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     searchCriteria.addParam(LogSearchConstants.SORT, sortOrder);
     queryGenerator.setMultipleSortOrder(solrQuery, searchCriteria);
 
-    return (ServiceLogResponse) getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
+    return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
   }
 
   private ServiceLogResponse whenScrollDown(SearchCriteria searchCriteria,
@@ -1835,7 +1773,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     searchCriteria.addParam(LogSearchConstants.SORT, sortOrder);
     queryGenerator.setMultipleSortOrder(solrQuery, searchCriteria);
 
-    return (ServiceLogResponse) getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
+    return getLogAsPaginationProvided(solrQuery, serviceLogsSolrDao);
   }
 
   @Scheduled(cron = "${logsearch.solr.warming.cron}")

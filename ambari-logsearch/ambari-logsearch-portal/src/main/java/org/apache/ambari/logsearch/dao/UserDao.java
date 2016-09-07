@@ -52,9 +52,6 @@ public class UserDao {
   private static final String NAME = "name";
 
   @Inject
-  private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
-
-  @Inject
   private AuthConfig authConfig;
 
   private ArrayList<HashMap<String, String>> userList = null;
@@ -62,7 +59,7 @@ public class UserDao {
   @SuppressWarnings("unchecked")
   @PostConstruct
   public void initialization() {
-    if (fileAuthenticationProvider.isEnable()) {
+    if (authConfig.isAuthFileEnabled()) {
       try {
         String userPassJsonFileName = authConfig.getCredentialsFile();
         logger.info("USER PASS JSON  file NAME:" + userPassJsonFileName);
@@ -150,13 +147,5 @@ public class UserDao {
       }
     }
     return isUpdated;
-  }
-  
-  public String encryptPassword(String username, String password) {
-    if (!StringUtils.isEmpty(username)) {
-      username = username.toLowerCase();
-    }
-    String saltEncodedpasswd = CommonUtil.encryptPassword(password, username);
-    return saltEncodedpasswd;
   }
 }

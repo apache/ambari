@@ -29,8 +29,8 @@ public class ServiceLogFileRequestConverter
   @Override
   public ServiceLogFileSearchCriteria createCriteria(ServiceLogFileRequest request) {
     ServiceLogFileSearchCriteria criteria = new ServiceLogFileSearchCriteria();
-    criteria.addParam("hostLogFile", request.getHostLogFile());
-    criteria.addParam("compLogFile", request.getComponentLogFile());
+    criteria.setLogFileHostName(request.getHostLogFile());
+    criteria.setLogFileComponentName(request.getComponentLogFile());
     return criteria;
   }
 }

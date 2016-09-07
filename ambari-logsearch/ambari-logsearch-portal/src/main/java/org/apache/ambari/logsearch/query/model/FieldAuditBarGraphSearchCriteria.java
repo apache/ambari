@@ -18,8 +18,15 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_FIELD;
 
-@Marker
 public class FieldAuditBarGraphSearchCriteria extends AuditBarGraphSearchCriteria {
+
+  public String getField() {
+    return getParam(PARAM_FIELD, String.class);
+  }
+
+  public void setField(String field) {
+    addParam(PARAM_FIELD, field);
+  }
 }

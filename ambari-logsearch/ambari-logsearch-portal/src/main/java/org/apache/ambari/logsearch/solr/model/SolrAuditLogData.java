@@ -69,7 +69,7 @@ public class SolrAuditLogData extends SolrCommonLogData implements AuditLogData 
   private String repo;
 
   @Field("repoType")
-  private String repoType;
+  private Integer repoType;
 
   @Field("reqData")
   private String requestData;
@@ -188,12 +188,12 @@ public class SolrAuditLogData extends SolrCommonLogData implements AuditLogData 
   }
 
   @Override
-  public String getRepoType() {
+  public Integer getRepoType() {
     return repoType;
   }
 
   @Override
-  public void setRepoType(String repoType) {
+  public void setRepoType(Integer repoType) {
     this.repoType = repoType;
   }
 

@@ -87,7 +87,7 @@ public class AuditLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_AUDIT_COMPONENTS_OD)
   public GroupListResponse getAuditComponents(@BeanParam SimpleQueryRequest request) {
-    return auditLogsManager.getAuditComponents(conversionService.convert(request, SearchCriteria.class));
+    return auditLogsManager.getAuditComponents(conversionService.convert(request, CommonSearchCriteria.class));
   }
 
   @GET

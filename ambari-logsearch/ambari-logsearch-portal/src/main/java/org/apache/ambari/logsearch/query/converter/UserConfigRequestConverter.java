@@ -18,21 +18,19 @@
  */
 package org.apache.ambari.logsearch.query.converter;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
 import org.apache.ambari.logsearch.query.model.UserConfigSearchCriteria;
-import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserConfigRequestConverter implements Converter<UserConfigRequest, UserConfigSearchCriteria> {
+public class UserConfigRequestConverter extends AbstractConverterAware<UserConfigRequest, UserConfigSearchCriteria> {
 
   @Override
   public UserConfigSearchCriteria convert(UserConfigRequest request) {
     UserConfigSearchCriteria criteria = new UserConfigSearchCriteria();
-    criteria.addParam(LogSearchConstants.USER_NAME, request.getUserId());
-    criteria.addParam(LogSearchConstants.FILTER_NAME, request.getFilterName());
-    criteria.addParam(LogSearchConstants.ROW_TYPE, request.getRowType());
+    criteria.setUserName(request.getUserId());
+    criteria.setFilterName(request.getFilterName());
+    criteria.setRowType(request.getRowType());
     return criteria;
   }
 }

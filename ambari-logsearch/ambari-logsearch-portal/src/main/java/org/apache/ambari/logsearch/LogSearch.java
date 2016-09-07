@@ -24,11 +24,11 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.EnumSet;
 
-import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.solr.metrics.SolrMetricsLoader;
+import org.apache.ambari.logsearch.conf.ApplicationConfig;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Connector;
@@ -40,10 +40,18 @@ import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.springframework.web.context.ContextLoaderListener;
+import org.springframework.web.context.request.RequestContextListener;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.DelegatingFilterProxy;
+
+import javax.servlet.DispatcherType;
 
 public class LogSearch {
   private static final Logger logger = Logger.getLogger(LogSearch.class);
@@ -65,6 +73,7 @@ public class LogSearch {
   
   private static final String WEB_RESOURCE_FOLDER = "webapps/app";
   private static final String ROOT_CONTEXT = "/";
+  private static final Integer SESSION_TIMEOUT = 30;
 
  
   public static void main(String[] argv) {
@@ -75,7 +84,6 @@ public class LogSearch {
     } catch (Throwable e) {
       logger.error("Error running logsearch server", e);
     }
-    SolrMetricsLoader.startSolrMetricsLoaderTasks();
   }
   
   public void run(String[] argv) throws Exception {
@@ -150,6 +158,21 @@ public class LogSearch {
     context.setBaseResource(Resource.newResource(webResourceBase));
     context.setContextPath(ROOT_CONTEXT);
     context.setParentLoaderPriority(true);
+
+    // Configure Spring
+    context.addEventListener(new ContextLoaderListener());
+    context.addEventListener(new RequestContextListener());
+    context.addFilter(new FilterHolder(new DelegatingFilterProxy("springSecurityFilterChain")), "/*", EnumSet.allOf(DispatcherType.class));
+    context.setInitParameter("contextClass", AnnotationConfigWebApplicationContext.class.getName());
+    context.setInitParameter("contextConfigLocation", ApplicationConfig.class.getName());
+
+    // Configure Jersey
+    ServletHolder jerseyServlet = context.addServlet(org.glassfish.jersey.servlet.ServletContainer.class, "/api/v1/*");
+    jerseyServlet.setInitOrder(1);
+    jerseyServlet.setInitParameter("jersey.config.server.provider.packages","org.apache.ambari.logsearch.rest,io.swagger.jaxrs.listing");
+
+    context.getSessionHandler().getSessionManager().setMaxInactiveInterval(SESSION_TIMEOUT);
+
     return context;
   }
 
@@ -167,18 +190,19 @@ public class LogSearch {
   private URI findWebResourceBase() {
     URL fileCompleteUrl = Thread.currentThread().getContextClassLoader()
         .getResource(WEB_RESOURCE_FOLDER);
+    String errorMessage = "Web Resource Folder " + WEB_RESOURCE_FOLDER+ " not found in classpath";
     if (fileCompleteUrl != null) {
       try {
         return fileCompleteUrl.toURI().normalize();
       } catch (URISyntaxException e) {
-        logger.error("Web Resource Folder " + WEB_RESOURCE_FOLDER+ " not found in classpath", e);
+        logger.error(errorMessage, e);
         System.exit(1);
       }
-    }else{
-      logger.error("Web Resource Folder " + WEB_RESOURCE_FOLDER+ " not found in classpath");
+    } else {
+      logger.error(errorMessage);
       System.exit(1);
     }
-    return null;
+    throw new IllegalStateException(errorMessage);
   }
 
   private void checkPort(int port) {

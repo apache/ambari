@@ -29,9 +29,9 @@ public class LogFileRequestConverter implements Converter<LogFileRequest, LogFil
   @Override
   public LogFileSearchCriteria convert(LogFileRequest request) {
     LogFileSearchCriteria criteria = new LogFileSearchCriteria();
-    criteria.addParam("component", request.getComponent());
-    criteria.addParam("host", request.getHost());
-    criteria.addParam("logType", request.getLogType());
+    criteria.setLogFileComponent(request.getComponent());
+    criteria.setLogFileHost(request.getHost());
+    criteria.setLogType(request.getLogType());
     return criteria;
   }
 }

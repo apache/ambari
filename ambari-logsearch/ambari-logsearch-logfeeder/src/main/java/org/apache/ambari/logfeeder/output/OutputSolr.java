@@ -77,17 +77,17 @@ public class OutputSolr extends Output {
 
   private BlockingQueue<OutputData> outgoingBuffer = null;
   private List<SolrWorkerThread> workerThreadList = new ArrayList<>();
-  
+
   @Override
   protected String getStatMetricName() {
     return "output.solr.write_logs";
   }
-  
+
   @Override
   protected String getWriteBytesMetricName() {
     return "output.solr.write_bytes";
   }
-  
+
   @Override
   public void init() throws Exception {
     super.init();
@@ -263,6 +263,9 @@ public class OutputSolr extends Output {
   private void useActualDateIfNeeded(Map<String, Object> jsonObj) {
     if (skipLogtime) {
       jsonObj.put("logtime", DateUtil.getActualDateStr());
+      if (jsonObj.get("evtTime") != null) {
+        jsonObj.put("evtTime", DateUtil.getActualDateStr());
+      }
     }
   }
 

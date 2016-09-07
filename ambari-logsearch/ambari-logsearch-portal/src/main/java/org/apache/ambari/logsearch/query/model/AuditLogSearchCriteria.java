@@ -18,8 +18,16 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_IS_LAST_PAGE;
 
-@Marker
 public class AuditLogSearchCriteria extends CommonSearchCriteria {
+
+  public void setLastPage(boolean lastPage) {
+    addParam(PARAM_IS_LAST_PAGE, lastPage);
+  }
+
+  public boolean isLastPage() {
+    return getParam(PARAM_IS_LAST_PAGE, Boolean.class);
+  }
+
 }

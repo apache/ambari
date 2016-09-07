@@ -65,14 +65,4 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
     return isEnable;
   }
 
-  /**
-   * Check authentication provider is enable or disable
-   * 
-   * @return boolean
-   */
-  public boolean isEnable() {
-    // default is disabled
-    return false;
-  }
-
 }

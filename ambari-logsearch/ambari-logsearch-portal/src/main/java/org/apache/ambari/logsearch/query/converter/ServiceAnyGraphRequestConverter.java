@@ -28,12 +28,12 @@ public class ServiceAnyGraphRequestConverter extends AbstractCommonServiceLogReq
   @Override
   public ServiceAnyGraphSearchCriteria createCriteria(ServiceAnyGraphRequest anyGraphRequest) {
     ServiceAnyGraphSearchCriteria criteria = new ServiceAnyGraphSearchCriteria();
-    criteria.addParam("xAxis", anyGraphRequest.getxAxis());
-    criteria.addParam("yAxis", anyGraphRequest.getyAxis());
-    criteria.addParam("stackBy", anyGraphRequest.getStackBy());
-    criteria.addParam("unit", anyGraphRequest.getUnit());
-    criteria.addParam("from", anyGraphRequest.getFrom());
-    criteria.addParam("to", anyGraphRequest.getTo());
+    criteria.setxAxis(anyGraphRequest.getxAxis());
+    criteria.setyAxis(anyGraphRequest.getyAxis());
+    criteria.setStackBy(anyGraphRequest.getStackBy());
+    criteria.setUnit(anyGraphRequest.getUnit());
+    criteria.setFrom(anyGraphRequest.getFrom());
+    criteria.setTo(anyGraphRequest.getTo());
     return criteria;
   }
 }

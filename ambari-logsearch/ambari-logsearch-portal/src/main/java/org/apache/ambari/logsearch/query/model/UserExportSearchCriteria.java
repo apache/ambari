@@ -18,8 +18,14 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class UserExportSearchCriteria extends FieldAuditLogSearchCriteria {
+  public void setFormat(String format) {
+    addParam(SearchCriteriaConstants.PARAM_FORMAT, format);
+  }
+
+  public String getFormat() {
+    return getParam(SearchCriteriaConstants.PARAM_FORMAT, String.class);
+  }
 }

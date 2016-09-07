@@ -28,8 +28,8 @@ public class FieldBarGraphRequestConverter extends AbstractCommonAuditLogRequest
   @Override
   public FieldAuditBarGraphSearchCriteria createCriteria(FieldAuditBarGraphRequest request) {
     FieldAuditBarGraphSearchCriteria criteria = new FieldAuditBarGraphSearchCriteria();
-    criteria.addParam("unit", request.getUnit());
-    criteria.addParam("field", request.getField());
+    criteria.setUnit(request.getUnit());
+    criteria.setField(request.getField());
     return criteria;
   }
 }

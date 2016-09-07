@@ -18,8 +18,15 @@
  */
 package org.apache.ambari.logsearch.query.model;
 
-import org.apache.ambari.logsearch.common.Marker;
+import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-@Marker
 public class ServiceGraphSearchCriteria extends ServiceLogFileSearchCriteria {
+
+  public String getUnit() {
+    return getParam(SearchCriteriaConstants.PARAM_UNIT, String.class);
+  }
+
+  public void setUnit(String unit) {
+    addParam(SearchCriteriaConstants.PARAM_UNIT, unit);
+  }
 }

@@ -29,7 +29,6 @@ import java.util.List;
 import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.SolrKerberosConfig;
 import org.apache.ambari.logsearch.conf.SolrUserConfig;
 import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
