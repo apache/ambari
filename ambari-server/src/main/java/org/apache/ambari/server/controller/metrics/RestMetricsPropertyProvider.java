@@ -40,6 +40,7 @@ import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
+import org.apache.ambari.server.state.services.MetricsRetrievalService.MetricSourceType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,7 +242,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
       String spec = getSpec(protocol, hostname, port, url);
 
       // always submit a request to cache the latest data
-      metricsRetrievalService.submitRESTRequest(streamProvider, spec);
+      metricsRetrievalService.submitRequest(MetricSourceType.REST, streamProvider, spec);
 
       // check to see if there is a cached value and use it if there is
       Map<String, String> jsonMap = metricsRetrievalService.getCachedRESTMetric(spec);
