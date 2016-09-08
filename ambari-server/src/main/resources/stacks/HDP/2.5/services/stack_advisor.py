@@ -256,13 +256,13 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     MIN_ASSUMED_CAP_REQUIRED_FOR_SERVICE_CHECKS = 512
     current_selected_queue_for_llap_cap =  None
 
-    # Get total cluster capacity
-    node_manager_host_list = self.get_node_manager_hosts(services, hosts)
-    node_manager_cnt = len(node_manager_host_list)
-    yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
-    total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
-
     if len(hsi_hosts) > 0:
+      # Get total cluster capacity
+      node_manager_host_list = self.get_node_manager_hosts(services, hosts)
+      node_manager_cnt = len(node_manager_host_list)
+      yarn_nm_mem_in_mb = self.get_yarn_nm_mem_in_mb(services, configurations)
+      total_cluster_capacity = node_manager_cnt * yarn_nm_mem_in_mb
+
       capacity_scheduler_properties, received_as_key_value_pair = self.getCapacitySchedulerProperties(services)
       if capacity_scheduler_properties:
         if self.HIVE_INTERACTIVE_SITE in services['configurations'] and \
