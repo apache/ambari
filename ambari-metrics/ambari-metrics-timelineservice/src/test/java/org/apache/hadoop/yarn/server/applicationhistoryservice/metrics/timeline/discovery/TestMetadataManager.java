@@ -23,29 +23,15 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.easymock.EasyMock;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata.MetricType.GAUGE;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_INIT_DELAY;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.METRICS_METADATA_SYNC_SCHEDULE_DELAY;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 
 public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
   TimelineMetricMetadataManager metadataManager;
@@ -83,6 +69,25 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
       put(now - 300, 3.0);
     }});
     timelineMetrics.getMetrics().add(metric2);
+
+
+    //Test whitelisting
+    TimelineMetric metric3 = new TimelineMetric();
+    metric3.setMetricName("dummy_metric3");
+    metric3.setHostName("dummy_host3");
+    metric3.setTimestamp(now);
+    metric3.setStartTime(now - 1000);
+    metric3.setAppId("dummy_app3");
+    metric3.setType("Integer");
+    metric3.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+    timelineMetrics.getMetrics().add(metric3);
+
+    AggregatorUtils.whitelistedMetrics.add("dummy_metric1");
+    AggregatorUtils.whitelistedMetrics.add("dummy_metric2");
 
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
   }
