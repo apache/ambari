@@ -129,8 +129,14 @@ class TestMain(unittest.TestCase):
 
   # Set open files ulimit hard limit
   def test_update_open_files_ulimit(self):
+    # get the current soft and hard limits
+    (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
+    # update will be successful only if the new value is >= soft limit
+    if hard_limit != resource.RLIM_INFINITY: 
+      open_files_ulimit = soft_limit + (hard_limit - soft_limit) / 2
+    else:
+      open_files_ulimit = soft_limit
     config = AmbariConfig()
-    open_files_ulimit = 10240
     config.set_ulimit_open_files(open_files_ulimit)
     main.update_open_files_ulimit(config)
     (soft_limit, hard_limit) = resource.getrlimit(resource.RLIMIT_NOFILE)
