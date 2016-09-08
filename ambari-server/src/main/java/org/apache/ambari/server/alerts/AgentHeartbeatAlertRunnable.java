@@ -111,6 +111,7 @@ public class AgentHeartbeatAlertRunnable extends AlertRunnable {
         case UNHEALTHY:
           alertState = AlertState.CRITICAL;
           alertText = MessageFormat.format(UNHEALTHY_MSG, hostName);
+          break;
         default:
           alertState = AlertState.UNKNOWN;
           alertText = MessageFormat.format(UNKNOWN_MSG, hostName, hostState);
