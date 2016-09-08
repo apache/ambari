@@ -57,10 +57,6 @@ public class StackContext {
    */
   private LatestRepoQueryExecutor repoUpdateExecutor = new LatestRepoQueryExecutor();
 
-  /**
-   * Repository XML base url property name
-   */
-  private static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
 
 
   /**
@@ -98,10 +94,18 @@ public class StackContext {
    */
   public String getUpdatedRepoUrl(String stackName, String stackVersion, String osType, String repoId) {
     String key = AmbariMetaInfo.generateRepoMetaKey(stackName, stackVersion,
-            osType, repoId, REPOSITORY_XML_PROPERTY_BASEURL);
+        osType, repoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
     MetainfoEntity entity = metaInfoDAO.findByKey(key);
     return entity != null ? entity.getMetainfoValue() : null;
   }
+
+  public String getUpdatedMirrorsList(String stackName, String stackVersion, String osType, String repoId) {
+    String key = AmbariMetaInfo.generateRepoMetaKey(stackName, stackVersion,
+        osType, repoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_MIRRORSLIST);
+    MetainfoEntity entity = metaInfoDAO.findByKey(key);
+    return entity != null ? entity.getMetainfoValue() : null;
+  }
+
 
   /**
    * Register a task to obtain the latest repo url from an external location.

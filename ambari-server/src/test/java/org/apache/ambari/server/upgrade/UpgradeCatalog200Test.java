@@ -491,7 +491,7 @@ public class UpgradeCatalog200Test {
       add(mockRepositoryInfo);
     }});
     expect(mockRepositoryInfo.getDefaultBaseUrl()).andReturn("http://baseurl").once();
-    mockAmbariMetaInfo.updateRepoBaseURL("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl");
+    mockAmbariMetaInfo.updateRepo("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl", null);
     expectLastCall().once();
 
     easyMockSupport.replayAll();

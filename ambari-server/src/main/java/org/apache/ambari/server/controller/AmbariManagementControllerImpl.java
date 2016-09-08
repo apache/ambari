@@ -4184,15 +4184,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         throw new AmbariException("Repo ID must be specified.");
       }
 
-      if (null != rr.getBaseUrl()) {
-        if (rr.isVerifyBaseUrl()) {
-          verifyRepository(rr);
-        }
-        if (rr.getRepositoryVersionId() != null) {
-          throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
-        }
-        ambariMetaInfo.updateRepoBaseURL(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId(), rr.getBaseUrl());
+      if (null == rr.getBaseUrl() && null == rr.getMirrorsList()) {
+        throw new AmbariException("Repo Base Url or Mirrors List must be specified.");
       }
+
+      if (rr.isVerifyBaseUrl()) {
+        verifyRepository(rr);
+      }
+      if (rr.getRepositoryVersionId() != null) {
+        throw new AmbariException("Can't directly update repositories in repository_version, update the repository_version instead");
+      }
+      ambariMetaInfo.updateRepo(rr.getStackName(), rr.getStackVersion(), rr.getOsType(), rr.getRepoId(), rr.getBaseUrl(), rr.getMirrorsList());
+
     }
   }
 

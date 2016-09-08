@@ -126,10 +126,11 @@ public class StackUpgradeUtil {
    * @param stackVersion
    * @param repoUrl
    * @param repoUrlOs
+   * @param mirrorList
    * @throws Exception
    */
   public void updateLocalRepo(String stackName, String stackVersion,
-      String repoUrl, String repoUrlOs) throws Exception {
+                              String repoUrl, String repoUrlOs, String mirrorList) throws Exception {
 
     if (null == repoUrl ||
         repoUrl.isEmpty() ||
@@ -152,8 +153,8 @@ public class StackUpgradeUtil {
     if (0 == oses.length) {
       // do them all
       for (OperatingSystemInfo osi : ami.getOperatingSystems(stackName, stackVersion)) {
-        ami.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
-            stackRepoId, repoUrl);
+        ami.updateRepo(stackName, stackVersion, osi.getOsType(),
+            stackRepoId, repoUrl, mirrorList);
       }
 
     } else {

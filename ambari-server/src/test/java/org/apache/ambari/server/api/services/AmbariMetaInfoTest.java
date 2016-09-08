@@ -285,8 +285,8 @@ public class AmbariMetaInfoTest {
 
     // Updating the baseUrl
     String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
-            HDP_REPO_ID, newBaseUrl);
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, "2.1.1", "redhat6",
+        HDP_REPO_ID, newBaseUrl, null);
     RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
             HDP_REPO_ID);
     assertEquals(newBaseUrl, repoInfo.getBaseUrl());
@@ -327,11 +327,71 @@ public class AmbariMetaInfoTest {
     replay(metainfoDAO, entity);
 
     // Reset the database with the original baseUrl
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
-            HDP_REPO_ID, prevBaseUrl);
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, "2.1.1", "redhat6",
+        HDP_REPO_ID, prevBaseUrl, null);
 
     assertEquals(prevBaseUrl, c.getValue().getMetainfoValue());
-    assertTrue(repoInfo.isBaseUrlFromSaved());
+    assertTrue(repoInfo.isRepoSaved());
+
+  }
+
+  @Test
+  public void testGetRepositoryUpdatedMirrorList() throws Exception {
+    // Scenario: user has internet and but calls to set repos via api
+    // use whatever they set
+    String buildDir = tmpFolder.getRoot().getAbsolutePath();
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    // The current stack already has (HDP, 2.1.1, redhat6)
+
+    // Updating the mirrors list
+    String newMirrorsList = "http://someMirrorslist";
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, "2.1.1", "redhat6",
+        HDP_REPO_ID, null, newMirrorsList);
+    RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
+        HDP_REPO_ID);
+    assertEquals(newMirrorsList, repoInfo.getMirrorsList());
+    String testMirrorslist = "http://someTestMirrorslist";
+
+    // mock expectations
+    MetainfoDAO metainfoDAO = ambariMetaInfo.metaInfoDAO;
+    reset(metainfoDAO);
+    MetainfoEntity entity = createNiceMock(MetainfoEntity.class);
+    expect(metainfoDAO.findByKey("repo:/HDP/2.1.1/redhat6/HDP-2.1.1:mirrorslist")).andReturn(entity).atLeastOnce();
+    expect(entity.getMetainfoValue()).andReturn(newMirrorsList).atLeastOnce();
+    replay(metainfoDAO, entity);
+
+    ambariMetaInfo.init();
+
+    waitForAllReposToBeResolved(ambariMetaInfo);
+
+    List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
+        STACK_NAME_HDP, "2.1.1", "redhat6");
+
+    assertNotNull(redhat6Repo);
+
+    for (RepositoryInfo ri : redhat6Repo) {
+      if (HDP_REPO_NAME.equals(ri.getRepoName())) {
+        assertEquals(newMirrorsList, ri.getMirrorsList());
+        // mirrors list should be changed, since it is updated.
+        assertFalse(ri.getMirrorsList().equals(testMirrorslist));
+      }
+    }
+
+    Capture<MetainfoEntity> c = new Capture<MetainfoEntity>();
+
+    metainfoDAO = ambariMetaInfo.metaInfoDAO;
+    reset(metainfoDAO);
+    reset(entity);
+    expect(metainfoDAO.findByKey("repo:/HDP/2.1.1/redhat6/HDP-2.1.1:mirrorslist")).andReturn(entity).atLeastOnce();
+    expect(metainfoDAO.merge(EasyMock.capture(c))).andReturn(entity).atLeastOnce();
+    replay(metainfoDAO, entity);
+
+    // Reset the database with the original mirrors list
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, "2.1.1", "redhat6",
+        HDP_REPO_ID, null, testMirrorslist);
+
+    assertEquals(testMirrorslist, c.getValue().getMetainfoValue());
+    assertTrue(repoInfo.isRepoSaved());
 
   }
 
@@ -345,8 +405,8 @@ public class AmbariMetaInfoTest {
 
     // Updating the baseUrl
     String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP-Utils/centos6/2.x/updates/2.0.6.0";
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, stackVersion, "redhat6",
-            REPO_ID, newBaseUrl);
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, stackVersion, "redhat6",
+        REPO_ID, newBaseUrl, null);
     RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, stackVersion, "redhat6",
             REPO_ID);
     assertEquals(newBaseUrl, repoInfo.getBaseUrl());
@@ -374,8 +434,8 @@ public class AmbariMetaInfoTest {
     }
 
     // Reset the database with the original baseUrl
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, stackVersion, "redhat6",
-            REPO_ID, prevBaseUrl);
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, stackVersion, "redhat6",
+        REPO_ID, prevBaseUrl, null);
   }
 
   @Test
@@ -399,8 +459,8 @@ public class AmbariMetaInfoTest {
     }
 
     // Update baseUrl
-    ambariMetaInfo.updateRepoBaseURL("HDP", "2.1.1", "redhat6", "HDP-2.1.1",
-        newBaseUrl);
+    ambariMetaInfo.updateRepo("HDP", "2.1.1", "redhat6", "HDP-2.1.1",
+        newBaseUrl, null);
     RepositoryInfo repoInfo = ambariMetaInfo.getRepository(STACK_NAME_HDP, "2.1.1", "redhat6",
         STACK_NAME_HDP + "-2.1.1");
     assertEquals(newBaseUrl, repoInfo.getBaseUrl());
@@ -430,8 +490,8 @@ public class AmbariMetaInfoTest {
     }
 
     // Reset the database with the original baseUrl
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME_HDP, "2.1.1", "redhat6",
-        STACK_NAME_HDP + "-2.1.1", prevBaseUrl);
+    ambariMetaInfo.updateRepo(STACK_NAME_HDP, "2.1.1", "redhat6",
+        STACK_NAME_HDP + "-2.1.1", prevBaseUrl, null);
   }
 
   @Test

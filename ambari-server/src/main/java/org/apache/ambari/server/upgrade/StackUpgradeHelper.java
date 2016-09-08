@@ -101,6 +101,7 @@ public class StackUpgradeHelper {
     
     String repoUrl = stackInfo.remove("repo_url");
     String repoUrlOs = stackInfo.remove("repo_url_os");
+    String mirrorList = stackInfo.remove("mirrors_list");
     
     Iterator<Map.Entry<String, String>> stackIdEntry = stackInfo.entrySet().iterator();
     Map.Entry<String, String> stackEntry = stackIdEntry.next();
@@ -114,7 +115,7 @@ public class StackUpgradeHelper {
     stackUpgradeUtil.updateStackDetails(stackName, stackVersion);
     
     if (null != repoUrl) {
-      stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, repoUrl, repoUrlOs);  
+      stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, repoUrl, repoUrlOs, mirrorList);
     }
 
     dbAccessor.updateTable("hostcomponentstate", "current_state", "INSTALLED", "where current_state = 'UPGRADING'");

@@ -367,7 +367,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
             for (OperatingSystemEntity osEntity : operatingSystemEntities) {
               List<RepositoryEntity> repositories = osEntity.getRepositories();
               for (RepositoryEntity repository : repositories) {
-                ambariMetaInfo.updateRepoBaseURL(entityStackName, entityStackVersion, osEntity.getOsType(), repository.getRepositoryId(), repository.getBaseUrl());
+                ambariMetaInfo.updateRepo(entityStackName, entityStackVersion, osEntity.getOsType(), repository.getRepositoryId(), repository.getBaseUrl(), repository.getMirrorsList());
               }
             }
           }

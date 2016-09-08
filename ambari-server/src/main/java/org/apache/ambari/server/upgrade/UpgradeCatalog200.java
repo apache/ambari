@@ -359,8 +359,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
           RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(stackName, stackVersion, osi.getOsType(), stackRepoId);
           // We save default base url which has not changed during upgrade as base url
           String baseUrl = repositoryInfo.getDefaultBaseUrl();
-          ambariMetaInfo.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
-                  stackRepoId, baseUrl);
+          ambariMetaInfo.updateRepo(stackName, stackVersion, osi.getOsType(),
+              stackRepoId, baseUrl, null);
         }
       }
 

@@ -1041,19 +1041,25 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   /**
    * Process a repository associated with the stack.
    *
-   * @param osFamily  OS family
-   * @param osType    OS type
-   * @param r         repo
+   * @param ri repository info
    */
   private RepositoryInfo processRepository(RepositoryInfo ri) {
 
-    LOG.debug("Checking for override for base_url");
+    LOG.debug("Checking for override for base_url and mirrors list");
     String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),
         ri.getOsType(), ri.getRepoId());
 
     if (null != updatedUrl) {
       ri.setBaseUrl(updatedUrl);
-      ri.setBaseUrlFromSaved(true);
+      ri.setRepoSaved(true);
+    }
+
+    String updatedMirrList = stackContext.getUpdatedMirrorsList(stackInfo.getName(), stackInfo.getVersion(),
+        ri.getOsType(), ri.getRepoId());
+
+    if (null != updatedMirrList) {
+      ri.setMirrorsList(updatedMirrList);
+      ri.setRepoSaved(true);
     }
 
     if (LOG.isDebugEnabled()) {

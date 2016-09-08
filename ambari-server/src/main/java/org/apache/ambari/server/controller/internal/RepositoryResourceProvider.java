@@ -247,6 +247,10 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       }
     }
 
+    if (properties.containsKey(REPOSITORY_MIRRORS_LIST_PROPERTY_ID)) {
+      request.setMirrorsList((String) properties.get(REPOSITORY_MIRRORS_LIST_PROPERTY_ID));
+    }
+
     return request;
   }
 

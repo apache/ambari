@@ -22,6 +22,7 @@ public class RepositoryRequest extends OperatingSystemRequest {
 
   private String repoId;
   private String baseUrl;
+  private String mirrorsList;
   private boolean verify = true;
   private Long clusterVersionId = null;
 
@@ -93,4 +94,21 @@ public class RepositoryRequest extends OperatingSystemRequest {
         + getStackName() + "]";
   }
 
+  /**
+   * Gets the mirrors list for the repo.
+   *
+   * @return the mirrors list
+   */
+  public String getMirrorsList() {
+    return mirrorsList;
+  }
+
+  /**
+   * Sets the mirrors list for the repo.
+   *
+   * @param mirrorsList the mirrors list
+   */
+  public void setMirrorsList(String mirrorsList) {
+    this.mirrorsList = mirrorsList;
+  }
 }

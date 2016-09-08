@@ -28,7 +28,7 @@ public class RepositoryInfo {
   private String mirrorsList;
   private String defaultBaseUrl;
   private String latestBaseUrl;
-  private boolean baseSaved = false;
+  private boolean repoSaved = false;
 
   /**
    * @return the baseUrl
@@ -129,17 +129,17 @@ public class RepositoryInfo {
   }
 
   /**
-   * @return if the base url was from a saved value
+   * @return if the base url or mirrors list was from a saved value
    */
-  public boolean isBaseUrlFromSaved() {
-    return baseSaved;
+  public boolean isRepoSaved() {
+    return repoSaved;
   }
 
   /**
-   * Sets if the base url was from a saved value
+   * Sets if the base url or mirrors list was from a saved value
    */
-  public void setBaseUrlFromSaved(boolean saved) {
-    baseSaved = saved;
+  public void setRepoSaved(boolean saved) {
+    repoSaved = saved;
   }
 
   @Override
@@ -159,6 +159,4 @@ public class RepositoryInfo {
     return new RepositoryResponse(getBaseUrl(), getOsType(), getRepoId(),
         getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
   }
-
-
 }

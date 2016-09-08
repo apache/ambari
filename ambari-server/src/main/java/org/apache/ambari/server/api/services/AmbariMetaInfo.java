@@ -140,7 +140,16 @@ public class AmbariMetaInfo {
     }
   };
   private final static Logger LOG = LoggerFactory.getLogger(AmbariMetaInfo.class);
+
+  /**
+   * Repository XML base url property name
+   */
   public static final String REPOSITORY_XML_PROPERTY_BASEURL = "baseurl";
+
+  /**
+   * Repository XML mirrors list property name
+   */
+  public static final String REPOSITORY_XML_PROPERTY_MIRRORSLIST = "mirrorslist";
 
   // all the supported OS'es
   @Inject
@@ -857,9 +866,10 @@ public class AmbariMetaInfo {
    * @param osType the os
    * @param repoId the repo id
    * @param newBaseUrl the new base url
+   * @param newMirrorsList the new mirrors list
    */
-  public void updateRepoBaseURL(String stackName,
-      String stackVersion, String osType, String repoId, String newBaseUrl) throws AmbariException {
+  public void updateRepo(String stackName,
+                         String stackVersion, String osType, String repoId, String newBaseUrl, String newMirrorsList) throws AmbariException {
 
     // validate existing
     RepositoryInfo ri = getRepository(stackName, stackVersion, osType, repoId);
@@ -868,23 +878,47 @@ public class AmbariMetaInfo {
       throw new StackAccessException("Stack root does not exist.");
     }
 
-    ri.setBaseUrl(newBaseUrl);
-
+    if (null != newMirrorsList) {
+      ri.setMirrorsList(newMirrorsList);
+    }
+    if (null != newBaseUrl) {
+      ri.setBaseUrl(newBaseUrl);
+    }
     if (null != metaInfoDAO) {
-      String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
-          repoId, REPOSITORY_XML_PROPERTY_BASEURL);
-
-      MetainfoEntity entity = new MetainfoEntity();
-      entity.setMetainfoName(metaKey);
-      entity.setMetainfoValue(newBaseUrl);
-
-      // !!! need a way to remove
-      if (newBaseUrl.equals("")) {
-        metaInfoDAO.remove(entity);
-      } else {
-        metaInfoDAO.merge(entity);
-        ri.setBaseUrlFromSaved(true);
+      if (null != newBaseUrl) {
+        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newBaseUrl, ri, REPOSITORY_XML_PROPERTY_BASEURL);
       }
+      if (null != newMirrorsList) {
+        updateRepoInMetaInfo(stackName, stackVersion, osType, repoId, newMirrorsList, ri, REPOSITORY_XML_PROPERTY_MIRRORSLIST);
+      }
+    }
+  }
+
+  /**
+   * Update repo property repositoryXmlProperty in metaInfo with new value
+   *
+   * @param stackName             the stack name
+   * @param stackVersion          the stack version
+   * @param osType                the os
+   * @param repoId                the repo id
+   * @param value                 new value
+   * @param ri                    repositoryInfo
+   * @param repositoryXmlProperty repository.xml property name
+   */
+  private void updateRepoInMetaInfo(String stackName, String stackVersion, String osType, String repoId, String value, RepositoryInfo ri, String repositoryXmlProperty) {
+    String metaKey = generateRepoMetaKey(stackName, stackVersion, osType,
+        repoId, repositoryXmlProperty);
+
+    MetainfoEntity entity = new MetainfoEntity();
+    entity.setMetainfoName(metaKey);
+    entity.setMetainfoValue(value);
+
+    // !!! need a way to remove
+    if (StringUtils.isBlank(value)) { // This block should get removed someday, we aren't supporting this mechanism anymore
+      metaInfoDAO.remove(entity);
+    } else {
+      metaInfoDAO.merge(entity);
+      ri.setRepoSaved(true);
     }
   }
 

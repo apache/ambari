@@ -8675,13 +8675,13 @@ public class AmbariManagementControllerTest {
     repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     assertEquals(original, repo.getBaseUrl());
 
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_BASE_URL);
+    ambariMetaInfo.updateRepo(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_BASE_URL, null);
 
     repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     assertEquals(INCORRECT_BASE_URL, repo.getBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());
 
-    ambariMetaInfo.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_URL_2);
+    ambariMetaInfo.updateRepo(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, INCORRECT_URL_2, null);
     repo = ambariMetaInfo.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     assertFalse(INCORRECT_BASE_URL.equals(repo.getBaseUrl()));
     assertEquals(INCORRECT_URL_2, repo.getBaseUrl());
@@ -8704,7 +8704,7 @@ public class AmbariManagementControllerTest {
     assertNotNull(repo.getDefaultBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());
 
-    ami.updateRepoBaseURL(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, original);
+    ami.updateRepo(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID, original, null);
     repo = ami.getRepository(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     assertEquals(original, repo.getBaseUrl());
     assertEquals(original, repo.getDefaultBaseUrl());

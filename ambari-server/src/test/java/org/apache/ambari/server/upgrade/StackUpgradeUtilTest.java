@@ -60,8 +60,8 @@ public class StackUpgradeUtilTest {
     for (Entry<String, List<RepositoryInfo>> entry : ami.getRepository(stackName, stackVersion).entrySet()) {
       for (RepositoryInfo ri : entry.getValue()) {
         if (-1 == ri.getRepoId().indexOf("epel")) {
-          ami.updateRepoBaseURL(stackName, stackVersion,
-              ri.getOsType(), ri.getRepoId(), "");
+          ami.updateRepo(stackName, stackVersion,
+              ri.getOsType(), ri.getRepoId(), "", null);
         }
       }
     }
@@ -77,7 +77,7 @@ public class StackUpgradeUtilTest {
     String localRepoUrl = "http://foo.bar";
 
     // check updating all
-    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, null);
+    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, null, null);
 
     MetainfoDAO dao = injector.getInstance(MetainfoDAO.class);
 
@@ -94,7 +94,7 @@ public class StackUpgradeUtilTest {
     Assert.assertEquals(0, entities.size());
 
     // check updating only centos6
-    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6");
+    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6", null);
 
     entities = dao.findAll();
     for (MetainfoEntity entity : entities) {
@@ -108,7 +108,7 @@ public class StackUpgradeUtilTest {
     Assert.assertTrue(0 == entities.size());
 
     // check updating only centos6 and centos5
-    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6,centos5");
+    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6,centos5", null);
 
     entities = dao.findAll();
     for (MetainfoEntity entity : entities) {
@@ -121,7 +121,7 @@ public class StackUpgradeUtilTest {
 
     // verify that a change to centos6 also changes redhat6
     localRepoUrl = "http://newfoo.bar";
-    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6");
+    stackUpgradeUtil.updateLocalRepo(stackName, stackVersion, localRepoUrl, "centos6", null);
     entities = dao.findAll();
     boolean foundCentos6 = false;
     boolean foundRedhat6 = false;
