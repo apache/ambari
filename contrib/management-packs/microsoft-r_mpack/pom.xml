@@ -34,7 +34,7 @@
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <ambari.version>1.3.0.0-SNAPSHOT</ambari.version>
+    <ambari.version>2.4.1.0.0</ambari.version>
   </properties>
 
   <build>
