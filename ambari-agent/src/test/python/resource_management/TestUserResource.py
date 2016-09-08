@@ -214,6 +214,42 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E useradd -m mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=-1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
+  @patch('__builtin__.open')
+  @patch("pwd.getpwnam")
+  def test_parsing_local_users(self, pwd_mock, open_mock):
+    """
+    Tests that parsing users out of /etc/groups can tolerate some bad lines
+    """
+    class MagicFile(object):
+      def read(self):
+        return  """
+          group1:x:1:
+          group2:x:2:user1,user2
+          group3:x:3
+          invalid
+        """
+
+      def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+      def __enter__(self):
+        return self
+
+    pwd_mock.return_value = "user1"
+    open_mock.return_value = MagicFile()
+
+    from resource_management.core.providers.accounts import UserProvider
+
+    user = MagicMock()
+    provider = UserProvider(user)
+    provider.resource.username = "user1"
+    provider.resource.fetch_nonlocal_groups = False
+    groups = provider.user_groups
+
+    self.assertEquals(1, len(groups))
+    self.assertTrue("group2" in groups)
+
+
 def _get_user_entity():
   user = MagicMock()
   user.pw_name='mapred'
