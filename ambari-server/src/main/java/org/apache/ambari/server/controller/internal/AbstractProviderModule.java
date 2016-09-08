@@ -150,6 +150,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("HBASE_MASTER", new String[]{"hbase.master.info.port"});
     initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.regionserver.info.port"});
+    initPropMap.put("HBASE_MASTER-HTTPS", new String[]{"hbase.master.info.port"});
+    initPropMap.put("HBASE_REGIONSERVER-HTTPS", new String[]{"hbase.regionserver.info.port"});
     serviceDesiredProperties.put(Service.Type.HBASE, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -179,6 +181,14 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
     jmxDesiredProperties.put("RESOURCEMANAGER", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("HBASE_MASTER", new String[]{"hbase.http.policy"});
+    jmxDesiredProperties.put("HBASE_MASTER", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("HBASE_REGIONSERVER", new String[]{"hbase.http.policy"});
+    jmxDesiredProperties.put("HBASE_REGIONSERVER", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NODEMANAGER", new String[]{"yarn.http.policy"});
@@ -1198,7 +1208,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
 
     try {
-      if (componentName.equals("NAMENODE") || componentName.equals("DATANODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("NODEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER")) {
+      if (componentName.equals("NAMENODE") || componentName.equals("DATANODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("NODEMANAGER") || componentName.equals("JOURNALNODE") || componentName.equals("HISTORYSERVER") || componentName.equals("HBASE_MASTER") || componentName.equals("HBASE_REGIONSERVER")) {
         Service.Type service = componentServiceMap.get(componentName);
         String config = serviceConfigTypes.get(service);
         String newSiteConfigVersion = getDesiredConfigVersion(clusterName, config);
