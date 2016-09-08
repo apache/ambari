@@ -295,7 +295,7 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
 
           resolved = missingDependencyInfo.isEmpty();
         } else if (dependencyScope.equals("host")) {
-          if (group.getComponentNames().contains(component) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
+          if (group.getComponentNames().contains(componentName) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
             resolved = true;
             group.addComponent(componentName);
           }

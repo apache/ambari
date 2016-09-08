@@ -18,12 +18,17 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.controller.internal.Stack;
@@ -37,11 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
 
 /**
  * BlueprintValidatorImpl unit tests.
@@ -286,6 +286,49 @@ public class BlueprintValidatorImplTest {
 
 
     expect(dependencyComponentInfo.isClient()).andReturn(true).anyTimes();
+    expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
+
+    replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
+
+    // WHEN
+    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
+    validator.validateTopology();
+
+    // THEN
+    verify(group1);
+
+  }
+  @Test(expected=InvalidTopologyException.class)
+  public void testShouldThrowErrorWhenDependentComponentIsNotInBlueprint() throws Exception {
+    // GIVEN
+    hostGroups.clear();
+    hostGroups.put("group1", group1);
+
+    group1Components.add("component-1");
+    dependencies1.add(dependency1);
+    services.addAll(Collections.singleton("service-1"));
+
+
+    expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
+    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
+
+    Cardinality cardinality = new Cardinality("1");
+
+    expect(stack.getComponents("service-1")).andReturn(Arrays.asList("component-1")).anyTimes();
+    expect(stack.getAutoDeployInfo("component-1")).andReturn(autoDeploy).anyTimes();
+    expect(stack.getDependenciesForComponent("component-1")).andReturn(dependencies1).anyTimes();
+    expect(stack.getCardinality("component-1")).andReturn(cardinality).anyTimes();
+
+
+    AutoDeployInfo dependencyAutoDeploy = null;
+
+    expect(dependency1.getScope()).andReturn("host").anyTimes();
+    expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
+    expect(dependency1.getComponentName()).andReturn("component-d").anyTimes();
+    expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
+    expect(dependency1.getName()).andReturn("dependency-1").anyTimes();
+
+
     expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
 
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
