@@ -2293,7 +2293,7 @@ class TestHDP22StackAdvisor(TestCase):
           "timeline.metrics.cluster.aggregate.splitpoints": "master.FileSystem.MetaHlogSplitTime_75th_percentile",
           "timeline.metrics.host.aggregate.splitpoints": "master.FileSystem.MetaHlogSplitTime_75th_percentile",
           "timeline.metrics.service.handler.thread.count": "20",
-          'timeline.metrics.service.webapp.address': 'host1:6188',
+          'timeline.metrics.service.webapp.address': '0.0.0.0:6188',
           'timeline.metrics.service.watcher.disabled': 'false',
           'timeline.metrics.cache.size': '100',
           'timeline.metrics.cache.commit.interval': '10'

@@ -584,7 +584,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
       metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
     else:
-      metric_collector_host = 'localhost' if len(amsCollectorHosts) == 0 else amsCollectorHosts[0]
+      # TODO set "timeline.metrics.service.webapp.address" to 0.0.0.0:port in upgrade catalog
+      metric_collector_host = '0.0.0.0'
 
     putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
 

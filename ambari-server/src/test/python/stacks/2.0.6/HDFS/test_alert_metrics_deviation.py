@@ -21,7 +21,7 @@ limitations under the License.
 # System imports
 import os
 import sys
-
+from ambari_commons import ambari_metrics_helper
 from mock.mock import patch, MagicMock
 
 # Local imports
@@ -74,12 +74,13 @@ class TestAlertMetricsDeviation(RMFTestCase):
     self.assertTrue(messages is not None and len(messages) == 1)
     self.assertTrue('is a required parameter for the script' in messages[0])
 
+  @patch.object(ambari_metrics_helper, 'get_metric_collectors_from_properties_file', new = MagicMock(return_value='c6401.ambari.apache.org:6188'))
   @patch("httplib.HTTPConnection")
   def test_alert(self, conn_mock):
     configs = {
       '{{hdfs-site/dfs.namenode.https-address}}': 'c6401.ambari.apache.org:50470',
       '{{hdfs-site/dfs.http.policy}}': 'HTTP_ONLY',
-      '{{ams-site/timeline.metrics.service.webapp.address}}': 'c6401.ambari.apache.org:6188',
+      '{{ams-site/timeline.metrics.service.webapp.address}}': '0.0.0.0:6188',
       '{{hdfs-site/dfs.namenode.http-address}}': 'c6401.ambari.apache.org:50070',
       '{{cluster-env/security_enabled}}': 'false',
       '{{cluster-env/smokeuser}}': 'ambari-qa',

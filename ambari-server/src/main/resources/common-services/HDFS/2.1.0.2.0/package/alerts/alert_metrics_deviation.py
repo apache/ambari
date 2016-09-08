@@ -31,6 +31,7 @@ from ambari_commons.aggregate_functions import sample_standard_deviation, mean
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.libraries.functions.curl_krb_request import DEFAULT_KERBEROS_KINIT_TIMER_MS
 from resource_management.libraries.functions.curl_krb_request import KERBEROS_KINIT_TIMER_PARAMETER
+from ambari_commons.ambari_metrics_helper import select_metric_collector_for_sink
 
 
 RESULT_STATE_OK = 'OK'
@@ -177,7 +178,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     else:
       collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
       if valid_collector_webapp_address(collector_webapp_address):
-        collector_host = collector_webapp_address[0]
+        collector_host = select_metric_collector_for_sink(app_id.lower()).split(":")[0]
         collector_port = int(collector_webapp_address[1])
       else:
         return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(
@@ -404,7 +405,6 @@ def execute(configurations={}, parameters={}, host_name=None):
 def valid_collector_webapp_address(webapp_address):
   if len(webapp_address) == 2 \
     and webapp_address[0] != '127.0.0.1' \
-    and webapp_address[0] != '0.0.0.0' \
     and webapp_address[1].isdigit():
     return True
 
