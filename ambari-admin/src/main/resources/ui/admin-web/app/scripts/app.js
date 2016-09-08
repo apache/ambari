@@ -31,7 +31,9 @@ angular.module('ambariAdminConsole', [
   testMode: (window.location.port == 8000),
   mockDataPrefix: 'assets/data/',
   isLDAPConfigurationSupported: false,
-  isLoginActivitiesSupported: false
+  isLoginActivitiesSupported: false,
+  maxStackTraceLength: 1000,
+  errorStorageSize: 500000
 })
 .config(['RestangularProvider', '$httpProvider', '$provide', 'Settings', function(RestangularProvider, $httpProvider, $provide, Settings) {
   // Config Ajax-module
@@ -131,6 +133,46 @@ angular.module('ambariAdminConsole', [
       });
     }];
     return $delegate;
+  }]);
+
+  $provide.decorator('$exceptionHandler', ['$delegate', 'Utility', '$window', function ($delegate, Utility, $window) {
+    return function (error, cause) {
+      var ls = JSON.parse($window.localStorage.getItem('errors')) || {},
+        key = new Date().getTime(),
+        origin = $window.location.origin || ($window.location.protocol + '//' + $window.location.host),
+        pattern = new RegExp(origin + '/.*scripts', 'g'),
+        stackTrace = error && error.stack && error.stack.replace(pattern, '').substr(0, Settings.maxStackTraceLength),
+        file = error && error.fileName,
+        line = error && error.lineNumber,
+        col = error && error.columnNumber;
+
+      if (error && error.stack && (!file || !line || !col)) {
+        var patternText = '(' + $window.location.protocol + '//.*\\.js):(\\d+):(\\d+)',
+          details = error.stack.match(new RegExp(patternText));
+        file = file || (details && details [1]);
+        line = line || (details && Number(details [2]));
+        col = col || (details && Number(details [3]));
+      }
+
+      var val = {
+        file: file,
+        line: line,
+        col: col,
+        error: error.toString(),
+        stackTrace: stackTrace
+      };
+
+      //overwrite errors if storage full
+      if (JSON.stringify(ls).length > Settings.errorStorageSize) {
+        delete ls[Object.keys(ls).sort()[0]];
+      }
+
+      ls[key] = val;
+      var lsString = JSON.stringify(ls);
+      $window.localStorage.setItem('errors', lsString);
+      Utility.postUserPref('errors', ls);
+      $delegate(error, cause);
+    };
   }]);
 
   if (!Array.prototype.find) {

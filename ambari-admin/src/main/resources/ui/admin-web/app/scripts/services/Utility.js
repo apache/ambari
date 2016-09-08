@@ -20,7 +20,7 @@
  * This service should be used to keep all utility functions in one place that can be used in any controller
  */
 angular.module('ambariAdminConsole')
-  .factory('Utility', [function() {
+  .factory('Utility', ['$injector', 'Settings', function ($injector, Settings) {
     return {
       /**
        *  if version1>= version2 then return true
@@ -64,6 +64,28 @@ angular.module('ambariAdminConsole')
           }
         }
         return result;
+      },
+
+      getUserPref: function (key) {
+        return $injector.get('$http').get(Settings.baseUrl + '/persist/' + key);
+      },
+
+      postUserPref: function (key, value) {
+        var deferred = $injector.get('$q').defer();
+        $injector.get('$rootScope').authDataLoad.promise.then(function (canPersistData) {
+          if (canPersistData) {
+            var keyValuePair = {};
+            keyValuePair[key] = JSON.stringify(value);
+            $injector.get('$http').post(Settings.baseUrl + '/persist/', JSON.stringify(keyValuePair)).then(function () {
+              deferred.resolve();
+            }, function () {
+              deferred.reject();
+            });
+          } else {
+            deferred.reject();
+          }
+        });
+        return deferred.promise;
       }
     };
   }

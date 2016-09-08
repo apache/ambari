@@ -24,7 +24,7 @@ angular.module('ambariAdminConsole')
     var deferred = $q.defer();
 
     resource.getPermissions(params).then(function(permissions) {
-      var permissionsInner = {}; // Save object into closure, until it completely fills to prevent blinkong
+      var permissionsInner = {}; // Save object into closure, until it completely fills to prevent blinking
       angular.forEach(permissions, function(permission) {
         permission.GROUP = [];
         permission.USER = [];

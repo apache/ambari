@@ -16,20 +16,33 @@
  * limitations under the License.
  */
 
-describe('#Auth', function () {
+describe('#MainCtrl', function () {
 
-  describe('signout', function () {
-    var scope, ctrl, $httpBackend, $window, clusterService,deferred;
-    beforeEach(module('ambariAdminConsole', function($provide){
-      $provide.value('$window', {location: {pathname: 'http://c6401.ambari.apache.org:8080/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'}});
-      localStorage.ambari = JSON.stringify({app: {authenticated: true, loginName: 'admin', user: 'user'}});
-    }));
-    afterEach(function() {
-      $httpBackend.verifyNoOutstandingExpectation();
-      $httpBackend.verifyNoOutstandingRequest();
+  var scope, ctrl, $httpBackend, $window, clusterService, deferred;
+
+  beforeEach(function () {
+    module('ambariAdminConsole', function ($provide) {
+      $provide.value('$window', {
+        location: {
+          pathname: 'http://c6401.ambari.apache.org:8080/views/ADMIN_VIEW/2.0.0/INSTANCE/#/'
+        },
+        localStorage: {
+          getItem: function () {
+            return null;
+          },
+          setItem: angular.noop
+        }
+      });
+      localStorage.ambari = JSON.stringify({
+        app: {
+          authenticated: true,
+          loginName: 'admin',
+          user: 'user'
+        }
+      });
     });
-    beforeEach(inject(function (_$httpBackend_, $rootScope, $controller, _$window_, _Cluster_,_$q_) {
-      clusterService =  _Cluster_;
+    inject(function (_$httpBackend_, $rootScope, $controller, _$window_, _Cluster_, _$q_) {
+      clusterService = _Cluster_;
       deferred = _$q_.defer();
       spyOn(clusterService, 'getStatus').andReturn(deferred.promise);
       deferred.resolve({
@@ -39,18 +52,15 @@ describe('#Auth', function () {
       });
       $window = _$window_;
       $httpBackend = _$httpBackend_;
-      var re = /api\/v1\/services\/AMBARI\/components\/AMBARI_SERVER.+/;
-      $httpBackend.whenGET(re).respond(200, {
-          RootServiceComponents: {
-            component_version: 2.2,
-            properties: {
-              'user.inactivity.timeout.default': 20
-            }
+      $httpBackend.whenGET(/api\/v1\/services\/AMBARI\/components\/AMBARI_SERVER.+/).respond(200, {
+        RootServiceComponents: {
+          component_version: 2.2,
+          properties: {
+            'user.inactivity.timeout.default': 20
           }
+        }
       });
-      $httpBackend.whenGET(/\/api\/v1\/logout\?_=\d+/).respond(200,{message: "successfully logged out"});
-      $httpBackend.whenGET(/\/api\/v1\/views.+/)
-        .respond(200,{
+      $httpBackend.whenGET(/\/api\/v1\/views.+/).respond(200, {
           "href": "http://c6401.ambari.apache.org:8080/api/v1/views?fields=versions/instances/ViewInstanceInfo&versions/ViewVersionInfo/system=false&versions/instances/ViewInstanceInfo/visible=true",
           "items": [
             {
@@ -97,18 +107,48 @@ describe('#Auth', function () {
             }
           ]
         });
-      $httpBackend.whenGET(/\/persist\/user-pref-.*/).respond(200, {data: {data: {addingNewRepository: true}}});
-      $httpBackend.whenGET(/\/api\/v1\/users\/admin\/authorizations.*/).respond(200, {data: {data: {items: [{AuthorizationInfo : {authorization_id : "AMBARI.RENAME_CLUSTER"}}]}}});
+      $httpBackend.whenGET(/\/persist\/user-pref-.*/).respond(200, {
+        data: {
+          data: {
+            addingNewRepository: true
+          }
+        }
+      });
       scope = $rootScope.$new();
       scope.$apply();
-      ctrl = $controller('MainCtrl', {$scope: scope});
-    }));
+      ctrl = $controller('MainCtrl', {
+        $scope: scope
+      });
+    });
+  });
+
+  afterEach(function() {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  });
+
+  describe('signout', function () {
+
+    beforeEach(function () {
+      $httpBackend.whenGET(/\/api\/v1\/logout\?_=\d+/).respond(200,{
+        message: "successfully logged out"
+      });
+      $httpBackend.whenGET(/\/api\/v1\/users\/admin\/authorizations.*/).respond(200, {
+        items: [
+          {
+            AuthorizationInfo: {
+              authorization_id: "AMBARI.RENAME_CLUSTER"
+            }
+          }
+        ]
+      });
+    });
 
     it('should reset window.location and ambari localstorage', function () {
       scope.signOut();
 
       runs(function() {
-        chai.expect($window.location.pathname).to.be.empty;
+        chai.expect($window.location.pathname).to.equal('/');
       });
 
       var data = JSON.parse(localStorage.ambari);
@@ -124,5 +164,52 @@ describe('#Auth', function () {
       chai.expect(scope.viewInstances.length).to.equal(1);
       chai.expect(scope.viewInstances[0].instance_name).to.equal('VisibleInstance');
     });
+  });
+
+  describe('roles loading', function () {
+
+    var mock = {
+        callback: angular.noop
+      },
+      cases = [
+        {
+          canPersistData: true,
+          items: [
+            {
+              AuthorizationInfo: {
+                authorization_id: 'CLUSTER.MANAGE_USER_PERSISTED_DATA'
+              }
+            }
+          ],
+          title: 'user can persist data'
+        },
+        {
+          canPersistData: false,
+          items: [],
+          title: 'user can\'t persist data'
+        }
+      ];
+
+    angular.forEach(cases, function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          $httpBackend.whenGET(/\/api\/v1\/users\/admin\/authorizations.*/).respond(200, {
+            items: item.items
+          });
+          spyOn(mock, 'callback');
+          scope.authDataLoad.promise.then(mock.callback);
+          $httpBackend.flush();
+        });
+
+        it('authDataLoad should be resolved with the correct argument', function () {
+          expect(mock.callback).toHaveBeenCalledWith(item.canPersistData);
+        });
+
+      });
+
+    });
+
   });
 });

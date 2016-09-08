@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', '$http', 'Settings', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate, $http, Settings) {
+.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', '$http', 'Settings', 'Utility', '$q', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate, $http, Settings, Utility, $q) {
   var $t = $translate.instant;
   $scope.signOut = function() {
     Auth.signout().finally(function() {
@@ -28,16 +28,20 @@ angular.module('ambariAdminConsole')
 
   $scope.ambariVersion = null;
   $rootScope.supports = {};
+  $rootScope.authDataLoad = $q.defer();
 
-  $http.get(Settings.baseUrl + "/persist/user-pref-" + Auth.getCurrentUser() + "-supports")
-      .then(function(data) {
-        $rootScope.supports = data.data ? data.data : {};
-      });
+  Utility.getUserPref('user-pref-' + Auth.getCurrentUser() + '-supports').then(function(data) {
+    $rootScope.supports = data.data ? data.data : {};
+  });
 
-  $http.get(Settings.baseUrl + "/users/"  + Auth.getCurrentUser() +  "/authorizations?fields=*")
+  $http.get(Settings.baseUrl + '/users/' + Auth.getCurrentUser() + '/authorizations?fields=*')
     .then(function(data) {
-      var auth = !!data.data && !!data.data.items ? data.data.items.map(function (a){return a.AuthorizationInfo.authorization_id}) : [];
-      if(auth.indexOf('AMBARI.RENAME_CLUSTER') == -1){
+      var auth = !!data.data && !!data.data.items ? data.data.items.map(function (a) {
+          return a.AuthorizationInfo.authorization_id;
+        }) : [],
+        canPersistData = auth.indexOf('CLUSTER.MANAGE_USER_PERSISTED_DATA') > -1;
+      $rootScope.authDataLoad.resolve(canPersistData);
+      if(auth.indexOf('AMBARI.RENAME_CLUSTER') == -1) {
         $window.location = $rootScope.fromSiteRoot("/#/main/dashboard");
       }
     });

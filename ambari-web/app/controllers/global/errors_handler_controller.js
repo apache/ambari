@@ -73,7 +73,10 @@ App.ErrorsHandlerController = Em.Controller.extend(App.UserPref, {
     var stackTrace = Em.get(Err || {}, 'stack');
 
     if (stackTrace) {
-      stackTrace = stackTrace.replace(/http:\/\/.*:8080\/javascripts/g, "").substr(0, this.MAX_TRACE_LENGTH);
+      var origin = location.origin || (location.protocol + '//' + location.host),
+        path = origin + location.pathname + 'javascripts',
+        pattern = new RegExp(path, 'g');
+      stackTrace = stackTrace.replace(pattern, '').substr(0, this.MAX_TRACE_LENGTH);
     }
 
     var val = {
