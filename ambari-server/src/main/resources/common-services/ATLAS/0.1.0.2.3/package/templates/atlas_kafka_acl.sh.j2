@@ -37,5 +37,5 @@ create_topic ATLAS_ENTITIES
 {{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_ENTITIES --allow-principal User:{{metadata_user}} --producer
 
 {% if has_ranger_tagsync %}
-{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_ENTITIES --allow-principal User:{{ranger_user}} --consumer --group ranger_entities_consumer
+{{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_ENTITIES --allow-principal User:{{rangertagsync_user}} --consumer --group ranger_entities_consumer
 {% endif %}

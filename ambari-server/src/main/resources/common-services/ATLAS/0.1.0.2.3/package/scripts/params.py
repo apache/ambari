@@ -249,7 +249,7 @@ host_with_kafka = hostname in hosts_with_kafka
 
 ranger_tagsync_hosts = default("/clusterHostInfo/ranger_tagsync_hosts", [])
 has_ranger_tagsync = len(ranger_tagsync_hosts) > 0
-ranger_user = default('/configurations/ranger-env/ranger_user', None)
+rangertagsync_user = "rangertagsync"
 
 kafka_keytab = default('/configurations/kafka-env/kafka_keytab', None)
 kafka_principal_name = default('/configurations/kafka-env/kafka_principal_name', None)
