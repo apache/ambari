@@ -15,7 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #}
-#!/usr/bin/bash
+#!/bin/bash
+
+
+create_topic() {
+    topic_name=$1
+    topics=`{{kafka_home}}/bin/kafka-topics.sh --zookeeper {{kafka_zk_endpoint}} --topic $topic_name --list`
+    if [ -z $topics ]; then
+      {{kafka_home}}/bin/kafka-topics.sh --zookeeper {{kafka_zk_endpoint}} --topic $topic_name --create --partitions 1 --replication-factor {{default_replication_factor}}
+      echo "Created topic $topic_name with replication factor {{default_replication_factor}}"
+    else
+      echo "Topic $topic_name already exists"
+    fi
+}
+
+create_topic ATLAS_HOOK
+create_topic ATLAS_ENTITIES
 
 {{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_HOOK --allow-principal User:* --producer
 {{kafka_home}}/bin/kafka-acls.sh --authorizer-properties zookeeper.connect={{kafka_zk_endpoint}} --add  --topic ATLAS_HOOK --allow-principal User:{{metadata_user}} --consumer --group atlas
