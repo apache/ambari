@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,11 +24,12 @@ import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 public class KerberosComponentDescriptorTest {
@@ -51,34 +52,35 @@ public class KerberosComponentDescriptorTest {
           "    ]" +
           "}";
 
-  public static final Map<String, Object> MAP_VALUE =
-      new HashMap<String, Object>() {
-        {
-          put("name", "A_DIFFERENT_COMPONENT_NAME");
-          put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<Object>() {{
-            add(KerberosIdentityDescriptorTest.MAP_VALUE);
-            add(KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
-            add(KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
-          }});
-          put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), new ArrayList<Map<String, Object>>() {{
-            add(new HashMap<String, Object>() {
-              {
-                put("service-site", new HashMap<String, String>() {
-                  {
-                    put("service.component.property1", "red");
-                    put("service.component.property", "green");
-                  }
-                });
-              }
-            });
-          }});
-          put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), new ArrayList<String>() {{
-            add("component.name.rules2");
-          }});
-        }
-      };
+  static final Map<String, Object> MAP_VALUE;
 
-  public static void validateFromJSON(KerberosComponentDescriptor componentDescriptor) {
+  static {
+    Map<String, Object> identitiesMap = new TreeMap<String, Object>();
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_ALT.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_ALT);
+    identitiesMap.put((String) KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE.get("name"), KerberosIdentityDescriptorTest.MAP_VALUE_REFERENCE);
+
+    Map<String, Object> serviceSiteProperties = new TreeMap<String, Object>();
+    serviceSiteProperties.put("service.component.property1", "red");
+    serviceSiteProperties.put("service.component.property", "green");
+
+    Map<String, Map<String, Object>> serviceSiteMap = new TreeMap<String, Map<String, Object>>();
+    serviceSiteMap.put("service-site", serviceSiteProperties);
+
+    TreeMap<String, Map<String, Map<String, Object>>> configurationsMap = new TreeMap<String, Map<String, Map<String, Object>>>();
+    configurationsMap.put("service-site", serviceSiteMap);
+
+    Collection<String> authToLocalRules = new ArrayList<String>();
+    authToLocalRules.add("component.name.rules2");
+
+    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE.put("name", "A_DIFFERENT_COMPONENT_NAME");
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.IDENTITY.getDescriptorPluralName(), new ArrayList<>(identitiesMap.values()));
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.CONFIGURATION.getDescriptorPluralName(), configurationsMap.values());
+    MAP_VALUE.put(AbstractKerberosDescriptor.Type.AUTH_TO_LOCAL_PROPERTY.getDescriptorPluralName(), authToLocalRules);
+  }
+
+  static void validateFromJSON(KerberosComponentDescriptor componentDescriptor) {
     Assert.assertNotNull(componentDescriptor);
     Assert.assertTrue(componentDescriptor.isContainer());
 
@@ -112,7 +114,7 @@ public class KerberosComponentDescriptorTest {
     Assert.assertEquals("component.name.rules1", authToLocalProperties.iterator().next());
   }
 
-  public static void validateFromMap(KerberosComponentDescriptor componentDescriptor) {
+  static void validateFromMap(KerberosComponentDescriptor componentDescriptor) {
     Assert.assertNotNull(componentDescriptor);
     Assert.assertTrue(componentDescriptor.isContainer());
 
@@ -146,7 +148,7 @@ public class KerberosComponentDescriptorTest {
     Assert.assertEquals("component.name.rules2", authToLocalProperties.iterator().next());
   }
 
-  public static void validateUpdatedData(KerberosComponentDescriptor componentDescriptor) {
+  private static void validateUpdatedData(KerberosComponentDescriptor componentDescriptor) {
     Assert.assertNotNull(componentDescriptor);
 
     Assert.assertEquals("A_DIFFERENT_COMPONENT_NAME", componentDescriptor.getName());
@@ -213,9 +215,10 @@ public class KerberosComponentDescriptorTest {
 
   @Test
   public void testToMap() throws AmbariException {
+    Gson gson = new Gson();
     KerberosComponentDescriptor descriptor = createFromMap();
     Assert.assertNotNull(descriptor);
-    Assert.assertEquals(MAP_VALUE, descriptor.toMap());
+    Assert.assertEquals(gson.toJson(MAP_VALUE), gson.toJson(descriptor.toMap()));
   }
 
 

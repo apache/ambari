@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,9 +24,9 @@ import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class KerberosIdentityDescriptorTest {
   public static final String JSON_VALUE =
@@ -40,50 +40,44 @@ public class KerberosIdentityDescriptorTest {
           "  \"when\": {\"contains\" : [\"services\", \"HIVE\"]}" +
           "}";
 
-  public static final Map<String, Object> MAP_VALUE =
-      new HashMap<String, Object>() {
-        {
-          put("name", "identity_1");
-          put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
-          put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
-          put("password", "secret");
-        }
-      };
+  static final Map<String, Object> MAP_VALUE;
+  static final Map<String, Object> MAP_VALUE_ALT;
+  static final Map<String, Object> MAP_VALUE_REFERENCE;
 
-  public static final Map<String, Object> MAP_VALUE_ALT =
-      new HashMap<String, Object>() {
-        {
-          put("name", "identity_2");
-          put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
-          put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
-          put("password", "secret2");
-        }
-      };
+  static {
+    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE.put("name", "identity_1");
+    MAP_VALUE.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE.put("password", "secret");
 
-  public static final Map<String, Object> MAP_VALUE_REFERENCE =
-      new HashMap<String, Object>() {
-        {
-          put("name", "shared_identity");
-          put("reference", "/shared");
-          put("keytab", new HashMap<String, Object>() {
-            {
-              put("file", "/home/user/me/subject.service.keytab");
+    MAP_VALUE_ALT = new TreeMap<String, Object>();
+    MAP_VALUE_ALT.put("name", "identity_2");
+    MAP_VALUE_ALT.put("principal", KerberosPrincipalDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put("keytab", KerberosKeytabDescriptorTest.MAP_VALUE);
+    MAP_VALUE_ALT.put("password", "secret2");
 
-              put("owner", new HashMap<String, Object>() {{
-                put("name", "me");
-                put("access", "rw");
-              }});
+    TreeMap<String, Object> ownerMap = new TreeMap<String, Object>();
+    ownerMap.put("name", "me");
+    ownerMap.put("access", "rw");
 
-              put("group", new HashMap<String, Object>() {{
-                put("name", "nobody");
-                put("access", "");
-              }});
+    TreeMap<String, Object> groupMap = new TreeMap<String, Object>();
+    groupMap.put("name", "nobody");
+    groupMap.put("access", "");
 
-              put("configuration", "service-site/me.component.keytab.file");
-            }
-          });
-        }
-      };
+
+    TreeMap<String, Object> keytabMap = new TreeMap<String, Object>();
+    keytabMap.put("file", "/home/user/me/subject.service.keytab");
+    keytabMap.put("owner", ownerMap);
+    keytabMap.put("group", groupMap);
+    keytabMap.put("configuration", "service-site/me.component.keytab.file");
+
+    MAP_VALUE_REFERENCE = new TreeMap<String, Object>();
+    MAP_VALUE_REFERENCE.put("name", "shared_identity");
+    MAP_VALUE_REFERENCE.put("reference", "/shared");
+    MAP_VALUE_REFERENCE.put("keytab", keytabMap);
+  }
+
 
   public static void validateFromJSON(KerberosIdentityDescriptor identityDescriptor) {
     Assert.assertNotNull(identityDescriptor);
@@ -161,7 +155,7 @@ public class KerberosIdentityDescriptorTest {
   public void testShouldInclude() {
     KerberosIdentityDescriptor identityDescriptor = createFromJSON();
 
-    Map<String, Object> context = new HashMap<String, Object>();
+    Map<String, Object> context = new TreeMap<String, Object>();
 
     context.put("services", new HashSet<String>(Arrays.asList("HIVE", "HDFS", "ZOOKEEPER")));
     Assert.assertTrue(identityDescriptor.shouldInclude(context));
