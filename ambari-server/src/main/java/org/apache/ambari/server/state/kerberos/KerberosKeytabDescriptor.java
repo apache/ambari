@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,8 +17,8 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * KerberosKeytabDescriptor is an implementation of an AbstractKerberosDescriptor that
@@ -157,13 +157,13 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
   /**
    * Creates a new KerberosKeytabDescriptor
    *
-   * @param file the path to the keytab file
-   * @param ownerName the local username of the file owner
-   * @param ownerAccess the file access privileges for the file owner ("r", "rw", "")
-   * @param groupName the local group name with privileges to access the file
-   * @param groupAccess the file access privileges for the group ("r", "rw", "")
+   * @param file          the path to the keytab file
+   * @param ownerName     the local username of the file owner
+   * @param ownerAccess   the file access privileges for the file owner ("r", "rw", "")
+   * @param groupName     the local group name with privileges to access the file
+   * @param groupAccess   the file access privileges for the group ("r", "rw", "")
    * @param configuration the configuration used to store the principal name
-   * @param cachable true if the keytab may be cached by Ambari; otherwise false
+   * @param cachable      true if the keytab may be cached by Ambari; otherwise false
    */
   public KerberosKeytabDescriptor(String file, String ownerName, String ownerAccess, String groupName,
                                   String groupAccess, String configuration, boolean cachable) {
@@ -175,6 +175,7 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
     setConfiguration(configuration);
     setCachable(cachable);
   }
+
   /**
    * Creates a new KerberosKeytabDescriptor
    * <p/>
@@ -416,21 +417,53 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new TreeMap<String, Object>();
 
-    map.put("file", getFile());
+    String data;
 
-    map.put("owner", new HashMap<String, Object>() {{
-      put("name", getOwnerName());
-      put("access", getOwnerAccess());
-    }});
+    data = getFile();
+    map.put("file", data);
 
-    map.put("group", new HashMap<String, Object>() {{
-      put("name", getGroupName());
-      put("access", getGroupAccess());
-    }});
+    // Build file owner map
+    Map<String, String> owner = new TreeMap<String, String>();
 
-    map.put("configuration", getConfiguration());
+    data = getOwnerName();
+    if (data != null) {
+      owner.put("name", data);
+    }
+
+    data = getOwnerAccess();
+    if (data != null) {
+      owner.put("access", data);
+    }
+
+    if (!owner.isEmpty()) {
+      map.put("owner", owner);
+    }
+    // Build file owner map (end)
+
+    // Build file owner map
+    Map<String, String> group = new TreeMap<String, String>();
+
+    data = getGroupName();
+    if (data != null) {
+      group.put("name", data);
+    }
+
+    data = getGroupAccess();
+    if (data != null) {
+      group.put("access", data);
+    }
+
+    if (!owner.isEmpty()) {
+      map.put("group", group);
+    }
+    // Build file owner map (end)
+
+    data = getConfiguration();
+    if (data != null) {
+      map.put("configuration", data);
+    }
 
     return map;
   }

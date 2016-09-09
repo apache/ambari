@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -45,36 +45,32 @@ public class KerberosConfigurationDescriptorTest {
           "}}" +
           "]";
 
-  private static final Map<String, Map<String, Object>> MAP_SINGLE_VALUE =
-      new HashMap<String, Map<String, Object>>() {
-        {
-          put("configuration-type", new HashMap<String, Object>() {
-            {
-              put("property1", "black");
-              put("property2", "white");
-            }
-          });
-        }
-      };
+  private static final Map<String, Map<String, Object>> MAP_SINGLE_VALUE;
+  private static final Collection<Map<String, Map<String, Object>>> MAP_MULTIPLE_VALUES;
 
-  private static final Collection<Map<String, Map<String, Object>>> MAP_MULTIPLE_VALUES =
-      new ArrayList<Map<String, Map<String, Object>>>() {
-        {
-          add(MAP_SINGLE_VALUE);
-          add(new HashMap<String, Map<String, Object>>() {
-            {
-              put("configuration-type2", new HashMap<String, Object>() {
-                {
-                  put("property1", "red");
-                  put("property2", "yellow");
-                  put("property3", "green");
-                }
-              });
-            }
-          });
-        }
-      };
 
+  static {
+    TreeMap<String, Object> configuration_data = new TreeMap<String, Object>();
+    configuration_data.put("property1", "black");
+    configuration_data.put("property2", "white");
+
+    MAP_SINGLE_VALUE = new TreeMap<String, Map<String, Object>>();
+    MAP_SINGLE_VALUE.put("configuration-type", configuration_data);
+
+    TreeMap<String, Object> configurationType2Properties = new TreeMap<String, Object>();
+    configurationType2Properties.put("property1", "red");
+    configurationType2Properties.put("property2", "yellow");
+    configurationType2Properties.put("property3", "green");
+
+    Map<String, Map<String, Object>> configurationType2 = new TreeMap<String, Map<String, Object>>();
+    configurationType2.put("configuration-type2", configurationType2Properties);
+
+    TreeMap<String, Map<String, Map<String, Object>>> multipleValuesMap = new TreeMap<String, Map<String, Map<String, Object>>>();
+    multipleValuesMap.put("configuration-type", MAP_SINGLE_VALUE);
+    multipleValuesMap.put("configuration-type2", configurationType2);
+
+    MAP_MULTIPLE_VALUES = multipleValuesMap.values();
+  }
 
   @Test
   public void testJSONDeserialize() {

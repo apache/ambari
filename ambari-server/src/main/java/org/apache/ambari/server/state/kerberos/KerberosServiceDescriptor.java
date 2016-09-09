@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 
@@ -196,7 +196,7 @@ public class KerberosServiceDescriptor extends AbstractKerberosDescriptorContain
       }
 
       if (components == null) {
-        components = new HashMap<String, KerberosComponentDescriptor>();
+        components = new TreeMap<String, KerberosComponentDescriptor>();
       }
 
       components.put(name, component);

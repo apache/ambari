@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 
 /**
@@ -267,7 +267,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new HashMap<String, Object>();
+    Map<String, Object> map = new TreeMap<String, Object>();
 
     map.put("value", getValue());
     map.put("type", KerberosPrincipalType.translate(getType()));

@@ -104,7 +104,8 @@
           "name": "PHOENIX_QUERY_SERVER",
           "identities": [
             {
-              "name": "/spnego",
+              "name": "phoenix_spnego",
+              "reference": "/spnego",
               "principal": {
                 "configuration": "hbase-site/phoenix.queryserver.kerberos.principal"
               },

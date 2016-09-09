@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,7 +18,7 @@
 package org.apache.ambari.server.state.kerberos;
 
 
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -105,6 +105,19 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
   }
 
   /**
+   * Set the properties of the configuration data represented by this KerberosConfigurationDescriptor
+   *
+   * @param properties a Map of properties
+   */
+  public void setProperties(Map<String, String> properties) {
+    if (properties == null) {
+      this.properties = null;
+    } else {
+      this.properties = new TreeMap<String, String>(properties);
+    }
+  }
+
+  /**
    * Gets the properties of the configuration data represented by this KerberosConfigurationDescriptor
    *
    * @return a Map of properties
@@ -137,7 +150,7 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
     }
 
     if (properties == null) {
-      properties = new HashMap<String, String>();
+      properties = new TreeMap<String, String>();
     }
 
     properties.put(name, value);
@@ -173,8 +186,8 @@ public class KerberosConfigurationDescriptor extends AbstractKerberosDescriptor 
    */
   @Override
   public Map<String, Object> toMap() {
-    Map<String, Object> map = new HashMap<String, Object>();
-    map.put(getName(), (properties == null) ? null : new HashMap<String, Object>(properties));
+    Map<String, Object> map = new TreeMap<String, Object>();
+    map.put(getName(), (properties == null) ? null : new TreeMap<String, Object>(properties));
     return map;
   }
 

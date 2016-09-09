@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -20,7 +20,7 @@ package org.apache.ambari.server.state.kerberos;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +147,17 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
   }
 
   /**
+   * Set the KerberosServiceDescriptors in this KerberosDescriptor
+   *
+   * @param services a Map of String to KerberosServiceDescriptor
+   */
+  public void setServices(Map<String, KerberosServiceDescriptor> services) {
+    this.services = (services == null)
+        ? null
+        : new TreeMap<String, KerberosServiceDescriptor>(services);
+  }
+
+  /**
    * Returns a Map of the KerberosServiceDescriptors in this KerberosDescriptor
    *
    * @return a Map of String to KerberosServiceDescriptor
@@ -182,7 +193,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       }
 
       if (services == null) {
-        services = new HashMap<String, KerberosServiceDescriptor>();
+        services = new TreeMap<String, KerberosServiceDescriptor>();
       }
 
       services.put(name, service);
@@ -190,6 +201,17 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
       // Set the service's parent to this KerberosDescriptor
       service.setParent(this);
     }
+  }
+
+  /**
+   * Set the Map of properties for this KerberosDescriptor
+   *
+   * @param properties a Map of String to String values
+   */
+  public void setProperties(Map<String, String> properties) {
+    this.properties = (properties == null)
+        ? null
+        : new TreeMap<String, String>(properties);
   }
 
   /**
@@ -225,7 +247,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     }
 
     if (properties == null) {
-      properties = new HashMap<String, String>();
+      properties = new TreeMap<String, String>();
     }
 
     properties.put(name, value);
@@ -304,7 +326,7 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
     }
 
     if (properties != null) {
-      map.put("properties", new HashMap<String, String>(properties));
+      map.put("properties", new TreeMap<String, String>(properties));
     }
 
     return map;
