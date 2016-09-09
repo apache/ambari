@@ -25,14 +25,17 @@ import java.net.Authenticator;
 import java.net.BindException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
 import javax.servlet.DispatcherType;
 
+import com.google.common.base.Joiner;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
 import org.apache.ambari.server.StaticallyInject;
@@ -919,7 +922,25 @@ public class AmbariServer {
     }
   }
 
+  /**
+   * Logs startup properties.
+   */
+  private static void logStartup() {
+    final String linePrefix = "STARTUP_MESSAGE: ";
+
+    final String classpathPropertyName = "java.class.path";
+    final String classpath = System.getProperty(classpathPropertyName);
+
+    String[] rawMessages = {
+      linePrefix + "Starting AmbariServer.java executable",
+      classpathPropertyName + " = " + classpath
+    };
+
+    LOG.info(Joiner.on("\n" + linePrefix).join(rawMessages));
+  }
+
   public static void main(String[] args) throws Exception {
+    logStartup();
     Injector injector = Guice.createInjector(new ControllerModule(), new AuditLoggerModule());
 
     AmbariServer server = null;
