@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -39,22 +39,20 @@ public class KerberosPrincipalDescriptorTest {
           "\"value\": \"serviceOther/_HOST@_REALM\"" +
           "}";
 
-  public static final Map<String, Object> MAP_VALUE =
-      new HashMap<String, Object>() {
-        {
-          put("value", "user@_REALM");
-          put("configuration", "service-site/service.component.kerberos.https.principal");
-          put("type", "user");
-          put("local_username", null);
-        }
-      };
+  public static final Map<String, Object> MAP_VALUE;
+  public static final Map<String, Object> MAP_VALUE_SPARSE;
 
-  public static final Map<String, Object> MAP_VALUE_SPARSE =
-      new HashMap<String, Object>() {
-        {
-          put("value", "userOther@_REALM");
-        }
-      };
+  static {
+    MAP_VALUE = new TreeMap<String, Object>();
+    MAP_VALUE.put("value", "user@_REALM");
+    MAP_VALUE.put("configuration", "service-site/service.component.kerberos.https.principal");
+    MAP_VALUE.put("type", "user");
+    MAP_VALUE.put("local_username", null);
+
+    MAP_VALUE_SPARSE = new TreeMap<String, Object>();
+    MAP_VALUE_SPARSE.put("value", "userOther@_REALM");
+  }
+
 
   public static void validateFromJSON(KerberosPrincipalDescriptor principalDescriptor) {
     Assert.assertNotNull(principalDescriptor);

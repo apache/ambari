@@ -18,8 +18,8 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * AbstractKerberosDescriptor is the base class for all Kerberos*Descriptor and associated classes.
@@ -65,7 +65,7 @@ public abstract class AbstractKerberosDescriptor {
    * @return a Map of date representing this AbstractKerberosDescriptor implementation
    */
   public Map<String, Object> toMap() {
-    HashMap<String, Object> dataMap = new HashMap<String, Object>();
+    TreeMap<String, Object> dataMap = new TreeMap<String, Object>();
     String name = getName();
 
     if (name != null) {
