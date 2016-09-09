@@ -18,11 +18,19 @@
 
 package org.apache.ambari.view.utils.hdfs;
 
+import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.cluster.Cluster;
+import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.*;
 
-public class ConfigurationBuilderTest {
+public class ConfigurationBuilderTest extends EasyMockSupport {
   @Test
   public void testAddProtocolMissing() throws Exception {
     String normalized = ConfigurationBuilder.addProtocolIfMissing("namenode.example.com:50070");
@@ -45,5 +53,27 @@ public class ConfigurationBuilderTest {
   public void testAddPortPresent() throws Exception {
     String normalized = ConfigurationBuilder.addPortIfMissing("webhdfs://namenode.example.com:50070");
     assertEquals(normalized, "webhdfs://namenode.example.com:50070");
+  }
+
+  @Test
+  public void testGetEncryptionKeyProviderUri() throws Exception {
+    //For View with an associated cluster must return the following KeyProvider
+    //For View with NO cluster associated with it, getEncryptionKeyProviderUri() won't be called
+
+    String keyProvider = "kms://http@localhost:16000/kms";
+    Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getConfigurationValue("hdfs-site", "dfs.encryption.key.provider.uri")).andReturn(keyProvider);
+    replay(cluster);
+
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+    expect(viewContext.getCluster()).andReturn(cluster);
+    Map<String, String> instanceProperties = new HashMap<>();
+    expect(viewContext.getProperties()).andReturn(instanceProperties).anyTimes();
+    replay(viewContext);
+
+    ConfigurationBuilder configurationBuilder = new ConfigurationBuilder(viewContext);
+    String encryptionKeyProviderUri = configurationBuilder.getEncryptionKeyProviderUri();
+
+    assertEquals(encryptionKeyProviderUri, keyProvider);
   }
 }

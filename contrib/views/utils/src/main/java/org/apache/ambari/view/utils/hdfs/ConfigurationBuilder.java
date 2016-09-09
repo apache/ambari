@@ -118,6 +118,20 @@ public class ConfigurationBuilder {
 
     conf.set("fs.defaultFS", defaultFS);
     LOG.info(String.format("HdfsApi configured to connect to defaultFS='%s'", defaultFS));
+
+    //Exposing KMS configuration for Ambari Files View Instance with a "Local" cluster configuration
+    if(context.getCluster() != null) {
+      String encryptionKeyProviderUri = getEncryptionKeyProviderUri();
+      if(encryptionKeyProviderUri != null) {
+        conf.set("dfs.encryption.key.provider.uri", encryptionKeyProviderUri);
+      }
+    }
+  }
+
+  protected String getEncryptionKeyProviderUri() {
+    //If KMS is configured, this value will not be empty
+    String encryptionKeyProviderUri = context.getCluster().getConfigurationValue("hdfs-site", "dfs.encryption.key.provider.uri");
+    return encryptionKeyProviderUri;
   }
 
   private String getDefaultFS(ViewContext context) throws HdfsApiException {
