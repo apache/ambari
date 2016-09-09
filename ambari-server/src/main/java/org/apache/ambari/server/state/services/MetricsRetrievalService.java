@@ -198,7 +198,7 @@ public class MetricsRetrievalService extends AbstractService {
         TimeUnit.MINUTES).build();
 
     // enable the TTL cache if configured; otherwise leave it as null
-    int ttlSeconds = m_configuration.getMetricCacheTTLSeconds();
+    int ttlSeconds = m_configuration.getMetricsServiceRequestTTL();
     boolean ttlCacheEnabled = m_configuration.isMetricsServiceRequestTTLCacheEnabled();
     if (ttlCacheEnabled) {
       m_ttlUrlCache = CacheBuilder.newBuilder().expireAfterWrite(ttlSeconds,
