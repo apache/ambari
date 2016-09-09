@@ -130,25 +130,26 @@ def metadata(type='server'):
          content=Template("atlas_hbase_setup.rb.j2")
     )
 
-    if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, get_stack_feature_version(params.config)) and\
-      params.security_enabled and not params.host_with_kafka:
+    is_atlas_upgrade_support = check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, get_stack_feature_version(params.config))
+
+    if is_atlas_upgrade_support and params.security_enabled:
 
       File(params.atlas_kafka_setup,
            group=params.user_group,
            owner=params.kafka_user,
-           content=Template("atlas_kafka_acl.sh.j2")
-      )
+           content=Template("atlas_kafka_acl.sh.j2"))
 
-      File(format("{kafka_conf_dir}/kafka-env.sh"),
-           owner=params.kafka_user,
-           content=InlineTemplate(params.kafka_env_sh_template)
-           )
+      #  files required only in case if kafka broker is not present on the host as configured component
+      if not params.host_with_kafka:
+        File(format("{kafka_conf_dir}/kafka-env.sh"),
+             owner=params.kafka_user,
+             content=InlineTemplate(params.kafka_env_sh_template))
 
-      File(format("{kafka_conf_dir}/kafka_jaas.conf"),
-           group=params.user_group,
-           owner=params.kafka_user,
-           content=Template("kafka_jaas.conf.j2")
-           )
+        File(format("{kafka_conf_dir}/kafka_jaas.conf"),
+             group=params.user_group,
+             owner=params.kafka_user,
+             content=Template("kafka_jaas.conf.j2"))
+
 
 def upload_conf_set(config_set, jaasFile):
   import params
