@@ -61,12 +61,31 @@ App.serviceMapper = App.QuickDataMapper.create({
       App.store.commit();
       this.set('initialAppLoad', true);
     }
-
-    for (var service in passiveStateMap) {
-      if (passiveStateMap.hasOwnProperty(service)) {
-        App.Service.find(service).set('passiveState', passiveStateMap[service]);
+    this.servicesLoading().done(function setMaintenanceState() {
+      for (var service in passiveStateMap) {
+        if (passiveStateMap.hasOwnProperty(service)) {
+          App.Service.find(service).set('passiveState', passiveStateMap[service]);
+        }
       }
-    }
+    });
+
     console.timeEnd("App.serviceMapper execution time");
+  },
+
+  servicesLoading: function () {
+    var dfd = $.Deferred();
+    var isAllServicesLoaded = App.store.findAll(App.Service).everyProperty('isLoaded', true);
+    if (isAllServicesLoaded) {
+      dfd.resolve();
+    } else {
+      var interval = setInterval(function checkIfServicesLoaded() {
+        var isAllServicesLoaded = App.store.findAll(App.Service).everyProperty('isLoaded', true);
+        if (isAllServicesLoaded) {
+          dfd.resolve();
+          clearInterval(interval);
+        }
+      }, 5);
+    }
+    return dfd.promise();
   }
 });
