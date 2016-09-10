@@ -20,7 +20,7 @@ package org.apache.ambari.logsearch.query.model;
 
 import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-public class ServiceLogTruncatedSearchCriteria extends ServiceLogFileSearchCriteria {
+public class ServiceLogTruncatedSearchCriteria extends ServiceLogSearchCriteria {
 
   public String getId() {
     return getParam(SearchCriteriaConstants.PARAM_ID, String.class);

@@ -45,7 +45,6 @@ import org.apache.ambari.logsearch.query.model.AuditBarGraphSearchCriteria;
 import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
 import org.apache.ambari.logsearch.query.model.FieldAuditLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.FieldAuditBarGraphSearchCriteria;
-import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.model.request.impl.AuditLogRequest;
 import org.apache.ambari.logsearch.manager.AuditLogsManager;
 import org.apache.ambari.logsearch.query.model.UserExportSearchCriteria;

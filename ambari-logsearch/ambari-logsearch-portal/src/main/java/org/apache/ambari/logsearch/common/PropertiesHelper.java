@@ -124,50 +124,6 @@ public class PropertiesHelper extends PropertyPlaceholderConfigurer {
     }
   }
 
-  public static Integer getIntProperty(String key, int defaultValue) {
-    if (key == null) {
-      return null;
-    }
-    String rtrnVal = propertiesMap.get(key);
-    if (rtrnVal == null) {
-      return defaultValue;
-    }
-    return Integer.valueOf(rtrnVal);
-  }
-
-  public static Integer getIntProperty(String key) {
-    if (key == null) {
-      return null;
-    }
-    String rtrnVal = propertiesMap.get(key);
-    if (rtrnVal == null) {
-      return null;
-    }
-    return Integer.valueOf(rtrnVal);
-  }
-
-  public static Long getLongProperty(String key, long defaultValue) {
-    if (key == null) {
-      return null;
-    }
-    String rtrnVal = propertiesMap.get(key);
-    if (rtrnVal == null) {
-      return defaultValue;
-    }
-    return Long.valueOf(rtrnVal);
-  }
-
-  public static Long getLongProperty(String key) {
-    if (key == null) {
-      return null;
-    }
-    String rtrnVal = propertiesMap.get(key);
-    if (rtrnVal == null) {
-      return null;
-    }
-    return Long.valueOf(rtrnVal);
-  }
-
   public static boolean getBooleanProperty(String key, boolean defaultValue) {
     if (key == null) {
       return defaultValue;

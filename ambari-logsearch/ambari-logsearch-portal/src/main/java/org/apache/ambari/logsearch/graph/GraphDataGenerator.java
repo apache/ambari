@@ -63,7 +63,7 @@ public class GraphDataGenerator extends GraphDataGeneratorBase {
     String from = (String) searchCriteria.getParamValue("from");
     String to = (String) searchCriteria.getParamValue("to");
     String unit = (String) searchCriteria.getParamValue("unit");
-    String typeXAxis = solrDaoBase.schemaFieldsNameMap.get(xAxisField);
+    String typeXAxis = solrDaoBase.schemaFieldNameMap.get(xAxisField);
     typeXAxis = (StringUtils.isBlank(typeXAxis)) ? "string" : typeXAxis;
 
     // Y axis credentials

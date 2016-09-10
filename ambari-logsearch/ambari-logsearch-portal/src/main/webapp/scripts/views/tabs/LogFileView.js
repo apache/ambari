@@ -478,14 +478,6 @@ define(['require',
                 var timeZone = moment().zoneAbbr(),
                     that = this,
                     cols = {};
-                _.each(Globals.serviceLogsColumns, function(value, col) {
-                    cols[col] = {
-                        label: value,
-                        cell: "String",
-                        sortType: 'toggle',
-                        editable: false,
-                    }
-                });
                 this.cols = {
                     logtime: {
                         label: "Log Time " + (!_.isEmpty(timeZone) ? "(" + timeZone + ")" : ""),
@@ -509,30 +501,6 @@ define(['require',
                             }
                         })
                     },
-                    /*type: {
-                    	//label: "Type",
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :2
-                    },*/
-                    /*level : {
-                    	label: "Level",
-                    	cell: "html",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	sortable : true,
-                    	orderable : true,
-                    	width : "5",
-                    	displayOrder :3,
-                    	formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                    		fromRaw: function(rawValue, model){
-                    			if(rawValue)
-                    				return "<span class='"+rawValue+"'>"+rawValue+"</span>";
-                    		}
-                    	})
-                    },*/
                     log_message: {
                         label: "Message",
                         cell: "html",
@@ -569,31 +537,24 @@ define(['require',
                         displayOrder: 6,
                         width: 6
                     }
-                    /*host : {
-                    	label: "Host",
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :5
-                    },
-                    logger_name : {
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :6
-                    }*/
 
                 };
-                _.each(cols, function(c, k) {
-                    if (that.cols[k] == undefined) {
-                        that.cols[k] = c;
-                    } else {
-                        if (that.cols[k] && that.cols[k].label) {
-                            that.cols[k].label = c.label;
-                        }
+                _.each(this.columns, function(value){
+                  var name = Globals.invertedServiceLogMappings[value];
+                  if (columns[name] === undefined) {
+                    var columnObj = {
+                      name: Globals.invertedServiceLogMappings[value],
+                      label:value,
+                      cell: "String",
+                      sortType: 'toggle',
+                      editable: false
+                    };
+                    columns[name] = columnObj;
+                  } else {
+                    if (columns[name] && columns[name].label) {
+                      columns[name].label = value;
                     }
+                  }
                 });
                 return this.logFileCollection.constructor.getTableCols(this.cols, this.logFileCollection);
             },
@@ -666,8 +627,8 @@ define(['require',
                 }
             },
             setHostName: function() {
-                this.$("[data-id='hostName']").text(this.params.host);
-                this.$("[data-id='componentName']").text(this.params.component);
+                this.$("[data-id='hostName']").text(this.params.host_name);
+                this.$("[data-id='componentName']").text(this.params.component_name);
             },
             getFindValue: function() {
                 return this.ui.find.val();

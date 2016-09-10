@@ -79,8 +79,6 @@ define(['require',
 		 */
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'vent','globalVent','params'));
-//			this.collection = new VLogLevel();
-//			this.collection.url = Globals.baseURL+"service/logs/components/count";
 			this.treeModel = new VCommonModel();
 			this.searchParams = (this.params)? this.params :{};
 			this.bindEvents();
@@ -311,8 +309,8 @@ define(['require',
 				component = $el.data("node");
 				that.globalVent.trigger("render:tab",/*new LogFileView(*/{
 					params:_.extend({},{
-						host :  host,
-						component : component
+						host_name :  host,
+						component_name : component
 					},that.searchParams,{treeParams:null}),
 					globalVent : that.globalVent
 				}/*)*/);

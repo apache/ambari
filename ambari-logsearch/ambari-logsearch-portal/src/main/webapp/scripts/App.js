@@ -18,15 +18,13 @@
 
 define(['backbone','utils/LangSupport', 'backbone.marionette'],function(Backbone,localization) {
     'use strict';
-
-	//var SessionMgr		= require('mgrs/SessionMgr');
+  
     /*
      * Localization initialization
      */
     localization.setDefaultCulture(); // will take default that is en
     
 	var App = new Backbone.Marionette.Application();
-	//App.userProfile = SessionMgr.getUserProfile();
 
 	/* Add application regions here */
 	App.addRegions({

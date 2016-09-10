@@ -25,14 +25,9 @@ import org.apache.ambari.logsearch.model.request.LogParamDefinition;
 import javax.ws.rs.QueryParam;
 
 public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_COLUMN_QUERY)
-  private String columnQuery;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_I_MESSAGE)
   private String iMessage;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_G_E_MESSAGE)
-  private String gEMessage;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_MUST_BE)
   private String mustBe;
@@ -47,16 +42,6 @@ public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
   private String includeQuery;
 
   @Override
-  public String getColumnQuery() {
-    return columnQuery;
-  }
-
-  @Override
-  public void setColumnQuery(String columnQuery) {
-    this.columnQuery = columnQuery;
-  }
-
-  @Override
   public String getiMessage() {
     return iMessage;
   }
@@ -64,16 +49,6 @@ public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
   @Override
   public void setiMessage(String iMessage) {
     this.iMessage = iMessage;
-  }
-
-  @Override
-  public String getgEMessage() {
-    return gEMessage;
-  }
-
-  @Override
-  public void setgEMessage(String gEMessage) {
-    this.gEMessage = gEMessage;
   }
 
   @Override

@@ -24,7 +24,7 @@ import org.apache.ambari.logsearch.model.request.UtcOffsetParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class ServiceLogExportRequest extends ServiceLogFileRequest implements FormatParamDefinition, UtcOffsetParamDefinition {
+public class ServiceLogExportRequest extends ServiceLogRequest implements FormatParamDefinition, UtcOffsetParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_FORMAT)
   private String format;

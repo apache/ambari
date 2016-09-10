@@ -27,7 +27,6 @@ define(['require',
     'use strict';
 
     return Backbone.Marionette.Layout.extend(
-        /** @lends ComparisonView */
         {
             _viewName: 'ComparisonView',
 
@@ -80,8 +79,8 @@ define(['require',
             onRender: function() {
                 if (this.params) {
                     this.fetchCollection(this.params);
-                    if (this.params.component && this.params.host) {
-                        this.ui.tabTitle.html(this.params.host + ' <i class="fa fa-angle-double-right"></i> ' + this.params.component)
+                    if (this.params.component_name && this.params.host_name) {
+                        this.ui.tabTitle.html(this.params.host_name + ' <i class="fa fa-angle-double-right"></i> ' + this.params.component_name)
                     }
                 } else {
                     this.fetchCollection({
@@ -91,9 +90,6 @@ define(['require',
                 this.renderVisualSearch();
                 this.renderDatePicker();
                 this.renderTable();
-                /* if (this.params.from && this.params.to) {
-                     this.setDateText(this.dateUtil.getMomentObject(this.params.from), this.dateUtil.getMomentObject(this.params.to));
-                 }*/
 
             },
             renderVisualSearch: function() {
@@ -151,7 +147,6 @@ define(['require',
                         },
                         gridOpts: {
                             header: CustomBackgrid,
-                            //row: IdRow,
                             emptyText: 'No records found!'
                         },
                         filterOpts: {},
@@ -179,10 +174,7 @@ define(['require',
                                     str += "<p>" + moment(rawValue).format("YYYY-MM-DD HH:mm:ss,SSS") + "</p>";
                                 if (model.get("type"))
                                     str += "<p style='float:left;width:90%'>" + (model.get("level") ? "<label class='label label-" + (""+model.get("level")).toUpperCase() + "'>" + (""+model.get("level")).toUpperCase() + "</label>" : "") +
-                                    /* "<strong>" + model.get("type") + "</strong>" +*/
                                     "</p><a  style='width:9%' title='Open logs in new tab' data-type='C' data-host='" + model.get("host") + "' data-node='" + model.get("type") + "' href='javascript:void(0)' class='pull-right hidden'><i class='fa fa-share'></i></a>";
-                                //                              if(model.get("level"))
-                                //                                  str += "<p style='float:left;'><label class='label label-"+model.get("level")+"'>"+model.get("level")+"</label></p>";
                                 return str;
                             }
                         })
@@ -193,7 +185,6 @@ define(['require',
                         editable: false,
                         sortType: 'toggle',
                         sortable: false,
-                        //width : "50",
                         orderable: true,
                         displayOrder: 4,
                         className: "logMessage",
@@ -243,7 +234,7 @@ define(['require',
                 this.ui.dateRange.data('daterangepicker').setStartDate(start);
                 this.ui.dateRange.data('daterangepicker').setEndDate(end);
 
-            },
+            }
 
         });
 

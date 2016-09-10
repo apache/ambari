@@ -58,7 +58,7 @@ define(['require',
 			}, options);
 
 			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
-		},
+		}
 	},{
 	/**
 	* Table Cols to be passed to Backgrid

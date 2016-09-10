@@ -39,9 +39,7 @@ public class DocConstants {
     public static final String PAGE_SIZE_D = "Page size of the results";
     public static final String UNIT_D = "Aggregate the data with time gap as unit i.e 1MINUTE";
     public static final String QUERY_D = "not required";
-    public static final String COLUMN_QUERY_D = "not required";
     public static final String I_MESSAGE_D = "Include query which will query against message column";
-    public static final String G_E_MESSAGE_D = "not required";
     public static final String E_MESSAGE_D = "Exclude query which will query against message column";
     public static final String IS_LAST_PAGE_D = "Show last page (true/false)";
     public static final String FIELD_D = "Get values for particular field";
@@ -64,17 +62,13 @@ public class DocConstants {
 
   public class ServiceDescriptions {
     public static final String LEVEL_D = "filter for log level";
-    public static final String ADVANCED_SEARCH_D = "not required";
     public static final String BUNDLE_ID = "filter for host";
-    public static final String TREE_PARAMS_D = "Host hierarchy shown on UI, filtering there is supported by this param";
     public static final String FILE_NAME_D = "File name filter which is supported from browser url";
-    public static final String HOST_NAME_D = "Host name filter which is supported from browser url";
     public static final String DATE_RANGE_LABEL_D = "Date range label (e.g.: Today)";
+    public static final String HOST_NAME_D = "Host name filter which is supported from browser url";
     public static final String COMPONENT_NAME_D = "Component name filter which is supported from browser url";
     public static final String FIND_D = "Finding particular text on subsequent pages in case of table view with pagination";
     public static final String ID_D = "Log id value for traversing to that particular record with that log id";
-    public static final String HOST_D = "filter for host";
-    public static final String COMPONENT_D = "filter for component";
     public static final String KEYWORD_TYPE_D = "Serching the find param value in previous or next in paginated table";
     public static final String TOKEN_D = "unique number used along with FIND_D. The request can be canceled using this token";
     public static final String SOURCE_LOG_ID_D = "fetch the record set having that log Id";
@@ -104,19 +98,6 @@ public class DocConstants {
     public static final String GET_HOST_LIST_BY_COMPONENT_OD = "Get host list of components";
     public static final String GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD = "Get service logs schema fields";
     public static final String GET_HADOOP_SERVICE_CONFIG_JSON_OD = "Get the json having meta data of services supported by logsearch";
-  }
-
-
-  public class LogFileDescriptions {
-    public static final String HOST_D = "not required";
-    public static final String COMPONENT_D = "not required";
-    public static final String LOG_TYPE_D = "not required";
-    public static final String TAIL_SIZE_D = "not required";
-  }
-
-  public class LogFileOperationDescriptions {
-    public static final String SEARCH_LOG_FILES_OD = "not required";
-    public static final String GET_LOG_FILE_TAIL_OD = "not required";
   }
 
   public class PublicOperationDescriptions {

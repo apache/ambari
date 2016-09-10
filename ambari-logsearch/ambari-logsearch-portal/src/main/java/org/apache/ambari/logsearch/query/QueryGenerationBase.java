@@ -271,34 +271,6 @@ public abstract class QueryGenerationBase {
     return "";
   }
 
-  protected void addFilterQueryFromArray(SolrQuery solrQuery, String jsonArrStr, String solrFieldName, Condition condition) {
-    if (!StringUtils.isBlank(jsonArrStr) && condition != null && solrQuery != null) {
-      Gson gson = new Gson();
-      String[] arr = null;
-      try {
-        arr = gson.fromJson(jsonArrStr, String[].class);
-      } catch (Exception exception) {
-        logger.error("Invaild json array:" + jsonArrStr);
-        return;
-      }
-      String query;;
-      switch (condition) {
-      case OR:
-        query = SolrUtil.orList(solrFieldName, arr,"");
-        break;
-      case AND:
-        query = SolrUtil.andList(solrFieldName, arr, "");
-        break;
-      default:
-        query=null;
-        logger.error("Invalid condition :" + condition.name());
-      }
-      if (!StringUtils.isBlank(query)) {
-        solrQuery.addFilterQuery(query);
-      }
-    }
-  }
-
   protected void addFilter(SolrQuery solrQuery, String paramValue, String solrFieldName, Condition condition) {
     String filterQuery = buildListQuery(paramValue, solrFieldName, condition);
     if (!StringUtils.isBlank(filterQuery)) {

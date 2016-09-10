@@ -34,7 +34,6 @@ import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceExtremeDatesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogExportRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogFileRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogTruncatedRequest;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
@@ -44,15 +43,12 @@ import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
-import org.apache.ambari.logsearch.query.model.CommonSearchCriteria;
 import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
-import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.ambari.logsearch.manager.ServiceLogsManager;
 import org.apache.ambari.logsearch.query.model.ServiceAnyGraphSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceExtremeDatesCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceGraphSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogExportSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceLogFileSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogTruncatedSearchCriteria;
 import org.springframework.context.annotation.Scope;
@@ -132,8 +128,8 @@ public class ServiceLogsResource {
   @Path("/tree")
   @Produces({"application/json"})
   @ApiOperation(GET_TREE_EXTENSION_OD)
-  public NodeListResponse getTreeExtension(@QueryParam("hostName") @ApiParam String hostName, @BeanParam ServiceLogFileRequest request) {
-    ServiceLogFileSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
+  public NodeListResponse getTreeExtension(@QueryParam("hostName") @ApiParam String hostName, @BeanParam ServiceLogRequest request) {
+    ServiceLogSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogSearchCriteria.class);
     searchCriteria.addParam("hostName", hostName); // TODO: use host_name instead - needs UI change
     return serviceLogsManager.getTreeExtension(searchCriteria);
   }
@@ -142,8 +138,8 @@ public class ServiceLogsResource {
   @Path("/levels/counts/namevalues")
   @Produces({"application/json"})
   @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
-  public NameValueDataListResponse getLogsLevelCount(@BeanParam ServiceLogFileRequest request) {
-    return serviceLogsManager.getLogsLevelCount(conversionService.convert(request, ServiceLogFileSearchCriteria.class));
+  public NameValueDataListResponse getLogsLevelCount(@BeanParam ServiceLogRequest request) {
+    return serviceLogsManager.getLogsLevelCount(conversionService.convert(request, ServiceLogSearchCriteria.class));
   }
 
   @GET
@@ -175,8 +171,8 @@ public class ServiceLogsResource {
   @Path("/hosts/components")
   @Produces({"application/json"})
   @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
-  public NodeListResponse getHostListByComponent(@BeanParam ServiceLogFileRequest request, @QueryParam("componentName") @ApiParam String componentName) {
-    ServiceLogFileSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogFileSearchCriteria.class);
+  public NodeListResponse getHostListByComponent(@BeanParam ServiceLogRequest request, @QueryParam("componentName") @ApiParam String componentName) {
+    ServiceLogSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogSearchCriteria.class);
     searchCriteria.addParam("componentName", componentName); // TODO: use component_name instead - needs UI change
     return serviceLogsManager.getHostListByComponent(searchCriteria);
   }
@@ -185,8 +181,8 @@ public class ServiceLogsResource {
   @Path("/components/levels/counts")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD)
-  public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogFileRequest request) {
-    return serviceLogsManager.getComponentListWithLevelCounts(conversionService.convert(request, ServiceLogFileSearchCriteria.class));
+  public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogRequest request) {
+    return serviceLogsManager.getComponentListWithLevelCounts(conversionService.convert(request, ServiceLogSearchCriteria.class));
   }
 
   @GET
@@ -195,14 +191,6 @@ public class ServiceLogsResource {
   @ApiOperation(GET_EXTREME_DATES_FOR_BUNDLE_ID_OD)
   public NameValueDataListResponse getExtremeDatesForBundelId(@BeanParam ServiceExtremeDatesRequest request) {
     return serviceLogsManager.getExtremeDatesForBundelId(conversionService.convert(request, ServiceExtremeDatesCriteria.class));
-  }
-
-  @GET
-  @Path("/fields")
-  @Produces({"application/json"})
-  @ApiOperation(GET_SERVICE_LOGS_FIELD_NAME_OD)
-  public String getServiceLogsFieldsName() {
-    return serviceLogsManager.getServiceLogsFieldsName();
   }
 
   @GET

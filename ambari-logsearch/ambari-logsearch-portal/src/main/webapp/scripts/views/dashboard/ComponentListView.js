@@ -189,8 +189,8 @@ define(['require',
 					component = $el.data("type");
 					that.globalVent.trigger("render:tab",{
 						params:_.extend({},{
-							host :  host,
-							component : component
+							host_name :  host,
+							component_name : component
 						},that.searchParams,{treeParams:null}),
 						globalVent : that.globalVent
 					});

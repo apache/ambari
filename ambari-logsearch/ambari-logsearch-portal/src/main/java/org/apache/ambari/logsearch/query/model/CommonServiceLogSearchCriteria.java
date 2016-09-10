@@ -22,14 +22,6 @@ import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
 public class CommonServiceLogSearchCriteria extends CommonSearchCriteria {
 
-  public String getTreeParams() {
-    return getParam(SearchCriteriaConstants.PARAM_TREE_PARAMS, String.class);
-  }
-
-  public void setTreeParams(String treeParams) {
-    addParam(SearchCriteriaConstants.PARAM_TREE_PARAMS, treeParams);
-  }
-
   public String getLevel() {
     return getParam(SearchCriteriaConstants.PARAM_LEVEL, String.class);
   }

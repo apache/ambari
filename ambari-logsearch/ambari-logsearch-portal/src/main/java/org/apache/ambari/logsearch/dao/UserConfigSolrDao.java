@@ -29,12 +29,15 @@ import java.util.Scanner;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.ambari.logsearch.conf.SolrUserConfig;
+import org.apache.ambari.logsearch.common.LogSearchContext;
+import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
 import org.apache.ambari.logsearch.view.VLogfeederFilterWrapper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
@@ -47,38 +50,55 @@ import com.google.gson.JsonParseException;
 import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 @Component
 public class UserConfigSolrDao extends SolrDaoBase {
 
-  private static final Logger logger = Logger.getLogger(UserConfigSolrDao.class);
+  private static final Logger LOG = Logger.getLogger(UserConfigSolrDao.class);
+
+  private static final Logger LOG_PERFORMANCE = Logger.getLogger("org.apache.ambari.logsearch.performance");
 
   @Inject
-  private SolrUserConfig solrUserConfig;
+  private SolrUserPropsConfig solrUserConfig;
+
+  @Inject
+  private SolrCollectionDao solrCollectionDao;
+
+  @Inject
+  private SolrSchemaFieldDao solrSchemaFieldDao;
+
+  @Inject
+  @Qualifier("userConfigSolrTemplate")
+  private SolrTemplate userConfigSolrTemplate;
 
   public UserConfigSolrDao() {
     super(LogType.SERVICE);
   }
+
+  @Override
+  public CloudSolrClient getSolrClient() {
+    return (CloudSolrClient) userConfigSolrTemplate.getSolrClient();
+  }
+
 
   @PostConstruct
   public void postConstructor() {
     String solrUrl = solrUserConfig.getSolrUrl();
     String zkConnectString = solrUserConfig.getZkConnectString();
     String collection = solrUserConfig.getCollection();
-    String configName = solrUserConfig.getConfigName();
-    int replicationFactor = solrUserConfig.getReplicationFactor();
-    String splitInterval = solrUserConfig.getSplitInterval();
-    int numberOfShards = solrUserConfig.getNumberOfShards();
 
     try {
-      connectToSolr(solrUrl, zkConnectString, collection);
-      setupCollections(splitInterval, configName, numberOfShards, replicationFactor, true);
+      solrCollectionDao.checkSolrStatus(getSolrClient());
+      solrCollectionDao.setupCollections(getSolrClient(), solrUserConfig);
+      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrUserConfig, this);
       intializeLogFeederFilter();
 
     } catch (Exception e) {
-      logger.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +
+      LOG.error("error while connecting to Solr for history logs : solrUrl=" + solrUrl + ", zkConnectString=" + zkConnectString +
           ", collection=" + collection, e);
     }
   }
@@ -87,7 +107,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
     try {
       getUserFilter();
     } catch (SolrServerException | IOException e) {
-      logger.error("not able to save logfeeder filter while initialization", e);
+      LOG.error("not able to save logfeeder filter while initialization", e);
     }
   }
 
@@ -105,6 +125,22 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   public void deleteUserConfig(String id) throws SolrException, SolrServerException, IOException {
     removeDoc("id:" + id);
+  }
+
+  public UpdateResponse addDocs(SolrInputDocument doc) throws SolrServerException, IOException, SolrException {
+    UpdateResponse updateResoponse = getSolrClient().add(doc);
+    LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
+      " Update Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
+    getSolrClient().commit();
+    return updateResoponse;
+  }
+
+  public UpdateResponse removeDoc(String query) throws SolrServerException, IOException, SolrException {
+    UpdateResponse updateResoponse = getSolrClient().deleteByQuery(query);
+    getSolrClient().commit();
+    LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() +
+      " Remove Time Execution :- " + updateResoponse.getQTime() + " Total Time Elapsed is :- " + updateResoponse.getElapsedTime());
+    return updateResoponse;
   }
 
 	@SuppressWarnings("unchecked")
@@ -158,7 +194,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
         saveUserFilter(logfeederFilterWrapper);
 
       } catch (JsonParseException | JSONException je) {
-        logger.error("Error parsing JSON. key=" + key + ", componentArray=" + componentArray, je);
+        LOG.error("Error parsing JSON. key=" + key + ", componentArray=" + componentArray, je);
         logfeederFilterWrapper = new VLogfeederFilterWrapper();
       }
     }
@@ -182,7 +218,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
       scanner.close();
 
     } catch (IOException e) {
-      logger.error("Unable to read HadoopServiceConfig.json", e);
+      LOG.error("Unable to read HadoopServiceConfig.json", e);
     }
 
     String hadoopServiceConfig = result.toString();
@@ -191,5 +227,4 @@ public class UserConfigSolrDao extends SolrDaoBase {
     }
     return null;
   }
-
 }

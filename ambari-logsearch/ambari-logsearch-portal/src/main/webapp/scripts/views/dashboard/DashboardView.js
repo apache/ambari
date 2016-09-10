@@ -95,10 +95,6 @@ define(['require',
 		setupSelect2Fields: function(col, idKey, textKey, selectTagId){
 			var that = this, data = [];
 			data = _.pluck(col.models, 'attributes');
-//			data = data.map(function(obj){
-//				return {id : obj[idKey], text : obj[textKey]}
-//			})
-			//data.unshift({'id': null, 'text': null});
 
 			this.ui[selectTagId].select2({
 				placeholder: 'Select',

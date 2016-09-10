@@ -53,7 +53,6 @@ import javax.inject.Inject;
 public class UserConfigManager extends JsonManagerBase {
 
   private static final Logger logger = Logger.getLogger(UserConfigManager.class);
-
   @Inject
   private UserConfigSolrDao userConfigSolrDao;
   @Inject

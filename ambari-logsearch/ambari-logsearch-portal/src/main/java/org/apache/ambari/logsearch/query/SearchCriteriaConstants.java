@@ -45,21 +45,13 @@ public class SearchCriteriaConstants {
   public static final String PARAM_FROM = "from";
   public static final String PARAM_TO = "to";
 
-  public static final String PARAM_LOG_FILE_COMPONENT = "component";
-  public static final String PARAM_LOG_FILE_HOST = "host";
-  public static final String PARAM_LOG_FILE_TYPE = "logType";
-  public static final String PARAM_LOG_TAIL_SIZE = "tailSize";
-
   public static final String PARAM_COMPONENT_NAME = "component_name";
   public static final String PARAM_HOST_NAME = "host_name";
   public static final String PARAM_FILE_NAME = "file_name";
   public static final String PARAM_BUNDLE_ID = "bundle_id";
   public static final String PARAM_SELECT_COMP = "selectComp";
   public static final String PARAM_LEVEL = "level";
-  public static final String PARAM_TREE_PARAMS = "treeParams";
 
-  public static final String PARAM_HOST_LOG_FILE = "hostLogFile";
-  public static final String PARAM_COMPONENT_LOG_FILE = "compLogFile";
   public static final String PARAM_ID = "id";
   public static final String PARAM_SCROLL_TYPE = "scrollType";
   public static final String PARAM_NUMBER_ROWS = "numberRows";

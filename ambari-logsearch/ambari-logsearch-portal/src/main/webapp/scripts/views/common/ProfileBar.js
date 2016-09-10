@@ -22,9 +22,8 @@ define(['require',
 	'backbone',
 	'App',
 	'communicator',
-	'mgrs/SessionMgr',
 	'hbs!tmpl/common/ProfileBar_tmpl'
-],function(require,Backbone,App,Communicator,SessionMgr,ProfileBar_tmpl){
+],function(require,Backbone,App,Communicator,ProfileBar_tmpl){
     'use strict';
 	
 	var ProfileBar = Backbone.Marionette.ItemView.extend(

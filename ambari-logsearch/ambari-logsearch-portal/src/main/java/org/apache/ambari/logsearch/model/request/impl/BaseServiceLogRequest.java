@@ -31,17 +31,8 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @QueryParam(LogSearchConstants.REQUEST_PARAM_LEVEL)
   private String level;
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_ADVANCED_SEARCH)
-  private String advancedSearch;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_TREE_PARAMS)
-  private String treeParams;
-
   @QueryParam(LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
   private String eMessage;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_G_MUST_NOT)
-  private String gMustNot;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_HOST_NAME)
   private String hostName;
@@ -75,26 +66,6 @@ public class BaseServiceLogRequest extends BaseLogRequest
   }
 
   @Override
-  public String getAdvancedSearch() {
-    return advancedSearch;
-  }
-
-  @Override
-  public void setAdvancedSearch(String advancedSearch) {
-    this.advancedSearch = advancedSearch;
-  }
-
-  @Override
-  public String getTreeParams() {
-    return treeParams;
-  }
-
-  @Override
-  public void setTreeParams(String treeParams) {
-    this.treeParams = treeParams;
-  }
-
-  @Override
   public String geteMessage() {
     return eMessage;
   }
@@ -102,16 +73,6 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @Override
   public void seteMessage(String eMessage) {
     this.eMessage = eMessage;
-  }
-
-  @Override
-  public String getgMustNot() {
-    return gMustNot;
-  }
-
-  @Override
-  public void setgMustNot(String gMustNot) {
-    this.gMustNot = gMustNot;
   }
 
   @Override

@@ -22,41 +22,52 @@ package org.apache.ambari.logsearch.dao;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
+import org.apache.ambari.logsearch.conf.SolrServiceLogPropsConfig;
 import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ServiceLogsSolrDao extends SolrDaoBase {
 
-  private static final Logger logger = Logger.getLogger(ServiceLogsSolrDao.class);
+  private static final Logger LOG = Logger.getLogger(ServiceLogsSolrDao.class);
 
   @Inject
-  private SolrServiceLogConfig solrServiceLogConfig;
-  
+  private SolrCollectionDao solrCollectionDao;
+
+  @Inject
+  private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
+
+  @Inject
+  @Qualifier("serviceSolrTemplate")
+  private SolrTemplate serviceSolrTemplate;
+
+  @Inject
+  private SolrSchemaFieldDao solrSchemaFieldDao;
+
   public ServiceLogsSolrDao() {
     super(LogType.SERVICE);
   }
 
+  @Override
+  public CloudSolrClient getSolrClient() {
+    return (CloudSolrClient) serviceSolrTemplate.getSolrClient();
+  }
+
   @PostConstruct
   public void postConstructor() {
-    logger.info("postConstructor() called.");
-    String solrUrl = solrServiceLogConfig.getSolrUrl();
-    String zkConnectString = solrServiceLogConfig.getZkConnectString();
-    String collection = solrServiceLogConfig.getCollection();
-    String splitInterval = solrServiceLogConfig.getSplitInterval();
-    String configName = solrServiceLogConfig.getConfigName();
-    int numberOfShards = solrServiceLogConfig.getNumberOfShards();
-    int replicationFactor = solrServiceLogConfig.getReplicationFactor();
-
+    LOG.info("postConstructor() called.");
     try {
-      connectToSolr(solrUrl, zkConnectString, collection);
-      setupCollections(splitInterval, configName, numberOfShards, replicationFactor, true);
+      solrCollectionDao.checkSolrStatus(getSolrClient());
+      solrCollectionDao.setupCollections(getSolrClient(), solrServiceLogPropsConfig);
+      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrServiceLogPropsConfig, this);
     } catch (Exception e) {
-      logger.error("error while connecting to Solr for service logs : solrUrl=" + solrUrl + ", zkConnectString=" +
-          zkConnectString + ", collection=" + collection, e);
+      LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
+        + ", zkConnectString=" + solrServiceLogPropsConfig.getZkConnectString()
+        + ", collection=" + solrServiceLogPropsConfig.getCollection(), e);
     }
   }
 }

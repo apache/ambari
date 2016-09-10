@@ -20,10 +20,7 @@ package org.apache.ambari.logsearch.model.request;
 
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
-
-import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.COLUMN_QUERY_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.I_MESSAGE_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.G_E_MESSAGE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.MUST_BE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.MUST_NOT_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.INCLUDE_QUERY_D;
@@ -31,20 +28,10 @@ import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.EX
 
 public interface LogParamDefinition {
 
-  String getColumnQuery();
-
-  @ApiParam(value = COLUMN_QUERY_D, name = LogSearchConstants.REQUEST_PARAM_COLUMN_QUERY)
-  void setColumnQuery(String columnQuery);
-
   String getiMessage();
 
   @ApiParam(value = I_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_I_MESSAGE)
   void setiMessage(String iMessage);
-
-  String getgEMessage();
-
-  @ApiParam(value = G_E_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_G_E_MESSAGE)
-  void setgEMessage(String gEMessage);
 
   String getMustBe();
 

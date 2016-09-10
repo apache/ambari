@@ -21,18 +21,14 @@ package org.apache.ambari.logsearch.manager;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -40,10 +36,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.inject.Inject;
 import javax.ws.rs.core.Response;
 
-import org.apache.ambari.logsearch.common.ConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.conf.SolrServiceLogConfig;
+import org.apache.ambari.logsearch.conf.SolrServiceLogPropsConfig;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.model.response.BarGraphData;
@@ -67,7 +62,6 @@ import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceAnyGraphSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceGraphSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogExportSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceLogFileSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.query.model.ServiceLogTruncatedSearchCriteria;
 import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
@@ -117,7 +111,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   @Inject
   private GraphDataGenerator graphDataGenerator;
   @Inject
-  private SolrServiceLogConfig solrServiceLogConfig;
+  private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
 
   public ServiceLogResponse searchLogs(ServiceLogSearchCriteria searchCriteria) {
     String keyword = searchCriteria.getKeyword();
@@ -406,7 +400,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return extensionTree;
   }
 
-  public NodeListResponse getTreeExtension(ServiceLogFileSearchCriteria searchCriteria) {
+  public NodeListResponse getTreeExtension(ServiceLogSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/getTreeExtension");
 
@@ -469,7 +463,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return list;
   }
 
-  public NodeListResponse getHostListByComponent(ServiceLogFileSearchCriteria searchCriteria) {
+  public NodeListResponse getHostListByComponent(ServiceLogSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/service/hosts/components");
 
@@ -529,7 +523,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public NameValueDataListResponse getLogsLevelCount(ServiceLogFileSearchCriteria sc) {
+  public NameValueDataListResponse getLogsLevelCount(ServiceLogSearchCriteria sc) {
     NameValueDataListResponse nameValueList = new NameValueDataListResponse();
     SolrQuery query = queryGenerator.commonServiceFilterQuery(sc);
     query.setParam("event", "/service/logs/levels/counts/namevalues");
@@ -1169,7 +1163,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
         return dataList;
       }
 
-      extractValuesFromBuckets(jsonFacetResponse, "x", "y", histogramData);
+      serviceLogsSolrDao.extractValuesFromBuckets(jsonFacetResponse, "x", "y", histogramData);
 
       Collection<NameValueData> vNameValues = new ArrayList<NameValueData>();
       List<BarGraphData> graphDatas = new ArrayList<BarGraphData>();
@@ -1337,19 +1331,6 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
         isNormalExcluded = true;
       }
 
-      String globalExcludeString = (String) searchCriteria
-          .getParamValue("gEMessage");
-      if (StringUtils.isBlank(globalExcludeString)) {
-        globalExcludeString = "";
-      }
-
-      String globalExclude[] = globalExcludeString
-          .split(LogSearchConstants.I_E_SEPRATOR);
-
-      for (String exc : globalExclude) {
-        excludeString = excludeString + ",\"" + exc + "\"";
-      }
-
       if (!StringUtils.isBlank(excludeString)) {
         if (!isNormalExcluded) {
           excludeString = excludeString.replaceFirst(",", "");
@@ -1387,7 +1368,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     }
   }
 
-  public NodeListResponse getComponentListWithLevelCounts(ServiceLogFileSearchCriteria searchCriteria) {
+  public NodeListResponse getComponentListWithLevelCounts(ServiceLogSearchCriteria searchCriteria) {
     SolrQuery solrQuery = queryGenerator.commonServiceFilterQuery(searchCriteria);
     solrQuery.setParam("event", "/service/logs/components/levels/counts");
 
@@ -1517,95 +1498,8 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     return nameValueList;
   }
 
-  public String getServiceLogsFieldsName() {
-    List<String> fieldsNames = solrServiceLogConfig.getFields();
-    if (fieldsNames.size() > 0) {
-
-      List<String> uiFieldNames = new ArrayList<String>();
-      String temp = null;
-      for (String field : fieldsNames) {
-        temp = solrServiceLogConfig.getSolrAndUiColumns().get(field + LogSearchConstants.SOLR_SUFFIX);
-        if (temp == null){
-          uiFieldNames.add(field);
-        }else{
-          uiFieldNames.add(temp);
-        }
-      }
-      return convertObjToString(uiFieldNames);
-
-    }
-    throw RESTErrorUtil.createRESTException(
-      "No field name found in property file",
-      MessageEnums.DATA_NOT_FOUND);
-
-  }
-
   public String getServiceLogsSchemaFieldsName() {
-
-    List<String> fieldNames = new ArrayList<String>();
-    String excludeArray[] = Arrays.copyOf(solrServiceLogConfig.getExcludeColumnList().toArray(),
-      solrServiceLogConfig.getExcludeColumnList().size(), String[].class);
-
-    HashMap<String, String> uiFieldColumnMapping = new LinkedHashMap<String, String>();
-    ConfigHelper.getSchemaFieldsName(excludeArray, fieldNames,serviceLogsSolrDao);
-
-    for (String fieldName : fieldNames) {
-      String uiField = solrServiceLogConfig.getSolrAndUiColumns().get(fieldName + LogSearchConstants.SOLR_SUFFIX);
-      if (uiField != null) {
-        uiFieldColumnMapping.put(fieldName, uiField);
-      } else {
-        uiFieldColumnMapping.put(fieldName, fieldName);
-      }
-    }
-
-    HashMap<String, String> uiFieldColumnMappingSorted = new LinkedHashMap<String, String>();
-    uiFieldColumnMappingSorted.put(LogSearchConstants.SOLR_LOG_MESSAGE, LogSearchConstants.SOLR_LOG_MESSAGE);
-
-    Iterator<Entry<String, String>> it = BizUtil
-        .sortHashMapByValues(uiFieldColumnMapping).entrySet().iterator();
-    while (it.hasNext()) {
-      @SuppressWarnings("rawtypes")
-      Map.Entry pair = (Map.Entry) it.next();
-      uiFieldColumnMappingSorted.put("" + pair.getKey(), "" + pair.getValue());
-    }
-
-    return convertObjToString(uiFieldColumnMappingSorted);
-
-  }
-
-  @SuppressWarnings("unchecked")
-  public void extractValuesFromBuckets(
-    SimpleOrderedMap<Object> jsonFacetResponse, String outerField,
-    String innerField, List<BarGraphData> histogramData) {
-    NamedList<Object> stack = (NamedList<Object>) jsonFacetResponse
-      .get(outerField);
-    ArrayList<Object> stackBuckets = (ArrayList<Object>) stack
-      .get("buckets");
-    for (Object temp : stackBuckets) {
-      BarGraphData vBarGraphData = new BarGraphData();
-
-      SimpleOrderedMap<Object> level = (SimpleOrderedMap<Object>) temp;
-      String name = ((String) level.getVal(0)).toUpperCase();
-      vBarGraphData.setName(name);
-
-      Collection<NameValueData> vNameValues = new ArrayList<NameValueData>();
-      vBarGraphData.setDataCount(vNameValues);
-      ArrayList<Object> levelBuckets = (ArrayList<Object>) ((NamedList<Object>) level
-        .get(innerField)).get("buckets");
-      for (Object temp1 : levelBuckets) {
-        SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) temp1;
-        String value = DateUtil
-          .convertDateWithMillisecondsToSolrDate((Date) countValue
-            .getVal(0));
-
-        String count = "" + countValue.getVal(1);
-        NameValueData vNameValue = new NameValueData();
-        vNameValue.setName(value);
-        vNameValue.setValue(count);
-        vNameValues.add(vNameValue);
-      }
-      histogramData.add(vBarGraphData);
-    }
+    return convertObjToString(serviceLogsSolrDao.schemaFieldNameMap);
   }
 
   public BarGraphDataListResponse getAnyGraphData(ServiceAnyGraphSearchCriteria searchCriteria) {

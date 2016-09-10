@@ -57,28 +57,9 @@ define(['require',
 
 		/** ui events hash */
 		events: function() {
-//			var that=this,
 			var events = {};
-//			events["mouseenter .logTime"] = function(e){
-//				$(e.currentTarget).find("a").removeClass("hidden");
-//			};
-//			events["mouseleave .logTime"] = function(e){
-//				$(e.currentTarget).find("a").addClass("hidden");
-//			};
-//			events["click .logTime a[data-type='C']"] = 'onNewTabIconClick';
 			events['click [data-id="refresh-tab"]']  = 'onTabRefresh';
 			events['change ' + this.ui.viewType]  = 'onViewTypeChange';
-//			events["mouseenter .logTime"] = function(e){
-//				var $el = $(e.currentTarget);
-//				$el.append(dropdownMenu);
-//				$el.find('.quickMenu li').click(function(e){
-//					that.onQuickMenuClick(e);
-//				});
-//			};
-//			events["mouseleave .logTime"] = function(e){
-//				var $el = $(e.currentTarget);
-//				//$el.find(".quickMenu").remove();
-//			};
 			events['click .quickMenu li']  = 'onQuickMenuClick';
 			return events;
 		},
@@ -109,11 +90,7 @@ define(['require',
 			this.listenTo(this.collection, "backgrid:refresh",function(){
 				$(".contextMenuBody [data-id='F']").show();
             	$(".contextMenuBody").hide();
-            	//this.$("#loaderGraph").hide();
 				this.$(".loader").hide();
-            	//this.ui.find.trigger("keyup");
-//            	if (this.quickHelp)
-//            		this.initializeContextMenu();
             },this);
 			this.listenTo(this.collection, 'request', function(){
 				this.$("#loader").show();
@@ -126,23 +103,6 @@ define(['require',
             	this.fetchAllTogether(value);
             	this.selectionText="";
             });
-//            this.listenTo(this.vent,"tree:search",function(value){
-//            	this.fetchAllTogether(value);
-//            });
-//            this.listenTo(this.vent,"level:filter",function(value){
-//            	this.fetchAllTogether(value);
-//            });
-//            this.listenTo(this.vent,"type:mustNot",function(value){
-//            	this.fetchAllTogether(value);
-//            });
-//            this.listenTo(this.vent,"type:mustBe",function(value){
-//            	this.fetchAllTogether(value);
-//            });
-//            this.listenTo(this.vent,"logtime:filter",function(value){
-//            	this.fetchAllTogether(value);
-//            });
-//            this.listenTo(this.vent,"search:include:exclude",function(value){
-//            	this.fetchAllTogether(value);
 //            });
             this.listenTo(this.vent,"reinitialize:filter:bubbleTable",function(value){
             	this.reinitializeBubbleTableFilter(value);
@@ -151,12 +111,6 @@ define(['require',
                 this.fetchAllTogether(value);
             }, this);
             this.listenTo(this.vent, "timer:end", function(value) {
-            	//timer should start only after log table fetch is complete.
-//            	var arr = Utils.dateUtil.getRelativeDateFromString(this.params.dateRangeLabel);
-//            	if(_.isArray(arr)){
-//            		this.params.from = arr[0].toJSON();
-//                	this.params.to = arr[1].toJSON();
-//            	}
             	ViewUtils.setLatestTimeParams(this.params);
             	this.vent.trigger("tab:refresh",this.params);
             	var that = this;
@@ -180,30 +134,18 @@ define(['require',
 			var that = this;
 			this.fetchTableData((this.params) ? this.params : {q:"*:*"});
 			this.renderComponentList();
-			this.collection.getServiceLogFields({},{
-				success : function(data){
-					that.serverColumns = data;
-				},
-				complete : function(){
-					that.renderTable();
-				}
-			});
-			//this.renderTable();
-			this.renderHostList();
-			this.renderTimer();
-			if(this.quickHelp){
-				this.initializeContextMenu();
-				this.bindContextMenuClick();
-			}
+      this.renderTable();
+      this.renderHostList();
+      this.renderTimer();
+      if(this.quickHelp){
+        this.initializeContextMenu();
+        this.bindContextMenuClick();
+      }
 		},
 		onShow : function(){
 			//this.fetchGraphData((this.params) ? this.params : {q:"*:*"});
 		},
 		onTabRefresh : function(){
-//			this.fetchAllTogether({});
-//			if(this.RHostList.currentView){
-//				this.RHostList.currentView.fetchHosts({});
-//			}
 			ViewUtils.setLatestTimeParams(this.params);
 			this.vent.trigger("tab:refresh",this.params);
 		},
@@ -215,8 +157,8 @@ define(['require',
 				id = $el.data("id");
 				that.globalVent.trigger("render:tab",{
 					params:_.extend({},{
-						host :  host,
-						component : component,
+						host_name :  host,
+						component_name : component,
 						sourceLogId: id
 					},that.graphParams,{treeParams:null}),
 					globalVent : that.globalVent
@@ -292,16 +234,9 @@ define(['require',
 			var timeZone = moment().zoneAbbr(),
 			 	cols = {},
 			 	that = this;
-			_.each(this.columns,function(value,col){
-				cols[col] = {
-						label:value,
-						cell: "String",
-						sortType: 'toggle',
-						editable: false,
-				}
-			});
 			var columns = {
 					logtime : {
+            name: "logtime",
 						label: "Log Time "+(! _.isEmpty(timeZone) ? "("+timeZone+")":""),
 						cell: "html",
 						editable: false,
@@ -319,9 +254,7 @@ define(['require',
 								if(model.get("type"))
 									str += "<p style='margin-left:20px'>"+(model.get("level") ? "<label class='label label-"+model.get("level")+"'>"+model.get("level")+"</label>" : "")+
 											"<strong>"+model.get("type")+"</strong>" +
-											"</p><!--a  style='width:9%' title='Open logs in new tab' data-type='C' data-host='"+model.get("host")+"' data-node='"+model.get("type")+"' data-id='"+model.get("id")+"' href='javascript:void(0)' class='pull-right hidden'><i class='fa fa-share'></i></a-->";
-//								if(model.get("level"))
-//									str += "<p style='float:left;'><label class='label label-"+model.get("level")+"'>"+model.get("level")+"</label></p>";
+											"</p>";
 								str += '<div class="dropdown quickMenu">' +
 								  '<a class="btn btn-success btn-xs btn-quickMenu" data-toggle="dropdown">' +
 								  '<i class="fa fa-ellipsis-v"></i></span></a>' +
@@ -335,38 +268,13 @@ define(['require',
 							}
 						})
 					},
-					/*type: {
-						label: "Type",
-						cell: "String",
-						editable: false,
-						sortType: 'toggle',
-						sortable : false,
-						orderable : true,
-						displayOrder :2,
-						width : 11
-					},
-					level : {
-						label: "Level",
-						cell: "html",
-						editable: false,
-						sortType: 'toggle',
-						sortable : true,
-						orderable : false,
-						width : "6",
-						displayOrder :3,
-						formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-							fromRaw: function(rawValue, model){
-								return "<span class='"+rawValue+"'>"+rawValue+"</span>";
-							}
-						})
-					},*/
 					log_message : {
+            name: "log_message",
 						label: "Message",
 						cell: "html",
 						editable: false,
 						sortType: 'toggle',
 						sortable : false,
-						//width : "50",
 						orderable : true,
 						displayOrder :4,
 						className : "logMessage",
@@ -418,15 +326,23 @@ define(['require',
 					}
 
 			};
-			_.each(cols,function(c,k){
-				if(columns[k] == undefined){
-					columns[k] = c;
-				}else{
-					if(columns[k] && columns[k].label){
-						columns[k].label = c.label;
-					}
-				}
-			});
+      _.each(this.columns, function(value){
+        var name = Globals.invertedServiceLogMappings[value];
+        if (columns[name] === undefined) {
+          var columnObj = {
+            name: Globals.invertedServiceLogMappings[value],
+            label:value,
+            cell: "String",
+            sortType: 'toggle',
+            editable: false
+          };
+          columns[name] = columnObj;
+        } else {
+          if (columns[name] && columns[name].label) {
+            columns[name].label = value;
+          }
+        }
+      });
 			return this.collection.constructor.getTableCols(columns, this.collection);
 		},
 		fetchTableData : function(params){
@@ -461,7 +377,6 @@ define(['require',
 		},
 		fetchGraphData : function(params){
 			var that = this;
-			//that.$("#loaderGraph").show();
 			that.$(".loader").show();
 			this.graphModel.fetch({
 				dataType:"json",
@@ -472,7 +387,6 @@ define(['require',
 				error : function(){
 				},
 				complete : function(){
-					//that.$("#loaderGraph").hide();
 					that.$(".loader").hide();
 				}
 			});
@@ -512,14 +426,6 @@ define(['require',
 		},
 		initializeContextMenu : function(){
 			var that = this;
-//			$('body').on("mouseup",function(e){
-//				console.log(e);
-//				if(! $(".contextMenuBody").is(":hidden")){
-//					if(! $(e.target).parents(".contextMenuBody").length > 0){
-//						$(".contextMenuBody").hide();
-//					}
-//				}
-//			})
 			$('body').on("mouseup.contextMenu",function(e){
 				var selection;
 				if (window.getSelection) {
@@ -572,13 +478,6 @@ define(['require',
 		onDropDownMenuClick : function(e){
 			var $el = $(e.currentTarget),type=$el.data("id");
 			if(! _.isEmpty(this.selectionText)){
-//				if(type == "F"){
-////					this.ui.find.val(this.selectionText);
-////					this.ui.find.trigger("keyup");
-//				}else{
-//					//this.vent.trigger("add:include:exclude",{type:type,value:this.selectionText});
-//					this.vent.trigger("toggle:facet",{viewName:((type === "I") ? "include" : "exclude") +"ServiceColumns",key:Globals.serviceLogsColumns["log_message"],value:this.selectionText});
-//				}
 				if(type === "I" || type === "E"){
 					this.vent.trigger("toggle:facet",{viewName:((type === "I") ? "include" : "exclude") +"ServiceColumns",
 						key:Globals.serviceLogsColumns["log_message"],value:this.selectionText});
@@ -637,7 +536,6 @@ define(['require',
             })
             $('body').css('overflow', 'hidden');
 		},
-		/** closing the movable/resizable popup */
         onDialogClosed: function() {
             if (this.dialog) {
                 this.dialog.close && this.dialog.close();
@@ -715,8 +613,8 @@ define(['require',
 				if (d3.event.shiftKey && d.depth == 2) {
 					that.globalVent.trigger("render:tab",/*new LogFileView(*/{
 						params : _.extend({
-							host :  d.parent.name,
-							component : d.name,
+							host_name :  d.parent.name,
+							component_name : d.name,
 //							level : that.collection.queryParams.level,
 //							iMessage : that.collection.queryParams.iMessage,
 //							eMessage : that.collection.queryParams.eMessage,

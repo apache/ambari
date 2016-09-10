@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import java.util.List;
 
 @Configuration
-public class SolrUserConfig extends SolrConnectionConfig {
+public class SolrUserPropsConfig extends SolrConnectionPropsConfig {
 
   @Value("${logsearch.solr.collection.history:history}")
   private String collection;

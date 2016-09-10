@@ -28,8 +28,6 @@ public class ServiceLogExportRequestConverter extends AbstractCommonServiceLogRe
   @Override
   public ServiceLogExportSearchCriteria createCriteria(ServiceLogExportRequest request) {
     ServiceLogExportSearchCriteria criteria = new ServiceLogExportSearchCriteria();
-    criteria.setLogFileHostName(request.getHostLogFile());
-    criteria.setLogFileComponentName(request.getComponentLogFile());
     criteria.setFormat(request.getFormat());
     criteria.setUtcOffset(request.getUtcOffset());
     return criteria;

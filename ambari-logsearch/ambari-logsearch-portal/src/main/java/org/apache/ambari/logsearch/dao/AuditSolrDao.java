@@ -19,58 +19,65 @@
 
 package org.apache.ambari.logsearch.dao;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.conf.SolrAuditLogConfig;
+import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
 import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AuditSolrDao extends SolrDaoBase {
 
-  private static final Logger logger = Logger.getLogger(AuditSolrDao.class);
+  private static final Logger LOG = Logger.getLogger(AuditSolrDao.class);
 
   @Inject
-  private SolrAuditLogConfig solrAuditLogConfig;
+  private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
+
+  @Inject
+  @Qualifier("auditSolrTemplate")
+  private SolrTemplate auditSolrTemplate;
+
+  @Inject
+  private SolrAliasDao solrAliasDao;
+
+  @Inject
+  private SolrCollectionDao solrCollectionDao;
+
+  @Inject
+  private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public AuditSolrDao() {
     super(LogType.AUDIT);
   }
 
+  @Override
+  public CloudSolrClient getSolrClient() {
+    return (CloudSolrClient) auditSolrTemplate.getSolrClient();
+  }
+
   @PostConstruct
   public void postConstructor() {
-    String solrUrl = solrAuditLogConfig.getSolrUrl();
-    String zkConnectString = solrAuditLogConfig.getZkConnectString();
-    String collection = solrAuditLogConfig.getCollection();
-    String aliasNameIn = solrAuditLogConfig.getAliasNameIn();
-    String rangerAuditCollection = solrAuditLogConfig.getRangerCollection();
-    String splitInterval = solrAuditLogConfig.getSplitInterval();
-    String configName = solrAuditLogConfig.getConfigName();
-    int numberOfShards = solrAuditLogConfig.getNumberOfShards();
-    int replicationFactor = solrAuditLogConfig.getReplicationFactor();
+    String aliasNameIn = solrAuditLogPropsConfig.getAliasNameIn();
+    String rangerAuditCollection = solrAuditLogPropsConfig.getRangerCollection();
 
     try {
-      connectToSolr(solrUrl, zkConnectString, collection);
-      
+      solrCollectionDao.checkSolrStatus(getSolrClient());
       boolean createAlias = (aliasNameIn != null && !StringUtils.isBlank(rangerAuditCollection));
-      boolean needToPopulateSchemaField = !createAlias;
-      
-      setupCollections(splitInterval, configName, numberOfShards, replicationFactor, needToPopulateSchemaField);
-      
+      solrCollectionDao.setupCollections(getSolrClient(), solrAuditLogPropsConfig);
       if (createAlias) {
-        Collection<String> collectionsIn = Arrays.asList(collection, rangerAuditCollection.trim());
-        setupAlias(aliasNameIn, collectionsIn);
+        solrAliasDao.setupAlias(solrSchemaFieldDao, getSolrClient(), solrAuditLogPropsConfig, this);
+      } else {
+        solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrAuditLogPropsConfig, this);
       }
     } catch (Exception e) {
-      logger.error("Error while connecting to Solr for audit logs : solrUrl=" + solrUrl + ", zkConnectString=" +
-          zkConnectString + ", collection=" + collection, e);
+      LOG.error("Error while connecting to Solr for audit logs : solrUrl=" + solrAuditLogPropsConfig.getSolrUrl() + ", zkConnectString=" +
+          solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
     }
   }
 }

@@ -31,10 +31,6 @@ public abstract class AbstractCommonAuditLogRequestConverter<SOURCE extends Base
   public RESULT convertToSearchCriteria(SOURCE request) {
     RESULT criteria = createCriteria(request);
     criteria.addParam("q", request.getQuery());
-    criteria.addParam("columnQuery", StringEscapeUtils.unescapeXml(request.getColumnQuery()));
-    criteria.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
-    criteria.setIncludeMessage(StringEscapeUtils.unescapeXml(request.getiMessage()));
-    criteria.setExcludeMessage(StringEscapeUtils.unescapeXml(request.getgEMessage()));
     criteria.setMustBe(request.getMustBe());
     criteria.setMustNot(request.getMustNot());
     criteria.setExcludeQuery(StringEscapeUtils.unescapeXml(request.getExcludeQuery()));

@@ -26,17 +26,15 @@ import java.util.HashMap;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.apache.ambari.logsearch.conf.AuthConfig;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Repository;
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.ambari.logsearch.util.FileUtil;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.web.model.Privilege;
 import org.apache.ambari.logsearch.web.model.Role;
 import org.apache.ambari.logsearch.web.model.User;
-import org.apache.ambari.logsearch.web.security.LogsearchFileAuthenticationProvider;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
@@ -52,16 +50,16 @@ public class UserDao {
   private static final String NAME = "name";
 
   @Inject
-  private AuthConfig authConfig;
+  private AuthPropsConfig authPropsConfig;
 
   private ArrayList<HashMap<String, String>> userList = null;
 
   @SuppressWarnings("unchecked")
   @PostConstruct
   public void initialization() {
-    if (authConfig.isAuthFileEnabled()) {
+    if (authPropsConfig.isAuthFileEnabled()) {
       try {
-        String userPassJsonFileName = authConfig.getCredentialsFile();
+        String userPassJsonFileName = authPropsConfig.getCredentialsFile();
         logger.info("USER PASS JSON  file NAME:" + userPassJsonFileName);
         File jsonFile = FileUtil.getFileFromClasspath(userPassJsonFileName);
         if (jsonFile == null || !jsonFile.exists()) {

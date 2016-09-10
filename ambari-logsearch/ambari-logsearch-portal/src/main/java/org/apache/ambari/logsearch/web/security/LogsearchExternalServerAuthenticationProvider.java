@@ -25,7 +25,7 @@ import javax.inject.Inject;
 
 import org.apache.ambari.logsearch.common.ExternalServerClient;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
-import org.apache.ambari.logsearch.conf.AuthConfig;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -99,7 +99,7 @@ public class LogsearchExternalServerAuthenticationProvider extends
   private ExternalServerClient externalServerClient;
 
   @Inject
-  private AuthConfig authConfig;
+  private AuthPropsConfig authPropsConfig;
 
   /**
    * Authenticating user from external-server using REST call
@@ -113,7 +113,7 @@ public class LogsearchExternalServerAuthenticationProvider extends
   @Override
   public Authentication authenticate(Authentication authentication)
       throws AuthenticationException {
-    if (!authConfig.isAuthExternalEnabled()) {
+    if (!authPropsConfig.isAuthExternalEnabled()) {
       LOG.debug("external server auth is disabled.");
       return authentication;
     }
@@ -129,7 +129,7 @@ public class LogsearchExternalServerAuthenticationProvider extends
     password = StringEscapeUtils.unescapeHtml(password);
     username = StringEscapeUtils.unescapeHtml(username);
     try {
-      String finalLoginUrl = authConfig.getExternalAuthLoginUrl().replace("$USERNAME", username);
+      String finalLoginUrl = authPropsConfig.getExternalAuthLoginUrl().replace("$USERNAME", username);
       String responseObj = (String) externalServerClient.sendGETRequest(
           finalLoginUrl, String.class, null, username, password);
       if (!isAllowedRole(responseObj)) {

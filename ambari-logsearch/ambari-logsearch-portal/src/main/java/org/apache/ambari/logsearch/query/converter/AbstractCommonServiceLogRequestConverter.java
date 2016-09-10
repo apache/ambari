@@ -29,13 +29,9 @@ public abstract class AbstractCommonServiceLogRequestConverter<SOURCE extends Ba
   public RESULT convertToSearchCriteria(SOURCE request) {
     RESULT criteria = createCriteria(request);
     // TODO: check are these used from the UI or not?
-    criteria.addParam("advanceSearch", StringEscapeUtils.unescapeXml(request.getAdvancedSearch()));
     criteria.addParam("q", request.getQuery());
-    criteria.addParam("gMustNot", request.getgMustNot());
-    criteria.addParam("gEMessage", StringEscapeUtils.unescapeXml(request.getgEMessage()));
     criteria.addParam("unselectComp", request.getMustNot());
 
-    criteria.setTreeParams(StringEscapeUtils.unescapeHtml(request.getTreeParams()));
     criteria.setLevel(request.getLevel());
     criteria.setFrom(request.getFrom());
     criteria.setTo(request.getTo());
@@ -44,8 +40,6 @@ public abstract class AbstractCommonServiceLogRequestConverter<SOURCE extends Ba
     criteria.setHostName(request.getHostName());
     criteria.setComponentName(request.getComponentName());
     criteria.setFileName(request.getFileName());
-    criteria.setIncludeMessage(StringEscapeUtils.unescapeXml(request.getiMessage()));
-    criteria.setExcludeMessage(StringEscapeUtils.unescapeXml(request.getgEMessage()));
     criteria.setStartTime(request.getStartTime());
     criteria.setEndTime(request.getEndTime());
     criteria.setExcludeQuery(StringEscapeUtils.unescapeXml(request.getExcludeQuery()));
