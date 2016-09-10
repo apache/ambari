@@ -27,13 +27,12 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.apache.ambari.logsearch.conf.AuthConfig;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.glassfish.jersey.filter.LoggingFilter;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,7 +50,7 @@ public class ExternalServerClient {
   };
 
   @Inject
-  private AuthConfig authConfig;
+  private AuthPropsConfig authPropsConfig;
 
   /**
    * Send GET request to an external server
@@ -59,7 +58,7 @@ public class ExternalServerClient {
   public Object sendGETRequest(String url, Class klass, MultivaluedMap<String, String> queryParam,
                                String username, String password)
       throws Exception {
-    url = authConfig.getExternalAuthHostUrl() + url;
+    url = authPropsConfig.getExternalAuthHostUrl() + url;
     JerseyClient client = localJerseyClient.get();
     HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()
       .credentials(username, password)

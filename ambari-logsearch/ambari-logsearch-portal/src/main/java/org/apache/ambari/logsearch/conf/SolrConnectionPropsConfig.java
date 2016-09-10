@@ -16,22 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.query.converter;
+package org.apache.ambari.logsearch.conf;
 
-import org.apache.ambari.logsearch.model.request.impl.LogFileRequest;
-import org.apache.ambari.logsearch.query.model.LogFileSearchCriteria;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
-@Component
-public class LogFileRequestConverter implements Converter<LogFileRequest, LogFileSearchCriteria> {
+public abstract class SolrConnectionPropsConfig implements SolrPropsConfig {
+  @Value("${logsearch.solr.url:}")
+  private String solrUrl;
+
+  @Value("${logsearch.solr.zk_connect_string:}")
+  private String zkConnectString;
 
   @Override
-  public LogFileSearchCriteria convert(LogFileRequest request) {
-    LogFileSearchCriteria criteria = new LogFileSearchCriteria();
-    criteria.setLogFileComponent(request.getComponent());
-    criteria.setLogFileHost(request.getHost());
-    criteria.setLogType(request.getLogType());
-    return criteria;
+  public String getSolrUrl() {
+    return solrUrl;
+  }
+
+  @Override
+  public void setSolrUrl(String solrUrl) {
+    this.solrUrl = solrUrl;
+  }
+
+  @Override
+  public String getZkConnectString() {
+    return zkConnectString;
+  }
+
+  @Override
+  public void setZkConnectString(String zkConnectString) {
+    this.zkConnectString = zkConnectString;
   }
 }

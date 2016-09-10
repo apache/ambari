@@ -24,7 +24,7 @@ import org.apache.ambari.logsearch.model.request.ServiceLogSearchParamDefinition
 
 import javax.ws.rs.QueryParam;
 
-public class ServiceLogRequest extends ServiceLogFileRequest implements ServiceLogSearchParamDefinition, LastPageParamDefinition {
+public class ServiceLogRequest extends BaseServiceLogRequest implements ServiceLogSearchParamDefinition, LastPageParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_KEYWORD)
   private String keyWord;

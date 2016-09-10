@@ -20,7 +20,7 @@ package org.apache.ambari.logsearch.query.model;
 
 import org.apache.ambari.logsearch.query.SearchCriteriaConstants;
 
-public class ServiceLogSearchCriteria extends ServiceLogFileSearchCriteria {
+public class ServiceLogSearchCriteria extends CommonServiceLogSearchCriteria {
 
   public void setKeyword(String keyword) {
     addParam(SearchCriteriaConstants.PARAM_KEYWORD, keyword);

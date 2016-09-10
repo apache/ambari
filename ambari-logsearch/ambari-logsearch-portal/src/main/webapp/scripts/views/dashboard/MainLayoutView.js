@@ -87,13 +87,6 @@ define(['require',
 		 */
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'globalVent'));
-//			this.collection = new VLogList([], {
-//                state: {
-//                    firstPage: 0,
-//                    pageSize: 50
-//                }
-//            });
-//			this.collection.url = Globals.baseURL + "service/logs";
 			this.vent = new Backbone.Wreqr.EventAggregator();
 			this.dateUtil = Utils.dateUtil;
 			this.bindEvents();
@@ -137,8 +130,8 @@ define(['require',
 			if(params.host_name && params.component_name){
 				this.globalVent.trigger("render:tab",{
 					params:_.extend({},{
-						host :  params.host_name,
-						component : params.component_name
+						host_name :  params.host_name,
+						component_name : params.component_name
 					},params),
 					globalVent : this.globalVent
 				});
@@ -147,7 +140,7 @@ define(['require',
 		renderLogFileTab : function(view){
 			var that = this;
 			require(['views/tabs/LogFileView'], function(LogFileView){
-				var tabName = (view.params.host + view.params.component).replace(/\./g,"_");
+				var tabName = (view.params.host_name + view.params.component_name).replace(/\./g,"_");
 				if(_.isUndefined(that[tabName])){
 					var region = {};
 					region[tabName] = '#' + tabName;
@@ -160,7 +153,7 @@ define(['require',
 					var region = that.getRegion(tabName);
 					region.show(new LogFileView(view));
 					that.$(".nav.nav-tabs").append('<li data-id="'+tabName+'" role="presentation">'+
-							'<a data-id="'+tabName+'" data-host="'+view.params.host+'" data-component="'+view.params.component+'" href="#'+tabName+'" aria-controls="profile" role="tab" data-toggle="tab" title="'+view.params.host.split(".")[0]+' >> '+view.params.component+' ">'+view.params.host.split(".")[0]+'<b> >> </b>'+view.params.component+'</a>'+
+							'<a data-id="'+tabName+'" data-host="'+view.params.host_name+'" data-component="'+view.params.component_name+'" href="#'+tabName+'" aria-controls="profile" role="tab" data-toggle="tab" title="'+view.params.host_name.split(".")[0]+' >> '+view.params.component_name+' ">'+view.params.host_name.split(".")[0]+'<b> >> </b>'+view.params.component_name+'</a>'+
 	//						'<span class="air air-top-right">'+
 								'<button data-tab-id="'+tabName+'" class="btn-closeTab"><i class="fa fa-times-circle"></i></button>'+
 								'<div class="compareClick" title="Compare"><i class="fa fa-square-o"></i></div>');

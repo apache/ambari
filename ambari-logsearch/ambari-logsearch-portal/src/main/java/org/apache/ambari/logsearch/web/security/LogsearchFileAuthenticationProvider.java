@@ -20,7 +20,7 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.Collection;
 
-import org.apache.ambari.logsearch.conf.AuthConfig;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.CommonUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,14 +42,14 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
   private static Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
 
   @Inject
-  private AuthConfig authConfig;
+  private AuthPropsConfig authPropsConfig;
 
   @Inject
   private UserDetailsService userDetailsService;
 
   @Override
   public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-    if (!authConfig.isAuthFileEnabled()) {
+    if (!authPropsConfig.isAuthFileEnabled()) {
       logger.debug("File auth is disabled.");
       return authentication;
     }

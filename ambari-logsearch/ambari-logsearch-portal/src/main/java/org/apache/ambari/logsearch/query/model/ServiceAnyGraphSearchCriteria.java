@@ -25,7 +25,7 @@ import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_UN
 import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_X_AXIS;
 import static org.apache.ambari.logsearch.query.SearchCriteriaConstants.PARAM_Y_AXIS;
 
-public class ServiceAnyGraphSearchCriteria extends ServiceLogFileSearchCriteria {
+public class ServiceAnyGraphSearchCriteria extends ServiceLogSearchCriteria {
   public String getxAxis() {
     return getParam(PARAM_X_AXIS, String.class);
   }

@@ -20,7 +20,7 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.List;
 
-import org.apache.ambari.logsearch.conf.AuthConfig;
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.log4j.Logger;
 import org.springframework.ldap.CommunicationException;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -47,7 +47,7 @@ public class LogsearchLdapAuthenticationProvider extends
   private String logStatement = "";
 
   @Inject
-  private AuthConfig authConfig;
+  private AuthPropsConfig authPropsConfig;
 
   public LogsearchLdapAuthenticationProvider() {
   }
@@ -55,7 +55,7 @@ public class LogsearchLdapAuthenticationProvider extends
   @PostConstruct
   public void postConstruct() {
     logger.debug("Creating object of ldap auth provider ");
-    if (authConfig.isAuthLdapEnabled()) {
+    if (authPropsConfig.isAuthLdapEnabled()) {
       ldapAuthProvider = loadLdapAuthenticationProvider();
     } else {
       logger.info("Ldap auth is disabled");
@@ -65,7 +65,7 @@ public class LogsearchLdapAuthenticationProvider extends
   @Override
   public Authentication authenticate(Authentication authentication)
     throws AuthenticationException {
-    if (!authConfig.isAuthLdapEnabled()) {
+    if (!authPropsConfig.isAuthLdapEnabled()) {
       logger.debug("Ldap auth is disabled");
       return authentication;
     }

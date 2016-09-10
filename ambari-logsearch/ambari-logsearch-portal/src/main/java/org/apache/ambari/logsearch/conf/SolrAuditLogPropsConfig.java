@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
-public class SolrAuditLogConfig implements SolrConfig, SolrColumnConfig {
+public class SolrAuditLogPropsConfig implements SolrPropsConfig {
 
   @Value("${logsearch.solr.audit.logs.url:}")
   private String solrUrl;
@@ -53,15 +53,6 @@ public class SolrAuditLogConfig implements SolrConfig, SolrColumnConfig {
 
   @Value("${logsearch.collection.audit.logs.replication.factor:1}")
   private Integer replicationFactor;
-
-  @Value("#{propertyMapper.map('${logsearch.solr.audit.logs.column.mapping}')}")
-  private Map<String, String> columnMapping;
-
-  @Value("#{propertyMapper.list('${logsearch.solr.audit.logs.exclude.columnlist}')}")
-  private List<String> excludeColumnList;
-
-  @Value("#{propertyMapper.solrUiMap('${logsearch.solr.audit.logs.column.mapping}')}")
-  private Map<String, String> solrAndUiColumns;
 
   @Override
   public String getSolrUrl() {
@@ -131,36 +122,6 @@ public class SolrAuditLogConfig implements SolrConfig, SolrColumnConfig {
   @Override
   public void setSplitInterval(String splitInterval) {
     this.splitInterval = splitInterval;
-  }
-
-  @Override
-  public List<String> getExcludeColumnList() {
-    return excludeColumnList;
-  }
-
-  @Override
-  public void setExcludeColumnList(List<String> excludeColumnList) {
-    this.excludeColumnList = excludeColumnList;
-  }
-
-  @Override
-  public Map<String, String> getColumnMapping() {
-    return columnMapping;
-  }
-
-  @Override
-  public void setColumnMapping(Map<String, String> columnMappings) {
-    this.columnMapping = columnMappings;
-  }
-
-  @Override
-  public Map<String, String> getSolrAndUiColumns() {
-    return solrAndUiColumns;
-  }
-
-  @Override
-  public void setSolrAndUiColumns(Map<String, String> solrAndUiColumns) {
-    this.solrAndUiColumns = solrAndUiColumns;
   }
 
   public String getRangerCollection() {

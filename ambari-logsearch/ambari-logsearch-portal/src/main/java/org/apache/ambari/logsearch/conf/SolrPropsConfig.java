@@ -16,21 +16,35 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.ambari.logsearch.query.converter;
+package org.apache.ambari.logsearch.conf;
 
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogFileRequest;
-import org.apache.ambari.logsearch.query.model.ServiceLogFileSearchCriteria;
-import org.springframework.stereotype.Component;
+public interface SolrPropsConfig {
+  String getSolrUrl();
 
-@Component
-public class ServiceLogFileRequestConverter
-  extends AbstractCommonServiceLogRequestConverter<ServiceLogFileRequest, ServiceLogFileSearchCriteria> {
+  void setSolrUrl(String solrUrl);
 
-  @Override
-  public ServiceLogFileSearchCriteria createCriteria(ServiceLogFileRequest request) {
-    ServiceLogFileSearchCriteria criteria = new ServiceLogFileSearchCriteria();
-    criteria.setLogFileHostName(request.getHostLogFile());
-    criteria.setLogFileComponentName(request.getComponentLogFile());
-    return criteria;
-  }
+  String getZkConnectString();
+
+  void setZkConnectString(String zkConnectString);
+
+  String getCollection();
+
+  void setCollection(String collection);
+
+  String getConfigName();
+
+  void setConfigName(String configName);
+
+  Integer getNumberOfShards();
+
+  void setNumberOfShards(Integer numberOfShards);
+
+  Integer getReplicationFactor();
+
+  void setReplicationFactor(Integer replicationFactor);
+
+  String getSplitInterval();
+
+  void setSplitInterval(String splitInterval);
+
 }

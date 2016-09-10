@@ -76,19 +76,18 @@ define(['require',
 				contentType : 'application/json',
 				dataType : 'json'
 			}, options);
-
 			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
-		getServiceLogSchemaFields : function(token, options){
-			var url = Globals.baseURL  + 'service/logs/schema/fields';
-			
-			options = _.extend({
-				data : $.param(token),
-				contentType : 'application/json',
-				dataType : 'json'
-			}, options);
+    getServiceLogSchemaFields : function(token, options){
+      var url = Globals.baseURL  + 'service/logs/schema/fields';
 
-			return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
+      options = _.extend({
+        data: $.param(token),
+        contentType: 'application/json',
+        dataType: 'json'
+      }, options);
+
+      return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
 		getTruncatedLogs : function(token, options){
 			var url = Globals.baseURL  + 'service/logs/truncated';

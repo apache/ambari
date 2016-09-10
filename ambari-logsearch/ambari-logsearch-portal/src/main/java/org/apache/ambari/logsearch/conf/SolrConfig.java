@@ -18,33 +18,87 @@
  */
 package org.apache.ambari.logsearch.conf;
 
-public interface SolrConfig {
-  String getSolrUrl();
+import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
+import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientBuilder;
+import org.apache.commons.lang.StringUtils;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpClientUtil;
+import org.apache.solr.client.solrj.impl.Krb5HttpClientConfigurer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.repository.config.EnableSolrRepositories;
 
-  void setSolrUrl(String solrUrl);
+import javax.inject.Inject;
 
-  String getZkConnectString();
+@Configuration
+@EnableSolrRepositories
+public class SolrConfig {
 
-  void setZkConnectString(String zkConnectString);
+  private static final Logger LOG = LoggerFactory.getLogger(SolrConfig.class);
 
-  String getCollection();
+  @Inject
+  private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
 
-  void setCollection(String collection);
+  @Inject
+  private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
 
-  String getConfigName();
+  @Inject
+  private SolrUserPropsConfig solrUserConfigPropsConfig;
 
-  void setConfigName(String configName);
+  @Inject
+  private SolrKerberosConfig solrKerberosConfig;
 
-  Integer getNumberOfShards();
+  @Bean(name = "serviceSolrTemplate")
+  public SolrTemplate serviceSolrTemplate() {
+    setupSecurity();
+    return new SolrTemplate(createClient(
+      solrServiceLogPropsConfig.getSolrUrl(),
+      solrServiceLogPropsConfig.getZkConnectString(),
+      solrServiceLogPropsConfig.getCollection()));
+  }
 
-  void setNumberOfShards(Integer numberOfShards);
+  @Bean(name = "auditSolrTemplate")
+  @DependsOn("serviceSolrTemplate")
+  public SolrTemplate auditSolrTemplate() {
+    return new SolrTemplate(createClient(
+      solrAuditLogPropsConfig.getSolrUrl(),
+      solrAuditLogPropsConfig.getZkConnectString(),
+      solrAuditLogPropsConfig.getCollection()));
+  }
 
-  Integer getReplicationFactor();
+  @Bean(name = "userConfigSolrTemplate")
+  @DependsOn("serviceSolrTemplate")
+  public SolrTemplate userConfigSolrTemplate() {
+    return new SolrTemplate(createClient(
+      solrUserConfigPropsConfig.getSolrUrl(),
+      solrUserConfigPropsConfig.getZkConnectString(),
+      solrUserConfigPropsConfig.getCollection()));
+  }
 
-  void setReplicationFactor(Integer replicationFactor);
+  private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
+    if (StringUtils.isNotEmpty(zookeeperConnectString)) {
+      CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString);
+      cloudSolrClient.setDefaultCollection(defaultCollection);
+      return cloudSolrClient;
+    } else if (StringUtils.isNotEmpty(solrUrl)) {
+      throw new UnsupportedOperationException("Currently only cloud mode is supported. Set zookeeper connect string.");
+    }
+    throw new IllegalStateException(
+      "Solr url or zookeeper connection string is missing. collection: " + defaultCollection);
+  }
 
-  String getSplitInterval();
-
-  void setSplitInterval(String splitInterval);
-
+  private void setupSecurity() {
+    String jaasFile = solrKerberosConfig.getJaasFile();
+    boolean securityEnabled = solrKerberosConfig.isEnabled();
+    if (securityEnabled) {
+      System.setProperty("java.security.auth.login.config", jaasFile);
+      HttpClientUtil.setConfigurer(new Krb5HttpClientConfigurer());
+      LOG.info("setupSecurity() called for kerberos configuration, jaas file: " + jaasFile);
+    }
+  }
 }
+

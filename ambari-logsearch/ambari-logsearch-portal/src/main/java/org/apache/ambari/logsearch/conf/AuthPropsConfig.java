@@ -22,7 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class AuthConfig {
+public class AuthPropsConfig {
 
   @Value("${logsearch.auth.file.enable:true}")
   boolean authFileEnabled;

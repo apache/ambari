@@ -23,7 +23,7 @@ import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class ServiceGraphRequest extends ServiceLogFileRequest implements UnitParamDefinition {
+public class ServiceGraphRequest extends ServiceLogRequest implements UnitParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
   private String unit;

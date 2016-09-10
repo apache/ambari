@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration
-public class SolrServiceLogConfig extends SolrConnectionConfig implements SolrColumnConfig {
+public class SolrServiceLogPropsConfig extends SolrConnectionPropsConfig {
 
   @Value("${logsearch.solr.collection.service.logs:hadoop_logs}")
   private String collection;
@@ -41,18 +41,6 @@ public class SolrServiceLogConfig extends SolrConnectionConfig implements SolrCo
 
   @Value("${logsearch.collection.service.logs.replication.factor:1}")
   private Integer replicationFactor;
-
-  @Value("#{propertyMapper.list('${logsearch.service.logs.fields}')}")
-  private List<String> fields;
-
-  @Value("#{propertyMapper.map('${logsearch.solr.audit.logs.column.mapping}')}")
-  private Map<String, String> columnMapping;
-
-  @Value("#{propertyMapper.list('${logsearch.solr.audit.logs.exclude.columnlist}')}")
-  private List<String> excludeColumnList;
-
-  @Value("#{propertyMapper.solrUiMap('${logsearch.solr.audit.logs.column.mapping}}')}")
-  private Map<String, String> solrAndUiColumns;
 
   @Override
   public String getCollection() {
@@ -102,43 +90,5 @@ public class SolrServiceLogConfig extends SolrConnectionConfig implements SolrCo
   @Override
   public void setReplicationFactor(Integer replicationFactor) {
     this.replicationFactor = replicationFactor;
-  }
-
-  @Override
-  public Map<String, String> getColumnMapping() {
-    return columnMapping;
-  }
-
-  @Override
-  public void setColumnMapping(Map<String, String> columnMapping) {
-    this.columnMapping = columnMapping;
-  }
-
-  @Override
-  public List<String> getExcludeColumnList() {
-    return excludeColumnList;
-  }
-
-  @Override
-  public void setExcludeColumnList(List<String> excludeColumnList) {
-    this.excludeColumnList = excludeColumnList;
-  }
-
-  @Override
-  public Map<String, String> getSolrAndUiColumns() {
-    return solrAndUiColumns;
-  }
-
-  @Override
-  public void setSolrAndUiColumns(Map<String, String> solrAndUiColumns) {
-    this.solrAndUiColumns = solrAndUiColumns;
-  }
-
-  public List<String> getFields() {
-    return fields;
-  }
-
-  public void setFields(List<String> fields) {
-    this.fields = fields;
   }
 }

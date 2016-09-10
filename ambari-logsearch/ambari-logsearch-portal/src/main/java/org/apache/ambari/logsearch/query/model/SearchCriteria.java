@@ -123,4 +123,13 @@ public class SearchCriteria {
     this.globalEndTime = globalEndTime;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<String, Object> entry : paramList.entrySet()) {
+      sb.append(entry.getKey() + " : " + entry.getValue() + ";");
+    }
+    return sb.toString();
+  }
+
 }

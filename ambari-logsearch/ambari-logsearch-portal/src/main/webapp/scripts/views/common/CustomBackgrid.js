@@ -252,7 +252,6 @@ define(['require',
 		initialize: function (options) {
 			var args = Array.prototype.slice.apply(arguments);
 			Backgrid.Header.prototype.initialize.apply(this, args);
-
 			this.searchRow = new HeaderRow({
 				columns: this.columns,
 				collection: this.collection

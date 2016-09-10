@@ -22,7 +22,6 @@
 	var Handlebars 		= require('handlebars');
 	var Util	   		= require('utils/Utils');
     var localization 	= require('utils/LangSupport');
-    var SessionMgr   	= require('mgrs/SessionMgr');
 	require('moment');
 	/*
 	 * General guidelines while writing helpers:
@@ -274,18 +273,12 @@
             return 'styles/images/avatar' + parseInt(((Math.random()*10)%4) + 1,10) + '.png';
         });    
 	Handlebars.registerHelper('isSystemAdmin', function(context, options) {
-            if(SessionMgr.isSystemAdmin())
-            	return options.fn(this);
 			return options.inverse(this);
 	});
 	Handlebars.registerHelper('isSchoolAdmin', function(context, options) {
-            if(SessionMgr.isSchoolAdmin() || SessionMgr.isSystemAdmin())
-            	return options.fn(this);
 			return options.inverse(this);
 	});
 	Handlebars.registerHelper('isTeacher', function(context, options) {
-            if(SessionMgr.isTeacher())
-            	return options.fn(this);
 			return options.inverse(this);
 	});
 	Handlebars.registerHelper('getAvatar', function(options,size) {
@@ -510,41 +503,9 @@
 		}
 	    return new Handlebars.SafeString(html);
 	});
-	// Handlebars.registerHelper('getServices', function(services, serviceDef) {
-	// 	var XAEnums			= require('utils/XAEnums');
-	// 	var tr = '', serviceOperationDiv = '';
-	// 	var serviceType = serviceDef.get('name');
-	// 	if(!_.isUndefined(services[serviceType])){
-	// 		_.each(services[serviceType],function(serv){
-	// 			serviceName = serv.get('name');
-	// 			if(SessionMgr.isSystemAdmin()){
-	// 				serviceOperationDiv = '<div class="pull-right">\
-	// 				<a data-id="'+serv.id+'" class="btn btn-mini" href="#!/service/'+serviceDef.id+'/edit/'+serv.id+'" title="Edit"><i class="icon-edit"></i></a>\
-	// 				<a data-id="'+serv.id+'" class="deleteRepo btn btn-mini btn-danger" href="javascript:void(0);" title="Delete">\
-	// 				<i class="icon-trash"></i></a>\
-	// 				</div>'
-	// 			}
-	// 			tr += '<tr><td><div>\
-	// 					<a data-id="'+serv.id+'" href="#!/service/'+serv.id+'/policies">'+_.escape(serv.attributes.name)+'</a>'+serviceOperationDiv+'\
-	// 				  </div></td></tr>';
-	// 		});
-	// 	}
-	// 	return tr;
-	// });
 	Handlebars.registerHelper('capitaliseLetter', function(str) {
 		return str.toUpperCase();
 	});
-	// Handlebars.registerHelper('hasAccessToTab', function(tabName,options) {
-	// 	var vxPortalUser = SessionMgr.getUserProfile();
-	// 	var userModules = _.pluck(vxPortalUser.get('userPermList'), 'moduleName');
-	// 	var groupModules = _.pluck(vxPortalUser.get('groupPermissions'), 'moduleName');
-	// 	var moduleNames =  _.union(userModules,groupModules);
-	// 	var returnFlag = _.contains(moduleNames, tabName);
-	// 	if (returnFlag)
-	// 		return options.fn(this);
-	// 	else
-	// 		return options.inverse(this);
-	// });
 
 	/*logserach*/
 	Handlebars.registerHelper ("setChecked", function (value, currentValue) {

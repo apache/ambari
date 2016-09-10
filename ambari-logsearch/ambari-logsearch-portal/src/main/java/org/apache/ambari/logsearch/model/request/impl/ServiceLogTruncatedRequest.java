@@ -23,7 +23,7 @@ import org.apache.ambari.logsearch.model.request.LogTruncatedParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class ServiceLogTruncatedRequest extends ServiceLogFileRequest implements LogTruncatedParamDefinition {
+public class ServiceLogTruncatedRequest extends ServiceLogRequest implements LogTruncatedParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_ID)
   private String id;

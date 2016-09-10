@@ -22,8 +22,6 @@ import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.LEVEL_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.ADVANCED_SEARCH_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.TREE_PARAMS_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.E_MESSAGE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.G_MUST_NOT_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_NAME_D;
@@ -38,25 +36,10 @@ public interface ServiceLogParamDefinition {
   @ApiParam(value = LEVEL_D, name = LogSearchConstants.REQUEST_PARAM_LEVEL)
   void setLevel(String level);
 
-  String getAdvancedSearch();
-
-  @ApiParam(value = ADVANCED_SEARCH_D, name = LogSearchConstants.REQUEST_PARAM_ADVANCED_SEARCH)
-  void setAdvancedSearch(String advancedSearch);
-
-  String getTreeParams();
-
-  @ApiParam(value = TREE_PARAMS_D, name = LogSearchConstants.REQUEST_PARAM_TREE_PARAMS)
-  void setTreeParams(String treeParams);
-
   String geteMessage();
 
   @ApiParam(value = E_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
   void seteMessage(String eMessage);
-
-  String getgMustNot();
-
-  @ApiParam(value = G_MUST_NOT_D, name = LogSearchConstants.REQUEST_PARAM_G_MUST_NOT)
-  void setgMustNot(String gMustNot);
 
   String getHostName();
 
