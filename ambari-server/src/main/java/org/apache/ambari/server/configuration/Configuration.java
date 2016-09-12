@@ -2300,6 +2300,14 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
       "task.query.parameterlist.size", 999);
 
+  /**
+   * A comma separated list of repo ids to skip the repo url check when registering a repo for the stack
+   * @return
+   */
+  @Markdown(description = "The list of repo ids to skip the repo url check when registering a repo for the stack.")
+  public static final ConfigurationProperty<String> SKIP_REPO_URL_EXISTENCE_VALIDATION_LIST = new ConfigurationProperty<>(
+      "no.repo.existence.validation.list", "HDP-UTILS");
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -4825,6 +4833,22 @@ public class Configuration {
   }
 
   /**
+   * Default to HDP-UTILS
+   * */
+  public List<String> getSkipRepoUrlExistenceValidationList(){
+    List<String> list = new ArrayList<String>();
+    String propValue = getProperty(SKIP_REPO_URL_EXISTENCE_VALIDATION_LIST);
+    for (String repo: propValue.split(",")) {
+      repo = repo.trim();
+      if (!repo.isEmpty()) {
+        list.add(repo);
+      }
+    }
+    LOG.debug("Skip Repo URL Existence Validation on :" + list);
+    return list;
+  }
+
+  /**
    * Generates a markdown table which includes:
    * <ul>
    * <li>Property key name</li>
@@ -5187,5 +5211,4 @@ public class Configuration {
     ClusterSizeType clusterSize();
     String value();
   }
-
 }
