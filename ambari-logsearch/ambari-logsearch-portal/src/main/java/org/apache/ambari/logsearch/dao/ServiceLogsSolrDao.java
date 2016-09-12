@@ -21,16 +21,14 @@ package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.inject.Named;
 
+import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrServiceLogPropsConfig;
-import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.solr.core.SolrTemplate;
-import org.springframework.stereotype.Component;
 
-@Component
+@Named
 public class ServiceLogsSolrDao extends SolrDaoBase {
 
   private static final Logger LOG = Logger.getLogger(ServiceLogsSolrDao.class);
@@ -42,10 +40,11 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   private SolrServiceLogPropsConfig solrServiceLogPropsConfig;
 
   @Inject
-  @Qualifier("serviceSolrTemplate")
+  @Named("serviceSolrTemplate")
   private SolrTemplate serviceSolrTemplate;
 
   @Inject
+  @Named("serviceSolrFieldDao")
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public ServiceLogsSolrDao() {
@@ -53,8 +52,8 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   }
 
   @Override
-  public CloudSolrClient getSolrClient() {
-    return (CloudSolrClient) serviceSolrTemplate.getSolrClient();
+  public SolrTemplate getSolrTemplate() {
+    return serviceSolrTemplate;
   }
 
   @PostConstruct
@@ -63,11 +62,15 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
     try {
       solrCollectionDao.checkSolrStatus(getSolrClient());
       solrCollectionDao.setupCollections(getSolrClient(), solrServiceLogPropsConfig);
-      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrServiceLogPropsConfig, this);
+      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrServiceLogPropsConfig);
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
         + ", zkConnectString=" + solrServiceLogPropsConfig.getZkConnectString()
         + ", collection=" + solrServiceLogPropsConfig.getCollection(), e);
     }
+  }
+
+  public SolrSchemaFieldDao getSolrSchemaFieldDao() {
+    return solrSchemaFieldDao;
   }
 }

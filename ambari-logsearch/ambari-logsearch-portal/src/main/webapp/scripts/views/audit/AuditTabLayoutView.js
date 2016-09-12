@@ -193,7 +193,7 @@ define(['require',
               var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedAuditLogMappings, true);
               return {
                 includeQuery: JSON.stringify(obj),
-                query: query
+                iMessage: query
               }
             }
           }));
@@ -207,7 +207,7 @@ define(['require',
               var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedAuditLogMappings, true);
               return {
                 excludeQuery: JSON.stringify(obj),
-                query: query
+                eMessage: query
               }
             }
           }));

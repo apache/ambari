@@ -21,9 +21,11 @@ package org.apache.ambari.logsearch.solr.model;
 import org.apache.ambari.logsearch.model.response.HostLogData;
 import org.apache.solr.client.solrj.beans.Field;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
+
 public class SolrHostLogData implements HostLogData {
 
-  @Field("host")
+  @Field(HOST)
   private String host;
 
   @Override

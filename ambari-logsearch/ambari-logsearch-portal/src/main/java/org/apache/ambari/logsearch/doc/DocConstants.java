@@ -44,6 +44,7 @@ public class DocConstants {
     public static final String IS_LAST_PAGE_D = "Show last page (true/false)";
     public static final String FIELD_D = "Get values for particular field";
     public static final String FORMAT_D = "File Export format, can be 'txt' or 'json'";
+    public static final String TOP = "Number that defines how many top element you would like to see.";
   }
 
   public class AuditOperationDescriptions {
@@ -51,11 +52,7 @@ public class DocConstants {
     public static final String GET_AUDIT_LOGS_OD = "Get the list of logs details";
     public static final String GET_AUDIT_COMPONENTS_OD = "Get the list of audit components currently active or having data in Solr";
     public static final String GET_AUDIT_LINE_GRAPH_DATA_OD = "Get the data required for line graph";
-    public static final String GET_TOP_AUDIT_USERS_OD = "Get the top audit users having maximum access";
-    public static final String GET_TOP_AUDIT_RESOURCES_OD = "Get the top audit resources having maximum access";
-    public static final String GET_LIVE_LOGS_COUNT_OD = "not required";
-    public static final String GET_REQUEST_USER_LINE_GRAPH_OD = "not required";
-    public static final String GET_ANY_GRAPH_DATA_OD = "Get the data generic enough to use for graph plots";
+    public static final String GET_TOP_AUDIT_RESOURCES_OD = "Get the top audit resource count (grouped by type)";
     public static final String EXPORT_USER_TALBE_TO_TEXT_FILE_OD = "Export the tables shown on Audit tab";
     public static final String GET_SERVICE_LOAD_OD = "The graph for showing the top users accessing the services";
   }
@@ -64,7 +61,6 @@ public class DocConstants {
     public static final String LEVEL_D = "filter for log level";
     public static final String BUNDLE_ID = "filter for host";
     public static final String FILE_NAME_D = "File name filter which is supported from browser url";
-    public static final String DATE_RANGE_LABEL_D = "Date range label (e.g.: Today)";
     public static final String HOST_NAME_D = "Host name filter which is supported from browser url";
     public static final String COMPONENT_NAME_D = "Component name filter which is supported from browser url";
     public static final String FIND_D = "Finding particular text on subsequent pages in case of table view with pagination";
@@ -72,7 +68,6 @@ public class DocConstants {
     public static final String KEYWORD_TYPE_D = "Serching the find param value in previous or next in paginated table";
     public static final String TOKEN_D = "unique number used along with FIND_D. The request can be canceled using this token";
     public static final String SOURCE_LOG_ID_D = "fetch the record set having that log Id";
-    public static final String G_MUST_NOT_D = "not required";
     public static final String NUMBER_ROWS_D = "Getting rows after particular log entry - used in 'Preview' option";
     public static final String SCROLL_TYPE_D = "Used in 'Preview' feature for getting records 'after' or 'before'";
     public static final String UTC_OFFSET_D = "timezone offset";
@@ -86,18 +81,15 @@ public class DocConstants {
     public static final String GET_LOG_LEVELS_COUNT_OD = "Get Log levels with their counts";
     public static final String GET_COMPONENTS_COUNT_OD = "Get components with their counts";
     public static final String GET_HOSTS_COUNT_OD = "Get hosts with their counts";
-    public static final String GET_TREE_EXTENSION_OD = "Get host and compoenets hierarchy";
+    public static final String GET_TREE_EXTENSION_OD = "Get host and compoenets hierarchy with log counts";
     public static final String GET_HISTOGRAM_DATA_OD = "Get data for histogram";
-    public static final String CANCEL_FIND_REQUEST_OD = "Cancel the FIND_D param request using TOKEN_D";
     public static final String EXPORT_TO_TEXT_FILE_OD = "Export the table data in file";
     public static final String GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD = "Get components with log level distribution count";
-    public static final String GET_EXTREME_DATES_FOR_BUNDLE_ID_OD = "Get the start and end time of particular bundle_id";
-    public static final String GET_SERVICE_LOGS_FIELD_NAME_OD = "Get service logs schema fields name (Human readable)";
-    public static final String GET_ANY_GRAPH_DATA_OD = "Get the data generic enough to use for graph plots";
-    public static final String GET_AFTER_BEFORE_LOGS_OD = "Preview feature data";
+    public static final String GET_ANY_GRAPH_COUNT_DATA_OD = "Get the data generic enough to use for graph plots (yAzis is always count)";
     public static final String GET_HOST_LIST_BY_COMPONENT_OD = "Get host list of components";
     public static final String GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD = "Get service logs schema fields";
     public static final String GET_HADOOP_SERVICE_CONFIG_JSON_OD = "Get the json having meta data of services supported by logsearch";
+    public static final String GET_AFTER_BEFORE_LOGS_OD = "Preview feature data";
   }
 
   public class PublicOperationDescriptions {

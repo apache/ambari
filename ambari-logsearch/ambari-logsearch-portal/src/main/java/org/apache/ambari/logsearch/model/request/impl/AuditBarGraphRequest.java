@@ -23,7 +23,7 @@ import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class AuditBarGraphRequest extends BaseAuditLogRequest implements UnitParamDefinition {
+public class AuditBarGraphRequest extends BaseLogRequest implements UnitParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
   private String unit;

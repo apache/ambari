@@ -211,10 +211,10 @@ define(['require',
             onEditHost : function(e){
             	var $el = $(e.currentTarget);
             	$el.hide();
-            	if($el.data("type") == "host_name"){
-            		this.showHostSelect2($el.data("component_name"));
+            	if($el.data("type") == "host"){
+            		this.showHostSelect2($el.data("component"));
                 }else{
-            		this.showExpiry($el.data("component_name"));
+            		this.showExpiry($el.data("component"));
                 }
             },
             hideHostSelect2 : function(forComponent){

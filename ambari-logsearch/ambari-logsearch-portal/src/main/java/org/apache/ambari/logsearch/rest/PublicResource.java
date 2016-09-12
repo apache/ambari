@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
@@ -26,13 +27,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.manager.PublicManager;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.PublicOperationDescriptions.OBTAIN_GENERAL_CONFIG_OD;
 
 @Api(value = "public", description = "Public operations")
 @Path("public")
-@Component
+@Named
 @Scope("request")
 public class PublicResource {
 

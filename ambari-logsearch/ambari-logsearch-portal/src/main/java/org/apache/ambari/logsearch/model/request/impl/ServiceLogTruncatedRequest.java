@@ -32,7 +32,7 @@ public class ServiceLogTruncatedRequest extends ServiceLogRequest implements Log
   private String scrollType;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_NUMBER_ROWS)
-  private String numberRows;
+  private Integer numberRows;
 
   @Override
   public String getId() {
@@ -55,12 +55,12 @@ public class ServiceLogTruncatedRequest extends ServiceLogRequest implements Log
   }
 
   @Override
-  public String getNumberRows() {
+  public Integer getNumberRows() {
     return numberRows;
   }
 
   @Override
-  public void setNumberRows(String numberRows) {
+  public void setNumberRows(Integer numberRows) {
     this.numberRows = numberRows;
   }
 }

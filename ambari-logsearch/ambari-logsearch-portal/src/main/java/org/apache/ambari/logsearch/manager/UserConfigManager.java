@@ -24,17 +24,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.UserConfigSolrDao;
-import org.apache.ambari.logsearch.query.QueryGeneration;
-import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
+import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
+import org.apache.ambari.logsearch.model.response.UserConfigData;
+import org.apache.ambari.logsearch.model.response.UserConfigDataListResponse;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
-import org.apache.ambari.logsearch.view.VLogfeederFilterWrapper;
-import org.apache.ambari.logsearch.view.VUserConfig;
-import org.apache.ambari.logsearch.view.VUserConfigList;
-import org.apache.ambari.logsearch.query.model.SearchCriteria;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -45,56 +42,66 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.springframework.stereotype.Component;
+import org.springframework.core.convert.ConversionService;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
-@Component
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ID;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.USER_NAME;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.VALUES;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.FILTER_NAME;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ROW_TYPE;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.SHARE_NAME_LIST;
+import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.COMPOSITE_KEY;
+
+@Named
 public class UserConfigManager extends JsonManagerBase {
 
   private static final Logger logger = Logger.getLogger(UserConfigManager.class);
+
   @Inject
   private UserConfigSolrDao userConfigSolrDao;
   @Inject
-  private QueryGeneration queryGenerator;
+  private ConversionService conversionService;
 
-  public String saveUserConfig(VUserConfig vHistory) {
+  public String saveUserConfig(UserConfigData userConfig) {
 
     SolrInputDocument solrInputDoc = new SolrInputDocument();
-    if (!isValid(vHistory)) {
+    if (!isValid(userConfig)) {
       throw RESTErrorUtil.createRESTException("No FilterName Specified", MessageEnums.INVALID_INPUT_DATA);
     }
 
-    if (isNotUnique(vHistory) && !vHistory.isOverwrite()) {
-      throw RESTErrorUtil.createRESTException( "Name '" + vHistory.getFiltername() + "' already exists", MessageEnums.INVALID_INPUT_DATA);
+    if (isNotUnique(userConfig) && !userConfig.isOverwrite()) {
+      throw RESTErrorUtil.createRESTException( "Name '" + userConfig.getFiltername() + "' already exists", MessageEnums.INVALID_INPUT_DATA);
     }
-    String loggedInUserName = vHistory.getUserName();
-    String filterName = vHistory.getFiltername();
+    String loggedInUserName = userConfig.getUserName();
+    String filterName = userConfig.getFiltername();
 
-    solrInputDoc.addField(LogSearchConstants.ID, vHistory.getId());
-    solrInputDoc.addField(LogSearchConstants.USER_NAME, loggedInUserName);
-    solrInputDoc.addField(LogSearchConstants.VALUES, vHistory.getValues());
-    solrInputDoc.addField(LogSearchConstants.FILTER_NAME, filterName);
-    solrInputDoc.addField(LogSearchConstants.ROW_TYPE, vHistory.getRowType());
-    List<String> shareNameList = vHistory.getShareNameList();
+    solrInputDoc.addField(ID, userConfig.getId());
+    solrInputDoc.addField(USER_NAME, loggedInUserName);
+    solrInputDoc.addField(VALUES, userConfig.getValues());
+    solrInputDoc.addField(FILTER_NAME, filterName);
+    solrInputDoc.addField(ROW_TYPE, userConfig.getRowType());
+    List<String> shareNameList = userConfig.getShareNameList();
     if (shareNameList != null && !shareNameList.isEmpty()) {
-      solrInputDoc.addField(LogSearchConstants.SHARE_NAME_LIST, shareNameList);
+      solrInputDoc.addField(SHARE_NAME_LIST, shareNameList);
     }
     // Check whether the Filter Name exists in solr
     SolrQuery solrQuery = new SolrQuery();
-    SolrUtil.setMainQuery(solrQuery, null);
-    queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.FILTER_NAME, SolrUtil.makeSearcableString(filterName));
-    queryGenerator.setSingleIncludeFilter(solrQuery, LogSearchConstants.USER_NAME, loggedInUserName);
+    solrQuery.setQuery("*:*");
+    solrQuery.addFilterQuery(String.format("%s:%s", FILTER_NAME, SolrUtil.makeSearcableString(filterName)));
+    solrQuery.addFilterQuery(String.format("%s:%s", USER_NAME, loggedInUserName));
     try {
       QueryResponse queryResponse = userConfigSolrDao.process(solrQuery);
       if (queryResponse != null) {
         SolrDocumentList documentList = queryResponse.getResults();
-        if (documentList != null && !documentList.isEmpty() && !vHistory.isOverwrite()) {
+        if (documentList != null && !documentList.isEmpty() && !userConfig.isOverwrite()) {
           logger.error("Filtername is already present");
           throw RESTErrorUtil.createRESTException("Filtername is already present", MessageEnums.INVALID_INPUT_DATA);
         }
       }
-    } catch (SolrException | SolrServerException | IOException e) {
+    } catch (SolrException e) {
       logger.error("Error in checking same filtername config", e);
       throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
@@ -108,28 +115,28 @@ public class UserConfigManager extends JsonManagerBase {
     }
   }
 
-  private boolean isNotUnique(VUserConfig vHistory) {
-    String filterName = vHistory.getFiltername();
-    String rowType = vHistory.getRowType();
+  private boolean isNotUnique(UserConfigData userConfig) {
+    String filterName = userConfig.getFiltername();
+    String rowType = userConfig.getRowType();
 
     if (filterName != null && rowType != null) {
       SolrQuery solrQuery = new SolrQuery();
       filterName = SolrUtil.makeSearcableString(filterName);
-      solrQuery.setQuery(LogSearchConstants.COMPOSITE_KEY + ":" + filterName + "-" + rowType);
+      solrQuery.setQuery(COMPOSITE_KEY + ":" + filterName + "-" + rowType);
       SolrUtil.setRowCount(solrQuery, 0);
       try {
         Long numFound = userConfigSolrDao.process(solrQuery).getResults().getNumFound();
         if (numFound > 0) {
           return true;
         }
-      } catch (SolrException | SolrServerException | IOException e) {
+      } catch (SolrException e) {
         logger.error("Error while checking if userConfig is unique.", e);
       }
     }
     return false;
   }
 
-  private boolean isValid(VUserConfig vHistory) {
+  private boolean isValid(UserConfigData vHistory) {
     return !StringUtils.isBlank(vHistory.getFiltername())
         && !StringUtils.isBlank(vHistory.getRowType())
         && !StringUtils.isBlank(vHistory.getUserName())
@@ -145,131 +152,99 @@ public class UserConfigManager extends JsonManagerBase {
   }
 
   @SuppressWarnings("unchecked")
-  public String getUserConfig(SearchCriteria searchCriteria) {
-
-    SolrDocumentList solrList = new SolrDocumentList();
-    VUserConfigList userConfigList = new VUserConfigList();
-
-    String rowType = (String) searchCriteria.getParamValue(LogSearchConstants.ROW_TYPE);
+  public UserConfigDataListResponse getUserConfig(UserConfigRequest request) {
+    UserConfigDataListResponse response = new UserConfigDataListResponse();
+    String rowType = request.getRowType();
     if (StringUtils.isBlank(rowType)) {
       throw RESTErrorUtil.createRESTException("row type was not specified", MessageEnums.INVALID_INPUT_DATA);
     }
 
-    String userName = (String) searchCriteria.getParamValue(LogSearchConstants.USER_NAME);
+    String userName = request.getUserId();
     if (StringUtils.isBlank(userName)) {
       throw RESTErrorUtil.createRESTException("user name was not specified", MessageEnums.INVALID_INPUT_DATA);
     }
-    String filterName = (String) searchCriteria.getParamValue(LogSearchConstants.FILTER_NAME);
-    filterName = StringUtils.isBlank(filterName) ? "*" : "*" + filterName + "*";
 
-    try {
+    SolrQuery userConfigQuery = conversionService.convert(request, SolrQuery.class);
+    SolrDocumentList solrList = userConfigSolrDao.process(userConfigQuery).getResults();
 
-      SolrQuery userConfigQuery = new SolrQuery();
-      SolrUtil.setMainQuery(userConfigQuery, null);
-      queryGenerator.setPagination(userConfigQuery, searchCriteria);
-      queryGenerator.setSingleIncludeFilter(userConfigQuery, LogSearchConstants.ROW_TYPE, rowType);
-      queryGenerator.setSingleORFilter(userConfigQuery, LogSearchConstants.USER_NAME, userName, LogSearchConstants.SHARE_NAME_LIST, userName);
-      queryGenerator.setSingleIncludeFilter(userConfigQuery, LogSearchConstants.FILTER_NAME, SolrUtil.makeSearcableString(filterName));
+    Collection<UserConfigData> configList = new ArrayList<>();
 
-      if (StringUtils.isBlank(searchCriteria.getSortBy())) {
-        searchCriteria.setSortBy(LogSearchConstants.FILTER_NAME);
-      }
-      if (StringUtils.isBlank(searchCriteria.getSortType())) {
-        searchCriteria.setSortType("" + SolrQuery.ORDER.asc);
-      }
-
-      queryGenerator.setSingleSortOrder(userConfigQuery, searchCriteria);
-      solrList = userConfigSolrDao.process(userConfigQuery).getResults();
-
-      Collection<VUserConfig> configList = new ArrayList<VUserConfig>();
-
-      for (SolrDocument solrDoc : solrList) {
-        VUserConfig userConfig = new VUserConfig();
-        userConfig.setFiltername("" + solrDoc.get(LogSearchConstants.FILTER_NAME));
-        userConfig.setId("" + solrDoc.get(LogSearchConstants.ID));
-        userConfig.setValues("" + solrDoc.get(LogSearchConstants.VALUES));
-        userConfig.setRowType("" + solrDoc.get(LogSearchConstants.ROW_TYPE));
-        try {
-          List<String> shareNameList = (List<String>) solrDoc.get(LogSearchConstants.SHARE_NAME_LIST);
-          userConfig.setShareNameList(shareNameList);
-        } catch (Exception e) {
-          // do nothing
-        }
-
-        userConfig.setUserName("" + solrDoc.get(LogSearchConstants.USER_NAME));
-
-        configList.add(userConfig);
+    for (SolrDocument solrDoc : solrList) {
+      UserConfigData userConfig = new UserConfigData();
+      userConfig.setFiltername("" + solrDoc.get(FILTER_NAME));
+      userConfig.setId("" + solrDoc.get(ID));
+      userConfig.setValues("" + solrDoc.get(VALUES));
+      userConfig.setRowType("" + solrDoc.get(ROW_TYPE));
+      try {
+        List<String> shareNameList = (List<String>) solrDoc.get(SHARE_NAME_LIST);
+        userConfig.setShareNameList(shareNameList);
+      } catch (Exception e) {
+        // do nothing
       }
 
-      userConfigList.setName("historyList");
-      userConfigList.setUserConfigList(configList);
+      userConfig.setUserName("" + solrDoc.get(USER_NAME));
 
-      userConfigList.setStartIndex(searchCriteria.getStartIndex());
-      userConfigList.setPageSize((int) searchCriteria.getMaxRows());
-
-      userConfigList.setTotalCount((long) solrList.getNumFound());
-    } catch (SolrException | SolrServerException | IOException e) {
-      // do nothing
-      logger.error(e);
-      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
+      configList.add(userConfig);
     }
 
-    return convertObjToString(userConfigList);
+    response.setName("historyList");
+    response.setUserConfigList(configList);
+
+    response.setStartIndex(Integer.parseInt(request.getStartIndex()));
+    response.setPageSize(Integer.parseInt(request.getPageSize()));
+
+    response.setTotalCount((long) solrList.getNumFound());
+
+    return response;
 
   }
 
-  public String updateUserConfig(VUserConfig vuserConfig) {
-    return saveUserConfig(vuserConfig);
+  public String updateUserConfig(UserConfigData userConfig) {
+    return saveUserConfig(userConfig);
   }
 
   // ////////////////////////////LEVEL FILTER/////////////////////////////////////
 
-  public String getUserFilter() {
-    VLogfeederFilterWrapper userFilter;
+  public LogFeederDataMap getUserFilter() {
+    LogFeederDataMap userFilter;
     try {
       userFilter = userConfigSolrDao.getUserFilter();
     } catch (SolrServerException | IOException e) {
       logger.error(e);
       throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-    return convertObjToString(userFilter);
+    return userFilter;
   }
 
-  public String saveUserFiter(String json) {
-    if (!StringUtils.isBlank(json)) {
-      VLogfeederFilterWrapper logfeederFilterWrapper = (VLogfeederFilterWrapper) JSONUtil.jsonToObj(json, VLogfeederFilterWrapper.class);
-      try {
-        if (logfeederFilterWrapper == null) {
-          logger.error(json + " is a invalid json");
-        }
-        userConfigSolrDao.saveUserFilter(logfeederFilterWrapper);
-      } catch (SolrException | SolrServerException | IOException e) {
-        logger.error("user config not able to save", e);
-        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
-      }
+  public LogFeederDataMap saveUserFiter(LogFeederDataMap logfeederFilters) {
+    try {
+      userConfigSolrDao.saveUserFilter(logfeederFilters);
+    } catch (SolrException | SolrServerException | IOException e) {
+      logger.error("user config not able to save", e);
+      throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
     return getUserFilter();
   }
 
-  public String getAllUserName() {
+  public List<String> getAllUserName() {
     List<String> userList = new ArrayList<String>();
     try {
       SolrQuery userListQuery = new SolrQuery();
-      SolrUtil.setMainQuery(userListQuery, null);
-      SolrUtil.setFacetField(userListQuery, LogSearchConstants.USER_NAME);
+      userListQuery.setQuery("*:*");
+      SolrUtil.setFacetField(userListQuery, USER_NAME);
       QueryResponse queryResponse = userConfigSolrDao.process(userListQuery);
       if (queryResponse == null) {
-        return convertObjToString(userList);
+        return userList;
       }
-      List<Count> counList = queryResponse.getFacetField(LogSearchConstants.USER_NAME).getValues();
+      List<Count> counList = queryResponse.getFacetField(USER_NAME).getValues();
       for (Count cnt : counList) {
         String userName = cnt.getName();
         userList.add(userName);
       }
-    } catch (SolrException | SolrServerException | IOException e) {
+    } catch (SolrException e) {
       logger.warn("Error getting all users.", e);
       throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
     }
-    return convertObjToString(userList);
+    return userList;
   }
 }

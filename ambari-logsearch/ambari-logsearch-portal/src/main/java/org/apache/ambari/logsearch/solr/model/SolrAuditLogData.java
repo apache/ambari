@@ -23,79 +23,82 @@ import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.*;
 
 public class SolrAuditLogData extends SolrCommonLogData implements AuditLogData {
 
-  @Field("logType")
+  @Field(AUDIT_LOG_TYPE)
   private String logType;
 
-  @Field("policy")
+  @Field(AUDIT_POLICY)
   private String policy;
 
-  @Field("access")
+  @Field(AUDIT_ACCESS)
   private String access;
 
-  @Field("action")
+  @Field(AUDIT_ACTION)
   private String action;
 
-  @Field("agent")
+  @Field(AUDIT_AGENT)
   private String agent;
 
-  @Field("agentHost")
+  @Field(AUDIT_AGENT_HOST)
   private String agentHost;
 
-  @Field("cliIP")
+  @Field(AUDIT_CLIENT_IP)
   private String clientIp;
 
-  @Field("cliType")
+  @Field(AUDIT_CLIENT_TYPE)
   private String clientType;
 
-  @Field("reqContext")
+  @Field(AUDIT_REQEST_CONTEXT)
   private String requestContext;
 
-  @Field("enforcer")
+  @Field(AUDIT_ENFORCER)
   private String enforcer;
 
-  @Field("evtTime")
+  @Field(AUDIT_EVTTIME)
   private Date eventTime;
 
-  @Field("reason")
+  @Field(AUDIT_REASON)
   private String reason;
 
-  @Field("proxyUsers")
+  @Field(AUDIT_PROXY_USERS)
   private List<String> proxyUsers;
 
-  @Field("repo")
+  @Field(AUDIT_COMPONENT)
   private String repo;
 
-  @Field("repoType")
+  @Field(AUDIT_REPO_TYPE)
   private Integer repoType;
 
-  @Field("reqData")
+  @Field(AUDIT_REQEST_DATA)
   private String requestData;
 
-  @Field("reqUser")
+  @Field(AUDIT_REQUEST_USER)
   private String requestUser;
 
-  @Field("resType")
+  @Field(AUDIT_RESPONSE_TYPE)
   private String responseType;
 
-  @Field("resource")
+  @Field(AUDIT_RESOURCE)
   private String resource;
 
-  @Field("result")
+  @Field(AUDIT_RESULT)
   private Integer result;
 
-  @Field("sess")
+  @Field(AUDIT_SESSION)
   private String session;
 
-  @Field("tags")
+  @Field(AUDIT_TAGS)
   private List<String> tags;
 
-  @Field("tags_str")
+  @Field(AUDIT_TAGS_STR)
   private String tagsStr;
 
-  @Field("text")
+  @Field(AUDIT_TEXT)
   private String text;
 
   @Override

@@ -37,8 +37,8 @@ public interface LogTruncatedParamDefinition {
   @ApiParam(value = SCROLL_TYPE_D, name = LogSearchConstants.REQUEST_PARAM_SCROLL_TYPE)
   void setScrollType(String scrollType);
 
-  String getNumberRows();
+  Integer getNumberRows();
 
   @ApiParam(value = NUMBER_ROWS_D, name = LogSearchConstants.REQUEST_PARAM_NUMBER_ROWS)
-  void setNumberRows(String numberRows);
+  void setNumberRows(Integer numberRows);
 }

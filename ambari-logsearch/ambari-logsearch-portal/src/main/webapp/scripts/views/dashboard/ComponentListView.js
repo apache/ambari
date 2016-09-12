@@ -181,7 +181,7 @@ define(['require',
 					this.lastComponentLI = $el.data("name");
 					this.ui.componentsList.find("li").removeClass("active");
 					$el.addClass("active");
-					this.fetchComponentsHost(_.extend({componentName:$el.data("name")},this.searchParams));
+					this.fetchComponentsHost(_.extend({component_name:$el.data("name")},this.searchParams));
 				},
 				onNewTabIconClick : function(e){
 					var $el = $(e.currentTarget),host,component,that=this;

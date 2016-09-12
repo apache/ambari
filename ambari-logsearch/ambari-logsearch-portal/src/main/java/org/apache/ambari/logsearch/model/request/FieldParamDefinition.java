@@ -27,6 +27,6 @@ public interface FieldParamDefinition {
 
   String getField();
 
-  @ApiParam(value = FIELD_D, name = LogSearchConstants.REQUEST_PARAM_FIELD)
+  @ApiParam(value = FIELD_D, name = LogSearchConstants.REQUEST_PARAM_FIELD, required = true)
   void setField(String field);
 }

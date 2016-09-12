@@ -18,8 +18,6 @@
  */
 package org.apache.ambari.logsearch.common;
 
-import org.apache.ambari.logsearch.view.VMessage;
-
 public enum MessageEnums {
 
   // Common Errors
@@ -51,16 +49,16 @@ public enum MessageEnums {
     this.messageDesc = messageDesc;
   }
 
-  public VMessage getMessage() {
-    VMessage msg = new VMessage();
+  public MessageData getMessage() {
+    MessageData msg = new MessageData();
     msg.setName(this.toString());
     msg.setRbKey(rbKey);
     msg.setMessage(messageDesc);
     return msg;
   }
 
-  public VMessage getMessage(Long objectId, String fieldName) {
-    VMessage msg = new VMessage();
+  public MessageData getMessage(Long objectId, String fieldName) {
+    MessageData msg = new MessageData();
     msg.setName(this.toString());
     msg.setRbKey(rbKey);
     msg.setMessage(messageDesc);

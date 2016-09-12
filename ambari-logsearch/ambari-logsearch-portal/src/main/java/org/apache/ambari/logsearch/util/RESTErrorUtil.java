@@ -26,8 +26,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.view.VMessage;
-import org.apache.ambari.logsearch.view.VResponse;
+import org.apache.ambari.logsearch.common.MessageData;
+import org.apache.ambari.logsearch.common.VResponse;
 import org.apache.log4j.Logger;
 
 public class RESTErrorUtil {
@@ -42,7 +42,7 @@ public class RESTErrorUtil {
   }
 
   public static WebApplicationException createRESTException(String errorMessage, MessageEnums messageEnum) {
-    List<VMessage> messageList = new ArrayList<VMessage>();
+    List<MessageData> messageList = new ArrayList<MessageData>();
     messageList.add(messageEnum.getMessage());
 
     VResponse response = new VResponse();

@@ -27,7 +27,7 @@ import org.apache.ambari.logsearch.model.request.UnitParamDefinition;
 import javax.ws.rs.QueryParam;
 
 public class ServiceAnyGraphRequest extends ServiceLogRequest
-  implements AnyGraphParamDefinition, DateRangeParamDefinition, UnitParamDefinition {
+  implements AnyGraphParamDefinition, UnitParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_XAXIS)
   private String xAxis;
@@ -40,12 +40,6 @@ public class ServiceAnyGraphRequest extends ServiceLogRequest
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_UNIT)
   private String unit;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FROM)
-  private String from;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_TO)
-  private String to;
 
   @Override
   public String getxAxis() {
@@ -85,25 +79,5 @@ public class ServiceAnyGraphRequest extends ServiceLogRequest
   @Override
   public void setUnit(String unit) {
     this.unit = unit;
-  }
-
-  @Override
-  public String getFrom() {
-    return from;
-  }
-
-  @Override
-  public void setFrom(String from) {
-    this.from = from;
-  }
-
-  @Override
-  public String getTo() {
-    return to;
-  }
-
-  @Override
-  public void setTo(String to) {
-    this.to = to;
   }
 }

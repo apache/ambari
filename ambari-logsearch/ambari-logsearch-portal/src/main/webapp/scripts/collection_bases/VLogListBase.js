@@ -89,7 +89,7 @@ define(['require',
 
       return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
 		},
-		getTruncatedLogs : function(token, options){
+    getTruncatedLogs : function(token, options){
 			var url = Globals.baseURL  + 'service/logs/truncated';
 			
 			options = _.extend({

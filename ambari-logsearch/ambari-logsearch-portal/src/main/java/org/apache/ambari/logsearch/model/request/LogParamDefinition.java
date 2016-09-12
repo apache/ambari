@@ -20,6 +20,8 @@ package org.apache.ambari.logsearch.model.request;
 
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+
+import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.E_MESSAGE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.I_MESSAGE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.MUST_BE_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.MUST_NOT_D;
@@ -32,6 +34,11 @@ public interface LogParamDefinition {
 
   @ApiParam(value = I_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_I_MESSAGE)
   void setiMessage(String iMessage);
+
+  String geteMessage();
+
+  @ApiParam(value = E_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
+  void seteMessage(String eMessage);
 
   String getMustBe();
 

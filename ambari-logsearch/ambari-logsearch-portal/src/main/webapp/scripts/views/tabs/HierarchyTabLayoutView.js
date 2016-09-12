@@ -276,6 +276,7 @@ define(['require',
         require(['views/tabs/VisualSearchView'], function (VisualSearchView) {
           var data = _.values(Globals.serviceLogsColumns);
           var columns = _.without(data, _.findWhere(data, "logtime"));
+          console.log("service columns: " + JSON.stringify(columns))
           that.RVisualSearchIncCol.show(new VisualSearchView({
             viewName: "includeServiceColumns",
             placeholder: "Include Search",
@@ -287,7 +288,7 @@ define(['require',
               var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
               return {
                 includeQuery: JSON.stringify(obj),
-                query: query
+                iMessage: query
               }
             }
           }));
@@ -302,7 +303,7 @@ define(['require',
               var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
               return {
                 excludeQuery: JSON.stringify(obj),
-                query: query
+                eMessage: query
               }
             }
           }));
