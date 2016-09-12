@@ -38,6 +38,19 @@ from resource_management.libraries.functions.show_logs import show_logs
 
 from zkfc_slave import ZkfcSlaveDefault
 
+import ssl
+from functools import wraps
+
+# patch ssl module to fix SSLv3 communication bug
+# for more info see http://stackoverflow.com/questions/9835506/urllib-urlopen-works-on-sslv3-urls-with-python-2-6-6-on-1-machine-but-not-wit
+def sslwrap(func):
+    @wraps(func)
+    def bar(*args, **kw):
+        kw['ssl_version'] = ssl.PROTOCOL_TLSv1
+        return func(*args, **kw)
+    return bar
+ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+
 def safe_zkfc_op(action, env):
   """
   Idempotent operation on the zkfc process to either start or stop it.
