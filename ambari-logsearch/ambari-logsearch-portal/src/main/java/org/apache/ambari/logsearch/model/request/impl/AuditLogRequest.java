@@ -23,7 +23,7 @@ import org.apache.ambari.logsearch.model.request.LastPageParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class AuditLogRequest extends BaseAuditLogRequest implements LastPageParamDefinition {
+public class AuditLogRequest extends BaseLogRequest implements LastPageParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_LAST_PAGE)
   private boolean isLastPage;

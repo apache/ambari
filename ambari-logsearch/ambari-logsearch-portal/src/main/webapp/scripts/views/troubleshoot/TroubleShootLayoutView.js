@@ -82,7 +82,7 @@ define(['backbone',
 
                     }
                 });
-                this.serviceLogsCollection.url = Globals.baseURL + "service/logs/anygraph";
+                this.serviceLogsCollection.url = Globals.baseURL + "service/logs/count/anygraph";
                 this.serviceLogsCollection.modelAttrName = "graphData";
                 
             	this.topUsers = new VNameValueList([],{
@@ -91,7 +91,7 @@ define(['backbone',
                         pageSize: 9999
                     }
     			});
-    			this.topUsers.url = Globals.baseURL + "audit/logs/users";
+    			this.topUsers.url = Globals.baseURL + "audit/logs/resources/10";
     			this.topUsers.modelAttrName = "graphData";
     			
     			this.serviceLoadCollection = new VLogList([], {
@@ -133,7 +133,7 @@ define(['backbone',
             },
             onRender : function(){
             	var that = this;
-            	this.fetchTopUsers(this.params);
+            	this.fetchTopUsers(_.extend({field : "reqUser"},this.params));
             	this.serviceLogsCollection.getServicesInfo({
                 	success : function(resp){
                 		Globals.servicesInfo = resp;

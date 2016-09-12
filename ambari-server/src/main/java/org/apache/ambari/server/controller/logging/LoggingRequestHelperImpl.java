@@ -64,7 +64,7 @@ public class LoggingRequestHelperImpl implements LoggingRequestHelper {
 
   private static final String LOGSEARCH_QUERY_PATH = "/api/v1/service/logs";
 
-  private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/api/v1/service/logs/levels/counts/namevalues";
+  private static final String LOGSEARCH_GET_LOG_LEVELS_PATH = "/api/v1/service/logs/levels/counts";
 
   private static final String LOGSEARCH_ADMIN_CREDENTIAL_NAME = "logsearch.admin.credential";
 

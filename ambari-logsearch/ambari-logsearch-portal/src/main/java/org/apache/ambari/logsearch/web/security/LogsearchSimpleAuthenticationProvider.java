@@ -27,11 +27,11 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
-@Component
+@Named
 public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
   private static Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);

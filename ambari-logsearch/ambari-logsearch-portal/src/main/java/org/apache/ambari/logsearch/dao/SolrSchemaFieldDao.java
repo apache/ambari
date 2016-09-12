@@ -33,16 +33,12 @@ import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
-@Scope(value = "prototype")
 public class SolrSchemaFieldDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrSchemaFieldDao.class);
@@ -52,11 +48,13 @@ public class SolrSchemaFieldDao {
 
   private boolean populateFieldsThreadActive = false;
 
+  private Map<String, String> schemaFieldNameMap = new HashMap<>();
+  private Map<String, String> schemaFieldTypeMap = new HashMap<>();
+
   @Inject
   private SolrUserPropsConfig solrUserPropsConfig;
 
-  public void populateSchemaFields(final CloudSolrClient solrClient, final SolrPropsConfig solrPropsConfig,
-                                   final SolrDaoBase solrDao) {
+  public void populateSchemaFields(final CloudSolrClient solrClient, final SolrPropsConfig solrPropsConfig) {
     if (!populateFieldsThreadActive) {
       populateFieldsThreadActive = true;
       LOG.info("Creating thread to populated fields for collection=" + solrPropsConfig.getCollection());
@@ -69,7 +67,7 @@ public class SolrSchemaFieldDao {
             try {
               Thread.sleep(SETUP_RETRY_SECOND * 1000);
               retryCount++;
-              boolean _result = _populateSchemaFields(solrClient, solrPropsConfig, solrDao);
+              boolean _result = _populateSchemaFields(solrClient, solrPropsConfig);
               if (_result) {
                 LOG.info("Populate fields for collection " + solrPropsConfig.getCollection() + " is success, Update it after " +
                   SETUP_UPDATE_SECOND + " sec");
@@ -94,7 +92,7 @@ public class SolrSchemaFieldDao {
   /**
    * Called from the thread. Don't call this directly
    */
-  private boolean _populateSchemaFields(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig, SolrDaoBase solrDao) {
+  private boolean _populateSchemaFields(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) {
     SolrRequest<SchemaResponse> request = new SchemaRequest();
     request.setMethod(SolrRequest.METHOD.GET);
     request.setPath("/schema");
@@ -109,7 +107,7 @@ public class SolrSchemaFieldDao {
       }
 
       if (namedList != null) {
-        extractSchemaFieldsName(namedList.toString(), solrDao.schemaFieldNameMap, solrDao.schemaFieldTypeMap);
+        extractSchemaFieldsName(namedList.toString(), schemaFieldNameMap, schemaFieldTypeMap);
         return true;
       }
     }
@@ -155,5 +153,13 @@ public class SolrSchemaFieldDao {
     } catch (Exception e) {
       LOG.error(e + "Credentials not specified in logsearch.properties " + MessageEnums.ERROR_SYSTEM);
     }
+  }
+
+  public Map<String, String> getSchemaFieldTypeMap() {
+    return schemaFieldTypeMap;
+  }
+
+  public Map<String, String> getSchemaFieldNameMap() {
+    return schemaFieldNameMap;
   }
 }

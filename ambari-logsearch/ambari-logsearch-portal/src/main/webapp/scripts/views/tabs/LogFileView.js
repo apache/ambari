@@ -199,9 +199,6 @@ define(['require',
             downloadLogFile: function(obj) {
                 obj.utcOffset = moment().utcOffset();
                 obj.startIndex = this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize;
-                //			var params = $.param(_.pick(_.extend({},this.logFileCollection.queryParams,
-                //				{startIndex : this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize},obj),
-                //				'component','from','to','host','level','unit','startIndex','pageSize','format','utcOffset'));
                 var params = $.param(_.extend({}, this.logFileCollection.queryParams, obj));
                 var url = "api/v1/service/logs/export?" + params;
                 window.open(url);
@@ -305,60 +302,43 @@ define(['require',
                 });
             },
             renderVisualSearch: function() {
-                var that = this;
-                var data = _.values(Globals.serviceLogsColumns);
-                var columns = _.without(data, _.findWhere(data, "logtime"));
-                require(['views/tabs/VisualSearchView'], function(VisualSearchView) {
-                    /*that.RVSSearch.show(new VisualSearchView({
-                    	viewName : "includeExclude",
-                    	vent : that.vent,
-                    	globalVent:that.globalVent,
-                    	params : that.params,
-                    	eventName : "search:include:exclude"
-                    }));*/
-                    that.RVisualSearchIncCol.show(new VisualSearchView({
-                        params: that.params,
-                        viewName: "includeServiceColumns",
-                        placeholder: "Include Search",
-                        vent: that.vent,
-                        globalVent: that.globalVent,
-                        customOptions: columns,
-                        eventName: Globals.eventName.serviceLogsIncludeColumns,
-                        myFormatData: function(query, searchCollection) {
-                            var obj = [];
-                            searchCollection.each(function(m) {
-                                var data = {};
-                                data[m.get("category")] = m.get("value");
-                                obj.push(data);
-                            });
-                            return {
-                                includeQuery: JSON.stringify(obj),
-                                query: query
-                            }
-                        }
-                    }));
-                    that.RVisualSearchExCol.show(new VisualSearchView({
-                        params: that.params,
-                        viewName: "excludeServiceColumns",
-                        placeholder: "Exclude Search",
-                        vent: that.vent,
-                        globalVent: that.globalVent,
-                        customOptions: columns,
-                        eventName: Globals.eventName.serviceLogsExcludeColumns,
-                        myFormatData: function(query, searchCollection) {
-                            var obj = [];
-                            searchCollection.each(function(m) {
-                                var data = {};
-                                data[m.get("category")] = m.get("value");
-                                obj.push(data);
-                            });
-                            return {
-                                excludeQuery: JSON.stringify(obj),
-                                query: query
-                            }
-                        }
-                    }));
-                });
+              var that = this;
+              var data = _.values(Globals.serviceLogsColumns);
+              var columns = _.without(data, _.findWhere(data, "logtime"));
+              require(['views/tabs/VisualSearchView'], function (VisualSearchView) {
+                that.RVisualSearchIncCol.show(new VisualSearchView({
+                  params: that.params,
+                  viewName: "includeServiceColumns",
+                  placeholder: "Include Search",
+                  vent: that.vent,
+                  globalVent: that.globalVent,
+                  customOptions: columns,
+                  eventName: Globals.eventName.serviceLogsIncludeColumns,
+                  myFormatData: function (query, searchCollection) {
+                    var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
+                    return {
+                      includeQuery: JSON.stringify(obj),
+                      iMessage: query
+                    }
+                  }
+                }));
+                that.RVisualSearchExCol.show(new VisualSearchView({
+                  params: that.params,
+                  viewName: "excludeServiceColumns",
+                  placeholder: "Exclude Search",
+                  vent: that.vent,
+                  globalVent: that.globalVent,
+                  customOptions: columns,
+                  eventName: Globals.eventName.serviceLogsExcludeColumns,
+                  myFormatData: function (query, searchCollection) {
+                    var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
+                    return {
+                      excludeQuery: JSON.stringify(obj),
+                      eMessage: query
+                    }
+                  }
+                }));
+              });
             },
             renderHistogram: function() {
                 var that = this;

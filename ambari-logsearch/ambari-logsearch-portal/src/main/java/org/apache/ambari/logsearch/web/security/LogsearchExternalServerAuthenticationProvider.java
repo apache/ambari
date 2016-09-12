@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.ambari.logsearch.common.ExternalServerClient;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
@@ -34,14 +35,13 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Component;
 
 /**
  * 
  * Authentication provider to authenticate user from external-server using REST
  * call
  */
-@Component
+@Named
 public class LogsearchExternalServerAuthenticationProvider extends
     LogsearchAbstractAuthenticationProvider {
 
@@ -152,10 +152,9 @@ public class LogsearchExternalServerAuthenticationProvider extends
    */
   @SuppressWarnings("static-access")
   private boolean isAllowedRole(String responseJson) {
-    String allowedRoleList[] = PropertiesHelper
-        .getPropertyStringList(ALLOWED_ROLE_PROP);
+    String allowedRoleList[] = PropertiesHelper.getPropertyStringList(ALLOWED_ROLE_PROP);
 
-    List<String> values = new ArrayList<String>();
+    List<String> values = new ArrayList<>();
     JSONUtil.getValuesOfKey(responseJson,
         PRIVILEGE_INFO.PERMISSION_NAME.toString(), values);
     if (values.isEmpty())

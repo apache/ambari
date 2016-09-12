@@ -19,21 +19,23 @@
 package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.apache.ambari.logsearch.model.request.impl.BaseServiceLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceExtremeDatesRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogAggregatedInfoRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentHostRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentLevelRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogExportRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogHostComponentRequest;
+import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogTruncatedRequest;
 import org.apache.ambari.logsearch.model.response.BarGraphDataListResponse;
@@ -43,23 +45,15 @@ import org.apache.ambari.logsearch.model.response.GroupListResponse;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
 import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
-import org.apache.ambari.logsearch.query.model.CommonServiceLogSearchCriteria;
 import org.apache.ambari.logsearch.manager.ServiceLogsManager;
-import org.apache.ambari.logsearch.query.model.ServiceAnyGraphSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceExtremeDatesCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceGraphSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceLogExportSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceLogSearchCriteria;
-import org.apache.ambari.logsearch.query.model.ServiceLogTruncatedSearchCriteria;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.stereotype.Component;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceOperationDescriptions.*;
 
 @Api(value = "service/logs", description = "Service log operations")
 @Path("service/logs")
-@Component
+@Named
 @Scope("request")
 public class ServiceLogsResource {
 
@@ -73,7 +67,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(SEARCH_LOGS_OD)
   public ServiceLogResponse searchSolrData(@BeanParam ServiceLogRequest request) {
-    return serviceLogsManager.searchLogs(conversionService.convert(request, ServiceLogSearchCriteria.class));
+    return serviceLogsManager.searchLogs(request);
   }
 
   @GET
@@ -96,16 +90,8 @@ public class ServiceLogsResource {
   @Path("/aggregated")
   @Produces({"application/json"})
   @ApiOperation(GET_AGGREGATED_INFO_OD)
-  public GraphDataListResponse getAggregatedInfo(@BeanParam BaseServiceLogRequest request) {
-    return serviceLogsManager.getAggregatedInfo(conversionService.convert(request, CommonServiceLogSearchCriteria.class));
-  }
-
-  @GET
-  @Path("/levels/count")
-  @Produces({"application/json"})
-  @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
-  public CountDataListResponse getLogLevelsCount() {
-    return serviceLogsManager.getLogLevelCount();
+  public GraphDataListResponse getAggregatedInfo(@BeanParam ServiceLogAggregatedInfoRequest request) {
+    return serviceLogsManager.getAggregatedInfo(request);
   }
 
   @GET
@@ -128,18 +114,16 @@ public class ServiceLogsResource {
   @Path("/tree")
   @Produces({"application/json"})
   @ApiOperation(GET_TREE_EXTENSION_OD)
-  public NodeListResponse getTreeExtension(@QueryParam("hostName") @ApiParam String hostName, @BeanParam ServiceLogRequest request) {
-    ServiceLogSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogSearchCriteria.class);
-    searchCriteria.addParam("hostName", hostName); // TODO: use host_name instead - needs UI change
-    return serviceLogsManager.getTreeExtension(searchCriteria);
+  public NodeListResponse getTreeExtension(@BeanParam ServiceLogHostComponentRequest request) {
+    return serviceLogsManager.getTreeExtension(request);
   }
 
   @GET
-  @Path("/levels/counts/namevalues")
+  @Path("/levels/counts")
   @Produces({"application/json"})
   @ApiOperation(GET_LOG_LEVELS_COUNT_OD)
-  public NameValueDataListResponse getLogsLevelCount(@BeanParam ServiceLogRequest request) {
-    return serviceLogsManager.getLogsLevelCount(conversionService.convert(request, ServiceLogSearchCriteria.class));
+  public NameValueDataListResponse getLogsLevelCount(@BeanParam ServiceLogLevelCountRequest request) {
+    return serviceLogsManager.getLogsLevelCount(request);
   }
 
   @GET
@@ -147,15 +131,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_HISTOGRAM_DATA_OD)
   public BarGraphDataListResponse getHistogramData(@BeanParam ServiceGraphRequest request) {
-    return serviceLogsManager.getHistogramData(conversionService.convert(request, ServiceGraphSearchCriteria.class));
-  }
-
-  @GET
-  @Path("/request/cancel")
-  @Produces({"application/json"})
-  @ApiOperation(CANCEL_FIND_REQUEST_OD)
-  public String cancelFindRequest(@QueryParam("token") @ApiParam String token) {
-    return serviceLogsManager.cancelFindRequestByDate(token);
+    return serviceLogsManager.getHistogramData(request);
   }
 
   @GET
@@ -163,36 +139,24 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(EXPORT_TO_TEXT_FILE_OD)
   public Response exportToTextFile(@BeanParam ServiceLogExportRequest request) {
-    return serviceLogsManager.exportToTextFile(conversionService.convert(request, ServiceLogExportSearchCriteria.class));
-
+    return serviceLogsManager.export(request);
   }
 
   @GET
   @Path("/hosts/components")
   @Produces({"application/json"})
   @ApiOperation(GET_HOST_LIST_BY_COMPONENT_OD)
-  public NodeListResponse getHostListByComponent(@BeanParam ServiceLogRequest request, @QueryParam("componentName") @ApiParam String componentName) {
-    ServiceLogSearchCriteria searchCriteria = conversionService.convert(request, ServiceLogSearchCriteria.class);
-    searchCriteria.addParam("componentName", componentName); // TODO: use component_name instead - needs UI change
-    return serviceLogsManager.getHostListByComponent(searchCriteria);
+  public NodeListResponse getHostListByComponent(@BeanParam ServiceLogComponentHostRequest request) {
+    return serviceLogsManager.getHostListByComponent(request);
   }
 
   @GET
   @Path("/components/levels/counts")
   @Produces({"application/json"})
   @ApiOperation(GET_COMPONENT_LIST_WITH_LEVEL_COUNT_OD)
-  public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogRequest request) {
-    return serviceLogsManager.getComponentListWithLevelCounts(conversionService.convert(request, ServiceLogSearchCriteria.class));
+  public NodeListResponse getComponentListWithLevelCounts(@BeanParam ServiceLogComponentLevelRequest request) {
+    return serviceLogsManager.getComponentListWithLevelCounts(request);
   }
-
-  @GET
-  @Path("/solr/boundarydates")
-  @Produces({"application/json"})
-  @ApiOperation(GET_EXTREME_DATES_FOR_BUNDLE_ID_OD)
-  public NameValueDataListResponse getExtremeDatesForBundelId(@BeanParam ServiceExtremeDatesRequest request) {
-    return serviceLogsManager.getExtremeDatesForBundelId(conversionService.convert(request, ServiceExtremeDatesCriteria.class));
-  }
-
   @GET
   @Path("/schema/fields")
   @Produces({"application/json"})
@@ -202,11 +166,11 @@ public class ServiceLogsResource {
   }
 
   @GET
-  @Path("/anygraph")
+  @Path("/count/anygraph")
   @Produces({"application/json"})
-  @ApiOperation(GET_ANY_GRAPH_DATA_OD)
-  public BarGraphDataListResponse getAnyGraphData(@BeanParam ServiceAnyGraphRequest request) {
-    return serviceLogsManager.getAnyGraphData(conversionService.convert(request, ServiceAnyGraphSearchCriteria.class));
+  @ApiOperation(GET_ANY_GRAPH_COUNT_DATA_OD)
+  public BarGraphDataListResponse getAnyGraphCountData(@BeanParam ServiceAnyGraphRequest request) {
+    return serviceLogsManager.getAnyGraphCountData(request);
   }
 
   @GET
@@ -214,7 +178,7 @@ public class ServiceLogsResource {
   @Produces({"application/json"})
   @ApiOperation(GET_AFTER_BEFORE_LOGS_OD)
   public ServiceLogResponse getAfterBeforeLogs(@BeanParam ServiceLogTruncatedRequest request) {
-    return serviceLogsManager.getAfterBeforeLogs(conversionService.convert(request, ServiceLogTruncatedSearchCriteria.class));
+    return serviceLogsManager.getAfterBeforeLogs(request);
   }
 
   @GET

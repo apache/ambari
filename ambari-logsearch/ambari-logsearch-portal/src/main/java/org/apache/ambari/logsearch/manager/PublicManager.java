@@ -25,11 +25,11 @@ import java.util.List;
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.model.response.NameValueData;
 import org.apache.ambari.logsearch.model.response.NameValueDataListResponse;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
-@Component
+@Named
 public class PublicManager extends JsonManagerBase {
 
   @Inject

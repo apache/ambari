@@ -19,36 +19,28 @@
 
 package org.apache.ambari.logsearch.dao;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ambari.logsearch.common.LogSearchContext;
+import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
-import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
-import org.apache.ambari.logsearch.model.response.BarGraphData;
-import org.apache.ambari.logsearch.model.response.NameValueData;
-import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest.METHOD;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.util.NamedList;
-import org.apache.solr.common.util.SimpleOrderedMap;
+import org.springframework.data.solr.core.DefaultQueryParser;
+import org.springframework.data.solr.core.SolrCallback;
+import org.springframework.data.solr.core.SolrTemplate;
+import org.springframework.data.solr.core.query.SolrDataQuery;
+
+import java.io.IOException;
 
 public abstract class SolrDaoBase {
 
+  private static final Logger LOG = Logger.getLogger(SolrDaoBase.class);
   private static final Logger LOG_PERFORMANCE = Logger.getLogger("org.apache.ambari.logsearch.performance");
-
-  public Map<String, String> schemaFieldNameMap = new HashMap<>();
-  public Map<String, String> schemaFieldTypeMap = new HashMap<>();
 
   private LogType logType;
   
@@ -56,51 +48,62 @@ public abstract class SolrDaoBase {
     this.logType = logType;
   }
 
-  public QueryResponse process(SolrQuery solrQuery) throws SolrServerException, IOException {
+  public QueryResponse process(SolrQuery solrQuery, String event) {
     if (getSolrClient() != null) {
-      String event = solrQuery.get("event");
+      event = event == null ? solrQuery.get("event") : event;
       solrQuery.remove("event");
-      QueryResponse queryResponse = getSolrClient().query(solrQuery, METHOD.POST);
-      if (event != null && !"/audit/logs/live/count".equalsIgnoreCase(event)) {
-        LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Event :- " + event + " SolrQuery :- " +
+      try {
+        QueryResponse queryResponse = getSolrClient().query(solrQuery, METHOD.POST);
+        if (event != null) {
+          LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Event :- " + event + " SolrQuery :- " +
             solrQuery + "\nQuery Time Execution :- " + queryResponse.getQTime() + " Total Time Elapsed is :- " +
             queryResponse.getElapsedTime());
+        }
+        return queryResponse;
+      } catch (Exception e){
+        LOG.error("Error during solrQuery=" + e);
+        throw RESTErrorUtil.createRESTException(MessageEnums.SOLR_ERROR.getMessage().getMessage(), MessageEnums.ERROR_SYSTEM);
       }
-      return queryResponse;
     } else {
       throw RESTErrorUtil.createRESTException("Solr configuration improper for " + logType.getLabel() +" logs",
           MessageEnums.ERROR_SYSTEM);
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public void extractValuesFromBuckets(SimpleOrderedMap<Object> jsonFacetResponse, String outerField, String innerField,
-                                        List<BarGraphData> histogramData) {
-    NamedList<Object> stack = (NamedList<Object>) jsonFacetResponse.get(outerField);
-    ArrayList<Object> stackBuckets = (ArrayList<Object>) stack.get("buckets");
-    for (Object temp : stackBuckets) {
-      BarGraphData vBarGraphData = new BarGraphData();
-
-      SimpleOrderedMap<Object> level = (SimpleOrderedMap<Object>) temp;
-      String name = ((String) level.getVal(0)).toUpperCase();
-      vBarGraphData.setName(name);
-
-      Collection<NameValueData> vNameValues = new ArrayList<>();
-      vBarGraphData.setDataCount(vNameValues);
-      ArrayList<Object> levelBuckets = (ArrayList<Object>) ((NamedList<Object>) level.get(innerField)).get("buckets");
-      for (Object temp1 : levelBuckets) {
-        SimpleOrderedMap<Object> countValue = (SimpleOrderedMap<Object>) temp1;
-        String value = DateUtil.convertDateWithMillisecondsToSolrDate((Date) countValue.getVal(0));
-
-        String count = "" + countValue.getVal(1);
-        NameValueData vNameValue = new NameValueData();
-        vNameValue.setName(value);
-        vNameValue.setValue(count);
-        vNameValues.add(vNameValue);
-      }
-      histogramData.add(vBarGraphData);
-    }
+  public QueryResponse process(SolrQuery solrQuery) {
+    return process(solrQuery, null);
   }
 
-  public abstract CloudSolrClient getSolrClient();
+  public QueryResponse process(SolrDataQuery solrDataQuery) {
+    return process(new DefaultQueryParser().doConstructSolrQuery(solrDataQuery));
+  }
+
+  public long count(final SolrDataQuery solrDataQuery) {
+    return getSolrTemplate().execute(new SolrCallback<Long>() {
+      @Override
+      public Long doInSolr(SolrClient solrClient) throws SolrServerException, IOException {
+        SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(solrDataQuery);
+        solrQuery.setStart(0);
+        solrQuery.setRows(0);
+        QueryResponse queryResponse = solrClient.query(solrQuery);
+        long count = solrClient.query(solrQuery).getResults().getNumFound();
+        LOG_PERFORMANCE.info("\n Username :- " + LogSearchContext.getCurrentUsername() + " Count SolrQuery :- " +
+          solrQuery + "\nQuery Time Execution :- " + queryResponse.getQTime() + " Total Time Elapsed is :- " +
+          queryResponse.getElapsedTime() + " Count result :- " + count);
+        return count;
+      }
+    });
+  }
+
+  public QueryResponse process(SolrDataQuery solrDataQuery, String event) {
+    return process(new DefaultQueryParser().doConstructSolrQuery(solrDataQuery), event);
+  }
+
+  public CloudSolrClient getSolrClient() {
+    return (CloudSolrClient) getSolrTemplate().getSolrClient();
+  }
+
+  public abstract SolrTemplate getSolrTemplate();
+
+  public abstract SolrSchemaFieldDao getSolrSchemaFieldDao();
 }

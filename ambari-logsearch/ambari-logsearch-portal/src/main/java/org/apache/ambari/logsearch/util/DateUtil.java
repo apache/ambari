@@ -114,6 +114,15 @@ public class DateUtil {
 
   }
 
+  public static Date convertStringToSolrDate(String dateStr) {
+    try {
+      SimpleDateFormat formatter = new SimpleDateFormat(LogSearchConstants.SOLR_DATE_FORMAT_PREFIX_Z);
+      return formatter.parse(dateStr);
+    } catch (Exception e){
+      throw new RuntimeException("Cannot parse date from request", e.getCause());
+    }
+  }
+
   public static boolean isDateValid(String value) {
     if (StringUtils.isBlank(value)) {
       return false;

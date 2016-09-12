@@ -18,12 +18,16 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import freemarker.template.TemplateException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.ConversionServiceFactoryBean;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean;
+
+import java.io.IOException;
 
 @Configuration
 @ComponentScan("org.apache.ambari.logsearch")
@@ -40,6 +44,15 @@ public class ApplicationConfig {
     ConversionServiceFactoryBean conversionServiceFactoryBean = new ConversionServiceFactoryBean();
     conversionServiceFactoryBean.afterPropertiesSet();
     return conversionServiceFactoryBean;
+  }
+
+  @Bean
+  public freemarker.template.Configuration freemarkerConfiguration() throws IOException, TemplateException {
+    FreeMarkerConfigurationFactoryBean factoryBean = new FreeMarkerConfigurationFactoryBean();
+    factoryBean.setPreferFileSystemAccess(false);
+    factoryBean.setTemplateLoaderPath("classpath:/templates");
+    factoryBean.afterPropertiesSet();
+    return factoryBean.getObject();
   }
 
 }

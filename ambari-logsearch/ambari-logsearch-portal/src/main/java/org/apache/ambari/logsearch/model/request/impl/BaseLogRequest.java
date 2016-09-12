@@ -18,16 +18,19 @@
  */
 package org.apache.ambari.logsearch.model.request.impl;
 
-import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.model.request.DateRangeParamDefinition;
 import org.apache.ambari.logsearch.model.request.LogParamDefinition;
 
 import javax.ws.rs.QueryParam;
 
-public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
+public class BaseLogRequest extends CommonSearchRequest implements LogParamDefinition, DateRangeParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_I_MESSAGE)
   private String iMessage;
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
+  private String eMessage;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_MUST_BE)
   private String mustBe;
@@ -35,11 +38,17 @@ public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
   @QueryParam(LogSearchConstants.REQUEST_PARAM_MUST_NOT)
   private String mustNot;
 
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_INCLUDE_QUERY)
+  private String includeQuery;
+
   @QueryParam(LogSearchConstants.REQUEST_PARAM_EXCLUDE_QUERY)
   private String excludeQuery;
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_INCLUDE_QUERY)
-  private String includeQuery;
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_FROM)
+  private String from;
+
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_TO)
+  private String to;
 
   @Override
   public String getiMessage() {
@@ -49,6 +58,16 @@ public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
   @Override
   public void setiMessage(String iMessage) {
     this.iMessage = iMessage;
+  }
+
+  @Override
+  public String geteMessage() {
+    return eMessage;
+  }
+
+  @Override
+  public void seteMessage(String eMessage) {
+    this.eMessage = eMessage;
   }
 
   @Override
@@ -89,5 +108,25 @@ public class BaseLogRequest extends QueryRequest implements LogParamDefinition {
   @Override
   public void setExcludeQuery(String excludeQuery) {
     this.excludeQuery = excludeQuery;
+  }
+
+  @Override
+  public String getFrom() {
+    return from;
+  }
+
+  @Override
+  public void setFrom(String from) {
+    this.from = from;
+  }
+
+  @Override
+  public String getTo() {
+    return to;
+  }
+
+  @Override
+  public void setTo(String to) {
+    this.to = to;
   }
 }

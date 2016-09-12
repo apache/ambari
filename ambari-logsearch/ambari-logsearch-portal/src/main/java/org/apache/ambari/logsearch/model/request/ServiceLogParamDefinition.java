@@ -22,12 +22,9 @@ import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.LEVEL_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.CommonDescriptions.E_MESSAGE_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.G_MUST_NOT_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_NAME_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.COMPONENT_NAME_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.FILE_NAME_D;
-import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.DATE_RANGE_LABEL_D;
 
 public interface ServiceLogParamDefinition {
 
@@ -35,11 +32,6 @@ public interface ServiceLogParamDefinition {
 
   @ApiParam(value = LEVEL_D, name = LogSearchConstants.REQUEST_PARAM_LEVEL)
   void setLevel(String level);
-
-  String geteMessage();
-
-  @ApiParam(value = E_MESSAGE_D, name = LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
-  void seteMessage(String eMessage);
 
   String getHostName();
 
@@ -55,9 +47,4 @@ public interface ServiceLogParamDefinition {
 
   @ApiParam(value = FILE_NAME_D, name = LogSearchConstants.REQUEST_PARAM_FILE_NAME)
   void setFileName(String fileName);
-
-  String getDateRangeLabel();
-
-  @ApiParam(value = DATE_RANGE_LABEL_D, name = LogSearchConstants.REQUEST_PARAM_DATE_RANGE_LABEL)
-  void setDateRangeLabel(String dateRangeLabel);
 }

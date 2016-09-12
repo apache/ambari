@@ -21,9 +21,11 @@ package org.apache.ambari.logsearch.solr.model;
 import org.apache.ambari.logsearch.model.response.ComponentTypeLogData;
 import org.apache.solr.client.solrj.beans.Field;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
+
 public class SolrComponentTypeLogData implements ComponentTypeLogData {
 
-  @Field("type")
+  @Field(COMPONENT)
   private String type;
 
   @Override

@@ -26,13 +26,10 @@ import org.apache.ambari.logsearch.model.request.ServiceLogParamDefinition;
 import javax.ws.rs.QueryParam;
 
 public class BaseServiceLogRequest extends BaseLogRequest
-  implements ServiceLogParamDefinition, BundleIdParamDefinition, DateRangeParamDefinition {
+  implements ServiceLogParamDefinition, BundleIdParamDefinition {
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_LEVEL)
   private String level;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_E_MESSAGE)
-  private String eMessage;
 
   @QueryParam(LogSearchConstants.REQUEST_PARAM_HOST_NAME)
   private String hostName;
@@ -46,15 +43,6 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @QueryParam(LogSearchConstants.REQUEST_PARAM_BUNDLE_ID)
   private String bundleId;
 
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_FROM)
-  private String from;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_TO)
-  private String to;
-
-  @QueryParam(LogSearchConstants.REQUEST_PARAM_DATE_RANGE_LABEL)
-  private String dateRangeLabel;
-
   @Override
   public String getLevel() {
     return level;
@@ -63,16 +51,6 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @Override
   public void setLevel(String level) {
     this.level = level;
-  }
-
-  @Override
-  public String geteMessage() {
-    return eMessage;
-  }
-
-  @Override
-  public void seteMessage(String eMessage) {
-    this.eMessage = eMessage;
   }
 
   @Override
@@ -113,35 +91,5 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @Override
   public void setBundleId(String bundleId) {
     this.bundleId = bundleId;
-  }
-
-  @Override
-  public String getFrom() {
-    return from;
-  }
-
-  @Override
-  public void setFrom(String from) {
-    this.from = from;
-  }
-
-  @Override
-  public String getTo() {
-    return to;
-  }
-
-  @Override
-  public void setTo(String to) {
-    this.to = to;
-  }
-
-  @Override
-  public String getDateRangeLabel() {
-    return dateRangeLabel;
-  }
-
-  @Override
-  public void setDateRangeLabel(String dateRangeLabel) {
-    this.dateRangeLabel = dateRangeLabel;
   }
 }

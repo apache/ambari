@@ -18,6 +18,7 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
 import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientBuilder;
 import org.apache.commons.lang.StringUtils;
@@ -77,6 +78,16 @@ public class SolrConfig {
       solrUserConfigPropsConfig.getSolrUrl(),
       solrUserConfigPropsConfig.getZkConnectString(),
       solrUserConfigPropsConfig.getCollection()));
+  }
+
+  @Bean(name = "serviceSolrFieldDao")
+  public SolrSchemaFieldDao serviceSolrFieldDao() {
+    return new SolrSchemaFieldDao();
+  }
+
+  @Bean(name = "auditSolrFieldDao")
+  public SolrSchemaFieldDao auditSolrFieldDao() {
+    return new SolrSchemaFieldDao();
   }
 
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {

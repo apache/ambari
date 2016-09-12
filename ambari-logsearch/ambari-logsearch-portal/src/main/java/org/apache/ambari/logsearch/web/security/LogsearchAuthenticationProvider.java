@@ -27,11 +27,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
-@Component
+@Named
 public class LogsearchAuthenticationProvider extends
   LogsearchAbstractAuthenticationProvider {
   private static final Logger logger = Logger

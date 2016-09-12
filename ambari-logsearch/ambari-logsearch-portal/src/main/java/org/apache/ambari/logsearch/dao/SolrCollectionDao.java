@@ -30,15 +30,15 @@ import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-@Component
+@Named
 public class SolrCollectionDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrCollectionDao.class);

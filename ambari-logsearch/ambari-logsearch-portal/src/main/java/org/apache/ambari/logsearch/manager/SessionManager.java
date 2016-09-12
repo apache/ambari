@@ -24,9 +24,10 @@ import org.apache.log4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
-import org.springframework.stereotype.Component;
 
-@Component
+import javax.inject.Named;
+
+@Named
 public class SessionManager {
 
   private static final Logger logger = Logger.getLogger(SessionManager.class);

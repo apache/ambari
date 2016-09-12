@@ -20,6 +20,7 @@
 package org.apache.ambari.logsearch.rest;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -32,39 +33,37 @@ import javax.ws.rs.Produces;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.ambari.logsearch.manager.UserConfigManager;
+import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
 import org.apache.ambari.logsearch.model.request.impl.UserConfigRequest;
-import org.apache.ambari.logsearch.query.model.UserConfigSearchCriteria;
-import org.apache.ambari.logsearch.view.VUserConfig;
+import org.apache.ambari.logsearch.model.response.UserConfigData;
+import org.apache.ambari.logsearch.model.response.UserConfigDataListResponse;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.ConversionService;
-import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.UserConfigOperationDescriptions.*;
 
 @Api(value = "userconfig", description = "User config operations")
 @Path("userconfig")
-@Component
+@Named
 @Scope("request")
 public class UserConfigResource {
 
   @Inject
   private UserConfigManager userConfigManager;
 
-  @Inject
-  private ConversionService conversionService;
-
   @POST
   @Produces({"application/json"})
   @ApiOperation(SAVE_USER_CONFIG_OD)
-  public String saveUserConfig(VUserConfig vhist) {
-    return userConfigManager.saveUserConfig(vhist);
+  public String saveUserConfig(UserConfigData userConfig) {
+    return userConfigManager.saveUserConfig(userConfig);
   }
 
   @PUT
   @Produces({"application/json"})
   @ApiOperation(UPDATE_USER_CONFIG_OD)
-  public String updateUserConfig(VUserConfig vhist) {
-    return userConfigManager.updateUserConfig(vhist);
+  public String updateUserConfig(UserConfigData userConfig) {
+    return userConfigManager.updateUserConfig(userConfig);
   }
 
   @DELETE
@@ -77,15 +76,15 @@ public class UserConfigResource {
   @GET
   @Produces({"application/json"})
   @ApiOperation(GET_USER_CONFIG_OD)
-  public String getUserConfig(@BeanParam UserConfigRequest request) {
-    return userConfigManager.getUserConfig(conversionService.convert(request, UserConfigSearchCriteria.class));
+  public UserConfigDataListResponse getUserConfig(@BeanParam UserConfigRequest request) {
+    return userConfigManager.getUserConfig(request);
   }
 
   @GET
   @Path("/filters")
   @Produces({"application/json"})
   @ApiOperation(GET_USER_FILTER_OD)
-  public String getUserFilter() {
+  public LogFeederDataMap getUserFilter() {
     return userConfigManager.getUserFilter();
   }
 
@@ -93,23 +92,23 @@ public class UserConfigResource {
   @Path("/filters")
   @Produces({"application/json"})
   @ApiOperation(UPDATE_USER_FILTER_OD)
-  public String createUserFilter(String json) {
-    return userConfigManager.saveUserFiter(json);
+  public LogFeederDataMap createUserFilter(LogFeederDataMap request) {
+    return userConfigManager.saveUserFiter(request);
   }
 
   @PUT
   @Path("/filters/{id}")
   @Produces({"application/json"})
   @ApiOperation(GET_USER_FILTER_BY_ID_OD)
-  public String updateUserFilter(String json) {
-    return userConfigManager.saveUserFiter(json);
+  public LogFeederDataMap updateUserFilter(LogFeederDataMap request) {
+    return userConfigManager.saveUserFiter(request);
   }
 
   @GET
   @Path("/names")
   @Produces({"application/json"})
   @ApiOperation(GET_ALL_USER_NAMES_OD)
-  public String getAllUserName() {
+  public List<String> getAllUserName() {
     return userConfigManager.getAllUserName();
   }
 

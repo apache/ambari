@@ -21,17 +21,15 @@ package org.apache.ambari.logsearch.dao;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
+import javax.inject.Named;
 
+import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrAuditLogPropsConfig;
-import org.apache.ambari.logsearch.manager.ManagerBase.LogType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.solr.core.SolrTemplate;
-import org.springframework.stereotype.Component;
 
-@Component
+@Named
 public class AuditSolrDao extends SolrDaoBase {
 
   private static final Logger LOG = Logger.getLogger(AuditSolrDao.class);
@@ -40,7 +38,7 @@ public class AuditSolrDao extends SolrDaoBase {
   private SolrAuditLogPropsConfig solrAuditLogPropsConfig;
 
   @Inject
-  @Qualifier("auditSolrTemplate")
+  @Named("auditSolrTemplate")
   private SolrTemplate auditSolrTemplate;
 
   @Inject
@@ -50,6 +48,7 @@ public class AuditSolrDao extends SolrDaoBase {
   private SolrCollectionDao solrCollectionDao;
 
   @Inject
+  @Named("auditSolrFieldDao")
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public AuditSolrDao() {
@@ -57,8 +56,8 @@ public class AuditSolrDao extends SolrDaoBase {
   }
 
   @Override
-  public CloudSolrClient getSolrClient() {
-    return (CloudSolrClient) auditSolrTemplate.getSolrClient();
+  public SolrTemplate getSolrTemplate() {
+    return auditSolrTemplate;
   }
 
   @PostConstruct
@@ -71,13 +70,17 @@ public class AuditSolrDao extends SolrDaoBase {
       boolean createAlias = (aliasNameIn != null && !StringUtils.isBlank(rangerAuditCollection));
       solrCollectionDao.setupCollections(getSolrClient(), solrAuditLogPropsConfig);
       if (createAlias) {
-        solrAliasDao.setupAlias(solrSchemaFieldDao, getSolrClient(), solrAuditLogPropsConfig, this);
+        solrAliasDao.setupAlias(solrSchemaFieldDao, getSolrClient(), solrAuditLogPropsConfig);
       } else {
-        solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrAuditLogPropsConfig, this);
+        solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrAuditLogPropsConfig);
       }
     } catch (Exception e) {
       LOG.error("Error while connecting to Solr for audit logs : solrUrl=" + solrAuditLogPropsConfig.getSolrUrl() + ", zkConnectString=" +
           solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
     }
+  }
+
+  public SolrSchemaFieldDao getSolrSchemaFieldDao() {
+    return solrSchemaFieldDao;
   }
 }

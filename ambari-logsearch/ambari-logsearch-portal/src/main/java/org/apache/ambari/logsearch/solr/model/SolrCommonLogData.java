@@ -23,57 +23,59 @@ import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.*;
+
 public class SolrCommonLogData implements CommonLogData {
 
-  @Field("id")
+  @Field(ID)
   private String id;
 
-  @Field("bundle_id")
+  @Field(BUNDLE_ID)
   private String bundleId;
 
-  @Field("case_id")
+  @Field(CASE_ID)
   private String caseId;
 
-  @Field("cluster")
+  @Field(CLUSTER)
   private String cluster;
 
-  @Field("seq_num")
+  @Field(SEQUENCE_ID)
   private Long seqNum;
 
-  @Field("log_message")
+  @Field(LOG_MESSAGE)
   private String logMessage;
 
-  @Field("logfile_line_number")
+  @Field(LOGFILE_LINE_NUMBER)
   private Integer logFileLineNumber;
 
-  @Field("event_dur_m5")
+  @Field(EVENT_DURATION_MD5)
   private Long eventDurationMs;
 
-  @Field("file")
+  @Field(FILE)
   private String file;
 
-  @Field("type")
+  @Field(TYPE)
   private String type;
 
-  @Field("event_count")
+  @Field(EVENT_COUNT)
   private Long eventCount;
 
-  @Field("event_md5")
+  @Field(EVENT_MD5)
   private String eventMd5;
 
-  @Field("message_md5")
+  @Field(MESSAGE_MD5)
   private String messageMd5;
 
-  @Field("_ttl_")
+  @Field(TTL)
   private String ttl;
 
-  @Field("_expire_at_")
+  @Field(EXPIRE_AT)
   private Date expire;
 
-  @Field("_version_")
+  @Field(VERSION)
   private Long version;
 
-  @Field("_router_field_")
+  @Field(ROUTER_FIELD)
   private Integer routerField;
 
   @Override

@@ -26,16 +26,16 @@ import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.response.CollectionAdminResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-@Component
+@Named
 public class SolrAliasDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrAliasDao.class);
@@ -46,7 +46,7 @@ public class SolrAliasDao {
   private SolrCollectionDao solrCollectionDao;
 
   protected void setupAlias(final SolrSchemaFieldDao solrSchemaFieldDao, final CloudSolrClient solrClient,
-                            final SolrAuditLogPropsConfig solrPropsConfig, final SolrDaoBase solrDaoBase) throws Exception {
+                            final SolrAuditLogPropsConfig solrPropsConfig) throws Exception {
     final Collection<String> collectionListIn = Arrays.asList(solrPropsConfig.getCollection(), solrPropsConfig.getRangerCollection().trim());
 
     if (solrPropsConfig.getAliasNameIn() == null || collectionListIn.size() == 0 || solrClient == null) {
@@ -71,7 +71,7 @@ public class SolrAliasDao {
               if (count == collectionListIn.size()) {
                 LOG.info("Setup for alias " + solrPropsConfig.getAliasNameIn() + " is successful. Exiting setup retry thread. " +
                   "Collections=" + collectionListIn);
-                solrSchemaFieldDao.populateSchemaFields(solrClient, solrPropsConfig, solrDaoBase);
+                solrSchemaFieldDao.populateSchemaFields(solrClient, solrPropsConfig);
                 break;
               }
             } else {

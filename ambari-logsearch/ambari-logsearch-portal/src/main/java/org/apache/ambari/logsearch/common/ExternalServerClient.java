@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
@@ -33,12 +34,11 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
-import org.springframework.stereotype.Component;
 
 /**
  * Layer to send REST request to External server using jersey client
  */
-@Component
+@Named
 public class ExternalServerClient {
 
   private static Logger LOG = Logger.getLogger(ExternalServerClient.class);
