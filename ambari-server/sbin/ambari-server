@@ -55,6 +55,13 @@ AMBARI_ENV="$ROOT/var/lib/ambari-server/ambari-env.sh"
 AMBARI_PYTHON_EXECUTABLE="$ROOT/usr/sbin/ambari-server.py"
 AMBARI_EXECUTABLE="$ROOT/usr/sbin/ambari-server"
 
+current_user=`id -u -n`
+echo "" | sudo -S -l > /dev/null 2>&1
+if [ "$?" != "0" ] && [ "$EUID" -ne 0 ] ; then
+ echo "You can't perform this operation as non-sudoer user. Please re-login or configure sudo access for this user."
+ exit -1
+fi
+
 if [ -z "$PYTHON" ] ; then
   export PYTHON=`readlink $PYTHON_WRAP`
 fi
