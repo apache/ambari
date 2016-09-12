@@ -40,10 +40,11 @@ stack_version_formatted = format_stack_version(stack_version_unformatted)
 
 dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
-
 component_list = default("/localComponents", [])
 
 hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+
+hadoop_metrics2_properties_content = config['configurations']['hadoop-metrics2.properties']['content']
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
