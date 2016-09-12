@@ -114,14 +114,14 @@ class TestHistoryServer(RMFTestCase):
 
     self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         action = ['delete'],
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
     )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         user = 'mapred',
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         tries = 5,
         try_sleep = 1,
     )
@@ -165,18 +165,16 @@ class TestHistoryServer(RMFTestCase):
 
     self.assert_configure_secured()
 
-    pid_check_cmd = 'ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid` >/dev/null 2>&1'
-
     self.assertResourceCalled('File', '/var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         action = ['delete'],
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
     )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-mapreduce/sbin/mr-jobhistory-daemon.sh --config /etc/hadoop/conf start historyserver',
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         user = 'mapred',
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
-        not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid',
         tries = 5,
         try_sleep = 1,
     )

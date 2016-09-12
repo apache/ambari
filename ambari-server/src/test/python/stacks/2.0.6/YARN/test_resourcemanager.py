@@ -58,17 +58,17 @@ class TestResourceManager(RMFTestCase):
     )
 
     self.assert_configure_default()
-
+    
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         action = ['delete'],
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
     )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start resourcemanager',
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         user = 'yarn',
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         tries = 5,
         try_sleep = 1,
     )
@@ -109,17 +109,16 @@ class TestResourceManager(RMFTestCase):
 
     self.assert_configure_secured()
 
-    pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid` >/dev/null 2>&1'
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         action = ['delete'],
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
     )
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start resourcemanager',
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         user = 'yarn',
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
-        not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid`'",
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
+        not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
         tries = 5,
         try_sleep = 1,
     )
