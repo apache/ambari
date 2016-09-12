@@ -186,7 +186,6 @@ class Execute(Resource):
   # this runs command with a specific env variables, env={'JAVA_HOME': '/usr/jdk'}
   environment = ResourceArgument(default={})
   user = ResourceArgument()
-  group = ResourceArgument()
   returns = ForcedListArgument(default=0)
   tries = ResourceArgument(default=1)
   try_sleep = ResourceArgument(default=0) # seconds

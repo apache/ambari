@@ -20,14 +20,18 @@ Ambari Agent
 
 """
 
+import time
+import os
 import contextlib
 import sys
+import signal
 import cStringIO
 from functools import wraps
 from resource_management.core.exceptions import Fail
 from itertools import chain, repeat, islice
 
 PASSWORDS_HIDE_STRING = "[PROTECTED]"
+GRACEFUL_PG_KILL_TIMEOUT_SECONDS = 5
 
 class AttributeDictionary(object):
   def __init__(self, *args, **kwargs):
@@ -155,3 +159,28 @@ def pad_infinite(iterable, padding=None):
 
 def pad(iterable, size, padding=None):
   return islice(pad_infinite(iterable, padding), size)
+
+def killpg_gracefully(proc, timeout=GRACEFUL_PG_KILL_TIMEOUT_SECONDS):
+  """
+  Tries to kill pgroup (process group) of process with SIGTERM.
+  If the process is still alive after waiting for timeout, SIGKILL is sent to the pgroup.
+  """
+  from resource_management.core import sudo
+  from resource_management.core.logger import Logger
+
+  if proc.poll() == None:
+    try:
+      pgid = os.getpgid(proc.pid)
+      sudo.kill(-pgid, signal.SIGTERM)
+
+      for i in xrange(10*timeout):
+        if proc.poll() is not None:
+          break
+        time.sleep(0.1)
+      else:
+        Logger.info("Cannot gracefully kill process group {0}. Resorting to SIGKILL.".format(pgid))
+        sudo.kill(-pgid, signal.SIGKILL)
+        proc.wait()
+    # catch race condition if proc already dead
+    except OSError:
+      pass

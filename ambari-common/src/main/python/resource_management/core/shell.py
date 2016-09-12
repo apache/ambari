@@ -35,6 +35,7 @@ import traceback
 from exceptions import Fail
 from exceptions import ExecuteTimeoutException
 from resource_management.core.logger import Logger
+from resource_management.core import utils
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 # use quiet=True calls from this folder (logs get too messy duplicating the resources with its commands)
@@ -78,9 +79,17 @@ def log_function_call(function):
     
   return inner
 
+def preexec_fn():
+  processId = os.getpid()
+  try:
+    os.setpgid(processId, processId)
+  except:
+    Logger.exception('setpgid({0}, {0}) failed'.format(processId))
+    raise
+
 @log_function_call
 def checked_call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
+         cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0):
   """
   Execute the shell command and throw an exception on failure.
@@ -94,7 +103,7 @@ def checked_call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,st
   
 @log_function_call
 def call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
+         cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None,
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0):
   """
   Execute the shell command despite failures.
@@ -107,7 +116,7 @@ def call(command, quiet=False, logoutput=None, stdout=subprocess.PIPE,stderr=sub
 
 @log_function_call
 def non_blocking_call(command, quiet=False, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-         cwd=None, env=None, preexec_fn=None, user=None, timeout=None, path=None, sudo=False):
+         cwd=None, env=None, preexec_fn=preexec_fn, user=None, timeout=None, path=None, sudo=False):
   """
   Execute the shell command and don't wait until it's completion
   
@@ -156,7 +165,7 @@ def _call_wrapper(command, **kwargs):
   return result
 
 def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE,stderr=subprocess.STDOUT,
-         cwd=None, env=None, preexec_fn=None, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
+         cwd=None, env=None, preexec_fn=preexec_fn, user=None, wait_for_finish=True, timeout=None, on_timeout=None, 
          path=None, sudo=False, on_new_line=None, tries=1, try_sleep=0):
   """
   Execute shell command
@@ -371,11 +380,5 @@ def _print(line):
 
 def _on_timeout(proc, timeout_event):
   timeout_event.set()
-  if proc.poll() == None:
-    try:
-      proc.terminate()
-      proc.wait()
-    # catch race condition if proc already dead
-    except OSError:
-      pass
+  utils.killpg_gracefully(proc)
 
