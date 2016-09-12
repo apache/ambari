@@ -296,7 +296,7 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           raise Fail("Did not find run.sh file in output: " + str(output))
 
         Logger.info(format("Run file path: {run_file_path}"))
-        Execute(run_file_path, user=params.hive_user)
+        Execute(run_file_path, user=params.hive_user, logoutput=True)
         Logger.info("Submitted LLAP app name : {0}".format(LLAP_APP_NAME))
 
         # We need to check the status of LLAP app to figure out it got

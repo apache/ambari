@@ -106,7 +106,7 @@ class TestHiveServerInteractive(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
-                              user='hive'
+                              logoutput= True, user=u'hive'
     )
     self.assertResourceCalled('Execute',
                               'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -164,7 +164,7 @@ class TestHiveServerInteractive(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               '/home/hive/llap-slider-05Apr2016/run.sh',
-                              user='hive'
+                              logoutput= True, user=u'hive'
                               )
     self.assertResourceCalled('Execute',
                               'hive --config /usr/hdp/current/hive-server2-hive2/conf/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
