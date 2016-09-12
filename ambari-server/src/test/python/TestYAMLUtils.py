@@ -42,3 +42,41 @@ class TestYAMLUtils(TestCase):
 
     values = yaml_utils.get_values_from_yaml_array('[\'c6401.ambari.apache.org\', "c6402.ambari.apache.org"]')
     self.assertEquals(expected_values, values)
+
+
+  def test_yaml_property_escaping(self):
+    """
+    Tests that YAML values are escaped with quotes properly when needed
+    """
+    self.assertEquals("True", yaml_utils.escape_yaml_property("True"))
+    self.assertEquals("FALSE", yaml_utils.escape_yaml_property("FALSE"))
+    self.assertEquals("yes", yaml_utils.escape_yaml_property("yes"))
+    self.assertEquals("NO", yaml_utils.escape_yaml_property("NO"))
+    self.assertEquals("28", yaml_utils.escape_yaml_property("28"))
+    self.assertEquals("28.0", yaml_utils.escape_yaml_property("28.0"))
+    self.assertEquals("[a,b,c]", yaml_utils.escape_yaml_property("[a,b,c]"))
+    self.assertEquals("{ foo : bar }", yaml_utils.escape_yaml_property("{ foo : bar }"))
+
+    # some strings which should be escaped
+    self.assertEquals("'5f'", yaml_utils.escape_yaml_property("5f"))
+    self.assertEquals("'28.O'", yaml_utils.escape_yaml_property("28.O"))
+    self.assertEquals("'This is a test of a string'", yaml_utils.escape_yaml_property("This is a test of a string"))
+
+    # test maps
+    map = """
+      storm:
+        hosts:
+          [c6401.ambari.apache.org, c6402.ambari.apache.org]
+        groups:
+          [hadoop, foo]
+        foo:
+          [bar, baz]
+        foo2:
+          bar2:
+            [baz2]
+    """
+    escaped_map = yaml_utils.escape_yaml_property(map)
+    self.assertTrue(escaped_map.startswith("\n"))
+    self.assertFalse("'" in escaped_map)
+
+
