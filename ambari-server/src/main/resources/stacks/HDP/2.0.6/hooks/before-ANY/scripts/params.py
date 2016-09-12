@@ -169,6 +169,8 @@ tez_user = config['configurations']['tez-env']["tez_user"]
 oozie_user = config['configurations']['oozie-env']["oozie_user"]
 falcon_user = config['configurations']['falcon-env']["falcon_user"]
 ranger_user = config['configurations']['ranger-env']["ranger_user"]
+zeppelin_user = config['configurations']['zeppelin-env']["zeppelin_user"]
+zeppelin_group = config['configurations']['zeppelin-env']["zeppelin_group"]
 
 user_group = config['configurations']['cluster-env']['user_group']
 
@@ -178,6 +180,7 @@ hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
 oozie_servers = default("/clusterHostInfo/oozie_server", [])
 falcon_server_hosts = default("/clusterHostInfo/falcon_server_hosts", [])
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+zeppelin_master_hosts = default("/clusterHostInfo/zeppelin_master_hosts", [])
 
 has_namenode = not len(namenode_host) == 0
 has_ganglia_server = not len(ganglia_server_hosts) == 0
@@ -186,6 +189,7 @@ has_hbase_masters = not len(hbase_master_hosts) == 0
 has_oozie_server = not len(oozie_servers) == 0
 has_falcon_server_hosts = not len(falcon_server_hosts) == 0
 has_ranger_admin = not len(ranger_admin_hosts) == 0
+has_zeppelin_master = not len(zeppelin_master_hosts) == 0
 
 if has_namenode or dfs_type == 'HCFS':
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
@@ -219,6 +223,8 @@ if has_falcon_server_hosts:
   user_to_groups_dict[falcon_user] = [proxyuser_group]
 if has_ranger_admin:
   user_to_groups_dict[ranger_user] = [ranger_group]
+if has_zeppelin_master:
+  user_to_groups_dict[zeppelin_user] = [zeppelin_group, user_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
