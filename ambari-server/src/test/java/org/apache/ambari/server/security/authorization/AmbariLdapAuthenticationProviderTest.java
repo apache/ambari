@@ -57,7 +57,7 @@ import junit.framework.Assert;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-    name = "Test",
+    name = "AmbariLdapAuthenticationProviderTest",
     partitions = {
         @CreatePartition(name = "Root",
             suffix = "dc=apache,dc=org",
@@ -73,7 +73,7 @@ import junit.framework.Assert;
                         "objectClass: domain\n\n"))
     })
 @CreateLdapServer(allowAnonymousAccess = true,
-    transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+    transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users.ldif")
 public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -96,6 +96,7 @@ public class AmbariLdapAuthenticationProviderTest extends AmbariLdapAuthenticati
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_FILTER.getKey(), "(&(mail={0})(objectClass={userObjectClass}))");
     configuration.setProperty(Configuration.LDAP_ALT_USER_SEARCH_ENABLED.getKey(), "false");
+    configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
   }
 
   @After
