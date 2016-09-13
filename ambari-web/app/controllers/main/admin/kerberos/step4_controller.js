@@ -511,7 +511,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     Array.prototype.push.apply(self.getServicesConfigObject().get('configs'), newProperties);
     Em.keys(groupedProperties.update).forEach(function(fileName) {
       Em.keys(groupedProperties.update[fileName]).forEach(function(propertyName) {
-        var configProperty = allConfigs.findProperty('name', propertyName);
+        var configProperty = allConfigs.filterProperty('filename', fileName).findProperty('name', propertyName);
         if (configProperty) {
           self._updateConfigByRecommendation(configProperty, groupedProperties.update[fileName][propertyName], true, false);
         }
