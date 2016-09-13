@@ -23,8 +23,8 @@ Ambari Agent
 __all__ = ["File", "Directory", "Link", "Execute", "ExecuteScript", "Mount"]
 
 import subprocess
+from resource_management.core.signal_utils import TerminateStrategy
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
-
 
 class File(Resource):
   action = ForcedListArgument(default="create")
@@ -239,6 +239,17 @@ class Execute(Resource):
   """
   stdout = ResourceArgument(default=subprocess.PIPE)
   stderr = ResourceArgument(default=subprocess.STDOUT)
+
+  """
+  This argument takes TerminateStrategy constants. Import it as shown below:
+  from resource_management.core.signal_utils import TerminateStrategy
+
+  Possible values are:
+  TerminateStrategy.TERMINATE_PARENT - kill parent process with SIGTERM (is perfect if all children handle SIGTERM signal)
+  TerminateStrategy.KILL_PROCESS_GROUP - kill process GROUP with SIGTERM and if not effective with SIGKILL
+  TerminateStrategy.KILL_PROCESS_TREE - send SIGTERM to every process in the tree
+  """
+  timeout_kill_strategy = ResourceArgument(default=TerminateStrategy.TERMINATE_PARENT)
 
 class ExecuteScript(Resource):
   action = ForcedListArgument(default="run")
