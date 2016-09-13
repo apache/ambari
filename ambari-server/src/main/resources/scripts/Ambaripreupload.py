@@ -37,7 +37,7 @@ from resource_management.core import shell
 from resource_management.core.base import Resource, ForcedListArgument, ResourceArgument, BooleanArgument
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.oozie_prepare_war import prepare_war
@@ -327,7 +327,55 @@ with Environment() as env:
       action="delete_on_execute",
       type = 'directory'
     )
-    
+
+    spark_client_dir = format("/usr/hdp/{stack_version}/spark")
+
+    if os.path.exists(spark_client_dir):
+      # Rename /usr/hdp/{stack_version}/oozie/share/lib/spark to spark-orig
+      Execute(("mv",
+               format("{oozie_shared_lib}/lib/spark"),
+               format("{oozie_shared_lib}/lib/spark-orig")),
+               sudo=True)
+
+      # Create /usr/hdp/{stack_version}/oozie/share/lib/spark
+      Directory(format("{oozie_shared_lib}/lib/spark"),
+                owner = oozie_user,
+                create_parents = True
+                )
+
+      # Copy oozie-sharelib-spark from /usr/hdp/{stack_version}/oozie/share/lib/spark-orig to spark
+      Execute(format("cp -f {oozie_shared_lib}/lib/spark-orig/oozie-sharelib-spark*.jar {oozie_shared_lib}/lib/spark"),
+              user=oozie_user)
+
+      # Copy /usr/hdp/{stack_version}/spark-client/*.jar except spark-examples*.jar
+      Execute(format("cp -P {spark_client_dir}/lib/*.jar {oozie_shared_lib}/lib/spark"),
+              user=oozie_user)
+      Execute(format("find {oozie_shared_lib}/lib/spark/ -type l -delete"),
+              user=oozie_user)
+      try:
+        Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"),
+                user=oozie_user)
+      except:
+        print "No spark-examples jar files found in Spark client lib."
+
+      # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
+      Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"),
+              user=oozie_user)
+
+      try:
+        Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"),
+              user=oozie_user)
+      except:
+        print "No jar files found in Spark client python lib."
+
+      # Skipping this step since it might cause issues to automated scripts that rely on hdfs://user/oozie/share/lib
+      # Rename /usr/hdp/{stack_version}/oozie/share/lib to lib_ts
+      # millis = int(round(time.time() * 1000))
+      # Execute(("mv",
+      #          format("{oozie_shared_lib}/lib"),
+      #          format("{oozie_shared_lib}/lib_{millis}")),
+      #         sudo=True)
+
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
       type = 'directory',
@@ -353,7 +401,7 @@ with Environment() as env:
   createHdfsResources()
   putSQLDriverToOozieShared()
   putCreatedHdfsResourcesToIgnore(env)
-  
+
   # jar shouldn't be used before (read comment below)
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
        mode=0644,
