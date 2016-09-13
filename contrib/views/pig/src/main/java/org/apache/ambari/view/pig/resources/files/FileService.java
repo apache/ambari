@@ -164,7 +164,7 @@ public class FileService extends BaseService {
       filePath = sanitizeFilePath(filePath);
       LOG.info("Rewriting file {}", filePath);
       FSDataOutputStream output = getHdfsApi().create(filePath, true);
-      output.writeBytes(request.file.getFileContent());
+      output.write(request.file.getFileContent().getBytes("UTF-8"));
       output.close();
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
@@ -189,7 +189,7 @@ public class FileService extends BaseService {
       try {
         FSDataOutputStream output = getHdfsApi().create(request.file.getFilePath(), false);
         if (request.file.getFileContent() != null) {
-          output.writeBytes(request.file.getFileContent());
+          output.write(request.file.getFileContent().getBytes("UTF-8"));
         }
         output.close();
       } catch (FileAlreadyExistsException ex) {
