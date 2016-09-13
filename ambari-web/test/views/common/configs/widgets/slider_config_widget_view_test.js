@@ -645,6 +645,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewInt.set('config.value', '100');
         viewInt.set('config.errorMessage', '');
         viewInt.set('config.warnMessage', '');
+        viewInt.set('config.widgetType', 'slider');
         assert.isTrue(viewInt.isValueCompatibleWithWidget(), 'value should be compatible with widget');
         assert.equal(viewInt.get('config.warnMessage'), Em.I18n.t('config.warnMessage.llap_queue_capacity.max'), 'warn message validation');
       });
