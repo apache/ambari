@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import org.apache.ambari.server.orm.entities.BlueprintSettingEntity;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -96,6 +97,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
 
   // Configurations
   public static final String CONFIGURATION_PROPERTY_ID = "configurations";
+
+  // Setting
+  public static final String SETTING_PROPERTY_ID = "settings";
+
   public static final String PROPERTIES_PROPERTY_ID = "properties";
   public static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
   public static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
@@ -320,6 +325,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     setResourceProperty(resource, HOST_GROUP_PROPERTY_ID, listGroupProps, requestedIds);
     setResourceProperty(resource, CONFIGURATION_PROPERTY_ID,
       populateConfigurationList(entity.getConfigurations()), requestedIds);
+    setResourceProperty(resource, SETTING_PROPERTY_ID,
+      populateSettingList(entity.getSettings()), requestedIds);
 
     if (entity.getSecurityType() != null) {
       Map<String, String> securityConfigMap = new LinkedHashMap<>();
@@ -384,6 +391,30 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     }
 
     return listConfigurations;
+  }
+
+  /**
+   * Populate a list of setting property maps from a collection of setting entities.
+   *
+   * @param settings  collection of setting entities
+   *
+   * @return list of setting property maps
+   */
+  public static List<Map<String, Object>> populateSettingList(
+          Collection<? extends BlueprintSettingEntity> settings) throws NoSuchResourceException {
+    List<Map<String, Object>> listSettings = new ArrayList<Map<String, Object>>();
+
+    if (settings != null) {
+      for (BlueprintSettingEntity setting : settings) {
+        List<Map<String, String>> propertiesList = jsonSerializer.<List<Map<String, String>>>fromJson(
+                setting.getSettingData(), List.class);
+        Map<String, Object> settingMap = new HashMap<>();
+        settingMap.put(setting.getSettingName(), propertiesList);
+        listSettings.add(settingMap);
+      }
+    }
+
+    return listSettings;
   }
 
   /**
