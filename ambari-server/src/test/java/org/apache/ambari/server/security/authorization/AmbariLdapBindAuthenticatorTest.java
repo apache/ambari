@@ -52,7 +52,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-  name = "Test",
+  name = "AmbariLdapBindAuthenticatorTest",
   partitions = {
     @CreatePartition(name = "Root",
       suffix = "dc=apache,dc=org",
@@ -68,7 +68,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
             "objectClass: domain\n\n"))
   })
 @CreateLdapServer(allowAnonymousAccess = true,
-  transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+  transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users.ldif")
 public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -88,7 +88,7 @@ public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationPro
     // Given
 
     LdapContextSource ldapCtxSource = new LdapContextSource();
-    ldapCtxSource.setUrls(new String[] {"ldap://localhost:33389"});
+    ldapCtxSource.setUrls(new String[] {"ldap://localhost:" + getLdapServer().getPort()});
     ldapCtxSource.setBase("dc=ambari,dc=apache,dc=org");
     ldapCtxSource.afterPropertiesSet();
 

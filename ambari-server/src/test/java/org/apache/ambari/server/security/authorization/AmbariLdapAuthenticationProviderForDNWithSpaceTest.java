@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-    name = "Test",
+    name = "AmbariLdapAuthenticationProviderForDNWithSpaceTest",
     partitions = {
         @CreatePartition(name = "Root",
             suffix = "dc=the apache,dc=org",
@@ -59,7 +59,7 @@ import static org.junit.Assert.*;
                         "objectClass: domain\n\n"))
     })
 @CreateLdapServer(allowAnonymousAccess = true,
-    transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+    transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users_for_dn_with_space.ldif")
 public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -80,6 +80,7 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     injector.injectMembers(this);
     injector.getInstance(GuiceJpaInitializer.class);
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
+    configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
   }
 
   @After

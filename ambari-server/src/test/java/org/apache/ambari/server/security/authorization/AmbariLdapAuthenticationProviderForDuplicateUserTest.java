@@ -41,7 +41,7 @@ import org.springframework.security.core.Authentication;
 
 @RunWith(FrameworkRunner.class)
 @CreateDS(allowAnonAccess = true,
-  name = "Test",
+  name = "AmbariLdapAuthenticationProviderForDuplicateUserTest",
   partitions = {
     @CreatePartition(name = "Root",
       suffix = "dc=apache,dc=org",
@@ -57,7 +57,7 @@ import org.springframework.security.core.Authentication;
             "objectClass: domain\n\n"))
   })
 @CreateLdapServer(allowAnonymousAccess = true,
-  transports = {@CreateTransport(protocol = "LDAP", port = 33389)})
+  transports = {@CreateTransport(protocol = "LDAP")})
 @ApplyLdifFiles("users_with_duplicate_uid.ldif")
 public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends AmbariLdapAuthenticationProviderBaseTest {
 
@@ -85,6 +85,7 @@ public class AmbariLdapAuthenticationProviderForDuplicateUserTest extends Ambari
     properties.setProperty(Configuration.OS_VERSION.getKey(),"centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
     properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=apache,dc=org");
+    properties.setProperty(Configuration.LDAP_PRIMARY_URL.getKey(), "localhost:" + getLdapServer().getPort());
 
     Configuration configuration = new Configuration(properties);
 
