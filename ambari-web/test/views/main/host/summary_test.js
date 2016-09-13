@@ -694,4 +694,95 @@ describe('App.MainHostSummaryView', function() {
       expect(mainHostSummaryView.get('controller.installClients').calledWith([1,2,3])).to.be.true;
     });
   });
+
+  describe("#timeSinceHeartBeat", function () {
+
+    beforeEach(function() {
+      sinon.stub($, 'timeago').returns('1');
+    });
+
+    afterEach(function() {
+      $.timeago.restore();
+    });
+
+    it("rawLastHeartBeatTime = null", function() {
+      mainHostSummaryView.set('content.rawLastHeartBeatTime', null);
+      mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
+      expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.empty;
+    });
+
+    it("rawLastHeartBeatTime = 1", function() {
+      mainHostSummaryView.set('content.rawLastHeartBeatTime', '1');
+      mainHostSummaryView.propertyDidChange('timeSinceHeartBeat');
+      expect(mainHostSummaryView.get('timeSinceHeartBeat')).to.be.equal('1');
+    });
+  });
+
+  describe("#clientsWithCustomCommands", function () {
+
+    beforeEach(function() {
+      this.mockComponents = sinon.stub(App.StackServiceComponent, 'find');
+    });
+
+    afterEach(function() {
+      this.mockComponents.restore();
+    });
+
+    var testCases = [
+      {
+        component: Em.Object.create(),
+        clients: [],
+        expected: []
+      },
+      {
+        component: Em.Object.create(),
+        clients: [
+          Em.Object.create({componentName: 'KERBEROS_CLIENT'})
+        ],
+        expected: []
+      },
+      {
+        component: Em.Object.create({customCommands: []}),
+        clients: [
+          Em.Object.create({componentName: 'C1'})
+        ],
+        expected: []
+      },
+      {
+        component: Em.Object.create({customCommands: ['cmd1']}),
+        clients: [
+          Em.Object.create({
+            hostName: 'host1',
+            displayName: 'dn1',
+            componentName: 'C1',
+            service: Em.Object.create({serviceName: 'S1'})
+          })
+        ],
+        expected: [{
+          label: 'dn1',
+          commands: [
+            {
+              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('cmd1'),
+              service: "S1",
+              hosts: 'host1',
+              component: 'C1',
+              command: 'cmd1'
+            }
+          ]
+        }]
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("component = " + JSON.stringify(test.component) +
+         " clients = " + JSON.stringify(test.clients), function() {
+        this.mockComponents.returns(test.component);
+        mainHostSummaryView.reopen({
+          clients: test.clients
+        });
+        mainHostSummaryView.propertyDidChange('clientsWithCustomCommands');
+        expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.be.eql(test.expected);
+      });
+    });
+  });
 });

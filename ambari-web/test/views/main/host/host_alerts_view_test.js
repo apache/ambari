@@ -132,25 +132,42 @@ describe('App.MainHostAlertsView', function () {
       sinon.stub(App.db, 'getSortingStatuses').returns([
         {
           name: "state",
-          status: "sorting_asc"
+          status: "sorting"
         }
       ]);
+      sinon.stub(App.db, 'setSortingStatuses');
     });
     afterEach(function() {
       mock.loadAlertInstancesByHost.restore();
       App.router.get.restore();
       App.router.set.restore();
       App.db.getSortingStatuses.restore();
+      App.db.setSortingStatuses.restore();
     });
 
     it("loadAlertInstancesByHost should be called", function() {
       view.willInsertElement();
+      expect(mock.loadAlertInstancesByHost.calledWith('host1')).to.be.true;
+    });
+
+    it("isUpdating should be true", function() {
+      view.willInsertElement();
       expect(App.router.set.calledWith('mainAlertInstancesController.isUpdating', true)).to.be.true;
     });
 
-    it("App.router.set should be called", function() {
+    it("App.db.setSortingStatuses should be called", function() {
+      view.set('controller.name', 'ctrl1');
       view.willInsertElement();
-      expect(App.router.set.calledWith('mainAlertInstancesController.isUpdating', true)).to.be.true;
+      expect(App.db.setSortingStatuses.calledWith('ctrl1', [
+        {
+          name: "state",
+          status: "sorting"
+        },
+        {
+          name: "state",
+          status: "sorting_asc"
+        }
+      ])).to.be.true;
     });
   });
 

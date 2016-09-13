@@ -60,7 +60,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     if (invalidFacet) {
       this.showErrMsg(invalidFacet);
     }
-    var tableView = this.get('parentView').get('parentView');
+    var tableView = this.get('parentView.parentView');
     App.db.setComboSearchQuery(tableView.get('controller.name'), query);
     var filterConditions = this.createFilterConditions(searchCollection);
     tableView.updateComboFilter(filterConditions);
@@ -87,7 +87,7 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     // Add host component facets only when there isn't any component filter
     // with value other than ALL yet
     var currentComponentFacets = this.getComponentStateFacets(hostComponentList, false);
-    if (currentComponentFacets.length == 0) {
+    if (currentComponentFacets.length === 0) {
       list = list.concat(hostComponentList);
     }
     list = this.filterOutOneFacetOnlyOptions(list);
@@ -105,7 +105,6 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     var controller = App.router.get('mainHostComboSearchBoxController');
     this.showHideClearButton();
     var map = App.router.get('mainHostController.labelValueMap');
-    var serviceMap = this.get('serviceMap')
     var facetValue = map[facet] || facet;
     if (controller.isComponentStateFacet(facetValue)) {
       facetValue = 'componentState'
@@ -113,74 +112,151 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     switch (facetValue) {
       case 'hostName':
       case 'ip':
-        controller.getPropertySuggestions(facetValue, searchTerm).done(function() {
-          callback(controller.get('currentSuggestion').reject(function (item) {
-            return visualSearch.searchQuery.values(facet).indexOf(item) >= 0; // reject the ones already in search
-          }), {preserveMatches: true});
-        });
+        this.searchByHostname(facetValue, searchTerm, facet, callback);
         break;
       case 'rack':
-        callback(App.Host.find().toArray().mapProperty('rack').uniq().reject(function (item) {
-          return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-        }));
+        this.searchByRack(facet, callback);
         break;
       case 'version':
-        callback(App.HostStackVersion.find().toArray()
-          .filterProperty('isVisible', true).mapProperty('displayName').uniq().reject(function (item) {
-            return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-          }));
+        this.searchByVersion(facet, callback);
         break;
       case 'versionState':
-        callback(App.HostStackVersion.statusDefinition.map(function (status) {
-          map[App.HostStackVersion.formatStatus(status)] = status;
-          return App.HostStackVersion.formatStatus(status);
-        }).reject(function (item) {
-          return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-        }));
+        this.searchByVersionState(facet, callback, map);
         break;
       case 'healthClass':
-        var category_mocks = this.healthStatusCategories;
-        callback(category_mocks.slice(1).map(function (category) {
-          map[category.value] = category.healthStatus;
-          return category.value;
-        }).reject(function (item) {
-          return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-        }), {preserveOrder: true});
+        this.searchByHealthClass(facet, callback, map);
         break;
       case 'services':
-        callback(App.Service.find().toArray().map(function (service) {
-          serviceMap[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
-          return App.format.role(service.get('serviceName'), true);
-        }).reject(function (item) {
-          return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
-        }), {preserveOrder: true});
+        this.searchByServices(facet, callback);
         break;
       case 'componentState':
-        var list = [ "All" ];
-        // client only have "ALL" state
-        if (facet.toLowerCase().indexOf("client") == -1)
-        {
-          var currentComponentFacets = this.getComponentStateFacets(null, true);
-          if (currentComponentFacets.length == 0) {
-            list = list.concat(App.HostComponentStatus.getStatusesList()
-              .reject(function(status){return status == "UPGRADE_FAILED"}) // take out 'UPGRADE_FAILED'
-              .map(function (status) {
-                map[App.HostComponentStatus.getTextStatus(status)] = status;
-                return App.HostComponentStatus.getTextStatus(status);
-              }))
-              .concat([
-                "Inservice",
-                "Decommissioned",
-                "Decommissioning",
-                "RS Decommissioned",
-                "Maintenance Mode On",
-                "Maintenance Mode Off"
-              ]);
-          }
-        }
-        callback(list, {preserveOrder: true});
+        this.searchByComponentState(facet, callback, map);
         break;
     }
+  },
+
+  /**
+   *
+   * @param {string} facetValue
+   * @param {string} searchTerm
+   * @param {string} facet
+   * @param {Function} callback
+   */
+  searchByHostname: function(facetValue, searchTerm, facet, callback) {
+    var controller = App.router.get('mainHostComboSearchBoxController');
+
+    controller.getPropertySuggestions(facetValue, searchTerm).done(function() {
+      callback(controller.get('currentSuggestion').reject(function (item) {
+        return visualSearch.searchQuery.values(facet).indexOf(item) >= 0; // reject the ones already in search
+      }), {preserveMatches: true});
+    });
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   */
+  searchByRack: function(facet, callback) {
+    callback(App.Host.find().toArray().mapProperty('rack').uniq().reject(function (item) {
+      return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+    }));
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   */
+  searchByVersion: function(facet, callback) {
+    callback(App.HostStackVersion.find().toArray()
+      .filterProperty('isVisible', true).mapProperty('displayName').uniq().reject(function (item) {
+        return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+      }));
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   * @param {object} map
+   */
+  searchByVersionState: function(facet, callback, map) {
+    callback(App.HostStackVersion.statusDefinition.map(function (status) {
+      map[App.HostStackVersion.formatStatus(status)] = status;
+      return App.HostStackVersion.formatStatus(status);
+    }).reject(function (item) {
+      return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+    }));
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   * @param {object} map
+   */
+  searchByHealthClass: function(facet, callback, map) {
+    //exclude "All" category
+    var category_mocks = this.get('healthStatusCategories').slice(1);
+
+    callback(category_mocks.map(function (category) {
+      map[category.value] = category.healthStatus;
+      return category.value;
+    }).reject(function (item) {
+      return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+    }), {preserveOrder: true});
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   */
+  searchByServices: function(facet, callback) {
+    var serviceMap = this.get('serviceMap');
+
+    callback(App.Service.find().toArray().map(function (service) {
+      serviceMap[App.format.role(service.get('serviceName'), true)] = service.get('serviceName');
+      return App.format.role(service.get('serviceName'), true);
+    }).reject(function (item) {
+      return visualSearch.searchQuery.values(facet).indexOf(item) >= 0;
+    }), {preserveOrder: true});
+  },
+
+  /**
+   *
+   * @param {string} facet
+   * @param {Function} callback
+   * @param {object} map
+   */
+  searchByComponentState: function (facet, callback, map) {
+    var list = ["All"];
+    // client only have "ALL" state
+    if (facet.toLowerCase().indexOf("client") === -1) {
+      var currentComponentFacets = this.getComponentStateFacets(null, true);
+      if (currentComponentFacets.length === 0) {
+        list = list.concat(
+          App.HostComponentStatus.getStatusesList()
+          .reject(function (status) {
+            return status === "UPGRADE_FAILED"
+          }) // take out 'UPGRADE_FAILED'
+          .map(function (status) {
+            map[App.HostComponentStatus.getTextStatus(status)] = status;
+            return App.HostComponentStatus.getTextStatus(status);
+          })
+        )
+        .concat([
+          "Inservice",
+          "Decommissioned",
+          "Decommissioning",
+          "RS Decommissioned",
+          "Maintenance Mode On",
+          "Maintenance Mode Off"
+        ]);
+      }
+    }
+    callback(list, {preserveOrder: true});
   },
 
   findInvalidFacet: function(searchCollection) {
@@ -204,8 +280,8 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     this.set('errMsg', '')
   },
 
-  showHideClearButton: function() {
-    if(visualSearch.searchQuery.toJSON().length > 0) {
+  showHideClearButton: function () {
+    if (visualSearch.searchQuery.toJSON().length > 0) {
       $('.VS-cancel-search-box').removeClass('hide');
     } else {
       $('.VS-cancel-search-box').addClass('hide');
@@ -234,25 +310,34 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     return hostComponentList;
   },
 
-  getComponentStateFacets: function(hostComponentList, includeAllValue) {
+  /**
+   *
+   * @param {Array} hostComponentList
+   * @param {boolean} includeAllValue
+   * @returns {Array}
+   */
+  getComponentStateFacets: function (hostComponentList, includeAllValue) {
     if (!hostComponentList) {
       hostComponentList = this.getHostComponentList();
     }
-    var currentComponentFacets = visualSearch.searchQuery.toJSON().filter(function (facet) {
-      var result = !!(hostComponentList.findProperty('label', facet.category) && facet.value);
+    return visualSearch.searchQuery.toJSON().filter(function (facet) {
+      var result = Boolean(hostComponentList.findProperty('label', facet.category) && facet.value);
       if (!includeAllValue) {
-        result &= (facet.value != 'All');
+        result &= (facet.value !== 'All');
       }
       return result;
     });
-    return currentComponentFacets;
   },
 
+  /**
+   *
+   * @param {string} name
+   * @returns {Array}
+   */
   getFacetsByName: function(name) {
-    var facets = visualSearch.searchQuery.toJSON().filter(function(facet) {
+    return visualSearch.searchQuery.toJSON().filter(function(facet) {
       return facet.category === name;
     });
-    return facets;
   },
 
   filterOutOneFacetOnlyOptions: function(options) {
@@ -288,59 +373,80 @@ App.MainHostComboSearchBoxView = Em.View.extend({
     map['Maintenance Mode Off'] = 'OFF';
   },
 
-  createFilterConditions: function(searchCollection) {
-    var self = this;
-    var mainHostController = App.router.get('mainHostController');
-    var map = mainHostController.get('labelValueMap');
+  createFilterConditions: function (searchCollection) {
+    var map = App.router.get('mainHostController.labelValueMap');
     var serviceMap = this.get('serviceMap');
     var filterConditions = Em.A();
+
     searchCollection.models.forEach(function (model) {
       var tag = model.attributes;
       var category = map[tag.category] || tag.category;
-      var value = (category == 'services')? (serviceMap[tag.value] || tag.value) : (map[tag.value] || tag.value);
-
-      var iColumn = self.getFilterColumn(category, value);
-      var filterValue = self.getFilterValue(category, value);
+      var value = (category === 'services') ? (serviceMap[tag.value] || tag.value) : (map[tag.value] || tag.value);
+      var iColumn = this.getFilterColumn(category, value);
+      var filterValue = this.getFilterValue(category, value);
       var condition = filterConditions.findProperty('iColumn', iColumn);
+
       if (condition) {
         // handle multiple facets with same category
-        if (typeof condition.value == 'string') {
+        if (typeof condition.value === 'string') {
           condition.value = [condition.value, filterValue];
-        } else if (Em.isArray(condition.value) && condition.value.indexOf(filterValue) == -1) {
+        } else if (Em.isArray(condition.value) && condition.value.indexOf(filterValue) === -1) {
           condition.value.push(filterValue);
         }
       } else {
-        var type = 'string';
-        if (category === 'cpu') {
-          type = 'number';
-        }
-        if (category === 'memoryFormatted') {
-          type = 'ambari-bandwidth';
-        }
-        condition = {
-          skipFilter: false,
-          iColumn: iColumn,
-          value: filterValue,
-          type: type
-        };
-        filterConditions.push(condition);
+        filterConditions.push(this.createCondition(category, iColumn, filterValue));
       }
-    });
+    }, this);
     return filterConditions;
   },
 
+  /**
+   *
+   * @param {string} category
+   * @param {number} iColumn
+   * @param {string} filterValue
+   * @returns {{skipFilter: boolean, iColumn: number, value: string, type: string}}
+   */
+  createCondition: function(category, iColumn, filterValue) {
+    var type = 'string';
+    if (category === 'cpu') {
+      type = 'number';
+    }
+    if (category === 'memoryFormatted') {
+      type = 'ambari-bandwidth';
+    }
+    return {
+      skipFilter: false,
+      iColumn: iColumn,
+      value: filterValue,
+      type: type
+    };
+  },
+
+  /**
+   *
+   * @param {string} category
+   * @param {string} value
+   * @returns {number}
+   */
   getFilterColumn: function(category, value) {
-    var iColumn = -1;
+    var iColumn;
     if (this.get('controller').isComponentStateFacet(category)) {
-      iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf('componentState');
+      iColumn = App.router.get('mainHostController.colPropAssoc').indexOf('componentState');
     } else if (this.get('controller').isComplexHealthStatusFacet(value)) {
       iColumn = this.get('healthStatusCategories').findProperty('healthStatus', value).column;
     } else {
-      iColumn = App.router.get('mainHostController').get('colPropAssoc').indexOf(category);
+      iColumn = App.router.get('mainHostController.colPropAssoc').indexOf(category);
     }
     return iColumn;
   },
 
+  /**
+   *
+   * @param {string} category
+   * @param {string} value
+   * @returns {string}
+   */
   getFilterValue: function(category, value) {
     var filterValue = value;
     if (this.get('controller').isComponentStateFacet(category)) {

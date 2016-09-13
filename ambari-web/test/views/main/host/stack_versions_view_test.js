@@ -43,4 +43,70 @@ describe('App.MainHostStackVersionsView', function() {
       expect(view.get('filteredContentInfo')).to.eql(Em.I18n.t('hosts.host.stackVersions.table.filteredInfo').format(1, 2));
     });
   });
+
+  describe("#showInstallProgress()", function () {
+    var mock = {
+      showProgressPopup: Em.K
+    };
+
+    beforeEach(function() {
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.stub(mock, 'showProgressPopup');
+    });
+
+    afterEach(function() {
+      App.router.get.restore();
+      mock.showProgressPopup.restore();
+    });
+
+    it("showProgressPopup should be called", function() {
+      view.showInstallProgress({context: {}});
+      expect(mock.showProgressPopup.calledWith({})).to.be.true;
+    });
+  });
+
+  describe("#outOfSyncInfo", function () {
+    var outOfSyncInfo;
+
+    beforeEach(function() {
+      outOfSyncInfo = view.get('outOfSyncInfo').create()
+    });
+
+    describe("#didInsertElement()", function () {
+
+      beforeEach(function() {
+        sinon.stub(App, 'tooltip');
+      });
+
+      afterEach(function() {
+        App.tooltip.restore();
+      });
+
+      it("App.tooltip should be called", function() {
+        outOfSyncInfo.didInsertElement();
+        expect(App.tooltip.calledOnce).to.be.true;
+      });
+    });
+
+    describe("#willDestroyElement()", function () {
+      var mock = {
+        tooltip: Em.K
+      };
+
+      beforeEach(function() {
+        sinon.stub(window, '$').returns(mock);
+        sinon.spy(mock, 'tooltip');
+      });
+
+      afterEach(function() {
+        window.$.restore();
+        mock.tooltip.restore();
+      });
+
+      it("tooltip should be destroyed", function() {
+        outOfSyncInfo.willDestroyElement();
+        expect(mock.tooltip.calledWith('destroy')).to.be.true;
+      });
+    });
+  });
 });

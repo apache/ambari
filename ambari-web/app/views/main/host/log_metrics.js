@@ -36,7 +36,7 @@ App.MainHostLogMetrics = Em.View.extend({
    * @type {ServiceLogMetricsObject[]}
    */
   logsData: function() {
-    var services = this.get('content').get('hostComponents').mapProperty('service').uniq();
+    var services = this.get('content.hostComponents').mapProperty('service').uniq();
     var logLevels = ['fatal', 'critical', 'error', 'warning', 'info', 'debug'];
     return services.map(function(service) {
       var levels = logLevels.map(function(level) {

@@ -44,10 +44,10 @@ App.HostTableMenuView = Em.View.extend({
     });
   }.property(),
 
-  getBulkMenuItemsPerServiceComponent: function(){
+  getBulkMenuItemsPerServiceComponent: function () {
     var menuItems = [];
     App.StackServiceComponent.find().forEach(function (stackComponent) {
-      if(stackComponent.get('hasBulkCommandsDefinition')){
+      if (stackComponent.get('hasBulkCommandsDefinition')) {
         var menuItem = O.create({
           serviceName: stackComponent.get('serviceName'),
           componentName: stackComponent.get('componentName'),
@@ -208,16 +208,18 @@ App.HostTableMenuView = Em.View.extend({
       }.property('App.router.mainServiceController.content.@each', 'content'),
 
       tooltipMsg: function () {
-        return (this.get('disabledElement') == 'disabled') ?
-          Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'), App.format.role(this.get('content.componentName'), false)) : '';
+        var displayName = App.format.role(this.get('content.componentName'), false);
+        return (this.get('disabledElement') === 'disabled')
+          ? Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'), displayName)
+          : '';
       }.property('disabledElement', 'content.componentName'),
 
       disabledElement: function () {
-        return this.get('service.workStatus') == 'STARTED' ? '' : 'disabled';
+        return this.get('service.workStatus') === 'STARTED' ? '' : 'disabled';
       }.property('service.workStatus'),
 
       click: function () {
-        if (this.get('disabledElement') == 'disabled') {
+        if (this.get('disabledElement') === 'disabled') {
           return;
         }
         this.get('controller').bulkOperationConfirm(this.get('content'), this.get('selection'));
