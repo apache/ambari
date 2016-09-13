@@ -196,7 +196,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         controllerBinding: 'App.router.manageAlertNotificationsController'
       }),
 
-      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup', 'manage-alert-notifications-popup'],
 
       secondary: null,
 
