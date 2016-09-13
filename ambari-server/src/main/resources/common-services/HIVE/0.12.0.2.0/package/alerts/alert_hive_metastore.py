@@ -28,6 +28,7 @@ from resource_management.core import global_lock
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
+from resource_management.core.signal_utils import TerminateStrategy
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -195,7 +196,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     try:
       Execute(cmd, user=smokeuser,
         path=["/bin/", "/usr/bin/", "/usr/sbin/", bin_dir],
-        timeout=int(check_command_timeout) )
+        timeout=5,
+        timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
+      )
 
       total_time = time.time() - start_time
 

@@ -256,6 +256,7 @@ class ExecuteProvider(Provider):
                         timeout=self.resource.timeout,on_timeout=self.resource.on_timeout,
                         path=self.resource.path,
                         sudo=self.resource.sudo,
+                        timeout_kill_strategy=self.resource.timeout_kill_strategy,
                         on_new_line=self.resource.on_new_line,
                         stdout=self.resource.stdout,stderr=self.resource.stderr,
                         tries=self.resource.tries, try_sleep=self.resource.try_sleep)
