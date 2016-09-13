@@ -871,7 +871,9 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
   valueBinding: 'serviceConfig.value',
   unitBinding: 'serviceConfig.unit',
 
-  template: Ember.Handlebars.compile('<i>{{view.value}}&nbsp;{{view.unit}}</i>')
+  fullValue: Em.computed.format('{0} {1}', 'value', 'unit'),
+
+  template: Ember.Handlebars.compile('<i>{{formatWordBreak view.fullValue}}</i>')
 });
 
 /**
