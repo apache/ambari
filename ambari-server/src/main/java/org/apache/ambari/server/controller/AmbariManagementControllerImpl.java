@@ -98,6 +98,7 @@ import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider
 import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
+import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
@@ -287,6 +288,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private ClusterVersionDAO clusterVersionDAO;
   @Inject
   private AmbariEventPublisher ambariEventPublisher;
+  @Inject
+  private MetricsCollectorHAManager metricsCollectorHAManager;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -5064,6 +5067,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     properties.put("storage.persistent", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.PERSISTED)));
     properties.put("storage.temporary", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.TEMPORARY)));
     return properties;
+  }
+
+  @Override
+  public MetricsCollectorHAManager getMetricsCollectorHAManager() {
+    return injector.getInstance(MetricsCollectorHAManager.class);
   }
 
   /**

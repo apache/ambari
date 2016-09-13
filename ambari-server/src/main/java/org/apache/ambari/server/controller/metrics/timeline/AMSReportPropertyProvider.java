@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
@@ -33,11 +36,14 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.MetricsCollectorHostDownEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,6 +60,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
   MetricsRequestHelper requestHelper;
   private static AtomicInteger printSkipPopulateMsgHostCounter = new AtomicInteger(0);
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
+  private AmbariEventPublisher ambariEventPublisher;
 
   public AMSReportPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                                    URLStreamProvider streamProvider,
@@ -67,6 +74,9 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     this.metricCache = cacheProvider.getTimelineMetricsCache();
     this.requestHelper = new MetricsRequestHelper(streamProvider);
+    if (AmbariServer.getController() != null) {
+      this.ambariEventPublisher = AmbariServer.getController().getAmbariEventPublisher();
+    }
   }
 
   /**
@@ -215,9 +225,12 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
         }
       } catch (IOException io) {
         timelineMetrics = null;
-        if (io instanceof SocketTimeoutException) {
+        if (io instanceof SocketTimeoutException || io instanceof ConnectException) {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Skip populating metrics on socket timeout exception.");
+          }
+          if (ambariEventPublisher != null) {
+            ambariEventPublisher.publish(new MetricsCollectorHostDownEvent(clusterName, host));
           }
           break;
         }

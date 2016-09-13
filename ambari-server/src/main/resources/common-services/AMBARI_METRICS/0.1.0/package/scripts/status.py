@@ -31,13 +31,13 @@ def get_collector_pid_files():
   return pid_files
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def check_service_status(name):
+def check_service_status(env, name):
   import status_params
   env.set_params(status_params)
 
   from resource_management.libraries.functions.check_process_status import check_process_status
   if name=='collector':
-    for pid_files in get_collector_pid_files():
+    for pid_file in get_collector_pid_files():
       check_process_status(pid_file)
   elif name == 'monitor':
     check_process_status(status_params.monitor_pid_file)

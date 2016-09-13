@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.logging.LoggingSearchPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricPropertyProviderFactory;
+import org.apache.ambari.server.controller.metrics.MetricsCollectorHAManager;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.events.AmbariEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -888,6 +889,13 @@ public interface AmbariManagementController {
    * @return
    */
   AmbariEventPublisher getAmbariEventPublisher();
+
+  /**
+   * Gets an {@link MetricsCollectorHAManager} which can be used to get/add collector host for a cluster
+   *
+   * @return {@link MetricsCollectorHAManager}
+   */
+  MetricsCollectorHAManager getMetricsCollectorHAManager();
 
 }
 
