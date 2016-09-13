@@ -2539,6 +2539,10 @@ var urls = {
     'real': '/clusters/{clusterName}/hosts?fields=host_components/HostRoles/state&minimal_response=true',
     'mock': '/data/hosts/HDP2/hosts.json'
   },
+  'hosts.heartbeat_lost': {
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_state=HEARTBEAT_LOST',
+    'mock': ''
+  },
   'host_components.all': {
     'real': '/clusters/{clusterName}/host_components?fields=HostRoles/host_name&minimal_response=true',
     'mock': ''

@@ -76,6 +76,12 @@
                 <label>{{view Em.Checkbox classNames="checkbox" checkedBinding="ignore"}} {{t admin.kerberos.wizard.step3.checkbox.ignoreAndProceed.label}}</label>
             </div>
         {{/if}}
+        {{#if view.isHostHeartbeatLost}}
+          <p class="alert alert-danger">{{view.resultMsg}}
+            <a href="javascript:void(null)"
+            data-toggle="modal" {{action showHostsWithLostHeartBeat target="view"}}>{{t common.showDetails}}</a>
+          </p>
+        {{/if}}
       {{else}}
           {{view App.SpinnerView}}
       {{/if}}
