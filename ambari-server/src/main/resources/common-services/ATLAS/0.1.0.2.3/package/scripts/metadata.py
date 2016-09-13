@@ -17,9 +17,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+
 from resource_management import Package
 from resource_management import StackFeature
-from resource_management.core.resources.system import Directory, File
+from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.core.source import StaticFile, InlineTemplate, Template
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
@@ -94,6 +96,17 @@ def metadata(type='server'):
            mode=0755,
            content=InlineTemplate(params.metadata_env_content)
       )
+ 
+      files_to_chown = [format("{conf_dir}/policy-store.txt"), format("{conf_dir}/users-credentials.properties")]
+      for file in files_to_chown:
+        if os.path.exists(file):
+          Execute(('chown', format('{metadata_user}:{user_group}'), file),
+                  sudo=True
+                  )
+          Execute(('chmod', '644', file),
+                  sudo=True
+                  )
+
       if params.metadata_solrconfig_content:
         File(format("{conf_dir}/solr/solrconfig.xml"),
              mode=0644,
