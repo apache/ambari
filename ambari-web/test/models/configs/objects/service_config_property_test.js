@@ -186,8 +186,6 @@ describe('App.ServiceConfigProperty', function () {
     serviceConfigProperty = getProperty();
   });
 
-  App.TestAliases.testAsComputedFirstNotBlank(getProperty(), 'placeholder', ['placeholderText', 'savedValue']);
-
   App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
 
   describe('#isPropertyOverridable', function () {
