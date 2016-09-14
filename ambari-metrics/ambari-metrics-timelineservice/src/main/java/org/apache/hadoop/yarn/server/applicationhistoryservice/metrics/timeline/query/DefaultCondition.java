@@ -16,12 +16,14 @@
  * limitations under the License.
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.TopNConfig;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,7 @@ public class DefaultCondition implements Condition {
   Integer fetchSize;
   String statement;
   Set<String> orderByColumns = new LinkedHashSet<String>();
+  boolean metricNamesNotCondition = false;
 
   private static final Log LOG = LogFactory.getLog(DefaultCondition.class);
 
@@ -215,43 +218,84 @@ public class DefaultCondition implements Condition {
 
   protected boolean appendMetricNameClause(StringBuilder sb) {
     boolean appendConjunction = false;
-    StringBuilder metricsLike = new StringBuilder();
-    StringBuilder metricsIn = new StringBuilder();
+    List<String> metricsLike = new ArrayList<>();
+    List<String> metricsIn = new ArrayList<>();
 
     if (getMetricNames() != null) {
       for (String name : getMetricNames()) {
         if (name.contains("%")) {
-          if (metricsLike.length() > 1) {
-            metricsLike.append(" OR ");
-          }
-          metricsLike.append("METRIC_NAME LIKE ?");
+          metricsLike.add(name);
         } else {
-          if (metricsIn.length() > 0) {
-            metricsIn.append(", ");
-          }
-          metricsIn.append("?");
+          metricsIn.add(name);
         }
       }
 
-      if (metricsIn.length() > 0) {
-        sb.append("(METRIC_NAME IN (");
-        sb.append(metricsIn);
+      // Put a '(' first
+      sb.append("(");
+
+      //IN clause
+      // METRIC_NAME (NOT) IN (?,?,?,?)
+      if (CollectionUtils.isNotEmpty(metricsIn)) {
+        sb.append("METRIC_NAME");
+        if (metricNamesNotCondition) {
+          sb.append(" NOT");
+        }
+        sb.append(" IN (");
+        //Append ?,?,?,?
+        for (int i = 0; i < metricsIn.size(); i++) {
+          sb.append("?");
+          if (i < metricsIn.size() - 1) {
+            sb.append(", ");
+          }
+        }
         sb.append(")");
         appendConjunction = true;
       }
 
-      if (metricsLike.length() > 0) {
-        if (appendConjunction) {
-          sb.append(" OR ");
+      //Put an OR/AND if both types are present
+      if (CollectionUtils.isNotEmpty(metricsIn) &&
+        CollectionUtils.isNotEmpty(metricsLike)) {
+        if (metricNamesNotCondition) {
+          sb.append(" AND ");
         } else {
-          sb.append("(");
+          sb.append(" OR ");
         }
-        sb.append(metricsLike);
+      }
+
+      //LIKE clause
+      // METRIC_NAME (NOT) LIKE ? OR(AND) METRIC_NAME LIKE ?
+      if (CollectionUtils.isNotEmpty(metricsLike)) {
+
+        for (int i = 0; i < metricsLike.size(); i++) {
+          sb.append("METRIC_NAME");
+          if (metricNamesNotCondition) {
+            sb.append(" NOT");
+          }
+          sb.append(" LIKE ");
+          sb.append("?");
+
+          if (i < metricsLike.size() - 1) {
+            if (metricNamesNotCondition) {
+              sb.append(" AND ");
+            } else {
+              sb.append(" OR ");
+            }
+          }
+        }
         appendConjunction = true;
       }
 
+      // Finish with a ')'
       if (appendConjunction) {
         sb.append(")");
+      }
+
+      metricNames.clear();
+      if (CollectionUtils.isNotEmpty(metricsIn)) {
+        metricNames.addAll(metricsIn);
+      }
+      if (CollectionUtils.isNotEmpty(metricsLike)) {
+        metricNames.addAll(metricsLike);
       }
     }
     return appendConjunction;
@@ -332,5 +376,9 @@ public class DefaultCondition implements Condition {
       }
     }
     return false;
+  }
+
+  public void setMetricNamesNotCondition(boolean metricNamesNotCondition) {
+    this.metricNamesNotCondition = metricNamesNotCondition;
   }
 }

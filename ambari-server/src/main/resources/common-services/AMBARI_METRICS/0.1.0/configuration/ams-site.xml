@@ -660,4 +660,25 @@
     </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>timeline.metrics.service.metadata.filters</name>
+    <value>ContainerResource</value>
+    <description>
+      Commas separated list of regular expressions that match metric names
+      which prevents certain metrics from ending up in metadata cache.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregation.sql.filters</name>
+    <value>sdisk\_%,boottime</value>
+    <description>
+      Commas separated list of Metric names or Phoenix 'LIKE' class expressions that match metric names
+      which prevents certain metrics from being aggregated across hosts.
+    </description>
+    <on-ambari-upgrade add="true"/>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
 </configuration>

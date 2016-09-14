@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -24,7 +25,6 @@ import org.apache.hadoop.metrics2.sink.timeline.MetadataException;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -172,7 +172,7 @@ public class TimelineMetricMetadataManager {
       timelineMetric.getUnits(),
       timelineMetric.getType(),
       timelineMetric.getStartTime(),
-      true
+      supportAggregates(timelineMetric)
     );
   }
 
@@ -186,5 +186,10 @@ public class TimelineMetricMetadataManager {
 
   public boolean isDisabled() {
     return isDisabled;
+  }
+
+  private boolean supportAggregates(TimelineMetric metric) {
+    return MapUtils.isEmpty(metric.getMetadata()) ||
+      !(String.valueOf(true).equals(metric.getMetadata().get("skipAggregation")));
   }
 }

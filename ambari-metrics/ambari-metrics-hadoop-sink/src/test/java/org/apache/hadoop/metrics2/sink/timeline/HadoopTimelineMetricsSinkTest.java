@@ -324,8 +324,8 @@ public class HadoopTimelineMetricsSinkTest {
         }
       }, "8040")
     );
-    expect(record.tags()).andReturn(tags1).times(6);
-    expect(record.tags()).andReturn(tags2).times(6);
+    expect(record.tags()).andReturn(tags1).times(12);
+    expect(record.tags()).andReturn(tags2).times(12);
 
     sink.appendPrefix(eq(record), (StringBuilder) anyObject());
     expectLastCall().anyTimes().andStubAnswer(new IAnswer<Object>() {

@@ -246,6 +246,9 @@ public class TimelineMetricConfiguration {
   public static final String DEFAULT_TOPN_HOSTS_LIMIT =
     "timeline.metrics.default.topn.hosts.limit";
 
+  public static final String TIMELINE_METRIC_AGGREGATION_SQL_FILTERS =
+    "timeline.metrics.cluster.aggregation.sql.filters";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;

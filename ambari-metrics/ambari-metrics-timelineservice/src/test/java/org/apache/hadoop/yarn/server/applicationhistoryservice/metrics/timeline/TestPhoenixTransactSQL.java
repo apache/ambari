@@ -47,7 +47,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testConditionClause() throws Exception {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", 1407959718L, 1407959918L, null, null, false);
 
     String preparedClause = condition.getConditionClause().toString();
@@ -78,7 +78,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testLikeConditionClause() throws Exception {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "some=%.metric"),
+      new ArrayList<>(Arrays.asList("cpu_user", "some=%.metric")),
       Collections.singletonList("h1"), "a1", "i1", 1407959718L, 1407959918L,
       null, null, false);
 
@@ -115,7 +115,7 @@ public class TestPhoenixTransactSQL {
 
 
     condition = new DefaultCondition(
-        Arrays.asList("some=%.metric"), Collections.singletonList("h1"), "a1", "i1",
+      new ArrayList<>(Arrays.asList("some=%.metric")), Collections.singletonList("h1"), "a1", "i1",
         1407959718L, 1407959918L, null, null, false);
 
     preparedClause = condition.getConditionClause().toString();
@@ -127,7 +127,7 @@ public class TestPhoenixTransactSQL {
 
 
     condition = new DefaultCondition(
-      Arrays.asList("some=%.metric1", "some=%.metric2", "some=%.metric3"),
+      new ArrayList<>(Arrays.asList("some=%.metric1", "some=%.metric2", "some=%.metric3")),
       Collections.singletonList("h1"), "a1", "i1",
       1407959718L, 1407959918L, null, null, false);
 
@@ -142,7 +142,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetAggregatePrecisionMINUTES() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", 1407959718L, 1407959918L, Precision.MINUTES, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -163,7 +163,7 @@ public class TestPhoenixTransactSQL {
     Long startTime = 1407959718L;
     //SECONDS precision
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -181,7 +181,7 @@ public class TestPhoenixTransactSQL {
     // MINUTES precision
     startTime = endTime-PhoenixTransactSQL.DAY/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -199,7 +199,7 @@ public class TestPhoenixTransactSQL {
     // HOURS precision
     startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -217,7 +217,7 @@ public class TestPhoenixTransactSQL {
     // DAYS precision
     startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -236,7 +236,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetAggregatePrecisionHours() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", 1407959718L, 1407959918L, Precision.HOURS, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -254,7 +254,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetMetricsPrecisionMinutes() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", 1407959718L, 1407959918L, Precision.MINUTES, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -275,7 +275,7 @@ public class TestPhoenixTransactSQL {
     Long startTime = endTime - 200;
     // SECONDS precision
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -294,7 +294,7 @@ public class TestPhoenixTransactSQL {
     // SECONDS precision
     startTime = endTime-PhoenixTransactSQL.HOUR*2/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -311,7 +311,7 @@ public class TestPhoenixTransactSQL {
     // MINUTES precision
     startTime = endTime-PhoenixTransactSQL.DAY/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -328,7 +328,7 @@ public class TestPhoenixTransactSQL {
     // HOURS precision
     startTime = endTime-PhoenixTransactSQL.DAY*30/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -345,7 +345,7 @@ public class TestPhoenixTransactSQL {
     // DAYS precision
     startTime = endTime-PhoenixTransactSQL.DAY*30*2/1000;
     condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);
     connection = createNiceMock(Connection.class);
     preparedStatement = createNiceMock(PreparedStatement.class);
@@ -364,7 +364,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetLatestMetricSqlStmtMultipleHostNames() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Arrays.asList("h1", "h2"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Arrays.asList("h1", "h2"),
       "a1", "i1", null, null, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -390,7 +390,7 @@ public class TestPhoenixTransactSQL {
   public void testPrepareGetLatestMetricSqlStmtSortMergeJoinAlgorithm()
     throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Arrays.asList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Arrays.asList("h1"),
       "a1", "i1", null, null, null, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -413,7 +413,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testPrepareGetMetricsPrecisionHours() throws SQLException {
     Condition condition = new DefaultCondition(
-      Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
+      new ArrayList<>(Arrays.asList("cpu_user", "mem_free")), Collections.singletonList("h1"),
       "a1", "i1", 1407959718L, 1407959918L, Precision.HOURS, null, false);
     Connection connection = createNiceMock(Connection.class);
     PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
@@ -561,7 +561,7 @@ public class TestPhoenixTransactSQL {
     List<String> hosts = Arrays.asList("h1", "h2", "h3", "h4");
 
     Condition condition = new TopNCondition(
-      Arrays.asList("cpu_user"), hosts,
+      new ArrayList<>(Collections.singletonList("cpu_user")), hosts,
       "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
 
     String conditionClause = condition.getConditionClause().toString();
@@ -580,7 +580,7 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testTopNMetricsConditionClause() throws Exception {
-    List<String> metricNames = Arrays.asList("m1", "m2", "m3");
+    List<String> metricNames = new ArrayList<>(Arrays.asList("m1", "m2", "m3"));
 
     Condition condition = new TopNCondition(
       metricNames, Collections.singletonList("h1"),
@@ -602,7 +602,7 @@ public class TestPhoenixTransactSQL {
 
   @Test
   public void testTopNMetricsIllegalConditionClause() throws Exception {
-    List<String> metricNames = Arrays.asList("m1", "m2");
+    List<String> metricNames = new ArrayList<>(Arrays.asList("m1", "m2"));
 
     List<String> hosts = Arrays.asList("h1", "h2");
 
@@ -616,7 +616,7 @@ public class TestPhoenixTransactSQL {
   @Test
   public void testHostsRegexpConditionClause() {
     Condition condition = new TopNCondition(
-            Arrays.asList("m1"), Arrays.asList("%.ambari", "host1.apache"),
+      new ArrayList<>(Arrays.asList("m1")), Arrays.asList("%.ambari", "host1.apache"),
             "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
 
     String conditionClause = condition.getConditionClause().toString();
@@ -629,7 +629,7 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(expectedClause, conditionClause);
 
     condition = new TopNCondition(
-            Arrays.asList("m1"), Arrays.asList("%.ambari"),
+      new ArrayList<>(Arrays.asList("m1")), Arrays.asList("%.ambari"),
             "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
 
     conditionClause = condition.getConditionClause().toString();
@@ -643,7 +643,7 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(expectedClause, conditionClause);
 
     condition = new TopNCondition(
-            Arrays.asList("m1", "m2", "m3"), Arrays.asList("h1.ambari"),
+      new ArrayList<>(Arrays.asList("m1", "m2", "m3")), Arrays.asList("h1.ambari"),
             "a1", "i1", 1407959718L, 1407959918L, null, null, false, 2, null, false);
 
     conditionClause = condition.getConditionClause().toString();

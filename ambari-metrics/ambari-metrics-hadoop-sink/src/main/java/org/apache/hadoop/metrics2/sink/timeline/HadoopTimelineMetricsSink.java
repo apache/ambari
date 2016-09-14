@@ -39,6 +39,7 @@ import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -205,6 +206,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       String contextName = record.context();
 
       StringBuilder sb = new StringBuilder();
+      boolean skipAggregation = false;
 
       // Transform ipc.8020 -> ipc.client,  ipc.8040 -> ipc.datanode, etc.
       if (contextName.startsWith("ipc.")) {
@@ -216,17 +218,19 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
       sb.append(contextName);
       sb.append('.');
-      // Similar to GangliaContext adding processName to distinguish jvm
-      // metrics for co-hosted daemons. We only do this for HBase since the
-      // appId is shared for Master and RS.
-      if (contextName.equals("jvm")) {
-        if (record.tags() != null) {
-          for (MetricsTag tag : record.tags()) {
-            if (tag.info().name().equalsIgnoreCase("processName") &&
-               (tag.value().equals("RegionServer") || tag.value().equals("Master"))) {
-              sb.append(tag.value());
-              sb.append('.');
-            }
+
+      if (record.tags() != null) {
+        for (MetricsTag tag : record.tags()) {
+          if (StringUtils.isNotEmpty(tag.name()) && tag.name().equals("skipAggregation")) {
+            skipAggregation = String.valueOf(true).equals(tag.value());
+          }
+                // Similar to GangliaContext adding processName to distinguish jvm
+                // metrics for co-hosted daemons. We only do this for HBase since the
+                // appId is shared for Master and RS.
+          if (contextName.equals("jvm") && tag.info().name().equalsIgnoreCase("processName") &&
+            (tag.value().equals("RegionServer") || tag.value().equals("Master"))) {
+            sb.append(tag.value());
+            sb.append('.');
           }
         }
       }
@@ -258,6 +262,12 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       Collection<AbstractMetric> metrics = (Collection<AbstractMetric>) record.metrics();
 
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
+      Map<String, String> metadata = null;
+      if (skipAggregation) {
+        metadata = Collections.singletonMap("skipAggregation", "true");
+      }
+
+
       long startTime = record.timestamp();
 
       for (AbstractMetric metric : metrics) {
@@ -271,6 +281,9 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
         timelineMetric.setStartTime(startTime);
         timelineMetric.setType(metric.type() != null ? metric.type().name() : null);
         timelineMetric.getMetricValues().put(startTime, value.doubleValue());
+        if (metadata != null) {
+          timelineMetric.setMetadata(metadata);
+        }
         // Put intermediate values into the cache until it is time to send
         boolean isCounter = MetricType.COUNTER == metric.type();
         metricsCache.putTimelineMetric(timelineMetric, isCounter);

@@ -20,6 +20,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.easymock.EasyMock;
 import org.junit.Test;
@@ -113,6 +114,10 @@ public class TimelineMetricClusterAggregatorSecondTest {
 
     Configuration configuration = new Configuration();
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
+
+    EasyMock.expect(metricMetadataManagerMock.getMetadataCacheValue((TimelineMetricMetadataKey)EasyMock.anyObject()))
+      .andReturn(null).anyTimes();
+    EasyMock.replay(metricMetadataManagerMock);
 
     TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
       "TimelineClusterAggregatorSecond", metricMetadataManagerMock, null, configuration, null,
