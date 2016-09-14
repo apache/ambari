@@ -111,8 +111,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   /**
    * Placeholder used for configs with input type text
    */
-  placeholder: Em.computed.firstNotBlank('placeholderText', 'savedValue'),
-
+  placeholder: function() {
+    if (this.isEditable) {
+      return this.get('placeholderText') || this.get('savedValue');
+    }
+    return null;
+  }.property('isEditable', 'placeholderText', 'savedValue'),
+  
   retypedPassword: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
