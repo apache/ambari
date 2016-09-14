@@ -88,7 +88,7 @@ App.TestAliases = {
      * @returns {App.TestAliases}
      * @private
      */
-    _stubOneKey: function (self,dependentKey, value) {
+    _stubOneKey: function (self, dependentKey, value) {
       var isApp = dependentKey.startsWith('App.');
       var name = isApp ? dependentKey.replace('App.', '') : dependentKey;
       var context = isApp ? App : self;
@@ -160,6 +160,23 @@ App.TestAliases = {
         result.push(combo);
       }
       return result;
+    },
+
+    /**
+     * Reopens property of the given object as constant with the given value
+     * @param {Ember.Object} context
+     * @param {String} key
+     * @param {*} value
+     */
+    reopenProperty: function (context, key, value) {
+      var reopenObject = {},
+        isUndefined = typeof value === 'undefined';
+      // if the only property in reopen argument is undefined, context won't be changed
+      reopenObject[key] = isUndefined ? null : value;
+      context.reopen(reopenObject);
+      if (isUndefined) {
+        context.set(key, undefined);
+      }
     }
 
   }
@@ -200,3 +217,5 @@ require('test/aliases/computed/or');
 require('test/aliases/computed/formatUnavailable');
 require('test/aliases/computed/getByKey');
 require('test/aliases/computed/truncate');
+require('test/aliases/computed/concat');
+require('test/aliases/computed/empty');

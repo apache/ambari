@@ -45,7 +45,11 @@ App.TestAliases.testAsComputedEqual = function (context, propertyName, dependent
     });
 
     it('should be `false` if ' + JSON.stringify(dependentKey) + ' is not equal to the ' + JSON.stringify(neededValue), function () {
-      helpers.smartStubGet(context, dependentKey, Math.random())
+      var randomValue = Math.random();
+      if (randomValue === neededValue) {
+        randomValue++;
+      }
+      helpers.smartStubGet(context, dependentKey, randomValue)
         .propertyDidChange(context, propertyName);
       var value = helpers.smartGet(context, propertyName);
       expect(value).to.be.false;

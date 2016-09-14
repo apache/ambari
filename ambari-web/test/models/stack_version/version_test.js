@@ -17,24 +17,22 @@
  */
 
 var App = require('app');
+require('models/stack_version/version');
 
-App.ServiceSimple = DS.Model.extend({
-  id: DS.attr('string'),
-  name: DS.attr('string'),
-  displayName: DS.attr('string'),
-  latestVersion: DS.attr('string'),
-  isHidden: function () {
-    var hiddenServices = ['MAPREDUCE2'];
-    return hiddenServices.contains(this.get('name')) || this.get('doNotShowAndInstall');
-  }.property('name'),
+describe('App.StackVersion', function () {
 
-  doNotShowAndInstall: function () {
-    var skipServices = ['KERBEROS'];
-    if(!App.get('supports.installGanglia')) {
-      skipServices.push('GANGLIA');
-    }
-    return skipServices.contains(this.get('name'));
-  }.property('name')
+  var getModel = function () {
+    return App.StackVersion.createRecord();
+  };
+
+  App.TestAliases.testAsComputedConcat(getModel(), 'name', ' ', ['stack', 'version']);
+
+  App.TestAliases.testAsComputedEmpty(getModel(), 'noInstalledHosts', 'installedHosts');
+
+  App.TestAliases.testAsComputedEmpty(getModel(), 'noCurrentHosts', 'currentHosts');
+
+  App.TestAliases.testAsComputedEmpty(getModel(), 'noInitHosts', 'notInstalledHosts');
+
+  App.TestAliases.testAsComputedEqual(getModel(), 'isCurrent', 'state', 'CURRENT');
+
 });
-
-App.ServiceSimple.FIXTURES = [];
