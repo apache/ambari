@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.google.common.io.Files;
 import org.apache.ambari.server.controller.StackVersionResponse;
 import org.apache.ambari.server.stack.Validable;
 import org.apache.ambari.server.state.repository.VersionDefinitionXml;
@@ -37,6 +36,12 @@ import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.ambari.server.state.stack.UpgradePack;
+
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
+import com.google.common.io.Files;
 
 public class StackInfo implements Comparable<StackInfo>, Validable{
   private String minJdk;
@@ -143,6 +148,12 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     return repositories;
   }
 
+  /**
+   * @return A list containing all repos for this stack, grouped by os
+   */
+  public ListMultimap<String, RepositoryInfo> getRepositoriesByOs() {
+    return Multimaps.index(getRepositories(), RepositoryInfo.GET_OSTYPE_FUNCTION);
+  }
 
   public synchronized Collection<ServiceInfo> getServices() {
     if (services == null) services = new ArrayList<ServiceInfo>();

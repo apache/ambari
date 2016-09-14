@@ -19,30 +19,24 @@ limitations under the License.
 """
 from resource_management.libraries.script import Script
 from resource_management.core.logger import Logger
-from resource_management.core.source import DownloadSource
-from resource_management.core.resources import File, Package
+from resource_management.core.resources import Package
 
-rpm_location = 'http://104.196.87.250/msft-r/8.1/'
-rpms = ['microsoft-r-server-mro-8.0.rpm',
-        'microsoft-r-server-intel-mkl-8.0.rpm',
-        'microsoft-r-server-packages-8.0.rpm',
-        'microsoft-r-server-hadoop-8.0.rpm']
+
+rpms = ['microsoft-r-server-mro-8.0',
+        'microsoft-r-server-intel-mkl-8.0',
+        'microsoft-r-server-packages-8.0',
+        'microsoft-r-server-hadoop-8.0']
 
 class MicrosoftR(Script):
+
   def install(self, env):
     Logger.info('Installing R Server Client...')
     tmp_dir = Script.tmp_dir
     Logger.debug('Using temp dir: {0}'.format(tmp_dir))
-    Logger.info("Will download and install the following rpm's from {0}: {1}".format(rpm_location, rpms))
 
     for rpm in rpms:
-      Logger.info('Downloading {0}'.format(rpm))
-      rpmFile = '{0}/{1}'.format(tmp_dir, rpm)
-      File(rpmFile, \
-           content = DownloadSource(rpm_location + rpm), \
-           mode = 0644)
       Logger.info('Installing {0}'.format(rpm))
-      Package(rpmFile)
+      Package(rpm)
 
     Logger.info('Installed R Server')
 

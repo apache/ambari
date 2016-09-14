@@ -24,7 +24,7 @@
     xmllint --noout --load-trace --schema [path-to-this-file] [path-to-xml]
     </xs:documentation>
   </xs:annotation>
-  
+
   <xs:complexType name="release-type">
     <xs:all>
      <xs:element name="type" type="repo-type" />
@@ -38,7 +38,7 @@
      <xs:element name="package-version" type="xs:string" minOccurs="0" />
     </xs:all>
   </xs:complexType>
-  
+
   <xs:simpleType name="repo-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="STANDARD" />
@@ -46,7 +46,7 @@
       <xs:enumeration value="PATCH" />
     </xs:restriction>
   </xs:simpleType>
-  
+
   <xs:simpleType name="family-type">
     <xs:restriction base="xs:string">
       <xs:enumeration value="redhat6" />
@@ -60,7 +60,7 @@
       <xs:enumeration value="suse12" />
     </xs:restriction>
   </xs:simpleType>
-  
+
   <xs:complexType name="manifest-service-type">
     <xs:annotation>
       <xs:documentation>
@@ -86,16 +86,16 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="available-services-type">
     <xs:annotation>
       <xs:documentation>
       Provides a list of services that are available to upgrade out of this repository.
       A service may include a list of components that can be upgraded.  These are specified
       (generally) for patch upgrades only.
-      
+
       A service must have an 'idref' attribute to tie it back to a service and version from
-      the 'manifest' element. 
+      the 'manifest' element.
       </xs:documentation>
     </xs:annotation>
     <xs:sequence>
@@ -109,7 +109,7 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="repository-info-type">
     <xs:sequence>
       <xs:element name="os" maxOccurs="unbounded">
@@ -132,7 +132,7 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="upgrade-type">
     <xs:sequence>
       <xs:element name="configuration" maxOccurs="unbounded">
@@ -150,7 +150,7 @@
       </xs:element>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:element name="repository-version">
     <xs:annotation>
       <xs:documentation>
@@ -177,7 +177,7 @@
       <xs:selector xpath="./manifest/service" />
       <xs:field xpath="@id" />
     </xs:key>
-    
+
     <xs:keyref name="available-services-id-keyref" refer="service-id-key">
       <xs:annotation>
         <xs:documentation>
@@ -189,5 +189,5 @@
     </xs:keyref>
 
   </xs:element>
-  
+
 </xs:schema>

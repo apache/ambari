@@ -46,6 +46,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
@@ -54,6 +55,10 @@ import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMock;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+
 
 /**
  * StackManager unit tests.
@@ -138,6 +143,21 @@ public class StackManagerCommonServicesTest {
   public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
     assertEquals(2, stacks.size());
+  }
+
+  @Test
+  public void testAddOnServiceRepoIsLoaded() {
+    Collection<StackInfo> stacks = stackManager.getStacks("HDP");
+    StackInfo stack = null;
+    for(StackInfo stackInfo: stackManager.getStacks()) {
+      if ("0.2".equals(stackInfo.getVersion())) {
+        stack = stackInfo;
+        break;
+      }
+    }
+    List<RepositoryInfo> repos = stack.getRepositoriesByOs().get("redhat6");
+    ImmutableSet<String> repoIds = ImmutableSet.copyOf(Lists.transform(repos, RepositoryInfo.GET_REPO_ID_FUNCTION));
+    assertTrue("Repos are expected to contain MSFT_R-8.1", repoIds.contains("ADDON_REPO-1.0"));
   }
 
   @Test
