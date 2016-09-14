@@ -253,3 +253,38 @@ class TestHookAfterInstall(RMFTestCase):
             to = current_dir,)
 
     self.assertNoMoreResources()
+
+
+  @patch("resource_management.core.Logger.warning")
+  @patch("shared_initialization.load_version", new = MagicMock(return_value="2.3.0.0-1243"))
+  @patch("resource_management.libraries.functions.conf_select.create")
+  @patch("resource_management.libraries.functions.conf_select.select")
+  @patch("os.symlink")
+  @patch("shutil.rmtree")
+  def test_hook_setup_stack_symlinks_skipped(self, rmtree_mock, symlink_mock, conf_select_select_mock, conf_select_create_mock, logger_warning_mock):
+    """
+    Tests that <stack-selector-tool> set all is not called on sys_prepped hosts
+    :return:
+    """
+
+    def mocked_conf_select(arg1, arg2, arg3, dry_run = False):
+      return "/etc/{0}/{1}/0".format(arg2, arg3)
+
+    conf_select_create_mock.side_effect = mocked_conf_select
+
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['hostLevelParams']['current_version'] = "2.3.0.0-1234"
+    json_content['hostLevelParams']['host_sys_prepped'] = "true"
+
+    self.executeScript("2.0.6/hooks/after-INSTALL/scripts/hook.py",
+                       classname="AfterInstallHook",
+                       command="hook",
+                       config_dict = json_content)
+
+    logger_warning_mock.assert_any_call('Skipping running stack-selector-tool for stack 2.3.0.0-1234 as its a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.')

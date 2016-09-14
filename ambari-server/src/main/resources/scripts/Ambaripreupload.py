@@ -417,4 +417,13 @@ with Environment() as env:
   except:
     os.remove("/var/lib/ambari-agent/data/.hdfs_resource_ignore")
     raise
-  print "Completed tarball copy. Ambari preupload script completed."
+  print "Completed tarball copy."
+
+  if not options.upgrade:
+    print "Executing stack-selector-tool for stack {0} ...".format(stack_version)
+    Execute(
+      ('/usr/bin/hdp-select', 'set', 'all', stack_version),
+      sudo = True
+    )
+
+  print "Ambari preupload script completed."

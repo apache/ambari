@@ -44,6 +44,9 @@ def setup_stack_symlinks():
     version = params.current_version if params.current_version is not None else params.stack_version_unformatted
 
     if not params.upgrade_suspended:
+      if params.host_sys_prepped:
+        Logger.warning("Skipping running stack-selector-tool for stack {0} as its a sys_prepped host. This may cause symlink pointers not to be created for HDP componets installed later on top of an already sys_prepped host.".format(version))
+        return
       # On parallel command execution this should be executed by a single process at a time.
       with FcntlBasedProcessLock(params.stack_select_lock_file, enabled = params.is_parallel_execution_enabled, skip_fcntl_failures = True):
         stack_select.select_all(version)
