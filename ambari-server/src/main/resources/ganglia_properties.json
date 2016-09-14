@@ -47,7 +47,7 @@
         "metric":"load_report.Nodes",
         "pointInTime":false,
         "temporal":true,
-        "amsId":"cpu_num"
+        "amsId":"live_hosts"
       },
       "metrics/load/Procs":{
         "metric":"load_report.Procs",

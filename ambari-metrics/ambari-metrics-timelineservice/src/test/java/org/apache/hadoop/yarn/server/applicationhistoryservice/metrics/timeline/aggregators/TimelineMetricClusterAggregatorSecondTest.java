@@ -258,8 +258,9 @@ public class TimelineMetricClusterAggregatorSecondTest {
     aggregateClusterMetrics.clear();
 
     timelineMetric.setType("COUNTER");
-    secondAggregator.processAggregateClusterMetrics(aggregateClusterMetrics, timelineMetric, timeslices);
+    int liveHosts = secondAggregator.processAggregateClusterMetrics(aggregateClusterMetrics, timelineMetric, timeslices);
 
+    Assert.assertEquals(liveHosts, 1);
     Assert.assertEquals(aggregateClusterMetrics.size(), 4);
     timelineClusterMetric.setTimestamp(startTime + 30*seconds);
     Assert.assertTrue(aggregateClusterMetrics.containsKey(timelineClusterMetric));
@@ -293,8 +294,9 @@ public class TimelineMetricClusterAggregatorSecondTest {
     aggregateClusterMetrics.clear();
 
     timelineMetric.setType("COUNTER");
-    secondAggregator.processAggregateClusterMetrics(aggregateClusterMetrics, timelineMetric, timeslices);
+    liveHosts = secondAggregator.processAggregateClusterMetrics(aggregateClusterMetrics, timelineMetric, timeslices);
 
+    Assert.assertEquals(liveHosts, 1);
     Assert.assertEquals(aggregateClusterMetrics.size(), 4);
     timelineClusterMetric.setTimestamp(startTime + 60*seconds);
     Assert.assertTrue(aggregateClusterMetrics.containsKey(timelineClusterMetric));
