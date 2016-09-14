@@ -33,6 +33,7 @@ tmp_dir = Script.get_tmp_dir()
 dfs_type = default("/commandParams/dfs_type", "")
 
 is_parallel_execution_enabled = int(default("/agentConfigParams/agent/parallel_execution", 0)) == 1
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 sudo = AMBARI_SUDO_BINARY
 
