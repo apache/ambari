@@ -24,12 +24,14 @@
       <baseurl>http://bigtop.s3.amazonaws.com/releases/0.8.0/redhat/6/x86_64</baseurl>
       <repoid>BIGTOP-0.8</repoid>
       <reponame>BIGTOP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
   	  <!-- TODO build and host our own utils -->
       <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos6</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
 </reposinfo>

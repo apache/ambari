@@ -92,6 +92,7 @@
             <baseurl>http://something.com/centos6/2.x/updates/1</baseurl>
             <repoid>Custom-repo-1</repoid>
             <reponame>Custom-repo</reponame>
+            <unique>true</unique>
           </repo>
           <packages>
             <package>

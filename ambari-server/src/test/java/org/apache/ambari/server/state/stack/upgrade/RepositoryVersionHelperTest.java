@@ -57,9 +57,10 @@ public class RepositoryVersionHelperTest {
     repository.setBaseUrl("baseurl");
     repository.setOsType("os");
     repository.setRepoId("repoId");
+    repository.setUnique(true);
     repositories.add(repository);
 
     final String serialized = helper.serializeOperatingSystems(repositories);
-    Assert.assertEquals("[{\"repositories\":[{\"Repositories/base_url\":\"baseurl\",\"Repositories/repo_id\":\"repoId\"}],\"OperatingSystems/os_type\":\"os\"}]", serialized);
+    Assert.assertEquals("[{\"repositories\":[{\"Repositories/base_url\":\"baseurl\",\"Repositories/repo_id\":\"repoId\",\"Repositories/unique\":true}],\"OperatingSystems/os_type\":\"os\"}]", serialized);
   }
 }

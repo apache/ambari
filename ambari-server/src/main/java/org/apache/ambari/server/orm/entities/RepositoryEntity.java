@@ -25,6 +25,7 @@ public class RepositoryEntity {
   private String name;
   private String baseUrl;
   private String repositoryId;
+  private boolean unique;
 
   public String getName() {
     return name;
@@ -72,4 +73,11 @@ public class RepositoryEntity {
     return result;
   }
 
+  public boolean isUnique() {
+    return unique;
+  }
+
+  public void setUnique(boolean unique) {
+    this.unique = unique;
+  }
 }

@@ -38,11 +38,13 @@
         <baseurl>http://baseurl3</baseurl>
         <repoid>HDP-2.4</repoid>
         <reponame>HDP</reponame>
+        <unique>true</unique>
       </repo>
       <repo>
         <baseurl>http://baseurl4</baseurl>
         <repoid>HDP-UTILS-1.1.0.20</repoid>
         <reponame>HDP-UTILS</reponame>
+        <unique>false</unique>
       </repo>
     </os>
 

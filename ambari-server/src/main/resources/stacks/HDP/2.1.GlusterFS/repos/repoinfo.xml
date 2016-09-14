@@ -23,11 +23,13 @@
       <baseurl>REPLACE_WITH_CENTOS6_URL</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos6</baseurl>
       <repoid>HDP-UTILS-1.1.0.17</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
   <os family="redhat5">
@@ -35,11 +37,13 @@
       <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>      
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/centos5</baseurl>
       <repoid>HDP-UTILS-1.1.0.17</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
   <os family="suse11">
@@ -47,11 +51,13 @@
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>      
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.17/repos/suse11</baseurl>
       <repoid>HDP-UTILS-1.1.0.17</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
 </reposinfo>

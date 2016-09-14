@@ -29,6 +29,7 @@ public class RepositoryInfo {
   private String defaultBaseUrl;
   private String latestBaseUrl;
   private boolean baseSaved = false;
+  private boolean unique = false;
 
   /**
    * @return the baseUrl
@@ -150,6 +151,7 @@ public class RepositoryInfo {
         + ", baseUrl=" + baseUrl
         + ", repoName=" + repoName
         + ", mirrorsList=" + mirrorsList
+        + ", unique=" + unique
         + " ]";
   }
 
@@ -161,4 +163,19 @@ public class RepositoryInfo {
   }
 
 
+
+
+  /**
+   * @return true if version of HDP that change with each release
+   */
+  public boolean isUnique() {
+    return unique;
+  }
+
+  /**
+   * @param unique set is version of HDP that change with each release
+   */
+  public void setUnique(boolean unique) {
+    this.unique = unique;
+  }
 }
