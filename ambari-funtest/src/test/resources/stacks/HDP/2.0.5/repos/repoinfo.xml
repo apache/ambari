@@ -21,6 +21,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/centos6</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="centos5">
@@ -28,6 +29,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/centos5</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat6">
@@ -35,6 +37,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/centos6</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat5">
@@ -42,6 +45,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/centos5</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="suse11">
@@ -49,6 +53,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/suse11</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="sles11">
@@ -56,6 +61,7 @@
       <baseurl>http://dev.hortonworks.com.s3.amazonaws.com/HDP-2.0.5.0/repos/suse11</baseurl>
       <repoid>HDP-2.0.5</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
 </reposinfo>

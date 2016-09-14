@@ -22,11 +22,13 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.1.15.0</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos6</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
   <os family="suse11">
@@ -34,11 +36,13 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/suse11sp3/2.x/updates/2.1.15.0</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/suse11sp3</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
   <os family="ubuntu12">
@@ -46,11 +50,13 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP/ubuntu12/2.x/updates/2.1.15.0</baseurl>
       <repoid>HDP-2.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/ubuntu12</baseurl>
       <repoid>HDP-UTILS-1.1.0.19</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
     </repo>
   </os>
 </reposinfo>

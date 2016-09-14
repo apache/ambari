@@ -21,6 +21,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="centos5">
@@ -28,6 +29,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat6">
@@ -35,6 +37,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos6</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
   <os family="redhat5">
@@ -42,6 +45,7 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.0.2/repos/centos5</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
   </os>
 <!--
@@ -50,11 +54,13 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.1/repos/suse11</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
       <mirrorslist></mirrorslist>
     </repo>
   </os>
@@ -63,11 +69,13 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-2.0.1/repos/suse11</baseurl>
       <repoid>HDP-2.0.1</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/suse11</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
       <mirrorslist></mirrorslist>
     </repo>
   </os>

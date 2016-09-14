@@ -21,6 +21,7 @@
       <baseurl>http://dummy_repo</baseurl>
       <repoid>HDPWIN-2.3</repoid>
       <reponame>HDPWIN</reponame>
+      <unique>true</unique>
     </repo>
   </os>
 </reposinfo>

@@ -43,11 +43,13 @@
         <baseurl>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0</baseurl>
         <repoid>HDP-2.3</repoid>
         <reponame>HDP</reponame>
+        <unique>true</unique>
       </repo>
       <repo>
         <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6</baseurl>
         <repoid>HDP-UTILS-1.1.0.20</repoid>
         <reponame>HDP-UTILS</reponame>
+        <unique>false</unique>
       </repo>
     </os>
     <os family="redhat7">
@@ -55,11 +57,13 @@
         <baseurl>http://public-repo-1.hortonworks.com/HDP/centos7/2.x/updates/2.3.0.0</baseurl>
         <repoid>HDP-2.3</repoid>
         <reponame>HDP</reponame>
+        <unique>true</unique>
       </repo>
       <repo>
         <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7</baseurl>
         <repoid>HDP-UTILS-1.1.0.20</repoid>
         <reponame>HDP-UTILS</reponame>
+        <unique>false</unique>
       </repo>
     </os>
 

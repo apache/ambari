@@ -21,17 +21,20 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos6</baseurl>
       <repoid>HDP-1.1.1.16</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos6</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
       <mirrorslist></mirrorslist>
     </repo>
     <repo>
       <baseurl></baseurl>
       <repoid>epel</repoid>
       <reponame>epel</reponame>
+      <unique>true</unique>
       <mirrorslist><![CDATA[https://mirrors.fedoraproject.org/metalink?repo=epel-6&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
@@ -40,17 +43,20 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-1.1.1.16/repos/centos5</baseurl>
       <repoid>HDP-1.1.1.16</repoid>
       <reponame>HDP</reponame>
+      <unique>true</unique>
     </repo>
     <repo>
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.15/repos/centos5</baseurl>
       <repoid>HDP-UTILS-1.1.0.15</repoid>
       <reponame>HDP-UTILS</reponame>
+      <unique>false</unique>
       <mirrorslist></mirrorslist>
     </repo>
     <repo>
       <baseurl></baseurl>
       <repoid>epel</repoid>
       <reponame>epel</reponame>
+      <unique>true</unique>
       <mirrorslist><![CDATA[https://mirrors.fedoraproject.org/metalink?repo=epel-5&arch=$basearch]]></mirrorslist>
     </repo>
   </os>
