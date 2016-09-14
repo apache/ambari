@@ -35,6 +35,7 @@
   </properties>
   <modules>
     <module>microsoft-r_mpack</module>
+    <module>hdf-ambari-mpack</module>
   </modules>
   <build>
     <pluginManagement>
@@ -72,6 +73,7 @@
             <exclude>**/.tmp/**</exclude>
             <exclude>**/tmp/**</exclude>
             <exclude>**/*.json</exclude>
+            <exclude>**/fast-hdfs-resource.jar</exclude>
             <exclude>**/*.svg</exclude>
             <exclude>**/vendor/**</exclude>
             <exclude>**/bin</exclude>
@@ -150,6 +152,7 @@
       </activation>
       <modules>
         <module>microsoft-r_mpack</module>
+        <module>hdf-ambari-mpack</module>
       </modules>
     </profile>
   </profiles>
