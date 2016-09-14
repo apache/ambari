@@ -1034,9 +1034,6 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_storm_audit_db" />
           <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
-          <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.StormUpgradeKerberosDescriptorConfig">
-            <summary>Upgrade Storm Security Configs to 1.0</summary>
-          </task>
 
           <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_storm_atlas_configs" />

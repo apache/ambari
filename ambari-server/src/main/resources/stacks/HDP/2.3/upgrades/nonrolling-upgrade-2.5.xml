@@ -447,11 +447,6 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0"/>
       </execute-stage>
-      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus in KerberosDescriptor">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.StormUpgradeKerberosDescriptorConfig">
-          <summary>Upgrade Storm Security Configs to 1.0</summary>
-        </task>
-      </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm">
         <!-- Remove Atlas configs that were incorrectly added to storm-site instead of Atlas' application.properties. -->
