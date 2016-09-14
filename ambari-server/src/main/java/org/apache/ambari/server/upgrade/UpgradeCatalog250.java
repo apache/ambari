@@ -18,9 +18,18 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +42,7 @@ import com.google.inject.Injector;
 public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
   protected static final String HOST_VERSION_TABLE = "host_version";
-
+  private static final String AMS_ENV = "ams-env";
   /**
    * Logger.
    */
@@ -97,6 +106,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    updateAMSConfigs();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -104,6 +114,56 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     // Add the unique constraint to the host_version table
     dbAccessor.addUniqueConstraint(HOST_VERSION_TABLE, "UQ_host_repo", "repo_version_id", "host_id");
+  }
+
+  protected void updateAMSConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
+          if (amsEnv != null) {
+            Map<String, String> amsEnvProperties = amsEnv.getProperties();
+            String content = amsEnvProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsEnvContent(content));
+            updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
+          }
+
+        }
+      }
+    }
+  }
+
+
+  protected String updateAmsEnvContent(String content) {
+    if (content == null) {
+      return null;
+    }
+
+    List<String> toReplaceList = new ArrayList<>();
+    toReplaceList.add("\n# HBase normalizer enabled\n");
+    toReplaceList.add("\n# HBase compaction policy enabled\n");
+    toReplaceList.add("export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}\n");
+    toReplaceList.add("export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}\n");
+
+    //Because of AMBARI-15331 : AMS HBase FIFO compaction policy and Normalizer settings are not handled correctly
+    toReplaceList.add("export HBASE_NORMALIZATION_ENABLED={{ams_hbase_normalizer_enabled}}\n");
+    toReplaceList.add("export HBASE_FIFO_COMPACTION_POLICY_ENABLED={{ams_hbase_fifo_compaction_policy_enabled}}\n");
+
+
+    for (String toReplace : toReplaceList) {
+      if (content.contains(toReplace)) {
+        content = content.replace(toReplace, StringUtils.EMPTY);
+      }
+    }
+
+    return content;
   }
 
 
