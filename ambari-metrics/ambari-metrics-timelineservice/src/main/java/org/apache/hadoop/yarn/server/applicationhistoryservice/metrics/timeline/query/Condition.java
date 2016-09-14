@@ -44,4 +44,5 @@ public interface Condition {
   void addOrderByColumn(String column);
   void setNoLimit();
   boolean doUpdate();
+  void setMetricNamesNotCondition(boolean metricNamesNotCondition);
 }

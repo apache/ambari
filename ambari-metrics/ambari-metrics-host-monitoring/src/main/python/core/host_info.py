@@ -248,8 +248,10 @@ class HostInfo():
 
     skip_disk_patterns = self.__config.get_disk_metrics_skip_pattern()
     logger.debug('skip_disk_patterns: %s' % skip_disk_patterns)
+    print skip_disk_patterns
     if not skip_disk_patterns or skip_disk_patterns == 'None':
       io_counters = psutil.disk_io_counters()
+      print io_counters
     else:
       sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
                                        'read_bytes', 'write_bytes',
@@ -303,7 +305,7 @@ class HostInfo():
         disk = item[0]
         logger.debug('Adding disk counters for %s' % str(disk))
         sdiskio = item[1]
-        prefix = 'disk_{0}_'.format(disk_counter)
+        prefix = 'sdisk_{0}_'.format(disk)
         counter_dict = {
           prefix + 'read_count' : sdiskio.read_count if hasattr(sdiskio, 'read_count') else 0,
           prefix + 'write_count' : sdiskio.write_count if hasattr(sdiskio, 'write_count') else 0,

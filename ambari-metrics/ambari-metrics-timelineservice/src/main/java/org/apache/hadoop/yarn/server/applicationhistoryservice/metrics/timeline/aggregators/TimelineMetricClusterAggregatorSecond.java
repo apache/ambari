@@ -23,9 +23,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.PostProcessingUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
@@ -34,6 +36,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -47,6 +50,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRIC_AGGREGATION_SQL_FILTERS;
 
 /**
  * Aggregates a metric across all hosts in the cluster. Reads metrics from
@@ -60,6 +64,8 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   // 1 minute client side buffering adjustment
   private final Long serverTimeShiftAdjustment;
   private final boolean interpolationEnabled;
+  private TimelineMetricMetadataManager metadataManagerInstance;
+  private String skipAggrPatternStrings;
 
   public TimelineMetricClusterAggregatorSecond(AGGREGATOR_NAME aggregatorName,
                                                TimelineMetricMetadataManager metadataManager,
@@ -78,10 +84,12 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
       sleepIntervalMillis, checkpointCutOffMultiplier, aggregatorDisabledParam,
       tableName, outputTableName, nativeTimeRangeDelay, haController);
 
+    this.metadataManagerInstance = metadataManager;
     appAggregator = new TimelineMetricAppAggregator(metadataManager, metricsConf);
     this.timeSliceIntervalMillis = timeSliceInterval;
     this.serverTimeShiftAdjustment = Long.parseLong(metricsConf.get(SERVER_SIDE_TIMESIFT_ADJUSTMENT, "90000"));
     this.interpolationEnabled = Boolean.parseBoolean(metricsConf.get(TIMELINE_METRICS_CLUSTER_AGGREGATOR_INTERPOLATION_ENABLED, "true"));
+    this.skipAggrPatternStrings = metricsConf.get(TIMELINE_METRIC_AGGREGATION_SQL_FILTERS);
   }
 
   @Override
@@ -103,8 +111,19 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
 
   @Override
   protected Condition prepareMetricQueryCondition(long startTime, long endTime) {
-    Condition condition = new DefaultCondition(null, null, null, null, startTime - serverTimeShiftAdjustment,
+
+    List<String> metricNames = new ArrayList<>();
+    boolean metricNamesNotCondition = false;
+
+    if (!StringUtils.isEmpty(skipAggrPatternStrings)) {
+      LOG.info("Skipping aggregation for metric patterns : " + skipAggrPatternStrings);
+      metricNames.addAll(Arrays.asList(skipAggrPatternStrings.split(",")));
+      metricNamesNotCondition = true;
+    }
+
+    Condition condition = new DefaultCondition(metricNames, null, null, null, startTime - serverTimeShiftAdjustment,
       endTime, null, null, true);
+    condition.setMetricNamesNotCondition(metricNamesNotCondition);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_SQL,
@@ -180,6 +199,15 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   protected int processAggregateClusterMetrics(Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics,
                                               TimelineMetric metric, List<Long[]> timeSlices) {
     // Create time slices
+
+    TimelineMetricMetadataKey appKey =  new TimelineMetricMetadataKey(metric.getMetricName(), metric.getAppId());
+    TimelineMetricMetadata metricMetadata = metadataManagerInstance.getMetadataCacheValue(appKey);
+
+    if (metricMetadata != null && !metricMetadata.isSupportsAggregates()) {
+      LOG.debug("Skipping cluster aggregation for " + metric.getMetricName());
+      return 0;
+    }
+
     Map<TimelineClusterMetric, Double> clusterMetrics = sliceFromTimelineMetric(metric, timeSlices);
     int numHosts = 0;
 
