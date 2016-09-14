@@ -30,7 +30,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -920,24 +919,5 @@ public class ConfigurationTest {
               + " has a Markdown annotation with no description",
           StringUtils.isEmpty(markdown.description()));
     }
-  }
-
-  /**
-   * Tests the default values for the {@link MetricsRetrievalService}.
-   *
-   * @throws Exception
-   */
-  @Test
-  public void testGetSkipRepoUrlExistenceValidationListDefaults() throws Exception {
-
-    final Properties ambariProperties = new Properties();
-    final Configuration configuration = new Configuration(ambariProperties);
-
-    List<String> skipRepos = configuration.getSkipRepoUrlExistenceValidationList();
-
-    // test defaults
-    Assert.assertEquals(skipRepos.size(), 1);
-    String hdpUtils = skipRepos.get(0);
-    Assert.assertTrue("HDP-UTILS".equals(hdpUtils));
   }
 }

@@ -32,7 +32,6 @@ import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
 import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -458,14 +457,11 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
 
     // List of all repo urls that are already added at stack
     Set<String> existingRepoUrls = new HashSet<String>();
-    Configuration configuration = new Configuration();
-    List<String> skipRepos = configuration.getSkipRepoUrlExistenceValidationList();
     List<RepositoryVersionEntity> existingRepoVersions = dao.findByStack(requiredStack);
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
       for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
         for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
-          boolean toSkipRepo = isToSkip(repositoryEntity.getRepositoryId(), skipRepos);
-          if (! toSkipRepo && // HDP-UTILS is shared between repo versions
+          if (! repositoryEntity.getRepositoryId().startsWith("HDP-UTILS") &&  // HDP-UTILS is shared between repo versions
                   ! existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
             existingRepoUrls.add(repositoryEntity.getBaseUrl());
           }
@@ -551,14 +547,5 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
   protected ResourceType getResourceType(Request request, Predicate predicate) {
     // This information is not associated with any particular resource
     return null;
-  }
-
-  private static boolean isToSkip(String repoId, List<String> skipRepos){
-    for(String repo: skipRepos){
-      if (repoId.startsWith(repo)){
-        return true;
-      }
-    }
-    return false;
   }
 }
