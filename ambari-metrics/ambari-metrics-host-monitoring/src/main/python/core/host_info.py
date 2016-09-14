@@ -26,6 +26,8 @@ import time
 import threading
 import socket
 import operator
+import re
+from collections import namedtuple
 
 logger = logging.getLogger()
 cached_hostname = None
@@ -244,16 +246,37 @@ class HostInfo():
     if delta <= 0:
       delta = float("inf")
 
-    io_counters = psutil.disk_io_counters()
+    skip_disk_patterns = self.__config.get_disk_metrics_skip_pattern()
+    logger.debug('skip_disk_patterns: %s' % skip_disk_patterns)
+    if not skip_disk_patterns or skip_disk_patterns == 'None':
+      io_counters = psutil.disk_io_counters()
+    else:
+      sdiskio = namedtuple('sdiskio', ['read_count', 'write_count',
+                                       'read_bytes', 'write_bytes',
+                                       'read_time', 'write_time'])
+      skip_disk_pattern_list = skip_disk_patterns.split(',')
+      rawdict = psutil.disk_io_counters(True)
+      if not rawdict:
+        raise RuntimeError("Couldn't find any physical disk")
+      trimmed_dict = {}
+      for disk, fields in rawdict.items():
+        ignore_disk = False
+        for p in skip_disk_pattern_list:
+          if re.match(p, disk):
+            ignore_disk = True
+        if not ignore_disk:
+          trimmed_dict[disk] = sdiskio(*fields)
+      io_counters = sdiskio(*[sum(x) for x in zip(*trimmed_dict.values())])
 
     new_disk_stats = {
-      'read_count' : io_counters.read_count if hasattr(io_counters, 'read_count') else 0,
-      'write_count' : io_counters.write_count if hasattr(io_counters, 'write_count') else 0,
-      'read_bytes' : io_counters.read_bytes if hasattr(io_counters, 'read_bytes') else 0,
-      'write_bytes' : io_counters.write_bytes if hasattr(io_counters, 'write_bytes') else 0,
-      'read_time' : io_counters.read_time if hasattr(io_counters, 'read_time') else 0,
-      'write_time' : io_counters.write_time if hasattr(io_counters, 'write_time') else 0
-    }
+        'read_count' : io_counters.read_count if hasattr(io_counters, 'read_count') else 0,
+        'write_count' : io_counters.write_count if hasattr(io_counters, 'write_count') else 0,
+        'read_bytes' : io_counters.read_bytes if hasattr(io_counters, 'read_bytes') else 0,
+        'write_bytes' : io_counters.write_bytes if hasattr(io_counters, 'write_bytes') else 0,
+        'read_time' : io_counters.read_time if hasattr(io_counters, 'read_time') else 0,
+        'write_time' : io_counters.write_time if hasattr(io_counters, 'write_time') else 0
+      }
+
     if not self.__last_disk_data:
       self.__last_disk_data = new_disk_stats
     read_bps = (new_disk_stats['read_bytes'] - self.__last_disk_data['read_bytes']) / delta
