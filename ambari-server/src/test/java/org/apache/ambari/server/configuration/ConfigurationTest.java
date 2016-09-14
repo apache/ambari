@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,6 +30,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -40,8 +42,11 @@ import org.apache.ambari.server.configuration.Configuration.ConfigurationPropert
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.metrics.ThreadPoolEnabledPropertyProvider;
+import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.state.services.MetricsRetrievalService;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -919,5 +924,134 @@ public class ConfigurationTest {
               + " has a Markdown annotation with no description",
           StringUtils.isEmpty(markdown.description()));
     }
+  }
+
+  /**
+   * Tests that the Kerberos-authentication properties are read and properly and set in an
+   * {@link AmbariKerberosAuthenticationProperties} instance when Kerberos authentication is enabled.
+   */
+  @Test
+  public void testKerberosAuthenticationEnabled() throws IOException {
+    File keytabFile = temp.newFile("spnego.service.keytab");
+
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), keytabFile.getAbsolutePath());
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
+    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
+    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
+
+    Configuration configuration = new Configuration(properties);
+
+    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = configuration.getKerberosAuthenticationProperties();
+
+    Assert.assertTrue(kerberosAuthenticationProperties.isKerberosAuthenticationEnabled());
+    Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
+    Assert.assertEquals("spnego/principal@REALM", kerberosAuthenticationProperties.getSpnegoPrincipalName());
+    Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
+    Assert.assertEquals(Arrays.asList(UserType.LDAP, UserType.LOCAL), kerberosAuthenticationProperties.getOrderedUserTypes());
+  }
+
+  /**
+   * Tests that the Kerberos-authentication properties are read and properly and set in an
+   * {@link AmbariKerberosAuthenticationProperties} instance when Kerberos authentication is enabled
+   * and default values are expected to be used for unset properties.
+   */
+  @Test
+  public void testKerberosAuthenticationEnabledUsingDefaults() throws IOException {
+    File keytabFile = temp.newFile("spnego.service.keytab");
+
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
+    // Force a specific path to the SPNEGO keytab file since internal validation expects to exist
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), keytabFile.getAbsolutePath());
+
+    Configuration configuration = new Configuration(properties);
+
+    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = configuration.getKerberosAuthenticationProperties();
+
+    Assert.assertTrue(kerberosAuthenticationProperties.isKerberosAuthenticationEnabled());
+    Assert.assertEquals(keytabFile.getAbsolutePath(), kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
+    Assert.assertEquals("HTTP/" + StageUtils.getHostName(), kerberosAuthenticationProperties.getSpnegoPrincipalName());
+    Assert.assertEquals("DEFAULT", kerberosAuthenticationProperties.getAuthToLocalRules());
+    Assert.assertEquals(Collections.singletonList(UserType.LDAP), kerberosAuthenticationProperties.getOrderedUserTypes());
+  }
+
+  /**
+   * Tests that the Kerberos-authentication properties are read and properly set in an
+   * {@link AmbariKerberosAuthenticationProperties} instance when Kerberos authentication is disabled.
+   */
+  @Test
+  public void testKerberosAuthenticationDisabled() {
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "false");
+
+    Configuration configuration = new Configuration(properties);
+
+    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = configuration.getKerberosAuthenticationProperties();
+
+    Assert.assertFalse(kerberosAuthenticationProperties.isKerberosAuthenticationEnabled());
+    Assert.assertNull(kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
+    Assert.assertNull(kerberosAuthenticationProperties.getSpnegoPrincipalName());
+    Assert.assertNull(kerberosAuthenticationProperties.getAuthToLocalRules());
+    Assert.assertEquals(Collections.emptyList(), kerberosAuthenticationProperties.getOrderedUserTypes());
+  }
+
+  @Test
+  public void testKerberosAuthenticationDisabledWithValuesSet() {
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "false");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "/path/to/spnego/keytab/file");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
+    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
+    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
+
+    Configuration configuration = new Configuration(properties);
+
+    AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties = configuration.getKerberosAuthenticationProperties();
+
+    Assert.assertFalse(kerberosAuthenticationProperties.isKerberosAuthenticationEnabled());
+    Assert.assertNull(kerberosAuthenticationProperties.getSpnegoKeytabFilePath());
+    Assert.assertNull(kerberosAuthenticationProperties.getSpnegoPrincipalName());
+    Assert.assertNull(kerberosAuthenticationProperties.getAuthToLocalRules());
+    Assert.assertEquals(Collections.emptyList(), kerberosAuthenticationProperties.getOrderedUserTypes());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testKerberosAuthenticationEmptySPNEGOPrincipalName() throws IOException {
+    File keytabFile = temp.newFile("spnego.service.keytab");
+
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), keytabFile.getAbsolutePath());
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "");
+    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
+    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
+
+    new Configuration(properties);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testKerberosAuthenticationEmptySPNEGOKeytabFile() {
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
+    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
+    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
+
+    new Configuration(properties);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testKerberosAuthenticationSPNEGOKeytabFileNotFound() {
+    Properties properties = new Properties();
+    properties.put(Configuration.KERBEROS_AUTH_ENABLED.getKey(), "true");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(), "/path/to/missing/spnego/keytab/file");
+    properties.put(Configuration.KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(), "spnego/principal@REALM");
+    properties.put(Configuration.KERBEROS_AUTH_USER_TYPES.getKey(), "LDAP, LOCAL");
+    properties.put(Configuration.KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(), "DEFAULT");
+
+    new Configuration(properties);
   }
 }
