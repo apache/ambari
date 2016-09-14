@@ -233,3 +233,6 @@ class Configuration:
 
   def get_ca_certs(self):
     return self._ca_cert_file_path
+
+  def get_disk_metrics_skip_pattern(self):
+    return self.get("default", "skip_disk_patterns")

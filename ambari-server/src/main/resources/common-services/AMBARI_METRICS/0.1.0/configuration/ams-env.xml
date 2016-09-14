@@ -81,6 +81,26 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>failover_strategy_blacklisted_interval</name>
+    <value>600</value>
+    <description>
+      Metrics collector host will be blacklisted for specified number of seconds if metric monitor failed to connect to it.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.skip.disk.metrics.patterns</name>
+    <value>true</value>
+    <description>
+      Comma separated list of disk patterns to be ignored while collecting aggregate disk usage and counter metrics.
+      For example, volume groups managed by docker can be ignored by using the pattern "dm-[0-9]+"
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>content</name>
     <display-name>ams-env template</display-name>
     <value>
