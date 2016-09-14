@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -56,9 +56,7 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationProperties;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
@@ -70,7 +68,6 @@ import org.apache.ambari.server.utils.DateUtils;
 import org.apache.ambari.server.utils.HostUtils;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
-import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -1315,49 +1312,6 @@ public class Configuration {
   public static final ConfigurationProperty<String> JWT_ORIGINAL_URL_QUERY_PARAM = new ConfigurationProperty<>(
       "authentication.jwt.originalUrlParamName", "originalUrl");
 
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   * Kerberos authentication-specific properties
-   * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
-  /**
-   * Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari.
-   */
-  @Markdown(description = "Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari.")
-  public static final ConfigurationProperty<Boolean> KERBEROS_AUTH_ENABLED = new ConfigurationProperty<>(
-      "authentication.kerberos.enabled", Boolean.FALSE);
-
-  /**
-   * The Kerberos principal name to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO.
-   */
-  @Markdown(description = "The Kerberos principal name to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_SPNEGO_PRINCIPAL = new ConfigurationProperty<>(
-      "authentication.kerberos.spnego.principal", "HTTP/_HOST");
-
-  /**
-   * The Kerberos identity to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO.
-   */
-  @Markdown(description = "The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_SPNEGO_KEYTAB_FILE = new ConfigurationProperty<>(
-      "authentication.kerberos.spnego.keytab.file", "/etc/security/keytabs/spnego.service.keytab");
-
-  /**
-   * A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user
-   * account for the user-supplied Kerberos identity during authentication via SPNEGO.
-   */
-  @Markdown(description = "A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_USER_TYPES = new ConfigurationProperty<>(
-      "authentication.kerberos.user.types", "LDAP");
-
-  /**
-   * The auth-to-local rules set to use when translating a user's principal name to a local user name
-   * during authentication via SPNEGO.
-   */
-  @Markdown(description = "The auth-to-local rules set to use when translating a user's principal name to a local user name during authentication via SPNEGO.")
-  public static final ConfigurationProperty<String> KERBEROS_AUTH_AUTH_TO_LOCAL_RULES  = new ConfigurationProperty<>(
-      "authentication.kerberos.auth_to_local.rules", "DEFAULT");
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-   * Kerberos authentication-specific properties (end)
-   * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
-
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -2352,11 +2306,6 @@ public class Configuration {
   private Map<String, String> databaseConnectorNames = new HashMap<>();
   private Map<String, String> databasePreviousConnectorNames = new HashMap<>();
 
-  /**
-   * The Kerberos authentication-specific properties container (for convenience)
-   */
-  private final AmbariKerberosAuthenticationProperties kerberosAuthenticationProperties;
-
   static {
     if (System.getProperty("os.name").contains("Windows")) {
       DEF_ARCHIVE_EXTENSION = ".zip";
@@ -2561,9 +2510,6 @@ public class Configuration {
 
       configsMap.put(CLIENT_API_SSL_CRT_PASS.getKey(), password);
     }
-
-    // Capture the Kerberos authentication-related properties
-    kerberosAuthenticationProperties = createKerberosAuthenticationProperties();
 
     loadSSLParams();
   }
@@ -4491,15 +4437,6 @@ public class Configuration {
   }
 
   /**
-   * Gets the Kerberos authentication-specific properties container
-   *
-   * @return an AmbariKerberosAuthenticationProperties
-   */
-  public AmbariKerberosAuthenticationProperties getKerberosAuthenticationProperties() {
-    return kerberosAuthenticationProperties;
-  }
-
-  /**
    * Ambari server temp dir
    * @return server temp dir
    */
@@ -5107,122 +5044,4 @@ public class Configuration {
     String value();
   }
 
-  /**
-   * Creates an AmbariKerberosAuthenticationProperties instance containing the Kerberos authentication-specific
-   * properties.
-   *
-   * The relevant properties are processed to set any default values or translate the propery values
-   * into usable data for the Kerberos authentication logic.
-   *
-   * @return
-   */
-  private AmbariKerberosAuthenticationProperties createKerberosAuthenticationProperties() {
-    AmbariKerberosAuthenticationProperties kerberosAuthProperties = new AmbariKerberosAuthenticationProperties();
-
-    kerberosAuthProperties.setKerberosAuthenticationEnabled(Boolean.valueOf(getProperty(KERBEROS_AUTH_ENABLED)));
-
-    // if Kerberos authentication is enabled, continue; else ignore the rest of related properties since
-    // they will not be used.
-    if (!kerberosAuthProperties.isKerberosAuthenticationEnabled()) {
-      return kerberosAuthProperties;
-    }
-
-    // Get and process the configured user type values to convert the comma-delimited string of
-    // user types into a ordered (as found in the comma-delimited value) list of UserType values.
-    String userTypes = getProperty(KERBEROS_AUTH_USER_TYPES);
-    List<UserType> orderedUserTypes = new ArrayList<UserType>();
-
-    String[] types = userTypes.split(",");
-    for (String type : types) {
-      type = type.trim();
-
-      if (!type.isEmpty()) {
-        try {
-          orderedUserTypes.add(UserType.valueOf(type.toUpperCase()));
-        } catch (IllegalArgumentException e) {
-          throw new IllegalArgumentException(String.format("While processing ordered user types from %s, " +
-                  "%s was found to be an invalid user type.",
-              KERBEROS_AUTH_USER_TYPES.getKey(), type), e);
-        }
-      }
-    }
-
-    // If no user types have been specified, assume only LDAP users...
-    if (orderedUserTypes.isEmpty()) {
-      LOG.info("No (valid) user types were specified in {}. Using the default value of LOCAL.",
-          KERBEROS_AUTH_USER_TYPES.getKey());
-      orderedUserTypes.add(UserType.LDAP);
-    }
-
-    kerberosAuthProperties.setOrderedUserTypes(orderedUserTypes);
-
-    // Get and process the SPNEGO principal name.  If it exists and contains the host replacement
-    // indicator (_HOST), replace it with the hostname of the current host.
-    String spnegoPrincipalName = getProperty(KERBEROS_AUTH_SPNEGO_PRINCIPAL);
-
-    if ((spnegoPrincipalName != null) && (spnegoPrincipalName.contains("_HOST"))) {
-      String hostName = StageUtils.getHostName();
-
-      if (StringUtils.isEmpty(hostName)) {
-        LOG.warn("Cannot replace _HOST in the configured SPNEGO principal name with the host name this host since it is not available");
-      } else {
-        LOG.info("Replacing _HOST in the configured SPNEGO principal name with the host name this host: {}", hostName);
-        spnegoPrincipalName = spnegoPrincipalName.replaceAll("_HOST", hostName);
-      }
-    }
-
-    kerberosAuthProperties.setSpnegoPrincipalName(spnegoPrincipalName);
-
-    // Validate the SPNEGO principal name to ensure it was set.
-    // Log any found issues.
-    if (StringUtils.isEmpty(kerberosAuthProperties.getSpnegoPrincipalName())) {
-      throw new IllegalArgumentException(String.format("The SPNEGO principal name specified in %s is empty. " +
-          "This will cause issues authenticating users using Kerberos.",
-          KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey()));
-    }
-
-    // Get the SPNEGO keytab file. There is nothing special to process for this value.
-    kerberosAuthProperties.setSpnegoKeytabFilePath(getProperty(KERBEROS_AUTH_SPNEGO_KEYTAB_FILE));
-
-    // Validate the SPNEGO keytab file to ensure it was set, it exists and it is readable by Ambari.
-    // Log any found issues.
-    if (StringUtils.isEmpty(kerberosAuthProperties.getSpnegoKeytabFilePath())) {
-      throw new IllegalArgumentException(String.format("The SPNEGO keytab file path specified in %s is empty. " +
-              "This will cause issues authenticating users using Kerberos.",
-          KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
-    } else {
-      File keytabFile = new File(kerberosAuthProperties.getSpnegoKeytabFilePath());
-      if (!keytabFile.exists()) {
-        throw new IllegalArgumentException(String.format("The SPNEGO keytab file path (%s) specified in %s does not exist. " +
-                "This will cause issues authenticating users using Kerberos.",
-            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
-      } else if (!keytabFile.canRead()) {
-        throw new IllegalArgumentException(String.format("The SPNEGO keytab file path (%s) specified in %s cannot be read. " +
-                "This will cause issues authenticating users using Kerberos.",
-            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
-      }
-    }
-
-    // Get the auth-to-local rule set. There is nothing special to process for this value.
-    kerberosAuthProperties.setAuthToLocalRules(getProperty(KERBEROS_AUTH_AUTH_TO_LOCAL_RULES));
-
-    LOG.info("Kerberos authentication is enabled:\n " +
-            "\t{}: {}\n" +
-            "\t{}: {}\n" +
-            "\t{}: {}\n" +
-            "\t{}: {}\n" +
-            "\t{}: {}\n",
-        KERBEROS_AUTH_ENABLED.getKey(),
-        kerberosAuthProperties.isKerberosAuthenticationEnabled(),
-        KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey(),
-        kerberosAuthProperties.getSpnegoPrincipalName(),
-        KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey(),
-        kerberosAuthProperties.getSpnegoKeytabFilePath(),
-        KERBEROS_AUTH_USER_TYPES.getKey(),
-        kerberosAuthProperties.getOrderedUserTypes(),
-        KERBEROS_AUTH_AUTH_TO_LOCAL_RULES.getKey(),
-        kerberosAuthProperties.getAuthToLocalRules());
-
-    return kerberosAuthProperties;
-  }
 }
