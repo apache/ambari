@@ -151,8 +151,6 @@ ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
-ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)
-ams_hbase_fifo_compaction_enabled = default("/configurations/ams-site/timeline.metrics.hbase.fifo.compaction.enabled", None)
 ams_hbase_init_check_enabled = default("/configurations/ams-site/timeline.metrics.hbase.init.check.enabled", True)
 
 #hadoop params

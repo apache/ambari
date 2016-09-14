@@ -127,12 +127,6 @@ export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 # AMS Collector heapsize
 export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
 
-# HBase normalizer enabled
-export AMS_HBASE_NORMALIZER_ENABLED={{ams_hbase_normalizer_enabled}}
-
-# HBase compaction policy enabled
-export AMS_HBASE_FIFO_COMPACTION_ENABLED={{ams_hbase_fifo_compaction_enabled}}
-
 # HBase Tables Initialization check enabled
 export AMS_HBASE_INIT_CHECK_ENABLED={{ams_hbase_init_check_enabled}}
 
