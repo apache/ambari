@@ -59,6 +59,14 @@ Sets up the configs, jdbc connection and tarball copy to HDFS for Hive Server In
 def hive_interactive(name=None):
   import params
 
+  # Create Hive User Dir
+  params.HdfsResource(params.hive_hdfs_user_dir,
+                      type="directory",
+                      action="create_on_execute",
+                      owner=params.hive_user,
+                      mode=params.hive_hdfs_user_mode
+                      )
+
   # list of properties that should be excluded from the config
   # this approach is a compromise against adding a dedicated config
   # type for hive_server_interactive or needed config groups on a
