@@ -19,7 +19,11 @@
 package org.apache.ambari.server.audit.request.creator;
 
 import junit.framework.Assert;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.ambari.server.api.services.NamedPropertySet;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
@@ -27,6 +31,7 @@ import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.event.request.AddRequestRequestAuditEvent;
 import org.apache.ambari.server.audit.request.eventcreator.RequestEventCreator;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
+import org.apache.ambari.server.controller.internal.RequestResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Test;
 
@@ -50,4 +55,26 @@ public class RequestEventCreatorTest extends AuditEventCreatorTestBase{
     Assert.assertEquals(expected, actual);
     Assert.assertTrue(actual.contains(userName));
   }
+  @Test
+  public void postScheduleTest() {
+    RequestEventCreator creator = new RequestEventCreator();
+
+    Request request = AuditEventCreatorTestHelper.createRequest(Request.Type.POST, Resource.Type.Request, null, null);
+    Result result = AuditEventCreatorTestHelper.createResult(new ResultStatus(ResultStatus.STATUS.OK));
+    request.getBody().addRequestInfoProperty("command", "MyCommand");
+
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    mapProperties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "mycluster");
+    NamedPropertySet namedPropSet = new NamedPropertySet("", mapProperties);
+    request.getBody().addPropertySet(namedPropSet);
+
+    AuditEvent event = AuditEventCreatorTestHelper.getEvent(creator, request, result);
+    String actual = event.getAuditMessage();
+    String expected = "User(" + userName + "), RemoteIp(1.2.3.4), Operation(Request from server), RequestType(POST), url(http://example.com:8080/api/v1/test), ResultStatus(200 OK), Command(MyCommand), Cluster name(mycluster)";
+
+    Assert.assertTrue("Class mismatch", event instanceof AddRequestRequestAuditEvent);
+    Assert.assertEquals(expected, actual);
+    Assert.assertTrue(actual.contains(userName));
+  }
+
 }
