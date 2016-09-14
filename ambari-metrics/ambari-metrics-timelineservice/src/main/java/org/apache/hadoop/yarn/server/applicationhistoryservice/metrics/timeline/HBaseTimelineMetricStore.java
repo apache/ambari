@@ -201,7 +201,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       .grouped(groupedByHosts);
 
     if (topNConfig != null) {
-      if (TopNCondition.isTopNHostCondition(metricNames, hostnames) || TopNCondition.isTopNMetricCondition(metricNames, hostnames)) {
+      if (TopNCondition.isTopNHostCondition(metricNames, hostnames) ^ //Only 1 condition should be true.
+        TopNCondition.isTopNMetricCondition(metricNames, hostnames)) {
         conditionBuilder.topN(topNConfig.getTopN());
         conditionBuilder.isBottomN(topNConfig.getIsBottomN());
         Function.ReadFunction readFunction = Function.ReadFunction.getFunction(topNConfig.getTopNFunction());
