@@ -83,6 +83,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -112,54 +114,42 @@ public class UpgradeActionTest {
 
   private static final String HDP_211_CENTOS6_REPO_URL = "http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118";
 
-  private Injector m_injector;
+  private static Injector m_injector;
+  private static AmbariManagementController amc;
+  private static OrmTestHelper m_helper;
+  private static RepositoryVersionDAO repoVersionDAO;
+  private static Clusters clusters;
+  private static ClusterVersionDAO clusterVersionDAO;
+  private static HostVersionDAO hostVersionDAO;
+  private static HostDAO hostDAO;
+  private static HostRoleCommandFactory hostRoleCommandFactory;
+  private static ServiceFactory serviceFactory;
+  private static ServiceComponentFactory serviceComponentFactory;
+  private static ServiceComponentHostFactory serviceComponentHostFactory;
+  private static RequestDAO requestDAO;
+  private static UpgradeDAO upgradeDAO;
+  private static ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
-  private AmbariManagementController amc;
-
-  @Inject
-  private OrmTestHelper m_helper;
-
-  @Inject
-  private RepositoryVersionDAO repoVersionDAO;
-
-  @Inject
-  private Clusters clusters;
-
-  @Inject
-  private ClusterVersionDAO clusterVersionDAO;
-
-  @Inject
-  private HostVersionDAO hostVersionDAO;
-
-  @Inject
-  private HostDAO hostDAO;
-
-  @Inject
-  private HostRoleCommandFactory hostRoleCommandFactory;
-
-  @Inject
-  private ServiceFactory serviceFactory;
-
-  @Inject
-  private ServiceComponentFactory serviceComponentFactory;
-
-  @Inject
-  private ServiceComponentHostFactory serviceComponentHostFactory;
-
-  @Inject
-  private RequestDAO requestDAO;
-
-  @Inject
-  private UpgradeDAO upgradeDAO;
-
-  @Inject
-  private ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
-
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void classSetUp() throws NoSuchFieldException, IllegalAccessException {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
-    m_injector.injectMembers(this);
+
+    amc = m_injector.getInstance(AmbariManagementController.class);
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
+    repoVersionDAO = m_injector.getInstance(RepositoryVersionDAO.class);
+    clusters = m_injector.getInstance(Clusters.class);
+    clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
+    hostVersionDAO = m_injector.getInstance(HostVersionDAO.class);
+    hostDAO = m_injector.getInstance(HostDAO.class);
+    hostRoleCommandFactory = m_injector.getInstance(HostRoleCommandFactory.class);
+    serviceFactory = m_injector.getInstance(ServiceFactory.class);
+    serviceComponentFactory = m_injector.getInstance(ServiceComponentFactory.class);
+    serviceComponentHostFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
+    requestDAO = m_injector.getInstance(RequestDAO.class);
+    upgradeDAO = m_injector.getInstance(UpgradeDAO.class);
+    serviceComponentDesiredStateDAO = m_injector.getInstance(ServiceComponentDesiredStateDAO.class);
+
     m_injector.getInstance(UnitOfWork.class).begin();
 
     // Initialize AmbariManagementController
@@ -172,8 +162,41 @@ public class UpgradeActionTest {
 
   @After
   public void teardown() throws Exception {
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(PersistService.class).stop();
+    cleanup();
+  }
+
+  private void cleanup() throws AmbariException {
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findAll();
+    if (clusterVersionEntities != null) {
+      for (ClusterVersionEntity cve : clusterVersionEntities) {
+        clusterVersionDAO.remove(cve);
+      }
+    }
+
+    List<RepositoryVersionEntity> repositoryVersionEntities = repoVersionDAO.findAll();
+    if (repositoryVersionEntities != null) {
+      for (RepositoryVersionEntity rve : repositoryVersionEntities) {
+        repoVersionDAO.remove(rve);
+      }
+    }
+
+    List<HostVersionEntity> hostVersionEntities = hostVersionDAO.findAll();
+    if (clusterVersionEntities != null) {
+      for (HostVersionEntity hve : hostVersionEntities) {
+        hostVersionDAO.remove(hve);
+      }
+    }
+
+    for (String clusterName : clusterMap.keySet()) {
+      clusters.deleteCluster(clusterName);
+    }
+
+    for (Host host : clusters.getHosts()) {
+      clusters.deleteHost(host.getHostName());
+    }
+
   }
 
   private void makeDowngradeCluster(StackId sourceStack, String sourceRepo, StackId targetStack, String targetRepo) throws Exception {
