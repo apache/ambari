@@ -88,6 +88,7 @@ version_for_stack_feature_checks = get_stack_feature_version(config)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_supports_ranger_kerberos = check_stack_feature(StackFeature.RANGER_KERBEROS_SUPPORT, version_for_stack_feature_checks)
 stack_supports_ranger_audit_db = check_stack_feature(StackFeature.RANGER_AUDIT_DB_SUPPORT, version_for_stack_feature_checks)
+stack_supports_ranger_hive_jdbc_url_change = check_stack_feature(StackFeature.RANGER_HIVE_PLUGIN_JDBC_URL, version_for_stack_feature_checks)
 
 # component ROLE directory (like hive-metastore or hive-server2-hive2)
 component_directory = status_params.component_directory
@@ -615,6 +616,9 @@ if has_hive_interactive:
     hive_llap_principal = (config['configurations']['hive-interactive-site']['hive.llap.zk.sm.principal']).replace('_HOST',hostname.lower())
   pass
 
+hive_server2_zookeeper_namespace = config['configurations']['hive-site']['hive.server2.zookeeper.namespace']
+hive_zookeeper_quorum = config['configurations']['hive-site']['hive.zookeeper.quorum']
+
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
@@ -686,11 +690,15 @@ if has_ranger_admin:
   ranger_previous_jdbc_jar = format("{hive_lib}/{ranger_previous_jdbc_jar_name}") if stack_supports_ranger_audit_db else None
   sql_connector_jar = ''
 
+  ranger_hive_url = format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url
+  if stack_supports_ranger_hive_jdbc_url_change:
+    ranger_hive_url = format("jdbc:hive2://{hive_zookeeper_quorum}/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace={hive_server2_zookeeper_namespace}")
+
   hive_ranger_plugin_config = {
     'username': repo_config_username,
     'password': repo_config_password,
     'jdbc.driverClassName': jdbc_driver_class_name,
-    'jdbc.url': format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url,
+    'jdbc.url': ranger_hive_url,
     'commonNameForCertificate': common_name_for_certificate
   }
 

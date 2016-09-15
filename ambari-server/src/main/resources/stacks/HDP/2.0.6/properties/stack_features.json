@@ -303,6 +303,11 @@
       "name": "atlas_hbase_setup",
       "description": "Use script to create Atlas tables in Hbase and set permissions for Atlas user.",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "ranger_hive_plugin_jdbc_url",
+      "description": "Handle Ranger hive repo config jdbc url change for stack 2.5 (AMBARI-18386)",
+      "min_version": "2.5.0.0"
     }
   ]
 }
