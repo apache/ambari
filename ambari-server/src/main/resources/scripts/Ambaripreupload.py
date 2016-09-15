@@ -331,50 +331,50 @@ with Environment() as env:
     spark_client_dir = format("/usr/hdp/{stack_version}/spark")
 
     if os.path.exists(spark_client_dir):
-      # Rename /usr/hdp/{stack_version}/oozie/share/lib/spark to spark-orig
-      Execute(("mv",
-               format("{oozie_shared_lib}/lib/spark"),
-               format("{oozie_shared_lib}/lib/spark-orig")),
-               sudo=True)
-
-      # Create /usr/hdp/{stack_version}/oozie/share/lib/spark
-      Directory(format("{oozie_shared_lib}/lib/spark"),
-                owner = oozie_user,
-                create_parents = True
-                )
-
-      # Copy oozie-sharelib-spark from /usr/hdp/{stack_version}/oozie/share/lib/spark-orig to spark
-      Execute(format("cp -f {oozie_shared_lib}/lib/spark-orig/oozie-sharelib-spark*.jar {oozie_shared_lib}/lib/spark"),
-              user=oozie_user)
-
-      # Copy /usr/hdp/{stack_version}/spark-client/*.jar except spark-examples*.jar
-      Execute(format("cp -P {spark_client_dir}/lib/*.jar {oozie_shared_lib}/lib/spark"),
-              user=oozie_user)
-      Execute(format("find {oozie_shared_lib}/lib/spark/ -type l -delete"),
-              user=oozie_user)
       try:
-        Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"),
-                user=oozie_user)
-      except:
-        print "No spark-examples jar files found in Spark client lib."
+        # Rename /usr/hdp/{stack_version}/oozie/share/lib/spark to spark-orig
+        if not os.path.exists(format("{oozie_shared_lib}/lib/spark-orig")):
+          Execute(("mv",
+                   format("{oozie_shared_lib}/lib/spark"),
+                   format("{oozie_shared_lib}/lib/spark-orig")),
+                   sudo=True)
 
-      # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
-      Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"),
-              user=oozie_user)
+        # Create /usr/hdp/{stack_version}/oozie/share/lib/spark
+        if not os.path.exists(format("{oozie_shared_lib}/lib/spark")):
+          Execute(('mkdir', format('{oozie_shared_lib}/lib/spark')),
+                sudo=True)
 
-      try:
-        Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"),
-              user=oozie_user)
-      except:
-        print "No jar files found in Spark client python lib."
+        # Copy oozie-sharelib-spark from /usr/hdp/{stack_version}/oozie/share/lib/spark-orig to spark
+        Execute(format("cp -f {oozie_shared_lib}/lib/spark-orig/oozie-sharelib-spark*.jar {oozie_shared_lib}/lib/spark"))
 
-      # Skipping this step since it might cause issues to automated scripts that rely on hdfs://user/oozie/share/lib
-      # Rename /usr/hdp/{stack_version}/oozie/share/lib to lib_ts
-      # millis = int(round(time.time() * 1000))
-      # Execute(("mv",
-      #          format("{oozie_shared_lib}/lib"),
-      #          format("{oozie_shared_lib}/lib_{millis}")),
-      #         sudo=True)
+        # Copy /usr/hdp/{stack_version}/spark-client/*.jar except spark-examples*.jar
+        Execute(format("cp -P {spark_client_dir}/lib/*.jar {oozie_shared_lib}/lib/spark"))
+        Execute(format("find {oozie_shared_lib}/lib/spark/ -type l -delete"))
+        try:
+          Execute(format("rm -f {oozie_shared_lib}/lib/spark/spark-examples*.jar"))
+        except:
+          print "No spark-examples jar files found in Spark client lib."
+
+        # Copy /usr/hdp/{stack_version}/spark-client/python/lib/*.zip & *.jar to /usr/hdp/{stack_version}/oozie/share/lib/spark
+        Execute(format("cp -f {spark_client_dir}/python/lib/*.zip {oozie_shared_lib}/lib/spark"))
+
+        try:
+          Execute(format("cp -f {spark_client_dir}/python/lib/*.jar {oozie_shared_lib}/lib/spark"))
+        except:
+          print "No jar files found in Spark client python lib."
+
+        Execute(("chmod", "-R", "0755", format('{oozie_shared_lib}/lib/spark')),
+                sudo=True)
+
+        # Skipping this step since it might cause issues to automated scripts that rely on hdfs://user/oozie/share/lib
+        # Rename /usr/hdp/{stack_version}/oozie/share/lib to lib_ts
+        # millis = int(round(time.time() * 1000))
+        # Execute(("mv",
+        #          format("{oozie_shared_lib}/lib"),
+        #          format("{oozie_shared_lib}/lib_{millis}")),
+        #         sudo=True)
+      except Exception, e:
+        print 'Exception occurred while preparing oozie share lib: '+ repr(e)
 
     params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
       action="create_on_execute",
