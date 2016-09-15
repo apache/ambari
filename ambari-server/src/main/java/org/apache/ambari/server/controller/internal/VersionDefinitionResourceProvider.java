@@ -54,6 +54,8 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.stack.RepoUtil;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -72,6 +74,7 @@ import org.codehaus.jackson.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.common.collect.ListMultimap;
 
 /**
  * The {@link VersionDefinitionResourceProvider} class deals with managing Version Definition
@@ -237,7 +240,7 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
           try {
             holder.xmlString = xml.toXml();
           } catch (Exception e) {
-            throw new AmbariException(String.format("The available repository %s does not serialize", definitionName));
+            throw new AmbariException(String.format("The available repository %s does not serialize", definitionName), e);
           }
 
         } else {
@@ -559,8 +562,16 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
     StackEntity stackEntity = s_stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
 
     entity.setStack(stackEntity);
-    entity.setOperatingSystems(s_repoVersionHelper.get().serializeOperatingSystems(
-        holder.xml.repositoryInfo.getRepositories()));
+
+    List<RepositoryInfo> repos = holder.xml.repositoryInfo.getRepositories();
+
+    // Add service repositories (these are not contained by the VDF but are there in the stack model)
+    ListMultimap<String, RepositoryInfo> stackReposByOs =
+        s_metaInfo.get().getStack(stackId.getStackName(), stackId.getStackVersion()).getRepositoriesByOs();
+    repos.addAll(RepoUtil.getServiceRepos(repos, stackReposByOs));
+
+    entity.setOperatingSystems(s_repoVersionHelper.get().serializeOperatingSystems(repos));
+
     entity.setVersion(holder.xml.release.getFullVersion());
     entity.setDisplayName(stackId, holder.xml.release);
     entity.setType(holder.xml.release.repositoryType);
@@ -723,7 +734,6 @@ public class VersionDefinitionResourceProvider extends AbstractAuthorizedResourc
             entity.getStackName());
         repoElement.put(PropertyHelper.getPropertyName(RepositoryResourceProvider.REPOSITORY_STACK_VERSION_PROPERTY_ID),
             entity.getStackVersion());
-
         repoBase.put(PropertyHelper.getPropertyCategory(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID),
             repoElement);
 

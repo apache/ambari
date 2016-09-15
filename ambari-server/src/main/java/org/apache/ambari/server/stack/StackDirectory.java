@@ -321,26 +321,9 @@ public class StackDirectory extends StackDefinitionDirectory {
    * @throws AmbariException if unable to parse the repository file
    */
   private void parseRepoFile(Collection<String> subDirs) throws AmbariException {
-    File repositoryFile;
-
-    if (subDirs.contains(REPOSITORY_FOLDER_NAME)) {
-      repoDir = getAbsolutePath() + File.separator + REPOSITORY_FOLDER_NAME;
-      repositoryFile = new File(getPath()+ File.separator +
-          REPOSITORY_FOLDER_NAME + File.separator + REPOSITORY_FILE_NAME);
-
-      if (repositoryFile.exists()) {
-        try {
-          repoFile = unmarshaller.unmarshal(RepositoryXml.class, repositoryFile);
-        } catch (JAXBException e) {
-          repoFile = new RepositoryXml();
-          repoFile.setValid(false);
-          String msg = "Unable to parse repo file at location: " +
-                       repositoryFile.getAbsolutePath();
-          repoFile.addError(msg);
-          LOG.warn(msg);
-        }
-      }
-    }
+    RepositoryFolderAndXml repoDirAndXml = RepoUtil.parseRepoFile(directory, subDirs, unmarshaller);
+    repoDir = repoDirAndXml.repoDir.orNull();
+    repoFile = repoDirAndXml.repoXml.orNull();
 
     if (repoFile == null || !repoFile.isValid()) {
       LOG.warn("No repository information defined for "
