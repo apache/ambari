@@ -89,6 +89,7 @@ class TestHookAfterInstall(RMFTestCase):
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
+
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         current_dir = dir_def['current_dir']
@@ -96,6 +97,11 @@ class TestHookAfterInstall(RMFTestCase):
             action = ['delete'],)
         self.assertResourceCalled('Link', conf_dir,
             to = current_dir,)
+
+      #HACK for Atlas
+      if package in ["atlas", ]:
+        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
+                                  only_if = 'test -e ' + "/etc/atlas/conf")
 
     self.assertNoMoreResources()
 
@@ -150,6 +156,7 @@ class TestHookAfterInstall(RMFTestCase):
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
+
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         current_dir = dir_def['current_dir']
@@ -157,6 +164,11 @@ class TestHookAfterInstall(RMFTestCase):
             action = ['delete'],)
         self.assertResourceCalled('Link', conf_dir,
             to = current_dir,)
+
+      #HACK for Atlas
+      if package in ["atlas", ]:
+        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
+                                  only_if = 'test -e ' + "/etc/atlas/conf")
 
     self.assertNoMoreResources()
 
@@ -244,6 +256,7 @@ class TestHookAfterInstall(RMFTestCase):
         self.assertResourceCalled('Execute', ('cp', '-R', '-p', conf_dir, conf_backup_dir),
             not_if = 'test -e ' + conf_backup_dir,
             sudo = True,)
+
       for dir_def in dir_defs:
         conf_dir = dir_def['conf_dir']
         current_dir = dir_def['current_dir']
@@ -251,6 +264,11 @@ class TestHookAfterInstall(RMFTestCase):
             action = ['delete'],)
         self.assertResourceCalled('Link', conf_dir,
             to = current_dir,)
+
+      #HACK for Atlas
+      if package in ["atlas", ]:
+        self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cp -R --no-clobber /etc/atlas/conf.backup/* /etc/atlas/conf',
+                                  only_if = 'test -e ' + "/etc/atlas/conf")
 
     self.assertNoMoreResources()
 

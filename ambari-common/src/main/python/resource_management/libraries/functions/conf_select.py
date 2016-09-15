@@ -343,7 +343,27 @@ def select(stack_name, package, version, try_create=True, ignore_errors=False):
           else:
             # missing entirely
             # /etc/<component>/conf -> <stack-root>/current/<component>/conf
-            Link(conf_dir, to = current_dir)
+            if package in ["atlas", ]:
+              #HACK for Atlas
+              '''
+              In the case of Atlas, the Hive RPM installs /usr/$stack/$version/atlas with some partial packages that
+              contain Hive hooks, while the Atlas RPM is responsible for installing the full content.
+
+              If the user does not have Atlas currently installed on their stack, then /usr/$stack/current/atlas-client
+              will be a broken symlink, and we should not create the
+              symlink /etc/atlas/conf -> /usr/$stack/current/atlas-client/conf .
+              If we mistakenly create this symlink, then when the user performs an EU/RU and then adds Atlas service
+              then the Atlas RPM will not be able to copy its artifacts into /etc/atlas/conf directory and therefore
+              prevent Ambari from by copying those unmanaged contents into /etc/atlas/$version/0
+              '''
+              parent_dir = os.path.dirname(current_dir)
+              if os.path.exists(parent_dir):
+                Link(conf_dir, to=current_dir)
+              else:
+                Logger.info("Will not create symlink from {0} to {1} because the destination's parent dir does not exist.".format(conf_dir, current_dir))
+            else:
+              # Normal path for other packages
+              Link(conf_dir, to=current_dir)
 
   except Exception, exception:
     if ignore_errors is True:
@@ -579,15 +599,24 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
       else:
         Link(new_symlink, action = "delete")
 
+      old_conf = dir_def['conf_dir']
+      backup_dir = _get_backup_conf_directory(old_conf)
       # link /etc/[component]/conf -> /etc/[component]/conf.backup
       # or
       # link /etc/[component]/conf -> <stack-root>/current/[component]-client/conf
       if link_to == DIRECTORY_TYPE_BACKUP:
-        old_conf = dir_def['conf_dir']
-        backup_dir = _get_backup_conf_directory(old_conf)
-        Link(new_symlink, to = backup_dir)
+        Link(new_symlink, to=backup_dir)
       else:
-        Link(new_symlink, to = dir_def['current_dir'])
+        Link(new_symlink, to=dir_def['current_dir'])
+
+        #HACK
+        if package in ["atlas", ]:
+          Logger.info("Seeding the new conf symlink {0} from the old backup directory {1} in case any "
+                      "unmanaged artifacts are needed.".format(new_symlink, backup_dir))
+          # If /etc/[component]/conf.backup exists, then copy any artifacts not managed by Ambari to the new symlink target
+          # Be careful not to clobber any existing files.
+          Execute(as_sudo(["cp", "-R", "--no-clobber", os.path.join(backup_dir, "*"), new_symlink], auto_escape=False),
+                  only_if=format("test -e {new_symlink}"))
   except Exception, e:
     Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
 
