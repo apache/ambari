@@ -27,8 +27,8 @@ from resource_management.core.resources.system import Execute, File
 from resource_management.core.source import InlineTemplate, StaticFile
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
-from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 
 class MicrosoftRServiceCheck(Script):
   pass
@@ -38,6 +38,15 @@ class MicrosoftRServiceCheckLinux(MicrosoftRServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
+
+    try:
+      params.HdfsResource(params.revo_share_hdfs_folder,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.hdfs_user,
+                          mode=0777)
+    except Exception as exception:
+        Logger.warning("Could not check the existence of /user/RevoShare on HDFS, exception: {0}".format(str(exception)))
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
