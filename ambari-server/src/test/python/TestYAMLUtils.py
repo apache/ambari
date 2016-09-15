@@ -64,19 +64,33 @@ class TestYAMLUtils(TestCase):
 
     # test maps
     map = """
-      storm:
+      storm-cluster:
         hosts:
-          [c6401.ambari.apache.org, c6402.ambari.apache.org]
+          [c6401.ambari.apache.org, c6402.ambari.apache.org, c6403-master.ambari.apache.org]
         groups:
-          [hadoop, foo]
-        foo:
-          [bar, baz]
-        foo2:
-          bar2:
-            [baz2]
+          [hadoop, hadoop-secure]
     """
     escaped_map = yaml_utils.escape_yaml_property(map)
     self.assertTrue(escaped_map.startswith("\n"))
     self.assertFalse("'" in escaped_map)
 
+    # try some weird but valid formatting
+    map = """
 
+
+      storm-cluster    :
+              hosts   :
+[c6401.ambari.apache.org, c6402.ambari.apache.org, c6403-master.ambari.apache.org]
+  groups   :
+          [hadoop!!!, hadoop-secure!!!!-----]
+    """
+    escaped_map = yaml_utils.escape_yaml_property(map)
+    self.assertTrue(escaped_map.startswith("\n"))
+    self.assertFalse("'" in escaped_map)
+
+    # try some bad formatting - this is not a map
+    map = """ foo : bar :
+      [baz]"""
+    escaped_map = yaml_utils.escape_yaml_property(map)
+    self.assertFalse(escaped_map.startswith("\n"))
+    self.assertTrue("'" in escaped_map)
