@@ -58,6 +58,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceede
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -65,7 +66,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 public class TestHeartbeatMonitor {
 
@@ -76,23 +76,42 @@ public class TestHeartbeatMonitor {
   private String clusterName = "cluster1";
   private String serviceName = "HDFS";
   private int heartbeatMonitorWakeupIntervalMS = 30;
-  private AmbariMetaInfo ambariMetaInfo;
-  private OrmTestHelper helper;
+  private static AmbariMetaInfo ambariMetaInfo;
+  private static OrmTestHelper helper;
 
   private static final Logger LOG =
           LoggerFactory.getLogger(TestHeartbeatMonitor.class);
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void classSetUp() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
   }
 
+  @Before
+  public void setup() throws Exception {
+    cleanup();
+  }
+
   @After
   public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+
+  }
+
+  private void cleanup() throws AmbariException {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+
+    for (String clusterName : clusterMap.keySet()) {
+      clusters.deleteCluster(clusterName);
+    }
+
+    for (Host host : clusters.getHosts()) {
+      clusters.deleteHost(host.getHostName());
+    }
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {
@@ -101,6 +120,41 @@ public class TestHeartbeatMonitor {
     hostAttributes.put("os_release_version", osVersion);
 
     host.setHostAttributes(hostAttributes);
+  }
+
+  @Test
+  public void testHeartbeatLoss() throws AmbariException, InterruptedException,
+          InvalidStateTransitionException {
+    Clusters fsm = injector.getInstance(Clusters.class);
+    String hostname = "host1";
+    fsm.addHost(hostname);
+    ActionQueue aq = new ActionQueue();
+    ActionManager am = mock(ActionManager.class);
+    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 10, injector);
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
+    Register reg = new Register();
+    reg.setHostname(hostname);
+    reg.setResponseId(12);
+    reg.setTimestamp(System.currentTimeMillis() - 300);
+    reg.setAgentVersion(ambariMetaInfo.getServerVersion());
+    HostInfo hi = new HostInfo();
+    hi.setOS("Centos5");
+    reg.setHardwareProfile(hi);
+    handler.handleRegistration(reg);
+    HeartBeat hb = new HeartBeat();
+    hb.setHostname(hostname);
+    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, "cool"));
+    hb.setTimestamp(System.currentTimeMillis());
+    hb.setResponseId(12);
+    handler.handleHeartBeat(hb);
+    hm.start();
+    aq.enqueue(hostname, new ExecutionCommand());
+    //Heartbeat will expire and action queue will be flushed
+    while (aq.size(hostname) != 0) {
+      Thread.sleep(1);
+    }
+    assertEquals(fsm.getHost(hostname).getState(), HostState.HEARTBEAT_LOST);
+    classSetUp();
   }
 
   @Test
@@ -388,40 +442,6 @@ public class TestHeartbeatMonitor {
       assertEquals("HDFS", ((StatusCommand)command).getServiceName());
     }
 
-  }
-
-  @Test
-  public void testHeartbeatLoss() throws AmbariException, InterruptedException,
-          InvalidStateTransitionException {
-    Clusters fsm = injector.getInstance(Clusters.class);
-    String hostname = "host1";
-    fsm.addHost(hostname);
-    ActionQueue aq = new ActionQueue();
-    ActionManager am = mock(ActionManager.class);
-    HeartbeatMonitor hm = new HeartbeatMonitor(fsm, aq, am, 10, injector);
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
-    Register reg = new Register();
-    reg.setHostname(hostname);
-    reg.setResponseId(12);
-    reg.setTimestamp(System.currentTimeMillis() - 300);
-    reg.setAgentVersion(ambariMetaInfo.getServerVersion());
-    HostInfo hi = new HostInfo();
-    hi.setOS("Centos5");
-    reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
-    HeartBeat hb = new HeartBeat();
-    hb.setHostname(hostname);
-    hb.setNodeStatus(new HostStatus(HostStatus.Status.HEALTHY, "cool"));
-    hb.setTimestamp(System.currentTimeMillis());
-    hb.setResponseId(12);
-    handler.handleHeartBeat(hb);
-    hm.start();
-    aq.enqueue(hostname, new ExecutionCommand());
-    //Heartbeat will expire and action queue will be flushed
-    while (aq.size(hostname) != 0) {
-      Thread.sleep(1);
-    }
-    assertEquals(fsm.getHost(hostname).getState(), HostState.HEARTBEAT_LOST);
   }
 
   @Test

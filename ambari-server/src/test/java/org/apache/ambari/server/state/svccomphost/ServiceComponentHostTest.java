@@ -26,12 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -49,7 +46,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostConfig;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -71,74 +67,103 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 
 public class ServiceComponentHostTest {
   private static Logger LOG = LoggerFactory.getLogger(ServiceComponentHostTest.class);
-  @Inject
-  private Injector injector;
-  @Inject
-  private Clusters clusters;
-  @Inject
-  private ServiceFactory serviceFactory;
-  @Inject
-  private ServiceComponentFactory serviceComponentFactory;
-  @Inject
-  private ServiceComponentHostFactory serviceComponentHostFactory;
-  @Inject
-  private AmbariMetaInfo metaInfo;
-  @Inject
-  Provider<EntityManager> entityManagerProvider;
-  @Inject
-  private ConfigFactory configFactory;
-  @Inject
-  private ConfigGroupFactory configGroupFactory;
-  @Inject
-  private ConfigHelper configHelper;
-  @Inject
-  private OrmTestHelper helper;
-  @Inject
-  private ClusterDAO clusterDAO;
-  @Inject
-  private HostDAO hostDAO;
+
+  private static Injector injector;
+  private static Clusters clusters;
+  private static ServiceFactory serviceFactory;
+  private static ServiceComponentFactory serviceComponentFactory;
+  private static ServiceComponentHostFactory serviceComponentHostFactory;
+  private static ConfigFactory configFactory;
+  private static ConfigGroupFactory configGroupFactory;
+  private static OrmTestHelper helper;
+  private static ClusterDAO clusterDAO;
+  private static HostDAO hostDAO;
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
   private Map<String, String> hostAttributes = new HashMap<String, String>();
 
+  @BeforeClass
+  public static void classSetUp() {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+    serviceFactory = injector.getInstance(ServiceFactory.class);
+    serviceComponentFactory = injector.getInstance(ServiceComponentFactory.class);
+    serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
+    configFactory = injector.getInstance(ConfigFactory.class);
+    configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
+    helper = injector.getInstance(OrmTestHelper.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    hostDAO = injector.getInstance(HostDAO.class);
+  }
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-    injector.injectMembers(this);
 
-    StackId stackId = new StackId("HDP-0.1");
-    createCluster(stackId, clusterName);
-    hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "5.9");
 
-    Set<String> hostNames = new HashSet<String>();
-    hostNames.add(hostName1);
-    addHostsToCluster(clusterName, hostAttributes, hostNames);
+    if (clusters.getClusters().size() == 0) {
+      StackId stackId = new StackId("HDP-0.1");
+      createCluster(stackId, clusterName);
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "5.9");
 
-    Cluster c1 = clusters.getCluster(clusterName);
-    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
-    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+      Set<String> hostNames = new HashSet<String>();
+      hostNames.add(hostName1);
+      addHostsToCluster(clusterName, hostAttributes, hostNames);
+
+      Cluster c1 = clusters.getCluster(clusterName);
+      helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+      c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+          RepositoryVersionState.INSTALLING);
+    }
   }
 
   @After
-  public void teardown() {
-    injector.getInstance(PersistService.class).stop();
+  public void teardown() throws AmbariException {
+    cleanup();
+  }
+
+  private void cleanup() throws AmbariException {
+    try {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+      List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = hostComponentDesiredStateDAO.findAll();
+      if (hostComponentDesiredStateEntities != null) {
+        for (HostComponentDesiredStateEntity hcdse : hostComponentDesiredStateEntities) {
+          hostComponentDesiredStateDAO.remove(hcdse);
+        }
+      }
+
+      HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+      List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
+      if (hostComponentStateEntities != null) {
+        for (HostComponentStateEntity hcse : hostComponentStateEntities) {
+          hostComponentStateDAO.remove(hcse);
+        }
+      }
+
+      for (String clusterName : clusterMap.keySet()) {
+        clusters.deleteCluster(clusterName);
+      }
+
+      for (Host host : clusters.getHosts()) {
+        clusters.deleteHost(host.getHostName());
+      }
+    } catch (IllegalStateException ise) {}
   }
 
   private ClusterEntity createCluster(StackId stackId, String clusterName) throws AmbariException {
@@ -516,18 +541,19 @@ public class ServiceComponentHostTest {
         State.UNINSTALLED);
 
     runStateChanges(impl, ServiceComponentHostEventType.HOST_SVCCOMP_WIPEOUT,
-        State.UNINSTALLED,
-        State.WIPING_OUT,
-        State.WIPING_OUT,
-        State.INIT);
+            State.UNINSTALLED,
+            State.WIPING_OUT,
+            State.WIPING_OUT,
+            State.INIT);
   }
 
+  @Ignore
   @Test
   public void testJobHandling() {
     // TODO fix once jobs are handled
   }
 
-
+  @Ignore
   @Test
   public void testGetAndSetConfigs() {
     // FIXME config handling
@@ -552,7 +578,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals("HDP-1.2.0",
         sch.getStackVersion().getStackId());
     Assert.assertEquals("HDP-1.2.0",
-        sch.getDesiredStackVersion().getStackId());
+            sch.getDesiredStackVersion().getStackId());
   }
 
   @Test
@@ -657,7 +683,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals(-1, impl.getLastOpLastUpdateTime());
     Assert.assertEquals(-1, impl.getLastOpEndTime());
     Assert.assertEquals(State.STOPPING,
-        impl.getState());
+            impl.getState());
   }
 
   @Test
@@ -929,6 +955,9 @@ public class ServiceComponentHostTest {
     tags.remove(id.toString());
     sch3.updateActualConfigs(actual);
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
+
+    injector.getInstance(PersistService.class).stop();
+    classSetUp();
   }
 
   @Test
@@ -1046,6 +1075,9 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
+
+    injector.getInstance(PersistService.class).stop();
+    classSetUp();
   }
 
   /**
