@@ -266,13 +266,19 @@ public class TestHeartbeatMonitor {
     }};
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config config = configFactory.createNew(cluster, "hadoop-env",
+    Config hadoopEnvConfig = configFactory.createNew(cluster, "hadoop-env",
       new HashMap<String, String>() {{
         put("a", "b");
       }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version1");
-    cluster.addConfig(config);
-    cluster.addDesiredConfig("_test", Collections.singleton(config));
+    Config hbaseEnvConfig = configFactory.createNew(cluster, "hbase-env",
+            new HashMap<String, String>() {{
+              put("a", "b");
+            }}, new HashMap<String, Map<String,String>>());
+    hadoopEnvConfig.setTag("version1");
+    cluster.addConfig(hadoopEnvConfig);
+    hbaseEnvConfig.setTag("version1");
+    cluster.addConfig(hbaseEnvConfig);
+    cluster.addDesiredConfig("_test", Collections.singleton(hadoopEnvConfig));
 
 
     clusters.mapHostsToCluster(hostNames, clusterName);
@@ -318,7 +324,7 @@ public class TestHeartbeatMonitor {
     HostInfo hi = new HostInfo();
     hi.setOS("Centos5");
     reg.setHardwareProfile(hi);
-    handler.handleRegistration(reg);
+    RegistrationResponse registrationResponse = handler.handleRegistration(reg);
 
     HeartBeat hb = new HeartBeat();
     hb.setHostname(hostname1);
@@ -326,6 +332,10 @@ public class TestHeartbeatMonitor {
     hb.setTimestamp(System.currentTimeMillis());
     hb.setResponseId(12);
     handler.handleHeartBeat(hb);
+
+    Map<String, Map<String, String>> statusCommandConfig = registrationResponse.getStatusCommands().get(0).getConfigurations();
+    assertEquals(statusCommandConfig.size(), 1);
+    assertTrue(statusCommandConfig.containsKey("hadoop-env"));
 
     // HeartbeatMonitor should generate StatusCommands for
     // MASTER, SLAVE or CLIENT components
