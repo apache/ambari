@@ -221,7 +221,7 @@ public class UpgradeTest {
 
     schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
-    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+    schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs, "test");
 
     schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 
