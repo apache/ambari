@@ -136,6 +136,29 @@ PORT definitions are used to check TCP connectivity to a remote endpoint.
         }
       }
 
+###### AGGREGATE
+AGGREGATE definitions are used to combine the results of another alert definition from different nodes.  The `source/alert_name` field must match the `name` field of another alert definition.
+
+        "source": {
+          "type": "AGGREGATE",
+          "alert_name": "datanode_process",
+          "reporting": {
+            "ok": {
+              "text": "affected: [{1}], total: [{0}]"
+            },
+            "warning": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 10
+            },
+            "critical": {
+              "text": "affected: [{1}], total: [{0}]",
+              "value": 30
+            },
+            "units" : "%",
+            "type": "PERCENT"
+          }
+        }
+
 #### Structures & Concepts
 - `uri` Definition types that contain a URI can depend on any number of valid subproperties. In some cases, the URI may be very simple and only include a single port. In other scenarios, the URI may be more complex and include properties for plaintext, SSL, and secure endpoints protected by Kerberos.
 
