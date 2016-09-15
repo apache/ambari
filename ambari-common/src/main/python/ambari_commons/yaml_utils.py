@@ -26,13 +26,21 @@ REGEX_LIST = '^\w*\[.+\]\w*$'
 REGEX_DICTIONARY = '^\w*\{.+\}\w*$'
 
 """
-storm:
+storm-cluster:
   hosts:
-    [c6401.ambari.apache.org, c6402.ambari.apache.org]
+    [c6401.ambari.apache.org, c6402.ambari.apache.org, c6403-master.ambari.apache.org]
   groups:
-    [hadoop, foo]
+    [hadoop, hadoop-secure]
+
+^\s* - allow any whitespace or newlines to start
+\S+ - at least 1 word character (including dashes)
+[ ]*:[ ]* - followed by a colon (allowing spaces around the colon)
+[\r\n\f]+ - at least 1 newline
+
+\s*\S+[ ]*:[ ]*[\r\n\f] - follow with the same basically to ensure a map of maps
 """
-REGEX_NESTED_MAPS = '^[\w+\s*:\s*\n\s*]+\[(.*?)\]+'
+REGEX_NESTED_MAPS = "^\s*\S+[ ]*:[ ]*[\r\n\f]+\s*\S+[ ]*:[ ]*[\r\n\f]"
+
 
 def escape_yaml_property(value):
   unquouted_values = ["null", "Null", "NULL", "true", "True", "TRUE", "false",
