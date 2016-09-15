@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.security.authorization;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.audit.event.AccessUnauthorizedAuditEvent;
 import org.apache.ambari.server.audit.event.AuditEvent;
 import org.apache.ambari.server.audit.AuditLogger;
@@ -26,11 +25,13 @@ import org.apache.ambari.server.audit.event.LoginAuditEvent;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.utils.RequestUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -91,26 +92,55 @@ public class AmbariAuthorizationFilter implements Filter {
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
   /**
+   * The Ambari authentication entry point
+   */
+  private final AmbariEntryPoint entryPoint;
+
+  /**
    * Access to Ambari configuration data
    */
-  @Inject
-  private Configuration configuration;
+  private final Configuration configuration;
 
   /**
    * Access to user information
    */
-  @Inject
-  private Users users;
+  private final Users users;
 
-  @Inject
-  private AuditLogger auditLogger;
+  /**
+   * The audit logger
+   */
+  private final AuditLogger auditLogger;
 
-  @Inject PermissionHelper permissionHelper;
+  /**
+   * A Permission Helper used to provided inforamtion for the Audit Logger
+   */
+  private final PermissionHelper permissionHelper;
 
   /**
    * The realm to use for the basic http auth
    */
   private String realm;
+
+  /**
+   * Constructor.
+   *
+   * @param entryPoint       the authentication entrypoint
+   * @param configuration    the Ambari configuration
+   * @param users            Ambari user access
+   * @param auditLogger      the Audit logger
+   * @param permissionHelper the permission helper
+   */
+  public AmbariAuthorizationFilter(AmbariEntryPoint entryPoint,
+                                   Configuration configuration,
+                                   Users users,
+                                   AuditLogger auditLogger,
+                                   PermissionHelper permissionHelper) {
+    this.entryPoint = entryPoint;
+    this.configuration = configuration;
+    this.users = users;
+    this.auditLogger = auditLogger;
+    this.permissionHelper = permissionHelper;
+  }
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -160,8 +190,7 @@ public class AmbariAuthorizationFilter implements Filter {
           String redirectURL = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
           httpResponse.sendRedirect(redirectURL);
         } else {
-          httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
-          httpResponse.flushBuffer();
+          entryPoint.commence(httpRequest, httpResponse, new AuthenticationCredentialsNotFoundException("Missing authentication token"));
         }
         return;
       }

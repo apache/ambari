@@ -51,9 +51,9 @@ import org.springframework.security.crypto.codec.Base64;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AuthorizationHelper.class)
-public class AmbariAuthenticationFilterTest {
+public class AmbariBasicAuthenticationFilterTest {
 
-  private AmbariAuthenticationFilter underTest;
+  private AmbariBasicAuthenticationFilter underTest;
 
   private AuditLogger mockedAuditLogger;
 
@@ -66,7 +66,7 @@ public class AmbariAuthenticationFilterTest {
     mockedAuditLogger = createMock(AuditLogger.class);
     permissionHelper = createMock(PermissionHelper.class);
     entryPoint = createMock(AmbariEntryPoint.class);
-    underTest = new AmbariAuthenticationFilter(null, mockedAuditLogger, permissionHelper, entryPoint);
+    underTest = new AmbariBasicAuthenticationFilter(null, entryPoint, mockedAuditLogger, permissionHelper);
     replay(entryPoint);
   }
 
@@ -76,7 +76,7 @@ public class AmbariAuthenticationFilterTest {
     HttpServletRequest request = createMock(HttpServletRequest.class);
     HttpServletResponse response = createMock(HttpServletResponse.class);
     FilterChain filterChain = createMock(FilterChain.class);
-    expect(request.getHeader("Authorization")).andReturn("header").andReturn(null);
+    expect(request.getHeader("Authorization")).andReturn("Basic ").andReturn(null);
     expect(request.getHeader("X-Forwarded-For")).andReturn("1.2.3.4");
     expect(mockedAuditLogger.isEnabled()).andReturn(true);
     mockedAuditLogger.log(anyObject(AuditEvent.class));
