@@ -29,7 +29,7 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, App.W
   templateName: require('templates/common/configs/widgets/plain_config_text_field'),
   valueBinding: 'config.value',
   classNames: ['widget-config-plain-text-field'],
-  placeholderBinding: 'config.savedValue',
+  placeholderBinding: 'config.placeholder',
 
   disabled: Em.computed.not('config.isEditable'),
 
