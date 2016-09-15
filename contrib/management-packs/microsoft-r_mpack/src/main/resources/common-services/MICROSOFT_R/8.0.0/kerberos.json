@@ -1,0 +1,15 @@
+{
+  "services": [
+    {
+      "name": "MICROSOFT_R",
+      "identities": [
+        {
+          "name": "/HDFS/NAMENODE/hdfs"
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ]
+    }
+  ]
+}

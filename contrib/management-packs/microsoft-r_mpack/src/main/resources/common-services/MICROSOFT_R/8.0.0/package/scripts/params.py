@@ -28,3 +28,4 @@ else:
 
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
+revo_share_hdfs_folder = "/user/RevoShare"
