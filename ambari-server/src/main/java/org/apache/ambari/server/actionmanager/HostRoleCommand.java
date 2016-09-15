@@ -209,6 +209,22 @@ public class HostRoleCommand {
 
     hostRoleCommandEntity.setEvent(event.getEventJson());
 
+    // set IDs if the wrapping object has them - they are most likely
+    // non-updatable in JPA since they are retrieved from a relationship,
+    // however the JPA cache may choose to not refresh the entity so they would
+    // end up being null if not set before persisting the command entity
+    if (requestId >= 0) {
+      hostRoleCommandEntity.setRequestId(requestId);
+    }
+
+    if (stageId >= 0) {
+      hostRoleCommandEntity.setStageId(stageId);
+    }
+
+    if (taskId >= 0) {
+      hostRoleCommandEntity.setTaskId(taskId);
+    }
+
     return hostRoleCommandEntity;
   }
 

@@ -344,7 +344,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       StageEntity stageEntity = stage.constructNewPersistenceEntity();
       stageEntities.add(stageEntity);
       stageEntity.setClusterId(clusterId);
-      //TODO refactor to reduce merges
       stageEntity.setRequest(requestEntity);
       stageDAO.create(stageEntity);
 
@@ -353,9 +352,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
       for (HostRoleCommand hostRoleCommand : orderedHostRoleCommands) {
         HostRoleCommandEntity hostRoleCommandEntity = hostRoleCommand.constructNewPersistenceEntity();
         hostRoleCommandEntity.setStage(stageEntity);
-
-        HostEntity hostEntity = null;
-
         hostRoleCommandDAO.create(hostRoleCommandEntity);
 
         assert hostRoleCommandEntity.getTaskId() != null;
@@ -365,6 +361,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         String output = "output-" + hostRoleCommandEntity.getTaskId() + ".txt";
         String error = "errors-" + hostRoleCommandEntity.getTaskId() + ".txt";
 
+        HostEntity hostEntity = null;
         if (null != hostRoleCommandEntity.getHostId()) {
           hostEntity = hostDAO.findById(hostRoleCommandEntity.getHostId());
           if (hostEntity == null) {
@@ -372,6 +369,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
             LOG.error(msg);
             throw new AmbariException(msg);
           }
+
           hostRoleCommandEntity.setHostEntity(hostEntity);
 
           try {
@@ -401,9 +399,10 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         hostRoleCommandEntity.setExecutionCommand(executionCommandEntity);
 
         executionCommandDAO.create(hostRoleCommandEntity.getExecutionCommand());
-        hostRoleCommandDAO.merge(hostRoleCommandEntity);
+        hostRoleCommandEntity = hostRoleCommandDAO.merge(hostRoleCommandEntity);
+
         if (null != hostEntity) {
-          hostDAO.merge(hostEntity);
+          hostEntity = hostDAO.merge(hostEntity);
         }
       }
 
@@ -411,8 +410,9 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
         roleSuccessCriteriaDAO.create(roleSuccessCriteriaEntity);
       }
 
-      stageDAO.create(stageEntity);
+      stageEntity = stageDAO.merge(stageEntity);
     }
+
     requestEntity.setStages(stageEntities);
     requestDAO.merge(requestEntity);
   }

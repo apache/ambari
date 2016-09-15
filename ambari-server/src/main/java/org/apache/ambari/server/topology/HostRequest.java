@@ -18,6 +18,15 @@
 
 package org.apache.ambari.server.topology;
 
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -35,15 +44,6 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
@@ -341,9 +341,6 @@ public class HostRequest implements Comparable<HostRequest> {
     for (HostRoleCommand task : logicalTasks.values()) {
       HostRoleCommandEntity entity = task.constructNewPersistenceEntity();
       // the above method doesn't set all of the fields for some unknown reason
-      entity.setRequestId(task.getRequestId());
-      entity.setStageId(task.getStageId());
-      entity.setTaskId(task.getTaskId());
       entity.setOutputLog(task.getOutputLog());
       entity.setErrorLog(task.errorLog);
 

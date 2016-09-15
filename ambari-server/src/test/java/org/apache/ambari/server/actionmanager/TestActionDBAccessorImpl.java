@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NamedQuery;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -611,6 +612,34 @@ public class TestActionDBAccessorImpl {
 
   }
 
+  /**
+   * Tests that entities created int he {@link ActionDBAccessor} can be
+   * retrieved with their IDs intact. EclipseLink seems to execute the
+   * {@link NamedQuery} but then use its cached entities to fill in the data.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testEntitiesCreatedWithIDs() throws Exception {
+    List<Stage> stages = new ArrayList<Stage>();
+    Stage stage = createStubStage(hostName, requestId, stageId);
+
+    stages.add(stage);
+
+    Request request = new Request(stages, clusters);
+
+    // persist entities
+    db.persistActions(request);
+
+    // query entities immediately to ensure IDs are populated
+    List<HostRoleCommandEntity> commandEntities = hostRoleCommandDAO.findByRequest(requestId);
+    Assert.assertEquals(2, commandEntities.size());
+
+    for (HostRoleCommandEntity entity : commandEntities) {
+      Assert.assertEquals(Long.valueOf(requestId), entity.getRequestId());
+      Assert.assertEquals(Long.valueOf(stageId), entity.getStageId());
+    }
+  }
 
   private static class TestActionDBAccessorModule extends AbstractModule {
     @Override
