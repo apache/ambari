@@ -511,8 +511,27 @@ public class HostRoleCommandEntity {
     return stage;
   }
 
+  /**
+   * Sets the associated {@link StageEntity} for this command. If the
+   * {@link StageEntity} has been persisted, then this will also set the
+   * commands stage and request ID fields.
+   *
+   * @param stage
+   */
   public void setStage(StageEntity stage) {
     this.stage = stage;
+
+    // ensure that the IDs are also set since they may not be retrieved from JPA
+    // when this entity is cached
+    if (null != stage) {
+      if (null == stageId) {
+        stageId = stage.getStageId();
+      }
+
+      if (null == requestId) {
+        requestId = stage.getRequestId();
+      }
+    }
   }
 
   public HostEntity getHostEntity() {
