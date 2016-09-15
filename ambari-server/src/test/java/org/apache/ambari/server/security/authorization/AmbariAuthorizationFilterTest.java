@@ -30,6 +30,7 @@ import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.UserDAO;
+import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -324,7 +325,8 @@ public class AmbariAuthorizationFilterTest {
       }
     });
 
-    AmbariAuthorizationFilter filter = new AmbariAuthorizationFilter();
+    AmbariAuthorizationFilter filter = new AmbariAuthorizationFilter(createNiceMock(AmbariEntryPoint.class), injector.getInstance(Configuration.class),
+        injector.getInstance(Users.class), injector.getInstance(AuditLogger.class), injector.getInstance(PermissionHelper.class));
     injector.injectMembers(filter);
 
     filter.doFilter(request, response, chain);
@@ -338,14 +340,28 @@ public class AmbariAuthorizationFilterTest {
    * @param authentication the authentication to use
    * @param urlTests map of triples: url - http method - is allowed
    * @param expectRedirect true if the requests should redirect to login
-   * @throws Exception
+   * @throws Exception if an exception occurs
    */
   private void performGeneralDoFilterTest(Authentication authentication, Table<String, String, Boolean> urlTests, boolean expectRedirect) throws Exception {
     final SecurityContext securityContext = createNiceMock(SecurityContext.class);
     final FilterConfig filterConfig = createNiceMock(FilterConfig.class);
+
+    final Configuration configuration = EasyMock.createMock(Configuration.class);
+    expect(configuration.getDefaultApiAuthenticatedUser()).andReturn(null).anyTimes();
+
+    final AuditLogger auditLogger = EasyMock.createNiceMock(AuditLogger.class);
+    expect(auditLogger.isEnabled()).andReturn(false).anyTimes();
+
     final AmbariAuthorizationFilter filter = createMockBuilder(AmbariAuthorizationFilter.class)
-        .addMockedMethod("getSecurityContext").addMockedMethod("getViewRegistry").withConstructor().createMock();
-    injectMembers(filter);
+        .addMockedMethod("getSecurityContext")
+        .addMockedMethod("getViewRegistry")
+        .withConstructor(createNiceMock(AmbariEntryPoint.class),
+            configuration,
+            createNiceMock(Users.class),
+            auditLogger,
+            createNiceMock(PermissionHelper.class))
+        .createMock();
+
     final ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
 
     expect(filterConfig.getInitParameter("realm")).andReturn("AuthFilter").anyTimes();
@@ -355,7 +371,7 @@ public class AmbariAuthorizationFilterTest {
     expect(securityContext.getAuthentication()).andReturn(authentication).anyTimes();
     expect(viewRegistry.checkPermission(EasyMock.eq("DeniedView"), EasyMock.<String>anyObject(), EasyMock.<String>anyObject(), EasyMock.anyBoolean())).andReturn(false).anyTimes();
 
-    replay(filterConfig, filter, securityContext, viewRegistry);
+    replay(filterConfig, filter, securityContext, viewRegistry, configuration, auditLogger);
 
     for (final Cell<String, String, Boolean> urlTest: urlTests.cellSet()) {
       final FilterChain chain = EasyMock.createStrictMock(FilterChain.class);
@@ -398,27 +414,5 @@ public class AmbariAuthorizationFilterTest {
         throw new Exception("verify( failed on " + urlTest.getColumnKey() + " " + urlTest.getRowKey(), error);
       }
     }
-  }
-
-  private void injectMembers(AmbariAuthorizationFilter filter) {
-    final Configuration configuration = EasyMock.createMock(Configuration.class);
-    expect(configuration.getDefaultApiAuthenticatedUser()).andReturn(null).anyTimes();
-    final AuditLogger auditLogger = EasyMock.createNiceMock(AuditLogger.class);
-    expect(auditLogger.isEnabled()).andReturn(false).anyTimes();
-    Injector injector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(Configuration.class).toInstance(configuration);
-        bind(Users.class).toInstance(EasyMock.createMock(Users.class));
-        bind(EntityManager.class).toInstance(EasyMock.createMock(EntityManager.class));
-        bind(UserDAO.class).toInstance(EasyMock.createMock(UserDAO.class));
-        bind(DBAccessor.class).toInstance(EasyMock.createMock(DBAccessor.class));
-        bind(PasswordEncoder.class).toInstance(EasyMock.createMock(PasswordEncoder.class));
-        bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
-        bind(AuditLogger.class).toInstance(auditLogger);
-      }
-    });
-    injector.injectMembers(filter);
-    replay(configuration, auditLogger);
   }
 }

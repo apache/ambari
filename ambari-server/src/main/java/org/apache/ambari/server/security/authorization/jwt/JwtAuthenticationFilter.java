@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.security.authorization.jwt;
 
-import com.google.inject.Inject;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
@@ -52,8 +53,8 @@ import java.util.List;
  * Filter is used to validate JWT token and authenticate user.
  * It is also responsive for creating user in local Ambari database for further management
  */
-public class JwtAuthenticationFilter implements Filter {
-  Logger LOG = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+public class JwtAuthenticationFilter implements AmbariAuthenticationFilter {
+  private static final Logger LOG = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
   private final JwtAuthenticationProperties jwtProperties;
 
@@ -67,7 +68,6 @@ public class JwtAuthenticationFilter implements Filter {
   private AuthenticationEntryPoint entryPoint;
   private Users users;
 
-  @Inject
   public JwtAuthenticationFilter(Configuration configuration, AuthenticationEntryPoint entryPoint, Users users) {
     this.entryPoint = entryPoint;
     this.users = users;
@@ -83,6 +83,28 @@ public class JwtAuthenticationFilter implements Filter {
     loadJwtProperties();
   }
 
+  /**
+   * Tests to see if this JwtAuthenticationFilter should be applied in the authentication
+   * filter chain.
+   * <p>
+   * <code>true</code> will be returned if JWT authentication is enabled and the HTTP request contains
+   * a JWT authentication token cookie; otherwise <code>false</code> will be returned.
+   *
+   * @param httpServletRequest the HttpServletRequest the HTTP service request
+   * @return <code>true</code> if the HTTP request contains the basic authentication header; otherwise <code>false</code>
+   */
+  @Override
+  public boolean shouldApply(HttpServletRequest httpServletRequest) {
+    boolean shouldApply = false;
+
+    if (jwtProperties != null) {
+      String serializedJWT = getJWTFromCookie(httpServletRequest);
+      shouldApply = (serializedJWT != null && isAuthenticationRequired(serializedJWT));
+    }
+
+    return shouldApply;
+  }
+
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
 
@@ -91,7 +113,7 @@ public class JwtAuthenticationFilter implements Filter {
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-    if(jwtProperties == null){
+    if (jwtProperties == null) {
       //disable filter if not configured
       filterChain.doFilter(servletRequest, servletResponse);
       return;
@@ -100,71 +122,68 @@ public class JwtAuthenticationFilter implements Filter {
     HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
     HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
-    String serializedJWT = getJWTFromCookie(httpServletRequest);
-    if (serializedJWT != null && isAuthenticationRequired(serializedJWT)) {
-      SignedJWT jwtToken;
-      try {
-        jwtToken = SignedJWT.parse(serializedJWT);
+    try {
+      String serializedJWT = getJWTFromCookie(httpServletRequest);
+      if (serializedJWT != null && isAuthenticationRequired(serializedJWT)) {
+        try {
+          SignedJWT jwtToken = SignedJWT.parse(serializedJWT);
 
-        boolean valid = validateToken(jwtToken);
+          boolean valid = validateToken(jwtToken);
 
-        if (valid) {
-          String userName = jwtToken.getJWTClaimsSet().getSubject();
-          User user = users.getUser(userName, UserType.JWT);
-          //fixme temporary solution for LDAP username conflicts, auth ldap users via JWT
-          if (user == null) {
-            user = users.getUser(userName, UserType.LDAP);
-          }
-
-          if (user == null) {
-
-            //TODO this is temporary check for conflicts, until /users API will change to use user_id instead of name as PK
-            User existingUser = users.getUser(userName, UserType.LOCAL);
-            if (existingUser != null) {
-
-              LOG.error("Access for JWT user [{}] restricted. Detected conflict with local user ", userName);
+          if (valid) {
+            String userName = jwtToken.getJWTClaimsSet().getSubject();
+            User user = users.getUser(userName, UserType.JWT);
+            //fixme temporary solution for LDAP username conflicts, auth ldap users via JWT
+            if (user == null) {
+              user = users.getUser(userName, UserType.LDAP);
             }
 
-            //TODO we temporary expect that LDAP is configured to same server as JWT source
-            httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                    "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
+            if (user == null) {
+              //TODO this is temporary check for conflicts, until /users API will change to use user_id instead of name as PK
+              User existingUser = users.getUser(userName, UserType.LOCAL);
+              if (existingUser != null) {
+                LOG.error("Access for JWT user [{}] restricted. Detected conflict with local user ", userName);
+              }
 
-            //interrupt filter chain
-            return;
-          }
+              //TODO we temporary expect that LDAP is configured to same server as JWT source
+              throw new AuthenticationJwtUserNotFoundException(userName, "Cannot find user from JWT. Please, ensure LDAP is configured and users are synced.");
+            }
 
-          Collection<AmbariGrantedAuthority> userAuthorities =
-                  users.getUserAuthorities(user.getUserName(), user.getUserType());
+            Collection<AmbariGrantedAuthority> userAuthorities =
+                users.getUserAuthorities(user.getUserName(), user.getUserType());
 
-          JwtAuthentication authentication = new JwtAuthentication(serializedJWT, user, userAuthorities);
-          authentication.setAuthenticated(true);
+            JwtAuthentication authentication = new JwtAuthentication(serializedJWT, user, userAuthorities);
+            authentication.setAuthenticated(true);
 
-          SecurityContextHolder.getContext().setAuthentication(authentication);
-
-
-        } else {
-          //clear security context if authentication was required, but failed
-          SecurityContextHolder.clearContext();
-
-          LOG.warn("JWT authentication failed");
-          if (ignoreFailure) {
-            filterChain.doFilter(servletRequest, servletResponse);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            onSuccessfulAuthentication(httpServletRequest, httpServletResponse, authentication);
           } else {
-            //used to indicate authentication failure, not used here as we have more than one filter
-            entryPoint.commence(httpServletRequest, httpServletResponse, new BadCredentialsException("Invalid JWT " +
-                    "token"));
+            throw new BadCredentialsException("Invalid JWT token");
           }
+        } catch (ParseException e) {
+          LOG.warn("Unable to parse the JWT token", e);
+          throw new BadCredentialsException("Unable to parse the JWT token - " + e.getLocalizedMessage());
         }
-
-
-      } catch (ParseException e) {
-        LOG.warn("Unable to parse the JWT token", e);
+      } else {
+        LOG.trace("No JWT cookie found, do nothing");
       }
-    } else {
-      LOG.trace("No JWT cookie found, do nothing");
-    }
 
-    filterChain.doFilter(servletRequest, servletResponse);
+      filterChain.doFilter(servletRequest, servletResponse);
+    } catch (AuthenticationException e) {
+      LOG.warn("JWT authentication failed - {}", e.getLocalizedMessage());
+
+      //clear security context if authentication was required, but failed
+      SecurityContextHolder.clearContext();
+
+      onUnsuccessfulAuthentication(httpServletRequest, httpServletResponse, e);
+
+      if (ignoreFailure) {
+        filterChain.doFilter(servletRequest, servletResponse);
+      } else {
+        //used to indicate authentication failure, not used here as we have more than one filter
+        entryPoint.commence(httpServletRequest, httpServletResponse, e);
+      }
+    }
   }
 
   private void loadJwtProperties() {
@@ -179,18 +198,19 @@ public class JwtAuthenticationFilter implements Filter {
 
   /**
    * Do not try to validate JWT if user already authenticated via other provider
+   *
    * @return true, if JWT validation required
    */
   private boolean isAuthenticationRequired(String token) {
     Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
 
     //authenticate if no auth
-    if(existingAuth == null || !existingAuth.isAuthenticated() ){
+    if (existingAuth == null || !existingAuth.isAuthenticated()) {
       return true;
     }
 
     //revalidate if token was changed
-    if(existingAuth instanceof JwtAuthentication && !StringUtils.equals(token, (String) existingAuth.getCredentials())){
+    if (existingAuth instanceof JwtAuthentication && !StringUtils.equals(token, (String) existingAuth.getCredentials())) {
       return true;
     }
 
@@ -224,6 +244,7 @@ public class JwtAuthenticationFilter implements Filter {
     }
     return serializedJWT;
   }
+
   /**
    * Create the URL to be used for authentication of the user in the absence of
    * a JWT token within the incoming request.
@@ -304,8 +325,7 @@ public class JwtAuthenticationFilter implements Filter {
    * issued token claims list for audience. Override this method in subclasses
    * in order to customize the audience validation behavior.
    *
-   * @param jwtToken
-   *          the JWT token where the allowed audiences will be found
+   * @param jwtToken the JWT token where the allowed audiences will be found
    * @return true if an expected audience is present, otherwise false
    */
   protected boolean validateAudiences(SignedJWT jwtToken) {
@@ -364,6 +384,30 @@ public class JwtAuthenticationFilter implements Filter {
       LOG.warn("JWT expiration date validation failed.", pe);
     }
     return valid;
+  }
+
+  /**
+   * Called to declare an authentication attempt was successful.  Classes may override this method
+   * to perform additional tasks when authentication completes.
+   *
+   * @param request    the request
+   * @param response   the response
+   * @param authResult the authenticated user
+   * @throws IOException
+   */
+  protected void onSuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException {
+  }
+
+  /**
+   * Called to declare an authentication attempt failed.  Classes may override this method
+   * to perform additional tasks when authentication fails.
+   *
+   * @param request       the request
+   * @param response      the response
+   * @param authException the cause for the faulure
+   * @throws IOException
+   */
+  protected void onUnsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
   }
 
   @Override

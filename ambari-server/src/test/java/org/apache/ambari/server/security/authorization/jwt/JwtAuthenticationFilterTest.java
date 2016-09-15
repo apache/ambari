@@ -24,13 +24,12 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import junit.framework.Assert;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
-import org.easymock.EasyMock;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -46,10 +45,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +54,7 @@ import java.util.List;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -298,5 +296,76 @@ public class JwtAuthenticationFilterTest {
 
     assertEquals(false, isValid);
 
+  }
+
+  @Test
+  public void testShouldApplyTrue() throws JOSEException {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    SignedJWT token = getInvalidToken();
+
+    Cookie cookie = createMock(Cookie.class);
+    expect(cookie.getName()).andReturn("non-default").atLeastOnce();
+    expect(cookie.getValue()).andReturn(token.serialize()).atLeastOnce();
+
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    expect(request.getCookies()).andReturn(new Cookie[]{cookie});
+
+    replay(request, cookie);
+
+    Assert.assertTrue(filter.shouldApply(request));
+
+    verify(request, cookie);
+  }
+
+  @Test
+  public void testShouldApplyTrueBadToken() throws JOSEException {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    Cookie cookie = createMock(Cookie.class);
+    expect(cookie.getName()).andReturn("non-default").atLeastOnce();
+    expect(cookie.getValue()).andReturn("bad token").atLeastOnce();
+
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    expect(request.getCookies()).andReturn(new Cookie[]{cookie});
+
+    replay(request, cookie);
+
+    Assert.assertTrue(filter.shouldApply(request));
+
+    verify(request, cookie);
+  }
+
+  @Test
+  public void testShouldApplyFalseMissingCookie() throws JOSEException {
+    JwtAuthenticationProperties properties = createTestProperties();
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter(properties, null, null);
+
+    Cookie cookie = createMock(Cookie.class);
+    expect(cookie.getName()).andReturn("some-other-cookie").atLeastOnce();
+
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+    expect(request.getCookies()).andReturn(new Cookie[]{cookie});
+
+    replay(request, cookie);
+
+    Assert.assertFalse(filter.shouldApply(request));
+
+    verify(request, cookie);
+  }
+
+  @Test
+  public void testShouldApplyFalseNotEnabled() throws JOSEException {
+    JwtAuthenticationFilter filter = new JwtAuthenticationFilter((JwtAuthenticationProperties) null, null, null);
+
+    HttpServletRequest request = createMock(HttpServletRequest.class);
+
+    replay(request);
+
+    Assert.assertFalse(filter.shouldApply(request));
+
+    verify(request);
   }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -95,15 +95,12 @@ import org.apache.ambari.server.security.AmbariServerSecurityHeaderFilter;
 import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
-import org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter;
-import org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
@@ -311,6 +308,8 @@ public class AmbariServer {
           getBeanFactory();
 
       factory.registerSingleton("guiceInjector", injector);
+      factory.registerSingleton("ambariConfiguration", injector.getInstance(Configuration.class));
+      factory.registerSingleton("ambariUsers", injector.getInstance(Users.class));
       factory.registerSingleton("passwordEncoder",
         injector.getInstance(PasswordEncoder.class));
       factory.registerSingleton("auditLogger",
@@ -323,16 +322,10 @@ public class AmbariServer {
         injector.getInstance(AmbariLocalUserProvider.class));
       factory.registerSingleton("ambariLdapDataPopulator",
         injector.getInstance(AmbariLdapDataPopulator.class));
-      factory.registerSingleton("ambariAuthorizationFilter",
-        injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariUserAuthorizationFilter",
         injector.getInstance(AmbariUserAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
         injector.getInstance(AmbariInternalAuthenticationProvider.class));
-      factory.registerSingleton("ambariJwtAuthenticationFilter",
-        injector.getInstance(JwtAuthenticationFilter.class));
-      factory.registerSingleton("ambariAuthenticationFilter",
-        injector.getInstance(AmbariAuthenticationFilter.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};

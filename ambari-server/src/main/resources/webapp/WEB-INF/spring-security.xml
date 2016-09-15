@@ -26,8 +26,7 @@
         disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
     <intercept-url pattern="/**" access="isAuthenticated()"/>
     <custom-filter ref="ambariUserAuthorizationFilter" before="BASIC_AUTH_FILTER"/>
-    <custom-filter ref="ambariAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
-    <custom-filter ref="ambariJwtAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+    <custom-filter ref="ambariDelegatingAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
     <custom-filter ref="ambariAuthorizationFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
   </http>
 
@@ -46,10 +45,36 @@
   <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
   </beans:bean>
 
-  <beans:bean id="ambariAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariAuthenticationFilter">
+  <beans:bean id="ambariDelegatingAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariDelegatingAuthenticationFilter">
+    <beans:constructor-arg>
+      <beans:list>
+        <beans:ref bean="ambariBasicAuthenticationFilter"/>
+        <beans:ref bean="ambariJwtAuthenticationFilter"/>
+      </beans:list>
+    </beans:constructor-arg>
+  </beans:bean>
+
+  <beans:bean id="ambariBasicAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariBasicAuthenticationFilter">
     <beans:constructor-arg ref="authenticationManager"/>
+    <beans:constructor-arg ref="ambariEntryPoint"/>
     <beans:constructor-arg ref="auditLogger"/>
     <beans:constructor-arg ref="permissionHelper"/>
-    <beans:constructor-arg ref="ambariEntryPoint"/>
   </beans:bean>
+
+  <beans:bean id="ambariJwtAuthenticationFilter" class="org.apache.ambari.server.security.authentication.AmbariJWTAuthenticationFilter">
+    <beans:constructor-arg ref="ambariEntryPoint"/>
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:constructor-arg ref="ambariUsers"/>
+    <beans:constructor-arg ref="auditLogger"/>
+    <beans:constructor-arg ref="permissionHelper"/>
+  </beans:bean>
+
+  <beans:bean id="ambariAuthorizationFilter" class="org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter">
+    <beans:constructor-arg ref="ambariEntryPoint"/>
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:constructor-arg ref="ambariUsers"/>
+    <beans:constructor-arg ref="auditLogger"/>
+    <beans:constructor-arg ref="permissionHelper"/>
+  </beans:bean>
+
 </beans:beans>
