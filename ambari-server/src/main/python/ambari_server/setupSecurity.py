@@ -29,6 +29,7 @@ import shutil
 import urllib2
 import time
 import sys
+import logging
 
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import print_warning_msg, print_error_msg, print_info_msg, get_verbose
@@ -54,6 +55,7 @@ from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input, quit_if_has_answer
 from ambari_server.serverClassPath import ServerClassPath
 
+logger = logging.getLogger(__name__)
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
@@ -262,6 +264,7 @@ class LdapSyncOptions:
 # Sync users and groups with configured LDAP
 #
 def sync_ldap(options):
+  logger.info("Sync users and groups with configured LDAP.")
   if not is_root():
     err = 'Ambari-server sync-ldap should be run with ' \
           'root-level privileges'
@@ -602,6 +605,7 @@ def init_ldap_properties_list_reqd(properties, options):
   return ldap_properties
 
 def setup_ldap(options):
+  logger.info("Setup LDAP.")
   if not is_root():
     err = 'Ambari-server setup-ldap should be run with ' \
           'root-level privileges'

@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import sys
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_server import serverConfiguration
@@ -38,11 +39,14 @@ from ambari_commons.os_utils import run_os_command
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.userInput import get_YN_input
 
+logger = logging.getLogger(__name__)
+
 HOST_UPDATE_HELPER_CMD = "{0} -cp {1} " + \
                             "org.apache.ambari.server.update.HostUpdateHelper {2}" + \
                             " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 def update_host_names(args, options):
+  logger.info("Update host names.")
   services_stopped = userInput.get_YN_input("Please, confirm Ambari services are stopped [y/n] (n)? ", False)
   if not services_stopped:
     print 'Exiting...'

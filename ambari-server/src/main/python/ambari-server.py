@@ -22,6 +22,9 @@ import optparse
 import sys
 import os
 import signal
+import logging
+import logging.handlers
+import logging.config
 
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import set_verbose, set_silent, \
@@ -46,8 +49,8 @@ from ambari_server.enableStack import enable_stack_version
 
 from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SYNC_ACTION, PSTART_ACTION, \
   REFRESH_STACK_HASH_ACTION, RESET_ACTION, RESTORE_ACTION, UPDATE_HOST_NAMES_ACTION, CHECK_DATABASE_ACTION, \
-  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, UPGRADE_STACK_ACTION, \
-  SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
+  SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
+  UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
   DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
 from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
@@ -56,6 +59,9 @@ from ambari_server.userInput import get_validated_string_input
 from ambari_server_main import server_process_main
 from ambari_server.ambariPath import AmbariPath
 
+logger = logging.getLogger()
+
+formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 
 class UserActionPossibleArgs(object):
   def __init__(self, i_fn, i_possible_args_numbers, *args, **kwargs):
@@ -111,12 +117,14 @@ def start(options):
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def start(args):
+  logger.info("Starting ambari-server.")
   status, pid = is_server_runing()
   if status:
     err = "Ambari Server is already running."
     raise FatalException(1, err)
 
   server_process_main(args)
+  logger.info("Started ambari-server.")
 
 
 #
@@ -146,6 +154,7 @@ def stop():
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def stop(args):
+  logger.info("Stopping ambari-server.")
   if (args != None):
     args.exit_message = None
 
@@ -160,8 +169,21 @@ def stop(args):
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
     print "Ambari Server stopped"
+    logger.info("Ambari Server stopped")
   else:
     print "Ambari Server is not running"
+    logger.info("Ambari Server is not running")
+
+
+#
+# Restarts the Ambari Server.
+#
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
+def restart(args):
+  logger.info("Restarting ambari-server.")
+  stop(args)
+  start(args)
+
 
 
 #
@@ -184,6 +206,7 @@ def status(args):
 #
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def status(args):
+  logger.info("Get status of ambari-server.")
   args.exit_message = None
   status, pid = is_server_runing()
   pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
@@ -197,6 +220,7 @@ def status(args):
 
 
 def refresh_stack_hash_action():
+  logger.info("Refresh stack hash.")
   properties = get_ambari_properties()
   refresh_stack_hash(properties)
 
@@ -224,6 +248,7 @@ def create_setup_security_actions(args):
   return action_list
 
 def setup_security(args):
+  logger.info("Setup security.")
   actions = create_setup_security_actions(args)
   choice = None
   if args.security_option is not None:
@@ -269,6 +294,7 @@ def get_backup_path(args):
   return path
 
 def backup(args):
+  logger.info("Backup.")
   print "Backup requested."
   backup_command = ["BackupRestore", 'backup']
   path = get_backup_path(args)
@@ -278,6 +304,7 @@ def backup(args):
   BackupRestore_main(backup_command)
 
 def restore(args):
+  logger.info("Restore.")
   print "Restore requested."
   restore_command = ["BackupRestore", 'restore']
   path = get_backup_path(args)
@@ -602,6 +629,7 @@ def create_user_action_map(args, options):
         SETUP_JCE_ACTION : UserActionPossibleArgs(setup_jce_policy, [2], args),
         START_ACTION: UserAction(start, options),
         STOP_ACTION: UserAction(stop, options),
+        RESTART_ACTION: UserAction(restart, options),
         RESET_ACTION: UserAction(reset, options),
         STATUS_ACTION: UserAction(status, options),
         UPGRADE_ACTION: UserAction(upgrade, options),
@@ -624,10 +652,42 @@ def create_user_action_map(args, options):
   return action_map
 
 
+def setup_logging(logger, filename, logging_level):
+  formatter = logging.Formatter(formatstr)
+  rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
+  rotateLog.setFormatter(formatter)
+  logger.addHandler(rotateLog)
+
+  logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
+  logger.setLevel(logging_level)
+  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+
 #
 # Main.
 #
 def main(options, args, parser):
+  # init logger
+  properties = get_ambari_properties()
+  python_log_level = logging.INFO
+  python_log_name = "ambari-server-command.log"
+
+  custom_log_level = properties["server.python.log.level"]
+
+  if custom_log_level:
+    if custom_log_level == "INFO":
+      python_log_level = logging.INFO
+    if custom_log_level == "DEBUG":
+      python_log_level = logging.DEBUG
+
+  custom_log_name = properties["server.python.log.name"]
+
+  if custom_log_name:
+    python_log_name = custom_log_name
+
+  python_log = os.path.join(configDefaults.OUT_DIR, python_log_name)
+
+  setup_logging(logger, python_log, python_log_level)
+
   # set silent
   set_silent(options.silent)
 
@@ -692,6 +752,7 @@ def main(options, args, parser):
   except FatalException as e:
     if e.reason is not None:
       print_error_msg("Exiting with exit code {0}. \nREASON: {1}".format(e.code, e.reason))
+      logger.exception(str(e))
     sys.exit(e.code)
   except NonFatalException as e:
     options.exit_message = "Ambari Server '%s' completed with warnings." % action
@@ -733,6 +794,7 @@ def mainBody():
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def enable_stack(options, args):
+  logger.info("Enable stack.")
   if options.stack_name == None:
      print_error_msg ("Please provide stack name using --stack option")
      return -1

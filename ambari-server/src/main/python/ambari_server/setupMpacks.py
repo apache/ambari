@@ -22,6 +22,7 @@ import os
 import shutil
 import json
 import ast
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.inet_utils import download_file
@@ -34,6 +35,8 @@ from resource_management.core import sudo
 from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
 from resource_management.libraries.functions.version import compare_versions
 from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+
+logger = logging.getLogger(__name__)
 
 MPACKS_REPLAY_LOG_FILENAME = "mpacks_replay.log"
 MPACKS_CACHE_DIRNAME = "cache"
@@ -657,6 +660,7 @@ def add_replay_log(mpack_command, mpack_archive_path, purge, force, verbose):
     replay_log.write("{0}\n".format(log))
 
 def install_mpack(options, replay_mode=False):
+  logger.info("Install mpack.")
   """
   Install management pack
   :param options: Command line options
@@ -674,6 +678,7 @@ def install_mpack(options, replay_mode=False):
     add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
 
 def upgrade_mpack(options, replay_mode=False):
+  logger.info("Upgrade mpack.")
   """
   Upgrade management pack
   :param options: command line options

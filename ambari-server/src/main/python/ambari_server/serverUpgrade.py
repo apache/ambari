@@ -27,6 +27,7 @@ import urllib2
 import re
 import glob
 import optparse
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
@@ -49,6 +50,8 @@ from ambari_server.userInput import get_validated_string_input, get_prompt_defau
 from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.setupMpacks import replay_mpack_logs
 from ambari_commons.logging_utils import get_debug_mode,   set_debug_mode_from_options
+
+logger = logging.getLogger(__name__)
 
 # constants
 STACK_NAME_VER_SEP = "-"
@@ -79,6 +82,7 @@ SUSPEND_START_MODE = False
 #
 
 def upgrade_stack(args):
+  logger.info("Upgrade stack.")
   if not is_root():
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
@@ -331,6 +335,7 @@ def move_user_custom_actions():
     raise FatalException(1, err)
 
 def upgrade(args):
+  logger.info("Upgrade ambari-server.")
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_UPGRADE_NOT_ROOT
     raise FatalException(4, err)
@@ -438,6 +443,7 @@ def add_jdbc_properties(properties):
 # Set current cluster version (run Finalize during manual RU)
 #
 def set_current(options):
+  logger.info("Set current cluster version.")
   server_status, pid = is_server_runing()
   if not server_status:
     err = 'Ambari Server is not running.'

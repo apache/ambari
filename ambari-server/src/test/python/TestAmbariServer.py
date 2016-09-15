@@ -38,6 +38,9 @@ import signal
 import stat
 import StringIO
 import tempfile
+import logging
+import logging.handlers
+import logging.config
 from unittest import TestCase
 os.environ["ROOT"] = ""
 
@@ -300,7 +303,10 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup_security")
   @patch("optparse.OptionParser")
-  def test_main_test_setup_security(self, OptionParserMock,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_setup_security(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, OptionParserMock,
                                     setup_security_method):
     opm = OptionParserMock.return_value
     options = MagicMock()
@@ -325,7 +331,8 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "setup_truststore")
   @patch.object(_ambari_server_, "setup_https")
   @patch.object(_ambari_server_, "get_validated_string_input")
-  def test_setup_security(self, get_validated_string_input_mock, setup_https_mock,
+  @patch.object(_ambari_server_, "logger")
+  def test_setup_security(self, logger_mock, get_validated_string_input_mock, setup_https_mock,
                           setup_truststore_mock, setup_master_key_mock,
                           setup_ambari_krb5_jaas_mock):
 
@@ -396,7 +403,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
   @patch("optparse.OptionParser")
-  def test_main_test_setup(self, OptionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_setup(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, OptionParserMock, reset_method, stop_method,
                            start_method, setup_method, exit_mock):
     opm = OptionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -461,7 +471,10 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "setup")
   @patch("optparse.OptionParser")
-  def test_main_with_preset_dbms(self, optionParserMock, setup_method):
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_with_preset_dbms(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     args = ["setup"]
@@ -479,7 +492,11 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "setup")
   @patch.object(_ambari_server_, "fix_database_options")
   @patch("optparse.OptionParser")
-  def test_fix_database_options_called(self, optionParserMock, fixDBOptionsMock, setup_method):
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_fix_database_options_called(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock,
+                                       fixDBOptionsMock, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     args = ["setup"]
@@ -498,7 +515,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
   @patch("optparse.OptionParser")
-  def test_main_test_start(self, optionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_start(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -628,7 +648,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "backup")
   @patch.object(_ambari_server_, "restore")
   @patch("optparse.OptionParser")
-  def test_main_test_backup(self, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_backup(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -660,7 +683,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "backup")
   @patch.object(_ambari_server_, "restore")
   @patch("optparse.OptionParser")
-  def test_main_test_restore(self, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_restore(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
                             start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -753,7 +779,10 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "stop")
   @patch.object(_ambari_server_, "reset")
   @patch("optparse.OptionParser")
-  def test_main_test_reset(self, optionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_reset(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
 
@@ -3554,7 +3583,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.get_ambari_properties")
   @patch("ambari_commons.os_utils.search_file")
   @patch("__builtin__.open")
-  def test_setup_jce_policy(self, open_mock, search_file_mock, get_ambari_properties_mock, unpack_jce_policy_mock,
+  @patch("ambari_server.serverSetup.logger")
+  def test_setup_jce_policy(self, logger_mock, open_mock, search_file_mock, get_ambari_properties_mock, unpack_jce_policy_mock,
                             update_properties_mock, path_split_mock, shutil_copy_mock, exists_mock):
     exists_mock.return_value = True
     properties = Properties()
@@ -4234,7 +4264,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.get_YN_input")
   @patch("__builtin__.raw_input")
   @patch("ambari_server.serverSetup.is_root")
-  def test_reset_default(self, is_root_mock, raw_input_mock, get_YN_inputMock):
+  @patch("ambari_server.serverSetup.logger")
+  def test_reset_default(self, logger_mock, is_root_mock, raw_input_mock, get_YN_inputMock):
     is_root_mock.return_value=True
     get_YN_inputMock.return_value = False
     raw_input_mock.return_value=""
@@ -4386,7 +4417,8 @@ class TestAmbariServer(TestCase):
   @patch("getpass.getuser")
   @patch("os.chdir")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
-  def test_start(self, perform_housekeeping_mock, chdir_mock, getuser_mock, find_jdbc_driver_mock,
+  @patch.object(_ambari_server_, "logger")
+  def test_start(self, logger_mock, perform_housekeeping_mock, chdir_mock, getuser_mock, find_jdbc_driver_mock,
                  is_root_mock, is_root_2_mock, is_root_3_mock, read_ambari_user_mock,
                  check_postgre_up_mock, print_info_msg_mock, print_warning_msg_mock,
                  find_jdk_mock, check_database_name_property_mock, search_file_mock,
@@ -4835,14 +4867,16 @@ class TestAmbariServer(TestCase):
     pass
 
   @patch.object(_ambari_server_, "BackupRestore_main")
-  def test_restore(self, bkrestore_mock):
+  @patch.object(_ambari_server_, "logger")
+  def test_restore(self, logger_mock, bkrestore_mock):
     args = ["", "/some/path/file.zip"]
     _ambari_server_.restore(args)
     self.assertTrue(bkrestore_mock.called)
     pass
 
   @patch.object(_ambari_server_, "BackupRestore_main")
-  def test_restore_no_path(self, bkrestore_mock):
+  @patch.object(_ambari_server_, "logger")
+  def test_restore_no_path(self, logger_mock, bkrestore_mock):
     args = [""]
     _ambari_server_.restore(args)
     self.assertTrue(bkrestore_mock.called)
@@ -5183,7 +5217,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.update_krb_jaas_login_properties")
   @patch("ambari_server.serverUpgrade.update_ambari_env")
   @patch("ambari_server.setupMpacks.get_replay_log_file")
-  def test_upgrade_from_161(self, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
+  @patch("ambari_server.serverUpgrade.logger")
+  def test_upgrade_from_161(self, logger_mock, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
                             get_ambari_properties_2_mock, get_ambari_properties_3_mock, get_ambari_version_mock, write_property_mock,
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
@@ -6189,7 +6224,8 @@ class TestAmbariServer(TestCase):
   @patch('__builtin__.raw_input')
   @patch("ambari_server.serverSetup.disable_security_enhancements")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup_remote_db_wo_client(self, expand_jce_zip_file_mock, check_selinux_mock, raw_input, configure_os_settings_mock,
+  @patch("ambari_server.serverSetup.logger")
+  def test_setup_remote_db_wo_client(self, logger_mock, expand_jce_zip_file_mock, check_selinux_mock, raw_input, configure_os_settings_mock,
                                      download_jdk_mock, check_ambari_user_mock, is_root_mock, check_jdbc_drivers_mock,
                                      read_password_mock, ensure_jdbc_driver_installed_mock, store_remote_properties_mock,
                                      get_validated_string_input_0_mock, get_YN_input_0_mock,
@@ -7139,7 +7175,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.search_file")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_setup_ldap_invalid_input(self, is_root_method, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_setup_ldap_invalid_input(self, logger_mock, is_root_method, get_ambari_properties_method,
                                     search_file_message,
                                     update_properties_method,
                                     get_YN_input_method,
@@ -7245,7 +7282,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.read_password")
   @patch("os.path.exists")
-  def test_setup_ldap(self, exists_method, read_password_method, is_root_method, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_setup_ldap(self, logger_mock, exists_method, read_password_method, is_root_method, get_ambari_properties_method,
                       search_file_message,
                       get_validated_string_input_method,
                       configure_ldap_password_method, update_properties_method,
@@ -7381,7 +7419,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_all(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_all(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
       get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
@@ -7423,7 +7462,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_users(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_users(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
 
     os_path_exists_mock.return_value = 1
@@ -7469,7 +7509,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_groups(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_groups(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                            get_validated_string_input_mock, urlopen_mock, os_path_exists_mock, open_mock):
 
     os_path_exists_mock.return_value = 1
@@ -7513,7 +7554,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_ssl(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_ssl(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
@@ -7556,7 +7598,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_existing(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_existing(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                          get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
@@ -7591,7 +7634,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_no_sync_mode(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_no_sync_mode(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
                      get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
@@ -7627,7 +7671,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.is_root")
-  def test_ldap_sync_error_status(self, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_ldap_sync_error_status(self, logger_mock, is_root_method, is_server_runing_mock, get_ambari_properties_mock,
       get_validated_string_input_mock, urlopen_mock):
 
     is_root_method.return_value = True
@@ -7664,7 +7709,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
   @patch("ambari_server.setupSecurity.get_validated_string_input")
-  def test_sync_ldap_forbidden(self, get_validated_string_input_method, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_sync_ldap_forbidden(self, logger_mock, get_validated_string_input_method, get_ambari_properties_method,
                                 is_server_runing_method, is_root_method,
                                 encodestring_method, request_constructor, urlopen_method):
 
@@ -7745,7 +7791,8 @@ class TestAmbariServer(TestCase):
 
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.is_server_runing")
-  def test_sync_ldap_ambari_stopped(self, is_server_runing_method, is_root_method):
+  @patch("ambari_server.setupSecurity.logger")
+  def test_sync_ldap_ambari_stopped(self, logger_mock, is_server_runing_method, is_root_method):
     is_root_method.return_value = True
     is_server_runing_method.return_value = (None, None)
 
@@ -7767,7 +7814,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupSecurity.is_root")
   @patch("ambari_server.setupSecurity.is_server_runing")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
-  def test_sync_ldap_not_configured(self, get_ambari_properties_method,
+  @patch("ambari_server.setupSecurity.logger")
+  def test_sync_ldap_not_configured(self, logger_mock,  get_ambari_properties_method,
                      is_server_runing_method, is_root_method):
     is_root_method.return_value = True
     is_server_runing_method.return_value = (True, None)
@@ -8430,7 +8478,8 @@ class TestAmbariServer(TestCase):
   @patch("os.path.isfile")
   @patch("sys.exit")
   @patch("ambari_server.userInput.get_YN_input")
-  def test_update_host_names(self, getYNInput_mock, sysExitMock, isFileMock, getJavaExePathMock,
+  @patch("ambari_server.hostUpdate.logger")
+  def test_update_host_names(self, logger_mock, getYNInput_mock, sysExitMock, isFileMock, getJavaExePathMock,
                              getAmbariPropertiesMock, parsePropertiesFileMock, ensureDriverInstalledMock, readAmbariUserMock,
                              ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock, isServerRunningMock):
     properties = Properties()
@@ -8465,7 +8514,10 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "is_server_runing")
   @patch("optparse.OptionParser")
-  def test_main_test_status_running(self, optionParserMock, is_server_runing_method):
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_status_running(self, setup_logging_mock, get_ambari_properties_mock, logger_mock,  optionParserMock, is_server_runing_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     del options.exit_message
@@ -8491,7 +8543,10 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(_ambari_server_, "is_server_runing")
   @patch("optparse.OptionParser")
-  def test_main_test_status_not_running(self, optionParserMock, is_server_runing_method):
+  @patch.object(_ambari_server_, "logger")
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch.object(_ambari_server_, "setup_logging")
+  def test_main_test_status_not_running(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, is_server_runing_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     del options.exit_message

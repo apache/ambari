@@ -25,6 +25,7 @@ import shutil
 import sys
 import subprocess
 import getpass
+import logging
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
@@ -49,6 +50,8 @@ from ambari_server.serverClassPath import ServerClassPath
 from ambari_server.ambariPath import AmbariPath
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+
+logger = logging.getLogger(__name__)
 
 # selinux commands
 GET_SE_LINUX_ST_CMD = locate_file('sestatus', '/usr/sbin')
@@ -1079,6 +1082,7 @@ def check_setup_already_done():
 # Setup the Ambari Server.
 #
 def setup(options):
+  logger.info("Setup ambari-server.")
   if options.only_silent:
     if check_setup_already_done():
       print "Nothing was done. Ambari Setup already performed and cannot re-run setup in silent mode. Use \"ambari-server setup\" command without -s option to change Ambari setup."
@@ -1151,6 +1155,7 @@ def setup(options):
 # Setup the JCE policy for Ambari Server.
 #
 def setup_jce_policy(args):
+  logger.info("Setup JCE policy for ambari-server.")
   if not os.path.exists(args[1]):
     err = "Can not run 'setup-jce'. Invalid path {0}.".format(args[1])
     raise FatalException(1, err)
@@ -1193,6 +1198,7 @@ def setup_jce_policy(args):
 # Resets the Ambari Server.
 #
 def reset(options):
+  logger.info("Reset ambari-server.")
   if not is_root():
     err = configDefaults.MESSAGE_ERROR_RESET_NOT_ROOT
     raise FatalException(4, err)

@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import logging
 
 from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file_permissions, remove_file
 from ambari_commons.exceptions import FatalException, NonFatalException
@@ -25,6 +26,8 @@ from ambari_server.userInput import get_validated_string_input, get_YN_input, ge
 
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, update_properties, \
   store_password_file
+
+logger = logging.getLogger(__name__)
 
 JWT_AUTH_ENBABLED = "authentication.jwt.enabled"
 JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl"
@@ -46,6 +49,7 @@ JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
 
 def setup_sso(args):
+  logger.info("Setup SSO.")
   if not is_root():
     err = 'ambari-server setup-sso should be run with ' \
           'root-level privileges'
