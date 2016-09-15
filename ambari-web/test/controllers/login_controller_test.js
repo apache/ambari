@@ -51,6 +51,10 @@ describe('App.LoginController', function () {
       loginController.postLogin(true, false, 'Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain');
       expect(loginController.get('errorMessage')).to.be.equal('Login Failed: Please append your domain to your username and try again.  Example: user_dup@domain');
     });
+    it ('isSubmitDisabled should be false', function() {
+      loginController.postLogin(true, true);
+      expect(loginController.get('isSubmitDisabled')).to.be.false;
+    });
   });
 
 });

@@ -420,7 +420,6 @@ App.Router = Em.Router.extend({
 
   loginSuccessCallback: function(data, opt, params) {
     var self = this;
-    App.router.set('loginController.isSubmitDisabled', false);
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(data.Users.user_name);
     var requestData = {
@@ -585,7 +584,7 @@ App.Router = Em.Router.extend({
       }
     }
     App.set('isPermissionDataLoaded', true);
-    App.router.get('userSettingsController').dataLoading();
+    App.router.get('loginController').postLogin(true, true);
   },
 
   /**

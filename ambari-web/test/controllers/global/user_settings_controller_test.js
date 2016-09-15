@@ -17,21 +17,44 @@
  */
 
 var App = require('app');
-var userSettingsController;
 
 describe('App.UserSettingsController', function () {
+  var controller;
 
   beforeEach(function () {
-    userSettingsController = App.UserSettingsController.create();
+    controller = App.UserSettingsController.create();
   });
 
   afterEach(function () {
-    userSettingsController.destroy();
+    controller.destroy();
   });
 
   describe('#userSettingsKeys', function () {
     it('should not be empty', function () {
-      expect(Object.keys(userSettingsController.get('userSettingsKeys'))).to.have.length.gt(0);
+      expect(Object.keys(controller.get('userSettingsKeys'))).to.have.length.gt(0);
+    });
+  });
+
+  describe("#getUserPrefSuccessCallback()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'updateUserPrefWithDefaultValues');
+    });
+
+    afterEach(function() {
+      controller.updateUserPrefWithDefaultValues.restore();
+    });
+
+    it("response is null, updateUserPrefWithDefaultValues should be called", function() {
+      expect(controller.getUserPrefSuccessCallback(null, {url: ''})).to.be.null;
+      expect(controller.updateUserPrefWithDefaultValues.calledWith(null, false)).to.be.true;
+      expect(controller.get('currentPrefObject')).to.be.null;
+    });
+
+    it("response is correct, updateUserPrefWithDefaultValues should not be called", function() {
+      expect(controller.getUserPrefSuccessCallback({}, {url: ''})).to.be.object;
+      expect(controller.updateUserPrefWithDefaultValues.called).to.be.false;
+      expect(controller.get('currentPrefObject')).to.be.object;
     });
   });
 

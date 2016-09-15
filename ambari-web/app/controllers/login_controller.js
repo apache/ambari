@@ -49,7 +49,6 @@ App.LoginController = Em.Object.extend({
       }
       this.set('errorMessage', errorMessage);
     }
-    App.router.get('userSettingsController').dataLoading();
     this.set('isSubmitDisabled', false);
   }
 

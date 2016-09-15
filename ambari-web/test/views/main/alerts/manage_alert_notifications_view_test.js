@@ -115,8 +115,13 @@ describe('App.ManageAlertNotificationsView', function () {
   describe("#onAlertNotificationSelect()", function () {
 
     beforeEach(function () {
+      sinon.stub(Em.run, 'later');
       view.removeObserver('selectedAlertNotification', view, 'onAlertNotificationSelect');
       view.set('controller', Em.Object.create({selectedAlertNotification: null}));
+    });
+
+    afterEach(function() {
+      Em.run.later.restore();
     });
 
     it("selectedAlertNotification is null", function () {

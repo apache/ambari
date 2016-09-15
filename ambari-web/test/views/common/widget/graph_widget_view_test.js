@@ -762,9 +762,7 @@ describe('App.GraphWidgetView', function () {
     describe("#loadData()", function () {
 
       beforeEach(function() {
-        sinon.stub(Em.run, 'next', function(context, callback) {
-          callback.apply(context);
-        });
+        sinon.stub(Em.run, 'next', Em.clb);
         sinon.stub(graphView, '_refreshGraph');
       });
 

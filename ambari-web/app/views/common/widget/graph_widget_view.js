@@ -336,8 +336,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     },
 
     loadData: function () {
-      Em.run.next(this, function () {
-        this._refreshGraph(this.get('parentView.data'), this.get('parentView'));
+      var self = this;
+      Em.run.next(function () {
+        self._refreshGraph(self.get('parentView.data'), self.get('parentView'));
       });
     },
 

@@ -81,13 +81,13 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   /**
    * Success-callback for user pref
    *
-   * @param {*} response
+   * @param {?object} response
    * @param {object} opt
-   * @returns {*}
+   * @returns {?object}
    * @method getUserPrefSuccessCallback
    */
   getUserPrefSuccessCallback: function (response, opt) {
-    var getAllRequest = opt.url.contains('persist/?_');
+    var getAllRequest = opt.url.endsWith('persist/');
     if (Em.isNone(response)) {
       this.updateUserPrefWithDefaultValues(response, getAllRequest);
     }
