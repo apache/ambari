@@ -188,6 +188,44 @@ describe('App.ServiceConfigProperty', function () {
 
   App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
 
+  describe('#placeholder', function () {
+    it('should equal foo', function() {
+      serviceConfigProperty.set('isEditable', true);
+      var testCases = [
+        {
+          placeholderText: 'foo',
+          savedValue: ''
+        },
+        {
+          placeholderText: '',
+          savedValue: 'foo'
+        },
+        {
+          placeholderText: 'foo',
+          savedValue: 'bar'
+        }
+      ];
+      testCases.forEach(function (item) {
+        serviceConfigProperty.set('placeholderText', item.placeholderText);
+        serviceConfigProperty.set('savedValue', item.savedValue);
+        expect(serviceConfigProperty.get('placeholder')).to.equal('foo');
+      });
+    });
+    it('should equal null', function() {
+      serviceConfigProperty.set('isEditable', false);
+      var testCases = [
+        {
+          placeholderText: 'foo',
+          savedValue: 'bar'
+        }
+      ];
+      testCases.forEach(function (item) {
+        serviceConfigProperty.set('placeholderText', item.placeholderText);
+        serviceConfigProperty.set('savedValue', item.savedValue);
+        expect(serviceConfigProperty.get('placeholder')).to.equal(null);
+      });
+    });
+  });
   describe('#isPropertyOverridable', function () {
     overridableFalseData.forEach(function (item) {
       it('should be false', function () {
