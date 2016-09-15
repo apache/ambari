@@ -105,9 +105,15 @@ public class DBAccessorImpl implements DBAccessor {
       dbmsHelper = loadHelper(databasePlatform);
       dbSchema = convertObjectName(configuration.getDatabaseSchema());
     } catch (Exception e) {
-      String message = "Error while creating database accessor ";
+      String message = "";
+      if (e instanceof ClassNotFoundException) {
+        message = "If you are using a non-default database for Ambari and a custom JDBC driver jar, you need to set property \"server.jdbc.driver.path={path/to/custom_jdbc_driver}\" " +
+                "in ambari.properties config file, to include it in ambari-server classpath.";
+      } else {
+        message = "Error while creating database accessor ";
+      }
       LOG.error(message, e);
-      throw new RuntimeException(e);
+      throw new RuntimeException(message,e);
     }
   }
 

@@ -370,7 +370,7 @@ class PGConfig(LinuxDBMSConfig):
     self.database_url_pattern_alt = "jdbc:postgresql://{0}:{1}/{2}"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
-                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+                                   'you must copy the {0} JDBC driver JAR file to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
         self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
 
     self._is_user_changed = False
@@ -788,7 +788,7 @@ class OracleConfig(LinuxDBMSConfig):
     self.database_url_pattern_alt = "jdbc:oracle:thin:@{0}:{1}:{2}"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
-                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+                                   'you must copy the {0} JDBC driver JAR file to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
         self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
 
     self.init_script_file = AmbariPath.get("/var/lib/ambari-server/resources/Ambari-DDL-Oracle-CREATE.sql'")
@@ -899,7 +899,7 @@ class MySQLConfig(LinuxDBMSConfig):
     self.database_url_pattern_alt = "jdbc:mysql://{0}:{1}/{2}"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
-                                     'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+                                     'you must copy the {0} JDBC driver JAR file to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
     self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
 
     self.init_script_file = AmbariPath.get("/var/lib/ambari-server/resources/Ambari-DDL-MySQL-CREATE.sql")
@@ -977,7 +977,7 @@ class MSSQLConfig(LinuxDBMSConfig):
     self.database_url_pattern_alt = "jdbc:sqlserver://{0}:{1};databaseName={2}"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
-                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+                                   'you must copy the {0} JDBC driver JAR file to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
       self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
 
     self.init_script_file = AmbariPath.get("/var/lib/ambari-server/resources/Ambari-DDL-SQLServer-CREATE.sql")
@@ -1034,7 +1034,7 @@ class SQLAConfig(LinuxDBMSConfig):
     self.database_url_pattern_alt = "jdbc:sqlanywhere:eng={0};dbf={1};host={2};port={3}"
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
-                                   'you must copy the {0} jdbc client tarball to {1}.'.format(
+                                   'you must copy the {0} jdbc client tarball to {1} and set property "server.jdbc.driver.path=[path/to/custom_jdbc_driver]" in ambari.properties.'.format(
       self.dbms_full_name, configDefaults.SHARE_PATH)
 
     self.init_script_file = AmbariPath.get("/var/lib/ambari-server/resources/Ambari-DDL-SQLAnywhere-CREATE.sql")
