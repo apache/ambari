@@ -268,6 +268,10 @@ class Controller(threading.Thread):
     # we log the message at the same interval as 'state interval'
     heartbeat_running_msg_timestamp = 0.0
 
+    # Prevent excessive logging by logging only at specific intervals
+    getrecoverycommands_timestamp = 0.0
+    getrecoverycommands_interval = self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
+
     while not self.DEBUG_STOP_HEARTBEATING:
       heartbeat_interval = self.netutil.HEARTBEAT_IDLE_INTERVAL_DEFAULT_MAX_SEC
 
@@ -362,12 +366,14 @@ class Controller(threading.Thread):
           # try storing execution command details and desired state
           self.addToStatusQueue(response['statusCommands'])
 
-        if not self.actionQueue.tasks_in_progress_or_pending():
-          recovery_commands = self.recovery_manager.get_recovery_commands()
-          for recovery_command in recovery_commands:
-            logger.info("Adding recovery command %s for component %s",
-                        recovery_command['roleCommand'], recovery_command['role'])
-            self.addToQueue([recovery_command])
+        if crt_time - getrecoverycommands_timestamp > int(getrecoverycommands_interval):
+          getrecoverycommands_timestamp = crt_time
+          if not self.actionQueue.tasks_in_progress_or_pending():
+            recovery_commands = self.recovery_manager.get_recovery_commands()
+            for recovery_command in recovery_commands:
+              logger.info("Adding recovery command %s for component %s",
+                          recovery_command['roleCommand'], recovery_command['role'])
+              self.addToQueue([recovery_command])
 
         if 'alertDefinitionCommands' in response_keys:
           self.alert_scheduler_handler.update_definitions(response)
