@@ -330,8 +330,8 @@ App.HostComponentActionMap = {
       },
       TOGGLE_RM_HA: {
         action: 'enableRMHighAvailability',
-        label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
-        cssClass: 'icon-arrow-up',
+        label: App.get('isRMHaEnabled') ? Em.I18n.t('admin.rm_highAvailability.button.disable') : Em.I18n.t('admin.rm_highAvailability.button.enable'),
+        cssClass: App.get('isRMHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
         isHidden: App.get('isRMHaEnabled'),
         disabled: App.get('isSingleNode') || !RM || RM.get('isNotInstalled')
       },
