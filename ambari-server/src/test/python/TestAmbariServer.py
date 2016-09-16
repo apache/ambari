@@ -1021,6 +1021,7 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.return_value = (0, None, None)
     result = dbms._setup_db()
     self.assertTrue(run_os_command_mock.called)
+    self.assertEqual(run_os_command_mock.call_count, 2)
     self.assertEqual((0, None, None), result)
     pass
 
@@ -3318,7 +3319,7 @@ class TestAmbariServer(TestCase):
   def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, gvsi_2_mock, rp_mock, print_info_msg_mock, sls_mock,
                                             get_os_family_mock, get_pw_nam_mock, chown_mock, mkdir_mock, isdir_mock):
     gyni_mock.return_value = True
-    list_of_return_values = ["ambari-server", "ambari", "ambari", "1"]
+    list_of_return_values = ["ambari-server", "postgres", "ambari", "ambari", "1"]
     get_os_family_mock.return_value = OSConst.SUSE_FAMILY
     pw = MagicMock()
     pw.setattr('pw_uid', 0)
@@ -3391,12 +3392,13 @@ class TestAmbariServer(TestCase):
     db_name = "db_ambari"
     postgres_schema = "sc_ambari"
     port = "1234"
+    local_admin_user = "postgres"
     oracle_service = "1"
     oracle_service_name = "ambari"
     user_name = "ambari"
 
     # Input values
-    postgres_embedded_values = [db_name, postgres_schema, hostname]
+    postgres_embedded_values = [local_admin_user, db_name, postgres_schema, hostname]
     oracle_values = [hostname, port, oracle_service, oracle_service_name, user_name]
     mysql_values = [hostname, port, db_name, user_name]
     postgres_external_values = [hostname, port, db_name, postgres_schema, user_name]
@@ -3435,6 +3437,7 @@ class TestAmbariServer(TestCase):
 
       del args.dbms
       del args.database_host
+      del args.local_admin_user
       del args.database_port
       del args.database_name
       del args.database_username
@@ -5218,7 +5221,8 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverUpgrade.update_ambari_env")
   @patch("ambari_server.setupMpacks.get_replay_log_file")
   @patch("ambari_server.serverUpgrade.logger")
-  def test_upgrade_from_161(self, logger_mock, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
+  @patch.object(PGConfig, "_change_db_files_owner", return_value=0)
+  def test_upgrade_from_161(self, change_db_files_owner_mock, logger_mock, get_replay_log_file_mock, update_ambari_env_mock, update_krb_jaas_login_properties_mock, move_user_custom_actions_mock, upgrade_local_repo_mock, get_ambari_properties_mock,
                             get_ambari_properties_2_mock, get_ambari_properties_3_mock, get_ambari_version_mock, write_property_mock,
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
@@ -5300,7 +5304,6 @@ class TestAmbariServer(TestCase):
       self.assertEquals(write_property_mock.call_args_list[0][0][1], "ambari")
       self.assertEquals(write_property_mock.call_args_list[1][0][0], JDBC_DATABASE_PROPERTY)
       self.assertEquals(write_property_mock.call_args_list[1][0][1], "postgres")
-      self.assertTrue(run_os_command_mock.called)
       self.assertFalse(move_user_custom_actions_mock.called)
 
     args = reset_mocks()
@@ -8369,19 +8372,12 @@ class TestAmbariServer(TestCase):
     self.assertTrue(perform_housekeeping_mock.called)
     pass
 
-  @not_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
-  @patch("ambari_server.dbConfiguration.get_ambari_properties")
-  def test_change_objects_owner_both(self,
-                                     get_ambari_properties_mock,
-                                     print_error_msg_mock,
-                                     run_os_command_mock):
+  def test_change_tables_owner_no_tables(self, print_error_msg_mock, run_os_command_mock,
+                    decrypt_password_for_alias_mock):
     args = MagicMock()
-    args.master_key = None
-
     del args.database_index
     del args.dbms
     del args.database_host
@@ -8389,30 +8385,27 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.persistence_type
+    del args.init_script_file
+    del args.drop_script_file
 
-    stdout = " stdout "
-    stderr = " stderr "
-    run_os_command_mock.return_value = 1, stdout, stderr
-    get_ambari_properties_mock.return_value = Properties()
+    properties = Properties()
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string("mypwdalias"))
 
-    set_verbose(True)
-    self.assertRaises(FatalException, change_objects_owner, args)
-    print_error_msg_mock.assert_any_call("stderr:\nstderr")
-    print_error_msg_mock.assert_any_call("stdout:\nstdout")
-    pass
+    decrypt_password_for_alias_mock.return_value = "password"
 
-  @not_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+    run_os_command_mock.return_value = 0, "", ""
+
+    dbms = PGConfig(args, properties, "local")
+    result = dbms._change_tables_owner()
+    self.assertFalse(result)
+    self.assertEquals(print_error_msg_mock.call_args_list[0][0][0], 'Failed to get list of ambari tables')
+
+  @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
-  @patch("ambari_server.dbConfiguration.get_ambari_properties")
-  def test_change_objects_owner_only_stdout(self,
-                                            get_ambari_properties_mock,
-                                            print_error_msg_mock,
-                                            run_os_command_mock):
+  def test_change_tables_owner_fatal_psql(self, print_error_msg_mock, run_os_command_mock,
+                                         decrypt_password_for_alias_mock):
     args = MagicMock()
-
     del args.database_index
     del args.dbms
     del args.database_host
@@ -8420,29 +8413,30 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.persistence_type
+    del args.init_script_file
+    del args.drop_script_file
 
-    stdout = " stdout "
-    stderr = ""
-    run_os_command_mock.return_value = 1, stdout, stderr
-    get_ambari_properties_mock.return_value = Properties()
+    properties = Properties()
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string("mypwdalias"))
 
-    set_verbose(True)
-    self.assertRaises(FatalException, change_objects_owner, args)
-    print_error_msg_mock.assert_called_once_with("stdout:\nstdout")
-    pass
+    decrypt_password_for_alias_mock.return_value = "password"
 
-  @not_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+    run_os_command_mock.return_value = 0, "", "psql: could not connect to server: No such file or directory"
+
+    dbms = PGConfig(args, properties, "local")
+    result = dbms._change_tables_owner()
+    self.assertFalse(result)
+    self.assertEquals(print_error_msg_mock.call_args_list[0][0][0], """Failed to get list of ambari tables. Message from psql:
+ stdout:
+ stderr:psql: could not connect to server: No such file or directory
+""")
+
+  @patch("ambari_server.dbConfiguration.decrypt_password_for_alias")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
   @patch("ambari_server.dbConfiguration_linux.print_error_msg")
-  @patch("ambari_server.dbConfiguration.get_ambari_properties")
-  def test_change_objects_owner_only_stderr(self,
-                                            get_ambari_properties_mock,
-                                            print_error_msg_mock,
-                                            run_os_command_mock):
+  def test_change_tables_owner(self, print_error_msg_mock, run_os_command_mock,
+                                          decrypt_password_for_alias_mock):
     args = MagicMock()
-
     del args.database_index
     del args.dbms
     del args.database_host
@@ -8450,18 +8444,26 @@ class TestAmbariServer(TestCase):
     del args.database_name
     del args.database_username
     del args.database_password
-    del args.persistence_type
+    del args.init_script_file
+    del args.drop_script_file
 
-    stdout = ""
-    stderr = " stderr "
-    run_os_command_mock.return_value = 1, stdout, stderr
-    get_ambari_properties_mock.return_value = Properties()
+    properties = Properties()
+    properties.process_pair(JDBC_PASSWORD_PROPERTY, get_alias_string("mypwdalias"))
 
-    set_verbose(True)
-    self.assertRaises(FatalException, change_objects_owner, args)
-    print_error_msg_mock.assert_called_once_with("stderr:\nstderr")
-    pass
+    decrypt_password_for_alias_mock.return_value = "password"
 
+    run_os_command_mock.side_effect = [(0, "tbl1\n,tbl2", ""),
+                                       (0, "", ""),
+                                       (0, "", ""),
+                                       (0, "postgres", ""),
+                                       (0, "ALTER TABLE", ""),
+                                       (0, "postgres", ""),
+                                       (0, "ALTER TABLE", "")]
+
+    dbms = PGConfig(args, properties, "local")
+    result = dbms._change_tables_owner()
+    self.assertTrue(result)
+    self.assertEquals(run_os_command_mock.call_count, 7)
 
   @patch("os.path.isdir", new = MagicMock(return_value=True))
   @patch("os.access", new = MagicMock(return_value=True))
