@@ -17,33 +17,36 @@
  */
 package org.apache.ambari.server.checks;
 
-import com.google.inject.Provider;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Provider;
 
 /**
  * Tests for {@link org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheckTest}
  */
 public class MapReduce2JobHistoryStatePreservingCheckTest {
   private final Clusters m_clusters = Mockito.mock(Clusters.class);
+  private final RepositoryVersionDAO m_repositoryVersionDao = Mockito.mock(RepositoryVersionDAO.class);
 
   private final MapReduce2JobHistoryStatePreservingCheck m_check = new MapReduce2JobHistoryStatePreservingCheck();
 
@@ -59,8 +62,20 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
         return m_clusters;
       }
     };
+
+    m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+      @Override
+      public RepositoryVersionDAO get() {
+        return m_repositoryVersionDao;
+      };
+    };
+
     Configuration config = Mockito.mock(Configuration.class);
     m_check.config = config;
+
+    RepositoryVersionEntity rve = Mockito.mock(RepositoryVersionEntity.class);
+    Mockito.when(rve.getType()).thenReturn(RepositoryType.STANDARD);
+    Mockito.when(m_repositoryVersionDao.findByStackNameAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(rve);
   }
 
   /**

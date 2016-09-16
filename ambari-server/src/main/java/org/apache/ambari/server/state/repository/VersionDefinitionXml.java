@@ -121,6 +121,7 @@ public class VersionDefinitionXml {
    * are specified as "available".
    */
   public Collection<AvailableService> getAvailableServices(StackInfo stack) {
+
     if (null == m_availableMap) {
       Map<String, ManifestService> manifests = buildManifest();
       m_availableMap = new HashMap<>();
@@ -140,6 +141,27 @@ public class VersionDefinitionXml {
     }
 
     return m_availableMap.values();
+  }
+
+  /**
+   * Gets the set of services that are included in this XML
+   * @return an empty set for STANDARD repositories, or a non-empty set for PATCH type.
+   */
+  public Set<String> getAvailableServiceNames() {
+    if (availableServices.isEmpty()) {
+      return Collections.emptySet();
+    } else {
+      Set<String> serviceNames = new HashSet<>();
+
+      Map<String, ManifestService> manifest = buildManifest();
+
+      for (AvailableServiceReference ref : availableServices) {
+        ManifestService ms = manifest.get(ref.serviceIdReference);
+        serviceNames.add(ms.serviceName);
+      }
+
+      return serviceNames;
+    }
   }
 
   /**

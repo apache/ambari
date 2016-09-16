@@ -22,23 +22,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,6 +124,7 @@ public abstract class AbstractCheckDescriptor {
    * @throws org.apache.ambari.server.AmbariException
    *           if server error happens
    */
+  @Experimental(feature = ExperimentalFeature.PATCH_UPGRADES)
   public boolean isApplicable(PrereqCheckRequest request, List<String> requiredServices, boolean requiredAll) throws AmbariException {
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     Set<String> services = cluster.getServices().keySet();
@@ -134,6 +139,25 @@ public abstract class AbstractCheckDescriptor {
       } else if (!services.contains(service) && requiredAll) {
         serviceFound = false;
         break;
+      }
+    }
+
+    // !!! service is found and deployed - now check if it is part of the VDF
+    if (serviceFound && null != request.getTargetStackId()) {
+      String stackName = request.getTargetStackId().getStackName();
+      RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().
+        findByStackNameAndVersion(stackName, request.getRepositoryVersion());
+
+      if (RepositoryType.STANDARD != rve.getType()) {
+        try {
+          Set<String> availableServices = rve.getRepositoryXml().getAvailableServiceNames();
+
+          if (!CollectionUtils.containsAny(availableServices, requiredServices)) {
+            serviceFound = false;
+          }
+        } catch (Exception e) {
+          LOG.warn("Could not parse xml for %s", request.getRepositoryVersion(), e);
+        }
       }
     }
 
@@ -290,7 +314,7 @@ public abstract class AbstractCheckDescriptor {
   public Boolean isRequired(){
       return getClass().getAnnotation(UpgradeCheck.class).required();
   }
-  
+
   /**
    * Return a boolean indicating whether or not configs allow bypassing errors during the RU/EU PreChecks.
    * @return

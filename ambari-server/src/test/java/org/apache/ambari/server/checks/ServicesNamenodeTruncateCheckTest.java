@@ -27,21 +27,23 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.google.inject.Provider;
-import org.mockito.Mockito;
 
 /**
  * Unit tests for ServicesNamenodeTruncateCheck
@@ -52,6 +54,7 @@ public class ServicesNamenodeTruncateCheckTest {
   private Clusters m_clusters = EasyMock.createMock(Clusters.class);
   private ServicesNamenodeTruncateCheck m_check = new ServicesNamenodeTruncateCheck();
   private final Map<String, String> m_configMap = new HashMap<String, String>();
+  private RepositoryVersionDAO m_repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
 
   @Before
   public void setup() throws Exception {
@@ -81,6 +84,19 @@ public class ServicesNamenodeTruncateCheckTest {
         return m_clusters;
       }
     };
+
+    m_check.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
+      @Override
+      public RepositoryVersionDAO get() {
+        return m_repositoryVersionDAO;
+      }
+    };
+
+    RepositoryVersionEntity rve = EasyMock.createMock(RepositoryVersionEntity.class);
+    expect(rve.getType()).andReturn(RepositoryType.STANDARD).anyTimes();
+    expect(m_repositoryVersionDAO.findByStackNameAndVersion(EasyMock.anyString(), EasyMock.anyString())).andReturn(rve).anyTimes();
+    replay(m_repositoryVersionDAO, rve);
+
   }
 
 
