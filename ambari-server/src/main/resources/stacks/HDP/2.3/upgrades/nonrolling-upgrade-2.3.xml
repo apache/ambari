@@ -630,6 +630,16 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="MANUAL_STEPS" title="Finishing Upgrade">
+      <direction>UPGRADE</direction>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Start YARN Queues">
+        <task xsi:type="manual">
+          <message>Please start previously stopped YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
+        </task>
+      </execute-stage>
+    </group>
+
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
@@ -652,6 +662,7 @@
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>
+
     </group>
   </order>
 
