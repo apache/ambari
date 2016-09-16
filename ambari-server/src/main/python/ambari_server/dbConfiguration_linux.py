@@ -45,7 +45,7 @@ from ambari_server.serverConfiguration import encrypt_password, store_password_f
     JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
     PERSISTENCE_TYPE_PROPERTY, JDBC_CONNECTION_POOL_TYPE, JDBC_CONNECTION_POOL_ACQUISITION_SIZE, \
     JDBC_CONNECTION_POOL_IDLE_TEST_INTERVAL, JDBC_CONNECTION_POOL_MAX_AGE, JDBC_CONNECTION_POOL_MAX_IDLE_TIME, \
-    JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, JDBC_SQLA_SERVER_NAME
+    JDBC_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS, JDBC_SQLA_SERVER_NAME, LOCAL_DATABASE_ADMIN_PROPERTY
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
@@ -75,6 +75,8 @@ class LinuxDBMSConfig(DBMSConfig):
 
     self.database_username = DBMSConfig._init_member_with_prop_default(options, "database_username",
                                                                        properties, JDBC_USER_NAME_PROPERTY, DEFAULT_USERNAME)
+    self.local_admin_user = DBMSConfig._init_member_with_prop_default(options, "local_admin_user",
+                                                                       properties, LOCAL_DATABASE_ADMIN_PROPERTY, "postgres")
     self.database_password = getattr(options, "database_password", "")
     if not self.database_password:
       self.database_password = DBMSConfig._read_password_from_properties(properties, options)
@@ -109,7 +111,14 @@ class LinuxDBMSConfig(DBMSConfig):
             "Invalid port.",
             False
         )
-
+      if self.persistence_type == STORAGE_TYPE_LOCAL:
+        self.local_admin_user = get_validated_string_input(
+            "Database admin user ("+ self.local_admin_user + "): ",
+            self.local_admin_user,
+            ".+",
+            "Invalid username.",
+            False
+        )
       if not self._configure_database_name():
         return False
 
@@ -315,13 +324,13 @@ class LinuxDBMSConfig(DBMSConfig):
 # PostgreSQL configuration and setup
 class PGConfig(LinuxDBMSConfig):
   # PostgreSQL settings
-  SETUP_DB_CMD = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-', 
+  SETUP_DB_CMD = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-',
                   '--command=psql -f {0} -v username=\'"{1}"\' -v password="\'{2}\'" -v dbname="{3}"']
-  UPGRADE_STACK_CMD = [AMBARI_SUDO_BINARY, 'su', 'postgres',
-                       '--command=psql -f {0} -v stack_name="\'{1}\'"  -v stack_version="\'{2}\'" -v dbname="{3}"']
 
-  CHANGE_OWNER_COMMAND = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-',
-                          '--command=' + AmbariPath.get("/var/lib/ambari-server/resources/scripts/change_owner.sh") + ' -d {0} -s {1} -o {2}']
+  EXECUTE_SCRIPT_AS_USER = [AMBARI_SUDO_BINARY, "bash", "-c", 'export PGPASSWORD={0} && psql -U {1} -f {2}']
+
+  EXECUTE_QUERY_AS_POSTGRES_FOR_DB_SILENT = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-', '--command=psql -qAt -c "{0}" {1}']
+  EXECUTE_QUERY_AS_POSTGRES_FOR_DB = [AMBARI_SUDO_BINARY, 'su', 'postgres', '-', '--command=psql -c "{0}" {1}']
 
   PG_ERROR_BLOCKED = "is being accessed by other users"
   PG_STATUS_RUNNING = None
@@ -447,10 +456,6 @@ class PGConfig(LinuxDBMSConfig):
       err = 'Unable to start PostgreSQL server. Exiting'
       raise FatalException(retcode, err)
     print 'Configuring local database...'
-    retcode, out, err = self._setup_db()
-    if not retcode == 0:
-      err = 'Running database init script failed. Exiting.'
-      raise FatalException(retcode, err)
     if self._is_user_changed:
       #remove backup for pg_hba in order to reconfigure postgres
       remove_file(PGConfig.PG_HBA_CONF_FILE_BACKUP)
@@ -458,6 +463,10 @@ class PGConfig(LinuxDBMSConfig):
     retcode, out, err = self._configure_postgres()
     if not retcode == 0:
       err = 'Unable to configure PostgreSQL server. Exiting'
+      raise FatalException(retcode, err)
+    retcode, out, err = self._setup_db()
+    if not retcode == 0:
+      err = 'Running database init script failed. Exiting.'
       raise FatalException(retcode, err)
 
   def _reset_local_database(self):
@@ -480,6 +489,7 @@ class PGConfig(LinuxDBMSConfig):
     username = self.database_username
     password = self.database_password
     command = PGConfig.SETUP_DB_CMD[:]
+    command[2] = self.local_admin_user
     command[-1] = command[-1].format(filename, username, password, dbname)
     drop_retcode, drop_outdata, drop_errdata = run_os_command(command)
     if not drop_retcode == 0:
@@ -571,6 +581,8 @@ class PGConfig(LinuxDBMSConfig):
     # connection pooling (internal JPA by default)
     properties.process_pair(JDBC_CONNECTION_POOL_TYPE, "internal")
 
+    properties.process_pair(LOCAL_DATABASE_ADMIN_PROPERTY, self.local_admin_user)
+
     self._store_password_property(properties, JDBC_PASSWORD_PROPERTY, options)
 
 
@@ -643,22 +655,39 @@ class PGConfig(LinuxDBMSConfig):
 
     #setup DB
     command = PGConfig.SETUP_DB_CMD[:]
+    command[2] = self.local_admin_user
     command[-1] = command[-1].format(scriptFile, username, password, dbname)
+    retcode, outdata, errdata = self.run_with_retries(command, "Creating schema and user...")
+    if retcode == 0:
+      ddl_command = PGConfig.EXECUTE_SCRIPT_AS_USER[:]
+      ddl_command[-1] = ddl_command[-1].format(
+          password,
+          username,
+          PGConfig.POSTGRES_INIT_FILE
+      )
+      retcode, outdata, errdata = self.run_with_retries(ddl_command, "Creating tables...")
+    return retcode, outdata, errdata
 
+  @staticmethod
+  def run_with_retries(command, message):
+    """
+    Run given command SETUP_DB_CONNECT_ATTEMPTS times in case of failures
+    :param command: command to execute
+    :param message: message to be printed
+    :return: (code, out, err)
+    """
     for i in range(SETUP_DB_CONNECT_ATTEMPTS):
-      sys.stdout.write('Connecting to local database...')
+      print message
       retcode, outdata, errdata = run_os_command(command)
       if retcode == 0:
         print 'done.'
         return retcode, outdata, errdata
-      timeOutMsg = 'connection timed out'
       if (i+1) < SETUP_DB_CONNECT_ATTEMPTS:
-        timeOutMsg += '...retrying (%d)' % (i+1)
-        print timeOutMsg
+        print_error_msg("Failed to execute command:" + str(command))
+        print_error_msg("stderr:" + errdata)
+        print_error_msg("stdout:" + outdata)
+        print 'failed to execute queries ...retrying (%d)' % (i+1)
         time.sleep(SETUP_DB_CONNECT_TIMEOUT)
-
-    print 'unable to connect to database'
-    print_error_msg(errdata)
     return retcode, outdata, errdata
 
   @staticmethod
@@ -739,26 +768,91 @@ class PGConfig(LinuxDBMSConfig):
     properties.process_pair(JDBC_POSTGRES_SCHEMA_PROPERTY, self.postgres_schema)
 
   def _change_db_files_owner(self):
-    database_name = self.database_name
-    new_owner = self.database_username
-    if '"' not in new_owner:
-      #wrap to allow old username "ambari-server", postgres only
-      new_owner = '\'"{0}"\''.format(new_owner)
-      pass
+    retcode = 0
 
-    command = PGConfig.CHANGE_OWNER_COMMAND[:]
-    command[-1] = command[-1].format(database_name, 'ambari', new_owner)
-    retcode, stdout, stderr = run_os_command(command)
-    if not retcode == 0:
-      if get_verbose():
-        if stderr:
-          print_error_msg("stderr:\n" + stderr.strip())
-        if stdout:
-          print_error_msg("stdout:\n" + stdout.strip())
+    if not self._change_tables_owner():
+      print_error_msg("""Ambari is unable to change ownership of the database tables in {database} to {user}.
+This may be because the administrator user ({admin_user}) does not have permission to make the changes.
+Make sure that all tables returned by following SQL are owned by {user}:
+  "SELECT tablename FROM pg_tables WHERE schemaname = 'ambari';",
+  "SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'ambari';",
+  "SELECT table_name FROM information_schema.views WHERE table_schema = 'ambari';
+""".format(database=self.database_name, admin_user=self.local_admin_user, user=self.database_username))
+      continue_ = get_YN_input("Is it safe to continue [yes/no](no)? ", "no")
+      if continue_ and continue_ != "no":
+        retcode = 0
     else:
       print_info_msg('Fixed database objects owner')
 
     return retcode
+
+  @staticmethod
+  def _check_for_psql_error(out, err):
+    error_messages = [
+      "psql: FATAL:",
+      "psql: could not connect to server:"
+    ]
+    for message in error_messages:
+      if message in out or message in err:
+        return True
+    False
+
+  def _change_tables_owner(self):
+    """
+    Changes owner for local postgres database tables.
+    :return: True, if owner was changed or already correct
+    """
+    tables = []
+
+    get_tables_queries = [
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'ambari';",
+      "SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'ambari';",
+      "SELECT table_name FROM information_schema.views WHERE table_schema = 'ambari';"
+    ]
+
+    for query in get_tables_queries:
+      retcode, stdout, stderr = self._execute_psql_query(query, self.database_name)
+      if retcode != 0 or self._check_for_psql_error(stdout, stderr):
+        print_error_msg("Failed to get list of ambari tables. Message from psql:\n"
+                        " stdout:{0}\n"
+                        " stderr:{1}\n".format(stdout, stderr))
+        return False
+      for tbl in stdout.splitlines():
+        tables.append(tbl)
+
+    if not tables:
+      print_error_msg("Failed to get list of ambari tables")
+      return False
+
+    for tbl in tables:
+      retcode, stdout, stderr =  self._execute_psql_query("select u.usename from information_schema.tables t "
+                                                          "join pg_catalog.pg_class c on (t.table_name = c.relname) "
+                                                          "join pg_catalog.pg_user u on (c.relowner = u.usesysid) "
+                                                          "where t.table_schema='ambari' and t.table_name='"+tbl+"';",
+                                                          self.database_name)
+      owner = stdout.strip()
+      if owner != self.database_username:
+        retcode, stdout, stderr = self._execute_psql_query("ALTER TABLE \"ambari\".\""+tbl+
+                                                           "\" OWNER TO \""+self.database_username+"\"",
+                                                           self.database_name, False)
+        if retcode != 0 or "ALTER TABLE" not in stdout:
+          print_error_msg("Failed to change owner of table:{0} to user:{1}".format(tbl, owner))
+          return False
+
+    return True
+
+  @staticmethod
+  def _execute_psql_query(query, databse, silent=True):
+    """
+    Executes psql query on local database as configured admin user.
+    :param query: query to execute
+    :param databse: database for executing query
+    :param silent: if True, only data returned by query will be printed
+    :return: (code, out, err)
+    """
+    cmd = PGConfig.EXECUTE_QUERY_AS_POSTGRES_FOR_DB_SILENT[:] if silent else PGConfig.EXECUTE_QUERY_AS_POSTGRES_FOR_DB[:]
+    cmd[-1] = cmd[-1].format(query, databse)
+    return run_os_command(cmd)
 
 def createPGConfig(options, properties, storage_type, dbId):
     return PGConfig(options, properties, storage_type)
@@ -1089,7 +1183,7 @@ class SQLAConfig(LinuxDBMSConfig):
   def _extract_client_tarball(self, properties):
     files = []
     files.extend(glob.glob(configDefaults.SHARE_PATH + os.sep + self.client_tarball_pattern))
-    
+
     if len(files) > 1:
       raise FatalException(-1, "More than One SQl Anywhere client tarball detected")
     elif len(files) == 0:

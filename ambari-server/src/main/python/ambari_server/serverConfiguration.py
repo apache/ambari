@@ -140,6 +140,8 @@ JDBC_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.use.integrated.auth"
 JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
 
 ### # End Windows-specific # ###
+# The user which will bootstrap embedded postgres database setup by creating the default schema and ambari user.
+LOCAL_DATABASE_ADMIN_PROPERTY = "local.database.user"
 
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
