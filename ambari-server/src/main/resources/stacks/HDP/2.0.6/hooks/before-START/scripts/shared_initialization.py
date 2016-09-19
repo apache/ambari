@@ -101,7 +101,7 @@ def setup_hadoop():
       File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
            owner=params.hdfs_user,
            group=params.user_group,
-           content=Template("hadoop-metrics2.properties.j2")
+           content=InlineTemplate(params.hadoop_metrics2_properties_content)
       )
 
     if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
