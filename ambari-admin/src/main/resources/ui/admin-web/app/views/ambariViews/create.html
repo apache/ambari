@@ -17,7 +17,7 @@
 -->
 <ol class="breadcrumb">
   <li><a href="#/views">{{'common.views' | translate}}</a></li>
-  <li class="active">{{'views.create' | translate}}</li>
+  <li class="active"> {{isClone ? 'views.clone' : 'views.create' | translate}}</li>
 </ol>
 <hr>
 <form class="form-horizontal create-view-form" role="form" name="form.instanceCreateForm" novalidate>

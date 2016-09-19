@@ -108,6 +108,11 @@ angular.module('ambariAdminConsole')
       templateUrl: 'views/urls/edit.html',
       controller: 'ViewUrlEditCtrl'
     },
+    clone: {
+      url: '/views/:viewId/versions/:version/instances/:instanceId/clone',
+      templateUrl: 'views/ambariViews/create.html',
+      controller: 'CreateViewInstanceCtrl'
+    },
     edit: {
       url: '/views/:viewId/versions/:version/instances/:instanceId/edit',
       templateUrl: 'views/ambariViews/edit.html',

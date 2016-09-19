@@ -31,6 +31,7 @@ describe('#CreateViewInstanceCtrl', function () {
   beforeEach(inject(function (_$httpBackend_, $rootScope, $controller, _View_, $q) {
     View = _View_;
     spyOn(View, 'createInstance').andReturn($q.defer().promise);
+    spyOn(View, 'getInstance').andReturn($q.defer().promise);
 
     $httpBackend = _$httpBackend_;
     $httpBackend.whenGET(/\/api\/v1\/views\/TestView\?.+/).respond(200, {
@@ -66,6 +67,7 @@ describe('#CreateViewInstanceCtrl', function () {
     };
     scope.instance = {};
     scope.version = '1.0.0';
+    scope.isClone=false;
     $httpBackend.expectGET('template/modal/backdrop.html');
     $httpBackend.expectGET('template/modal/window.html');
     $httpBackend.whenGET(/\/api\/v1\/clusters\?fields=Clusters\/cluster_id&_=\d+/).respond(200, {
@@ -91,5 +93,43 @@ describe('#CreateViewInstanceCtrl', function () {
     scope.$digest();
     $httpBackend.flush();
     chai.expect(scope.view.ViewVersionInfo.parameters[0].value).to.equal('d');
+    expect(View.getInstance).not.toHaveBeenCalled();
   });
+
+  it('before cloning view instance confirm that View.getInstance is called', function () {
+    scope.form = {
+      instanceCreateForm: {
+        $dirty: true
+      }
+    };
+    scope.instance = {};
+    scope.version = '1.0.0';
+    scope.isClone=true;
+    $httpBackend.expectGET('template/modal/backdrop.html');
+    $httpBackend.expectGET('template/modal/window.html');
+    $httpBackend.whenGET(/\/api\/v1\/clusters\?fields=Clusters\/cluster_id&_=\d+/).respond(200, {
+      "items" : [
+        {
+          "Clusters" : {
+            "cluster_name" : "c1",
+            "version" : "HDP-2.2"
+          }
+        }
+      ]
+    });
+    $httpBackend.whenGET(/\/api\/v1\/remoteclusters\?fields=ClusterInfo\/services,ClusterInfo\/cluster_id&_=\d+/).respond(200, {
+      "items" : [
+         {
+           "ClusterInfo" : {
+            "name" : "c1",
+            "services" : ["HDFS"]
+          }
+        }
+      ]
+    });
+    scope.$digest();
+    $httpBackend.flush();
+    expect(View.getInstance).toHaveBeenCalled(); 
+  });
+
 });

@@ -95,6 +95,7 @@ angular.module('ambariAdminConsole')
       'important': 'Important',
       'undo': 'Undo',
       'fromGroupMark': '(from group)',
+      'copy': '_Copy',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -198,6 +199,7 @@ angular.module('ambariAdminConsole')
       'instance': 'Instance',
       'viewInstance': 'View Instance',
       'create': 'Create Instance',
+      'clone': 'Clone Instance',
       'createViewInstance': 'Create View Instance',
       'edit': 'Edit',
       'viewName': 'View Name',
