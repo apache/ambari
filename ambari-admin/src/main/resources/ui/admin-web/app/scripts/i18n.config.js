@@ -336,6 +336,8 @@ angular.module('ambariAdminConsole')
       'showAll': 'Show all users',
       'showAdmin': 'Show only admin users',
       'groupMembership': 'Group Membership',
+      'userNameTip': 'Only alpha-numeric characters, up to 80 characters',
+
 
       'changeStatusConfirmation': {
         'title': 'Change Status',
