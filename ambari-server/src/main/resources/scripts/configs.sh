@@ -19,6 +19,9 @@
 #
 
 usage () {
+  echo "";
+  echo "WARNING: THIS SCRIPT IS DEPRECATED AND DOESN’T SUPPORT NEW FEATURES. PLEASE USE configs.py"
+  echo "";
   echo "Usage: configs.sh [-u userId] [-p password] [-port port] [-s] <ACTION> <AMBARI_HOST> <CLUSTER_NAME> <CONFIG_TYPE> [CONFIG_FILENAME | CONFIG_KEY [CONFIG_VALUE]]";
   echo "";
   echo "       [-u userId]: Optional user ID to use for authentication. Default is 'admin'.";
