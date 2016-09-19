@@ -138,6 +138,42 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
   hostsModifiedConfigGroups: {},
 
   /**
+   * Trim the tooltip text to show first 500 characters of properties list
+   * @type {string}
+   */
+  tooltipText: function() {
+    var selectedConfigGroup = this.get('selectedConfigGroup'),
+      propertiesList = selectedConfigGroup.get('propertiesList'),
+      trimLength = 500,
+      trimmedText = "",
+      noOfRemainingProperties = 0,
+      index = 0,
+      propertyText = "",
+      addDots = false;
+    if(propertiesList.length > trimLength) {
+      // Adjust trim length based on occurrence of <br/> around trim length
+      index = propertiesList.substring(trimLength-10, trimLength+10).indexOf("<br/>");
+      if(index > -1) {
+        trimLength = trimLength - 10 + index;
+      } else {
+        addDots = true;
+      }
+      trimmedText = propertiesList.substring(0, trimLength);
+      if(addDots) {
+        trimmedText += " ...";
+      }
+      noOfRemainingProperties = (propertiesList.substring(trimLength).match(new RegExp("<br/>", "g")) || []).length - 1;
+      if(noOfRemainingProperties > 0) {
+        propertyText = (noOfRemainingProperties > 1) ? "properties" : "property";
+        trimmedText += "<br/> and " + noOfRemainingProperties + " more " + propertyText;
+      }
+    } else {
+      trimmedText = propertiesList;
+    }
+    return trimmedText;
+  }.property('selectedConfigGroup.propertiesList'),
+
+  /**
    * Check when some config group was changed and updates <code>hostsModifiedConfigGroups</code> once
    * @method hostsModifiedConfigGroupsObs
    */
