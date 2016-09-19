@@ -248,7 +248,7 @@ public class AmbariMetaInfoTest {
     // Scenario: user has no internet and does nothing to repos via api
     // use the default
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
+    setupTempAmbariMetaInfoDirs(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6).
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
@@ -261,7 +261,7 @@ public class AmbariMetaInfoTest {
       FileUtils.deleteQuietly(latestUrlFile);
       assertTrue(!latestUrlFile.exists());
     }
-    ambariMetaInfo.init();
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
         STACK_NAME_HDP, "2.1.1", "redhat6");
@@ -583,9 +583,9 @@ public class AmbariMetaInfoTest {
       stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
+    File stackRootTmp = getStackRootTmp(buildDir);
+    stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
     //todo
     //ambariMetaInfo.injector = injector;
     File f1, f2, f3;
@@ -596,7 +596,7 @@ public class AmbariMetaInfoTest {
       f3.createNewFile();
     }
 
-    ambariMetaInfo.init();
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
 
     // Tests the stack is loaded as expected
     getServices();
@@ -1984,21 +1984,42 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(descriptor.getService("HDFS"));
   }
 
+  private File getStackRootTmp(String buildDir) {
+    return new File(buildDir + "/ambari-metaInfo");
+  }
 
-  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
-    File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
-    File stackRoot = new File("src/test/resources/stacks");
+  private File getVersion() {
     File version = new File("src/test/resources/version");
 
     if (System.getProperty("os.name").contains("Windows")) {
-      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+    }
+
+    return version;
+  }
+
+  private void setupTempAmbariMetaInfoDirs(String buildDir) throws Exception {
+    File stackRootTmp = getStackRootTmp(buildDir);
+    File stackRoot = new File("src/test/resources/stacks");
+
+    if (System.getProperty("os.name").contains("Windows")) {
+      stackRoot = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
     }
 
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
+  }
 
+  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
+    setupTempAmbariMetaInfoDirs(buildDir);
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfoExistingDirs(buildDir);
+    return ambariMetaInfo;
+  }
+
+  private TestAmbariMetaInfo setupTempAmbariMetaInfoExistingDirs(String buildDir) throws Exception {
+    File version = getVersion();
+    File stackRootTmp = getStackRootTmp(buildDir);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
     return ambariMetaInfo;
   }
 

@@ -23,10 +23,14 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.util.Modules;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.easymock.EasyMock;
 import org.springframework.beans.factory.config.BeanDefinition;
 
@@ -92,7 +96,13 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     }
 
     try {
-      install(new BeanDefinitionsCachingTestControllerModule(properties));
+      install(Modules.override(new BeanDefinitionsCachingTestControllerModule(properties)).with(new AbstractModule() {
+        @Override
+        protected void configure() {
+          // Cache parsed stacks.
+          install(new FactoryModuleBuilder().implement(StackManager.class, StackManagerMock.class).build(StackManagerFactory.class));
+        }
+      }));
       AuditLogger al = EasyMock.createNiceMock(AuditLogger.class);
       EasyMock.expect(al.isEnabled()).andReturn(false).anyTimes();
       bind(AuditLogger.class).toInstance(al);

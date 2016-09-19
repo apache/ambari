@@ -1018,6 +1018,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
     expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(Collections.<ClusterVersionEntity>emptyList()).once();
 

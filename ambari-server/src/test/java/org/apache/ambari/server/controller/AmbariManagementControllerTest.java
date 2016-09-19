@@ -116,6 +116,7 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.serveraction.ServerAction;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -232,6 +233,7 @@ public class AmbariManagementControllerTest {
   private HostDAO hostDAO;
   private TopologyHostInfoDAO topologyHostInfoDAO;
   private HostRoleCommandDAO hostRoleCommandDAO;
+  private StackManagerMock stackManagerMock;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -272,6 +274,7 @@ public class AmbariManagementControllerTest {
     hostDAO = injector.getInstance(HostDAO.class);
     topologyHostInfoDAO = injector.getInstance(TopologyHostInfoDAO.class);
     hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
@@ -8652,6 +8655,7 @@ public class AmbariManagementControllerTest {
       assertTrue(INCORRECT_BASE_URL.equals(repositoryInfo.getBaseUrl()));
     }
 
+    stackManagerMock.invalidateCurrentPaths();
     controller.updateStacks();
 
     stackInfo = ambariMetaInfo.getStack(STACK_NAME, STACK_VERSION);
