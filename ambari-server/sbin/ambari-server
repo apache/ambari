@@ -28,11 +28,11 @@
 ### END INIT INFO
 
 # /etc/init.d/ambari-server
-
+set -u # fail on unset variables
 VERSION="${ambariFullVersion}"
 HASH="${buildNumber}"
 
-case "$1" in
+case "${1:-}" in
   --version)
         echo -e $VERSION
         exit 0
@@ -55,19 +55,21 @@ AMBARI_ENV="$ROOT/var/lib/ambari-server/ambari-env.sh"
 AMBARI_PYTHON_EXECUTABLE="$ROOT/usr/sbin/ambari-server.py"
 AMBARI_EXECUTABLE="$ROOT/usr/sbin/ambari-server"
 
-if [ -z "$PYTHON" ] ; then
+if [ -z "${PYTHON:-}" ] ; then
   export PYTHON=`readlink $PYTHON_WRAP`
 fi
 
 if [ -a "$AMBARI_ENV" ]; then
+  set +u # temporary disable variables checking for env
   . "$AMBARI_ENV"
+  set -u
 fi
 
-if [ -z "$AMBARI_PASSPHRASE" ]; then
+if [ -z "${AMBARI_PASSPHRASE:-}" ]; then
   AMBARI_PASSPHRASE="DEV"
 fi
 
-if [ -n "$JAVA_HOME" ]; then
+if [ -n "${JAVA_HOME:-}" ]; then
   export JAVA_HOME=$JAVA_HOME
 fi
 
@@ -84,7 +86,7 @@ fi
 echo "Using python " $PYTHON
 
 ret=0
-case "$1" in
+case "${1:-}" in
   start)
         echo -e "Starting ambari-server"
         $PYTHON "$AMBARI_PYTHON_EXECUTABLE" $@
@@ -179,7 +181,7 @@ case "$1" in
         ;;
   *)
         echo "Usage: $AMBARI_EXECUTABLE
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|setup-sso|refresh-stack-hash|backup|restore|update-host-names|enable-stack|check-database|db-cleanup} [options]
+        {start|stop|reset|restart|upgrade|status|upgradestack|setup|setup-jce|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|check-database|enable-stack|setup-sso|db-cleanup|install-mpack|upgrade-mpack} [options]
         Use $AMBARI_PYTHON_EXECUTABLE <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
