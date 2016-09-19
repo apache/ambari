@@ -1544,6 +1544,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
+    StageUtils.setConfiguration(injector.getInstance(Configuration.class));
 
 
     // !!! make it look like there is already a versioned installed that is less than the one being installed

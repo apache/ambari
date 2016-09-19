@@ -48,6 +48,7 @@ import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.stack.StackManagerMock;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -92,6 +93,7 @@ public class UpgradeHelperTest {
 
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
+  private StackManagerMock stackManagerMock;
   private OrmTestHelper helper;
   private MasterHostResolver m_masterHostResolver;
   private UpgradeHelper m_upgradeHelper;
@@ -134,6 +136,7 @@ public class UpgradeHelperTest {
 
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    stackManagerMock = (StackManagerMock) ambariMetaInfo.getStackManager();
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
@@ -242,6 +245,10 @@ public class UpgradeHelperTest {
     assertEquals(6, groups.get(1).items.size());
     assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -295,6 +302,10 @@ public class UpgradeHelperTest {
     assertEquals(3, groups.get(0).items.size());
     assertEquals(7, groups.get(1).items.size());
     assertEquals(2, groups.get(2).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -349,6 +360,10 @@ public class UpgradeHelperTest {
     assertEquals(3, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
     assertEquals(1, groups.get(2).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   @Test
@@ -383,6 +398,9 @@ public class UpgradeHelperTest {
     assertEquals("Calculating Properties", stageWrappers.get(4).getText());
     assertEquals("Calculating HDFS Properties", stageWrappers.get(5).getText());
 
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   /**
@@ -427,6 +445,10 @@ public class UpgradeHelperTest {
         assertFalse(hosts.contains(hostInMaintenanceMode.getHostName()));
       }
     }
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
   /**
@@ -1156,6 +1178,10 @@ public class UpgradeHelperTest {
     assertEquals(5, groups.get(1).items.size());
     assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
+
+    // Do stacks cleanup
+    stackManagerMock.invalidateCurrentPaths();
+    ambariMetaInfo.init();
   }
 
 
