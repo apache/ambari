@@ -45,6 +45,7 @@ class MicrosoftRServiceCheckLinux(MicrosoftRServiceCheck):
                           action="create_on_execute",
                           owner=params.hdfs_user,
                           mode=0777)
+      params.HdfsResource(None, action="execute")
     except Exception as exception:
         Logger.warning("Could not check the existence of /user/RevoShare on HDFS, exception: {0}".format(str(exception)))
 
