@@ -232,12 +232,14 @@ class Controller(threading.Thread):
       logger.debug("No commands received from %s", self.serverHostname)
     else:
       """Only add to the queue if not empty list """
+      logger.info("Adding %s commands. Heartbeat id = %s", len(commands), self.responseId)
       self.actionQueue.put(commands)
 
   def addToStatusQueue(self, commands):
     if not commands:
       logger.debug("No status commands received from %s", self.serverHostname)
     else:
+      logger.info("Adding %s status commands. Heartbeat id = %s", len(commands), self.responseId)
       if not LiveStatus.SERVICES:
         self.updateComponents(commands[0]['clusterName'])
       self.recovery_manager.process_status_commands(commands)
@@ -278,7 +280,7 @@ class Controller(threading.Thread):
       try:
         crt_time = time.time()
         if crt_time - heartbeat_running_msg_timestamp > int(state_interval):
-          logger.info("Heartbeat with server is running...")
+          logger.info("Heartbeat (response id = %s) with server is running...", self.responseId)
           heartbeat_running_msg_timestamp = crt_time
 
         send_state = False
