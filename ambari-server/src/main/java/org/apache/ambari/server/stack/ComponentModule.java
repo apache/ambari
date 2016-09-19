@@ -122,6 +122,9 @@ public class ComponentModule extends BaseModule<ComponentModule, ComponentInfo> 
               componentInfo.getCustomCommands());
 
       mergeLogs(parentInfo.getLogs(), componentInfo.getLogs());
+    } else {
+      //set cardinality with default value "0+" if it was not provided and parent is absent.
+      componentInfo.setCardinality("0+");
     }
   }
 

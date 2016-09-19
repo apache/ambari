@@ -36,7 +36,7 @@ public class ComponentInfo {
   private String displayName;
   private String category;
   private boolean deleted;
-  private String cardinality = "0+";
+  private String cardinality;
   
   @XmlElement(name="versionAdvertised")
   private Boolean versionAdvertisedField;

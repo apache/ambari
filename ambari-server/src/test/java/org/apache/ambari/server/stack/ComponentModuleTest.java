@@ -155,11 +155,14 @@ public class ComponentModuleTest {
     String cardinality = "foo";
 
     ComponentInfo info = new ComponentInfo();
-    ComponentInfo parentInfo = new ComponentInfo();
+    // parent is null, child cardinality is null
+    assertEquals("0+", resolveComponent(info, null).getModuleInfo().getCardinality());
 
+    ComponentInfo parentInfo = new ComponentInfo();
+    info = new ComponentInfo();
     // parent has value set, child value is null
     parentInfo.setCardinality(cardinality);
-    assertEquals("0+", resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
+    assertEquals("foo", resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
 
     // child has value set, parent value is null
     info.setCardinality(cardinality);
@@ -552,10 +555,12 @@ public class ComponentModuleTest {
 
   private ComponentModule resolveComponent(ComponentInfo info, ComponentInfo parentInfo) {
     info.setName("FOO");
-    parentInfo.setName("FOO");
-
     ComponentModule component = new ComponentModule(info);
-    ComponentModule parentComponent = new ComponentModule(parentInfo);
+    ComponentModule parentComponent = null;
+    if (parentInfo != null) {
+      parentInfo.setName("FOO");
+      parentComponent = new ComponentModule(parentInfo);
+    }
 
     component.resolve(parentComponent, Collections.<String, StackModule>emptyMap(), Collections.<String, ServiceModule>emptyMap(), Collections.<String, ExtensionModule>emptyMap());
 
