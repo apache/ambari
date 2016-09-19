@@ -101,11 +101,13 @@ def setup_hadoop():
       File(os.path.join(params.hadoop_conf_dir, "hadoop-metrics2.properties"),
            owner=params.hdfs_user,
            group=params.user_group,
-           content=Template("hadoop-metrics2.properties.j2")
+           content=InlineTemplate(params.hadoop_metrics2_properties_content)
       )
 
     if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
        create_dirs()
+
+    create_microsoft_r_dir()
 
 
 def setup_configs():
@@ -172,4 +174,18 @@ def create_dirs():
    params.HdfsResource(None,
                       action="execute"
    )
+
+def create_microsoft_r_dir():
+  import params
+  if 'MICROSOFT_R_CLIENT' in params.component_list and params.default_fs:
+    directory = '/user/RevoShare'
+    try:
+      params.HdfsResource(directory,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.hdfs_user,
+                          mode=0777)
+      params.HdfsResource(None, action="execute")
+    except Exception as exception:
+      Logger.warning("Could not check the existence of {0} on DFS while starting {1}, exception: {2}".format(directory, params.current_service, str(exception)))
 

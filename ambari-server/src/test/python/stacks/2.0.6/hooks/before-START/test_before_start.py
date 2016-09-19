@@ -72,7 +72,7 @@ class TestHookBeforeStart(RMFTestCase):
                               content='log4jproperties\nline2log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
-                              content = Template('hadoop-metrics2.properties.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
                               owner = 'hdfs',
                               )
@@ -146,7 +146,7 @@ class TestHookBeforeStart(RMFTestCase):
                               content='log4jproperties\nline2log4jproperties\nline2'
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
-                              content = Template('hadoop-metrics2.properties.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
                               owner = 'hdfs',
                               )
@@ -225,7 +225,7 @@ class TestHookBeforeStart(RMFTestCase):
                               content='log4jproperties\nline2log4jproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
-                              content = Template('hadoop-metrics2.properties.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
                               owner = 'hdfs',
                               )
@@ -306,7 +306,7 @@ class TestHookBeforeStart(RMFTestCase):
                               content='log4jproperties\nline2log4jproperties\nline2'
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/hadoop-metrics2.properties',
-                              content = Template('hadoop-metrics2.properties.j2'),
+                              content = InlineTemplate(self.getConfig()['configurations']['hadoop-metrics2.properties']['content']),
                               group='hadoop',
                               owner = 'hdfs',
                               )
