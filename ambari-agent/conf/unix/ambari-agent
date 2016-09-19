@@ -18,11 +18,11 @@
 # processname: ambari-agent
 
 # /etc/init.d/ambari-agent
-
+set -u # fail on unset variables
 VERSION="${ambariVersion}"
 HASH="${buildNumber}"
 
-case "$1" in
+case "${1:-}" in
   --version)
         echo -e $VERSION
         exit 0
@@ -35,7 +35,7 @@ esac
 
 get_agent_property() {
   property_name="$1"
-  value=$(awk -F "=" "/$property_name/ {print \$2}" /etc/ambari-agent/conf/ambari-agent.ini)
+  value=$(awk -F "=" "/^$property_name/ {print \$2}" /etc/ambari-agent/conf/ambari-agent.ini)
   echo $value
 }
 
@@ -43,7 +43,7 @@ export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
-export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
+export PYTHONPATH=/usr/lib/python2.6/site-packages:${PYTHONPATH:-}
 
 export AMBARI_PID_DIR=`get_agent_property piddir`
 export AMBARI_AGENT_LOG_DIR=`get_agent_property logdir`
@@ -58,8 +58,8 @@ AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
 AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
 AGENT_WORKING_DIR=/var/lib/ambari-agent
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
-OK=1
-NOTOK=0
+OK=0
+NOTOK=1
 
 current_user=`id -u -n`
 current_group=`id -g -n`
@@ -79,22 +79,22 @@ change_files_permissions() {
     if [ ! -z "$KEYSDIR" ]; then
         ambari-sudo.sh chown -R $current_user "$KEYSDIR"
     fi
-	ambari-sudo.sh mkdir -p "$AMBARI_PID_DIR"
-	ambari-sudo.sh chown -R $current_user "$AMBARI_PID_DIR/"
-	ambari-sudo.sh mkdir -p "$AMBARI_AGENT_LOG_DIR"
-	ambari-sudo.sh chown -R $current_user:$current_group "$AMBARI_AGENT_LOG_DIR/"
+	ambari-sudo.sh mkdir -p "${AMBARI_PID_DIR:?}"
+	ambari-sudo.sh chown -R $current_user "${AMBARI_PID_DIR:?}/"
+	ambari-sudo.sh mkdir -p "${AMBARI_AGENT_LOG_DIR:?}"
+	ambari-sudo.sh chown -R $current_user:$current_group "${AMBARI_AGENT_LOG_DIR:?}/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
 
-if [ -z "$PYTHON" ] ; then
+if [ -z "${PYTHON:-}" ] ; then
   export PYTHON=`readlink $PYTHON_WRAP`
 fi
 
 # Trying to read the passphrase from an environment
-if [ ! -z $AMBARI_PASSPHRASE ]; then
+if [ ! -z ${AMBARI_PASSPHRASE:-} ]; then
   RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
 fi
 
@@ -108,14 +108,14 @@ if [ ! -z $AMBARI_AGENT_LOG_DIR ]; then
   LOGFILE=$AMBARI_AGENT_LOG_DIR/ambari-agent.log
 fi
 
-if [ ! -z $AMBARI_AGENT_OUT_DIR ]; then
+if [ ! -z ${AMBARI_AGENT_OUT_DIR:-} ]; then
   OUTFILE=$AMBARI_AGENT_OUT_DIR/ambari-agent.out
 fi
 
-if [ -z $RESOLVED_AMBARI_PASSPHRASE ] &&  [ ! -z $AMBARI_PASSPHRASE ]; then
-  RESOLVED_AMBARI_PASSPHRASE=$AMBARI_PASSPHRASE
+if [ -z ${RESOLVED_AMBARI_PASSPHRASE:-} ] &&  [ ! -z ${AMBARI_PASSPHRASE:-} ]; then
+  RESOLVED_AMBARI_PASSPHRASE=${AMBARI_PASSPHRASE:-}
   # If the passphrase is not defined yet, use the value from the env file
-elif [ -z $RESOLVED_AMBARI_PASSPHRASE ]; then
+elif [ -z ${RESOLVED_AMBARI_PASSPHRASE:-} ]; then
   # Passphrase is not defined anywhere, set the default value
   RESOLVED_AMBARI_PASSPHRASE="DEV"
 fi
@@ -141,7 +141,7 @@ check_python_version ()
 
 retcode=0
 
-case "$1" in
+case "${1:-}" in
   start)
         check_python_version
         if [ "$?" -eq "$NOTOK" ]; then
@@ -165,7 +165,7 @@ case "$1" in
 
         echo "Starting ambari-agent"
 
-        if [ "$AMBARI_AGENT_RUN_IN_FOREGROUND" == true ] ; then
+        if [ "${AMBARI_AGENT_RUN_IN_FOREGROUND:-}" == true ] ; then
           $PYTHON $AMBARI_AGENT_PY_SCRIPT "$@" > $OUTFILE 2>&1
           exit $?
         fi
