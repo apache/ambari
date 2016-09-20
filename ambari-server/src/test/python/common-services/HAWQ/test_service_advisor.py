@@ -643,7 +643,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
                           recommendations["recommendations"]["blueprint"]["host_groups"]]
     for sublist in componentsListList:
       hostComponents = [item["name"] for item in sublist]
-      self.assertFalse({'HAWQMASTER', 'HAWQSTANDBY'}.issubset(hostComponents))
+      self.assertFalse(set(['HAWQMASTER', 'HAWQSTANDBY']).issubset(hostComponents))
 
   def test_createComponentLayoutRecommendations_hawq_1_Host(self):
 
@@ -721,7 +721,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       ]
     }
 
-    hawqSegmentHosts = {"c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"}
+    hawqSegmentHosts = set(["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"])
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
@@ -766,7 +766,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       ]
     }
 
-    hawqSegmentHosts = {"c6401.ambari.apache.org", "c6403.ambari.apache.org"}
+    hawqSegmentHosts = set(["c6401.ambari.apache.org", "c6403.ambari.apache.org"])
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
@@ -826,7 +826,7 @@ class TestHAWQ200ServiceAdvisor(TestCase):
       ]
     }
 
-    hawqSegmentHosts = {"c6402.ambari.apache.org"}
+    hawqSegmentHosts = set(["c6402.ambari.apache.org"])
     self.insertHAWQServiceAdvisorInfo(services)
     recommendations = self.serviceAdvisor.createComponentLayoutRecommendations(services, hosts)
     hostNames = self.getHostsFromRecommendations(recommendations, "HAWQSEGMENT")
