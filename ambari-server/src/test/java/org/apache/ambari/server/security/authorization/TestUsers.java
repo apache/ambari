@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -55,6 +56,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class TestUsers {
   private static Injector injector;
@@ -127,6 +129,11 @@ public class TestUsers {
   @After
   public void tearDown() throws AmbariException {
 
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
+    injector.getInstance(PersistService.class).stop();
   }
 
   private void cleanup() throws AmbariException {

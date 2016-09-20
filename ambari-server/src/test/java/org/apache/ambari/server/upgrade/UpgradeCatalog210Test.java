@@ -89,6 +89,7 @@ import org.easymock.Capture;
 import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -100,6 +101,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -136,6 +138,11 @@ public class UpgradeCatalog210Test {
   @After
   public void tearDown() {
 
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
+    injector.getInstance(PersistService.class).stop();
   }
 
   @Test

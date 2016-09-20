@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -25,8 +26,6 @@ import static org.junit.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -36,7 +35,9 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -45,25 +46,25 @@ import com.google.inject.persist.PersistService;
 
 public class ServiceTest {
 
-  private Clusters clusters;
-  private Cluster cluster;
-  private String clusterName;
-  private Injector injector;
-  private ServiceFactory serviceFactory;
-  private ServiceComponentFactory serviceComponentFactory;
-  private ServiceComponentHostFactory serviceComponentHostFactory;
-  private AmbariMetaInfo metaInfo;
+  private static Clusters clusters;
+  private static Cluster cluster;
+  private static String clusterName;
+  private static Injector injector;
+  private static ServiceFactory serviceFactory;
+  private static ServiceComponentFactory serviceComponentFactory;
+  private static ServiceComponentHostFactory serviceComponentHostFactory;
+  private static AmbariMetaInfo metaInfo;
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void classSetUp() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     serviceFactory = injector.getInstance(ServiceFactory.class);
     serviceComponentFactory = injector.getInstance(
-        ServiceComponentFactory.class);
+            ServiceComponentFactory.class);
     serviceComponentHostFactory = injector.getInstance(
-        ServiceComponentHostFactory.class);
+            ServiceComponentHostFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     clusterName = "foo";
     clusters.addCluster(clusterName, new StackId("HDP-0.1"));
@@ -71,9 +72,65 @@ public class ServiceTest {
     Assert.assertNotNull(cluster);
   }
 
+  @Before
+  public void setup() throws Exception {
+
+  }
+
   @After
   public void teardown() throws AmbariException {
+    //injector.getInstance(PersistService.class).stop();
+    cleanup();
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
     injector.getInstance(PersistService.class).stop();
+  }
+
+  private void cleanup() throws AmbariException {
+    cluster.deleteAllServices();
+  }
+
+  @Test
+  public void testCanBeRemoved() throws Exception{
+    Service service = cluster.addService("HDFS");
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // service does not have any components, so it can be removed,
+      // even if the service is in non-removable state.
+      org.junit.Assert.assertTrue(service.canBeRemoved());
+    }
+
+    ServiceComponent component = service.addServiceComponent("NAMENODE");
+
+    // component can be removed
+    component.setDesiredState(State.INSTALLED);
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // should always be true if the sub component can be removed
+      org.junit.Assert.assertTrue(service.canBeRemoved());
+    }
+
+    // can remove a STARTED component as whether a service can be removed
+    // is ultimately decided based on if the host components can be removed
+    component.setDesiredState(State.INSTALLED);
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
+    component.addServiceComponentHost(sch);
+    sch.setDesiredState(State.STARTED);
+    sch.setState(State.STARTED);
+
+    for (State state : State.values()) {
+      service.setDesiredState(state);
+      // should always be false if the sub component can not be removed
+      org.junit.Assert.assertFalse(service.canBeRemoved());
+    }
+
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLED);
   }
 
   @Test
@@ -260,43 +317,6 @@ public class ServiceTest {
 
   }
 
-  @Test
-  public void testCanBeRemoved() throws Exception{
-    Service service = cluster.addService("HDFS");
-
-    for (State state : State.values()) {
-      service.setDesiredState(state);
-      // service does not have any components, so it can be removed,
-      // even if the service is in non-removable state.
-      org.junit.Assert.assertTrue(service.canBeRemoved());
-    }
-
-    ServiceComponent component = service.addServiceComponent("NAMENODE");
-
-    // component can be removed
-    component.setDesiredState(State.INSTALLED);
-
-    for (State state : State.values()) {
-      service.setDesiredState(state);
-      // should always be true if the sub component can be removed
-      org.junit.Assert.assertTrue(service.canBeRemoved());
-    }
-
-    // can remove a STARTED component as whether a service can be removed
-    // is ultimately decided based on if the host components can be removed
-    component.setDesiredState(State.INSTALLED);
-    addHostToCluster("h1", service.getCluster().getClusterName());
-    ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
-    component.addServiceComponentHost(sch);
-    sch.setDesiredState(State.STARTED);
-    sch.setState(State.STARTED);
-
-    for (State state : State.values()) {
-      service.setDesiredState(state);
-      // should always be false if the sub component can not be removed
-      org.junit.Assert.assertFalse(service.canBeRemoved());
-    }
-  }
 
   @Test
   public void testServiceMaintenance() throws Exception {
