@@ -140,6 +140,7 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stack.ExtensionHelper;
+import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -206,6 +207,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import com.google.common.collect.ListMultimap;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -2282,7 +2284,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     hostParams.put(PACKAGE_LIST, packageList);
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
-    
+
     Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster, desiredConfigs);
     String userList = gson.toJson(userSet);
     hostParams.put(USER_LIST, userList);
@@ -2322,7 +2324,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     execCmd.setRoleParams(roleParams);
-    
+
     execCmd.setAvailableServicesFromServiceInfoMap(ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion()));
 
     if ((execCmd != null) && (execCmd.getConfigurationTags().containsKey("cluster-env"))) {
@@ -4068,7 +4070,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
       StackId stackId = new StackId(xml.release.stackId);
 
+      ListMultimap<String, RepositoryInfo> stackRepositoriesByOs = ambariMetaInfo.getStackManager().getStack(stackName, stackVersion).getRepositoriesByOs();
       for (RepositoryXml.Os os : xml.repositoryInfo.getOses()) {
+
         for (RepositoryXml.Repo repo : os.getRepos()) {
           RepositoryResponse resp = new RepositoryResponse(repo.getBaseUrl(), os.getFamily(),
               repo.getRepoId(), repo.getRepoName(), repo.getMirrorsList(),
@@ -4081,6 +4085,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           responses.add(resp);
         }
       }
+
+      // Add service repos to the response. (These are not contained by the VDF but are present in the stack model)
+      List<RepositoryInfo> serviceRepos =
+          RepoUtil.getServiceRepos(xml.repositoryInfo.getRepositories(), stackRepositoriesByOs);
+      responses.addAll(RepoUtil.asResponses(serviceRepos, versionDefinitionId, stackName, stackVersion));
 
     } else {
       if (repoId == null) {

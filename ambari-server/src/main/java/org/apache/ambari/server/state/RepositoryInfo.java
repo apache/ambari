@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import com.google.common.base.Objects;
 import org.apache.ambari.server.controller.RepositoryResponse;
+
+import com.google.common.base.Function;
+import com.google.common.base.Strings;
 
 public class RepositoryInfo {
   private String baseUrl;
@@ -153,6 +157,24 @@ public class RepositoryInfo {
         + " ]";
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RepositoryInfo that = (RepositoryInfo) o;
+    return Objects.equal(baseUrl, that.baseUrl) &&
+        Objects.equal(osType, that.osType) &&
+        Objects.equal(repoId, that.repoId) &&
+        Objects.equal(repoName, that.repoName) &&
+        Objects.equal(mirrorsList, that.mirrorsList) &&
+        Objects.equal(defaultBaseUrl, that.defaultBaseUrl) &&
+        Objects.equal(latestBaseUrl, that.latestBaseUrl);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(baseUrl, osType, repoId, repoName, mirrorsList, defaultBaseUrl, latestBaseUrl);
+  }
 
   public RepositoryResponse convertToResponse()
   {
@@ -160,5 +182,40 @@ public class RepositoryInfo {
         getRepoName(), getMirrorsList(), getDefaultBaseUrl(), getLatestBaseUrl());
   }
 
+  /**
+   * A function that returns the repo name of any RepositoryInfo
+   */
+  public static final Function<RepositoryInfo, String> GET_REPO_NAME_FUNCTION = new Function<RepositoryInfo, String>() {
+    @Override  public String apply(RepositoryInfo input) {
+      return input.repoName;
+    }
+  };
+
+  /**
+   * A function that returns the repoId of any RepositoryInfo
+   */
+  public static final Function<RepositoryInfo, String> GET_REPO_ID_FUNCTION = new Function<RepositoryInfo, String>() {
+    @Override  public String apply(RepositoryInfo input) {
+      return input.repoId;
+    }
+  };
+
+  /**
+   * A function that returns the baseUrl of any RepositoryInfo
+   */
+  public static final Function<RepositoryInfo, String> SAFE_GET_BASE_URL_FUNCTION = new Function<RepositoryInfo, String>() {
+    @Override  public String apply(RepositoryInfo input) {
+      return Strings.nullToEmpty(input.baseUrl);
+    }
+  };
+
+  /**
+   * A function that returns the osType of any RepositoryInfo
+   */
+  public static final Function<RepositoryInfo, String> GET_OSTYPE_FUNCTION = new Function<RepositoryInfo, String>() {
+    @Override  public String apply(RepositoryInfo input) {
+      return input.osType;
+    }
+  };
 
 }

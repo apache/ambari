@@ -545,6 +545,7 @@ public class DatabaseConsistencyCheckHelper {
         String stackVersion = stackInfo.get(stackName);
         Map<String, ServiceInfo> serviceInfoMap = ambariMetaInfo.getServices(stackName, stackVersion);
         for (String serviceName : serviceNames) {
+          LOG.info("Processing {}-{} / {}", stackName, stackVersion, serviceName);
           ServiceInfo serviceInfo = serviceInfoMap.get(serviceName);
           if (serviceInfo != null) {
             Set<String> configTypes = serviceInfo.getConfigTypeAttributes().keySet();

@@ -100,11 +100,12 @@ public class RepositoryVersionHelper {
             OperatingSystemResourceProvider.OPERATING_SYSTEM_AMBARI_MANAGED_REPOS).getAsBoolean());
       }
 
-      for (JsonElement repositoryJson: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
+      for (JsonElement repositoryElement: osObj.get(RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID).getAsJsonArray()) {
         final RepositoryEntity repositoryEntity = new RepositoryEntity();
-        repositoryEntity.setBaseUrl(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
-        repositoryEntity.setName(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
-        repositoryEntity.setRepositoryId(repositoryJson.getAsJsonObject().get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
+        final JsonObject repositoryJson = repositoryElement.getAsJsonObject();
+        repositoryEntity.setBaseUrl(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID).getAsString());
+        repositoryEntity.setName(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID).getAsString());
+        repositoryEntity.setRepositoryId(repositoryJson.get(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID).getAsString());
         operatingSystemEntity.getRepositories().add(repositoryEntity);
       }
       operatingSystems.add(operatingSystemEntity);
@@ -159,6 +160,21 @@ public class RepositoryVersionHelper {
       rootJson.add(operatingSystemJson);
     }
     return gson.toJson(rootJson);
+  }
+
+  public String serializeOperatingSystemEntities(List<OperatingSystemEntity> operatingSystems) {
+    List<RepositoryInfo> repositoryInfos = new ArrayList<>();
+    for (OperatingSystemEntity os: operatingSystems) {
+      for (RepositoryEntity repositoryEntity: os.getRepositories()) {
+        RepositoryInfo repositoryInfo = new RepositoryInfo();
+        repositoryInfo.setRepoId(repositoryEntity.getRepositoryId());
+        repositoryInfo.setRepoName(repositoryEntity.getName());
+        repositoryInfo.setBaseUrl(repositoryEntity.getBaseUrl());
+        repositoryInfo.setOsType(os.getOsType());
+        repositoryInfos.add(repositoryInfo);
+      }
+    }
+    return serializeOperatingSystems(repositoryInfos);
   }
 
   /**

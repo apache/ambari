@@ -18,17 +18,33 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import javax.annotation.Nullable;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-
 
 /**
  * Encapsulates IO operations on a stack service directory.
  */
 public class StackServiceDirectory extends ServiceDirectory {
+
+  /**
+   * repository file
+   */
+  @Nullable
+  private RepositoryXml repoFile;
+
+  /**
+   * repository directory
+   */
+  @Nullable
+  private String repoDir;
+
 
   /**
    * logger instance
@@ -44,6 +60,28 @@ public class StackServiceDirectory extends ServiceDirectory {
   public StackServiceDirectory(String servicePath) throws AmbariException {
     super(servicePath);
   }
+
+
+  /**
+   * Obtain the repository xml file if exists or null
+   *
+   * @return the repository xml file if exists or null
+   */
+  @Nullable
+  public RepositoryXml getRepoFile() {
+    return repoFile;
+  }
+
+  /**
+   * Obtain the repository directory if exists or null
+   *
+   * @return the repository directory if exists or null
+   */
+  @Nullable
+  public String getRepoDir() {
+    return repoDir;
+  }
+
 
   @Override
   /**
@@ -63,6 +101,30 @@ public class StackServiceDirectory extends ServiceDirectory {
     String versionString = stackVersionDir.getName().replaceAll("\\.", "");
 
     return stackName + versionString + serviceName + "ServiceAdvisor";
+  }
+
+  /**
+   * Parse the repository file.
+   *
+   * @param subDirs service directory sub directories
+   */
+  private void parseRepoFile(Collection<String> subDirs) {
+    RepositoryFolderAndXml repoDirAndXml = RepoUtil.parseRepoFile(directory, subDirs, unmarshaller);
+    repoDir = repoDirAndXml.repoDir.orNull();
+    repoFile = repoDirAndXml.repoXml.orNull();
+
+    if (repoFile == null || !repoFile.isValid()) {
+      LOG.info("No repository information defined for "
+          + ", serviceName=" + getName()
+          + ", repoFolder=" + getPath() + File.separator + RepoUtil.REPOSITORY_FOLDER_NAME);
+    }
+  }
+
+  @Override
+  protected void parsePath() throws AmbariException {
+    super.parsePath();
+    Collection<String> subDirs = Arrays.asList(directory.list());
+    parseRepoFile(subDirs);
   }
 
   @Override
@@ -116,4 +178,6 @@ public class StackServiceDirectory extends ServiceDirectory {
               absUpgradesDir, serviceDir.getName(), stackId);
     }
   }
+
+
 }

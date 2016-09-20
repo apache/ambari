@@ -621,6 +621,13 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     return errorSet;
   }
 
+  /**
+   * @return The service's directory
+   */
+  public ServiceDirectory getServiceDirectory() {
+    return serviceDirectory;
+  }
+
   @Override
   public void addErrors(Collection<String> errors) {
     this.errorSet.addAll(errors);
