@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -145,7 +144,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
           // This principal has been processed and a keytab file has been distributed... do not process it.
           processPrincipal = false;
         } else {
-          // This principal has been processed but a keytab file for it has been distributed... process it.
+          // This principal has been processed but a keytab file for it has not been distributed... process it.
           processPrincipal = true;
         }
       }
@@ -232,7 +231,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
       String password = securePasswordHelper.createSecurePassword(length, minLowercaseLetters, minUppercaseLetters, minDigits, minPunctuation, minWhitespace);
 
       try {
-        /**
+        /*
          * true indicates a new principal was created, false indicates an existing principal was updated
          */
         boolean created;
