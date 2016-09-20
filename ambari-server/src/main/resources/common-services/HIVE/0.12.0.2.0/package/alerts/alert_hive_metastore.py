@@ -196,7 +196,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     try:
       Execute(cmd, user=smokeuser,
         path=["/bin/", "/usr/bin/", "/usr/sbin/", bin_dir],
-        timeout=5,
+        timeout=int(check_command_timeout),
         timeout_kill_strategy=TerminateStrategy.KILL_PROCESS_TREE,
       )
 
