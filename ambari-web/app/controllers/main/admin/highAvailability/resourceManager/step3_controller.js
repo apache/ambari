@@ -182,7 +182,6 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend(App.Blueprint
   },
 
   loadRecommendations: function(blueprintConfigurations) {
-    var dfd = $.Deferred();
     var blueprint = this.getCurrentMasterSlaveBlueprint();
     // host group where new ResourceManager will be added
     var hostGroupName = blueprintUtils.getHostGroupByFqdn(blueprint, this.get('content.rmHosts.additionalRM'));
