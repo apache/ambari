@@ -301,9 +301,7 @@ public class HostConfigMappingDAO {
 
         List<HostConfigMappingEntity> hostConfigMappingEntities = daoUtils.selectList(query);
 
-        List<HostConfigMappingEntity> list = daoUtils.selectList(query, hostEntity.getHostId());
-
-        for (HostConfigMappingEntity entity : list) {
+        for (HostConfigMappingEntity entity : hostConfigMappingEntities) {
           entityManagerProvider.get().remove(entity);
         }
         // Update the cache

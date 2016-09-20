@@ -65,6 +65,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -90,6 +91,8 @@ public class ServiceComponentHostTest {
   private static OrmTestHelper helper;
   private static ClusterDAO clusterDAO;
   private static HostDAO hostDAO;
+  private static HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+  private static HostComponentStateDAO hostComponentStateDAO;
 
   private String clusterName = "c1";
   private String hostName1 = "h1";
@@ -108,11 +111,13 @@ public class ServiceComponentHostTest {
     helper = injector.getInstance(OrmTestHelper.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     hostDAO = injector.getInstance(HostDAO.class);
+    hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
   }
 
   @Before
   public void setup() throws Exception {
-
+    cleanup();
 
     if (clusters.getClusters().size() == 0) {
       StackId stackId = new StackId("HDP-0.1");
@@ -136,11 +141,15 @@ public class ServiceComponentHostTest {
     cleanup();
   }
 
+  @AfterClass
+  public static void afterClass() throws Exception {
+    injector.getInstance(PersistService.class).stop();
+  }
+
   private void cleanup() throws AmbariException {
     try {
       Map<String, Cluster> clusterMap = clusters.getClusters();
 
-      HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
       List<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities = hostComponentDesiredStateDAO.findAll();
       if (hostComponentDesiredStateEntities != null) {
         for (HostComponentDesiredStateEntity hcdse : hostComponentDesiredStateEntities) {
@@ -148,7 +157,6 @@ public class ServiceComponentHostTest {
         }
       }
 
-      HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
       List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
       if (hostComponentStateEntities != null) {
         for (HostComponentStateEntity hcse : hostComponentStateEntities) {
@@ -162,6 +170,10 @@ public class ServiceComponentHostTest {
 
       for (Host host : clusters.getHosts()) {
         clusters.deleteHost(host.getHostName());
+      }
+
+      for (String clusterName : clusterMap.keySet()) {
+        clusters.deleteCluster(clusterName);
       }
     } catch (IllegalStateException ise) {}
   }
@@ -955,9 +967,6 @@ public class ServiceComponentHostTest {
     tags.remove(id.toString());
     sch3.updateActualConfigs(actual);
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
-
-    injector.getInstance(PersistService.class).stop();
-    classSetUp();
   }
 
   @Test
@@ -1076,8 +1085,6 @@ public class ServiceComponentHostTest {
     Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
-    injector.getInstance(PersistService.class).stop();
-    classSetUp();
   }
 
   /**
@@ -1126,15 +1133,14 @@ public class ServiceComponentHostTest {
     pk.setServiceName(sch1.getServiceName());
     pk.setHostId(hostEntity.getHostId());
 
-    HostComponentDesiredStateDAO dao = injector.getInstance(HostComponentDesiredStateDAO.class);
-    HostComponentDesiredStateEntity entity = dao.findByPK(pk);
+    HostComponentDesiredStateEntity entity = hostComponentDesiredStateDAO.findByPK(pk);
     Assert.assertEquals(MaintenanceState.OFF, entity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.OFF, sch1.getMaintenanceState());
 
     sch1.setMaintenanceState(MaintenanceState.ON);
     Assert.assertEquals(MaintenanceState.ON, sch1.getMaintenanceState());
 
-    entity = dao.findByPK(pk);
+    entity = hostComponentDesiredStateDAO.findByPK(pk);
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
   }
 
@@ -1160,7 +1166,6 @@ public class ServiceComponentHostTest {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ServiceComponentHost sch1 = createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", hostName);
 
-    HostComponentDesiredStateDAO daoHostComponentDesiredState = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity entityHostComponentDesiredState;
     HostComponentDesiredStateEntityPK pkHostComponentDesiredState = new HostComponentDesiredStateEntityPK();
     pkHostComponentDesiredState.setClusterId(cluster.getClusterId());
@@ -1168,12 +1173,11 @@ public class ServiceComponentHostTest {
     pkHostComponentDesiredState.setServiceName(sch1.getServiceName());
     pkHostComponentDesiredState.setHostId(hostEntity.getHostId());
 
-    HostComponentStateDAO daoHostComponentState = injector.getInstance(HostComponentStateDAO.class);
     HostComponentStateEntity entityHostComponentState;
 
     for(SecurityState state: SecurityState.values()) {
       sch1.setSecurityState(state);
-      entityHostComponentState = daoHostComponentState.findByIndex(cluster.getClusterId(),
+      entityHostComponentState = hostComponentStateDAO.findByIndex(cluster.getClusterId(),
           sch1.getServiceName(), sch1.getServiceComponentName(), hostEntity.getHostId());
 
       Assert.assertNotNull(entityHostComponentState);
@@ -1182,7 +1186,7 @@ public class ServiceComponentHostTest {
       try {
         sch1.setDesiredSecurityState(state);
         Assert.assertTrue(state.isEndpoint());
-        entityHostComponentDesiredState = daoHostComponentDesiredState.findByPK(pkHostComponentDesiredState);
+        entityHostComponentDesiredState = hostComponentDesiredStateDAO.findByPK(pkHostComponentDesiredState);
         Assert.assertNotNull(entityHostComponentDesiredState);
         Assert.assertEquals(state, entityHostComponentDesiredState.getSecurityState());
       } catch (AmbariException e) {
