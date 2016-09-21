@@ -70,6 +70,8 @@ public interface KerberosHelper {
 
   String AMBARI_IDENTITY_NAME = "ambari-server";
 
+  String SPNEGO_IDENTITY_NAME = "spnego";
+
   String CREATE_AMBARI_PRINCIPAL = "create_ambari_principal";
 
   String MANAGE_IDENTITIES = "manage_identities";

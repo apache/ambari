@@ -104,7 +104,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -3755,6 +3754,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
     if (createAmbariPrincipal) {
       expect(kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME)).andReturn(ambariKerberosIdentity).once();
+      expect(kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME)).andReturn(ambariKerberosIdentity).once();
     }
 
     List<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
@@ -3764,12 +3764,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    kerberosHelper.addAmbariServerIdentity(kerberosEnvProperties, kerberosDescriptor, identities);
+    kerberosHelper.addAmbariServerIdentities(kerberosEnvProperties, kerberosDescriptor, identities);
 
     verifyAll();
 
     if (createAmbariPrincipal) {
-      Assert.assertEquals(1, identities.size());
+      Assert.assertEquals(2, identities.size());
       Assert.assertSame(ambariKerberosIdentity, identities.get(0));
     } else {
       Assert.assertTrue(identities.isEmpty());

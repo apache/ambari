@@ -28,6 +28,19 @@ import java.io.IOException;
 public class AmbariEntryPoint implements AuthenticationEntryPoint {
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-    response.sendError(HttpServletResponse.SC_FORBIDDEN, authException.getMessage());
+    /* *****************************************************************************************
+     * To maintain backward compatibility and respond with the appropriate response when
+     * authentication is needed, by default return an HTTP 403 status.
+     *
+     * However if requested by the user, respond such that the client is challenged to Negotiate
+     * and reissue the request with a Kerberos token.  This response is an HTTP 401 status with the
+     * WWW-Authenticate: Negotiate" header.
+     * ****************************************************************************************** */
+    if ("true".equalsIgnoreCase(request.getHeader("X-Negotiate-Authentication"))) {
+      response.setHeader("WWW-Authenticate", "Negotiate");
+      response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication requested");
+    } else {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, authException.getMessage());
+    }
   }
 }

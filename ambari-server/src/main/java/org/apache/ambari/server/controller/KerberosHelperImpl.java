@@ -61,7 +61,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
-import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIndetityServerAction;
+import org.apache.ambari.server.serveraction.kerberos.ConfigureAmbariIdentitiesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
 import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
 import org.apache.ambari.server.serveraction.kerberos.DestroyPrincipalsServerAction;
@@ -811,7 +811,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param ambariServerIdentity the ambari server's {@link KerberosIdentityDescriptor}
    * @param configurations       a map of compiled configrations used for variable replacment
    * @throws AmbariException
-   * @see ConfigureAmbariIndetityServerAction#installAmbariServerIdentity(String, String, String, ActionLog)
+   * @see ConfigureAmbariIdentitiesServerAction#installAmbariServerIdentity(String, String, String, ActionLog)
    */
   private void installAmbariIdentity(KerberosIdentityDescriptor ambariServerIdentity,
                                      Map<String, Map<String, String>> configurations) throws AmbariException {
@@ -825,7 +825,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         if(keytabDescriptor != null) {
           String keytabFilePath = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
 
-          injector.getInstance(ConfigureAmbariIndetityServerAction.class)
+          injector.getInstance(ConfigureAmbariIdentitiesServerAction.class)
               .installAmbariServerIdentity(principal, ambariServerPrincipalEntity.getCachedKeytabPath(), keytabFilePath, null);
         }
       }
@@ -1309,7 +1309,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                 serviceName, componentName, kerberosDescriptor, filterContext);
 
             if (hostname.equals(ambariServerHostname)) {
-              addAmbariServerIdentity(kerberosEnvConfig.getProperties(), kerberosDescriptor, identities);
+              addAmbariServerIdentities(kerberosEnvConfig.getProperties(), kerberosDescriptor, identities);
             }
 
             if (!identities.isEmpty()) {
@@ -1396,7 +1396,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param kerberosDescriptor    the kerberos descriptor
    * @param identities            the collection of identities to add to
    */
-  void addAmbariServerIdentity(Map<String, String> kerberosEnvProperties, KerberosDescriptor kerberosDescriptor, List<KerberosIdentityDescriptor> identities) {
+  void addAmbariServerIdentities(Map<String, String> kerberosEnvProperties, KerberosDescriptor kerberosDescriptor, List<KerberosIdentityDescriptor> identities) {
     // Determine if we should _calculate_ the Ambari service identity.
     // If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
     boolean createAmbariPrincipal = (kerberosEnvProperties == null) || !"false".equalsIgnoreCase(kerberosEnvProperties.get(CREATE_AMBARI_PRINCIPAL));
@@ -1406,6 +1406,12 @@ public class KerberosHelperImpl implements KerberosHelper {
       KerberosIdentityDescriptor ambariServerIdentity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
       if (ambariServerIdentity != null) {
         identities.add(ambariServerIdentity);
+      }
+
+      // Add the spnego principal for the Ambari server host....
+      KerberosIdentityDescriptor spnegoIdentity = kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME);
+      if (spnegoIdentity != null) {
+        identities.add(spnegoIdentity);
       }
     }
   }
@@ -2800,7 +2806,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           clusterHostInfoJson,
           "{}",
           hostParamsJson,
-          ConfigureAmbariIndetityServerAction.class,
+          ConfigureAmbariIdentitiesServerAction.class,
           event,
           commandParameters,
           "Configure Ambari Identity",
