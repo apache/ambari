@@ -81,6 +81,51 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>sysprep_skip_create_users_and_groups</name>
+    <display-name>Whether to skip creating users and groups in a sysprepped cluster</display-name>
+    <value>false</value>
+    <property-type>ADDITIONAL_USER_PROPERTY</property-type>
+    <description>Whether to skip creating users and groups in a sysprepped cluster</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>sysprep_skip_copy_fast_jar_hdfs</name>
+    <display-name>Whether to skip copying the tarballs to HDFS on a sysprepped cluster</display-name>
+    <value>false</value>
+    <description>Whether to skip copying the tarballs to HDFS on a sysprepped cluster, during both fresh install and stack upgrade</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>sysprep_skip_copy_tarballs_hdfs</name>
+    <display-name>Whether to skip copying the tarballs to HDFS on a sysprepped cluster</display-name>
+    <value>false</value>
+    <description>Whether to skip copying the tarballs to HDFS on a sysprepped cluster, during both fresh install and stack upgrade</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>sysprep_skip_copy_oozie_share_lib_to_hdfs</name>
+    <display-name>Whether to skip copying the Oozie share lib to HDFS on sysprepped cluster</display-name>
+    <value>false</value>
+    <description>Whether to skip copying the Oozie share lib to HDFS on sysprepped cluster, during both fresh install and stack upgrade</description>
+    <value-attributes>
+      <overridable>true</overridable>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>smokeuser</name>
     <display-name>Smoke User</display-name>
     <value>ambari-qa</value>

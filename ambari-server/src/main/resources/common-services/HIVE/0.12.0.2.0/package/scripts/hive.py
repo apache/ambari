@@ -137,8 +137,8 @@ def hive(name=None):
     # *********************************
     #  if copy tarball to HDFS feature  supported copy mapreduce.tar.gz and tez.tar.gz to HDFS
     if params.stack_version_formatted_major and check_stack_feature(StackFeature.COPY_TARBALL_TO_HDFS, params.stack_version_formatted_major):
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
     # This can use a different source and dest location to account
@@ -148,14 +148,14 @@ def hive(name=None):
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.pig_tar_source,
                  custom_dest_file=params.pig_tar_dest_file,
-                 host_sys_prepped=params.host_sys_prepped)
+                 skip=params.sysprep_skip_copy_tarballs_hdfs)
     copy_to_hdfs("hive",
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
                  custom_source_file=params.hive_tar_source,
                  custom_dest_file=params.hive_tar_dest_file,
-                 host_sys_prepped=params.host_sys_prepped)
+                 skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     wildcard_tarballs = ["sqoop", "hadoop_streaming"]
     for tarball_name in wildcard_tarballs:
@@ -176,7 +176,7 @@ def hive(name=None):
                      file_mode=params.tarballs_mode,
                      custom_source_file=source_file,
                      custom_dest_file=dest_file,
-                     host_sys_prepped=params.host_sys_prepped)
+                     skip=params.sysprep_skip_copy_tarballs_hdfs)
     # ******* End Copy Tarballs *******
     # *********************************
     

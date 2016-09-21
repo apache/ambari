@@ -23,13 +23,12 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 
 if OSCheck.is_windows_family():
   from params_windows import *
 else:
   from params_linux import *
-
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # server configurations
 config = Script.get_config()
@@ -38,6 +37,7 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
+sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
 #hadoop params
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()

@@ -30,7 +30,12 @@ def setup_users():
   Creates users before cluster installation
   """
   import params
-  should_create_users_and_groups = not params.host_sys_prepped and not params.ignore_groupsusers_create
+
+  should_create_users_and_groups = False
+  if params.host_sys_prepped:
+    should_create_users_and_groups = not params.sysprep_skip_create_users_and_groups
+  else:
+    should_create_users_and_groups = not params.ignore_groupsusers_create
 
   if should_create_users_and_groups:
     for group in params.group_list:
@@ -60,19 +65,16 @@ def setup_users():
                create_parents = True,
                cd_access="a",
     )
-    if not params.host_sys_prepped and params.override_uid == "true":
+    if params.override_uid == "true":
       set_uid(params.hbase_user, params.hbase_user_dirs)
     else:
-      Logger.info('Skipping setting uid for hbase user as host is sys prepped')      
-      pass
+      Logger.info('Skipping setting uid for hbase user as host is sys prepped')
 
-  if not params.host_sys_prepped:
+  if should_create_users_and_groups:
     if params.has_namenode:
-      if should_create_users_and_groups:
-        create_dfs_cluster_admins()
+      create_dfs_cluster_admins()
     if params.has_tez and params.stack_version_formatted != "" and compare_versions(params.stack_version_formatted, '2.3') >= 0:
-      if should_create_users_and_groups:
-        create_tez_am_view_acls()
+      create_tez_am_view_acls()
   else:
     Logger.info('Skipping setting dfs cluster admin and tez view acls as host is sys prepped')
 

@@ -94,13 +94,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           "hive2",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped)
+          skip=params.sysprep_skip_copy_tarballs_hdfs)
 
         resource_created = copy_to_hdfs(
           "tez_hive2",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped) or resource_created
+          skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
 
         if resource_created:
           params.HdfsResource(None, action="execute")
