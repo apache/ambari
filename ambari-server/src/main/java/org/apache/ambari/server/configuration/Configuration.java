@@ -5284,11 +5284,9 @@ public class Configuration {
         try {
           orderedUserTypes.add(UserType.valueOf(type.toUpperCase()));
         } catch (IllegalArgumentException e) {
-          String message = String.format("While processing ordered user types from %s, " +
+          throw new IllegalArgumentException(String.format("While processing ordered user types from %s, " +
                   "%s was found to be an invalid user type.",
-              KERBEROS_AUTH_USER_TYPES.getKey(), type);
-          LOG.error(message);
-          throw new IllegalArgumentException(message, e);
+              KERBEROS_AUTH_USER_TYPES.getKey(), type), e);
         }
       }
     }
@@ -5322,11 +5320,9 @@ public class Configuration {
     // Validate the SPNEGO principal name to ensure it was set.
     // Log any found issues.
     if (StringUtils.isEmpty(kerberosAuthProperties.getSpnegoPrincipalName())) {
-      String message = String.format("The SPNEGO principal name specified in %s is empty. " +
+      throw new IllegalArgumentException(String.format("The SPNEGO principal name specified in %s is empty. " +
               "This will cause issues authenticating users using Kerberos.",
-          KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey());
-      LOG.error(message);
-      throw new IllegalArgumentException(message);
+          KERBEROS_AUTH_SPNEGO_PRINCIPAL.getKey()));
     }
 
     // Get the SPNEGO keytab file. There is nothing special to process for this value.
@@ -5335,25 +5331,19 @@ public class Configuration {
     // Validate the SPNEGO keytab file to ensure it was set, it exists and it is readable by Ambari.
     // Log any found issues.
     if (StringUtils.isEmpty(kerberosAuthProperties.getSpnegoKeytabFilePath())) {
-      String message = String.format("The SPNEGO keytab file path specified in %s is empty. " +
+      throw new IllegalArgumentException(String.format("The SPNEGO keytab file path specified in %s is empty. " +
               "This will cause issues authenticating users using Kerberos.",
-          KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
-      LOG.error(message);
-      throw new IllegalArgumentException(message);
+          KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
     } else {
       File keytabFile = new File(kerberosAuthProperties.getSpnegoKeytabFilePath());
       if (!keytabFile.exists()) {
-        String message = String.format("The SPNEGO keytab file path (%s) specified in %s does not exist. " +
+        throw new IllegalArgumentException(String.format("The SPNEGO keytab file path (%s) specified in %s does not exist. " +
                 "This will cause issues authenticating users using Kerberos.",
-            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
-        LOG.error(message);
-        throw new IllegalArgumentException(message);
+            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
       } else if (!keytabFile.canRead()) {
-        String message = String.format("The SPNEGO keytab file path (%s) specified in %s cannot be read. " +
+        throw new IllegalArgumentException(String.format("The SPNEGO keytab file path (%s) specified in %s cannot be read. " +
                 "This will cause issues authenticating users using Kerberos.",
-            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey());
-        LOG.error(message);
-        throw new IllegalArgumentException(message);
+            keytabFile.getAbsolutePath(), KERBEROS_AUTH_SPNEGO_KEYTAB_FILE.getKey()));
       }
     }
 
