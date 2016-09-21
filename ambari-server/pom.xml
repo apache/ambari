@@ -44,8 +44,9 @@
     <stacksSrcLocation>src/main/resources/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
-    <hadoop.version>2.7.1</hadoop.version>
+    <hadoop.version>2.7.2</hadoop.version>
     <empty.dir>src/main/package</empty.dir> <!-- any directory in project with not very big amount of files (not to waste-load them) -->
+    <el.log>ALL</el.log> <!-- log level for EclipseLink eclipselink-staticweave-maven-plugin -->
   </properties>
   <build>
     <plugins>
@@ -337,7 +338,7 @@
             </goals>
             <phase>process-classes</phase>
             <configuration>
-              <logLevel>ALL</logLevel>
+              <logLevel>${el.log}</logLevel>
               <includeProjectClasspath>true</includeProjectClasspath>
             </configuration>
           </execution>
@@ -983,6 +984,10 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security.kerberos</groupId>
+      <artifactId>spring-security-kerberos-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

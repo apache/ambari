@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.test;
 
+import junit.framework.Assert;
+
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -26,12 +28,10 @@ import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorC
 import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
 import org.junit.Test;
 
-import junit.framework.Assert;
-
 public class BufferedThreadPoolExecutorCompletionServiceTest {
 
   private void longOp() throws InterruptedException {
-    Thread.sleep(3000);
+    Thread.sleep(1000);
     System.out.println("Completed " + Thread.currentThread());
   }
 

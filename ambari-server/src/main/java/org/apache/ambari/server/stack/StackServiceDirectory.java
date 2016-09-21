@@ -148,15 +148,15 @@ public class StackServiceDirectory extends ServiceDirectory {
       int fileCount = files.length;
       if (fileCount > 0) {
         packageDir = absPackageDir.getPath().substring(stackDir.getParentFile().getParentFile().getPath().length() + 1);
-        LOG.debug("Service package folder for service %s for stack %s has been resolved to %s",
+        LOG.debug("Service package folder for service {} for stack {} has been resolved to {}",
                 serviceDir.getName(), stackId, packageDir);
       }
       else {
-        LOG.debug("Service package folder %s for service %s for stack %s is empty.",
+        LOG.debug("Service package folder {} for service {} for stack {} is empty.",
                 absPackageDir, serviceDir.getName(), stackId);
       }
     } else {
-      LOG.debug("Service package folder %s for service %s for stack %s does not exist.",
+      LOG.debug("Service package folder {} for service {} for stack {} does not exist.",
               absPackageDir, serviceDir.getName(), stackId);
     }
 
@@ -166,15 +166,15 @@ public class StackServiceDirectory extends ServiceDirectory {
       int fileCount = files.length;
       if (fileCount > 0) {
         upgradesDir = absUpgradesDir;
-        LOG.debug("Service upgrades folder for service %s for stack %s has been resolved to %s",
+        LOG.debug("Service upgrades folder for service {} for stack {} has been resolved to {}",
                 serviceDir.getName(), stackId, packageDir);
       }
       else {
-        LOG.debug("Service upgrades folder %s for service %s for stack %s is empty.",
+        LOG.debug("Service upgrades folder {} for service {} for stack {} is empty.",
                 absUpgradesDir, serviceDir.getName(), stackId);
       }
     } else {
-      LOG.debug("Service upgrades folder %s for service %s for stack %s does not exist.",
+      LOG.debug("Service upgrades folder {} for service {} for stack {} does not exist.",
               absUpgradesDir, serviceDir.getName(), stackId);
     }
   }

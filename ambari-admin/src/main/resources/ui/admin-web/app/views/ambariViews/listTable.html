@@ -78,6 +78,9 @@
                     <td class="col-sm-5">{{instance.ViewInstanceInfo.version}}</td>
                     <td class="col-sm-5 " ><div class="description-column" tooltip="{{instance.ViewInstanceInfo.description}}">{{instance.ViewInstanceInfo.description || 'No description'}}</div>
                     </td>
+                    <td class="col-sm-1">
+                        <a class="instance-link ng-scope ng-binding" href="#/views/{{view.view_name}}/versions/{{instance.ViewInstanceInfo.version}}/instances/{{instance.ViewInstanceInfo.instance_name}}/clone"><i class="fa fa-copy"></i></a>
+                    </td>
                 </tr>
                 </tbody>
                 <tfoot>

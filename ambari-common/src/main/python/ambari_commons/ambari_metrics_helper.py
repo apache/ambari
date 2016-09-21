@@ -33,6 +33,9 @@ def select_metric_collector_for_sink(sink_name):
     return select_metric_collector_hosts_from_hostnames(all_collectors_list)
 
 def select_metric_collector_hosts_from_hostnames(hosts):
+    return get_random_host(hosts)
+
+def get_random_host(hosts):
     return random.choice(hosts)
 
 def get_metric_collectors_from_properties_file(sink_name):

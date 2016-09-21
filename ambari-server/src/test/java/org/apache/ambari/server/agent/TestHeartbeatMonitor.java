@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,6 +67,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.UnitOfWork;
 
 public class TestHeartbeatMonitor {
 
@@ -73,6 +76,7 @@ public class TestHeartbeatMonitor {
 
   private String hostname1 = "host1";
   private String hostname2 = "host2";
+  private String hostname3 = "host3";
   private String clusterName = "cluster1";
   private String serviceName = "HDFS";
   private int heartbeatMonitorWakeupIntervalMS = 30;
@@ -93,11 +97,17 @@ public class TestHeartbeatMonitor {
   @Before
   public void setup() throws Exception {
     cleanup();
+    injector.getInstance(UnitOfWork.class).begin();
   }
 
   @After
   public void teardown() {
+    injector.getInstance(UnitOfWork.class).end();
+  }
 
+  @AfterClass
+  public static void afterClass() throws Exception {
+    injector.getInstance(PersistService.class).stop();
   }
 
   private void cleanup() throws AmbariException {
@@ -154,7 +164,7 @@ public class TestHeartbeatMonitor {
       Thread.sleep(1);
     }
     assertEquals(fsm.getHost(hostname).getState(), HostState.HEARTBEAT_LOST);
-    classSetUp();
+    hm.shutdown();
   }
 
   @Test
@@ -468,7 +478,7 @@ public class TestHeartbeatMonitor {
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-        RepositoryVersionState.INSTALLING);
+            RepositoryVersionState.INSTALLING);
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname1);

@@ -102,7 +102,7 @@ class Hardware:
   @staticmethod
   def _chk_mount(mountpoint):
     try:
-      return call(['test', '-w', mountpoint], sudo=True, timeout=int(Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT)/2)[0] == 0
+      return call(['test', '-w', mountpoint], sudo=True, timeout=int(Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT)/2, quiet=(not logger.isEnabledFor(logging.DEBUG)))[0] == 0
     except ExecuteTimeoutException:
       logger.exception("Exception happened while checking mount {0}".format(mountpoint))
       return False

@@ -351,12 +351,11 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       if (!arguments.length || this.get('parentView.data.length')) {
         this.loadData();
       }
-      var self = this;
       Em.run.next(function () {
         if (self.get('isPreview')) {
-          App.tooltip(this.$("[rel='ZoomInTooltip']"), 'disable');
+          App.tooltip(self.$("[rel='ZoomInTooltip']"), 'disable');
         } else {
-          App.tooltip(this.$("[rel='ZoomInTooltip']"), {
+          App.tooltip(self.$("[rel='ZoomInTooltip']"), {
             placement: 'left',
             template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
           });

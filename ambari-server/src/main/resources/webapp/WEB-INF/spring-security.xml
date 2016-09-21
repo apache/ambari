@@ -30,16 +30,11 @@
     <custom-filter ref="ambariAuthorizationFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
   </http>
 
-  <!--<ldap-server id="ldapServer" root="dc=ambari,dc=apache,dc=org"/>-->
-
   <authentication-manager alias="authenticationManager">
-
     <authentication-provider ref="ambariLocalAuthenticationProvider"/>
-
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
-
     <authentication-provider ref="ambariInternalAuthenticationProvider"/>
-
+    <authentication-provider ref="kerberosServiceAuthenticationProvider"/>
   </authentication-manager>
 
   <beans:bean id="ambariEntryPoint" class="org.apache.ambari.server.security.AmbariEntryPoint">
@@ -49,6 +44,7 @@
     <beans:constructor-arg>
       <beans:list>
         <beans:ref bean="ambariBasicAuthenticationFilter"/>
+        <beans:ref bean="ambariKerberosAuthenticationFilter"/>
         <beans:ref bean="ambariJwtAuthenticationFilter"/>
       </beans:list>
     </beans:constructor-arg>
@@ -69,12 +65,36 @@
     <beans:constructor-arg ref="permissionHelper"/>
   </beans:bean>
 
+  <beans:bean id="ambariKerberosAuthenticationFilter" class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosAuthenticationFilter">
+    <beans:constructor-arg ref="authenticationManager"/>
+    <beans:constructor-arg ref="ambariEntryPoint"/>
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:constructor-arg ref="auditLogger"/>
+    <beans:constructor-arg ref="permissionHelper"/>
+  </beans:bean>
+
   <beans:bean id="ambariAuthorizationFilter" class="org.apache.ambari.server.security.authorization.AmbariAuthorizationFilter">
     <beans:constructor-arg ref="ambariEntryPoint"/>
     <beans:constructor-arg ref="ambariConfiguration"/>
     <beans:constructor-arg ref="ambariUsers"/>
     <beans:constructor-arg ref="auditLogger"/>
     <beans:constructor-arg ref="permissionHelper"/>
+  </beans:bean>
+
+  <beans:bean id="kerberosServiceAuthenticationProvider" class="org.springframework.security.kerberos.authentication.KerberosServiceAuthenticationProvider">
+    <beans:property name="ticketValidator">
+      <beans:bean class="org.apache.ambari.server.security.authentication.kerberos.AmbariKerberosTicketValidator">
+        <beans:constructor-arg ref="ambariConfiguration"/>
+        <beans:property name="debug" value="false"/>
+      </beans:bean>
+    </beans:property>
+
+    <beans:property name="userDetailsService" ref="authToLocalUserDetailsService"/>
+  </beans:bean>
+
+  <beans:bean id="authToLocalUserDetailsService" class="org.apache.ambari.server.security.authentication.kerberos.AmbariAuthToLocalUserDetailsService">
+    <beans:constructor-arg ref="ambariConfiguration"/>
+    <beans:constructor-arg ref="ambariUsers"/>
   </beans:bean>
 
 </beans:beans>

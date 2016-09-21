@@ -17,11 +17,17 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -32,11 +38,14 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -57,19 +66,15 @@ import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
 import org.apache.ambari.server.state.stack.upgrade.TransferCoercionType;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * Tests upgrade-related server side actions
@@ -81,48 +86,94 @@ public class ConfigureActionTest {
   private static final StackId HDP_211_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_220_STACK = new StackId("HDP-2.2.0");
 
-  private Injector m_injector;
+  private static Injector m_injector;
+  private static OrmTestHelper m_helper;
+  private static RepositoryVersionDAO repoVersionDAO;
+  private static HostVersionDAO hostVersionDAO;
+  private static HostRoleCommandFactory hostRoleCommandFactory;
+  private static ServiceFactory serviceFactory;
+  private static ConfigHelper m_configHelper;
+  private static Clusters clusters;
+  private static ClusterVersionDAO clusterVersionDAO;
+  private static ConfigFactory cf;
+  private static ConfigureAction action;
+  private static HostDAO hostDAO;
 
-  @Inject
-  private OrmTestHelper m_helper;
+  @BeforeClass
+  public static void classSetUp() throws Exception {
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
 
-  @Inject
-  private RepositoryVersionDAO repoVersionDAO;
-
-  @Inject
-  private HostVersionDAO hostVersionDAO;
-
-  @Inject
-  private HostRoleCommandFactory hostRoleCommandFactory;
-
-  @Inject
-  private ServiceFactory serviceFactory;
-
-  @Inject
-  ConfigHelper m_configHelper;
+    m_helper = m_injector.getInstance(OrmTestHelper.class);
+    repoVersionDAO = m_injector.getInstance(RepositoryVersionDAO.class);
+    hostVersionDAO = m_injector.getInstance(HostVersionDAO.class);
+    hostRoleCommandFactory = m_injector.getInstance(HostRoleCommandFactory.class);
+    serviceFactory = m_injector.getInstance(ServiceFactory.class);
+    m_configHelper = m_injector.getInstance(ConfigHelper.class);
+    clusters = m_injector.getInstance(Clusters.class);
+    clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
+    cf = m_injector.getInstance(ConfigFactory.class);
+    action = m_injector.getInstance(ConfigureAction.class);
+    hostDAO = m_injector.getInstance(HostDAO.class);
+  }
 
   @Before
   public void setup() throws Exception {
-    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    m_injector.getInstance(GuiceJpaInitializer.class);
-    m_injector.injectMembers(this);
+
   }
 
   @After
   public void teardown() throws Exception {
+    cleanup();
+  }
+
+  @AfterClass
+  public static void afterClass() throws Exception {
     m_injector.getInstance(PersistService.class).stop();
+  }
+
+  private void cleanup() throws AmbariException {
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findAll();
+    if (clusterVersionEntities != null) {
+      for (ClusterVersionEntity cve : clusterVersionEntities) {
+        clusterVersionDAO.remove(cve);
+      }
+    }
+
+    List<RepositoryVersionEntity> repositoryVersionEntities = repoVersionDAO.findAll();
+    if (repositoryVersionEntities != null) {
+      for (RepositoryVersionEntity rve : repositoryVersionEntities) {
+        repoVersionDAO.remove(rve);
+      }
+    }
+
+    List<HostVersionEntity> hostVersionEntities = hostVersionDAO.findAll();
+    if (clusterVersionEntities != null) {
+      for (HostVersionEntity hve : hostVersionEntities) {
+        hostVersionDAO.remove(hve);
+      }
+    }
+
+    for (String clusterName : clusterMap.keySet()) {
+      clusters.deleteCluster(clusterName);
+    }
+
+    for (Host host : clusters.getHosts()) {
+      clusters.deleteHost(host.getHostName());
+    }
   }
 
   @Test
   public void testConfigActionUpgradeAcrossStack() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
         }}, new HashMap<String, Map<String,String>>());
@@ -156,7 +207,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -180,14 +231,13 @@ public class ConfigureActionTest {
   public void testDeletePreserveChanges() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
 
     // create a config for zoo.cfg with two values; one is a stack value and the
     // other is custom
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("tickTime", "2000");
@@ -226,7 +276,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -250,11 +300,10 @@ public class ConfigureActionTest {
   public void testConfigTransferCopy() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copyIt", "10");
@@ -332,7 +381,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -391,11 +440,10 @@ public class ConfigureActionTest {
   public void testCoerceValueOnCopy() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("zoo.server.csv", "c6401,c6402,  c6403");
@@ -436,7 +484,7 @@ public class ConfigureActionTest {
 
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -458,11 +506,10 @@ public class ConfigureActionTest {
   public void testValueReplacement() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("key_to_replace", "My New Cat");
@@ -508,7 +555,7 @@ public class ConfigureActionTest {
 
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -534,11 +581,10 @@ public class ConfigureActionTest {
   public void testValueReplacementWithMissingConfigurations() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("existing", "This exists!");
@@ -578,7 +624,7 @@ public class ConfigureActionTest {
 
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -595,12 +641,11 @@ public class ConfigureActionTest {
   public void testMultipleKeyValuesPerTask() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("fooKey", "barValue");
@@ -641,7 +686,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -663,12 +708,11 @@ public class ConfigureActionTest {
   public void testAllowedSet() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("set.key.1", "s1");
@@ -736,7 +780,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -762,12 +806,11 @@ public class ConfigureActionTest {
   public void testDisallowedSet() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("set.key.1", "s1");
@@ -825,7 +868,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -849,12 +892,11 @@ public class ConfigureActionTest {
   public void testAllowedReplacment() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("replace.key.1", "r1");
@@ -924,7 +966,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -946,12 +988,11 @@ public class ConfigureActionTest {
   public void testDisallowedReplacment() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setCurrentStackVersion(HDP_211_STACK);
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("replace.key.1", "r1");
@@ -1016,7 +1057,7 @@ public class ConfigureActionTest {
     HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1038,11 +1079,10 @@ public class ConfigureActionTest {
   public void testAllowedTransferCopy() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copy.key.1", "c1");
@@ -1126,7 +1166,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1155,11 +1195,10 @@ public class ConfigureActionTest {
   public void testDisallowedTransferCopy() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("copy.key.1", "c1");
@@ -1228,7 +1267,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1252,11 +1291,10 @@ public class ConfigureActionTest {
   public void testAllowedTransferMove() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("move.key.1", "m1");
@@ -1332,7 +1370,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1362,11 +1400,10 @@ public class ConfigureActionTest {
   public void testDisallowedTransferMove() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("move.key.1", "m1");
@@ -1436,7 +1473,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1467,11 +1504,10 @@ public class ConfigureActionTest {
   public void testAllowedTransferDelete() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("delete.key.1", "d1");
@@ -1543,7 +1579,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1569,11 +1605,10 @@ public class ConfigureActionTest {
   public void testDisallowedTransferDelete() throws Exception {
     makeUpgradeCluster();
 
-    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    Cluster c = clusters.getCluster("c1");
     assertEquals(1, c.getConfigsByType("zoo.cfg").size());
 
     c.setDesiredStackVersion(HDP_220_STACK);
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
           put("initLimit", "10");
           put("delete.key.1", "d1");
@@ -1640,7 +1675,7 @@ public class ConfigureActionTest {
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
         executionCommand));
 
-    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
@@ -1666,7 +1701,6 @@ public class ConfigureActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, HDP_220_STACK);
 
     StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
@@ -1682,7 +1716,6 @@ public class ConfigureActionTest {
     // service properties will not run!
     installService(c, "ZOOKEEPER");
 
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
     Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
       {
         put("initLimit", "10");
@@ -1723,7 +1756,6 @@ public class ConfigureActionTest {
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
 
-    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
 
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));

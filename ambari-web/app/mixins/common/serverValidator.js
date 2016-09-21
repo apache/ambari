@@ -153,11 +153,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
     // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
     if (!stepConfigs.findProperty('serviceName', 'MISC')) {
-      App.config.getClusterEnvConfigs().done(function(clusterEnvConfigs){
-        stepConfigs = stepConfigs.concat(Em.Object.create({
-          serviceName: 'MISC',
-          configs: clusterEnvConfigs
-        }));
+      App.config.getConfigsByTypes([{site: 'cluster-env', serviceName: 'MISC'}]).done(function (configs) {
+        stepConfigs = stepConfigs.concat(configs);
         dfd.resolve(blueprintUtils.buildConfigsJSON(stepConfigs));
       });
     } else {

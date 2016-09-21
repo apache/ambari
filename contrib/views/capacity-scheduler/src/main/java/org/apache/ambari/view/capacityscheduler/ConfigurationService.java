@@ -153,7 +153,7 @@ public class ConfigurationService {
     LOG.debug("Reading cluster info.");
     Response response = null;
     try {
-      JSONObject configurations = readFromCluster("");
+      JSONObject configurations = readFromCluster("?fields=Clusters/version");
       response = Response.ok(configurations).build();
     } catch (AmbariHttpException ex) {
       LOG.error("Error occurred : ", ex);

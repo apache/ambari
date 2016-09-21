@@ -24,6 +24,7 @@ angular.module('ambariAdminConsole')
   $scope.constants = {
     props: $t('views.properties')
   };
+  $scope.isClone = $routeParams.instanceId ? true : false;
   var targetUrl = '';
 
   function loadMeta(){
@@ -56,11 +57,42 @@ angular.module('ambariAdminConsole')
         description: '',
         clusterType: 'NONE'
       };
+
+      //if cloning view instance, then get the instance data and populate settings and properties
+      if($scope.isClone) {
+        View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
+        .then(function(instance) {
+          $scope.instanceClone = instance;
+          $scope.instance.version = instance.ViewInstanceInfo.version;
+          $scope.version =  instance.ViewInstanceInfo.version;
+          $scope.instance.instance_name = instance.ViewInstanceInfo.instance_name + $t('common.copy');
+          $scope.instance.label = instance.ViewInstanceInfo.label + $t('common.copy');
+          $scope.instance.visible = instance.ViewInstanceInfo.visible;
+          $scope.instance.description = instance.ViewInstanceInfo.description;
+          $scope.instance.clusterType=instance.ViewInstanceInfo.cluster_type;
+          
+          initConfigurations(parameters);
+        })
+        .catch(function(data) {
+          Alert.error($t('views.alerts.cannotLoadInstanceInfo'), data.data.message);
+        });
+      }
+
       loadClusters();
       loadRemoteClusters();
+
     });
   }
 
+   function initConfigurations(parameters) {
+      var configuration = angular.copy($scope.instanceClone.ViewInstanceInfo.properties);
+
+      //iterate through the view parameters and get the values from the instance being cloned
+      for (var i = 0; i < parameters.length; i++) {
+        parameters[i].value = configuration[parameters[i].name];
+        parameters[i].clusterConfig = !!parameters[i].clusterConfig;
+      }
+    }
 
   $scope.$watch(function(scope) {
     return scope.version;
@@ -111,7 +143,8 @@ angular.module('ambariAdminConsole')
              })
            });
            $scope.noLocalClusterAvailible = false;
-           if($scope.clusterConfigurable){
+           //do not set to default Local Cluster configuration when cloning instance
+           if($scope.clusterConfigurable && !$scope.isClone){
              $scope.instance.clusterType = "LOCAL_AMBARI";
            }
          }else{

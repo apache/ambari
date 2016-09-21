@@ -179,17 +179,26 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   loadConfigRecommendations: function (changedConfigs, onComplete) {
     var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
     var stepConfigs = this.get('stepConfigs');
+    var requiredTags = [];
 
     if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
       var recommendations = this.get('hostGroups');
       var dataToSend = this.getConfigRecommendationsParams(updateDependencies, changedConfigs);
       this.modifyRecommendationConfigGroups(recommendations);
 
-      if (stepConfigs.someProperty('serviceName', 'MISC')) {
+      if (!stepConfigs.someProperty('serviceName', 'MISC')) {
+        requiredTags.push({site: 'cluster-env', serviceName: 'MISC'});
+      }
+
+      if (App.Service.find().someProperty('serviceName', 'HDFS') && !stepConfigs.someProperty('serviceName', 'HDFS')) {
+        requiredTags.push({site: 'core-site', serviceName: 'HDFS'});
+      }
+
+      if (requiredTags.length) {
+        this.loadAdditionalSites(requiredTags, stepConfigs, recommendations, dataToSend, onComplete);
+      } else {
         this.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
         return this.getRecommendationsRequest(dataToSend, onComplete);
-      } else {
-        this.requestRecommendationsWithEnv(stepConfigs, recommendations, dataToSend, onComplete);
       }
     } else {
       if (onComplete) {
@@ -217,13 +226,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param {object} dataToSend
    * @param {Function} onComplete
    */
-  requestRecommendationsWithEnv: function(stepConfigs, recommendations, dataToSend, onComplete) {
+  loadAdditionalSites: function(sites, stepConfigs, recommendations, dataToSend, onComplete) {
     var self = this;
-    App.config.getClusterEnvConfigs().done(function (clusterEnvConfigs) {
-      stepConfigs = stepConfigs.concat(Em.Object.create({
-        serviceName: 'MISC',
-        configs: clusterEnvConfigs
-      }));
+    App.config.getConfigsByTypes(sites).done(function (configs) {
+      stepConfigs = stepConfigs.concat(configs);
 
       self.addRecommendationRequestParams(recommendations, dataToSend, stepConfigs);
       self.getRecommendationsRequest(dataToSend, onComplete);

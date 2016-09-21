@@ -8,6 +8,7 @@
     "url": "https://git-wip-us.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
   },
   "dependencies": {
+    "babel-brunch": "^5.1.2",
     "javascript-brunch": ">= 1.0 < 1.5",
     "css-brunch": ">= 1.0 < 1.5",
     "uglify-js-brunch": ">= 1.0 < 1.5",

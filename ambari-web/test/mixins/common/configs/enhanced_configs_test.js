@@ -164,60 +164,6 @@ describe('App.EnhancedConfigsMixin', function () {
     });
   });
 
-  describe("#loadConfigRecommendations", function () {
-    var mixinInstance;
-
-    beforeEach(function () {
-      mixinInstance = mixinClass.create({
-        recommendationsConfigs: {},
-        stepConfigs: [],
-        hostGroups: {
-          blueprint: {
-            configurations: {}
-          }
-        }
-      });
-      this.mockedCallback = sinon.stub();
-      sinon.stub(App.config, 'getClusterEnvConfigs').returns({
-        done: function (callback) {
-          callback([]);
-        }
-      });
-    });
-
-    afterEach(function () {
-      App.config.getClusterEnvConfigs.restore();
-    });
-
-    it("should call callback if changedConfigs is empty array", function () {
-      mixinInstance.loadConfigRecommendations([], this.mockedCallback);
-      expect(testHelpers.findAjaxRequest('name', 'config.recommendations')).to.not.exist;
-      expect(this.mockedCallback.calledOnce).to.be.true;
-    });
-
-    it("should call callback from ajax callback if changedConfigs is not empty", function () {
-      mixinInstance.loadConfigRecommendations([{}], this.mockedCallback);
-      var args = testHelpers.findAjaxRequest('name', 'config.recommendations');
-      expect(args[0]).exists;
-      args[0].callback();
-      expect(this.mockedCallback.calledOnce).to.be.true;
-    });
-
-    it("should call getClusterEnvConfigs if there is no cluster-env configs in stepConfigs", function () {
-      mixinInstance.loadConfigRecommendations([{}]);
-      expect(App.config.getClusterEnvConfigs.calledOnce).to.be.true;
-    });
-
-    it("should not call getClusterEnvConfigs if there is cluster-env configs in stepConfigs", function () {
-      mixinInstance.set('stepConfigs', [Em.Object.create({
-        serviceName: 'MISC',
-        configs: []
-      })]);
-      mixinInstance.loadConfigRecommendations([{}]);
-      expect(App.config.getClusterEnvConfigs.calledOnce).to.be.false;
-    });
-  });
-
   describe("#changedDependentGroup", function () {
     var mixinInstance;
 
@@ -559,7 +505,7 @@ describe('App.EnhancedConfigsMixin', function () {
       sinon.stub(mixin, 'modifyRecommendationConfigGroups');
       sinon.stub(mixin, 'addRecommendationRequestParams');
       sinon.stub(mixin, 'getRecommendationsRequest');
-      sinon.stub(mixin, 'requestRecommendationsWithEnv');
+      sinon.stub(mixin, 'loadAdditionalSites');
     });
 
     afterEach(function() {
@@ -568,7 +514,7 @@ describe('App.EnhancedConfigsMixin', function () {
       mixin.modifyRecommendationConfigGroups.restore();
       mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
-      mixin.requestRecommendationsWithEnv.restore();
+      mixin.loadAdditionalSites.restore();
     });
 
     it("changedConfigs is null", function() {
@@ -589,7 +535,7 @@ describe('App.EnhancedConfigsMixin', function () {
       mixin.loadConfigRecommendations([], mock.onComplete);
       expect(mixin.getConfigRecommendationsParams.calledWith(false)).to.be.true;
       expect(mixin.modifyRecommendationConfigGroups.calledOnce).to.be.true;
-      expect(mixin.requestRecommendationsWithEnv.calledOnce).to.be.true;
+      expect(mixin.loadAdditionalSites.calledOnce).to.be.true;
     });
 
     it("changedConfigs is correct, MISC service present", function() {
@@ -628,34 +574,29 @@ describe('App.EnhancedConfigsMixin', function () {
     });
   });
 
-  describe("#requestRecommendationsWithEnv()", function () {
+  describe("#loadAdditionalSites()", function () {
 
     beforeEach(function() {
-      sinon.stub(App.config, 'getClusterEnvConfigs').returns({
+      sinon.stub(App.config, 'getConfigsByTypes').returns({
         done: function(callback) {callback([]);}
       });
       sinon.stub(mixin, 'addRecommendationRequestParams');
       sinon.stub(mixin, 'getRecommendationsRequest');
-      mixin.requestRecommendationsWithEnv([], {}, {}, Em.K);
+      mixin.loadAdditionalSites([], [], {}, {}, Em.K);
     });
 
     afterEach(function() {
-      App.config.getClusterEnvConfigs.restore();
+      App.config.getConfigsByTypes.restore();
       mixin.addRecommendationRequestParams.restore();
       mixin.getRecommendationsRequest.restore();
     });
 
-    it("App.config.getClusterEnvConfigs should be called", function() {
-      expect(App.config.getClusterEnvConfigs.calledOnce).to.be.true;
+    it("App.config.getConfigsByTypes should be called", function() {
+      expect(App.config.getConfigsByTypes.calledOnce).to.be.true;
     });
 
     it("addRecommendationRequestParams should be called", function() {
-      expect(mixin.addRecommendationRequestParams.calledWith({}, {}, [
-        Em.Object.create({
-          serviceName: 'MISC',
-          configs: []
-        })
-      ])).to.be.true;
+      expect(mixin.addRecommendationRequestParams.calledWith({}, {}, [])).to.be.true;
     });
 
     it("getRecommendationsRequest should be called", function() {
