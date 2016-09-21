@@ -607,6 +607,7 @@ if has_hive_interactive:
   num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
   llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
   llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']
+  hive_aux_jars = default('/configurations/hive-interactive-env/hive_aux_jars', '')
   hive_llap_io_mem_size = config['configurations']['hive-interactive-site']['hive.llap.io.memory.size']
   llap_heap_size = config['configurations']['hive-interactive-env']['llap_heap_size']
   llap_app_name = config['configurations']['hive-interactive-env']['llap_app_name']

@@ -269,6 +269,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
                       "{llap_keytab_splits[4]} --slider-principal {params.hive_llap_principal}")
 
+      # Add the aux jars if they are specified. If empty, dont need to add this param.
+      if params.hive_aux_jars:
+        cmd+= format(" --auxjars {params.hive_aux_jars}")
+
       # Append args.
       llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
       cmd += format(" --args \" {llap_java_args}\"")
