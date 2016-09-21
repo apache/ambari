@@ -807,7 +807,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (service.get('serviceName') === 'YARN') {
         configsByService[service.get('serviceName')] = App.config.addYarnCapacityScheduler(configsByService[service.get('serviceName')]);
       }
-      service.set('configs', configsByService[service.get('serviceName')]);
+      service.set('configs', configsByService[service.get('serviceName')] || []);
       if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
         this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
       }
