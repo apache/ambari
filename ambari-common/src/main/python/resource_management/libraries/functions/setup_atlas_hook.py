@@ -177,5 +177,6 @@ def setup_atlas_jar_symlinks(hook_name, jar_source_dir):
 def install_atlas_hook_packages(atlas_plugin_package, atlas_ubuntu_plugin_package, host_sys_prepped,
                                 agent_stack_retry_on_unavailability, agent_stack_retry_count):
   if not host_sys_prepped:
+    # This will install packages like atlas-metadata-${service}-plugin needed for Falcon and Hive.
     Package(atlas_ubuntu_plugin_package if OSCheck.is_ubuntu_family() else atlas_plugin_package,
             retry_on_repo_unavailability=agent_stack_retry_on_unavailability, retry_count=agent_stack_retry_count)

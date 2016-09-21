@@ -30,6 +30,7 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.get_stack_version import get_stack_version
+from resource_management.libraries.functions.copy_tarball import get_sysprep_skip_copy_tarballs_hdfs
 from resource_management.libraries.functions.version import format_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -60,7 +61,8 @@ stack_version_unformatted = config['hostLevelParams']['stack_version']
 if upgrade_direction == Direction.DOWNGRADE:
   stack_version_unformatted = config['commandParams']['original_stack'].split("-")[1]
 stack_version_formatted = format_stack_version(stack_version_unformatted)
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+sysprep_skip_copy_tarballs_hdfs = get_sysprep_skip_copy_tarballs_hdfs()
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)

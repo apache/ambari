@@ -873,8 +873,8 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-mapreduce-historyserver', version), sudo=True)
-    self.assertTrue(call("tez", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
-    self.assertTrue(call("slider", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
+    self.assertTrue(call("tez", "hadoop", "hdfs", skip=False) in copy_to_hdfs_mock.call_args_list)
+    self.assertTrue(call("slider", "hadoop", "hdfs", skip=False) in copy_to_hdfs_mock.call_args_list)
 
     # From call to conf_select.get_hadoop_conf_dir()
     self.assert_call_to_get_hadoop_conf_dir()

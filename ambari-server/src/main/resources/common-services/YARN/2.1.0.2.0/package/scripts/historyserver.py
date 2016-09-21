@@ -82,9 +82,9 @@ class HistoryServerDefault(HistoryServer):
       conf_select.select(params.stack_name, "hadoop", params.version)
       stack_select.select("hadoop-mapreduce-historyserver", params.version)
       # MC Hammer said, "Can't touch this"
-      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
-      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_to_hdfs("tez", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      copy_to_hdfs("slider", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
       params.HdfsResource(None, action="execute")
 
   def start(self, env, upgrade_type=None):
@@ -98,17 +98,17 @@ class HistoryServerDefault(HistoryServer):
         "mapreduce",
         params.user_group,
         params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped)
+        skip=params.sysprep_skip_copy_tarballs_hdfs)
       resource_created = copy_to_hdfs(
         "tez",
         params.user_group,
         params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped) or resource_created
+        skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
       resource_created = copy_to_hdfs(
         "slider",
         params.user_group,
         params.hdfs_user,
-        host_sys_prepped=params.host_sys_prepped) or resource_created
+        skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
       if resource_created:
         params.HdfsResource(None, action="execute")
     else:

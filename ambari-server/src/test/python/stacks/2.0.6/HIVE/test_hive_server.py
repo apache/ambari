@@ -945,8 +945,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)
 
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", skip=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", skip=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
@@ -988,8 +988,8 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     self.assertResourceCalled('Execute',
 
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)
-    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", host_sys_prepped=False)
-    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs", skip=False)
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs", skip=False)
     self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,

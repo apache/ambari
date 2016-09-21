@@ -83,7 +83,7 @@ def hive_interactive(name=None):
                  params.user_group,
                  params.hdfs_user,
                  file_mode=params.tarballs_mode,
-                 host_sys_prepped=params.host_sys_prepped)
+                 skip=params.sysprep_skip_copy_tarballs_hdfs)
 
     if resource_created:
       params.HdfsResource(None, action="execute")

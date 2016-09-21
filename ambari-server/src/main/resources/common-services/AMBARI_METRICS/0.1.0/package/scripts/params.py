@@ -179,7 +179,6 @@ java64_home = config['hostLevelParams']['java_home']
 java_version = expect("/hostLevelParams/java_version", int)
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 10)
 skip_disk_metrics_patterns = default("/configurations/ams-env/timeline.metrics.skip.disk.metrics.patterns", None)

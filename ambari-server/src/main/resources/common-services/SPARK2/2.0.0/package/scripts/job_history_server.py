@@ -87,7 +87,7 @@ class JobHistoryServer(Script):
           "tez",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped)
+          skip=params.sysprep_skip_copy_tarballs_hdfs)
         if resource_created:
           params.HdfsResource(None, action="execute")
           

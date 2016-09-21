@@ -33,7 +33,9 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 
 config = Script.get_config()
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+# Whether to skip copying fast-hdfs-resource.jar to /var/lib/ambari-agent/lib/
+# This is required if tarballs are going to be copied to HDFS, so set to False
+sysprep_skip_copy_fast_jar_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_fast_jar_hdfs", False)
 
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)

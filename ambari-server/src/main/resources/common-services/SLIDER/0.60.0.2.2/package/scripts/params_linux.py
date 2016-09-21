@@ -50,8 +50,6 @@ slider_tar_gz = format('{slider_lib_dir}/slider.tar.gz')
 user_group = config['configurations']['cluster-env']['user_group']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
-
 
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']
