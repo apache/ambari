@@ -71,7 +71,7 @@
         </div>
           <button
               class="btn btn-primary pull-right"
-              ng-click="save()">
+              ng-click="save()" ng-disabled="!(autoCreate && form.$dirty)">
             {{'common.controls.save' | translate}}
           </button>
       </fieldset>
