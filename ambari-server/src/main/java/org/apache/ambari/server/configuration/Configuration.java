@@ -2346,6 +2346,16 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> TASK_ID_LIST_LIMIT = new ConfigurationProperty<>(
       "task.query.parameterlist.size", 999);
 
+  /**
+   * Indicates whether the current ambari server instance is the active instance.
+   * If this property is missing, the value will be considered to be true.
+   * If present, it should be explicitly set to "true" to set this as the active instance.
+   * Any other value will be taken as a false.
+   */
+  @Markdown(description = "Indicates whether the current ambari server instance is active or not.")
+  public static final ConfigurationProperty<Boolean> ACTIVE_INSTANCE = new ConfigurationProperty<>(
+          "active.instance", Boolean.TRUE);
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -4885,6 +4895,15 @@ public class Configuration {
    */
   public int getTaskIdListLimit() {
     return Integer.parseInt(getProperty(TASK_ID_LIST_LIMIT));
+  }
+
+  /**
+   * Get whether the current ambari server instance the active instance
+   *
+   * @return true / false
+   */
+  public boolean isActiveInstance() {
+    return Boolean.parseBoolean(getProperty(ACTIVE_INSTANCE));
   }
 
   /**
