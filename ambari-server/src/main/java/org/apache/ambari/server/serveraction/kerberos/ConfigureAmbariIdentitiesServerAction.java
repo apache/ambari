@@ -23,20 +23,25 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.serveraction.ActionLog;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ConfigureAmbariIndetityServerAction is a ServerAction implementation that creates keytab files as
+ * ConfigureAmbariIdentitiesServerAction is a ServerAction implementation that creates keytab files as
  * instructed.
  * <p/>
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
@@ -45,19 +50,25 @@ import org.slf4j.LoggerFactory;
  * {@link KerberosServerAction#processIdentity(Map, String, KerberosOperationHandler, Map, Map)}
  * is invoked attempting the creation of the relevant keytab file.
  */
-public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
+public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction {
 
 
   private static final String KEYTAB_PATTERN = "keyTab=\"(.+)?\"";
   private static final String PRINCIPAL_PATTERN = "principal=\"(.+)?\"";
 
-  private final static Logger LOG = LoggerFactory.getLogger(ConfigureAmbariIndetityServerAction.class);
+  private final static Logger LOG = LoggerFactory.getLogger(ConfigureAmbariIdentitiesServerAction.class);
+
+  @Inject
+  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+
+  @Inject
+  private HostDAO hostDAO;
 
   /**
    * Called to execute this action.  Upon invocation, calls
    * {@link KerberosServerAction#processIdentities(Map)} )}
    * to iterate through the Kerberos identity metadata and call
-   * {@link ConfigureAmbariIndetityServerAction#processIdentities(Map)}
+   * {@link ConfigureAmbariIdentitiesServerAction#processIdentities(Map)}
    * for each identity to process.
    *
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
@@ -68,7 +79,7 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
    */
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext) throws
-    AmbariException, InterruptedException {
+      AmbariException, InterruptedException {
     return processIdentities(requestSharedDataContext);
   }
 
@@ -95,19 +106,14 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
                                           KerberosOperationHandler operationHandler,
                                           Map<String, String> kerberosConfiguration,
                                           Map<String, Object> requestSharedDataContext)
-    throws AmbariException {
+      throws AmbariException {
     CommandReport commandReport = null;
 
     if (identityRecord != null) {
       String message;
       String dataDirectory = getDataDirectoryPath();
 
-      if (operationHandler == null) {
-        message = String.format("Failed to create keytab file for %s, missing KerberosOperationHandler", evaluatedPrincipal);
-        actionLog.writeStdErr(message);
-        LOG.error(message);
-        commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
-      } else if (dataDirectory == null) {
+      if (dataDirectory == null) {
         message = "The data directory has not been set. Generated keytab files can not be stored.";
         LOG.error(message);
         commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
@@ -119,8 +125,13 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
           File hostDirectory = new File(dataDirectory, hostName);
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(destKeytabFilePath));
 
-          if(srcKeytabFile.exists()) {
+          if (srcKeytabFile.exists()) {
             installAmbariServerIdentity(evaluatedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath, actionLog);
+
+            if ("AMBARI_SERVER".equals(identityRecord.get(KerberosIdentityDataFileReader.COMPONENT))) {
+              // Create/update the JAASFile...
+              configureJAAS(evaluatedPrincipal, destKeytabFilePath, actionLog);
+            }
           }
         }
       }
@@ -160,13 +171,29 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
       result = ShellCommandUtil.copyFile(srcKeytabFilePath, destKeytabFilePath, true, true);
       if (!result.isSuccessful()) {
         throw new AmbariException(result.getStderr());
+      } else {
+        String ambariServerHostName = StageUtils.getHostName();
+        HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
+        Long ambariServerHostID = (ambariServerHostEntity == null)
+            ? null
+            : ambariServerHostEntity.getHostId();
+
+        if (ambariServerHostID == null) {
+          String message = String.format("Failed to add the kerberos_principal_host record for %s on " +
+                  "the Ambari server host since the host id for Ambari server host, %s, was not found." +
+                  "  This is not an error if an Ambari agent is not installed on the Ambari server host.",
+              principal, ambariServerHostName);
+          LOG.warn(message);
+          actionLog.writeStdErr(message);
+        } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID)) {
+          kerberosPrincipalHostDAO.create(principal, ambariServerHostID);
+        }
+
+        actionLog.writeStdOut(String.format("Created Ambari server keytab file for %s at %s", principal, destKeytabFile));
       }
     } catch (InterruptedException | IOException e) {
       throw new AmbariException(e.getLocalizedMessage(), e);
     }
-
-    // Create/update the JAASFile...
-    configureJAAS(principal, destKeytabFilePath, actionLog);
 
     return true;
   }
@@ -183,13 +210,13 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
         jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + evaluatedPrincipal + "\"");
         FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
         String message = String.format("JAAS config file %s modified successfully for principal %s.", jaasConfigFile
-          .getName(), evaluatedPrincipal);
+            .getName(), evaluatedPrincipal);
         if (actionLog != null) {
           actionLog.writeStdOut(message);
         }
       } catch (IOException e) {
         String message = String.format("Failed to configure JAAS file %s for %s - %s", jaasConfigFile,
-          evaluatedPrincipal, e.getMessage());
+            evaluatedPrincipal, e.getMessage());
         if (actionLog != null) {
           actionLog.writeStdErr(message);
         }
@@ -197,7 +224,7 @@ public class ConfigureAmbariIndetityServerAction extends KerberosServerAction {
       }
     } else {
       String message = String.format("Failed to configure JAAS, config file should be passed to Ambari server as: " +
-        "%s.", KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+          "%s.", KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
       if (actionLog != null) {
         actionLog.writeStdErr(message);
       }

@@ -28,6 +28,7 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -514,12 +515,19 @@ public abstract class KerberosServerAction extends AbstractServerAction {
 
     if (record != null) {
       String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
-      String host = record.get(KerberosIdentityDataFileReader.HOSTNAME);
 
       if (principal != null) {
+        String hostname = record.get(KerberosIdentityDataFileReader.HOSTNAME);
+
+        if(KerberosHelper.AMBARI_SERVER_HOST_NAME.equals(hostname)) {
+          // Replace KerberosHelper.AMBARI_SERVER_HOST_NAME with the actual hostname where the Ambari
+          // server is... this host
+          hostname = StageUtils.getHostName();
+        }
+
         // Evaluate the principal "pattern" found in the record to generate the "evaluated principal"
         // by replacing the _HOST and _REALM variables.
-        String evaluatedPrincipal = principal.replace("_HOST", host).replace("_REALM", defaultRealm);
+        String evaluatedPrincipal = principal.replace("_HOST", hostname).replace("_REALM", defaultRealm);
 
         commandReport = processIdentity(record, evaluatedPrincipal, operationHandler, kerberosConfiguration, requestSharedDataContext);
       }

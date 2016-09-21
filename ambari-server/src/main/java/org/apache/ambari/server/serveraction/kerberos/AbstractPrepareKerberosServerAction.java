@@ -156,7 +156,15 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
             if (ambariServerIdentity != null) {
               List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(ambariServerIdentity);
               kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI_SEVER", "AMBARI_SEVER", kerberosConfigurations, configurations);
+                identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI_SERVER", "AMBARI_SERVER", kerberosConfigurations, configurations);
+              propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
+            }
+
+            KerberosIdentityDescriptor spnegoIdentity = kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME);
+            if (spnegoIdentity != null) {
+              List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(spnegoIdentity);
+              kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
+                identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI_SERVER", "SPNEGO", kerberosConfigurations, configurations);
               propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
             }
           }
