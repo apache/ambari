@@ -907,6 +907,14 @@ public class AmbariServer {
     try {
       LOG.info("Getting the controller");
 
+      // check if this instance is the active instance
+      Configuration config = injector.getInstance(Configuration.class);
+      if (!config.isActiveInstance()) {
+        String errMsg = "This instance of ambari server is not designated as active. Cannot start ambari server." +
+                            "The property active.instance is set to false in ambari.properties";
+        throw new AmbariException(errMsg);
+      }
+
       setupProxyAuth();
 
       injector.getInstance(GuiceJpaInitializer.class);
