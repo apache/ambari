@@ -89,6 +89,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -97,6 +98,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.UpgradeHelper;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -806,9 +808,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findByStackNameAndVersion(
             sourceStackId.getStackName(), version);
 
-        // !!! TODO check the repo_version for patch-ness and restrict the context
-        // to those services that require it.  Consult the version definition and add the
-        // service names to supportedServices
+        // !!! Consult the version definition and add the service names to supportedServices
+        if (targetRepositoryVersion.getType() != RepositoryType.STANDARD) {
+          try {
+            VersionDefinitionXml vdf = targetRepositoryVersion.getRepositoryXml();
+            supportedServices.addAll(vdf.getAvailableServiceNames());
+          } catch (Exception e) {
+            String msg = String.format("Could not parse version definition for %s.  Upgrade will not proceed.", version);
+            LOG.error(msg, e);
+            throw new AmbariException(msg);
+          }
+        }
 
         targetStackId = targetRepositoryVersion.getStackId();
         break;

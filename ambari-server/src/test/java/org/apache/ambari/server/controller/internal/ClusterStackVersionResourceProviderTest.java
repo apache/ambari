@@ -109,7 +109,6 @@ import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -390,7 +389,6 @@ public class ClusterStackVersionResourceProviderTest {
   }
 
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
-  @Ignore
   public void testCreateResourcesForPatch() throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 

@@ -77,6 +77,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -498,8 +499,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
 
-      // !!! TODO for patch upgrades, we need to limit the serviceNames to those
-      // that are detailed for the repository
+      // !!! limit the serviceNames to those that are detailed for the repository.
+      // TODO packages don't have component granularity
+      if (RepositoryType.STANDARD != repoVersionEnt.getType()) {
+        serviceNames.addAll(desiredVersionDefinition.getAvailableServiceNames());
+      }
 
       // Populate with commands for host
       for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {
@@ -597,6 +601,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     if (servicesOnHost.isEmpty()) {
       return null;
     }
+
     List<String> blacklistedPackagePrefixes = configuration.getRollingUpgradeSkipPackagesPrefixes();
     for (String serviceName : servicesOnHost) {
       ServiceInfo info;
