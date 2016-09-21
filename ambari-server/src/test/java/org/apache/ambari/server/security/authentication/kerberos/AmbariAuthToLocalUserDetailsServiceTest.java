@@ -25,6 +25,7 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
 import org.easymock.EasyMockSupport;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -36,6 +37,14 @@ import java.util.Collections;
 import static org.easymock.EasyMock.expect;
 
 public class AmbariAuthToLocalUserDetailsServiceTest extends EasyMockSupport {
+  @Before
+  public void setup() {
+    // These system properties need to be set to properly configure the KerberosName object when
+    // a krb5.conf file is not available
+    System.setProperty("java.security.krb5.realm", "EXAMPLE.COM");
+    System.setProperty("java.security.krb5.kdc", "localhost");
+  }
+
   @Test
   public void loadUserByUsernameSuccess() throws Exception {
     AmbariKerberosAuthenticationProperties properties = new AmbariKerberosAuthenticationProperties();
@@ -55,10 +64,6 @@ public class AmbariAuthToLocalUserDetailsServiceTest extends EasyMockSupport {
 
     replayAll();
 
-    // These system properties need to be set to properly configure the KerberosName object when
-    // a krb5.conf file is not available
-    System.setProperty("java.security.krb5.realm", "EXAMPLE.COM");
-    System.setProperty("java.security.krb5.kdc", "localhost");
     UserDetailsService userdetailsService = new AmbariAuthToLocalUserDetailsService(configuration, users);
 
     UserDetails userDetails = userdetailsService.loadUserByUsername("user1@EXAMPLE.COM");
