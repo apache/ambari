@@ -233,6 +233,7 @@
         <component>
           <name>HCAT</name>
           <displayName>HCat Client</displayName>
+          <cardinality>0+</cardinality>
           <category>CLIENT</category>
           <versionAdvertised>true</versionAdvertised>
           <commandScript>
