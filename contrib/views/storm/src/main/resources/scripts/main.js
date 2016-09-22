@@ -49,6 +49,10 @@ require.config({
     'd3.tip': {
       deps: ['d3']
     },
+    'dagreD3':{
+      deps: ['d3'],
+      exports: 'dagreD3'
+    },
     'x-editable': {
       deps: ['bootstrap']
     }
@@ -70,7 +74,8 @@ require.config({
     'react-dom': '../libs/react/js/react-dom',
     'JSXTransformer': '../libs/jsx/JSXTransformer',
     'jsx': "../libs/jsx/jsx",
-    'x-editable':'../libs/Bootstrap/js/bootstrap-editable.min'
+    'x-editable':'../libs/Bootstrap/js/bootstrap-editable.min',
+    'dagreD3': '../libs/dagre-d3/dagre-d3.min'
   },
   jsx: {
     fileExtension: '.jsx',

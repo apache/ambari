@@ -425,6 +425,18 @@ REACT
     position: absolute;
     text-align: center;
 }
+.node ellipse {
+  stroke: #333;
+  fill: #fff;
+  stroke-width: 1px;
+}
+.edgePath path {
+  stroke: grey;
+  fill: none;
+  cursor: default;
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+}
 
 /* Style northward tooltips differently */
 .d3-tip.n:after {
@@ -532,6 +544,14 @@ ul.legends li.legend{
   right: 0;
   background: url('../images/loader.gif') rgba(255,255,255,0.75) no-repeat center center;
   z-index: 9;
+}
+.inner-loader{
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  right: 0px;
+  background: url('../images/loader.gif') rgba(255,255,255,0.75) no-repeat center center;
 }
 .searchbar{
   margin-top: 15px;

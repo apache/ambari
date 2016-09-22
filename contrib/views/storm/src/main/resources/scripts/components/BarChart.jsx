@@ -55,7 +55,7 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 		setUpSVG: function(){
 			this.svg = d3.select(ReactDOM.findDOMNode(this))
 				.attr('width', this.props.width+"px")
-				.attr('height', this.props.height+30+"px")
+				.attr('height', this.props.height+50+"px")
 				// .attr("viewBox", "-46 -5 " + (this.props.width+82) + " " + (this.props.height+28) );
 
 			this.container = this.svg.append("g")
@@ -136,7 +136,37 @@ define(['react', 'react-dom', 'd3', 'd3.tip'], function(React, ReactDOM, d3) {
 			this.xAxisGrp = container['xAxisEl'] = container.append("g")
 				.attr("class", "x axis")
 				.attr("transform", "translate(0," + height + ")")
-				.call(xAxis);
+				.call(xAxis)
+				.selectAll(".tick text")
+				.call(this.wrap, this.x.rangeBand());
+		},
+		wrap: function(text, width) {
+			text.each(function() {
+				var text = d3.select(this),
+					words = text.text().split(/-+/).reverse(),
+					word,
+					line = [],
+					lineNumber = 0,
+					lineHeight = 1.1, // ems
+					y = text.attr("y"),
+					dy = parseFloat(text.attr("dy")),
+					tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+
+				//Hack to show hidden div to find getComputedTextLength
+				$('#lag-graph').css({visibility: 'hidden', display: 'block', position: 'absolute'});
+
+				while (word = words.pop()) {
+					line.push(word);
+					tspan.text(line.join(" "));
+					if (tspan.node().getComputedTextLength() > width) {
+						line.pop();
+						tspan.text(line.join(" "));
+						line = [word];
+						tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+					}
+				}
+				$('#lag-graph').css({visibility: '', display: 'none', position: ''});
+			});
 		},
 		drawYAxis: function(x) {
 			var yAxis = this.yAxis;
