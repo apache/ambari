@@ -185,9 +185,9 @@ smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 
 security_check_status_file = format('{log_dir}/security_check.status')
 if security_enabled:
-    smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
+    smoke_cmd = format('curl -k --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 else:
-    smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
+    smoke_cmd = format('curl -k -s -o /dev/null -w "%{{http_code}}" {metadata_protocol}://{metadata_host}:{metadata_port}/')
 
 # hbase
 hbase_conf_dir = "/etc/hbase/conf"

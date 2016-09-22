@@ -32,12 +32,8 @@ class AtlasServiceCheck(Script):
       Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}"),
               user=params.smoke_test_user)
 
-    try:
-      Execute(params.smoke_cmd, user=params.smoke_test_user, tries = 5,
-              try_sleep = 10)
-      Logger.info('Atlas server up and running')
-    except:
-      Logger.debug('Atlas server not running')
+    Execute(params.smoke_cmd, user=params.smoke_test_user, tries = 5,
+            try_sleep = 10)
 
 
 if __name__ == "__main__":
