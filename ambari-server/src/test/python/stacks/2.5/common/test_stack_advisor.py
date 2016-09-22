@@ -436,7 +436,10 @@ class TestHDP25StackAdvisor(TestCase):
     services = self.load_json("services-normal-his-2-hosts.json")
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
-    expected = {'component-name': 'HIVE_SERVER_INTERACTIVE', 'message': 'Between 0 and 1 HiveServer2 Interactive components should be installed in cluster.', 'type': 'host-component', 'level': 'ERROR'}
+    expected = {'component-name': 'HIVE_SERVER_INTERACTIVE',
+                'message': 'You have selected 2 HiveServer2 Interactive components. Please consider that between 0 and 1 HiveServer2 Interactive components should be installed in cluster.',
+                'type': 'host-component',
+                'level': 'ERROR'}
     self.assertEquals(validations[0], expected)
 
 

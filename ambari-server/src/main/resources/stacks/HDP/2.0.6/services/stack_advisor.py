@@ -65,21 +65,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
          if "+" in cardinality:
            hostsMin = int(cardinality[:-1])
            if componentHostsCount < hostsMin:
-             message = "At least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
+             message = "at least {0} {1} components should be installed in cluster.".format(hostsMin, componentDisplayName)
          elif "-" in cardinality:
            nums = cardinality.split("-")
            hostsMin = int(nums[0])
            hostsMax = int(nums[1])
            if componentHostsCount > hostsMax or componentHostsCount < hostsMin:
-             message = "Between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
+             message = "between {0} and {1} {2} components should be installed in cluster.".format(hostsMin, hostsMax, componentDisplayName)
          elif "ALL" == cardinality:
            if componentHostsCount != hostsCount:
              message = "{0} component should be installed on all hosts in cluster.".format(componentDisplayName)
          else:
            if componentHostsCount != int(cardinality):
-             message = "Exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
+             message = "exactly {0} {1} components should be installed in cluster.".format(int(cardinality), componentDisplayName)
 
          if message is not None:
+           message = "You have selected {0} {1} components. Please consider that {2}".format(componentHostsCount, componentDisplayName, message)
            items.append({"type": 'host-component', "level": 'ERROR', "message": message, "component-name": componentName})
 
     # Validating host-usage
