@@ -200,6 +200,19 @@ class TestActionQueue(TestCase):
     'hostLevelParams':{'custom_command': 'RESTART'}
   }
 
+  datanode_start_custom_command = {
+    'commandType': 'EXECUTION_COMMAND',
+    'role': u'DATANODE',
+    'roleCommand': u'CUSTOM_COMMAND',
+    'commandId': '1-1',
+    'taskId': 9,
+    'clusterName': u'cc',
+    'serviceName': u'HDFS',
+    'configurations':{'global' : {}},
+    'configurationTags':{'global' : { 'tag': 'v123' }},
+    'hostLevelParams':{'custom_command': 'START'}
+  }
+
   status_command_for_alerts = {
     "serviceName" : 'FLUME',
     "commandType" : "STATUS_COMMAND",
@@ -774,6 +787,51 @@ class TestActionQueue(TestCase):
     self.assertEqual(len(report['reports']), 1)
     self.assertEqual(expected, report['reports'][0])
     self.assertFalse(write_client_components_mock.called)
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(ActualConfigHandler, "write_client_components")
+  @patch.object(ActualConfigHandler, "write_actual_component")
+  @patch.object(CustomServiceOrchestrator, "runCommand")
+  @patch("CommandStatusDict.CommandStatusDict")
+  @patch.object(ActionQueue, "status_update_callback")
+  def test_store_configuration_tags_on_custom_start_command(self, status_update_callback_mock,
+                                    command_status_dict_mock,
+                                    cso_runCommand_mock, write_actual_component_mock, write_client_components_mock):
+    custom_service_orchestrator_execution_result_dict = {
+      'stdout': 'out',
+      'stderr': 'stderr',
+      'structuredOut' : '',
+      'exitcode' : 0
+    }
+    cso_runCommand_mock.return_value = custom_service_orchestrator_execution_result_dict
+
+    config = AmbariConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
+    config.set('agent', 'tolerate_download_failures', "true")
+    dummy_controller = MagicMock()
+    actionQueue = ActionQueue(config, dummy_controller)
+    actionQueue.execute_command(self.datanode_start_custom_command)
+    report = actionQueue.result()
+    expected = {'status': 'COMPLETED',
+                'configurationTags': {'global': {'tag': 'v123'}},
+                'stderr': 'stderr',
+                'stdout': 'out\n\nCommand completed successfully!\n',
+                'clusterName': u'cc',
+                'structuredOut': '""',
+                'roleCommand': u'CUSTOM_COMMAND',
+                'serviceName': u'HDFS',
+                'role': u'DATANODE',
+                'actionId': '1-1',
+                'taskId': 9,
+                'customCommand': 'START',
+                'exitCode': 0}
+    self.assertEqual(len(report['reports']), 1)
+    self.assertEqual(expected, report['reports'][0])
+
+    # Configuration tags should be updated on custom start command
+    self.assertTrue(write_actual_component_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")

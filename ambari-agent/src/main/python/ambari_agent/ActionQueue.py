@@ -65,6 +65,7 @@ class ActionQueue(threading.Thread):
   ROLE_COMMAND_STOP = 'STOP'
   ROLE_COMMAND_CUSTOM_COMMAND = 'CUSTOM_COMMAND'
   CUSTOM_COMMAND_RESTART = 'RESTART'
+  CUSTOM_COMMAND_START = ROLE_COMMAND_START
 
   IN_PROGRESS_STATUS = 'IN_PROGRESS'
   COMPLETED_STATUS = 'COMPLETED'
@@ -417,7 +418,7 @@ class ActionQueue(threading.Thread):
              (command['roleCommand'] == self.ROLE_COMMAND_INSTALL and component in LiveStatus.CLIENT_COMPONENTS) or
                (command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND and
                   'custom_command' in command['hostLevelParams'] and
-                      command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART)):
+                      command['hostLevelParams']['custom_command'] in (self.CUSTOM_COMMAND_RESTART, self.CUSTOM_COMMAND_START))):
         configHandler.write_actual_component(command['role'],
                                              command['configurationTags'])
         if 'clientsToUpdateConfigs' in command['hostLevelParams'] and command['hostLevelParams']['clientsToUpdateConfigs']:
