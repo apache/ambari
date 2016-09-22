@@ -34,11 +34,6 @@ export smoke_user_keytab=${11}
 export kinit_path_local=${12}
 export smokeuser_principal=${13}
 
-function getValueFromField {
-  xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
-  return $?
-}
-
 function checkOozieJobStatus {
   local job_id=$1
   local num_of_tries=$2
