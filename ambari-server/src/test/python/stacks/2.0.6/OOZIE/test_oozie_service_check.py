@@ -53,14 +53,6 @@ class TestOozieServiceCheck(RMFTestCase):
 
     self.maxDiff = None
 
-    self.assertResourceCalled('XmlConfig',
-      "yarn-site.xml",
-      owner = "hdfs",
-      group = "hadoop",
-      mode = 0644,
-      conf_dir="/usr/hdp/current/hadoop-client/conf",
-      configurations = json_content['configurations']['yarn-site'])
-
     self.assertResourceCalled('File',
       "/tmp/oozieSmoke2.sh",
       content = StaticFile("oozieSmoke2.sh"),
