@@ -37,14 +37,6 @@ class TestServiceCheck(RMFTestCase):
                         target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/etc/hadoop/conf',
-      mode = 0644,
-      configurations = self.getConfig()['configurations']['yarn-site'],
-    )
-
     self.assert_service_check()
     self.assertNoMoreResources()
     
@@ -56,14 +48,6 @@ class TestServiceCheck(RMFTestCase):
                         config_file="default.json",
                         stack_version = self.STACK_VERSION,
                         target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-
-    self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/etc/hadoop/conf',
-      mode = 0644,
-      configurations = self.getConfig()['configurations']['yarn-site'],
     )
 
     self.assert_service_check()

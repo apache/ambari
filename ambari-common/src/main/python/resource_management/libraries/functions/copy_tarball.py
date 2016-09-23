@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 
-__all__ = ["copy_to_hdfs", ]
+__all__ = ["copy_to_hdfs", "get_sysprep_skip_copy_tarballs_hdfs"]
 
 import os
 import uuid
@@ -64,6 +64,16 @@ TARBALL_MAP = {
              "/{0}/apps/{1}/spark2/spark2-{0}-yarn-archive.tar.gz".format(STACK_NAME_PATTERN, STACK_VERSION_PATTERN))
 }
 
+
+def get_sysprep_skip_copy_tarballs_hdfs():
+  import params
+  host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
+  # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
+  sysprep_skip_copy_tarballs_hdfs = False
+  if host_sys_prepped:
+    sysprep_skip_copy_tarballs_hdfs = default("/cluster-env/sysprep_skip_copy_tarballs_hdfs", False)
+  return sysprep_skip_copy_tarballs_hdfs
 
 def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
   """
@@ -189,7 +199,7 @@ def _get_single_version_from_stack_select():
 
 
 def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=None, custom_dest_file=None, force_execute=False,
-                 use_upgrading_version_during_upgrade=True, replace_existing_files=False, host_sys_prepped=False):
+                 use_upgrading_version_during_upgrade=True, replace_existing_files=False, skip=False):
   """
   :param name: Tarball name, e.g., tez, hive, pig, sqoop.
   :param user_group: Group to own the directory.
@@ -199,7 +209,7 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
   :param custom_dest_file: Override the destination file path
   :param force_execute: If true, will execute the HDFS commands immediately, otherwise, will defer to the calling function.
   :param use_upgrading_version_during_upgrade: If true, will use the version going to during upgrade. Otherwise, use the CURRENT (source) version.
-  :param host_sys_prepped: If true, tarballs will not be copied as the cluster deployment uses prepped VMs.
+  :param skip: If true, tarballs will not be copied as the cluster deployment uses prepped VMs.
   :return: Will return True if successful, otherwise, False.
   """
   import params
@@ -212,8 +222,8 @@ def copy_to_hdfs(name, user_group, owner, file_mode=0444, custom_source_file=Non
     Logger.error("Could not copy tarball {0} due to a missing or incorrect parameter.".format(str(name)))
     return False
 
-  if host_sys_prepped:
-    Logger.warning("Skipping copying {0} to {1} for {2} as its a sys_prepped host.".format(str(source_file), str(dest_file), str(name)))
+  if skip:
+    Logger.warning("Skipping copying {0} to {1} for {2} as it is a sys prepped host.".format(str(source_file), str(dest_file), str(name)))
     return True
 
   Logger.info("Source file: {0} , Dest file in HDFS: {1}".format(source_file, dest_file))

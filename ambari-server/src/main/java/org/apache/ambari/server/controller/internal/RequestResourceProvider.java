@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -186,53 +186,61 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
         String clusterName = actionRequest.getClusterName();
 
-        if(clusterName == null) {
+        ResourceType resourceType;
+        Long resourceId;
+
+        if (StringUtils.isEmpty(clusterName)) {
+          resourceType = ResourceType.AMBARI;
+          resourceId = null;
+        } else {
+          resourceType = ResourceType.CLUSTER;
+          resourceId = getClusterResourceId(clusterName);
+        }
+
+        if (actionRequest.isCommand()) {
+          String commandName = actionRequest.getCommandName();
+
+          if (StringUtils.isEmpty(commandName)) {
+            commandName = "_unknown_command_";
+          }
+
+          if (commandName.endsWith("_SERVICE_CHECK")) {
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+              throw new AuthorizationException("The authenticated user is not authorized to execute service checks.");
+            }
+          } else if (commandName.equals("DECOMMISSION")) {
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
+              throw new AuthorizationException("The authenticated user is not authorized to decommission services.");
+            }
+          } else {
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
+              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the command, %s.",
+                  commandName));
+            }
+          }
+        } else {
           String actionName = actionRequest.getActionName();
 
-          // Ensure that the actionName is not null or empty.  A null actionName will result in
-          // a NPE at when getting the action definition.  The string "_unknown_action_" should not
-          // result in a valid action definition and should be easy to understand in any error message
-          // that gets displayed or logged due to an authorization issue.
-          if(StringUtils.isEmpty(actionName)) {
+          if (StringUtils.isEmpty(actionName)) {
             actionName = "_unknown_action_";
           }
 
-          ActionDefinition actionDefinition = getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
-          Set<RoleAuthorization> permissions = (actionDefinition == null) ? null : actionDefinition.getPermissions();
-
-          if(permissions == null) {
-            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
-              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the '%s'command.", actionName));
-            }
-          }
-          else {
-            // Since we cannot tell whether the action is to be exectued for the system or a
-            // non-disclosed cluster, specify that the resource is a CLUSTER with no resource id.
-            // This should ensure that a user with a role for any cluster with the appropriate
-            // permissions or an Ambari administrator can execute the command.
-            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, null, permissions)) {
-              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the '%s'command.", actionName));
-            }
-          }
-        }
-        else if(actionRequest.isCommand()) {
-          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER,
-              getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
-            throw new AuthorizationException("The authenticated user is not authorized to execute custom service commands.");
-          }
-        }
-        else {
-          String actionName = actionRequest.getActionName();
-
-          // actionName is expected to not be null since the action request is not a command
-          if(actionName.contains("SERVICE_CHECK")) {
-            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+          if (actionName.contains("SERVICE_CHECK")) {
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
               throw new AuthorizationException("The authenticated user is not authorized to execute service checks.");
             }
-          }
-          else if(actionName.equals("DECOMMISSION")) {
-            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
-              throw new AuthorizationException("The authenticated user is not authorized to decommission services.");
+          } else {
+            // A custom action has been requested
+            ActionDefinition actionDefinition = (actionName == null)
+                ? null
+                : getManagementController().getAmbariMetaInfo().getActionDefinition(actionName);
+
+            Set<RoleAuthorization> permissions = (actionDefinition == null)
+                ? null
+                : actionDefinition.getPermissions();
+
+            if (!AuthorizationHelper.isAuthorized(resourceType, resourceId, permissions)) {
+              throw new AuthorizationException(String.format("The authenticated user is not authorized to execute the action %s.", actionName));
             }
           }
         }

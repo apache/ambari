@@ -1313,49 +1313,122 @@ public class RequestResourceProviderTest {
 
   @Test
   public void testCreateResourcesCheckHostForNonClusterAsAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createAdministrator(), "check_host",
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test
+  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterAdministrator(), "check_host",
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
-  @Test
+  @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsClusterOperator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterOperator(), "check_host",
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResourcesCheckHostForNonClusterAsServiceAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createServiceAdministrator(), "check_host",
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), null, null, "check_host",
         EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
   @Test
-  public void testCreateResourcesCheckJavaForNonClusterAsAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createAdministrator(), "check_java", null);
+  public void testCreateResourcesCheckHostForClusterAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), "c1", null, "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesCheckHostForClusterAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), "c1", null, "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesCheckHostForClusterAsClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), "c1", null, "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
   }
 
   @Test(expected = AuthorizationException.class)
-  public void testCreateResourcesCheckJavaForNonClusterAsClusterAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterAdministrator(), "check_java", null);
+  public void testCreateResourcesCheckHostForClusterAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), "c1", null, "check_host",
+        EnumSet.of(RoleAuthorization.HOST_ADD_DELETE_HOSTS));
+  }
+
+  @Test
+  public void testCreateResourcesServiceCheckForClusterAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesServiceCheckForClusterAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesServiceCheckForClusterAsClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesServiceCheckForClusterAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
   }
 
   @Test(expected = AuthorizationException.class)
-  public void testCreateResourcesCheckJavaForNonClusterAsClusterOperator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createClusterOperator(), "check_java", null);
+  public void testCreateResourcesServiceCheckForClusterAsClusterUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterUser(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+  @Test
+  public void testCreateResourcesDecommissionForClusterAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesDecommissionForClusterAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesDecommissionForClusterAsClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesDecommissionForClusterAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), "c1", "SOME_SERVICE_CHECK", null, null);
   }
 
   @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesDecommissionForClusterAsClusterUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterUser(), "c1", "SOME_SERVICE_CHECK", null, null);
+  }
+
+  @Test
+  public void testCreateResourcesCustomActionNoPrivsForNonClusterAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator(), null, null, "custom_action", null);
+  }
+
+  @Test
+  public void testCreateResourcesCustomActionNoPrivsForNonClusterAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator(), null, null, "custom_action", null);
+  }
+
+  @Test
+  public void testCreateResourcesCustomActionNoPrivsForNonClusterAsClusterOperator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterOperator(), null, null, "custom_action", null);
+  }
+
+  @Test
   public void testCreateResourcesForNonClusterAsServiceAdministrator() throws Exception {
-    testCreateResourcesForNonCluster(TestAuthenticationFactory.createServiceAdministrator(), "check_java", null);
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator(), null, null, "custom_action", null);
   }
 
-  private void testCreateResourcesForNonCluster(Authentication authentication, String actionName, Set<RoleAuthorization> permissions) throws Exception {
+  private void testCreateResources(Authentication authentication, String clusterName, String commandName, String actionName, Set<RoleAuthorization> permissions) throws Exception {
     Resource.Type type = Resource.Type.Request;
 
     Capture<ExecuteActionRequest> actionRequest = newCapture();
@@ -1373,8 +1446,18 @@ public class RequestResourceProviderTest {
     expect(actionDefinition.getPermissions()).andReturn(permissions).anyTimes();
     expect(response.getMessage()).andReturn("Message").anyTimes();
 
+    Cluster cluster = createMock(Cluster.class);
+    Clusters clusters = createMock(Clusters.class);
+    if(clusterName != null) {
+      expect(cluster.getResourceId()).andReturn(4L).anyTimes();
+
+      expect(clusters.getCluster(clusterName)).andReturn(cluster).anyTimes();
+
+      expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    }
+
     // replay
-    replay(managementController, metaInfo, actionDefinition, response);
+    replay(managementController, metaInfo, actionDefinition, response, cluster, clusters);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1387,11 +1470,16 @@ public class RequestResourceProviderTest {
     filterSet.add(filterMap);
 
     properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
-
+    properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName);
     propertySet.add(properties);
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
-    requestInfoProperties.put(RequestResourceProvider.ACTION_ID, actionName);
+    if(commandName != null) {
+      requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, commandName);
+    }
+    if(actionName != null) {
+      requestInfoProperties.put(RequestResourceProvider.ACTION_ID, actionName);
+    }
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -1406,9 +1494,15 @@ public class RequestResourceProviderTest {
     ExecuteActionRequest capturedRequest = actionRequest.getValue();
 
     Assert.assertTrue(actionRequest.hasCaptured());
-    Assert.assertFalse("expected an action", capturedRequest.isCommand());
-    Assert.assertEquals(actionName, capturedRequest.getActionName());
-    Assert.assertEquals(null, capturedRequest.getCommandName());
+
+    if(actionName != null) {
+      Assert.assertFalse("expected an action", capturedRequest.isCommand());
+      Assert.assertEquals(actionName, capturedRequest.getActionName());
+    }
+    if(commandName != null) {
+      Assert.assertTrue("expected a command", capturedRequest.isCommand());
+      Assert.assertEquals(commandName, capturedRequest.getCommandName());
+    }
     Assert.assertNotNull(capturedRequest.getResourceFilters());
     Assert.assertEquals(1, capturedRequest.getResourceFilters().size());
     RequestResourceFilter capturedResourceFilter = capturedRequest.getResourceFilters().get(0);

@@ -97,9 +97,6 @@
             <package>
               <name>extjs</name>
             </package>
-            <package>
-              <name>libxml2-utils</name>
-            </package>
           </packages>
         </osSpecific>
       </osSpecifics>

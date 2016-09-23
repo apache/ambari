@@ -146,7 +146,8 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Ganglia Monitor component should be installed on all hosts in cluster.", "level": "ERROR"}
+      {"message": "You have selected 1 Ganglia Monitor components. Please consider that Ganglia Monitor component should be installed on all hosts in cluster.",
+       "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -165,7 +166,8 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Exactly 2 Ganglia Monitor components should be installed in cluster.", "level": "ERROR"}
+      {"message": "You have selected 1 Ganglia Monitor components. Please consider that exactly 2 Ganglia Monitor components should be installed in cluster.",
+       "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -184,7 +186,8 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "At least 3 Ganglia Server components should be installed in cluster.", "level": "ERROR"}
+      {"message": "You have selected 2 Ganglia Server components. Please consider that at least 3 Ganglia Server components should be installed in cluster.",
+       "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 
@@ -361,7 +364,8 @@ class TestHDP206StackAdvisor(TestCase):
     result = self.stackAdvisor.validateComponentLayout(services, hosts)
 
     expectedItems = [
-      {"message": "Between 0 and 1 Ganglia Server components should be installed in cluster.", "level": "ERROR"}
+      {"message": "You have selected 2 Ganglia Server components. Please consider that between 0 and 1 Ganglia Server components should be installed in cluster.",
+       "level": "ERROR"}
     ]
     self.assertValidationResult(expectedItems, result)
 

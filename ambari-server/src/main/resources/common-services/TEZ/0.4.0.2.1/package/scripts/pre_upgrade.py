@@ -48,7 +48,7 @@ class TezPreUpgrade(Script):
         params.user_group,
         params.hdfs_user,
         use_upgrading_version_during_upgrade=False,
-        host_sys_prepped=params.host_sys_prepped)
+        skip=params.sysprep_skip_copy_tarballs_hdfs)
       if resource_created:
         params.HdfsResource(None, action="execute")
       else:

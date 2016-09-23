@@ -184,12 +184,16 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
                   "  This is not an error if an Ambari agent is not installed on the Ambari server host.",
               principal, ambariServerHostName);
           LOG.warn(message);
-          actionLog.writeStdErr(message);
+          if(actionLog != null) {
+            actionLog.writeStdErr(message);
+          }
         } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID)) {
           kerberosPrincipalHostDAO.create(principal, ambariServerHostID);
         }
 
-        actionLog.writeStdOut(String.format("Created Ambari server keytab file for %s at %s", principal, destKeytabFile));
+        if(actionLog != null) {
+          actionLog.writeStdOut(String.format("Created Ambari server keytab file for %s at %s", principal, destKeytabFile));
+        }
       }
     } catch (InterruptedException | IOException e) {
       throw new AmbariException(e.getLocalizedMessage(), e);

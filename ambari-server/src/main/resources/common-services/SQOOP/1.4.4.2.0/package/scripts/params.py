@@ -24,5 +24,4 @@ if OSCheck.is_windows_family():
 else:
   from params_linux import *
 
-host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 

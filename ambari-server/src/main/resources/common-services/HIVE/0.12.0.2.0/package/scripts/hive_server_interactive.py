@@ -94,13 +94,13 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
           "hive2",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped)
+          skip=params.sysprep_skip_copy_tarballs_hdfs)
 
         resource_created = copy_to_hdfs(
           "tez_hive2",
           params.user_group,
           params.hdfs_user,
-          host_sys_prepped=params.host_sys_prepped) or resource_created
+          skip=params.sysprep_skip_copy_tarballs_hdfs) or resource_created
 
         if resource_created:
           params.HdfsResource(None, action="execute")
@@ -267,6 +267,10 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
         cmd += format(" --slider-keytab-dir .slider/keytabs/{params.hive_user}/ --slider-keytab "
                       "{llap_keytab_splits[4]} --slider-principal {params.hive_llap_principal}")
+
+      # Add the aux jars if they are specified. If empty, dont need to add this param.
+      if params.hive_aux_jars:
+        cmd+= format(" --auxjars {params.hive_aux_jars}")
 
       # Append args.
       llap_java_args = InlineTemplate(params.llap_app_java_opts).get_content()
