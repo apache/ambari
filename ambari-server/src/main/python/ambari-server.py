@@ -662,10 +662,7 @@ def setup_logging(logger, filename, logging_level):
   logger.setLevel(logging_level)
   logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
 
-#
-# Main.
-#
-def main(options, args, parser):
+def init_logging():
   # init logger
   properties = get_ambari_properties()
   python_log_level = logging.INFO
@@ -687,6 +684,12 @@ def main(options, args, parser):
   python_log = os.path.join(configDefaults.OUT_DIR, python_log_name)
 
   setup_logging(logger, python_log, python_log_level)
+
+#
+# Main.
+#
+def main(options, args, parser):
+  init_logging()
 
   # set silent
   set_silent(options.silent)
