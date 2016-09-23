@@ -946,7 +946,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "STORM": {"storm-site": self.validateStormConfigurations},
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
-              "ams-site": self.validateAmsSiteConfigurations}
+              "ams-site": self.validateAmsSiteConfigurations,
+              "ams-env": self.validateAmsEnvConfigurations}
     }
 
   def validateMinMax(self, items, recommendedDefaults, configurations):
@@ -1136,7 +1137,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if logDirItem:
       validationItems.extend([{"config-name": "hbase_log_dir", "item": logDirItem}])
 
-    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
     hbase_master_heapsize = to_number(properties["hbase_master_heapsize"])
     hbase_master_xmn_size = to_number(properties["hbase_master_xmn_size"])
     hbase_regionserver_heapsize = to_number(properties["hbase_regionserver_heapsize"])
@@ -1227,27 +1227,25 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
             requiredMemory = getMemorySizeRequired(hostComponents, configurations)
             unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-            if unusedMemory > 4*gb:  # warn user, if more than 4GB RAM is unused
-              heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
-              xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
-              recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize*mb
+
+            heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
+            xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
+            hbase_needs_increase = to_number(properties[heapPropertyToIncrease]) * mb < 32 * gb
+
+            if unusedMemory > 4*gb and hbase_needs_increase:  # warn user, if more than 4GB RAM is unused
+
               recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + to_number(properties.get(heapPropertyToIncrease))*mb
               recommended_hbase_heapsize = min(32*gb, recommended_hbase_heapsize) #Make sure heapsize <= 32GB
-              recommended_xmn_size = round_to_n(0.12*recommended_hbase_heapsize/mb,128)
-
-              if collector_heapsize < recommended_collector_heapsize or \
-                  to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
-                collectorHeapsizeItem = self.getWarnItem("{0} MB RAM is unused on the host {1} based on components " \
-                                                         "assigned. Consider allocating  {2} MB to " \
-                                                         "metrics_collector_heapsize in ams-env, " \
-                                                         "{3} MB to {4} in ams-hbase-env"
-                                                         .format(unusedMemory/mb, collectorHostName,
-                                                                 recommended_collector_heapsize/mb,
-                                                                 recommended_hbase_heapsize/mb,
+              recommended_hbase_heapsize = round_to_n(recommended_hbase_heapsize/mb,128) # Round to 128m multiple
+              if to_number(properties[heapPropertyToIncrease]) < recommended_hbase_heapsize:
+                hbaseHeapsizeItem = self.getWarnItem("Consider allocating {0} MB to {1} in ams-hbase-env to use up some "
+                                                     "unused memory on host"
+                                                         .format(recommended_hbase_heapsize,
                                                                  heapPropertyToIncrease))
-                validationItems.extend([{"config-name": heapPropertyToIncrease, "item": collectorHeapsizeItem}])
+                validationItems.extend([{"config-name": heapPropertyToIncrease, "item": hbaseHeapsizeItem}])
 
-              if to_number(properties[xmnPropertyToIncrease]) < recommended_hbase_heapsize:
+              recommended_xmn_size = round_to_n(0.15*recommended_hbase_heapsize,128)
+              if to_number(properties[xmnPropertyToIncrease]) < recommended_xmn_size:
                 xmnPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
                                                              "on host".format(recommended_xmn_size))
                 validationItems.extend([{"config-name": xmnPropertyToIncrease, "item": xmnPropertyToIncreaseItem}])
@@ -1255,6 +1253,38 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
+  def validateAmsEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+
+    ams_env = getSiteProperties(configurations, "ams-env")
+    mb = 1024 * 1024
+    gb = 1024 * mb
+    validationItems = []
+    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
+    amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
+    for collectorHostName in amsCollectorHosts:
+      for host in hosts["items"]:
+        if host["Hosts"]["host_name"] == collectorHostName:
+          hostComponents = []
+          for service in services["services"]:
+            for component in service["components"]:
+              if component["StackServiceComponents"]["hostnames"] is not None:
+                if collectorHostName in component["StackServiceComponents"]["hostnames"]:
+                  hostComponents.append(component["StackServiceComponents"]["component_name"])
+
+          requiredMemory = getMemorySizeRequired(hostComponents, configurations)
+          unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
+          collector_needs_increase = collector_heapsize * mb < 16 * gb
+
+          if unusedMemory > 4*gb and collector_needs_increase:  # warn user, if more than 4GB RAM is unused
+            recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize * mb
+            recommended_collector_heapsize = round_to_n(recommended_collector_heapsize/mb,128) # Round to 128m multiple
+            if collector_heapsize < recommended_collector_heapsize:
+              validation_msg = "Consider allocating {0} MB to metrics_collector_heapsize in ams-env to use up some " \
+                               "unused memory on host"
+              collectorHeapsizeItem = self.getWarnItem(validation_msg.format(recommended_collector_heapsize))
+              validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeItem}])
+    pass
+    return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
   def getPreferredMountPoints(self, hostInfo):
 
@@ -1880,6 +1910,9 @@ def getHeapsizeProperties():
   return { "NAMENODE": [{"config-name": "hadoop-env",
                          "property": "namenode_heapsize",
                          "default": "1024m"}],
+           "SECONDARY_NAMENODE": [{"config-name": "hadoop-env",
+                         "property": "namenode_heapsize",
+                         "default": "1024m"}],
            "DATANODE": [{"config-name": "hadoop-env",
                          "property": "dtnode_heapsize",
                          "default": "1024m"}],
@@ -1889,9 +1922,15 @@ def getHeapsizeProperties():
            "HBASE_MASTER": [{"config-name": "hbase-env",
                              "property": "hbase_master_heapsize",
                              "default": "1024m"}],
-           "HIVE_CLIENT": [{"config-name": "hive-site",
-                            "property": "hive.heapsize",
-                            "default": "1024m"}],
+           "HIVE_CLIENT": [{"config-name": "hive-env",
+                            "property": "hive.client.heapsize",
+                            "default": "1024"}],
+           "HIVE_METASTORE": [{"config-name": "hive-env",
+                            "property": "hive.metastore.heapsize",
+                            "default": "1024"}],
+           "HIVE_SERVER": [{"config-name": "hive-env",
+                               "property": "hive.heapsize",
+                               "default": "1024"}],
            "HISTORYSERVER": [{"config-name": "mapred-env",
                               "property": "jobhistory_heapsize",
                               "default": "1024m"}],
@@ -1908,7 +1947,7 @@ def getHeapsizeProperties():
                                     "property": "apptimelineserver_heapsize",
                                     "default": "1024m"}],
            "ZOOKEEPER_SERVER": [{"config-name": "zookeeper-env",
-                                 "property": "zookeeper_heapsize",
+                                 "property": "zk_server_heapsize",
                                  "default": "1024m"}],
            "METRICS_COLLECTOR": [{"config-name": "ams-hbase-env",
                                    "property": "hbase_master_heapsize",
@@ -1921,7 +1960,19 @@ def getHeapsizeProperties():
                                    "default": "512"}],
            "ATLAS_SERVER": [{"config-name": "atlas-env",
                              "property": "atlas_server_xmx",
-                             "default": "2048"}]
+                             "default": "2048"}],
+           "LOGSEARCH_SERVER": [{"config-name": "logsearch-env",
+                            "property": "logsearch_app_max_memory",
+                            "default": "1024"}],
+           "LOGSEARCH_LOGFEEDER": [{"config-name": "logfeeder-env",
+                            "property": "logfeeder_max_mem",
+                            "default": "512"}],
+           "SPARK_JOBHISTORYSERVER": [{"config-name": "spark-env",
+                                 "property": "spark_daemon_memory",
+                                 "default": "1024"}],
+           "SPARK2_JOBHISTORYSERVER": [{"config-name": "spark2-env",
+                                       "property": "spark_daemon_memory",
+                                       "default": "1024"}]
            }
 
 def getMemorySizeRequired(components, configurations):
@@ -1941,7 +1992,12 @@ def getMemorySizeRequired(components, configurations):
           heapsize = str(heapsize) + "m"
 
         totalMemoryRequired += formatXmxSizeToBytes(heapsize)
-
+    else:
+      if component == "METRICS_MONITOR" or "CLIENT" in component:
+        heapsize = '512m'
+      else:
+        heapsize = '1024m'
+      totalMemoryRequired += formatXmxSizeToBytes(heapsize)
   return totalMemoryRequired
 
 def round_to_n(mem_size, n=128):
