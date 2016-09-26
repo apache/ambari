@@ -127,29 +127,31 @@ public class TestActionScheduler {
       + " c6402.ambari.apache.org], slave_hosts=[c6401.ambari.apache.org,"
       + " c6402.ambari.apache.org]}";
 
-  private static Injector injector;
+  private final Injector injector;
 
   private final String hostname = "ahost.ambari.apache.org";
   private final int MAX_CYCLE_ITERATIONS = 100;
 
   @Inject
-  HostRoleCommandFactory hostRoleCommandFactory;
+  private HostRoleCommandFactory hostRoleCommandFactory;
 
   @Inject
-  StageFactory stageFactory;
+  private StageFactory stageFactory;
 
   @Inject
-  StageUtils stageUtils;
+  private HostDAO hostDAO;
 
-  @Inject
-  HostDAO hostDAO;
+  private Provider<EntityManager> entityManagerProviderMock = EasyMock.niceMock(Provider.class);
 
-  Provider<EntityManager> entityManagerProviderMock = EasyMock.niceMock(Provider.class);
+
+  public  TestActionScheduler(){
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+  }
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(StageUtils.class);
     injector.injectMembers(this);
 
     expect(entityManagerProviderMock.get()).andReturn(null);
@@ -159,7 +161,6 @@ public class TestActionScheduler {
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
-    injector = null;
   }
 
   /**

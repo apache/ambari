@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -96,23 +97,33 @@ public class UpgradeCatalog222Test {
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
+
+  @Inject
   private UpgradeCatalogHelper upgradeCatalogHelper;
+
   private StackEntity desiredStackEntity;
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  public UpgradeCatalog222Test(){
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+
+  }
 
   @Before
   public void init() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+
     injector.getInstance(GuiceJpaInitializer.class);
 
-    upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
     // inject AmbariMetaInfo to ensure that stacks get populated in the DB
     injector.getInstance(AmbariMetaInfo.class);
+
+    injector.injectMembers(this);
+
     // load the stack entity
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     desiredStackEntity = stackDAO.find("HDP", "2.2.0");

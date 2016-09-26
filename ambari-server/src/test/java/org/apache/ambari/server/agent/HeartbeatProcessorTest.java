@@ -59,6 +59,7 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -102,22 +103,26 @@ public class HeartbeatProcessorTest {
 
   private static final Logger log = LoggerFactory.getLogger(TestHeartbeatHandler.class);
   private Injector injector;
+  private long requestId = 23;
+  private long stageId = 31;
+
+  @Inject
   private Clusters clusters;
-  long requestId = 23;
-  long stageId = 31;
+
+  @Inject
   private UnitOfWork unitOfWork;
 
   @Inject
   Configuration config;
 
   @Inject
-  ActionDBAccessor actionDBAccessor;
+  private ActionDBAccessor actionDBAccessor;
 
   @Inject
-  HeartbeatTestHelper heartbeatTestHelper;
+  private HeartbeatTestHelper heartbeatTestHelper;
 
   @Inject
-  ActionManagerTestHelper actionManagerTestHelper;
+  private ActionManagerTestHelper actionManagerTestHelper;
 
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
@@ -131,17 +136,17 @@ public class HeartbeatProcessorTest {
   @Inject
   private AmbariMetaInfo metaInfo;
 
-  private final static StackId HDP_22_STACK = new StackId("HDP", "2.2.0");
+
+  public HeartbeatProcessorTest(){
+    InMemoryDefaultTestModule module = HeartbeatTestHelper.getTestModule();
+    injector = Guice.createInjector(module);
+  }
+
 
   @Before
   public void setup() throws Exception {
-    InMemoryDefaultTestModule module = HeartbeatTestHelper.getTestModule();
-    injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
-    clusters = injector.getInstance(Clusters.class);
     injector.injectMembers(this);
-    unitOfWork = injector.getInstance(UnitOfWork.class);
-
     EasyMock.replay(injector.getInstance(AuditLogger.class));
   }
 
