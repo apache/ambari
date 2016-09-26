@@ -155,6 +155,8 @@ def _lookUpYumPackages(command, skipTill, allPackages):
         items = items + line.strip(' \t\n\r').split()
 
       for i in range(0, len(items), 3):
+        if '.' in items[i]:
+          items[i] = items[i][:items[i].rindex('.')]
         if items[i + 2].find('@') == 0:
           items[i + 2] = items[i + 2][1:]
         allPackages.append(items[i:i + 3])
