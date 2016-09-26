@@ -18,14 +18,14 @@
 <reposinfo>
     <os family="redhat6">
         <repo>
-            <baseurl>http://104.196.87.250/msft-r/MICROSOFT_R-8.0/</baseurl>
+            <baseurl>http://PLEASE_ENTER_REPO_URL</baseurl>
             <repoid>MSFT_R-8.1</repoid>
             <reponame>MSFT_R</reponame>
         </repo>
     </os>
-    <os family="redhat5">
+    <os family="suse11">
         <repo>
-            <baseurl>http://104.196.87.250/msft-r/MICROSOFT_R-8.0/</baseurl>
+            <baseurl>http://PLEASE_ENTER_REPO_URL</baseurl>
             <repoid>MSFT_R-8.1</repoid>
             <reponame>MSFT_R</reponame>
         </repo>
