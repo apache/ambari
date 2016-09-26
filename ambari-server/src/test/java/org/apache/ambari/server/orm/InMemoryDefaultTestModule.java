@@ -50,7 +50,14 @@ public class InMemoryDefaultTestModule extends AbstractModule {
 
     // Access should be synchronised to allow concurrent test runs.
     private static final AtomicReference<Set<BeanDefinition>> foundBeanDefinitions
-        = new AtomicReference<Set<BeanDefinition>>(null);
+        = new AtomicReference<>(null);
+
+    private static final AtomicReference<Set<BeanDefinition>> foundNotificationBeanDefinitions
+        = new AtomicReference<>(null);
+
+    private static final AtomicReference<Set<BeanDefinition>> foundUpgradeChecksDefinitions
+        = new AtomicReference<>(null);
+
 
     public BeanDefinitionsCachingTestControllerModule(Properties properties) throws Exception {
       super(properties);
@@ -60,6 +67,20 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     protected Set<BeanDefinition> bindByAnnotation(Set<BeanDefinition> beanDefinitions) {
       Set<BeanDefinition> newBeanDefinitions = super.bindByAnnotation(foundBeanDefinitions.get());
       foundBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+      return null;
+    }
+
+    @Override
+    protected Set<BeanDefinition> bindNotificationDispatchers(Set<BeanDefinition> beanDefinitions){
+      Set<BeanDefinition> newBeanDefinitions = super.bindNotificationDispatchers(foundNotificationBeanDefinitions.get());
+      foundNotificationBeanDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinitions));
+      return null;
+    }
+
+    @Override
+    protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions){
+      Set<BeanDefinition> newBeanDefinition = super.registerUpgradeChecks(foundUpgradeChecksDefinitions.get());
+      foundUpgradeChecksDefinitions.compareAndSet(null, Collections.unmodifiableSet(newBeanDefinition));
       return null;
     }
   }
