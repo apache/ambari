@@ -37,15 +37,7 @@
             },
             {
               "stack_name" : "HDP",
-              "stack_version" : "2.1"
-            },
-            {
-              "stack_name" : "HDP",
-              "stack_version" : "2.2"
-            },
-            {
-              "stack_name" : "HDP",
-              "stack_version" : "2.3"
+              "stack_version" : "2.0.6"
             }
           ]
         }
