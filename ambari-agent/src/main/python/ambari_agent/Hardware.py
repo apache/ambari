@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,20 +16,22 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import os.path
 import logging
 import subprocess
 from resource_management.core.shell import call
-from resource_management.core.exceptions import ExecuteTimeoutException
-from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core.exceptions import ExecuteTimeoutException, Fail
 from ambari_commons.shell import shellRunner
 from Facter import Facter
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from AmbariConfig import AmbariConfig
+from resource_management.core.sudo import path_isfile
+
 logger = logging.getLogger()
+
 
 class Hardware:
   SSH_KEY_PATTERN = 'ssh.*key'
@@ -37,79 +39,111 @@ class Hardware:
   CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
   CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = 'agent.check.mounts.timeout'
   CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT = '10'
+  IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys"]
+  IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
 
   def __init__(self):
-    self.hardware = {}
-    self.hardware['mounts'] = Hardware.osdisks()
+    self.hardware = {
+      'mounts': Hardware.osdisks()
+    }
     self.hardware.update(Facter().facterInfo())
-    pass
 
-  @staticmethod
-  def extractMountInfo(outputLine):
-    if outputLine == None or len(outputLine) == 0:
+  @classmethod
+  def _parse_df_line(cls, line):
+    """
+      Initialize data-structure from string in specific 'df' command output format
+
+      Expected string format:
+       device fs_type disk_size used_size available_size capacity_used_percents mount_point
+
+    :type line str
+    """
+
+    line_split = line.split()
+    if len(line_split) != 7:
       return None
 
-      """ this ignores any spaces in the filesystemname and mounts """
-    split = outputLine.split()
-    if (len(split)) == 7:
-      device, type, size, used, available, percent, mountpoint = split
-      mountinfo = {
-        'size': size,
-        'used': used,
-        'available': available,
-        'percent': percent,
-        'mountpoint': mountpoint,
-        'type': type,
-        'device': device}
-      return mountinfo
-    else:
-      return None
+    titles = ["device", "type", "size", "used", "available", "percent", "mountpoint"]
+    return dict(zip(titles, line_split))
 
-  @staticmethod
+  @classmethod
+  def _get_mount_check_timeout(cls, config=None):
+    """Return timeout for df call command"""
+    if config and config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) \
+      and config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) != "0":
+
+      return config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY)
+
+    return Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT
+
+  @classmethod
+  def _check_remote_mounts(cls, config=None):
+    """Verify if remote mount allowed to be processed or not"""
+    if config and config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
+       config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
+
+      return False
+
+    return True
+
+  @classmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def osdisks(config = None):
+  def osdisks(cls, config=None):
     """ Run df to find out the disks on the host. Only works on linux
     platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
-    mounts = []
-    command = []
-    timeout = Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT
-    if config and \
-        config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) and \
-        config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) != "0":
-        timeout = config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY)
-    command.append("timeout")
-    command.append(timeout)
-    command.append("df")
-    command.append("-kPT")
-    if config and \
-        config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
-        config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
-      #limit listing to local file systems
+    timeout = cls._get_mount_check_timeout(config)
+    command = ["timeout", timeout, "df", "-kPT"]
+
+    if not cls._check_remote_mounts(config):
       command.append("-l")
 
     df = subprocess.Popen(command, stdout=subprocess.PIPE)
     dfdata = df.communicate()[0]
-    lines = dfdata.splitlines()
-    for l in lines:
-      mountinfo = Hardware.extractMountInfo(l)
-      if mountinfo != None and Hardware._chk_mount(mountinfo['mountpoint']):
-        mounts.append(mountinfo)
-      pass
-    pass
-    return mounts
+    mounts = [cls._parse_df_line(line) for line in dfdata.splitlines() if line]
+    result_mounts = []
 
-  @staticmethod
-  def _chk_mount(mountpoint):
-    try:
-      return call(['test', '-w', mountpoint], sudo=True, timeout=int(Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT)/2, quiet=(not logger.isEnabledFor(logging.DEBUG)))[0] == 0
-    except ExecuteTimeoutException:
-      logger.exception("Exception happened while checking mount {0}".format(mountpoint))
-      return False
+    for mount in mounts:
+      if not mount:
+        continue
+
+      """
+      We need to filter mounts by several parameters:
+       - mounted device is not in the ignored list
+       - is accessible to user under which current process running
+       - it is not file-mount (docker environment)
+      """
+      if mount["device"] not in cls.IGNORE_DEVICES and \
+         mount["mountpoint"].split("/")[0] not in cls.IGNORE_ROOT_MOUNTS and\
+         cls._chk_writable_mount(mount['mountpoint']) and \
+         not path_isfile(mount["mountpoint"]):
+
+        result_mounts.append(mount)
+
+    return result_mounts
+
+  @classmethod
+  def _chk_writable_mount(cls, mount_point):
+    if os.geteuid() == 0:
+      return os.access(mount_point, os.W_OK)
+    else:
+      try:
+        # test if mount point is writable for current user
+        call_result = call(['test', '-w', mount_point],
+                           sudo=True,
+                           timeout=int(Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT) / 2,
+                           quiet=not logger.isEnabledFor(logging.DEBUG))
+        return call_result and call_result[0] == 0
+      except ExecuteTimeoutException:
+        logger.exception("Exception happened while checking mount {0}".format(mount_point))
+        return False
+      except Fail:
+        logger.exception("Exception happened while checking mount {0}".format(mount_point))
+        return False
     
-  @staticmethod
+  @classmethod
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def osdisks(config = None):
+  def osdisks(cls, config=None):
     mounts = []
     runner = shellRunner()
     command_result = runner.runPowershell(script_block=Hardware.WINDOWS_GET_DRIVES_CMD)
@@ -117,12 +151,12 @@ class Hardware:
       return mounts
     else:
       for drive in [line for line in command_result.output.split(os.linesep) if line != '']:
-        available, used, percent, size, type, mountpoint = drive.split(" ")
+        available, used, percent, size, fs_type, mountpoint = drive.split(" ")
         mounts.append({"available": available,
                        "used": used,
                        "percent": percent,
                        "size": size,
-                       "type": type,
+                       "type": fs_type,
                        "mountpoint": mountpoint})
 
     return mounts
@@ -130,9 +164,12 @@ class Hardware:
   def get(self):
     return self.hardware
 
-def main(argv=None):
-  hardware = Hardware()
-  print hardware.get()
+
+def main():
+  from resource_management.core.logger import Logger
+  Logger.initialize_logger()
+
+  print Hardware().get()
 
 if __name__ == '__main__':
   main()
