@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,11 +16,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 from ambari_agent import main
 main.MEMORY_LEAK_DEBUG_FILEPATH = "/tmp/memory_leak_debug.out"
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock.mock import patch, MagicMock, Mock
 import unittest
 import platform
 import socket
@@ -30,22 +31,22 @@ from ambari_agent.Hardware import Hardware
 from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
-from glob import glob
+
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
-@patch.object(socket, "getfqdn", new = MagicMock(return_value = "ambari.apache.org"))
-@patch.object(socket, "gethostbyname", new = MagicMock(return_value = "192.168.1.1"))
-@patch.object(FacterLinux, "setDataIfConfigShortOutput", new = MagicMock(return_value ='''Iface   MTU Met    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
+@patch.object(platform, "linux_distribution", new=MagicMock(return_value=('Suse', '11', 'Final')))
+@patch.object(socket, "getfqdn", new=MagicMock(return_value="ambari.apache.org"))
+@patch.object(socket, "gethostbyname", new=MagicMock(return_value="192.168.1.1"))
+@patch.object(FacterLinux, "setDataIfConfigShortOutput", new=MagicMock(return_value='''Iface   MTU Met    RX-OK RX-ERR RX-DRP RX-OVR    TX-OK TX-ERR TX-DRP TX-OVR Flg
 eth0   1500   0     9986      0      0      0     5490      0      0      0 BMRU
 eth1   1500   0        0      0      0      0        6      0      0      0 BMRU
 eth2   1500   0        0      0      0      0        6      0      0      0 BMRU
 lo    16436   0        2      0      0      0        2      0      0      0 LRU'''))
 class TestHardware(TestCase):
  
-  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
-  @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
-  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
+  @patch.object(Hardware, "osdisks", new=MagicMock(return_value=[]))
+  @patch.object(Hardware, "_chk_writable_mount", new=MagicMock(return_value=True))
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
   def test_build(self, get_os_version_mock, get_os_type_mock):
@@ -57,22 +58,67 @@ class TestHardware(TestCase):
     for dev_item in result['mounts']:
       self.assertTrue(dev_item['available'] >= 0)
       self.assertTrue(dev_item['used'] >= 0)
-      self.assertTrue(dev_item['percent'] != None)
-      self.assertTrue(dev_item['device'] != None)
-      self.assertTrue(dev_item['mountpoint'] != None)
-      self.assertTrue(dev_item['type'] != None)
+      self.assertTrue(dev_item['percent'] is not None)
+      self.assertTrue(dev_item['device'] is not None)
+      self.assertTrue(dev_item['mountpoint'] is not None)
+      self.assertTrue(dev_item['type'] is not None)
       self.assertTrue(dev_item['size'] > 0)
 
     for os_disk_item in osdisks:
       self.assertTrue(os_disk_item['available'] >= 0)
       self.assertTrue(os_disk_item['used'] >= 0)
-      self.assertTrue(os_disk_item['percent'] != None)
-      self.assertTrue(os_disk_item['device'] != None)
-      self.assertTrue(os_disk_item['mountpoint'] != None)
-      self.assertTrue(os_disk_item['type'] != None)
+      self.assertTrue(os_disk_item['percent'] is not None)
+      self.assertTrue(os_disk_item['device'] is not None)
+      self.assertTrue(os_disk_item['mountpoint'] is not None)
+      self.assertTrue(os_disk_item['type'] is not None)
       self.assertTrue(os_disk_item['size'] > 0)
 
     self.assertTrue(len(result['mounts']) == len(osdisks))
+
+  @patch.object(Hardware, "_chk_writable_mount")
+  @patch("ambari_agent.Hardware.path_isfile")
+  def test_osdisks_parsing(self, isfile_mock, chk_writable_mount_mock):
+    df_output =\
+                """Filesystem                                                                                        Type  1024-blocks     Used Available Capacity Mounted on
+                /dev/mapper/docker-253:0-4980899-d45c264d37ab18c8ed14f890f4d59ac2b81e1c52919eb36a79419787209515f3 xfs      31447040  1282384  30164656       5% /
+                tmpfs                                                                                             tmpfs    32938336        4  32938332       1% /dev
+                tmpfs                                                                                             tmpfs    32938336        0  32938336       0% /sys/fs/cgroup
+                /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/resolv.conf
+                /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/hostname
+                /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /etc/hosts
+                shm                                                                                               tmpfs       65536        0     65536       0% /dev/shm
+                /dev/mapper/fedora-root                                                                           ext4    224161316 12849696 199901804       7% /run/secrets
+                """
+
+    def isfile_side_effect(path):
+      assume_files = ["/etc/resolv.conf", "/etc/hostname", "/etc/hosts"]
+      return path in assume_files
+
+    def chk_writable_mount_side_effect(path):
+      assume_read_only = ["/run/secrets"]
+      return path not in assume_read_only
+
+    isfile_mock.side_effect = isfile_side_effect
+    chk_writable_mount_mock.side_effect = chk_writable_mount_side_effect
+
+    with patch("subprocess.Popen") as open_mock:
+      proc_mock = Mock()
+      attr = {
+        'communicate.return_value': [
+          df_output
+        ]
+      }
+      proc_mock.configure_mock(**attr)
+      open_mock.return_value = proc_mock
+
+      result = Hardware.osdisks()
+
+    self.assertEquals(1, len(result))
+
+    expected_mounts_left = ["/"]
+    mounts_left = [item["mountpoint"] for item in result]
+
+    self.assertEquals(expected_mounts_left, mounts_left)
 
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -83,57 +129,65 @@ class TestHardware(TestCase):
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
     Hardware.osdisks()
-    popen_mock.assert_called_with(['timeout', '10', "df","-kPT"], stdout=-1)
+    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+
     config = AmbariConfig()
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df","-kPT"], stdout=-1)
+    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+
     config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df","-kPT"], stdout=-1)
+    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT"], stdout=-1)
+
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "false")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df","-kPT", "-l"], stdout=-1)
+    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT", "-l"], stdout=-1)
+
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "0")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(['timeout', '10', "df","-kPT","-l"], stdout=-1)
+    popen_mock.assert_called_with(['timeout', '10', "df", "-kPT", "-l"], stdout=-1)
+
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "1")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(["timeout","1","df","-kPT","-l"], stdout=-1)
+    popen_mock.assert_called_with(["timeout", "1", "df", "-kPT", "-l"], stdout=-1)
+
     config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY, "2")
     Hardware.osdisks(config)
-    popen_mock.assert_called_with(["timeout","2","df","-kPT","-l"], stdout=-1)
+    popen_mock.assert_called_with(["timeout", "2", "df", "-kPT", "-l"], stdout=-1)
 
+  def test_parse_df_line(self):
+    df_line_sample = "device type size used available percent mountpoint"
 
-  def test_extractMountInfo(self):
-    outputLine = "device type size used available percent mountpoint"
-    result = Hardware.extractMountInfo(outputLine)
+    samples = [
+      {
+        "sample": df_line_sample,
+        "expected": dict(zip(df_line_sample.split(), df_line_sample.split()))
+      },
+      {
+        "sample": "device type size used available percent",
+        "expected": None,
+      },
+      {
+        "sample": "device type size used available percent mountpoint info",
+        "expected": None,
+      },
+      {
+        "sample": "",
+        "expected": None
+      }
+    ]
 
-    self.assertEquals(result['device'], 'device')
-    self.assertEquals(result['type'], 'type')
-    self.assertEquals(result['size'], 'size')
-    self.assertEquals(result['used'], 'used')
-    self.assertEquals(result['available'], 'available')
-    self.assertEquals(result['percent'], 'percent')
-    self.assertEquals(result['mountpoint'], 'mountpoint')
+    for sample in samples:
+      result = Hardware._parse_df_line(sample["sample"])
+      self.assertEquals(result, sample["expected"], "Failed with sample: '{0}', expected: {1}, got: {2}".format(
+        sample["sample"],
+        sample["expected"],
+        result
+      ))
 
-    outputLine = ""
-    result = Hardware.extractMountInfo(outputLine)
-
-    self.assertEquals(result, None)
-
-    outputLine = "device type size used available percent"
-    result = Hardware.extractMountInfo(outputLine)
-
-    self.assertEquals(result, None)
-
-    outputLine = "device type size used available percent mountpoint info"
-    result = Hardware.extractMountInfo(outputLine)
-
-    self.assertEquals(result, None)
-
-  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
-  @patch.object(hostname,"hostname")
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
+  @patch.object(hostname, "hostname")
   @patch.object(FacterLinux, "getFqdn")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -148,7 +202,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['domain'], "apache.org")
     self.assertEquals(result['fqdn'], (result['hostname'] + '.' + result['domain']))
 
-  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(FacterLinux, "setDataUpTimeOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -163,7 +217,7 @@ class TestHardware(TestCase):
     self.assertEquals(result['uptime_hours'], '73')
     self.assertEquals(result['uptime_days'], '3')
 
-  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(FacterLinux, "setMemInfoOutput")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")
@@ -238,8 +292,7 @@ SwapFree:        1598676 kB
     self.assertTrue(get_ip_address_by_ifname_mock.called)
     self.assertEquals(result['netmask'], None)
 
-
-  @patch.object(FacterLinux, "get_ip_address_by_ifname", new = MagicMock(return_value=None))
+  @patch.object(FacterLinux, "get_ip_address_by_ifname", new=MagicMock(return_value=None))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_version")
@@ -266,7 +319,6 @@ SwapFree:        1598676 kB
     result = Facter().facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'My_new_family')
-
 
   @patch("os.path.exists")
   @patch("os.path.isdir")
@@ -314,7 +366,6 @@ SwapFree:        1598676 kB
     self.assertEquals(2, open_mock.call_count)
     self.assertEquals(2, json_mock.call_count)
     self.assertEquals('value', result['key'])
-
 
 
 if __name__ == "__main__":
