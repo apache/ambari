@@ -67,6 +67,11 @@ App.WidgetWizardExpressionView = Em.View.extend({
   isInvalid: false,
 
   /**
+   * @type {boolean}
+   */
+  isInvalidTextfield: false,
+
+  /**
    * contains value of number added to expression
    * @type {string}
    */
@@ -431,7 +436,8 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
   validateInput: function () {
     var value = this.get('value');
     var parentView = this.get('parentView');
-    var isInvalid = false;
+    var isInvalid = false,
+      isInvalidTextfield = false;
 
     if (!number_utils.isPositiveNumber(value))  {
       if (value && parentView.get('OPERATORS').contains(value)) {
@@ -451,10 +457,12 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
         this.set('value', '');
       } else if (value) {
         // invalid operator
-        isInvalid = true;
+        isInvalid = isInvalidTextfield = true;
       }
     }
     this.set('isInvalid', isInvalid);
+    this.set('parentView.isInvalid', isInvalid);
+    this.set('parentView.isInvalidTextfield', isInvalidTextfield);
   }.observes('value'),
 
   keyDown: function (event) {
@@ -479,6 +487,8 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
       }));
       this.set('numberValue', "");
       this.set('isInvalid', false);
+      this.set('parentView.isInvalid', false);
+      this.set('parentView.isInvalidTextfield', false);
       this.set('value', '');
     }
   }

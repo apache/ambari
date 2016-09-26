@@ -20,7 +20,11 @@
 <div class="alert alert-info">
   {{t widget.create.wizard.step2.body.text}}
 </div>
-
+{{#if isAnyExpressionInvalid}}
+  <div class="alert alert-error">
+    Expression is not complete or is invalid!
+  </div>
+{{/if}}
 {{#each dataSet in dataSets}}
   <fieldset>
     <h5>{{view Ember.TextField valueBinding="dataSet.label"}}</h5>

@@ -33,7 +33,11 @@
 <div class="alert alert-info">
   {{t widget.create.wizard.step2.body.text}}
 </div>
-
+{{#if isAnyExpressionInvalid}}
+  <div class="alert alert-error">
+    Expression is not complete or is invalid!
+  </div>
+{{/if}}
 {{#each expression in expressions}}
   <h5>{{EXPRESSION_PREFIX}}{{expression.id}}</h5>
   {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
