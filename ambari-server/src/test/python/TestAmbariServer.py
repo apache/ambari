@@ -306,7 +306,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_setup_security(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, OptionParserMock,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_setup_security(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                    logger_mock, OptionParserMock,
                                     setup_security_method):
     opm = OptionParserMock.return_value
     options = MagicMock()
@@ -406,7 +408,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_setup(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, OptionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_setup(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                           logger_mock, OptionParserMock, reset_method, stop_method,
                            start_method, setup_method, exit_mock):
     opm = OptionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -474,7 +478,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_with_preset_dbms(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, setup_method):
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_with_preset_dbms(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                 logger_mock, optionParserMock, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     args = ["setup"]
@@ -495,7 +501,8 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_fix_database_options_called(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_fix_database_options_called(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock,
                                        fixDBOptionsMock, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -518,7 +525,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_start(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_start(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
+                           optionParserMock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -651,7 +660,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_backup(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_backup(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
+                            optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -686,7 +697,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_restore(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_restore(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock, logger_mock,
+                             optionParserMock, restore_mock, backup_mock, reset_method, stop_method,
                             start_method, setup_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
@@ -782,7 +795,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_reset(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, reset_method, stop_method,
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_reset(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                           logger_mock, optionParserMock, reset_method, stop_method,
                            start_method, setup_method):
     opm = optionParserMock.return_value
 
@@ -8519,7 +8534,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_status_running(self, setup_logging_mock, get_ambari_properties_mock, logger_mock,  optionParserMock, is_server_runing_method):
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_status_running(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                    logger_mock,  optionParserMock, is_server_runing_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     del options.exit_message
@@ -8548,7 +8565,9 @@ class TestAmbariServer(TestCase):
   @patch.object(_ambari_server_, "logger")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch.object(_ambari_server_, "setup_logging")
-  def test_main_test_status_not_running(self, setup_logging_mock, get_ambari_properties_mock, logger_mock, optionParserMock, is_server_runing_method):
+  @patch.object(_ambari_server_, "init_logging")
+  def test_main_test_status_not_running(self, init_logging_mock, setup_logging_mock, get_ambari_properties_mock,
+                                        logger_mock, optionParserMock, is_server_runing_method):
     opm = optionParserMock.return_value
     options = self._create_empty_options_mock()
     del options.exit_message

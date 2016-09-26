@@ -21,6 +21,7 @@ limitations under the License.
 import json, nifi_constants, os
 from resource_management.core import sudo
 from resource_management.core.resources.system import File
+from resource_management.core.utils import PasswordString
 
 script_dir = os.path.dirname(__file__)
 files_dir = os.path.realpath(os.path.join(os.path.dirname(script_dir), 'files'))
@@ -38,8 +39,8 @@ def dump(config_json, config_dict):
     owner=params.nifi_user,
     group=params.nifi_group,
     mode=0600,
-    content=json.dumps(config_dict, sort_keys=True, indent=4)
-  ) 
+    content=PasswordString(json.dumps(config_dict, sort_keys=True, indent=4))
+  )
 
 def overlay(config_dict, overlay_dict):
   for k, v in overlay_dict.iteritems():

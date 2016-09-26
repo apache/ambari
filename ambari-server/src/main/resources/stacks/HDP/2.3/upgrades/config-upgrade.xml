@@ -494,22 +494,12 @@
                      replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
             <set key="client.jartransformer.class" value="org.apache.storm.hack.StormShadeTransformer" />
           </definition>
+
           <definition xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs">
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.impersonation.authorizer</key>
-              <value>org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer</value>
-            </condition>
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.impersonation.acl</key>
-              <value>"{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}"</value>
-            </condition>
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.admins</key>
-              <value>"['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']"</value>
-            </condition>
+            <type>storm-site</type>
+            <set key="nimbus.impersonation.authorizer" value="org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer" if-type="cluster-env" if-key="security_enabled" if-value="true" />
+            <set key="nimbus.impersonation.acl" value="{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}" if-type="cluster-env" if-key="security_enabled" if-value="true" />
+            <set key="nimbus.admins" value="['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']" if-type="cluster-env" if-key="security_enabled" if-value="true" />
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"

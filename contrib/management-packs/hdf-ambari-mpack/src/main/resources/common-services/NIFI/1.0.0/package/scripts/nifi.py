@@ -75,17 +75,13 @@ class Master(Script):
          content=Template("nifi.conf.j2")
     )
 
-    
+
     ca_client_script = nifi_ca_util.get_toolkit_script('tls-toolkit.sh')
     File(ca_client_script, mode=0755)
 
 
     if params.nifi_ca_host and params.nifi_ssl_enabled:
       ca_client_json = os.path.realpath(os.path.join(params.nifi_config_dir, 'nifi-certificate-authority-client.json'))
-      File(ca_client_json,
-           owner = params.nifi_user,
-           group = params.nifi_group,
-           mode = 0600)
       ca_client_dict = nifi_ca_util.load(ca_client_json)
       if is_starting:
         if params.nifi_toolkit_tls_regenerate:

@@ -377,8 +377,8 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(AuthorizationHelper.class);
 
     bindByAnnotation(null);
-    bindNotificationDispatchers();
-    registerUpgradeChecks();
+    bindNotificationDispatchers(null);
+    registerUpgradeChecks(null);
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -569,27 +569,29 @@ public class ControllerModule extends AbstractModule {
    * {@link DispatchFactory}.
    */
   @SuppressWarnings("unchecked")
-  private void bindNotificationDispatchers() {
-    ClassPathScanningCandidateComponentProvider scanner =
-        new ClassPathScanningCandidateComponentProvider(false);
+  protected Set<BeanDefinition> bindNotificationDispatchers(Set<BeanDefinition> beanDefinitions) {
 
     // make the factory a singleton
     DispatchFactory dispatchFactory = DispatchFactory.getInstance();
     bind(DispatchFactory.class).toInstance(dispatchFactory);
 
-    // match all implementations of the dispatcher interface
-    AssignableTypeFilter filter = new AssignableTypeFilter(
+    if (null == beanDefinitions || beanDefinitions.isEmpty()) {
+      ClassPathScanningCandidateComponentProvider scanner =
+        new ClassPathScanningCandidateComponentProvider(false);
+
+      // match all implementations of the dispatcher interface
+      AssignableTypeFilter filter = new AssignableTypeFilter(
         NotificationDispatcher.class);
 
-    scanner.addIncludeFilter(filter);
+      scanner.addIncludeFilter(filter);
 
-    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(
-        "org.apache.ambari.server.notifications.dispatchers");
+      beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server.notifications.dispatchers");
+    }
 
     // no dispatchers is a problem
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
       LOG.error("No instances of {} found to register", NotificationDispatcher.class);
-      return;
+      return null;
     }
 
     // for every discovered dispatcher, singleton-ize them and register with
@@ -615,6 +617,8 @@ public class ControllerModule extends AbstractModule {
             clazz, exception);
       }
     }
+
+    return beanDefinitions;
   }
 
   /**
@@ -623,23 +627,26 @@ public class ControllerModule extends AbstractModule {
    * {@link UpgradeCheckRegistry}.
    */
   @SuppressWarnings("unchecked")
-  private void registerUpgradeChecks() {
-    ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+  protected Set<BeanDefinition> registerUpgradeChecks(Set<BeanDefinition> beanDefinitions) {
 
     // make the registry a singleton
     UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
     bind(UpgradeCheckRegistry.class).toInstance(registry);
 
-    // match all implementations of the base check class
-    AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
-    scanner.addIncludeFilter(filter);
+    if (null == beanDefinitions || beanDefinitions.isEmpty()) {
+      ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
 
-    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(AbstractCheckDescriptor.class.getPackage().getName());
+      // match all implementations of the base check class
+      AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+      scanner.addIncludeFilter(filter);
+
+      beanDefinitions = scanner.findCandidateComponents(AbstractCheckDescriptor.class.getPackage().getName());
+    }
 
     // no dispatchers is a problem
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
       LOG.error("No instances of {} found to register", AbstractCheckDescriptor.class);
-      return;
+      return null;
     }
 
     // for every discovered check, singleton-ize them and register with the
@@ -662,5 +669,6 @@ public class ControllerModule extends AbstractModule {
     for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
       LOG.debug("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
+    return beanDefinitions;
   }
 }
