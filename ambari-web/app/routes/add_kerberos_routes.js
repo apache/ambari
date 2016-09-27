@@ -20,7 +20,9 @@ var App = require('app');
 module.exports = App.WizardRoute.extend({
   route: '/enable',
   enter: function (router) {
-    router.get('mainController').dataLoading().done(function () {
+    router.get('mainController').dataLoading().done(function() {
+      return App.clusterStatus.updateFromServer();
+    }).done(function () {
       var kerberosWizardController = router.get('kerberosWizardController');
       App.router.get('updateController').set('isWorking', false);
       var popup = App.ModalPopup.show({
