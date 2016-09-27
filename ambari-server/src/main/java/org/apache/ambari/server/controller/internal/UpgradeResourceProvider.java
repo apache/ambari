@@ -36,6 +36,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -194,11 +196,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       Arrays.asList(UPGRADE_REQUEST_ID, UPGRADE_CLUSTER_NAME));
   private static final Set<String> PROPERTY_IDS = new HashSet<>();
 
-  private static final String COMMAND_PARAM_VERSION = VERSION;
-  private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
-  private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  public static final String COMMAND_PARAM_VERSION = VERSION;
+  public static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
+  public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
   private static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
-  private static final String COMMAND_PARAM_REQUEST_ID = "request_id";
+  public static final String COMMAND_PARAM_REQUEST_ID = "request_id";
 
   // TODO AMBARI-12698, change this variable name since it is no longer always a restart. Possible values are rolling_upgrade or nonrolling_upgrade
   // This will involve changing Script.py
@@ -207,19 +209,25 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
   private static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
 
+
   /**
    * The original "current" stack of the cluster before the upgrade started.
    * This is the same regardless of whether the current direction is
    * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
    */
-  private static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
+  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
 
   /**
    * The target upgrade stack before the upgrade started. This is the same
    * regardless of whether the current direction is {@link Direction#UPGRADE} or
    * {@link Direction#DOWNGRADE}.
    */
-  private static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
+  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
+
+  /**
+   * The list of supported services put on a command.
+   */
+  public static final String COMMAND_PARAM_SUPPORTED_SERVICES = "supported_services";
 
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
@@ -813,6 +821,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           try {
             VersionDefinitionXml vdf = targetRepositoryVersion.getRepositoryXml();
             supportedServices.addAll(vdf.getAvailableServiceNames());
+
+            // !!! better not be, but just in case
+            if (!supportedServices.isEmpty()) {
+              scope = UpgradeScope.PARTIAL;
+            }
+
           } catch (Exception e) {
             String msg = String.format("Could not parse version definition for %s.  Upgrade will not proceed.", version);
             LOG.error(msg, e);
@@ -917,16 +931,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // HDP 2.2 to 2.4 should start with HDP 2.2 and merge in HDP 2.3's config-upgrade.xml
     ConfigUpgradePack configUpgradePack = ConfigurationPackBuilder.build(pack, sourceStackId);
 
-    // TODO: for now, all service components are transitioned to upgrading state
-    // TODO: When performing patch upgrade, we should only target supported services/components
-    // from upgrade pack
     Set<Service> services = new HashSet<>(cluster.getServices().values());
+
+    @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
     Map<Service, Set<ServiceComponent>> targetComponents = new HashMap<>();
     for (Service service: services) {
-      Set<ServiceComponent> serviceComponents =
-        new HashSet<>(service.getServiceComponents().values());
-      targetComponents.put(service, serviceComponents);
+      if (ctx.isServiceSupported(service.getName())) {
+        Set<ServiceComponent> serviceComponents = new HashSet<>(service.getServiceComponents().values());
+        targetComponents.put(service, serviceComponents);
+      }
     }
+
     // TODO: is there any extreme case when we need to set component upgrade state back to NONE
     // from IN_PROGRESS (e.g. canceled downgrade)
     s_upgradeHelper.putComponentsToUpgradingState(version, targetComponents);
@@ -1619,6 +1634,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
     commandParams.put(COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
+    commandParams.put(COMMAND_PARAM_SUPPORTED_SERVICES, StringUtils.join(context.getSupportedServices(), ','));
 
     // Notice that this does not apply any params because the input does not specify a stage.
     // All of the other actions do use additional params.

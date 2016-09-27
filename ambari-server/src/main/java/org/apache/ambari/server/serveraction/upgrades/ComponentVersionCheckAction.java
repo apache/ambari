@@ -53,7 +53,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
     StackId targetStackId = new StackId(commandParams.get(TARGET_STACK_KEY));
     String clusterName = getExecutionCommand().getClusterName();
 
-    Cluster cluster = clusters.getCluster(clusterName);
+    Cluster cluster = m_clusters.getCluster(clusterName);
 
     List<InfoTuple> errors = checkHostComponentVersions(cluster, version, targetStackId);
 

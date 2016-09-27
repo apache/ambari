@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -43,10 +42,6 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 /**
  * Used to represent cluster-based operations.
@@ -103,7 +98,6 @@ public class ClusterGrouping extends Grouping {
 
     @XmlElement(name="scope")
     public UpgradeScope scope = UpgradeScope.ANY;
-
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
@@ -235,6 +229,7 @@ public class ClusterGrouping extends Grouping {
         return null;
       }
 
+      // !!! FUTURE: check for component
 
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
@@ -288,35 +283,10 @@ public class ClusterGrouping extends Grouping {
   }
 
   /**
-   * Populates the manual task, mt, with information about the list of hosts.
-   * @param mt Manual Task
-   * @param hostToComponents Map from host name to list of components
-   */
-  private void fillHostDetails(ManualTask mt, Map<String, List<String>> hostToComponents) {
-    JsonArray arr = new JsonArray();
-    for (Entry<String, List<String>> entry : hostToComponents.entrySet()) {
-      JsonObject hostObj = new JsonObject();
-      hostObj.addProperty("host", entry.getKey());
-
-      JsonArray componentArr = new JsonArray();
-      for (String comp : entry.getValue()) {
-        componentArr.add(new JsonPrimitive(comp));
-      }
-      hostObj.add("components", componentArr);
-
-      arr.add(hostObj);
-    }
-
-    JsonObject obj = new JsonObject();
-    obj.add("unhealthy", arr);
-
-    mt.structuredOut = obj.toString();
-  }
-
-  /**
    * Attempts to merge the given cluster groupings.  This merges the execute stages
    * in an order specific manner.
    */
+  @Override
   public void merge(Iterator<Grouping> iterator) throws AmbariException {
     if (executionStages == null) {
       executionStages = new ArrayList<ExecuteStage>();

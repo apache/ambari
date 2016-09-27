@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -369,6 +370,15 @@ public class UpgradeContext {
   @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
   public void setSupportedServices(Set<String> services) {
     m_supported = services;
+  }
+
+  /**
+   * @return the set of supported services, or an empty set if ALL services
+   * are supported
+   */
+  @Experimental(feature=ExperimentalFeature.PATCH_UPGRADES)
+  public Set<String> getSupportedServices() {
+    return Collections.unmodifiableSet(m_supported);
   }
 
   /**
