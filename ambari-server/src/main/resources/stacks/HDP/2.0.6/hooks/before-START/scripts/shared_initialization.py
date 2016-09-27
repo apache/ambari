@@ -177,7 +177,7 @@ def create_dirs():
 
 def create_microsoft_r_dir():
   import params
-  if 'MICROSOFT_R_CLIENT' in params.component_list and params.default_fs:
+  if 'MICROSOFT_R_SERVER_CLIENT' in params.component_list and params.default_fs:
     directory = '/user/RevoShare'
     try:
       params.HdfsResource(directory,
