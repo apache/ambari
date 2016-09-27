@@ -142,6 +142,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
     serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
+    serviceInfo.setChecksFolder(serviceDirectory.getChecksDir());
     serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
     serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
@@ -252,6 +253,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
     if (serviceInfo.getRoleCommandOrder() == null) {
       serviceInfo.setRoleCommandOrder(parent.getRoleCommandOrder());
+    }
+    if (serviceInfo.getChecksFolder() == null) {
+      serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());

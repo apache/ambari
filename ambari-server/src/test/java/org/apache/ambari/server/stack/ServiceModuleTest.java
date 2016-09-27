@@ -437,6 +437,36 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_UpgradeCheckDirectory() throws Exception {
+    File checks = new File("checks");
+
+    // check directory specified in child only
+    ServiceInfo info = new ServiceInfo();
+    ServiceInfo parentInfo = new ServiceInfo();
+    ServiceModule child = createServiceModule(info);
+    ServiceModule parent = createServiceModule(parentInfo);
+    child.getModuleInfo().setChecksFolder(checks);
+    resolveService(child, parent);
+    assertEquals(checks.getPath(), child.getModuleInfo().getChecksFolder().getPath());
+
+    // check directory specified in parent only
+    child = createServiceModule(info);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setChecksFolder(checks);
+    resolveService(child, parent);
+    assertEquals(checks.getPath(), child.getModuleInfo().getChecksFolder().getPath());
+
+    // check directory set in both
+    info.setChecksFolder(checks);
+    child = createServiceModule(info);
+    child.getModuleInfo().setChecksFolder(checks);
+    parent = createServiceModule(parentInfo);
+    parent.getModuleInfo().setChecksFolder(new File("other"));
+    resolveService(child, parent);
+    assertEquals(checks.getPath(), child.getModuleInfo().getChecksFolder().getPath());
+  }
+
+  @Test
   public void testResolve_CustomCommands() throws Exception {
     List<CustomCommandDefinition> customCommands = new ArrayList<CustomCommandDefinition>();
     CustomCommandDefinition cmd1 = new CustomCommandDefinition();
