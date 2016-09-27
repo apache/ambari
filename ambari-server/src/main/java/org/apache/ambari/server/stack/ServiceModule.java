@@ -180,7 +180,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       return;
     }
 
-    LOG.info("Resolve service");
+    LOG.debug("Resolve service");
 
     // If resolving against parent stack service module (stack inheritance), do not merge if an
     // explicit parent is specified
@@ -193,7 +193,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());
     }
-    LOG.info("Display name service/parent: " + serviceInfo.getDisplayName() + "/" + parent.getDisplayName());
+    LOG.info(String.format("Display name service/parent: %s/%s", serviceInfo.getDisplayName(), parent.getDisplayName()));
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
