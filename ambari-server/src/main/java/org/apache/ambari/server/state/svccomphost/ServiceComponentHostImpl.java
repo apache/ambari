@@ -30,6 +30,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -92,7 +94,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private static final Logger LOG =
       LoggerFactory.getLogger(ServiceComponentHostImpl.class);
 
-  private final ReadWriteLock clusterGlobalLock;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final Lock readLock = readWriteLock.readLock();
   private final Lock writeLock = readWriteLock.writeLock();
@@ -751,7 +752,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     this.serviceComponent = serviceComponent;
-    clusterGlobalLock = serviceComponent.getClusterGlobalLock();
 
     HostEntity hostEntity = null;
     try {
@@ -805,7 +805,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
                                   Injector injector) {
     injector.injectMembers(this);
     this.serviceComponent = serviceComponent;
-    clusterGlobalLock = serviceComponent.getClusterGlobalLock();
 
     this.desiredStateEntity = desiredStateEntity;
     this.stateEntity = stateEntity;
@@ -1029,6 +1028,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
@@ -1037,30 +1037,25 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           + ", event=" + event.toString());
     }
     State oldState = getState();
-    clusterGlobalLock.readLock().lock();
     try {
+      writeLock.lock();
       try {
-        writeLock.lock();
-        try {
-          stateMachine.doTransition(event.getType(), event);
-          getStateEntity().setCurrentState(stateMachine.getCurrentState());
-          saveComponentStateEntityIfPersisted();
-          // TODO Audit logs
-        } catch (InvalidStateTransitionException e) {
-          LOG.error("Can't handle ServiceComponentHostEvent event at"
-              + " current state"
-              + ", serviceComponentName=" + getServiceComponentName()
-              + ", hostName=" + getHostName()
-            + ", currentState=" + oldState
-              + ", eventType=" + event.getType()
-              + ", event=" + event);
-          throw e;
-        }
-      } finally {
-        writeLock.unlock();
+        stateMachine.doTransition(event.getType(), event);
+        getStateEntity().setCurrentState(stateMachine.getCurrentState());
+        saveComponentStateEntityIfPersisted();
+        // TODO Audit logs
+      } catch (InvalidStateTransitionException e) {
+        LOG.error("Can't handle ServiceComponentHostEvent event at"
+            + " current state"
+            + ", serviceComponentName=" + getServiceComponentName()
+            + ", hostName=" + getHostName()
+          + ", currentState=" + oldState
+            + ", eventType=" + event.getType()
+            + ", event=" + event);
+        throw e;
       }
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      writeLock.unlock();
     }
 
     if (!oldState.equals(getState())) {
@@ -1349,58 +1344,56 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs) {
-    clusterGlobalLock.readLock().lock();
+    readLock.lock();
     try {
-      readLock.lock();
-      try {
-        HostComponentStateEntity hostComponentStateEntity = getStateEntity();
-        if (null == hostComponentStateEntity) {
-          LOG.warn("Could not convert ServiceComponentHostResponse to a response. It's possible that Host " + getHostName() + " was deleted.");
-          return null;
-        }
-
-        String clusterName = serviceComponent.getClusterName();
-        String serviceName = serviceComponent.getServiceName();
-        String serviceComponentName = serviceComponent.getName();
-        String hostName = getHostName();
-        String state = getState().toString();
-        String stackId = getStackVersion().getStackId();
-        String desiredState = getDesiredState().toString();
-        String desiredStackId = getDesiredStackVersion().getStackId();
-        HostComponentAdminState componentAdminState = getComponentAdminState();
-        UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
-
-        String displayName = null;
-        try {
-          ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
-            getStackVersion().getStackVersion(), serviceName, serviceComponentName);
-          displayName = compInfo.getDisplayName();
-        } catch (AmbariException e) {
-          displayName = serviceComponentName;
-        }
-
-        ServiceComponentHostResponse r = new ServiceComponentHostResponse(
-            clusterName, serviceName,
-            serviceComponentName, displayName, hostName, state,
-            stackId, desiredState,
-            desiredStackId, componentAdminState);
-
-        r.setActualConfigs(actualConfigs);
-        r.setUpgradeState(upgradeState);
-
-        try {
-          r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs));
-        } catch (Exception e) {
-          LOG.error("Could not determine stale config", e);
-        }
-
-        return r;
-      } finally {
-        readLock.unlock();
+      HostComponentStateEntity hostComponentStateEntity = getStateEntity();
+      if (null == hostComponentStateEntity) {
+        LOG.warn(
+            "Could not convert ServiceComponentHostResponse to a response. It's possible that Host {} was deleted.",
+            getHostName());
+        return null;
       }
+
+      String clusterName = serviceComponent.getClusterName();
+      String serviceName = serviceComponent.getServiceName();
+      String serviceComponentName = serviceComponent.getName();
+      String hostName = getHostName();
+      String state = getState().toString();
+      String stackId = getStackVersion().getStackId();
+      String desiredState = getDesiredState().toString();
+      String desiredStackId = getDesiredStackVersion().getStackId();
+      HostComponentAdminState componentAdminState = getComponentAdminState();
+      UpgradeState upgradeState = hostComponentStateEntity.getUpgradeState();
+
+      String displayName = null;
+      try {
+        ComponentInfo compInfo = ambariMetaInfo.getComponent(getStackVersion().getStackName(),
+          getStackVersion().getStackVersion(), serviceName, serviceComponentName);
+        displayName = compInfo.getDisplayName();
+      } catch (AmbariException e) {
+        displayName = serviceComponentName;
+      }
+
+      ServiceComponentHostResponse r = new ServiceComponentHostResponse(
+          clusterName, serviceName,
+          serviceComponentName, displayName, hostName, state,
+          stackId, desiredState,
+          desiredStackId, componentAdminState);
+
+      r.setActualConfigs(actualConfigs);
+      r.setUpgradeState(upgradeState);
+
+      try {
+        r.setStaleConfig(helper.isStaleConfigs(this, desiredConfigs));
+      } catch (Exception e) {
+        LOG.error("Could not determine stale config", e);
+      }
+
+      return r;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readLock.unlock();
     }
   }
 
@@ -1448,52 +1441,29 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Override
   public void persist() {
-    boolean clusterWriteLockAcquired = false;
-    if (!persisted) {
-      clusterGlobalLock.writeLock().lock();
-      clusterWriteLockAcquired = true;
-    }
-
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        if (!persisted) {
-          // persist the new cluster topology and then release the cluster lock
-          // as it has no more bearing on the rest of this persist() method
-          persistEntities();
-          persisted = true;
+      if (!persisted) {
+        // persist the new cluster topology
+        persistEntities();
+        persisted = true;
 
-          clusterGlobalLock.writeLock().unlock();
-          clusterWriteLockAcquired = false;
+        refresh();
 
-          // these should still be done with the internal lock
-          refresh();
-          // There refresh calls are no longer needed with cached references
-          // not used on getters/setters
-          // NOTE: Refreshing parents is a bad pattern.
-          //host.refresh();
-          //serviceComponent.refresh();
+        // publish the service component installed event
+        StackId stackId = getDesiredStackVersion();
 
-          // publish the service component installed event
-          StackId stackId = getDesiredStackVersion();
+        ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(getClusterId(),
+            stackId.getStackName(), stackId.getStackVersion(), getServiceName(),
+            getServiceComponentName(), getHostName(), isRecoveryEnabled());
 
-          ServiceComponentInstalledEvent event = new ServiceComponentInstalledEvent(
-              getClusterId(), stackId.getStackName(),
-              stackId.getStackVersion(), getServiceName(), getServiceComponentName(), getHostName(),
-                  isRecoveryEnabled());
-
-          eventPublisher.publish(event);
-        } else {
-          saveComponentStateEntityIfPersisted();
-          saveComponentDesiredStateEntityIfPersisted();
-        }
-      } finally {
-        writeLock.unlock();
+        eventPublisher.publish(event);
+      } else {
+        saveComponentStateEntityIfPersisted();
+        saveComponentDesiredStateEntityIfPersisted();
       }
     } finally {
-      if (clusterWriteLockAcquired) {
-        clusterGlobalLock.writeLock().unlock();
-      }
+      writeLock.unlock();
     }
   }
 
@@ -1568,8 +1538,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public boolean canBeRemoved() {
-    clusterGlobalLock.readLock().lock();
     boolean schLockAcquired = false;
     try {
       // if unable to read, then writers are writing; cannot remove SCH
@@ -1581,38 +1551,33 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       if (schLockAcquired) {
         readLock.unlock();
       }
-      clusterGlobalLock.readLock().unlock();
     }
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void delete() {
     boolean fireRemovalEvent = false;
 
-    clusterGlobalLock.writeLock().lock();
+    writeLock.lock();
     try {
-      writeLock.lock();
-      try {
-        if (persisted) {
-          removeEntities();
+      if (persisted) {
+        removeEntities();
 
-          // host must be re-loaded from db to refresh the cached JPA HostEntity
-          // that references HostComponentDesiredStateEntity
-          // and HostComponentStateEntity JPA entities
-          host.refresh();
+        // host must be re-loaded from db to refresh the cached JPA HostEntity
+        // that references HostComponentDesiredStateEntity
+        // and HostComponentStateEntity JPA entities
+        host.refresh();
 
-          persisted = false;
-          fireRemovalEvent = true;
-        }
-
-        clusters.getCluster(getClusterName()).removeServiceComponentHost(this);
-      } catch (AmbariException ex) {
-        LOG.error("Unable to remove a service component from a host", ex);
-      } finally {
-        writeLock.unlock();
+        persisted = false;
+        fireRemovalEvent = true;
       }
+
+      clusters.getCluster(getClusterName()).removeServiceComponentHost(this);
+    } catch (AmbariException ex) {
+      LOG.error("Unable to remove a service component from a host", ex);
     } finally {
-      clusterGlobalLock.writeLock().unlock();
+      writeLock.unlock();
     }
 
     // publish event for the removal of the SCH after the removal is

@@ -18,12 +18,15 @@
 
 package org.apache.ambari.server.state;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.ProvisionException;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -43,7 +46,6 @@ import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
@@ -51,19 +53,16 @@ import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.ProvisionException;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 
 public class ServiceImpl implements Service {
-  private final ReadWriteLock clusterGlobalLock;
   private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   // Cached entity has only 1 getter for name
   private ClusterServiceEntity serviceEntity;
@@ -113,7 +112,6 @@ public class ServiceImpl implements Service {
   public ServiceImpl(@Assisted Cluster cluster, @Assisted String serviceName,
       Injector injector) throws AmbariException {
     injector.injectMembers(this);
-    clusterGlobalLock = cluster.getClusterGlobalLock();
     serviceEntity = new ClusterServiceEntity();
     serviceEntity.setClusterId(cluster.getClusterId());
     serviceEntity.setServiceName(serviceName);
@@ -145,7 +143,6 @@ public class ServiceImpl implements Service {
   public ServiceImpl(@Assisted Cluster cluster, @Assisted ClusterServiceEntity
       serviceEntity, Injector injector) throws AmbariException {
     injector.injectMembers(this);
-    clusterGlobalLock = cluster.getClusterGlobalLock();
     this.serviceEntity = serviceEntity;
     this.cluster = cluster;
 
@@ -182,11 +179,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  public ReadWriteLock getClusterGlobalLock() {
-    return clusterGlobalLock;
-  }
-
-  @Override
   public String getName() {
     return serviceEntity.getServiceName();
   }
@@ -207,83 +199,35 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void addServiceComponents(
       Map<String, ServiceComponent> components) throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        for (ServiceComponent sc : components.values()) {
-          addServiceComponent(sc);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
+    for (ServiceComponent sc : components.values()) {
+      addServiceComponent(sc);
     }
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        // TODO validation
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding a ServiceComponent to Service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", serviceComponentName=" + component.getName());
-        }
-        if (components.containsKey(component.getName())) {
-          throw new AmbariException("Cannot add duplicate ServiceComponent"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", serviceComponentName=" + component.getName());
-        }
-        components.put(component.getName(), component);
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
+    if (components.containsKey(component.getName())) {
+      throw new AmbariException("Cannot add duplicate ServiceComponent"
+          + ", clusterName=" + cluster.getClusterName()
+          + ", clusterId=" + cluster.getClusterId()
+          + ", serviceName=" + getName()
+          + ", serviceComponentName=" + component.getName());
     }
+    
+    components.put(component.getName(), component);
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
-    try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Adding a ServiceComponent to Service"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", serviceComponentName=" + serviceComponentName);
-        }
-        if (components.containsKey(serviceComponentName)) {
-          throw new AmbariException("Cannot add duplicate ServiceComponent"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", clusterId=" + cluster.getClusterId()
-              + ", serviceName=" + getName()
-              + ", serviceComponentName=" + serviceComponentName);
-        }
-        ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
-        components.put(component.getName(), component);
-        return component;
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
-    } finally {
-      clusterGlobalLock.writeLock().unlock();
-    }
+    ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
+    addServiceComponent(component);
+    return component;
   }
 
   @Override
@@ -460,36 +404,30 @@ public class ServiceImpl implements Service {
    * transaction is not necessary before this calling this method.
    */
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void persist() {
-    clusterGlobalLock.writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (!persisted) {
-          persistEntities();
-          refresh();
-          // There refresh calls are no longer needed with cached references
-          // not used on getters/setters
-          // cluster.refresh();
-          persisted = true;
+      if (!persisted) {
+        persistEntities();
+        refresh();
 
-          // publish the service installed event
-          StackId stackId = cluster.getDesiredStackVersion();
-          cluster.addService(this);
+        persisted = true;
 
-          ServiceInstalledEvent event = new ServiceInstalledEvent(
-              getClusterId(), stackId.getStackName(),
-              stackId.getStackVersion(), getName());
+        // publish the service installed event
+        StackId stackId = cluster.getDesiredStackVersion();
+        cluster.addService(this);
 
-          eventPublisher.publish(event);
-        } else {
-          saveIfPersisted();
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
+        ServiceInstalledEvent event = new ServiceInstalledEvent(
+            getClusterId(), stackId.getStackName(),
+            stackId.getStackVersion(), getName());
+
+        eventPublisher.publish(event);
+      } else {
+        saveIfPersisted();
       }
     } finally {
-      clusterGlobalLock.writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
@@ -535,31 +473,26 @@ public class ServiceImpl implements Service {
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public boolean canBeRemoved() {
-    clusterGlobalLock.readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        //
-        // A service can be deleted if all it's components
-        // can be removed, irrespective of the state of
-        // the service itself.
-        //
-        for (ServiceComponent sc : components.values()) {
-          if (!sc.canBeRemoved()) {
-            LOG.warn("Found non removable component when trying to delete service"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + getName()
-                + ", componentName=" + sc.getName());
-            return false;
-          }
+      //
+      // A service can be deleted if all it's components
+      // can be removed, irrespective of the state of
+      // the service itself.
+      //
+      for (ServiceComponent sc : components.values()) {
+        if (!sc.canBeRemoved()) {
+          LOG.warn("Found non removable component when trying to delete service" + ", clusterName="
+              + cluster.getClusterName() + ", serviceName=" + getName() + ", componentName="
+              + sc.getName());
+          return false;
         }
-        return true;
-      } finally {
-        readWriteLock.readLock().unlock();
       }
+      return true;
     } finally {
-      clusterGlobalLock.readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 
@@ -599,71 +532,56 @@ public class ServiceImpl implements Service {
       serviceConfigDAO.remove(serviceConfigEntity);
     }
   }
-  
+
   @Override
   @Transactional
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void deleteAllComponents() throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        LOG.info("Deleting all components for service"
-            + ", clusterName=" + cluster.getClusterName()
-            + ", serviceName=" + getName());
-        // FIXME check dependencies from meta layer
-        for (ServiceComponent component : components.values()) {
-          if (!component.canBeRemoved()) {
-            throw new AmbariException("Found non removable component when trying to"
-                + " delete all components from service"
-                + ", clusterName=" + cluster.getClusterName()
-                + ", serviceName=" + getName()
-                + ", componentName=" + component.getName());
-          }
+      LOG.info("Deleting all components for service" + ", clusterName=" + cluster.getClusterName()
+          + ", serviceName=" + getName());
+      // FIXME check dependencies from meta layer
+      for (ServiceComponent component : components.values()) {
+        if (!component.canBeRemoved()) {
+          throw new AmbariException("Found non removable component when trying to"
+              + " delete all components from service" + ", clusterName=" + cluster.getClusterName()
+              + ", serviceName=" + getName() + ", componentName=" + component.getName());
         }
-
-        for (ServiceComponent serviceComponent : components.values()) {
-          serviceComponent.delete();
-        }
-
-        components.clear();
-      } finally {
-        readWriteLock.writeLock().unlock();
       }
+
+      for (ServiceComponent serviceComponent : components.values()) {
+        serviceComponent.delete();
+      }
+
+      components.clear();
     } finally {
-      clusterGlobalLock.writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
   @Override
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void deleteServiceComponent(String componentName)
       throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        ServiceComponent component = getServiceComponent(componentName);
-        LOG.info("Deleting servicecomponent for cluster"
+      ServiceComponent component = getServiceComponent(componentName);
+      LOG.info("Deleting servicecomponent for cluster" + ", clusterName=" + cluster.getClusterName()
+          + ", serviceName=" + getName() + ", componentName=" + componentName);
+      // FIXME check dependencies from meta layer
+      if (!component.canBeRemoved()) {
+        throw new AmbariException("Could not delete component from cluster"
             + ", clusterName=" + cluster.getClusterName()
             + ", serviceName=" + getName()
             + ", componentName=" + componentName);
-        // FIXME check dependencies from meta layer
-        if (!component.canBeRemoved()) {
-          throw new AmbariException("Could not delete component from cluster"
-              + ", clusterName=" + cluster.getClusterName()
-              + ", serviceName=" + getName()
-              + ", componentName=" + componentName);
-        }
-
-        component.delete();
-        components.remove(componentName);
-      } finally {
-        readWriteLock.writeLock().unlock();
       }
+
+      component.delete();
+      components.remove(componentName);
     } finally {
-      clusterGlobalLock.writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
-
-
   }
 
   @Override
@@ -673,34 +591,28 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
+  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void delete() throws AmbariException {
-    clusterGlobalLock.writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        deleteAllComponents();
-        deleteAllServiceConfigs();
+      deleteAllComponents();
+      deleteAllServiceConfigs();
 
-        if (persisted) {
-          removeEntities();
-          persisted = false;
+      if (persisted) {
+        removeEntities();
+        persisted = false;
 
-          // publish the service removed event
-          StackId stackId = cluster.getDesiredStackVersion();
+        // publish the service removed event
+        StackId stackId = cluster.getDesiredStackVersion();
 
-          ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(),
-              stackId.getStackName(), stackId.getStackVersion(), getName());
+        ServiceRemovedEvent event = new ServiceRemovedEvent(getClusterId(), stackId.getStackName(),
+            stackId.getStackVersion(), getName());
 
-          eventPublisher.publish(event);
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
+        eventPublisher.publish(event);
       }
     } finally {
-      clusterGlobalLock.writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
-
-
   }
 
   @Transactional

@@ -18,12 +18,18 @@
 package org.apache.ambari.server.update;
 
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -51,18 +57,13 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
+import junit.framework.Assert;
 
 public class HostUpdateHelperTest {
 
@@ -217,8 +218,6 @@ public class HostUpdateHelperTest {
     ClusterConfigEntity mockClusterConfigEntity3 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     ClusterConfigEntity mockClusterConfigEntity4 = easyMockSupport.createNiceMock(ClusterConfigEntity.class);
     StackEntity mockStackEntity = easyMockSupport.createNiceMock(StackEntity.class);
-    ReadWriteLock mockReadWriteLock = easyMockSupport.createNiceMock(ReadWriteLock.class);
-    Lock mockLock = easyMockSupport.createNiceMock(Lock.class);
     Map<String, Map<String, String>> clusterHostsToChange = new HashMap<>();
     Map<String, String> hosts = new HashMap<>();
     List<ClusterConfigEntity> clusterConfigEntities1 = new ArrayList<>();
@@ -254,10 +253,7 @@ public class HostUpdateHelperTest {
     expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
 
     expect(mockClusters.getCluster("cl1")).andReturn(mockCluster).once();
-    expect(mockCluster.getClusterGlobalLock()).andReturn(mockReadWriteLock).atLeastOnce();
     expect(mockCluster.getClusterId()).andReturn(1L).atLeastOnce();
-
-    expect(mockReadWriteLock.writeLock()).andReturn(mockLock).atLeastOnce();
 
     expect(mockClusterEntity1.getClusterConfigEntities()).andReturn(clusterConfigEntities1).atLeastOnce();
     expect(mockClusterEntity2.getClusterConfigEntities()).andReturn(clusterConfigEntities2).atLeastOnce();

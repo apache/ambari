@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -98,10 +97,4 @@ public interface ServiceComponent {
       String hostName) throws AmbariException;
 
   void delete() throws AmbariException;
-
-  /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
 }

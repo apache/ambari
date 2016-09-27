@@ -18,6 +18,7 @@
 package org.apache.ambari.annotations;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
 
 /**
  * The {@link ExperimentalFeature} enumeration is meant to be used with the
@@ -40,5 +41,10 @@ public enum ExperimentalFeature {
   /**
    * Used for code that is targeted for patch upgrades
    */
-  PATCH_UPGRADES
+  PATCH_UPGRADES,
+
+  /**
+   * The removal of the cluster global {@link Lock}
+   */
+  CLUSTER_GLOBAL_LOCK_REMOVAL
 }

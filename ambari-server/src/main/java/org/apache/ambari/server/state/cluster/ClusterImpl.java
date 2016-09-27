@@ -336,12 +336,6 @@ public class ClusterImpl implements Cluster {
     this.eventPublisher = eventPublisher;
   }
 
-
-  @Override
-  public ReadWriteLock getClusterGlobalLock() {
-    return clusterGlobalLock;
-  }
-
   private void loadServiceConfigTypes() throws AmbariException {
     try {
       serviceConfigTypes = collectServiceConfigTypesMapping();

@@ -63,7 +63,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 import javax.persistence.RollbackException;
 
@@ -202,6 +201,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -209,7 +209,6 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import com.google.common.collect.ListMultimap;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -3111,13 +3110,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
 
-    Lock clusterWriteLock = cluster.getClusterGlobalLock().writeLock();
-    clusterWriteLock.lock();
-    try {
-      updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
-    } finally {
-      clusterWriteLock.unlock();
-    }
+    updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
+
     return requestStages;
   }
 
@@ -5166,13 +5160,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
 
-    if (stackInfo == null)
+    if (stackInfo == null) {
       throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+    }
 
     ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
 
-    if (extensionInfo == null)
+    if (extensionInfo == null) {
       throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+    }
 
     ExtensionHelper.validateDeleteLink(getClusters(), stackInfo, extensionInfo);
     ambariMetaInfo.getStackManager().unlinkStackAndExtension(stackInfo, extensionInfo);
@@ -5202,13 +5198,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     StackInfo stackInfo = ambariMetaInfo.getStack(request.getStackName(), request.getStackVersion());
 
-    if (stackInfo == null)
+    if (stackInfo == null) {
       throw new StackAccessException("stackName=" + request.getStackName() + ", stackVersion=" + request.getStackVersion());
+    }
 
     ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(request.getExtensionName(), request.getExtensionVersion());
 
-    if (extensionInfo == null)
+    if (extensionInfo == null) {
       throw new StackAccessException("extensionName=" + request.getExtensionName() + ", extensionVersion=" + request.getExtensionVersion());
+    }
 
     ExtensionHelper.validateCreateLink(stackInfo, extensionInfo);
     ExtensionLinkEntity linkEntity = createExtensionLinkEntity(request);
@@ -5265,13 +5263,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public void updateExtensionLink(ExtensionLinkEntity linkEntity) throws AmbariException {
     StackInfo stackInfo = ambariMetaInfo.getStack(linkEntity.getStack().getStackName(), linkEntity.getStack().getStackVersion());
 
-    if (stackInfo == null)
+    if (stackInfo == null) {
       throw new StackAccessException("stackName=" + linkEntity.getStack().getStackName() + ", stackVersion=" + linkEntity.getStack().getStackVersion());
+    }
 
     ExtensionInfo extensionInfo = ambariMetaInfo.getExtension(linkEntity.getExtension().getExtensionName(), linkEntity.getExtension().getExtensionVersion());
 
-    if (extensionInfo == null)
+    if (extensionInfo == null) {
       throw new StackAccessException("extensionName=" + linkEntity.getExtension().getExtensionName() + ", extensionVersion=" + linkEntity.getExtension().getExtensionVersion());
+    }
 
     ambariMetaInfo.getStackManager().linkStackToExtension(stackInfo, extensionInfo);
   }
