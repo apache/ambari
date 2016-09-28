@@ -49,14 +49,14 @@ public class MetricsManager {
     LOG.info("Initializing MetricsManager()");
     amsClient = new LogFeederAMSClient();
 
-    if (amsClient.getCollectorUri(null) != null) {
+    if (amsClient.getCollectorUri() != null) {
       findNodeHostName();
       if (nodeHostName == null) {
         isMetricsEnabled = false;
         LOG.error("Failed getting hostname for node. Disabling publishing LogFeeder metrics");
       } else {
         isMetricsEnabled = true;
-        LOG.info("LogFeeder Metrics is enabled. Metrics host=" + amsClient.getCollectorUri(null));
+        LOG.info("LogFeeder Metrics is enabled. Metrics host=" + amsClient.getCollectorUri());
       }
     } else {
       LOG.info("LogFeeder Metrics publish is disabled");
@@ -80,14 +80,14 @@ public class MetricsManager {
       }
       if (nodeHostName == null) {
         isMetricsEnabled = false;
-        logger.error("Failed getting hostname for node. Disabling publishing LogFeeder metrics");
+        LOG.error("Failed getting hostname for node. Disabling publishing LogFeeder metrics");
       } else {
         isMetricsEnabled = true;
-        logger.info("LogFeeder Metrics is enabled. Metrics host="
-          + amsClient.getCollectorUri(null));
+        LOG.info("LogFeeder Metrics is enabled. Metrics host="
+          + amsClient.getCollectorUri());
       }
     } else {
-      logger.info("LogFeeder Metrics publish is disabled");
+      LOG.info("LogFeeder Metrics publish is disabled");
     }
   }
 
