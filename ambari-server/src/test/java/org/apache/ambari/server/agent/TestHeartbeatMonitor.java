@@ -57,9 +57,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
@@ -68,7 +66,6 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
 
 public class TestHeartbeatMonitor {
 
@@ -86,42 +83,17 @@ public class TestHeartbeatMonitor {
   private static final Logger LOG =
           LoggerFactory.getLogger(TestHeartbeatMonitor.class);
 
-  @BeforeClass
-  public static void classSetUp() {
+  @Before
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     helper = injector.getInstance(OrmTestHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
   }
 
-  @Before
-  public void setup() throws Exception {
-    cleanup();
-    injector.getInstance(UnitOfWork.class).begin();
-  }
-
   @After
   public void teardown() {
-    injector.getInstance(UnitOfWork.class).end();
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
     injector.getInstance(PersistService.class).stop();
-  }
-
-  private void cleanup() throws AmbariException {
-    Clusters clusters = injector.getInstance(Clusters.class);
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-
-
-    for (String clusterName : clusterMap.keySet()) {
-      clusters.deleteCluster(clusterName);
-    }
-
-    for (Host host : clusters.getHosts()) {
-      clusters.deleteHost(host.getHostName());
-    }
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {

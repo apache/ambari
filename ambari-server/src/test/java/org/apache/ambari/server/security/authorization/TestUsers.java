@@ -43,9 +43,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -55,102 +53,77 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 public class TestUsers {
-  private static Injector injector;
+  private Injector injector;
 
-
-  protected static Users users;
-  protected static UserDAO userDAO;
-  protected static GroupDAO groupDAO;
-  protected static PermissionDAO permissionDAO;
-  protected static ResourceDAO resourceDAO;
-  protected static ResourceTypeDAO resourceTypeDAO;
-  protected static PrincipalTypeDAO principalTypeDAO;
-  protected static PrincipalDAO principalDAO;
-  protected static PasswordEncoder passwordEncoder;
-
-
-  @BeforeClass
-  public static void classSetUp() {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-    users = injector.getInstance(Users.class);
-    userDAO = injector.getInstance(UserDAO.class);
-    groupDAO = injector.getInstance(GroupDAO.class);
-    permissionDAO = injector.getInstance(PermissionDAO.class);
-    resourceDAO = injector.getInstance(ResourceDAO.class);
-    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
-    principalTypeDAO = injector.getInstance(PrincipalTypeDAO.class);
-    principalDAO = injector.getInstance(PrincipalDAO.class);
-    passwordEncoder = injector.getInstance(PasswordEncoder.class);
-  }
+  @Inject
+  protected Users users;
+  @Inject
+  protected UserDAO userDAO;
+  @Inject
+  protected GroupDAO groupDAO;
+  @Inject
+  protected PermissionDAO permissionDAO;
+  @Inject
+  protected ResourceDAO resourceDAO;
+  @Inject
+  protected ResourceTypeDAO resourceTypeDAO;
+  @Inject
+  protected PrincipalTypeDAO principalTypeDAO;
+  @Inject
+  protected PrincipalDAO principalDAO;
+  @Inject
+  protected PasswordEncoder passwordEncoder;
 
   @Before
   public void setup() throws AmbariException {
-    //injector.injectMembers(this);
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
+    injector = Guice.createInjector(module);
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
     Authentication auth = new UsernamePasswordAuthenticationToken("admin", null);
     SecurityContextHolder.getContext().setAuthentication(auth);
 
-    if (resourceTypeDAO.findByName(ResourceType.AMBARI.name()) == null) {
-      // create admin permission
-      ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceType.AMBARI.getId());
-      resourceTypeEntity.setName(ResourceType.AMBARI.name());
-      resourceTypeDAO.create(resourceTypeEntity);
+    // create admin permission
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(ResourceType.AMBARI.getId());
+    resourceTypeEntity.setName(ResourceType.AMBARI.name());
+    resourceTypeDAO.create(resourceTypeEntity);
 
-      ResourceEntity resourceEntity = new ResourceEntity();
-      resourceEntity.setId(ResourceEntity.AMBARI_RESOURCE_ID);
-      resourceEntity.setResourceType(resourceTypeEntity);
-      resourceDAO.create(resourceEntity);
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setId(ResourceEntity.AMBARI_RESOURCE_ID);
+    resourceEntity.setResourceType(resourceTypeEntity);
+    resourceDAO.create(resourceEntity);
 
-      PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
-      principalTypeEntity.setName("ROLE");
-      principalTypeEntity = principalTypeDAO.merge(principalTypeEntity);
+    PrincipalTypeEntity principalTypeEntity = new PrincipalTypeEntity();
+    principalTypeEntity.setName("ROLE");
+    principalTypeEntity = principalTypeDAO.merge(principalTypeEntity);
 
-      PrincipalEntity principalEntity = new PrincipalEntity();
-      principalEntity.setPrincipalType(principalTypeEntity);
-      principalEntity = principalDAO.merge(principalEntity);
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalEntity = principalDAO.merge(principalEntity);
 
-      PermissionEntity adminPermissionEntity = new PermissionEntity();
-      adminPermissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
-      adminPermissionEntity.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
-      adminPermissionEntity.setPrincipal(principalEntity);
-      adminPermissionEntity.setResourceType(resourceTypeEntity);
-      permissionDAO.create(adminPermissionEntity);
-
-      users.createUser("admin", "admin", UserType.LOCAL, true, true);
-    }
-    cleanup();
+    PermissionEntity adminPermissionEntity = new PermissionEntity();
+    adminPermissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
+    adminPermissionEntity.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
+    adminPermissionEntity.setPrincipal(principalEntity);
+    adminPermissionEntity.setResourceType(resourceTypeEntity);
+    permissionDAO.create(adminPermissionEntity);
   }
 
   @After
   public void tearDown() throws AmbariException {
-
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
     injector.getInstance(PersistService.class).stop();
   }
 
-  private void cleanup() throws AmbariException {
-    for (User user : users.getAllUsers()) {
-      if (!user.getUserName().equals("admin")) {
-        users.removeUser(user);
-      }
-    }
-
-    for (Group group : users.getAllGroups()) {
-      users.removeGroup(group);
-    }
-  }
 
   @Test
   public void testIsUserCanBeRemoved() throws Exception {
-    //users.createUser("admin", "admin", UserType.LOCAL, true, true);
+    users.createUser("admin", "admin", UserType.LOCAL, true, true);
     users.createUser("admin222", "admin222", UserType.LOCAL, true, true);
 
     Assert.assertTrue(users.isUserCanBeRemoved(userDAO.findUserByName("admin")));
@@ -168,19 +141,8 @@ public class TestUsers {
   }
 
   @Test
-  public void testGetUserIfUnique() throws Exception {
-    users.createUser("user333", "user333", UserType.LOCAL, true, false);
-
-    Assert.assertNotNull(users.getUserIfUnique("user333"));
-
-    users.createUser("user333", "user333", UserType.LDAP, true, false);
-
-    Assert.assertNull(users.getUserIfUnique("user333"));
-  }
-
-  @Test
   public void testModifyPassword_UserByAdmin() throws Exception {
-    users.createUser("new_admin", "new_admin", UserType.LOCAL, true, true);
+    users.createUser("admin", "admin", UserType.LOCAL, true, true);
     users.createUser("user", "user");
 
     UserEntity userEntity = userDAO.findUserByName("user");
@@ -213,80 +175,81 @@ public class TestUsers {
   }
 
   @Test
-  public void testGetGroupMembers() throws Exception {
-    final String groupNameTwoMembers = "engineering";
-    final String groupNameZeroMembers = "management";
-    users.createGroup(groupNameTwoMembers);
-    users.createGroup(groupNameZeroMembers);
+  public void testCreateGetRemoveUser() throws Exception {
     users.createUser("user1", "user1");
-    users.createUser("user2", "user2");
-    users.addMemberToGroup(groupNameTwoMembers, "user1");
-    users.addMemberToGroup(groupNameTwoMembers, "user2");
+    users.createUser("user", "user", UserType.LOCAL, false, false);
+    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, true);
+    User createdUser = users.getUser("user", UserType.LOCAL);
+    User createdUser1 = users.getAnyUser("user1");
+    User createdLdapUser = users.getUser("user_ldap", UserType.LDAP);
 
-    assertEquals(users.getGroupMembers(groupNameTwoMembers).size(), 2);
-    assertEquals(users.getGroupMembers(groupNameZeroMembers).size(), 0);
-  }
+    Assert.assertEquals("user1", createdUser1.getUserName());
+    Assert.assertEquals(true, createdUser1.isActive());
+    Assert.assertEquals(false, createdUser1.isLdapUser());
+    Assert.assertEquals(false, createdUser1.isAdmin());
 
-  @Test
-  public void testGetAllUsers() throws Exception {
-    Authentication auth = new UsernamePasswordAuthenticationToken("user", null);
-    SecurityContextHolder.getContext().setAuthentication(auth);
+    Assert.assertEquals("user", createdUser.getUserName());
+    Assert.assertEquals(false, createdUser.isActive());
+    Assert.assertEquals(false, createdUser.isLdapUser());
+    Assert.assertEquals(false, createdUser.isAdmin());
 
-    users.createUser("user", "user");
-
-    List<User> userList = users.getAllUsers();
-
-    assertEquals(2, userList.size());
-
-    for (User user : userList) {
-      assertEquals(false, user.isLdapUser());
-    }
-
-    assertEquals(2, userDAO.findAll().size());
-
-    UserEntity userEntity = userDAO.findUserByName("user");
-    assertNotNull("user", userEntity.getUserPassword());
-
-    users.modifyPassword("user", "user", "resu");
-
-    assertNotSame(userEntity.getUserPassword(), userDAO.findUserByName("user").getUserPassword());
-  }
-
-  @Test
-  public void testGetAnyUser() throws Exception {
-    users.createUser("user", "user", UserType.LOCAL, true, false);
-    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, false);
+    Assert.assertEquals("user_ldap", createdLdapUser.getUserName());
+    Assert.assertEquals(true, createdLdapUser.isActive());
+    Assert.assertEquals(true, createdLdapUser.isLdapUser());
+    Assert.assertEquals(true, createdLdapUser.isAdmin());
 
     assertEquals("user", users.getAnyUser("user").getUserName());
     assertEquals("user_ldap", users.getAnyUser("user_ldap").getUserName());
     Assert.assertNull(users.getAnyUser("non_existing"));
-  }
 
-  @Test
-  public void testGetAnyUserCaseInsensitive() throws Exception {
-    users.createUser("user", "user", UserType.LOCAL, true, false);
-    users.createUser("user_ldap", "user_ldap", UserType.LDAP, true, false);
+    // create duplicate user
+    try {
+      users.createUser("user1", "user1");
+      Assert.fail("It shouldn't be possible to create duplicate user");
+    } catch (AmbariException e) {
+    }
 
+    try {
+      users.createUser("USER1", "user1");
+      Assert.fail("It shouldn't be possible to create duplicate user");
+    } catch (AmbariException e) {
+    }
+
+    // test get all users
+    List<User> userList = users.getAllUsers();
+
+    Assert.assertEquals(3, userList.size());
+
+    // check get any user case insensitive
     assertEquals("user", users.getAnyUser("USER").getUserName());
     assertEquals("user_ldap", users.getAnyUser("USER_LDAP").getUserName());
     Assert.assertNull(users.getAnyUser("non_existing"));
-  }
 
-  @Test
-  public void testGetUserById() throws Exception {
-    users.createUser("user", "user", UserType.LOCAL, true, false);
-    User createdUser = users.getUser("user", UserType.LOCAL);
+    // get user by id
     User userById = users.getUser(createdUser.getUserId());
 
     assertNotNull(userById);
     assertEquals(createdUser.getUserId(), userById.getUserId());
-  }
 
-  @Test
-  public void testGetUserByInvalidId() throws Exception {
-    User userById = users.getUser(-1);
+    // get user by invalid id
+    User userByInvalidId = users.getUser(-1);
 
-    assertNull(userById);
+    assertNull(userByInvalidId);
+
+    // get user if unique
+    Assert.assertNotNull(users.getUserIfUnique("user"));
+
+    users.createUser("user", "user", UserType.LDAP, true, false);
+
+    Assert.assertNull(users.getUserIfUnique("user"));
+
+    //remove user
+    Assert.assertEquals(4, users.getAllUsers().size());
+
+    users.removeUser(users.getAnyUser("user1"));
+
+    Assert.assertNull(users.getAnyUser("user1"));
+    Assert.assertEquals(3, users.getAllUsers().size());
   }
 
   @Test
@@ -336,16 +299,11 @@ public class TestUsers {
   }
 
   @Test
-  public void testCreateGroup() throws Exception {
-    final String groupName = "engineering";
+  public void testCreateGetRemoveGroup() throws Exception {
+    final String groupName = "engineering1";
+    final String groupName2 = "engineering2";
     users.createGroup(groupName);
-    assertNotNull(groupDAO.findGroupByName(groupName));
-  }
-
-  @Test
-  public void testGetGroup() throws Exception {
-    final String groupName = "engineering";
-    users.createGroup(groupName);
+    users.createGroup(groupName2);
 
     final Group group = users.getGroup(groupName);
     assertNotNull(group);
@@ -353,71 +311,46 @@ public class TestUsers {
     assertEquals(groupName, group.getGroupName());
 
     assertNotNull(groupDAO.findGroupByName(groupName));
-  }
 
-  @Test
-  public void testGetAllGroups() throws Exception {
-    users.createGroup("one");
-    users.createGroup("two");
-
+    // get all groups
     final List<Group> groupList = users.getAllGroups();
 
     assertEquals(2, groupList.size());
     assertEquals(2, groupDAO.findAll().size());
-  }
 
-  @Test
-  public void testRemoveGroup() throws Exception {
-    final String groupName = "engineering";
-    users.createGroup(groupName);
-    final Group group = users.getGroup(groupName);
-    assertEquals(1, users.getAllGroups().size());
+    // remove group
     users.removeGroup(group);
-    assertEquals(0, users.getAllGroups().size());
+    assertNull(users.getGroup(group.getGroupName()));
+    assertEquals(1, users.getAllGroups().size());
   }
 
   @Test
-  public void testAddMemberToGroup() throws Exception {
+  public void testMembers() throws Exception {
     final String groupName = "engineering";
+    final String groupName2 = "engineering2";
     users.createGroup(groupName);
-    users.createUser("user", "user");
-    users.addMemberToGroup(groupName, "user");
-    assertEquals(1, groupDAO.findGroupByName(groupName).getMemberEntities().size());
-  }
-
-  @Test
-  public void testGetAllMembers() throws Exception {
-    final String groupName = "engineering";
-    users.createGroup(groupName);
+    users.createGroup(groupName2);
     users.createUser("user1", "user1");
     users.createUser("user2", "user2");
     users.createUser("user3", "user3");
     users.addMemberToGroup(groupName, "user1");
     users.addMemberToGroup(groupName, "user2");
     assertEquals(2, users.getAllMembers(groupName).size());
+    assertEquals(0, users.getAllMembers(groupName2).size());
 
     try {
       users.getAllMembers("non existing");
       Assert.fail("It shouldn't be possible to call getAllMembers() on non-existing group");
     } catch (Exception ex) {
     }
-  }
 
-  @Test
-  public void testRemoveMemberFromGroup() throws Exception {
-    final String groupName = "engineering";
-    users.createGroup(groupName);
-    users.createUser("user", "user");
-    users.addMemberToGroup(groupName, "user");
+    // get members from not unexisting group
+    assertEquals(users.getGroupMembers("unexisting"), null);
+
+    // remove member from group
+    users.removeMemberFromGroup(groupName, "user1");
     assertEquals(1, groupDAO.findGroupByName(groupName).getMemberEntities().size());
-    users.removeMemberFromGroup(groupName, "user");
-    assertEquals(0, groupDAO.findGroupByName(groupName).getMemberEntities().size());
-  }
-
-
-  @Test
-  public void testGetGroupMembersUnexistingGroup() throws Exception {
-   assertEquals(users.getGroupMembers("unexisting"), null);
+    assertEquals("user2", groupDAO.findGroupByName(groupName).getMemberEntities().iterator().next().getUser().getUserName());
   }
 
   @Test
@@ -477,17 +410,6 @@ public class TestUsers {
   }
 
   @Test
-  public void testCreateUserTwoParams() throws Exception {
-    users.createUser("user", "user");
-
-    final User createdUser = users.getAnyUser("user");
-    Assert.assertEquals("user", createdUser.getUserName());
-    Assert.assertEquals(true, createdUser.isActive());
-    Assert.assertEquals(false, createdUser.isLdapUser());
-    Assert.assertEquals(false, createdUser.isAdmin());
-  }
-
-  @Test
   @Ignore // TODO @Transactional annotation breaks this test
   public void testCreateUserDefaultParams() throws Exception {
     final Users spy = Mockito.spy(users);
@@ -495,48 +417,5 @@ public class TestUsers {
     Mockito.verify(spy).createUser("user", "user", UserType.LOCAL, true, false);
   }
 
-
-  @Test(expected = AmbariException.class)
-  public void testCreateUserDuplicate() throws Exception {
-    users.createUser("user", "user");
-    users.createUser("user", "user");
-  }
-
-  @Test(expected = AmbariException.class)
-  public void testCreateUserDuplicateCaseInsensitive() throws Exception {
-    users.createUser("user", "user");
-    users.createUser("USER", "user");
-  }
-
-  @Test
-  public void testRemoveUser() throws Exception {
-    users.createUser("user1", "user1");
-    users.createUser("user2", "user2");
-    users.createUser("user3", "user3");
-    Assert.assertEquals(4, users.getAllUsers().size());
-
-    users.removeUser(users.getAnyUser("user1"));
-
-    Assert.assertNull(users.getAnyUser("user1"));
-    Assert.assertEquals(3, users.getAllUsers().size());
-  }
-
-  @Test
-  public void testCreateUserFiveParams() throws Exception {
-    users.createUser("user", "user", UserType.LOCAL, false, false);
-
-    final User createdUser = users.getAnyUser("user");
-    Assert.assertEquals("user", createdUser.getUserName());
-    Assert.assertEquals(false, createdUser.isActive());
-    Assert.assertEquals(false, createdUser.isLdapUser());
-    Assert.assertEquals(false, createdUser.isAdmin());
-
-    users.createUser("user2", "user2", UserType.LDAP, true, true);
-    final User createdUser2 = users.getAnyUser("user2");
-    Assert.assertEquals("user2", createdUser2.getUserName());
-    Assert.assertEquals(true, createdUser2.isActive());
-    Assert.assertEquals(true, createdUser2.isLdapUser());
-    Assert.assertEquals(true, createdUser2.isAdmin());
-  }
 
 }

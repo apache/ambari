@@ -48,96 +48,55 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import com.google.inject.persist.UnitOfWork;
 
 public class TestOrmImpl extends Assert {
   private static final Logger log = LoggerFactory.getLogger(TestOrmImpl.class);
-
-  private static Injector injector;
-  private static StackDAO stackDAO;
-  private static ResourceTypeDAO resourceTypeDAO;
-  private static ClusterDAO clusterDAO;
-  private static OrmTestHelper ormTestHelper;
-  private static ClusterServiceDAO clusterServiceDAO;
-  private static HostRoleCommandDAO hostRoleCommandDAO;
-  private static HostDAO hostDAO;
-  private static StageDAO stageDAO;
-  private static EntityManager entityManager;
-  private static RequestDAO requestDAO;
-
-  @BeforeClass
-  public static void classSetUp() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    injector.getInstance(GuiceJpaInitializer.class);
-
-    // required to load stack information into the DB
-    injector.getInstance(AmbariMetaInfo.class);
-    stackDAO = injector.getInstance(StackDAO.class);
-    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
-    clusterDAO = injector.getInstance(ClusterDAO.class);
-    ormTestHelper = injector.getInstance(OrmTestHelper.class);
-    clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
-    hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
-    hostDAO = injector.getInstance(HostDAO.class);
-    stageDAO = injector.getInstance(StageDAO.class);
-    entityManager = injector.getInstance(EntityManager.class);
-    requestDAO = injector.getInstance(RequestDAO.class);
-
-    ormTestHelper.createDefaultData();
-    injector.getInstance(UnitOfWork.class).end();
-  }
+  @Inject
+  private Injector injector;
+  @Inject
+  private StackDAO stackDAO;
+  @Inject
+  private ResourceTypeDAO resourceTypeDAO;
+  @Inject
+  private ClusterDAO clusterDAO;
+  @Inject
+  private OrmTestHelper ormTestHelper;
+  @Inject
+  private ClusterServiceDAO clusterServiceDAO;
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+  @Inject
+  private HostDAO hostDAO;
+  @Inject
+  private StageDAO stageDAO;
+  @Inject
+  private EntityManager entityManager;
+  @Inject
+  private RequestDAO requestDAO;
 
   @Before
   public void setup() {
-    injector.getInstance(UnitOfWork.class).begin();
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
+    // required to load stack information into the DB
+    injector.getInstance(AmbariMetaInfo.class);
+    ormTestHelper.createDefaultData();
   }
 
   @After
   public void teardown() {
-    injector.getInstance(UnitOfWork.class).end();
-    cleanup();
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
     injector.getInstance(PersistService.class).stop();
-  }
-
-  private void cleanup() {
-
-
-    List<HostRoleCommandEntity> hostRoleCommandEntities = hostRoleCommandDAO.findAll();
-    if (hostRoleCommandEntities != null) {
-      for (HostRoleCommandEntity hostRoleCommandEntity : hostRoleCommandEntities) {
-        hostRoleCommandDAO.remove(hostRoleCommandEntity);
-      }
-    }
-
-    List<StageEntity> stageEntities = stageDAO.findAll();
-    if (stageEntities != null) {
-      for (StageEntity stageEntity : stageEntities) {
-        stageDAO.remove(stageEntity);
-      }
-    }
-
-    List<RequestEntity> requestEntities = requestDAO.findAll();
-    if (requestEntities != null) {
-      for (RequestEntity requestEntity : requestEntities) {
-        requestDAO.remove(requestEntity);
-      }
-    }
   }
 
   /**
@@ -333,7 +292,6 @@ public class TestOrmImpl extends Assert {
     assertEquals(1L, stageDAO.getLastRequestId());
   }
 
-  @Ignore
   @Test
   public void testConcurrentModification() throws InterruptedException {
     final StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
