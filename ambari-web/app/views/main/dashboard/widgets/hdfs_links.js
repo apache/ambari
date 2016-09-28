@@ -43,7 +43,7 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
 
   isStandbyNNValid: Em.computed.bool('model.standbyNameNode'),
 
-  isTwoStandbyNN: Em.computed.and('isActiveNNValid', 'isStandbyNNValid'),
+  isTwoStandbyNN: Em.computed.and('model.standbyNameNode', 'model.standbyNameNode2'),
 
   twoStandbyComponent: function () {
     return App.HostComponent.find().findProperty('componentName', 'NAMENODE');
