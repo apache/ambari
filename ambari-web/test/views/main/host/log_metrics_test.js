@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var fileUtils = require('utils/file_utils');
 
 describe('App.MainHostLogMetrics', function() {
   var view;

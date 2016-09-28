@@ -74,7 +74,8 @@ module.exports.config = {
           'vendor/scripts/spin.js',
           'vendor/scripts/jquery.flexibleArea.js',
           'vendor/scripts/FileSaver.js',
-          'vendor/scripts/Blob.js'
+          'vendor/scripts/Blob.js',
+          'vendor/scripts/pluralize.js'
         ]
       }
     },

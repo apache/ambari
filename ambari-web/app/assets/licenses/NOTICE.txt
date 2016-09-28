@@ -60,3 +60,6 @@ Copyright (C) 2015 Leaf Corcoran (leafot [at] gmail [*dot*] com)
 
 This product includes bootstrap-contextmenu v.0.3.3 (https://github.com/sydcanem/bootstrap-contextmenu - MIT License)
 Copyright (C) 2015 James Santos
+
+This product includes pluralize v.3.0.0 (https://github.com/blakeembrey/pluralize - MIT License)
+Copyright (C) 2016 Blake Embrey

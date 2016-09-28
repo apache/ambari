@@ -358,7 +358,7 @@ App.AddMetricExpressionView = Em.View.extend({
                 return Em.I18n.t('widget.create.wizard.step2.activeComponents').format(stackComponent.get('displayName'));
               }
             }
-            return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
+            return Em.I18n.t('widget.create.wizard.step2.allComponents').format(pluralize(stackComponent.get('displayName')));
           }.property('componentName', 'level'),
           count: servicesMap[serviceName].components[componentId].count,
           metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
