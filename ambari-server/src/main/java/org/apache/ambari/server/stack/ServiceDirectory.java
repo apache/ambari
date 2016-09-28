@@ -91,6 +91,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   protected File upgradesDir;
 
   /**
+   * checks directory path
+   */
+  protected File checksDir;
+
+  /**
    * service metainfo file object representation
    */
   private ServiceMetainfoXml metaInfoXml;
@@ -109,6 +114,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * upgrades directory name
    */
   protected static final String UPGRADES_FOLDER_NAME = "upgrades";
+
+  /**
+   * checks directory name
+   */
+  protected static final String CHECKS_FOLDER_NAME = "checks";
 
   /**
    * service metainfo file name
@@ -153,6 +163,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getUpgradesDir() {
     return upgradesDir;
+  }
+
+  /**
+   * Obtain the checks directory path.
+   *
+   * @return checks directory path
+   */
+  public File getChecksDir() {
+    return checksDir;
   }
 
   /**
@@ -238,7 +257,7 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    * Parse the service directory.
    */
   protected void parsePath() throws AmbariException {
-    calculateDirectories();
+    calculateDirectories(getStack(), getService());
     parseMetaInfoFile();
 
     File af = new File(directory, AmbariMetaInfo.SERVICE_ALERT_FILE_NAME);
@@ -268,12 +287,101 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
 
     File themeFile = new File(directory, AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
     this.themeFile = themeFile.exists() ? themeFile : null;
+
+    File checksFile = new File(directory, AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
+    this.themeFile = themeFile.exists() ? themeFile : null;
   }
+
+  /**
+   * @return the service identifier required.  ex: service name for stack services or the service/version for common services
+   */
+  public abstract String getService();
+
+  /**
+   * @return the stack name/version or common-services
+   */
+  public abstract String getStack();
 
   /**
    * Calculate the service specific directories.
    */
-  protected abstract void calculateDirectories();
+  protected void calculateDirectories(String stack, String service) {
+	  calculatePackageDirectory(stack, service);
+	  calculateUpgradesDirectory(stack, service);
+	  calculateChecksDirectory(stack, service);
+  }
+
+  /**
+   * @param directoryName
+   * @param stack
+   * @param service
+   * @return the directory if it exists and is not empty
+   */
+  protected File resolveDirectory(String directoryName, String stack, String service) {
+    File directory = new File(getAbsolutePath() + File.separator + directoryName);
+    if (directory.isDirectory()) {
+      String[] files = directory.list();
+      int fileCount = files.length;
+      if (fileCount > 0) {
+        LOG.debug("Service {} folder for service {} in {} has been resolved to {}", directoryName, service, stack, directory);
+        return directory;
+      }
+      else {
+        LOG.debug("Service folder {} is empty.", directory);
+      }
+    }
+    else {
+      LOG.debug("Service folder {}does not exist.", directory);
+    }
+    return null;
+  }
+
+  /**
+   * @param directoryName
+   * @param stack
+   * @param service
+   * @return the relative path of the directory if it exists and is not empty
+   */
+  protected String resolveRelativeDirectoryPathString(File resourcesDir, String directoryName, String stack, String service) {
+    File dir = resolveDirectory(directoryName, stack, service);
+    if (dir != null) {
+      return dir.getPath().substring(resourcesDir.getPath().length() + 1);
+    }
+    return null;
+  }
+
+  /**
+   *  @return the resources directory
+   */
+  protected abstract File getResourcesDirectory();
+
+  /**
+   * Sets the packageDir if the path exists and is not empty
+   * @param stack
+   * @param service
+   */
+  protected void calculatePackageDirectory(String stack, String service) {
+    packageDir = resolveRelativeDirectoryPathString(getResourcesDirectory(), PACKAGE_FOLDER_NAME, stack, service);
+
+  }
+
+  /**
+   * Sets the upgradesDir if the dir exists and is not empty
+   * @param stack
+   * @param service
+   */
+  protected void calculateUpgradesDirectory(String stack, String service) {
+    upgradesDir = resolveDirectory(UPGRADES_FOLDER_NAME, stack, service);
+  }
+
+  /**
+   * Sets the checksDir if the dir exists and is not empty
+   * @param stack
+   * @param service
+   */
+  protected void calculateChecksDirectory(String stack, String service) {
+    checksDir = resolveDirectory(CHECKS_FOLDER_NAME, stack, service);
+  }
 
   /**
    * Unmarshal the metainfo file into its object representation.
