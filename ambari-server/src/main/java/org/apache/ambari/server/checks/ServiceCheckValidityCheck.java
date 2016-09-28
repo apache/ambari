@@ -19,6 +19,7 @@ package org.apache.ambari.server.checks;
 
 import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -31,9 +32,12 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
 import org.apache.ambari.server.controller.internal.TaskResourceProvider;
 import org.apache.ambari.server.controller.spi.PageRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
@@ -65,8 +69,11 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceCheckValidityCheck.class);
 
   private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM-dd-yyyy hh:mm:ss");
+  private static List<SortRequestProperty> sortRequestProperties =
+      Collections.singletonList(new SortRequestProperty(TaskResourceProvider.TASK_START_TIME_PROPERTY_ID, SortRequest.Order.DESC));
+  private static SortRequest sortRequest = new SortRequestImpl(sortRequestProperties);
   private static final PageRequestImpl PAGE_REQUEST = new PageRequestImpl(PageRequest.StartingPoint.End, 1000, 0, null, null);
-  private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, null, PAGE_REQUEST);
+  private static final RequestImpl REQUEST = new RequestImpl(null, null, null, null, sortRequest, PAGE_REQUEST);
   private static final Predicate PREDICATE = new PredicateBuilder().property(TaskResourceProvider.TASK_COMMAND_PROPERTY_ID)
       .equals(RoleCommand.SERVICE_CHECK.name()).toPredicate();
 
@@ -117,14 +124,9 @@ public class ServiceCheckValidityCheck extends AbstractCheckDescriptor {
     for (HostRoleCommandEntity command : commands) {
       Role role = command.getRole();
 
+      // Because results are already sorted by start_time desc, first occurrence is guaranteed to have max(start_time).
       if (!latestTimestamps.containsKey(role)) {
         latestTimestamps.put(role, command);
-      } else {
-        Long latest = latestTimestamps.get(role).getStartTime();
-
-        if (command.getStartTime() > latest) {
-          latestTimestamps.put(role, command);
-        }
       }
     }
 
