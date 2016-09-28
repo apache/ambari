@@ -22,7 +22,7 @@ import os
 import sys
 import socket
 
-from math import ceil, floor
+from math import ceil, floor, log
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
@@ -659,6 +659,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
 
     putAmsEnvProperty("metrics_collector_heapsize", collector_heapsize)
+
+    putAmsSiteProperty("timeline.metrics.cache.size", max(100, int(log(total_sinks_count)) * 100))
+    putAmsSiteProperty("timeline.metrics.cache.commit.interval", min(10, max(12 - int(log(total_sinks_count)), 2)))
 
     # blockCache = 0.3, memstore = 0.35, phoenix-server = 0.15, phoenix-client = 0.25
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
