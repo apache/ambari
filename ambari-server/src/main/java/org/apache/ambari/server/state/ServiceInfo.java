@@ -270,6 +270,12 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private File serviceUpgradesFolder;
 
+  /**
+   * Stores the path to the checks folder which contains prereq check jars for the given service.
+   */
+  @XmlTransient
+  private File checksFolder;
+
   public boolean isDeleted() {
     return isDeleted;
   }
@@ -598,6 +604,14 @@ public String getVersion() {
 
   public void setServiceUpgradesFolder(File serviceUpgradesFolder) {
     this.serviceUpgradesFolder = serviceUpgradesFolder;
+  }
+
+  public File getChecksFolder() {
+    return checksFolder;
+  }
+
+  public void setChecksFolder(File checksFolder) {
+    this.checksFolder = checksFolder;
   }
 
   /**

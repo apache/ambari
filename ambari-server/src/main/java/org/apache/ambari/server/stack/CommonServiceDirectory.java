@@ -19,8 +19,6 @@
 package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.AmbariException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -28,10 +26,6 @@ import java.io.File;
  * Encapsulates IO operations on a common services directory.
  */
 public class CommonServiceDirectory extends ServiceDirectory {
-  /**
-   * logger instance
-   */
-  private static final Logger LOG = LoggerFactory.getLogger(CommonServiceDirectory.class);
 
   /**
    * Constructor.
@@ -62,36 +56,30 @@ public class CommonServiceDirectory extends ServiceDirectory {
 
   @Override
   /**
-   * Calculate the common service directories
-   * packageDir Format: common-services/<serviceName>/<serviceVersion>/package
-   * Example:
-   *  directory: "/var/lib/ambari-server/resources/common-services/HDFS/1.0"
-   *  packageDir: "common-services/HDFS/1.0/package"
+   * @return the service name-version (will be used for logging purposes by superclass)
    */
-  protected void calculateDirectories() {
+  public String getService() {
     File serviceVersionDir = new File(getAbsolutePath());
     File serviceDir = serviceVersionDir.getParentFile();
 
-    String serviceId = String.format("%s/%s", serviceDir.getName(), serviceVersionDir.getName());
+    String service = String.format("%s-%s", serviceDir.getName(), serviceVersionDir.getName());
+    return service;
+  }
 
-    File absPackageDir = new File(getAbsolutePath() + File.separator + PACKAGE_FOLDER_NAME);
-    if(absPackageDir.isDirectory()) {
-      packageDir = absPackageDir.getPath().substring(serviceDir.getParentFile().getParentFile().getPath().length() + 1);
-      LOG.debug(String.format("Service package folder for common service %s has been resolved to %s",
-          serviceId, packageDir));
-    } else {
-      LOG.debug(String.format("Service package folder %s for common service %s does not exist.",
-          absPackageDir, serviceId ));
-    }
+  @Override
+  /**
+   * @return the resources directory
+   */
+  protected File getResourcesDirectory() {
+    File serviceVersionDir = new File(getAbsolutePath());
+    return serviceVersionDir.getParentFile().getParentFile().getParentFile();
+  }
 
-    File absUpgradesDir = new File(getAbsolutePath() + File.separator + UPGRADES_FOLDER_NAME);
-    if(absUpgradesDir.isDirectory()) {
-      upgradesDir = absUpgradesDir;
-      LOG.debug(String.format("Service upgrades folder for common service %s has been resolved to %s",
-          serviceId, upgradesDir));
-    } else {
-      LOG.debug(String.format("Service upgrades folder %s for common service %s does not exist.",
-          absUpgradesDir, serviceId ));
-    }
+  @Override
+  /**
+   * @return the text common-services (will be used for logging purposes by superclass)
+   */
+  public String getStack() {
+    return "common-services";
   }
 }
