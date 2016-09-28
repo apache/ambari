@@ -37,7 +37,6 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Charsets;
@@ -61,8 +60,15 @@ public class UpdateActiveRepoVersionOnStartupTest {
 
   @Test
   public void addAServiceRepoToExistingRepoVersion() throws Exception {
+    init(true);
     activeRepoUpdater.process();
     verifyRepoIsAdded();
+  }
+
+  @Test
+  public void missingClusterVersionShouldNotCauseException() throws Exception {
+    init(false);
+    activeRepoUpdater.process();
   }
 
   /**
@@ -84,8 +90,7 @@ public class UpdateActiveRepoVersionOnStartupTest {
     Assert.assertTrue(ADD_ON_REPO_ID + " is add-on repo was not added to JSON representation", serviceRepoAddedToJson);
   }
 
-  @Before
-  public void init() throws Exception {
+  public void init(boolean addClusterVersion) throws Exception {
     ClusterDAO clusterDao = mock(ClusterDAO.class);
     ClusterVersionDAO clusterVersionDAO = mock(ClusterVersionDAO.class);
     repositoryVersionDao = mock(RepositoryVersionDAO.class);
@@ -125,16 +130,21 @@ public class UpdateActiveRepoVersionOnStartupTest {
       }
     };
     Injector injector = Guice.createInjector(testModule);
-    repoVersion = new RepositoryVersionEntity();
-    repoVersion.setStack(stackEntity);
-    repoVersion.setOperatingSystems(resourceAsString("org/apache/ambari/server/stack/UpdateActiveRepoVersionOnStartupTest_initialRepos.json"));
-    ClusterVersionEntity clusterVersion = new ClusterVersionEntity();
-    clusterVersion.setRepositoryVersion(repoVersion);
-    when(clusterVersionDAO.findByClusterAndStateCurrent(CLUSTER_NAME)).thenReturn(clusterVersion);
+    if (addClusterVersion) {
+      repoVersion = new RepositoryVersionEntity();
+      repoVersion.setStack(stackEntity);
+      repoVersion.setOperatingSystems(resourceAsString("org/apache/ambari/server/stack/UpdateActiveRepoVersionOnStartupTest_initialRepos.json"));
+      ClusterVersionEntity clusterVersion = new ClusterVersionEntity();
+      clusterVersion.setRepositoryVersion(repoVersion);
+      when(clusterVersionDAO.findByClusterAndStateCurrent(CLUSTER_NAME)).thenReturn(clusterVersion);
+
+    }
 
     activeRepoUpdater = new UpdateActiveRepoVersionOnStartup(clusterDao,
         clusterVersionDAO, repositoryVersionDao, repositoryVersionHelper, metaInfo);
   }
+
+
 
   private static String resourceAsString(String resourceName) throws IOException {
     return Resources.toString(Resources.getResource(resourceName), Charsets.UTF_8);
