@@ -19,17 +19,19 @@ limitations under the License.
 '''
 import glob
 import os
+import shutil
 
 from ambari_commons import OSConst, OSCheck
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_silent, print_error_msg, print_info_msg, print_warning_msg, set_silent
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.str_utils import cbool
+from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY
 from ambari_server.serverConfiguration import decrypt_password_for_alias, get_ambari_properties, get_is_secure, \
   get_resources_location, get_value_from_properties, is_alias_string, \
   JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, DEFAULT_DBMS_PROPERTY, JDBC_DATABASE_PROPERTY, \
-  PERSISTENCE_TYPE_PROPERTY
-from ambari_server.userInput import get_validated_string_input
+  PERSISTENCE_TYPE_PROPERTY, update_properties, configDefaults
+from ambari_server.userInput import get_YN_input, get_validated_string_input
 
 
 #Database settings
@@ -160,14 +162,46 @@ class DBMSConfig(object):
     pass
 
   def ensure_jdbc_driver_installed(self, properties):
-    (result, msg) = self._prompt_jdbc_driver_install(properties)
-    if result == -1:
-      print_error_msg(msg)
-      raise FatalException(-1, msg)
+    server_jdbc_path = properties.get_property(JDBC_DRIVER_PATH_PROPERTY)
+    if server_jdbc_path and os.path.isfile(server_jdbc_path):
+      return True
 
-    if result != 1:
-      result = self._install_jdbc_driver(properties, result)
-    return cbool(result)
+    default_driver_path = self._get_default_driver_path(properties)
+    if default_driver_path and os.path.isfile(default_driver_path):
+      ambari_should_use_existing_default_jdbc = get_YN_input("Should ambari use existing default jdbc {0} [y/n] (y)? ".format(default_driver_path), True)
+      if ambari_should_use_existing_default_jdbc:
+        properties.process_pair(JDBC_DRIVER_PATH_PROPERTY, default_driver_path)
+        update_properties(properties)
+        return True
+
+    path_to_custom_jdbc_driver = get_validated_string_input("Enter full path to custom jdbc driver: ", None, None, None, False, False)
+    if path_to_custom_jdbc_driver and os.path.isfile(path_to_custom_jdbc_driver):
+      try:
+        custom_jdbc_name = os.path.basename(path_to_custom_jdbc_driver)
+        if not path_to_custom_jdbc_driver == os.path.join(configDefaults.JAVA_SHARE_PATH, custom_jdbc_name):
+          if os.path.isfile(os.path.join(configDefaults.JAVA_SHARE_PATH, custom_jdbc_name)):
+            replace_jdbc_in_share_dir = get_YN_input("You already have file {0} in /usr/share/java/. Should it be replaced? [y/n] (y)? ".format(custom_jdbc_name), True)
+            if replace_jdbc_in_share_dir:
+              try:
+                os.remove(os.path.join(configDefaults.JAVA_SHARE_PATH, custom_jdbc_name))
+              except Exception, ee:
+                err = 'ERROR: Could not remove jdbc file. %s' % os.path.join(configDefaults.JAVA_SHARE_PATH, custom_jdbc_name)
+                raise FatalException(1, err)
+          shutil.copy(path_to_custom_jdbc_driver, configDefaults.JAVA_SHARE_PATH)
+          print "Copying {0} to {1}".format(path_to_custom_jdbc_driver, configDefaults.JAVA_SHARE_PATH)
+      except Exception, e:
+        err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+          "permissions and free disk space.".format(path_to_custom_jdbc_driver, configDefaults.JAVA_SHARE_PATH, str(e))
+        raise FatalException(1, err)
+
+      properties.process_pair(JDBC_DRIVER_PATH_PROPERTY, path_to_custom_jdbc_driver)
+      update_properties(properties)
+      return True
+    else:
+      print_error_msg("Custom jdbc connector path is unavailable. Please put correct path to jdbc connector.")
+
+    return False
+
 
   def change_db_files_owner(self):
     if self._is_local_database():
