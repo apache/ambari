@@ -94,9 +94,14 @@ public class UpdateActiveRepoVersionOnStartup {
         LOG.info("Updating existing repo versions for cluster {} on stack {}-{}",
             cluster.getClusterName(), stack.getName(), stack.getVersion());
         ClusterVersionEntity clusterVersion = clusterVersionDao.findByClusterAndStateCurrent(cluster.getClusterName());
+        if (null != clusterVersion) {
           RepositoryVersionEntity repoVersion = clusterVersion.getRepositoryVersion();
-        updateRepoVersion(stack, repoVersion);
-        repositoryVersionDao.merge(repoVersion);
+          updateRepoVersion(stack, repoVersion);
+          repositoryVersionDao.merge(repoVersion);
+        }
+        else {
+          LOG.warn("Missing cluster version for cluster {}", cluster.getClusterName());
+        }
       }
     }
     catch(Exception ex) {

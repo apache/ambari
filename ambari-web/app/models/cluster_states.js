@@ -146,7 +146,9 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         this.set('localdb', response.localdb);
         // restore HAWizard data if process was started
         var isHAWizardStarted = App.isAuthorized('SERVICE.ENABLE_HA') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
-        if (params.data.overrideLocaldb || isHAWizardStarted) {
+        // restore Kerberos Wizard is started
+        var isKerberosWizardStarted = App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') && !App.isEmptyObject(response.localdb.KerberosWizard);
+        if (params.data.overrideLocaldb || isHAWizardStarted || isKerberosWizardStarted) {
           var localdbTables = (App.db.data.app && App.db.data.app.tables) ? App.db.data.app.tables : {};
           var authenticated = Em.get(App, 'db.data.app.authenticated') || false;
           App.db.data = response.localdb;

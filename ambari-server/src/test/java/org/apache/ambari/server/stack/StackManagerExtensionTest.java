@@ -29,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,9 @@ public class StackManagerExtensionTest  {
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
     assertEquals(oozie.getVersion(), "3.2.0");
+    File checks = oozie.getChecksFolder();
+    assertNotNull(checks);
+    assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
 
     extension = stackManager.getExtension("EXT", "0.2");
     assertNotNull("EXT 0.2's parent: " + extension.getParentExtensionVersion(), extension.getParentExtensionVersion());
@@ -114,6 +118,9 @@ public class StackManagerExtensionTest  {
     assertNotNull("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder());
     assertTrue("Package dir is " + oozie.getServicePackageFolder(), oozie.getServicePackageFolder().contains("extensions/EXT/0.1/services/OOZIE2/package"));
     assertEquals(oozie.getVersion(), "4.0.0");
+    checks = oozie.getChecksFolder();
+    assertNotNull(checks);
+    assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
 
     StackInfo stack = stackManager.getStack("HDP", "0.2");
     assertNotNull(stack.getService("OOZIE2"));

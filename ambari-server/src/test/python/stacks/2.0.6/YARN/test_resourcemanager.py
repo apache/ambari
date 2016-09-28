@@ -178,7 +178,19 @@ class TestResourceManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
+      owner = 'yarn',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -267,19 +279,6 @@ class TestResourceManager(RMFTestCase):
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
-    )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        mode = 0755,
-        create_parents = True,
-        cd_access = 'a',
-    )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-        owner = 'yarn',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
-      owner = 'yarn',
-      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),
@@ -347,7 +346,19 @@ class TestResourceManager(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-
+    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
+        mode = 0755,
+        create_parents = True,
+        cd_access = 'a',
+    )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
+        owner = 'yarn',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
+      owner = 'yarn',
+      group = 'hadoop',
+    )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
@@ -436,19 +447,6 @@ class TestResourceManager(RMFTestCase):
       conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['capacity-scheduler'],
       configuration_attributes = self.getConfig()['configuration_attributes']['capacity-scheduler']
-    )
-    self.assertResourceCalled('Directory', '/etc/hadoop/conf',
-        mode = 0755,
-        create_parents = True,
-        cd_access = 'a',
-    )
-    self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
-        owner = 'yarn',
-        group = 'hadoop',
-    )
-    self.assertResourceCalled('File', '/var/log/hadoop-yarn/yarn/hadoop-mapreduce.jobsummary.log',
-      owner = 'yarn',
-      group = 'hadoop',
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/yarn.conf',
       content = Template('yarn.conf.j2'),

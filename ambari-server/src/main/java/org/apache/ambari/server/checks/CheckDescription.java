@@ -309,9 +309,8 @@ public class CheckDescription {
   private PrereqCheckType m_type;
   private String m_description;
   private Map<String, String> m_fails;
-  public CheckDescription(String name, PrereqCheckType type, String description,
-      Map<String, String> fails) {
-	m_name = name;
+  public CheckDescription(String name, PrereqCheckType type, String description, Map<String, String> fails) {
+    m_name = name;
     m_type = type;
     m_description = description;
     m_fails = fails;

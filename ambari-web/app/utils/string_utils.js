@@ -201,11 +201,8 @@ module.exports = {
    * @method pluralize
    */
   pluralize: function(count, singular, plural) {
-    plural = plural || singular + 's';
-    if (count > 1) {
-      return plural;
-    }
-    return singular;
+    var _plural = plural || pluralize(singular);
+    return count > 1 ? _plural : singular;
   },
 
   /**

@@ -773,7 +773,7 @@ describe('App.MainHostView', function () {
     describe("#restartRequiredComponentsMessage", function () {
 
       it("5 components require restart", function() {
-        var content = 'c1, c2, c3, c4, c5' + ' ' + Em.I18n.t('common.components').toLowerCase();
+        var content = 'c1, c2, c3, c4, c5 ' + Em.I18n.t('common.components').toLowerCase();
         hostView.set('content.componentsWithStaleConfigsCount', 5);
         hostView.set('content.componentsWithStaleConfigs', [
           {displayName: 'c1'},
@@ -789,7 +789,7 @@ describe('App.MainHostView', function () {
       });
 
       it("1 component require restart", function() {
-        var content = 'c1' + ' ' + Em.I18n.t('common.component').toLowerCase();
+        var content = 'c1 ' + Em.I18n.t('common.component').toLowerCase();
         hostView.set('content.componentsWithStaleConfigsCount', 1);
         hostView.set('content.componentsWithStaleConfigs', [
           {displayName: 'c1'}
