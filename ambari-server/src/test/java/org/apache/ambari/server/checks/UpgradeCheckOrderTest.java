@@ -69,8 +69,10 @@ public class UpgradeCheckOrderTest {
     AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
     scanner.addIncludeFilter(filter);
 
+    // grab all check subclasses using the exact folder they are in to avoid loading the SampleServiceCheck from the test jar
+    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server.checks");
+
     // verify they are equal
-    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
     Assert.assertEquals(beanDefinitions.size(), checks.size());
 
     AbstractCheckDescriptor lastCheck = null;
