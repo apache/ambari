@@ -86,17 +86,12 @@ def get_stack_name():
 def get_stack_name():
   return "HDP"
 
-def stack_test_executor(base_folder, service, stack, custom_tests, executor_result):
+def stack_test_executor(base_folder, service, stack, test_mask, executor_result):
   """
   Stack tests executor. Must be executed in separate process to prevent module
   name conflicts in different stacks.
   """
   #extract stack scripts folders
-  if custom_tests:
-    test_mask = CUSTOM_TEST_MASK
-  else:
-    test_mask = TEST_MASK
-
   server_src_dir = get_parent_path(base_folder, 'src')
   script_folders = set()
 
@@ -152,10 +147,14 @@ def stack_test_executor(base_folder, service, stack, custom_tests, executor_resu
 
 def main():
   if not os.path.exists(newtmpdirpath): os.makedirs(newtmpdirpath)
-  custom_tests = False
-  if len(sys.argv) > 1:
-    if sys.argv[1] == "true":
-      custom_tests = True
+
+  if len(sys.argv) > 1 and sys.argv[1] == "true": # handle custom_tests for backward-compatibility
+    test_mask = CUSTOM_TEST_MASK
+  elif len(sys.argv) > 2:
+    test_mask = sys.argv[2]
+  else:
+    test_mask = TEST_MASK
+
   pwd = os.path.abspath(os.path.dirname(__file__))
 
   ambari_server_folder = get_parent_path(pwd, 'ambari-server')
@@ -212,7 +211,7 @@ def main():
                                       args=(variant['directory'],
                                             variant['service'],
                                             variant['stack'],
-                                            custom_tests,
+                                            test_mask,
                                             executor_result)
           )
     process.start()
@@ -238,10 +237,6 @@ def main():
 
   #run base ambari-server tests
   sys.stderr.write("Running tests for ambari-server\n")
-  if custom_tests:
-    test_mask = CUSTOM_TEST_MASK
-  else:
-    test_mask = TEST_MASK
 
   test_dirs = [
     (os.path.join(pwd, 'custom_actions'), "\nRunning tests for custom actions\n"),

@@ -418,6 +418,21 @@ define([
               }));
             }
 
+            //Templatized Dashboard for Storm Kafka Offset
+            if (templateSrv.variables[0].query === "topologies" && templateSrv.variables[1] &&
+                templateSrv.variables[1].name === "topic") {
+              var selectedTopology = templateSrv._values.topologies;
+              var selectedTopic = templateSrv._values.topic;
+              metricsPromises.push(_.map(options.targets, function(target) {
+                target.sTopology = selectedTopology;
+                target.sTopic = selectedTopic;
+                target.sPartition = options.scopedVars.partition.value;
+                target.sTopoMetric = target.metric.replace('*', target.sTopology).replace('*', target.sTopic)
+                    .replace('*', target.sPartition);
+                return getStormData(target);
+              }));
+            }
+
             // To speed up querying on templatized dashboards.
             if (templateSrv.variables[1] && templateSrv.variables[1].name === "hosts") {
               var allHosts = templateSrv._values.hosts.lastIndexOf('}') > 0 ? templateSrv._values.hosts.slice(1,-1) :
@@ -615,6 +630,55 @@ define([
                     };
                   });
                 });
+          }
+          var stormEntities = {};
+          AmbariMetricsDatasource.prototype.getStormEntities = function () {
+            return this.initMetricAppidMapping()
+                .then(function () {
+                  var storm = allMetrics["nimbus"];
+                  var extractTopologies = storm.filter(/./.test.bind(new
+                      RegExp("partition", 'g')));
+                  _.map(extractTopologies, function(topology){
+                    topology = topology.split('.').slice(0,5);
+                    var topologyName = topologyN = topology[1]; // Topology
+                    var topologyTopicName = topicN = topology[3]; // Topic
+                    var topologyTopicPartitionName = topology[4]; // Partition
+                    if (stormEntities[topologyName]) {
+                      if (stormEntities[topologyName][topologyTopicName]) {
+                        stormEntities[topologyName][topologyTopicName].push(topologyTopicPartitionName);
+                      } else {
+                        stormEntities[topologyName][topologyTopicName] = [topologyTopicPartitionName];
+                      }
+                    } else {
+                      stormEntities[topologyName] = {};
+                      stormEntities[topologyName][topologyTopicName] = [topologyTopicPartitionName];
+                    }
+                  });
+                });
+          };
+          //Templated Variables for Storm Topics per Topology
+          if (interpolated.includes("stormTopic")) {
+            var topicName = interpolated.substring(0,interpolated.indexOf('.'));
+            return this.getStormEntities().then(function () {
+              var topicNames = Object.keys(stormEntities[topicName]);
+              return _.map(topicNames, function(names){
+                return {
+                  text: names
+                };
+              });
+            });
+          }
+          //Templated Variables for Storm Partitions per Topic
+          if (interpolated.includes("stormPartition")) {
+            var topicN, topologyN;
+            return this.getStormEntities().then(function () {
+              var partitionNames = _.uniq(stormEntities[topologyN][topicN]);
+              return _.map(partitionNames, function(names){
+                return {
+                  text: names
+                };
+              });
+            });
           }
           // Templated Variable for YARN Queues.
           // It will search the cluster and populate the queues.

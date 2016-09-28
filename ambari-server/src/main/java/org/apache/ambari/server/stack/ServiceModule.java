@@ -142,6 +142,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
     serviceInfo.setServiceUpgradesFolder(serviceDirectory.getUpgradesDir());
+    serviceInfo.setChecksFolder(serviceDirectory.getChecksDir());
     serviceInfo.setAdvisorFile(serviceDirectory.getAdvisorFile());
     serviceInfo.setAdvisorName(serviceDirectory.getAdvisorName(serviceInfo.getName()));
 
@@ -179,7 +180,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       return;
     }
 
-    LOG.info("Resolve service");
+    LOG.debug("Resolve service");
 
     // If resolving against parent stack service module (stack inheritance), do not merge if an
     // explicit parent is specified
@@ -192,7 +193,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getComment() == null) {
       serviceInfo.setComment(parent.getComment());
     }
-    LOG.info("Display name service/parent: " + serviceInfo.getDisplayName() + "/" + parent.getDisplayName());
+    LOG.info(String.format("Display name service/parent: %s/%s", serviceInfo.getDisplayName(), parent.getDisplayName()));
     if (serviceInfo.getDisplayName() == null) {
       serviceInfo.setDisplayName(parent.getDisplayName());
     }
@@ -252,6 +253,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
     if (serviceInfo.getRoleCommandOrder() == null) {
       serviceInfo.setRoleCommandOrder(parent.getRoleCommandOrder());
+    }
+    if (serviceInfo.getChecksFolder() == null) {
+      serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());

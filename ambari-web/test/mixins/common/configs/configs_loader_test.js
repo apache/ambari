@@ -103,6 +103,11 @@ describe('App.ConfigsLoader', function() {
       mixin.loadServiceConfigVersionsSuccess({items: []});
       expect(mixin.get('selectedVersion')).to.be.equal('v1');
     });
+
+    it("preSelectedConfigVersion should be null", function() {
+      mixin.loadServiceConfigVersionsSuccess();
+      expect(mixin.get('preSelectedConfigVersion')).to.be.null;
+    });
   });
 
   describe("#loadPreSelectedConfigVersion()", function () {
@@ -212,11 +217,6 @@ describe('App.ConfigsLoader', function() {
     it("loadSelectedVersion should be called", function() {
       mixin.loadPreSelectedConfigVersion();
       expect(mixin.loadSelectedVersion.calledOnce).to.be.true;
-    });
-
-    it("preSelectedConfigVersion should be null", function() {
-      mixin.loadPreSelectedConfigVersion();
-      expect(mixin.get('preSelectedConfigVersion')).to.be.null;
     });
   });
 

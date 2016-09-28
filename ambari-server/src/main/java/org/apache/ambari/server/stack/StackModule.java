@@ -31,6 +31,8 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.BulkCommandDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
@@ -182,7 +184,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       StackModule parentModule, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
     moduleState = ModuleState.VISITED;
-    LOG.info("Resolve: " + stackInfo.getName() + ":" + stackInfo.getVersion());
+    LOG.info(String.format("Resolve: %s:%s", stackInfo.getName(), stackInfo.getVersion()));
     String parentVersion = stackInfo.getParentStackVersion();
     mergeServicesWithExplicitParent(allStacks, commonServices, extensions);
     addExtensionServices();
@@ -204,6 +206,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     processUpgradePacks();
     processRepositories();
     processPropertyDependencies();
+    validateBulkCommandComponents(allStacks);
     moduleState = ModuleState.RESOLVED;
   }
 
@@ -351,7 +354,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       Map<String, ServiceModule> commonServices, Map<String, ExtensionModule> extensions)
       throws AmbariException {
 
-    LOG.info("mergeServiceWithExplicitParent" + parent);
+    LOG.info(String.format("Merge service %s with explicit parent: %s", service.getModuleInfo().getName(), parent));
     if(isCommonServiceParent(parent)) {
       mergeServiceWithCommonServiceParent(service, parent, allStacks, commonServices, extensions);
     } else if(isExtensionServiceParent(parent)) {
@@ -1195,6 +1198,36 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       LOG.debug("Role Command Order for " + stackInfo.getName() + "-" + stackInfo.getVersion() +
         " service " + service.getModuleInfo().getName());
       stackInfo.getRoleCommandOrder().printRoleCommandOrder(LOG);
+    }
+  }
+
+  /**
+   * Validate the component defined in the bulkCommand section is defined for the service
+   * This needs to happen after the stack is resolved
+   * */
+  private void validateBulkCommandComponents(Map<String, StackModule> allStacks){
+    if (null != stackInfo) {
+      String currentStackId = stackInfo.getName() + StackManager.PATH_DELIMITER + stackInfo.getVersion();
+      LOG.debug("Validate bulk command components for: " + currentStackId);
+      StackModule currentStack = allStacks.get(currentStackId);
+      if (null != currentStack){
+        for (ServiceModule serviceModule : currentStack.getServiceModules().values()) {
+          ServiceInfo service = serviceModule.getModuleInfo();
+          for(ComponentInfo component: service.getComponents()){
+            BulkCommandDefinition bcd = component.getBulkCommandDefinition();
+            if (null != bcd && null != bcd.getMasterComponent()){
+              String name = bcd.getMasterComponent();
+              ComponentInfo targetComponent = service.getComponentByName(name);
+              if (null == targetComponent){
+                String serviceName = service.getName();
+                LOG.error(
+                    String.format("%s bulk command section for service %s in stack %s references a component %s which doesn't exist.",
+                        component.getName(), serviceName, currentStackId, name));
+              }
+            }
+          }
+        }
+      }
     }
   }
 

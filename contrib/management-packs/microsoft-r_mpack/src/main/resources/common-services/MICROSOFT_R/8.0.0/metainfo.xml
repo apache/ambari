@@ -27,8 +27,8 @@
 
       <components>
         <component>
-          <name>MICROSOFT_R_CLIENT</name>
-          <displayName>Microsoft R Client</displayName>
+          <name>MICROSOFT_R_SERVER_CLIENT</name>
+          <displayName>Microsoft R Server Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
           <commandScript>

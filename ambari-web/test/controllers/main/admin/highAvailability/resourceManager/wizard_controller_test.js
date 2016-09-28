@@ -18,7 +18,6 @@
 
 var App = require('app');
 require('controllers/main/admin/highAvailability/resourceManager/wizard_controller');
-var testHelpers = require('test/helpers');
 
 describe('App.RMHighAvailabilityWizardController', function () {
   var controller;

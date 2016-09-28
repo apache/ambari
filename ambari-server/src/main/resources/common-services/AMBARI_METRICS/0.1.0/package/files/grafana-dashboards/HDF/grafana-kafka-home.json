@@ -233,7 +233,7 @@
           },
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "Active Controller Count",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -291,7 +291,7 @@
           },
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "Replica MaxLag",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -349,7 +349,7 @@
           },
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "Leader Count",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -416,7 +416,7 @@
           },
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "UnderReplicatedPartitions",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",
@@ -473,7 +473,7 @@
           },
           "targets": [
             {
-              "aggregator": "avg",
+              "aggregator": "sum",
               "alias": "OfflinePartitionsCount",
               "app": "kafka_broker",
               "downsampleAggregator": "avg",

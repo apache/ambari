@@ -155,7 +155,7 @@ describe('App.SubSectionTab', function () {
 
     it('should include visible properties with errors', function () {
       subSectionTab.set('configs', configs);
-      expect(subSectionTab.get('errorsCount')).to.eql(8);
+      expect(subSectionTab.get('errorsCount')).to.be.equal(8);
     });
 
   });

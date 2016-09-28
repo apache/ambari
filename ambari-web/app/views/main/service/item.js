@@ -146,9 +146,10 @@ App.MainServiceItemView = Em.View.extend({
       allSlaves.concat(allMasters).filter(function (_component) {
         return App.get('components.rollinRestartAllowed').contains(_component);
       }).forEach(function(_component) {
+        var _componentNamePluralized = pluralize(App.format.role(_component, false));
         options.push(self.createOption(actionMap.ROLLING_RESTART, {
           context: _component,
-          label: actionMap.ROLLING_RESTART.label.format(App.format.role(_component, false))
+          label: actionMap.ROLLING_RESTART.label.format(_componentNamePluralized)
         }));
       });
       allMasters.filter(function(master) {

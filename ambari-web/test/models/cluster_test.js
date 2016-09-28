@@ -29,7 +29,7 @@ describe('App.Cluster', function () {
 
   describe('#isKerberosEnabled', function () {
 
-    var cases = [
+    [
       {
         securityType: 'KERBEROS',
         isKerberosEnabled: true,
@@ -40,9 +40,7 @@ describe('App.Cluster', function () {
         isKerberosEnabled: false,
         title: 'Kerberos disabled'
       }
-    ];
-
-    cases.forEach(function (item) {
+    ].forEach(function (item) {
 
       it(item.title, function () {
         cluster.set('securityType', item.securityType);
@@ -53,7 +51,7 @@ describe('App.Cluster', function () {
 
     describe('#isCredentialStorePersistent', function () {
 
-      var cases = [
+      [
         {
           propertyValue: 'false',
           isCredentialStorePersistent: false,
@@ -69,9 +67,7 @@ describe('App.Cluster', function () {
           isCredentialStorePersistent: true,
           title: 'persistent credential store'
         }
-      ];
-
-      cases.forEach(function (item) {
+      ].forEach(function (item) {
 
         it(item.title, function () {
           cluster.set('credentialStoreProperties', {

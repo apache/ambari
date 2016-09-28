@@ -464,7 +464,6 @@ class TestHistoryServer(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-
     self.assertResourceCalled('HdfsResource', '/app-logs',
         immutable_paths = self.DEFAULT_IMMUTABLE_PATHS,
         security_enabled = True,

@@ -138,6 +138,32 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   },
 
   /**
+   * check whether any of the expressions is incomplete or invalid
+   * @returns {boolean}
+   */
+  isAnyExpressionInvalid: function() {
+    var isAnyExpressionInvalid = false;
+    switch (this.get('content.widgetType')) {
+      case "NUMBER":
+      case "GAUGE":
+      case "TEMPLATE":
+        isAnyExpressionInvalid = this.get('isSubmitDisabled') && this.get('expressions').someProperty('isEmpty', false);
+        break;
+      case "GRAPH":
+        var dataSets = this.get('dataSets'),
+          isNotEmpty = false;
+        for (var i = 0; i < dataSets.length; i++) {
+          if (dataSets[i].get('expression.data').length > 0) {
+            isNotEmpty = true;
+            break;
+          }
+        }
+        isAnyExpressionInvalid = this.get('isSubmitDisabled') && isNotEmpty;
+    }
+    return isAnyExpressionInvalid;
+  }.property('isSubmitDisabled'),
+
+  /**
    * check whether data of graph widget is complete
    * @param dataSets
    * @returns {boolean} isComplete

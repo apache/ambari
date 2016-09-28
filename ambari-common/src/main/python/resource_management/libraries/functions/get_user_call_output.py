@@ -21,6 +21,7 @@ Ambari Agent
 """
 
 import os
+import sys
 import tempfile
 from resource_management.core import shell
 from resource_management.core.logger import Logger
@@ -60,9 +61,17 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
       if is_checked_call:
         raise Fail(err_msg)
       else:
-        Logger.warning(err_msg)      
+        Logger.warning(err_msg)
+
+    result = code, files_output[0], files_output[1]
     
-    return code, files_output[0], files_output[1]
+    caller_filename = sys._getframe(1).f_code.co_filename
+    is_internal_call = shell.NOT_LOGGED_FOLDER in caller_filename
+    if quiet == False or (quiet == None and not is_internal_call):
+      log_msg = "{0} returned {1}".format(get_user_call_output.__name__, result)
+      Logger.info(log_msg)
+
+    return result
   finally:
     for f in out_files:
       f.close()
