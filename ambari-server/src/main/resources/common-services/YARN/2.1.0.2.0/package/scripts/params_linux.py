@@ -193,6 +193,13 @@ else:
   rm_webui_address = format("{rm_host}:{rm_port}")
   rm_webui_https_address = format("{rm_host}:{rm_https_port}")
 
+if security_enabled:
+  tc_mode = 0644
+  tc_owner = "root"
+else:
+  tc_mode = None
+  tc_owner = hdfs_user
+
 nm_webui_address = config['configurations']['yarn-site']['yarn.nodemanager.webapp.address']
 hs_webui_address = config['configurations']['mapred-site']['mapreduce.jobhistory.webapp.address']
 nm_address = config['configurations']['yarn-site']['yarn.nodemanager.address']  # still contains 0.0.0.0
