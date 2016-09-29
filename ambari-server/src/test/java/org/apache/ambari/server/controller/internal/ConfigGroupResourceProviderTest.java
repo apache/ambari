@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -51,7 +50,6 @@ import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,33 +71,28 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.easymock.EasyMock.createStrictMock;
 
 public class ConfigGroupResourceProviderTest {
 
-  private Injector injector;
-
   private HostDAO hostDAO = null;
-
-  @BeforeClass
-  public static void setupAuthentication() {
-    // Clear authenticated user so that authorization checks will pass
-    SecurityContextHolder.getContext().setAuthentication(null);
-  }
 
   @Before
   public void setup() throws Exception {
+    // Clear authenticated user so that authorization checks will pass
+    SecurityContextHolder.getContext().setAuthentication(null);
+
     hostDAO = createStrictMock(HostDAO.class);
 
     // Create injector after all mocks have been initialized
-    injector = Guice.createInjector(Modules.override(
+    Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
   }
 
-  ConfigGroupResourceProvider getConfigGroupResourceProvider
+  private ConfigGroupResourceProvider getConfigGroupResourceProvider
       (AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.ConfigGroup;
 
@@ -171,23 +164,22 @@ public class ConfigGroupResourceProviderTest {
     expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
     expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
 
-    Capture<Cluster> clusterCapture = new Capture<Cluster>();
-    Capture<String> captureName = new Capture<String>();
-    Capture<String> captureDesc = new Capture<String>();
-    Capture<String> captureTag = new Capture<String>();
-    Capture<Map<String, Config>> captureConfigs = new Capture<Map<String,
-      Config>>();
-    Capture<Map<Long, Host>> captureHosts = new Capture<Map<Long, Host>>();
+    Capture<Cluster> clusterCapture = newCapture();
+    Capture<String> captureName = newCapture();
+    Capture<String> captureDesc = newCapture();
+    Capture<String> captureTag = newCapture();
+    Capture<Map<String, Config>> captureConfigs = newCapture();
+    Capture<Map<Long, Host>> captureHosts = newCapture();
 
     expect(configGroupFactory.createNew(capture(clusterCapture),
-      capture(captureName), capture(captureTag), capture(captureDesc),
-      capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
+        capture(captureName), capture(captureTag), capture(captureDesc),
+        capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
     replay(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response, hostDAO, hostEntity1, hostEntity2);
+        configGroup, response, hostDAO, hostEntity1, hostEntity2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
-      (managementController);
+        (managementController);
 
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
@@ -210,15 +202,15 @@ public class ConfigGroupResourceProviderTest {
     configSet.add(configs);
 
     properties.put(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
-      "test-1");
+        "test-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
-      "tag-1");
+        "tag-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID,
-      hostSet);
+        hostSet);
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
-      configSet);
+        configSet);
 
     propertySet.add(properties);
 
@@ -229,10 +221,10 @@ public class ConfigGroupResourceProviderTest {
     provider.createResources(request);
 
     verify(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response, hostDAO, hostEntity1, hostEntity2);
+        configGroup, response, hostDAO, hostEntity1, hostEntity2);
 
     assertEquals("version100", captureConfigs.getValue().get("core-site")
-      .getTag());
+        .getTag());
     assertTrue(captureHosts.getValue().containsKey(1L));
     assertTrue(captureHosts.getValue().containsKey(2L));
   }
@@ -280,33 +272,33 @@ public class ConfigGroupResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(managementController.getConfigGroupFactory()).andReturn
-      (configGroupFactory).anyTimes();
+        (configGroupFactory).anyTimes();
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
     expect(cluster.getConfigGroups()).andReturn(configGroupMap);
 
     expect(configGroupFactory.createNew((Cluster) anyObject(), (String) anyObject(),
-      (String) anyObject(), (String) anyObject(), (HashMap) anyObject(),
-      (HashMap) anyObject())).andReturn(configGroup).anyTimes();
+        (String) anyObject(), (String) anyObject(), (HashMap) anyObject(),
+        (HashMap) anyObject())).andReturn(configGroup).anyTimes();
 
     expect(configGroup.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getTag()).andReturn("tag-1").anyTimes();
 
     replay(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response);
+        configGroup, response);
 
     ResourceProvider provider = getConfigGroupResourceProvider
-      (managementController);
+        (managementController);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
 
     properties.put(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
-      "test-1");
+        "test-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
-      "tag-1");
+        "tag-1");
 
     propertySet.add(properties);
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
@@ -316,14 +308,14 @@ public class ConfigGroupResourceProviderTest {
     Exception exception = null;
     try {
       provider.createResources(request);
-    } catch (AuthorizationException e){
+    } catch (AuthorizationException e) {
       throw e;
     } catch (Exception e) {
       exception = e;
     }
 
     verify(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response);
+        configGroup, response);
 
     assertNotNull(exception);
     assertTrue(exception instanceof ResourceAlreadyExistsException);
@@ -409,7 +401,7 @@ public class ConfigGroupResourceProviderTest {
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
         "tag-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID,
-        hostSet );
+        hostSet);
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
         configSet);
 
@@ -429,8 +421,7 @@ public class ConfigGroupResourceProviderTest {
     SystemException systemException = null;
     try {
       provider.updateResources(request, predicate);
-    }
-    catch (SystemException e){
+    } catch (SystemException e) {
       systemException = e;
     }
     assertNotNull(systemException);
@@ -481,7 +472,7 @@ public class ConfigGroupResourceProviderTest {
 
     final ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
     ConfigGroupResponse configGroupResponse = createNiceMock
-      (ConfigGroupResponse.class);
+        (ConfigGroupResponse.class);
 
     expect(cluster.isConfigTypeExists("core-site")).andReturn(true).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -516,10 +507,10 @@ public class ConfigGroupResourceProviderTest {
     });
 
     replay(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
+        configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
-      (managementController);
+        (managementController);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
@@ -541,15 +532,15 @@ public class ConfigGroupResourceProviderTest {
     configSet.add(configs);
 
     properties.put(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID,
-      "test-1");
+        "test-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID,
-      "tag-1");
+        "tag-1");
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID,
-      hostSet );
+        hostSet);
     properties.put(ConfigGroupResourceProvider.CONFIGGROUP_CONFIGS_PROPERTY_ID,
-      configSet);
+        configSet);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -557,17 +548,17 @@ public class ConfigGroupResourceProviderTest {
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
 
     Predicate predicate = new PredicateBuilder().property
-      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals
-      ("Cluster100").and().
-      property(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID).equals
-      (25L).toPredicate();
+        (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals
+        ("Cluster100").and().
+        property(ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID).equals
+        (25L).toPredicate();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
     provider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
+        configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2, h1, h2);
   }
 
   @Test
@@ -607,8 +598,12 @@ public class ConfigGroupResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Host h1 = createNiceMock(Host.class);
     final Long host1Id = 1L;
-    List<Long> hostIds = new ArrayList<Long>() {{ add(host1Id); }};
-    List<String> hostNames = new ArrayList<String>() {{ add("h1"); }};
+    List<Long> hostIds = new ArrayList<Long>() {{
+      add(host1Id);
+    }};
+    List<String> hostNames = new ArrayList<String>() {{
+      add("h1");
+    }};
     HostEntity hostEntity1 = createMock(HostEntity.class);
 
     expect(hostDAO.getHostNamesByHostIds(hostIds)).andReturn(hostNames).atLeastOnce();
@@ -678,8 +673,9 @@ public class ConfigGroupResourceProviderTest {
     replay(managementController, clusters, cluster, hostDAO, hostEntity1,
         configGroup1, configGroup2, configGroup3, configGroup4, response1, response2, response3, response4);
 
-    ResourceProvider resourceProvider = getConfigGroupResourceProvider
-      (managementController);
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    ResourceProvider resourceProvider = getConfigGroupResourceProvider(managementController);
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -688,125 +684,122 @@ public class ConfigGroupResourceProviderTest {
 
     // Read all
     Predicate predicate = new PredicateBuilder().property
-      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
-      .equals("Cluster100").toPredicate();
+        (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+        .equals("Cluster100").toPredicate();
     Request request = PropertyHelper.getReadRequest(propertyIds);
 
-    Set<Resource> resources = resourceProvider.getResources(request,
-      predicate);
+    Set<Resource> resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(4, resources.size());
 
     // Read by id
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).and().property
-      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
-      .equals("Cluster100").toPredicate();
-
-    SecurityContextHolder.getContext().setAuthentication(authentication);
+        .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).and().property
+        (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+        .equals("Cluster100").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     assertEquals(1L, resources.iterator().next().getPropertyValue
-      (ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_ID_PROPERTY_ID));
 
     // Read by Name
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID)
-      .equals("g2").toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID)
+        .equals("g2").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     assertEquals("g2", resources.iterator().next().getPropertyValue
-      (ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_NAME_PROPERTY_ID));
 
     // Read by tag
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
-      .equals("t3").toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
+        .equals("t3").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     assertEquals("t3", resources.iterator().next().getPropertyValue
-      (ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID));
 
     // Read by hostname (hosts=h1)
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID)
-      .equals("h1").toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_PROPERTY_ID)
+        .equals("h1").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     Set<Map<String, Object>> hostSet = (Set<Map<String, Object>>)
-      resources.iterator().next()
-      .getPropertyValue(ConfigGroupResourceProvider
-        .CONFIGGROUP_HOSTS_PROPERTY_ID);
+        resources.iterator().next()
+            .getPropertyValue(ConfigGroupResourceProvider
+                .CONFIGGROUP_HOSTS_PROPERTY_ID);
     assertEquals("h1", hostSet.iterator().next().get
-      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
 
     // Read by hostname (hosts/host_name=h1)
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID)
-      .equals("h1").toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID)
+        .equals("h1").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     hostSet = (Set<Map<String, Object>>)
-      resources.iterator().next()
-        .getPropertyValue(ConfigGroupResourceProvider
-          .CONFIGGROUP_HOSTS_PROPERTY_ID);
+        resources.iterator().next()
+            .getPropertyValue(ConfigGroupResourceProvider
+                .CONFIGGROUP_HOSTS_PROPERTY_ID);
     assertEquals("h1", hostSet.iterator().next().get
-      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
 
 
     // Read by tag and hostname (hosts=h1) - Positive
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
-      .equals("t4").and().property(ConfigGroupResourceProvider
-        .CONFIGGROUP_HOSTS_PROPERTY_ID).equals(host1Id).toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
+        .equals("t4").and().property(ConfigGroupResourceProvider
+            .CONFIGGROUP_HOSTS_PROPERTY_ID).equals(host1Id).toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     hostSet = (Set<Map<String, Object>>)
-      resources.iterator().next()
-        .getPropertyValue(ConfigGroupResourceProvider
-          .CONFIGGROUP_HOSTS_PROPERTY_ID);
+        resources.iterator().next()
+            .getPropertyValue(ConfigGroupResourceProvider
+                .CONFIGGROUP_HOSTS_PROPERTY_ID);
     assertEquals("h1", hostSet.iterator().next().get
-      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
 
     // Read by tag and hostname (hosts/host_name=h1) - Positive
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
-      .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
-      .equals("t4").and().property(ConfigGroupResourceProvider
-        .CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID).equals("h1").toPredicate();
+        .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
+        .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
+        .equals("t4").and().property(ConfigGroupResourceProvider
+            .CONFIGGROUP_HOSTS_HOSTNAME_PROPERTY_ID).equals("h1").toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
     assertEquals(1, resources.size());
     hostSet = (Set<Map<String, Object>>)
-      resources.iterator().next()
-        .getPropertyValue(ConfigGroupResourceProvider
-          .CONFIGGROUP_HOSTS_PROPERTY_ID);
+        resources.iterator().next()
+            .getPropertyValue(ConfigGroupResourceProvider
+                .CONFIGGROUP_HOSTS_PROPERTY_ID);
     assertEquals("h1", hostSet.iterator().next().get
-      (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
+        (ConfigGroupResourceProvider.CONFIGGROUP_HOSTNAME_PROPERTY_ID));
 
     // Read by id
     predicate = new PredicateBuilder().property(ConfigGroupResourceProvider
-      .CONFIGGROUP_ID_PROPERTY_ID).equals(11L).and().property
-      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
-      .equals("Cluster100").toPredicate();
+        .CONFIGGROUP_ID_PROPERTY_ID).equals(11L).and().property
+        (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+        .equals("Cluster100").toPredicate();
 
     NoSuchResourceException resourceException = null;
     try {
@@ -866,16 +859,16 @@ public class ConfigGroupResourceProviderTest {
     replay(managementController, clusters, cluster, configGroup);
 
     ResourceProvider resourceProvider = getConfigGroupResourceProvider
-      (managementController);
+        (managementController);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
 
     ((ObservableResourceProvider) resourceProvider).addObserver(observer);
 
     Predicate predicate = new PredicateBuilder().property
-      (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
-      .equals("Cluster100").and().property(ConfigGroupResourceProvider
-        .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).toPredicate();
+        (ConfigGroupResourceProvider.CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID)
+        .equals("Cluster100").and().property(ConfigGroupResourceProvider
+            .CONFIGGROUP_ID_PROPERTY_ID).equals(1L).toPredicate();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -909,7 +902,9 @@ public class ConfigGroupResourceProviderTest {
     desiredConfigProperties.add(desiredConfig1);
 
     Map<String, Object> properties = new HashMap<String, Object>();
-    properties.put("ConfigGroup/hosts", new HashMap<String, String>(){{put("host_name", "ambari1");}});
+    properties.put("ConfigGroup/hosts", new HashMap<String, String>() {{
+      put("host_name", "ambari1");
+    }});
     properties.put("ConfigGroup/cluster_name", "c");
     properties.put("ConfigGroup/desired_configs", desiredConfigProperties);
 
