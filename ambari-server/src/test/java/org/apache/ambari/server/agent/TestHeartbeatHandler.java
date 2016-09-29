@@ -160,7 +160,7 @@ public class TestHeartbeatHandler {
   }
 
   @After
-  public void teardown() throws AmbariException {
+  public void teardown() throws Exception {
     injector.getInstance(PersistService.class).stop();
     EasyMock.reset(auditLogger);
   }
@@ -345,7 +345,7 @@ public class TestHeartbeatHandler {
 
 
   @Test
-  public void testRegistration() throws AmbariException,
+  public void testRegistration() throws Exception,
       InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
@@ -376,7 +376,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegistrationRecoveryConfig() throws AmbariException,
+  public void testRegistrationRecoveryConfig() throws Exception,
       InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
@@ -441,7 +441,7 @@ public class TestHeartbeatHandler {
   //
   @Test
   public void testRegistrationRecoveryConfigMaintenanceMode()
-          throws AmbariException, InvalidStateTransitionException {
+      throws Exception, InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
@@ -495,7 +495,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegistrationAgentConfig() throws AmbariException,
+  public void testRegistrationAgentConfig() throws Exception,
       InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
@@ -527,7 +527,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegistrationWithBadVersion() throws AmbariException,
+  public void testRegistrationWithBadVersion() throws Exception,
       InvalidStateTransitionException {
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
@@ -570,7 +570,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegistrationPublicHostname() throws AmbariException, InvalidStateTransitionException {
+  public void testRegistrationPublicHostname() throws Exception, InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
@@ -602,7 +602,7 @@ public class TestHeartbeatHandler {
 
 
   @Test
-  public void testInvalidOSRegistration() throws AmbariException,
+  public void testInvalidOSRegistration() throws Exception,
       InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
@@ -630,7 +630,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testIncompatibleAgentRegistration() throws AmbariException,
+  public void testIncompatibleAgentRegistration() throws Exception,
           InvalidStateTransitionException {
 
     ActionManager am = actionManagerTestHelper.getMockActionManager();
@@ -660,7 +660,7 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testRegisterNewNode()
-      throws AmbariException, InvalidStateTransitionException {
+      throws Exception, InvalidStateTransitionException {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     replay(am);
     Clusters fsm = clusters;
@@ -745,7 +745,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testStateCommandsAtRegistration() throws AmbariException, InvalidStateTransitionException {
+  public void testStateCommandsAtRegistration() throws Exception, InvalidStateTransitionException {
     List<StatusCommand> dummyCmds = new ArrayList<StatusCommand>();
     StatusCommand statusCmd1 = new StatusCommand();
     statusCmd1.setClusterName(DummyCluster);
@@ -781,7 +781,7 @@ public class TestHeartbeatHandler {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testTaskInProgressHandling() throws AmbariException, InvalidStateTransitionException {
+  public void testTaskInProgressHandling() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -839,7 +839,7 @@ public class TestHeartbeatHandler {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testOPFailedEventForAbortedTask() throws AmbariException, InvalidStateTransitionException {
+  public void testOPFailedEventForAbortedTask() throws Exception, InvalidStateTransitionException {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -1281,7 +1281,7 @@ public class TestHeartbeatHandler {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testIgnoreCustomActionReport() throws AmbariException, InvalidStateTransitionException {
+  public void testIgnoreCustomActionReport() throws Exception, InvalidStateTransitionException {
     CommandReport cr1 = new CommandReport();
     cr1.setActionId(StageUtils.getActionId(requestId, stageId));
     cr1.setTaskId(1);
@@ -1343,7 +1343,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testComponents() throws AmbariException,
+  public void testComponents() throws Exception,
       InvalidStateTransitionException {
     ComponentsResponse expected = new ComponentsResponse();
     StackId dummyStackId = new StackId(DummyStackId);

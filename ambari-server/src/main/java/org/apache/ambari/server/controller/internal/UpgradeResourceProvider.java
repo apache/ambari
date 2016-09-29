@@ -360,7 +360,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           // rollback
           // As we operate inside with cluster data, any cache which belongs to
           // cluster need to be flushed
-          cluster.invalidateData();
+          clusters.get().invalidate(cluster);
           throw e;
         }
       }

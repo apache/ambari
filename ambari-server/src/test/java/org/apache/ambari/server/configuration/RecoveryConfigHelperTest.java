@@ -18,12 +18,20 @@
 
 package org.apache.ambari.server.configuration;
 
-import com.google.common.eventbus.EventBus;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.AmbariException;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
+import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.agent.HeartbeatTestHelper;
 import org.apache.ambari.server.agent.RecoveryConfig;
 import org.apache.ambari.server.agent.RecoveryConfigHelper;
@@ -40,19 +48,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DATANODE;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyHostname1;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HDFS;
-import static org.apache.ambari.server.agent.DummyHeartbeatConstants.NAMENODE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.eventbus.EventBus;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 /**
  * Test RecoveryConfigHelper class
@@ -86,7 +86,7 @@ public class RecoveryConfigHelperTest {
   }
 
   @After
-  public void teardown() throws AmbariException {
+  public void teardown() throws Exception {
     injector.getInstance(PersistService.class).stop();
   }
 
@@ -95,7 +95,7 @@ public class RecoveryConfigHelperTest {
    */
   @Test
   public void testRecoveryConfigDefaultValues()
-      throws AmbariException {
+      throws Exception {
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getDefaultRecoveryConfig();
     assertEquals(recoveryConfig.getMaxLifetimeCount(), RecoveryConfigHelper.RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
     assertEquals(recoveryConfig.getMaxCount(), RecoveryConfigHelper.RECOVERY_MAX_COUNT_DEFAULT);
@@ -107,11 +107,12 @@ public class RecoveryConfigHelperTest {
 
   /**
    * Test cluster-env properties from a dummy cluster
-   * @throws AmbariException
+   * 
+   * @throws Exception
    */
   @Test
   public void testRecoveryConfigValues()
-      throws AmbariException {
+      throws Exception {
     String hostname = "hostname1";
     Cluster cluster = getDummyCluster(hostname);
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), hostname);
@@ -124,13 +125,14 @@ public class RecoveryConfigHelperTest {
   }
 
   /**
-   * Install a component with auto start enabled. Verify that the old config was invalidated.
+   * Install a component with auto start enabled. Verify that the old config was
+   * invalidated.
    *
-   * @throws AmbariException
+   * @throws Exception
    */
   @Test
   public void testServiceComponentInstalled()
-      throws AmbariException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -161,12 +163,12 @@ public class RecoveryConfigHelperTest {
 
   /**
    * Uninstall a component and verify that the config is stale.
-   * 
-   * @throws AmbariException
+   *
+   * @throws Exception
    */
   @Test
   public void testServiceComponentUninstalled()
-      throws AmbariException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -200,11 +202,11 @@ public class RecoveryConfigHelperTest {
   /**
    * Disable cluster level auto start and verify that the config is stale.
    *
-   * @throws AmbariException
+   * @throws Exception
    */
   @Test
   public void testClusterEnvConfigChanged()
-      throws AmbariException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -238,13 +240,14 @@ public class RecoveryConfigHelperTest {
   }
 
   /**
-   * Change the maintenance mode of a service component host and verify that config is stale.
+   * Change the maintenance mode of a service component host and verify that
+   * config is stale.
    *
-   * @throws AmbariException
+   * @throws Exception
    */
   @Test
   public void testMaintenanceModeChanged()
-      throws AmbariException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -277,11 +280,11 @@ public class RecoveryConfigHelperTest {
   /**
    * Disable recovery on a component and verify that the config is stale.
    *
-   * @throws AmbariException
+   * @throws Exception
    */
   @Test
   public void testServiceComponentRecoveryChanged()
-      throws AmbariException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -309,14 +312,14 @@ public class RecoveryConfigHelperTest {
   }
 
   /**
-   * Test a cluster with two hosts. The first host gets the configuration during registration.
-   * The second host gets it during it's first heartbeat.
+   * Test a cluster with two hosts. The first host gets the configuration during
+   * registration. The second host gets it during it's first heartbeat.
    *
-   * @throws AmbariException
+   * @throws Exception
    */
   @Test
   public void testMultiNodeCluster()
-    throws AmbariException {
+      throws Exception {
     Set<String> hostNames = new HashSet<String>() {{
       add("Host1");
       add("Host2");
@@ -351,7 +354,7 @@ public class RecoveryConfigHelperTest {
   }
 
   private Cluster getDummyCluster(Set<String> hostNames)
-    throws AmbariException {
+      throws Exception {
     Map<String, String> configProperties = new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
       put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
@@ -365,7 +368,7 @@ public class RecoveryConfigHelperTest {
   }
 
   private Cluster getDummyCluster(final String hostname)
-          throws AmbariException {
+      throws Exception {
 
     Set<String> hostNames = new HashSet<String>(){{
       add(hostname);

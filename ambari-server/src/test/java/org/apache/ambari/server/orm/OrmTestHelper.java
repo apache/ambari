@@ -18,12 +18,11 @@
 
 package org.apache.ambari.server.orm;
 
-import javax.persistence.EntityManager;
-import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Method;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -88,6 +89,7 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.google.inject.Inject;
@@ -95,6 +97,8 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+
+import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
@@ -308,7 +312,7 @@ public class OrmTestHelper {
    * @return the cluster ID.
    */
   @Transactional
-  public Long createCluster() {
+  public Long createCluster() throws Exception {
     return createCluster(CLUSTER_NAME);
   }
 
@@ -318,7 +322,7 @@ public class OrmTestHelper {
    * @return the cluster ID.
    */
   @Transactional
-  public Long createCluster(String clusterName) {
+  public Long createCluster(String clusterName) throws Exception {
     // required to populate the database with stacks
     injector.getInstance(AmbariMetaInfo.class);
 
@@ -354,6 +358,15 @@ public class OrmTestHelper {
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
     assertNotNull(clusterEntity);
     assertTrue(clusterEntity.getClusterId() > 0);
+
+    // because this test method goes around the Clusters business object, we
+    // forcefully will refresh the internal state so that any tests which
+    // incorrect use Clusters after calling this won't be affected
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Method method = ClustersImpl.class.getDeclaredMethod("loadClustersAndHosts");
+    method.setAccessible(true);
+    method.invoke(clusters);
+
     return clusterEntity.getClusterId();
   }
 

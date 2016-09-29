@@ -59,7 +59,6 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -594,7 +593,7 @@ public class HeartbeatProcessorTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testCommandReportOnHeartbeatUpdatedState()
-      throws AmbariException, InvalidStateTransitionException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -714,7 +713,7 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
+  public void testUpgradeSpecificHandling() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -891,7 +890,7 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeCompleteReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeCompleteReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -976,7 +975,7 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeFailReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();
@@ -1097,7 +1096,7 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeInProgressReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
     hdfs.persist();

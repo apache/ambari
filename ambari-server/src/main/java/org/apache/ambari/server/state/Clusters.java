@@ -278,4 +278,13 @@ public interface Clusters {
    */
   int getClusterSize(String clusterName);
 
+  /**
+   * Invalidates the specified cluster by retrieving it from the database and
+   * refreshing all of the internal stateful collections.
+   *
+   * @param cluster
+   *          the cluster to invalidate and refresh (not {@code null}).
+   */
+  void invalidate(Cluster cluster);
+
 }
