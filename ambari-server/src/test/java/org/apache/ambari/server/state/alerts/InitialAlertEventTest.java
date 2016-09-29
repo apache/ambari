@@ -51,10 +51,12 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests that {@link InitialAlertEventTest} instances are fired correctly.
  */
+@Category({ category.AlertTest.class })
 public class InitialAlertEventTest {
 
   private AlertsDAO m_alertsDao;
