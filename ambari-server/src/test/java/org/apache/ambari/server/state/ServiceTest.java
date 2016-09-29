@@ -20,8 +20,6 @@ package org.apache.ambari.server.state;
 
 import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.HashMap;
@@ -35,9 +33,7 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -46,17 +42,17 @@ import com.google.inject.persist.PersistService;
 
 public class ServiceTest {
 
-  private static Clusters clusters;
-  private static Cluster cluster;
-  private static String clusterName;
-  private static Injector injector;
-  private static ServiceFactory serviceFactory;
-  private static ServiceComponentFactory serviceComponentFactory;
-  private static ServiceComponentHostFactory serviceComponentHostFactory;
-  private static AmbariMetaInfo metaInfo;
+  private Clusters clusters;
+  private Cluster cluster;
+  private String clusterName;
+  private Injector injector;
+  private ServiceFactory serviceFactory;
+  private ServiceComponentFactory serviceComponentFactory;
+  private ServiceComponentHostFactory serviceComponentHostFactory;
+  private AmbariMetaInfo metaInfo;
 
-  @BeforeClass
-  public static void classSetUp() throws Exception {
+  @Before
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
@@ -72,24 +68,9 @@ public class ServiceTest {
     Assert.assertNotNull(cluster);
   }
 
-  @Before
-  public void setup() throws Exception {
-
-  }
-
   @After
   public void teardown() throws AmbariException {
-    //injector.getInstance(PersistService.class).stop();
-    cleanup();
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
     injector.getInstance(PersistService.class).stop();
-  }
-
-  private void cleanup() throws AmbariException {
-    cluster.deleteAllServices();
   }
 
   @Test
@@ -134,26 +115,6 @@ public class ServiceTest {
   }
 
   @Test
-  public void testCreateService() throws AmbariException {
-    String serviceName = "HDFS";
-    Service s = serviceFactory.createNew(cluster, serviceName);
-    cluster.addService(s);
-    s.persist();
-    Service service = cluster.getService(serviceName);
-
-    Assert.assertNotNull(service);
-    Assert.assertEquals(serviceName, service.getName());
-    Assert.assertEquals(cluster.getClusterId(),
-        service.getCluster().getClusterId());
-    Assert.assertEquals(cluster.getClusterName(),
-        service.getCluster().getClusterName());
-    Assert.assertEquals(State.INIT, service.getDesiredState());
-    Assert.assertEquals(SecurityState.UNSECURED, service.getSecurityState());
-    Assert.assertFalse(
-        service.getDesiredStackVersion().getStackId().isEmpty());
-  }
-
-  @Test
   public void testGetAndSetServiceInfo() throws AmbariException {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
@@ -176,7 +137,7 @@ public class ServiceTest {
 
 
   @Test
-  public void testAddAndGetServiceComponents() throws AmbariException {
+  public void testAddGetDeleteServiceComponents() throws AmbariException {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
@@ -185,6 +146,15 @@ public class ServiceTest {
     Service service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);
+    Assert.assertEquals(serviceName, service.getName());
+    Assert.assertEquals(cluster.getClusterId(),
+            service.getCluster().getClusterId());
+    Assert.assertEquals(cluster.getClusterName(),
+            service.getCluster().getClusterName());
+    Assert.assertEquals(State.INIT, service.getDesiredState());
+    Assert.assertEquals(SecurityState.UNSECURED, service.getSecurityState());
+    Assert.assertFalse(
+            service.getDesiredStackVersion().getStackId().isEmpty());
 
     Assert.assertTrue(s.getServiceComponents().isEmpty());
 
@@ -240,6 +210,10 @@ public class ServiceTest {
     Assert.assertEquals(State.INSTALLING,
         s.getServiceComponent("HDFS_CLIENT").getDesiredState());
 
+    // delete service component
+    s.deleteServiceComponent("NAMENODE");
+
+    assertEquals(3, s.getServiceComponents().size());
   }
 
   @Test
@@ -287,36 +261,6 @@ public class ServiceTest {
     Assert.assertFalse(sb.toString().isEmpty());
 
   }
-
-  @Test
-  public void testDeleteServiceComponent() throws Exception {
-    Service hdfs = cluster.addService("HDFS");
-    Service mapReduce = cluster.addService("MAPREDUCE");
-
-    hdfs.persist();
-
-    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
-    ServiceComponent jobTracker = mapReduce.addServiceComponent("JOBTRACKER");
-
-    assertEquals(2, cluster.getServices().size());
-    assertEquals(1, hdfs.getServiceComponents().size());
-    assertEquals(1, mapReduce.getServiceComponents().size());
-    assertTrue(hdfs.isPersisted());
-    assertFalse(mapReduce.isPersisted());
-
-    hdfs.deleteServiceComponent("NAMENODE");
-
-    assertEquals(0, hdfs.getServiceComponents().size());
-    assertEquals(1, mapReduce.getServiceComponents().size());
-
-    mapReduce.deleteServiceComponent("JOBTRACKER");
-
-    assertEquals(0, hdfs.getServiceComponents().size());
-    assertEquals(0, mapReduce.getServiceComponents().size());
-
-  }
-
 
   @Test
   public void testServiceMaintenance() throws Exception {
