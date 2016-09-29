@@ -85,7 +85,7 @@ public class RequestImpl implements Request {
    * @param requestInfoProperties  request properties; may be null
    * @param mapTemporalInfo        temporal info
    */
-  public RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
+  public  RequestImpl(Set<String> propertyIds, Set<Map<String, Object>> properties,
                      Map<String, String> requestInfoProperties, Map<String,TemporalInfo> mapTemporalInfo) {
     this(propertyIds, properties, requestInfoProperties, mapTemporalInfo, null, null);
   }
