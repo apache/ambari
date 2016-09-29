@@ -31,7 +31,7 @@ import org.junit.Test;
 public class BufferedThreadPoolExecutorCompletionServiceTest {
 
   private void longOp() throws InterruptedException {
-    Thread.sleep(1000);
+    Thread.sleep(700);
     System.out.println("Completed " + Thread.currentThread());
   }
 

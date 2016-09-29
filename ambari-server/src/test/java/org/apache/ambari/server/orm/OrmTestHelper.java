@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm;
 
+import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -32,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -95,8 +95,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-
-import junit.framework.Assert;
 
 @Singleton
 public class OrmTestHelper {
@@ -501,7 +499,7 @@ public class OrmTestHelper {
     target.setTargetName("Target Name " + System.currentTimeMillis());
 
     alertDispatchDAO.create(target);
-    return alertDispatchDAO.findTargetById(target.getTargetId());
+    return target;
   }
 
   /**
@@ -518,7 +516,7 @@ public class OrmTestHelper {
     target.setGlobal(true);
 
     alertDispatchDAO.create(target);
-    return alertDispatchDAO.findTargetById(target.getTargetId());
+    return target;
   }
 
   /**
@@ -563,7 +561,7 @@ public class OrmTestHelper {
     group.setAlertTargets(targets);
 
     alertDispatchDAO.create(group);
-    return alertDispatchDAO.findGroupById(group.getGroupId());
+    return group;
   }
 
   /**

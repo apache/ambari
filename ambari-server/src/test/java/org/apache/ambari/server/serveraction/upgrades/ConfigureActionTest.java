@@ -43,9 +43,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -66,13 +64,12 @@ import org.apache.ambari.server.state.stack.upgrade.PropertyKeyState;
 import org.apache.ambari.server.state.stack.upgrade.TransferCoercionType;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.gson.Gson;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
@@ -86,84 +83,45 @@ public class ConfigureActionTest {
   private static final StackId HDP_211_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_220_STACK = new StackId("HDP-2.2.0");
 
-  private static Injector m_injector;
-  private static OrmTestHelper m_helper;
-  private static RepositoryVersionDAO repoVersionDAO;
-  private static HostVersionDAO hostVersionDAO;
-  private static HostRoleCommandFactory hostRoleCommandFactory;
-  private static ServiceFactory serviceFactory;
-  private static ConfigHelper m_configHelper;
-  private static Clusters clusters;
-  private static ClusterVersionDAO clusterVersionDAO;
-  private static ConfigFactory cf;
-  private static ConfigureAction action;
-  private static HostDAO hostDAO;
-
-  @BeforeClass
-  public static void classSetUp() throws Exception {
-    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
-    m_injector.getInstance(GuiceJpaInitializer.class);
-
-    m_helper = m_injector.getInstance(OrmTestHelper.class);
-    repoVersionDAO = m_injector.getInstance(RepositoryVersionDAO.class);
-    hostVersionDAO = m_injector.getInstance(HostVersionDAO.class);
-    hostRoleCommandFactory = m_injector.getInstance(HostRoleCommandFactory.class);
-    serviceFactory = m_injector.getInstance(ServiceFactory.class);
-    m_configHelper = m_injector.getInstance(ConfigHelper.class);
-    clusters = m_injector.getInstance(Clusters.class);
-    clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
-    cf = m_injector.getInstance(ConfigFactory.class);
-    action = m_injector.getInstance(ConfigureAction.class);
-    hostDAO = m_injector.getInstance(HostDAO.class);
-  }
+  @Inject
+  private Injector m_injector;
+  @Inject
+  private OrmTestHelper m_helper;
+  @Inject
+  private RepositoryVersionDAO repoVersionDAO;
+  @Inject
+  private HostVersionDAO hostVersionDAO;
+  @Inject
+  private HostRoleCommandFactory hostRoleCommandFactory;
+  @Inject
+  private ServiceFactory serviceFactory;
+  @Inject
+  private ConfigHelper m_configHelper;
+  @Inject
+  private Clusters clusters;
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
+  @Inject
+  private ConfigFactory cf;
+  @Inject
+  private ConfigureAction action;
+  @Inject
+  private HostDAO hostDAO;
+  @Inject
+  private StackDAO stackDAO;
 
   @Before
   public void setup() throws Exception {
-
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
+    m_injector.injectMembers(this);
   }
 
   @After
   public void teardown() throws Exception {
-    cleanup();
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
     m_injector.getInstance(PersistService.class).stop();
   }
 
-  private void cleanup() throws AmbariException {
-    Map<String, Cluster> clusterMap = clusters.getClusters();
-
-    List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findAll();
-    if (clusterVersionEntities != null) {
-      for (ClusterVersionEntity cve : clusterVersionEntities) {
-        clusterVersionDAO.remove(cve);
-      }
-    }
-
-    List<RepositoryVersionEntity> repositoryVersionEntities = repoVersionDAO.findAll();
-    if (repositoryVersionEntities != null) {
-      for (RepositoryVersionEntity rve : repositoryVersionEntities) {
-        repoVersionDAO.remove(rve);
-      }
-    }
-
-    List<HostVersionEntity> hostVersionEntities = hostVersionDAO.findAll();
-    if (clusterVersionEntities != null) {
-      for (HostVersionEntity hve : hostVersionEntities) {
-        hostVersionDAO.remove(hve);
-      }
-    }
-
-    for (String clusterName : clusterMap.keySet()) {
-      clusters.deleteCluster(clusterName);
-    }
-
-    for (Host host : clusters.getHosts()) {
-      clusters.deleteHost(host.getHostName());
-    }
-  }
 
   @Test
   public void testConfigActionUpgradeAcrossStack() throws Exception {
@@ -1703,7 +1661,7 @@ public class ConfigureActionTest {
 
     clusters.addCluster(clusterName, HDP_220_STACK);
 
-    StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+
     StackEntity stackEntity = stackDAO.find(HDP_220_STACK.getStackName(),
         HDP_220_STACK.getStackVersion());
 

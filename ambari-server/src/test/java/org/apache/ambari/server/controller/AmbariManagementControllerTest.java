@@ -8949,6 +8949,112 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testDeleteHostComponentWithForce() throws Exception {
+    String cluster1 = getUniqueName();
+
+    createCluster(cluster1);
+
+    Cluster cluster = clusters.getCluster(cluster1);
+    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
+
+    String serviceName = "HDFS";
+    createService(cluster1, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(cluster1, serviceName, componentName1, State.INIT);
+    createServiceComponent(cluster1, serviceName, componentName2, State.INIT);
+    createServiceComponent(cluster1, serviceName, componentName3, State.INIT);
+
+    String host1 = getUniqueName();  // Host will belong to the cluster and contain components
+
+    addHostToCluster(host1, cluster1);
+
+    // Add components to host1
+    createServiceComponentHost(cluster1, serviceName, componentName1, host1, null);
+    createServiceComponentHost(cluster1, serviceName, componentName2, host1, null);
+    createServiceComponentHost(cluster1, serviceName, componentName3, host1, null);
+
+    // Install
+    installService(cluster1, serviceName, false, false);
+
+    // Treat host components on host1 as up and healthy
+    Map<String, ServiceComponentHost> hostComponents = cluster.getService(serviceName).getServiceComponent(componentName1).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+    hostComponents = cluster.getService(serviceName).getServiceComponent(componentName2).getServiceComponentHosts();
+    for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
+      ServiceComponentHost cHost = entry.getValue();
+      cHost.handleEvent(new ServiceComponentHostInstallEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis(), cluster.getDesiredStackVersion().getStackId()));
+      cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
+    }
+
+    // Case 1: Attempt delete when components still exist
+    Set<HostRequest> requests = new HashSet<HostRequest>();
+    requests.clear();
+    requests.add(new HostRequest(host1, cluster1, null));
+    try {
+      HostResourceProviderTest.deleteHosts(controller, requests, false, false);
+      fail("Expect failure deleting hosts when components exist and have not been deleted.");
+    } catch (Exception e) {
+      LOG.info("Exception is - " + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains("these components must be stopped if running, and then deleted"));
+    }
+
+    Service s = cluster.getService(serviceName);
+    s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.STARTED);
+    try {
+      HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      fail("Expect failure deleting hosts when components exist and have not been stopped.");
+    } catch (Exception e) {
+      LOG.info("Exception is - " + e.getMessage());
+      Assert.assertTrue(e.getMessage().contains("these components must be stopped:"));
+    }
+
+    DeleteStatusMetaData data = null;
+    try {
+      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
+      Assert.assertTrue(data.getDeletedKeys().size() == 0);
+    } catch (Exception e) {
+      LOG.info("Exception is - " + e.getMessage());
+      fail("Do not expect failure deleting hosts when components exist and are stopped.");
+    }
+
+    LOG.info("Test dry run of delete with all host components");
+    s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
+    try {
+      data = HostResourceProviderTest.deleteHosts(controller, requests, true, true);
+      Assert.assertTrue(data.getDeletedKeys().size() == 1);
+    } catch (Exception e) {
+      LOG.info("Exception is - " + e.getMessage());
+      fail("Do not expect failure deleting hosts when components exist and are stopped.");
+    }
+
+    LOG.info("Test successful delete with all host components");
+    s.getServiceComponent("DATANODE").getServiceComponentHost(host1).setState(State.INSTALLED);
+    try {
+      data = HostResourceProviderTest.deleteHosts(controller, requests, false, true);
+      Assert.assertNotNull(data);
+      Assert.assertTrue(4 == data.getDeletedKeys().size());
+      Assert.assertTrue(0 == data.getExceptionForKeys().size());
+    } catch (Exception e) {
+      LOG.info("Exception is - " + e.getMessage());
+      fail("Do not expect failure deleting hosts when components exist and are stopped.");
+    }
+    // Verify host does not exist
+    try {
+      clusters.getHost(host1);
+      Assert.fail("Expected a HostNotFoundException.");
+    } catch (HostNotFoundException e) {
+      // expected
+    }
+  }
+
+  @Test
   public void testDeleteHost() throws Exception {
     String cluster1 = getUniqueName();
 

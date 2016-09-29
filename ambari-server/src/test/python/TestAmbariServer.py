@@ -125,7 +125,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 from ambari_server.userInput import get_YN_input, get_choice_string_input, get_validated_string_input, \
                   read_password
                 from ambari_server_main import get_ulimit_open_files, ULIMIT_OPEN_FILES_KEY, ULIMIT_OPEN_FILES_DEFAULT
-                from ambari_server.serverClassPath import ServerClassPath
+                from ambari_server.serverClassPath import JDBC_DRIVER_PATH_PROPERTY, ServerClassPath
                 from ambari_server.hostUpdate import update_host_names
                 from ambari_server.checkDatabase import check_database
                 from ambari_server import serverConfiguration
@@ -6459,7 +6459,12 @@ class TestAmbariServer(TestCase):
   @patch("os.remove")
   @patch("os.symlink")
   @patch("shutil.copy")
-  def test_ensure_jdbc_drivers_installed(self, shutil_copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, isdir_mock, glob_mock,
+  @patch("os.path.isfile")
+  @patch("ambari_server.dbConfiguration.get_YN_input")
+  @patch("ambari_server.dbConfiguration.update_properties")
+  @patch("ambari_server.dbConfiguration.get_validated_string_input")
+  def test_ensure_jdbc_drivers_installed(self, get_valid_str_in_mock, update_properties_mock, getYN_mock, isfile_mock, shutil_copy_mock,
+                              os_symlink_mock, os_remove_mock, lexists_mock, isdir_mock, glob_mock,
                               raw_input_mock, print_warning_msg, print_error_msg_mock, print_error_msg_2_mock,
                               get_ambari_properties_mock, get_ambari_properties_2_mock):
     out = StringIO.StringIO()
@@ -6472,7 +6477,11 @@ class TestAmbariServer(TestCase):
       print_error_msg_mock.reset_mock()
       print_warning_msg.reset_mock()
       raw_input_mock.reset_mock()
-
+      isfile_mock.reset_mock()
+      os_remove_mock.reset_mock
+      getYN_mock.reset_mock()
+      get_valid_str_in_mock.reset_mock()
+      update_properties_mock.reset_mock()
       args = MagicMock()
 
       del args.database_index
@@ -6485,12 +6494,13 @@ class TestAmbariServer(TestCase):
 
       return args
 
-    # Check positive scenario
+    # Check scenario when default jdbc was found and used
     drivers_list = [os.path.join(os.sep,'usr','share','java','ojdbc6.jar')]
     resources_dir = os.sep + 'tmp'
 
     props = Properties()
     props.process_pair(RESOURCES_DIR_PROPERTY, resources_dir)
+    props.process_pair(JDBC_DRIVER_PATH_PROPERTY, "/some/test/path/to/oracle.-jdbc.jar")
     get_ambari_properties_2_mock.return_value = get_ambari_properties_mock.return_value = props
 
     factory = DBMSConfigFactory()
@@ -6500,94 +6510,49 @@ class TestAmbariServer(TestCase):
     isdir_mock.return_value = True
 
     lexists_mock.return_value = True
+    isfile_mock.return_value = True
+    getYN_mock.return_value = True
 
     dbms = factory.create(args, props)
     rcode = dbms.ensure_jdbc_driver_installed(props)
 
-    self.assertEquals(os_symlink_mock.call_count, 1)
-    self.assertEquals(os_symlink_mock.call_args_list[0][0][0], os.path.join(os.sep,'tmp','ojdbc6.jar'))
-    self.assertEquals(os_symlink_mock.call_args_list[0][0][1], os.path.join(os.sep,'tmp','oracle-jdbc-driver.jar'))
+    self.assertEquals(update_properties_mock.call_count, 0)
     self.assertTrue(rcode)
-    self.assertEquals(shutil_copy_mock.call_count, 1)
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][0], drivers_list[0])
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][1], resources_dir)
-
-    # Check negative scenarios
-    # Silent option, no drivers
-    set_silent(True)
 
     args = reset_mocks()
-    glob_mock.return_value = []
-
-    failed = False
-
-    try:
-      dbms = factory.create(args, props)
-      rcode = dbms.ensure_jdbc_driver_installed(props)
-    except FatalException:
-      failed = True
-
-    self.assertTrue(print_error_msg_mock.called)
-    self.assertTrue(failed)
-
-    # Non-Silent option, no drivers
-    set_silent(False)
-
-    args = reset_mocks()
-    glob_mock.return_value = []
-
-    failed = False
-
-    try:
-      dbms = factory.create(args, props)
-      rcode = dbms.ensure_jdbc_driver_installed(props)
-    except FatalException:
-      failed = True
-
-    self.assertTrue(failed)
-    self.assertTrue(print_error_msg_mock.called)
-
-    # Non-Silent option, no drivers at first ask, present drivers after that
-    args = reset_mocks()
-
-    glob_mock.side_effect = [[], drivers_list, drivers_list]
+    isfile_mock.side_effect = [False, True]
+    getYN_mock.return_value = True
 
     dbms = factory.create(args, props)
     rcode = dbms.ensure_jdbc_driver_installed(props)
 
+    self.assertEquals(update_properties_mock.call_count, 1)
+    self.assertEquals(getYN_mock.call_count, 1)
     self.assertTrue(rcode)
+
+    # check scenario when user entered valid jdbc full path
+    args = reset_mocks()
+    isfile_mock.side_effect = [False, False, True, True]
+    get_valid_str_in_mock.return_value = '/test/full/path/to/oracle_jdbc.jar'
+
+    rcode = dbms.ensure_jdbc_driver_installed(props)
+
+    self.assertEquals(update_properties_mock.call_count, 1)
+    self.assertTrue(rcode)
+    self.assertEquals(props['server.jdbc.driver.path'], '/test/full/path/to/oracle_jdbc.jar')
     self.assertEquals(shutil_copy_mock.call_count, 1)
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][0], drivers_list[0])
-    self.assertEquals(shutil_copy_mock.call_args_list[0][0][1], resources_dir)
+    self.assertEquals(shutil_copy_mock.call_count, 1)
+    self.assertEquals(os_remove_mock.call_count, 1)
 
-    # Non-Silent option, no drivers at first ask, no drivers after that
+    # check scenario when no default jdbc and user entered incorrect full jdbc path
     args = reset_mocks()
-    glob_mock.side_effect = [[], []]
+    isfile_mock.side_effect = [False, False, False, False]
 
-    failed = False
+    rcode = dbms.ensure_jdbc_driver_installed(props)
 
-    try:
-      dbms = factory.create(args, props)
-      rcode = dbms.ensure_jdbc_driver_installed(props)
-    except FatalException:
-      failed = True
+    self.assertFalse(rcode)
+    print_error_msg_mock.assert_called_once_with("Custom jdbc connector path is unavailable. Please put correct path to jdbc connector.")
 
-    self.assertTrue(failed)
-    self.assertTrue(print_error_msg_mock.called)
-
-    # Failed to copy_files
-    args = reset_mocks()
-    glob_mock.side_effect = [[], drivers_list, drivers_list]
-
-    try:
-      dbms = factory.create(args, props)
-      rcode = dbms.ensure_jdbc_driver_installed(props)
-    except FatalException:
-      failed = True
-
-    self.assertTrue(failed)
-
-    sys.stdout = sys.__stdout__
     pass
 
 
