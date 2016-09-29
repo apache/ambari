@@ -723,7 +723,7 @@ public class PhoenixHBaseAccessor {
                                               TimelineMetrics metrics, boolean skipCache) throws SQLException, IOException {
     List<TimelineMetric> timelineMetrics = metrics.getMetrics();
     if (timelineMetrics == null || timelineMetrics.isEmpty()) {
-      LOG.debug("Empty metrics insert request.");
+      LOG.debug("Empty Metrics insert request.");
       return;
     }
     for (Iterator<TimelineMetric> iterator = timelineMetrics.iterator(); iterator.hasNext();) {
