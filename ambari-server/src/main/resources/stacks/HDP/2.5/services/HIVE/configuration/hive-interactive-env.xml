@@ -195,6 +195,17 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>llap_headroom_space</name>
+    <value>6144</value>
+    <description>LLAP app headroom space</description>
+    <display-name>LLAP's reserved headroom for YARN container</display-name>
+    <value-attributes>
+      <type>int</type>
+      <unit>bytes</unit>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>llap_log_level</name>
     <value>INFO</value>
     <description>LLAP app logging level (WARN/INFO/DEBUG/TRACE)</description>
