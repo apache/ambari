@@ -1653,6 +1653,7 @@ Em.I18n.translations = {
 
   'admin.stackVersions.version.column.showDetails': "Show Details",
   'admin.stackVersions.version.column.showDetails.title': "Version Details",
+  'admin.stackVersions.version.noCompatible.tooltip': 'Directly upgrading to this version is not supported.',
 
   'admin.stackVersions.hosts.popup.header.current': "Current",
   'admin.stackVersions.hosts.popup.header.installed': "Installed",
