@@ -24,7 +24,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
   modelServices: App.ServiceSimple,
 
   modelRepoVersion: function (isCurrentStackOnly) {
-    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
+    var repoVersionsKey = 'RepositoryVersions';
     return {
       id: repoVersionsKey + '.id',
       stack_version_id: repoVersionsKey + '.stackVersionId',
@@ -92,7 +92,11 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     var resultOS = [];
     var resultRepo = [];
     var resultService = [];
-    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
+    var repoVersionsKey = 'RepositoryVersions';
+
+    if (!isCurrentStackOnly) {
+      json = this.convertToRepoScheme(json);
+    }
 
     if (json && json.items) {
       json.items.forEach(function (item) {
@@ -153,5 +157,25 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     App.store.loadMany(modelOperatingSystems, resultOS);
     App.store.loadMany(modelServices, resultService);
     App.store.loadMany(modelRepoVersions, resultRepoVersion);
+  },
+
+  /**
+   *
+   * @param {?object} json
+   * @returns {{items: Array}}
+   */
+  convertToRepoScheme: function(json) {
+    var extractedJson = {items: []};
+
+    if (json && json.items) {
+      json.items.forEach(function(stack) {
+        stack.versions.forEach(function(version) {
+          version.repository_versions.forEach(function(repoVersion) {
+            extractedJson.items.push(repoVersion);
+          }, this);
+        }, this);
+      }, this);
+    }
+    return extractedJson;
   }
 });

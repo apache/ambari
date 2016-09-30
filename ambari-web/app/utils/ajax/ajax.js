@@ -1841,6 +1841,11 @@ var urls = {
     'mock': '/data/stack_versions/supported_upgrade_types.json'
   },
 
+  'admin.upgrade.get_compatible_versions': {
+    'real': '/stacks/{stackName}/versions/{stackVersion}/compatible_repository_versions?fields=CompatibleRepositoryVersions/repository_version&minimal_response=true',
+    'mock': '/data/stack_versions/supported_upgrade_types.json'
+  },
+
   'admin.kerberos_security.checks': {
     //TODO when api will be known
     'real': '',
