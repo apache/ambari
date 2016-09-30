@@ -27,11 +27,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collection;
+
 import static org.easymock.EasyMock.expect;
 import static org.powermock.api.easymock.PowerMock.createNiceMock;
 import static org.powermock.api.easymock.PowerMock.expectNew;
@@ -49,7 +50,8 @@ public class MetricCollectorHATest {
     URL url = createNiceMock(URL.class);
     MetricCollectorHAHelper haHelper = createNiceMock(MetricCollectorHAHelper.class);
 
-    expectNew(URL.class, "http://localhost:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
+    expectNew(URL.class, "http://localhost1:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
+    expectNew(URL.class, "http://localhost2:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
     expect(url.openConnection()).andReturn(connection).anyTimes();
     expect(connection.getInputStream()).andReturn(is).anyTimes();
     expect(connection.getResponseCode()).andThrow(new IOException()).anyTimes();
@@ -82,7 +84,8 @@ public class MetricCollectorHATest {
     output.add("h3");
     InputStream is = IOUtils.toInputStream(gson.toJson(output));
 
-    expectNew(URL.class, "http://localhost:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
+    expectNew(URL.class, "http://localhost1:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
+    expectNew(URL.class, "http://localhost2:2181/ws/v1/timeline/metrics/livenodes").andReturn(url).anyTimes();
     expect(url.openConnection()).andReturn(connection).anyTimes();
     expect(connection.getInputStream()).andReturn(is).anyTimes();
     expect(connection.getResponseCode()).andReturn(200).anyTimes();
@@ -127,18 +130,23 @@ public class MetricCollectorHATest {
     }
 
     @Override
+    protected String getCollectorPort() {
+      return "2181";
+    }
+
+    @Override
     protected int getTimeoutSeconds() {
       return 10;
     }
 
     @Override
     protected String getZookeeperQuorum() {
-      return "localhost:2181";
+      return "localhost1:2181";
     }
 
     @Override
-    protected String getConfiguredCollectors() {
-      return "localhost:2181";
+    protected Collection<String> getConfiguredCollectorHosts() {
+      return Arrays.asList("localhost1",  "localhost2");
     }
 
     @Override

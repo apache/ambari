@@ -581,14 +581,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
-    if 'cluster-env' in services['configurations'] and \
-        'metrics_collector_vip_host' in services['configurations']['cluster-env']['properties']:
-      metric_collector_host = services['configurations']['cluster-env']['properties']['metrics_collector_vip_host']
-    else:
-      # TODO set "timeline.metrics.service.webapp.address" to 0.0.0.0:port in upgrade catalog
-      metric_collector_host = '0.0.0.0'
+    # TODO set "timeline.metrics.service.webapp.address" to 0.0.0.0:port in upgrade catalog
+    timeline_metrics_service_webapp_address = '0.0.0.0'
 
-    putAmsSiteProperty("timeline.metrics.service.webapp.address", str(metric_collector_host) + ":6188")
+    putAmsSiteProperty("timeline.metrics.service.webapp.address", str(timeline_metrics_service_webapp_address) + ":6188")
 
     log_dir = "/var/log/ambari-metrics-collector"
     if "ams-env" in services["configurations"]:

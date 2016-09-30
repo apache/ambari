@@ -82,7 +82,7 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
                 propertiesToDelete.push(config);
               } else if (attr === 'visible' || stackProperty) {
                 /** update config boundaries **/
-                updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], name, fileName, configGroup);
+                updateBoundariesCallback(stackProperty, attr, propertyAttributes[attr], configGroup);
               }
             }
           }

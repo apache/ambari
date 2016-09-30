@@ -48,7 +48,7 @@
   *.sink.timeline.truststore.type = {{metric_truststore_type}}
   *.sink.timeline.truststore.password = {{metric_truststore_password}}
 
-  hiveserver2.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-
+  hiveserver2.sink.timeline.collector.hosts={{ams_collector_hosts}}
+  hiveserver2.sink.timeline.port={{metric_collector_port}}
 
 {% endif %}

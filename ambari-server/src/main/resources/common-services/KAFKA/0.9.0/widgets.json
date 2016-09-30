@@ -56,8 +56,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "kafka.controller.KafkaController.ActiveControllerCount",
-              "metric_path": "metrics/kafka/controller/KafkaController/ActiveControllerCount",
+              "name": "kafka.controller.KafkaController.ActiveControllerCount._sum",
+              "metric_path": "metrics/kafka/controller/KafkaController/ActiveControllerCount._sum",
               "service_name": "KAFKA",
               "component_name": "KAFKA_BROKER"
             }
@@ -65,7 +65,7 @@
           "values": [
             {
               "name": "Active Controller Count",
-              "value": "${kafka.controller.KafkaController.ActiveControllerCount}"
+              "value": "${kafka.controller.KafkaController.ActiveControllerCount._sum}"
             }
           ],
           "properties": {
@@ -138,8 +138,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "kafka.server.ReplicaManager.PartitionCount",
-              "metric_path": "metrics/kafka/server/ReplicaManager/PartitionCount",
+              "name": "kafka.server.ReplicaManager.PartitionCount._sum",
+              "metric_path": "metrics/kafka/server/ReplicaManager/PartitionCount._sum",
               "service_name": "KAFKA",
               "component_name": "KAFKA_BROKER"
             },
@@ -150,8 +150,8 @@
               "component_name": "KAFKA_BROKER"
             },
             {
-              "name": "kafka.server.ReplicaManager.LeaderCount",
-              "metric_path": "metrics/kafka/server/ReplicaManager/LeaderCount",
+              "name": "kafka.server.ReplicaManager.LeaderCount._sum",
+              "metric_path": "metrics/kafka/server/ReplicaManager/LeaderCount._sum",
               "service_name": "KAFKA",
               "component_name": "KAFKA_BROKER"
             }
@@ -159,7 +159,7 @@
           "values": [
             {
               "name": "Partitions count",
-              "value": "${kafka.server.ReplicaManager.PartitionCount}"
+              "value": "${kafka.server.ReplicaManager.PartitionCount._sum}"
             },
             {
               "name": "Under Replicated Partitions",
@@ -167,7 +167,7 @@
             },
             {
               "name": "Leader Count",
-              "value": "${kafka.server.ReplicaManager.LeaderCount}"
+              "value": "${kafka.server.ReplicaManager.LeaderCount._sum}"
             }
           ],
           "properties": {
