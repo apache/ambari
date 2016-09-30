@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonProperty;
 /**
  * An alert represents a problem or notice for a cluster.
@@ -32,6 +33,9 @@ public class Alert {
   private String label = null;
   private String text = null;
   private long timestamp = 0L;
+
+  // Maximum string size for MySql TEXT (utf8) column data type
+  protected final static int MAX_ALERT_TEXT_SIZE = 32617;
 
 
   /**
@@ -127,7 +131,8 @@ public class Alert {
    */
   @JsonProperty("text")
   public void setText(String alertText) {
-    text = alertText;
+    // middle-ellipsize the text to reduce the size to 32617 characters
+    text = StringUtils.abbreviateMiddle(alertText, "…", MAX_ALERT_TEXT_SIZE);
   }
 
   @JsonProperty("instance")
