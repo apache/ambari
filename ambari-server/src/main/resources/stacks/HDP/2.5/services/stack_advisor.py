@@ -947,7 +947,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
 
       # Calculate value for prop 'llap_heap_size'
-      llap_xmx = max(total_mem_for_executors * 0.8, total_mem_for_executors - 1024)
+      llap_xmx = max(total_mem_for_executors * 0.8, total_mem_for_executors - self.get_llap_headroom_space(services, configurations))
       Logger.info("Calculated llap_app_heap_size : {0}, using following : hive_container_size : {1}, "
                   "total_mem_for_executors : {2}".format(llap_xmx, hive_tez_container_size, total_mem_for_executors))
 
@@ -1141,6 +1141,27 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
           hive_container_size)
 
     return hive_container_size
+
+  """
+  Gets HIVE Server Interactive's 'llap_headroom_space' config. (Default value set to 6144 bytes).
+  """
+  def get_llap_headroom_space(self, services, configurations):
+    llap_headroom_space = None
+    # Check if 'llap_headroom_space' is modified in current SA invocation.
+    if 'hive-interactive-env' in configurations and 'llap_headroom_space' in configurations['hive-interactive-env']['properties']:
+      hive_container_size = float(configurations['hive-interactive-env']['properties']['llap_headroom_space'])
+      Logger.info("'llap_headroom_space' read from configurations as : {0}".format(llap_headroom_space))
+
+    if not llap_headroom_space:
+      # Check if 'llap_headroom_space' is input in services array.
+      if 'llap_headroom_space' in services['configurations']['hive-interactive-env']['properties']:
+        llap_headroom_space = float(services['configurations']['hive-interactive-env']['properties']['llap_headroom_space'])
+        Logger.info("'llap_headroom_space' read from services as : {0}".format(llap_headroom_space))
+    if not llap_headroom_space or llap_headroom_space < 1:
+      llap_headroom_space = 6144 # 6GB
+      Logger.info("Couldn't read 'llap_headroom_space' from services or configurations. Returing default value : 6144 bytes")
+
+    return llap_headroom_space
 
   """
   Gets YARN's minimum container size (yarn.scheduler.minimum-allocation-mb).
