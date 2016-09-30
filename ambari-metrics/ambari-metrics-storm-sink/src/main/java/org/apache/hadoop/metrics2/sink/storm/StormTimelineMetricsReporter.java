@@ -42,7 +42,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
   private String hostname;
   private String port;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
   private String applicationId;
@@ -73,8 +73,13 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected String getCollectorPort() {
+    return port;
+  }
+
+  @Override
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
   }
 
   @Override
@@ -98,7 +103,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       }
 
       Configuration configuration = new Configuration("/storm-metrics2.properties");
-      collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+      collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
       protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
       port = configuration.getProperty(COLLECTOR_PORT, "6188");
       zkQuorum = configuration.getProperty(ZOOKEEPER_QUORUM);

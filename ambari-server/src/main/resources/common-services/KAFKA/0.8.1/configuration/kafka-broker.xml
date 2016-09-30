@@ -358,7 +358,7 @@
   </property>
   <property>
     <name>kafka.timeline.metrics.hosts</name>
-    <value>{{metric_collector_hosts}}</value>
+    <value>{{ams_collector_hosts}}</value>
     <description>Timeline host</description>
     <on-ambari-upgrade add="true"/>
   </property>

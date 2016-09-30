@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -101,6 +102,11 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
   }
 
   @Override
+  protected String getCollectorPort() {
+    return null;
+  }
+
+  @Override
   protected int getTimeoutSeconds() {
       return timeoutSeconds;
   }
@@ -118,10 +124,10 @@ public class AmbariMetricSinkImpl extends AbstractTimelineMetricsSink implements
   /**
    * Get pre-configured list of collectors available
    *
-   * @return String "host1:port,host2:port"
+   * @return Collection<String> host1,host2
    */
   @Override
-  protected String getConfiguredCollectors() {
+  protected Collection<String> getConfiguredCollectorHosts() {
     return null;
   }
 
