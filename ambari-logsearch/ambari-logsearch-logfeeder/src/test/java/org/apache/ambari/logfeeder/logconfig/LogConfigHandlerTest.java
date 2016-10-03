@@ -26,6 +26,9 @@ import java.util.Map;
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
+import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.input.Input;
+import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -34,6 +37,24 @@ import org.junit.Test;
 public class LogConfigHandlerTest {
   
   private static LogConfigFetcher mockFetcher;
+  
+  private static InputMarker inputMarkerAudit;
+  private static InputMarker inputMarkerService;
+  static {
+    Map<String, Object> auditMap = new HashMap<String, Object>();
+    auditMap.put(LogFeederConstants.ROW_TYPE, "audit");
+    Input auditInput = strictMock(Input.class);
+    expect(auditInput.getConfigs()).andReturn(auditMap).anyTimes();
+    inputMarkerAudit = new InputMarker(auditInput, null, 0);
+    
+    Map<String, Object> serviceMap = new HashMap<String, Object>();
+    serviceMap.put(LogFeederConstants.ROW_TYPE, "service");
+    Input serviceInput = strictMock(Input.class);
+    expect(serviceInput.getConfigs()).andReturn(serviceMap).anyTimes();
+    inputMarkerService = new InputMarker(serviceInput, null, 0);
+    
+    replay(auditInput, serviceInput);
+  }
   
   private static final Map<String, Object> CONFIG_MAP = new HashMap<>();
   static {
@@ -74,40 +95,52 @@ public class LogConfigHandlerTest {
   }
   
   @Test
+  public void testLogConfigHandler_auditAllowed() throws Exception {
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'DEBUG'}",
+        inputMarkerAudit));
+  }
+  
+  @Test
   public void testLogConfigHandler_emptyDataAllowed() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed((String)null));
-    assertTrue(FilterLogData.INSTANCE.isAllowed(""));
-    assertTrue(FilterLogData.INSTANCE.isAllowed(Collections.<String, Object> emptyMap()));
+    assertTrue(FilterLogData.INSTANCE.isAllowed((String)null, inputMarkerService));
+    assertTrue(FilterLogData.INSTANCE.isAllowed("", inputMarkerService));
+    assertTrue(FilterLogData.INSTANCE.isAllowed(Collections.<String, Object> emptyMap(), inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_notConfiguredLogAllowed() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'not_configured_log_file', 'level':'INFO'}"));
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'not_configured_log_file', 'level':'INFO'}",
+        inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_configuredDataAllow() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'INFO'}"));
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'INFO'}",
+        inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_configuredDataDontAllow() throws Exception {
-    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'DEBUG'}"));
+    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file', 'level':'DEBUG'}",
+        inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_overridenConfiguredData() throws Exception {
-    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file2', 'level':'DEBUG'}"));
+    assertTrue(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file2', 'level':'DEBUG'}",
+        inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_overridenConfiguredDataDifferentHost() throws Exception {
-    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host2', 'type':'configured_log_file2', 'level':'DEBUG'}"));
+    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host2', 'type':'configured_log_file2', 'level':'DEBUG'}",
+        inputMarkerService));
   }
   
   @Test
   public void testLogConfigHandler_overridenConfiguredDataExpired() throws Exception {
-    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file3', 'level':'DEBUG'}"));
+    assertFalse(FilterLogData.INSTANCE.isAllowed("{'host':'host1', 'type':'configured_log_file3', 'level':'DEBUG'}",
+        inputMarkerService));
   }
   
   @AfterClass
