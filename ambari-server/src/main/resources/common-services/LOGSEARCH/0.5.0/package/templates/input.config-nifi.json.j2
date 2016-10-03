@@ -36,8 +36,12 @@
       "type":"nifi_user",
       "rowtype":"service",
       "path":"{{nifi_log_dir}}/nifi-user.log"
+    },
+    {
+      "type":"nifi_ca",
+      "rowtype":"service",
+      "path":"{{nifi_log_dir}}/nifi-ca.stdout"
     }
-
   ],
   "filter":[
     {
@@ -49,6 +53,7 @@
             "nifi_bootstrap",
             "nifi_setup",
             "nifi_user",
+            "nifi_ca"
           ]
 
         }
