@@ -205,6 +205,11 @@ logsearch_properties['logsearch.solr.collection.history'] = 'history'
 logsearch_properties['logsearch.solr.history.config.name'] = 'history'
 logsearch_properties['logsearch.collection.history.replication.factor'] = '1'
 
+if logsearch_properties['logsearch.solr.audit.logs.use.ranger'] == 'false':
+  del logsearch_properties['logsearch.ranger.audit.logs.collection.name']
+
+del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
+
 logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
 
 logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port

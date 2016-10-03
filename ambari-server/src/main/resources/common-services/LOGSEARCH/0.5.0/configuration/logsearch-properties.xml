@@ -113,6 +113,23 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logsearch.solr.audit.logs.use.ranger</name>
+    <value>false</value>
+    <display-name>Ranger Audit Logs Enabled</display-name>
+    <description>Use Ranger Audit collection. This is supported only if Ranger Solr is installed in SolrCloud mode</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.ranger.audit.logs.collection.name</name>
+    <value>ranger_audits</value>
+    <display-name>Log Search Solr Ranger Audit Logs Collection</display-name>
+    <description>Name for the ranger audit logs collection</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch.logfeeder.include.default.level</name>
     <value>FATAL,ERROR,WARN</value>
     <description>Include default Log Feeder Log Levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
@@ -133,7 +150,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.auth.external_auth.enable</name>
+    <name>logsearch.auth.external_auth.enabled</name>
     <value>true</value>
     <display-name>External authentication</display-name>
     <description>Enable external authentication</description>

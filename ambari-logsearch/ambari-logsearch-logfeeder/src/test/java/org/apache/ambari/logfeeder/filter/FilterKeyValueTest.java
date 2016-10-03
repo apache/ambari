@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -21,8 +21,8 @@ package org.apache.ambari.logfeeder.filter;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.output.OutputManager;
+import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.log4j.Logger;
 import org.easymock.Capture;
 import org.easymock.CaptureType;
@@ -71,6 +71,31 @@ public class FilterKeyValueTest {
     Map<String, Object> jsonParams = capture.getValue();
 
     assertEquals("Original missing!", "name1=value1&name2=value2", jsonParams.remove("keyValueField"));
+    assertEquals("Incorrect extraction: name1", "value1", jsonParams.remove("name1"));
+    assertEquals("Incorrect extraction: name2", "value2", jsonParams.remove("name2"));
+    assertTrue("jsonParams are not empty!", jsonParams.isEmpty());
+  }
+
+  @Test
+  public void testFilterKeyValue_extractionWithBorders() throws Exception {
+    LOG.info("testFilterKeyValue_extractionWithBorders()");
+
+    Map<String, Object> config = new HashMap<String, Object>();
+    config.put("source_field", "keyValueField");
+    config.put("field_split", "&");
+    config.put("value_borders", "()");
+    init(config);
+
+    mockOutputManager.write(EasyMock.capture(capture), EasyMock.anyObject(InputMarker.class));
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockOutputManager);
+
+    filterKeyValue.apply("{ keyValueField: 'name1(value1)&name2(value2)' }", new InputMarker(null, null, 0));
+
+    EasyMock.verify(mockOutputManager);
+    Map<String, Object> jsonParams = capture.getValue();
+
+    assertEquals("Original missing!", "name1(value1)&name2(value2)", jsonParams.remove("keyValueField"));
     assertEquals("Incorrect extraction: name1", "value1", jsonParams.remove("name1"));
     assertEquals("Incorrect extraction: name2", "value2", jsonParams.remove("name2"));
     assertTrue("jsonParams are not empty!", jsonParams.isEmpty());
