@@ -24,7 +24,7 @@
   <div class="pull-right top-margin-4">
     <div ng-switch="group.ldap_group">
       <button ng-switch-when="true" class="btn disabled deletegroup-btn deleteuser-btn" tooltip="{{'common.cannotDelete' | translate: '{term: constants.group}'}}">{{'common.delete' | translate: '{term: constants.group}'}}</button>
-      <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)" tooltip="{{'common.cannotDelete' | translate: '{term: constants.group}'}}">{{'common.delete' | translate: '{term: constants.group}'}}</button>
+      <button ng-switch-when="false" class="btn btn-danger deletegroup-btn" ng-click="deleteGroup(group)">{{'common.delete' | translate: '{term: constants.group}'}}</button>
     </div>
       
   </div>
