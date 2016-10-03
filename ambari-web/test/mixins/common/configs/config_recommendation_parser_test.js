@@ -102,12 +102,12 @@ describe('App.ConfigRecommendationParser', function() {
 
       it('updateBoundariesCallback maximum', function() {
         expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
-          'maximum', 100, 'p3', 'fileName1', null)).to.be.true;
+          'maximum', 100, null)).to.be.true;
       });
 
       it('updateBoundariesCallback minimum', function() {
         expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
-          'minimum', 1, 'p3', 'fileName1', null)).to.be.true;
+          'minimum', 1, null)).to.be.true;
       });
     });
 

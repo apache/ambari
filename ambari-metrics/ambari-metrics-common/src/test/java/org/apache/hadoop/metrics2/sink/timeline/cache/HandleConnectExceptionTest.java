@@ -21,9 +21,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.junit.Assert;
@@ -99,6 +100,11 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
+    protected String getCollectorPort() {
+      return "2181";
+    }
+
+    @Override
     protected int getTimeoutSeconds() {
       return 10;
     }
@@ -109,8 +115,8 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
-    protected String getConfiguredCollectors() {
-      return "localhost:2181";
+    protected Collection<String> getConfiguredCollectorHosts() {
+      return Arrays.asList("localhost");
     }
 
     @Override

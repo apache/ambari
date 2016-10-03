@@ -405,13 +405,13 @@ class HostCleanup:
   def do_erase_files_silent(self, pathList):
     if pathList:
       for path in pathList:
-        if path and os.path.exists(path):
+        if path and ( os.path.exists(path) or os.path.islink(path) ):
           try:
             os.remove(path)
           except:
-            logger.warn("Failed to delete file: " + path + ", error: " + str(sys.exc_info()[0]))
+            logger.warn("Failed to delete file: {0}, error: {1}".format(path, str(sys.exc_info()[0])))
         else:
-          logger.info("File doesn't exists: " + path)
+          logger.info("File doesn't exists: {0}".format(path))
     return 0
 
   def do_delete_group(self):

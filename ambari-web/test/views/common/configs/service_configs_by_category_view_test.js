@@ -308,9 +308,14 @@ describe('App.ServiceConfigsByCategoryView', function () {
           category: {
             name: item.categoryNname
           },
-          serviceConfigs: item.serviceConfigs
+          serviceConfigs: item.serviceConfigs,
+          filteredCategoryConfigs: Em.K,
+          collapseCategory: Em.K
         });
+        view.setCategoryConfigs();
+        view.setVisibleCategoryConfigs();
         expect(view.get('categoryConfigs').mapProperty('resultId')).to.deep.equal(result);
+        view.destroy();
       });
     });
   });

@@ -22,20 +22,24 @@
 *.sink.timeline.slave.host.name={{hostname}}
 accumulo.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.period={{metrics_collection_period}}
-accumulo.collector={{metric_collector_host}}:{{metric_collector_port}}
+accumulo.collector.hosts={{ams_collector_hosts}}
+accumulo.port={{metric_collector_port}}
 
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period={{metrics_collection_period}}
-jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
+jvm.collector.hosts={{ams_collector_hosts}}
+jvm.port={{metric_collector_port}}
 
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period={{metrics_collection_period}}
-rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
+rpc.collector.hosts={{ams_collector_hosts}}
+rpc.port={{metric_collector_port}}
 
 accumulo.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.sink.timeline.period={{metrics_collection_period}}
 accumulo.sink.timeline.sendInterval={{metrics_report_interval}}000
-accumulo.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+accumulo.sink.timeline.collector.hosts={{ams_collector_hosts}}
+accumulo.sink.timeline.port={{metric_collector_port}}
 
 # HTTPS properties
 accumulo.sink.timeline.truststore.path = {{metric_truststore_path}}

@@ -974,7 +974,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
             title: Em.I18n.t('common.export')
           });
           this.$().closest('.modal').on('click', function (event) {
-            if (!($(event.target).is('.corner-icon, .icon-save, .export-graph-list-container, .export-graph-list-container *'))) {
+            if (!($(event.target).is('.corner-icon, .corner-icon span, .icon-save, .export-graph-list-container, .export-graph-list-container *'))) {
               popupBody.set('isExportMenuHidden', true);
             }
           });

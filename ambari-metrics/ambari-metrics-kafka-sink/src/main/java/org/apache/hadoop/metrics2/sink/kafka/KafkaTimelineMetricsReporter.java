@@ -45,6 +45,7 @@ import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -76,7 +77,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private final Object lock = new Object();
   private String hostname;
   private String metricCollectorPort;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String metricCollectorProtocol;
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
@@ -99,6 +100,11 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
+  protected String getCollectorPort() {
+    return metricCollectorPort;
+  }
+
+  @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
   }
@@ -109,8 +115,8 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
   }
 
   @Override
@@ -147,7 +153,7 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
 
         zookeeperQuorum = props.getString("zookeeper.connect");
         metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
-        collectors = props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST + ":" + metricCollectorPort);
+        collectorHosts = parseHostsStringIntoCollection(props.getString(TIMELINE_HOSTS_PROPERTY, TIMELINE_DEFAULT_HOST));
         metricCollectorProtocol = props.getString(TIMELINE_PROTOCOL_PROPERTY, TIMELINE_DEFAULT_PROTOCOL);
 
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));

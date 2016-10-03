@@ -52,7 +52,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private TimelineMetricsCache metricsCache;
   private String hostName = "UNKNOWN.example.com";
   private String serviceName = "";
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String collectorUri;
   private String containerMetricsUri;
   private String protocol;
@@ -101,10 +101,10 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
     // Load collector configs
     protocol = conf.getString(COLLECTOR_PROTOCOL, "http");
-    collectors = conf.getString(COLLECTOR_PROPERTY, "").trim();
+    collectorHosts = parseHostsStringArrayIntoCollection(conf.getStringArray(COLLECTOR_HOSTS_PROPERTY));
     port = conf.getString(COLLECTOR_PORT, "6188");
 
-    if (StringUtils.isEmpty(collectors)) {
+    if (collectorHosts.isEmpty()) {
       LOG.error("No Metric collector configured.");
     } else {
       String preferredCollectorHost = findPreferredCollectHost();
@@ -119,6 +119,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
 
     LOG.info("Collector Uri: " + collectorUri);
+    LOG.info("Container Metrics Uri: " + containerMetricsUri);
 
     timeoutSeconds = conf.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
 
@@ -192,6 +193,18 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     return conf.getPrefix();
   }
 
+  /**
+   * Parses input Stings array of format "['host1'", '"host2']" into Collection of hostnames
+   */
+  protected Collection<String> parseHostsStringArrayIntoCollection(String[] hostStrings) {
+    Collection<String> result = new HashSet<>();
+    if (hostStrings == null) return result;
+    for (String s : hostStrings) {
+      result.addAll(parseHostsStringIntoCollection(s));
+    }
+    return result;
+  }
+
   @Override
   protected String getCollectorUri(String host) {
     return constructTimelineMetricUri(protocol, host, port);
@@ -213,10 +226,14 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
   }
 
+  @Override
+  protected String getCollectorPort() {
+    return port;
+  }
   @Override
   protected String getHostname() {
     return hostName;

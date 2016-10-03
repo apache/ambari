@@ -228,7 +228,7 @@ module.exports = {
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.details.setRackId'),
       disablePrimary: true,
-      rackId: rackId,
+      rackId: rackId ? rackId : "",
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/rack_id_popup'),
         errorMessage: null,
