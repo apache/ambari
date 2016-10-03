@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logfeeder.common.LogFeederConstants;
+import org.apache.ambari.logfeeder.input.InputMarker;
 import org.apache.ambari.logfeeder.util.LogFeederUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -39,15 +40,18 @@ public enum FilterLogData {
   
   private static final boolean DEFAULT_VALUE = true;
 
-  public boolean isAllowed(String jsonBlock) {
+  public boolean isAllowed(String jsonBlock, InputMarker inputMarker) {
     if (StringUtils.isEmpty(jsonBlock)) {
       return DEFAULT_VALUE;
     }
     Map<String, Object> jsonObj = LogFeederUtil.toJSONObject(jsonBlock);
-    return isAllowed(jsonObj);
+    return isAllowed(jsonObj, inputMarker);
   }
 
-  public boolean isAllowed(Map<String, Object> jsonObj) {
+  public boolean isAllowed(Map<String, Object> jsonObj, InputMarker inputMarker) {
+    if ("audit".equals(inputMarker.input.getConfigs().get(LogFeederConstants.ROW_TYPE)))
+      return true;
+    
     boolean isAllowed = applyFilter(jsonObj);
     if (!isAllowed) {
       LOG.trace("Filter block the content :" + LogFeederUtil.getGson().toJson(jsonObj));

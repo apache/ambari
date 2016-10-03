@@ -102,6 +102,7 @@ public class OutputManagerTest {
     expect(mockInput.getContextFields()).andReturn(Collections.<String, String> emptyMap());
     expect(mockInput.isUseEventMD5()).andReturn(false);
     expect(mockInput.isGenEventMD5()).andReturn(false);
+    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonObj, inputMarker); expectLastCall();
@@ -131,6 +132,7 @@ public class OutputManagerTest {
     Output output2 = strictMock(Output.class);
     Output output3 = strictMock(Output.class);
     
+    expect(mockInput.getConfigs()).andReturn(Collections.<String, Object> emptyMap());
     expect(mockInput.getOutputList()).andReturn(Arrays.asList(output1, output2, output3));
     
     output1.write(jsonString, inputMarker); expectLastCall();

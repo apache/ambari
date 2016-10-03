@@ -139,7 +139,7 @@ public class OutputManager {
       }
     }
     
-    if (FilterLogData.INSTANCE.isAllowed(jsonObj)) {
+    if (FilterLogData.INSTANCE.isAllowed(jsonObj, inputMarker)) {
       for (Output output : input.getOutputList()) {
         try {
           output.write(jsonObj, inputMarker);
@@ -171,7 +171,7 @@ public class OutputManager {
   }
 
   public void write(String jsonBlock, InputMarker inputMarker) {
-    if (FilterLogData.INSTANCE.isAllowed(jsonBlock)) {
+    if (FilterLogData.INSTANCE.isAllowed(jsonBlock, inputMarker)) {
       for (Output output : inputMarker.input.getOutputList()) {
         try {
           output.write(jsonBlock, inputMarker);
