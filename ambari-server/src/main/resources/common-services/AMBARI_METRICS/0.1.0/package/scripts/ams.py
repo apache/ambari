@@ -315,17 +315,9 @@ def ams(name=None, action=None):
             mode=0644
       )
 
-      # Remove spnego configs from core-site, since AMS does not support spnego (AMBARI-14384)
-      truncated_core_site = {}
-      truncated_core_site.update(params.config['configurations']['core-site'])
-      if params.config['configurations']['core-site']['hadoop.http.authentication.type']:
-        truncated_core_site.pop('hadoop.http.authentication.type')
-      if params.config['configurations']['core-site']['hadoop.http.filter.initializers']:
-        truncated_core_site.pop('hadoop.http.filter.initializers')
-
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
-                configurations=truncated_core_site,
+                configurations=params.config['configurations']['core-site'],
                 configuration_attributes=params.config['configuration_attributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
@@ -334,7 +326,7 @@ def ams(name=None, action=None):
 
       XmlConfig("core-site.xml",
                 conf_dir=params.hbase_conf_dir,
-                configurations=truncated_core_site,
+                configurations=params.config['configurations']['core-site'],
                 configuration_attributes=params.config['configuration_attributes']['core-site'],
                 owner=params.ams_user,
                 group=params.user_group,
