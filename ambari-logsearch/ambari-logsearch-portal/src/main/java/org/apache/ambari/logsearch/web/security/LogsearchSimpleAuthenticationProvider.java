@@ -34,7 +34,7 @@ import javax.inject.Named;
 @Named
 public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
-  private static Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
+  private static final Logger logger = Logger.getLogger(LogsearchSimpleAuthenticationProvider.class);
 
   @Inject
   private AuthPropsConfig authPropsConfig;
@@ -45,29 +45,28 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
       logger.debug("Simple auth is disabled");
       return authentication;
     }
+    
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     username = StringEscapeUtils.unescapeHtml(username);
     if (StringUtils.isBlank(username)) {
       throw new BadCredentialsException("Username can't be null or empty.");
     }
+    
     User user = new User();
     user.setUsername(username);
-    authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities(username));
+    authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities());
     return authentication;
   }
 
   @Override
-  public boolean isEnable(AUTH_METHOD method) {
-    boolean ldapEnabled = super.isEnable(AUTH_METHOD.LDAP);
-    boolean fileEnabled = super.isEnable(AUTH_METHOD.FILE);
-    boolean externalAuthEnabled = super.isEnable(AUTH_METHOD.EXTERNAL_AUTH);
+  public boolean isEnable(AuthMethod method) {
+    boolean ldapEnabled = super.isEnable(AuthMethod.LDAP);
+    boolean fileEnabled = super.isEnable(AuthMethod.FILE);
+    boolean externalAuthEnabled = super.isEnable(AuthMethod.EXTERNAL_AUTH);
     boolean simpleEnabled = super.isEnable(method);
-    if (!ldapEnabled && !fileEnabled && simpleEnabled && !externalAuthEnabled) {
-      // simple is enabled only when rest three are disabled and simple is enable
-      return true;
-    } else {
-      return false;
-    }
+    
+    // simple is enabled only when rest three are disabled and simple is enable
+    return !ldapEnabled && !fileEnabled && !externalAuthEnabled && simpleEnabled;
   }
 }

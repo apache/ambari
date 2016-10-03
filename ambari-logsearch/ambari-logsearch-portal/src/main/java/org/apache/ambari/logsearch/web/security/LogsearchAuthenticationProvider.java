@@ -20,8 +20,8 @@ package org.apache.ambari.logsearch.web.security;
 
 import java.util.HashMap;
 
-import org.apache.ambari.logsearch.dao.UserDao;
 import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,15 +32,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named
-public class LogsearchAuthenticationProvider extends
-  LogsearchAbstractAuthenticationProvider {
-  private static final Logger logger = Logger
-    .getLogger(LogsearchAuthenticationProvider.class);
-  private static Logger auditLogger = Logger
-    .getLogger("org.apache.ambari.logsearch.audit");
-
-  @Inject
-  private UserDao userDao;
+public class LogsearchAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
+  private static final Logger logger = Logger .getLogger(LogsearchAuthenticationProvider.class);
+  private static final Logger auditLogger = Logger.getLogger("org.apache.ambari.logsearch.audit");
 
   @Inject
   private LogsearchLdapAuthenticationProvider ldapAuthenticationProvider;
@@ -49,44 +43,40 @@ public class LogsearchAuthenticationProvider extends
   private LogsearchFileAuthenticationProvider fileAuthenticationProvider;
 
   @Inject
-  private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
-
-  @Inject
   private LogsearchExternalServerAuthenticationProvider externalServerAuthenticationProvider;
 
+  @Inject
+  private LogsearchSimpleAuthenticationProvider simpleAuthenticationProvider;
+
   @Override
-  public Authentication authenticate(Authentication authentication)
-    throws AuthenticationException {
-    logger.info("Authenticating user:" + authentication.getName()
-      + ", userDetail=" + authentication.toString());
-    Authentication inAuthentication = authentication;
-    AuthenticationException authException = null;
+  public Authentication authenticate(Authentication inAuthentication) throws AuthenticationException {
+    logger.info("Authenticating user:" + inAuthentication.getName() + ", userDetail=" + inAuthentication.toString());
+    logger.info("authentication.class=" + inAuthentication.getClass().getName());
+
     HashMap<String, Object> auditRecord = new HashMap<String, Object>();
-    auditRecord.put("user", authentication.getName());
-    auditRecord.put("principal", authentication.getPrincipal().toString());
-    auditRecord.put("auth_class", authentication.getClass().getName());
-    logger.info("authentication.class="
-      + authentication.getClass().getName());
+    auditRecord.put("user", inAuthentication.getName());
+    auditRecord.put("principal", inAuthentication.getPrincipal().toString());
+    auditRecord.put("auth_class", inAuthentication.getClass().getName());
     if (inAuthentication instanceof UsernamePasswordAuthenticationToken) {
       UsernamePasswordAuthenticationToken authClass = (UsernamePasswordAuthenticationToken) inAuthentication;
       Object details = authClass.getDetails();
       if (details instanceof WebAuthenticationDetails) {
         WebAuthenticationDetails webAuthentication = (WebAuthenticationDetails) details;
-        auditRecord.put("remote_ip",
-          webAuthentication.getRemoteAddress());
+        auditRecord.put("remote_ip", webAuthentication.getRemoteAddress());
         auditRecord.put("session", webAuthentication.getSessionId());
       }
     }
+    
     boolean isSuccess = false;
     try {
-      for (AUTH_METHOD authMethod : AUTH_METHOD.values()) {
+      Authentication authentication = inAuthentication;
+      AuthenticationException authException = null;
+      
+      for (AuthMethod authMethod : AuthMethod.values()) {
         try {
           authentication = doAuth(authentication, authMethod);
-          if (authentication != null
-            && authentication.isAuthenticated()) {
-            logger.info("Authenticated using method="
-              + authMethod.name() + ", user="
-              + authentication.getName());
+          if (authentication != null && authentication.isAuthenticated()) {
+            logger.info("Authenticated using method=" + authMethod.name() + ", user=" + authentication.getName());
             auditRecord.put("result", "allowed");
             isSuccess = true;
             auditRecord.put("authType", authMethod.name());
@@ -94,17 +84,15 @@ public class LogsearchAuthenticationProvider extends
           }
         } catch (AuthenticationException ex) {
           if (authException == null) {
-            // Let's save the first one
             authException = ex;
           }
-        }catch(Exception e){
-          logger.error(e,e.getCause());
+        } catch (Exception e) {
+          logger.error(e, e.getCause());
         }
       }
+      
       auditRecord.put("result", "denied");
-      logger.warn("Authentication failed for user="
-        + inAuthentication.getName() + ", userDetail="
-        + inAuthentication.toString());
+      logger.warn("Authentication failed for user=" + inAuthentication.getName() + ", userDetail=" + inAuthentication.toString());
       if (authException != null) {
         auditRecord.put("reason", authException.getMessage());
         throw authException;
@@ -112,25 +100,17 @@ public class LogsearchAuthenticationProvider extends
       return authentication;
     } finally {
       String jsonStr = JSONUtil.mapToJSON(auditRecord);
-      if (isSuccess) {
-        auditLogger.info(jsonStr);
-      } else {
-        auditLogger.warn(jsonStr);
-      }
+      auditLogger.log(isSuccess ? Level.INFO : Level.WARN, jsonStr);
     }
   }
 
-  public Authentication doAuth(Authentication authentication, AUTH_METHOD authMethod) {
-    if (authMethod.equals(AUTH_METHOD.LDAP)) {
-      authentication = ldapAuthenticationProvider.authenticate(authentication);
-    } else if (authMethod.equals(AUTH_METHOD.FILE)) {
-      authentication = fileAuthenticationProvider.authenticate(authentication);
-    } else if (authMethod.equals(AUTH_METHOD.SIMPLE)) {
-      authentication = simpleAuthenticationProvider.authenticate(authentication);
-    } else if (authMethod.equals(AUTH_METHOD.EXTERNAL_AUTH)) {
-      authentication = externalServerAuthenticationProvider.authenticate(authentication);
-    } else {
-      logger.error("Invalid authentication method :" + authMethod.name());
+  private Authentication doAuth(Authentication authentication, AuthMethod authMethod) {
+    switch (authMethod) {
+      case LDAP: return ldapAuthenticationProvider.authenticate(authentication);
+      case FILE: return fileAuthenticationProvider.authenticate(authentication);
+      case EXTERNAL_AUTH: return externalServerAuthenticationProvider.authenticate(authentication);
+      case SIMPLE: return simpleAuthenticationProvider.authenticate(authentication);
+      default: logger.error("Invalid authentication method :" + authMethod.name());
     }
     return authentication;
   }

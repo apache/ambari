@@ -43,7 +43,7 @@ public class PropertiesHelper extends PropertyPlaceholderConfigurer {
   private PropertiesHelper() {
   }
   
- static {
+  static {
     propertiesMap = new HashMap<String, String>();
     Properties properties = new Properties();
     URL fileCompleteUrl = Thread.currentThread().getContextClassLoader().getResource(LOGSEARCH_PROP_FILE);

@@ -29,6 +29,7 @@ import java.util.EnumSet;
 import org.apache.ambari.logsearch.common.ManageStartEndTime;
 import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.apache.ambari.logsearch.conf.ApplicationConfig;
+import org.apache.ambari.logsearch.util.SSLUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Connector;
@@ -55,15 +56,6 @@ import javax.servlet.DispatcherType;
 
 public class LogSearch {
   private static final Logger logger = Logger.getLogger(LogSearch.class);
-
-  private static final String KEYSTORE_LOCATION_ARG = "javax.net.ssl.keyStore";
-  private static final String KEYSTORE_PASSWORD_ARG = "javax.net.ssl.keyStorePassword";
-  private static final String KEYSTORE_TYPE_ARG = "javax.net.ssl.keyStoreType";
-  private static final String DEFAULT_KEYSTORE_TYPE = "JKS";
-  private static final String TRUSTSTORE_LOCATION_ARG = "javax.net.ssl.trustStore";
-  private static final String TRUSTSTORE_PASSWORD_ARG = "javax.net.ssl.trustStorePassword";
-  private static final String TRUSTSTORE_TYPE_ARG = "javax.net.ssl.trustStoreType";
-  private static final String DEFAULT_TRUSTSTORE_TYPE = "JKS";
 
   private static final String LOGSEARCH_PROTOCOL_PROP = "logsearch.protocol";
   private static final String HTTPS_PROTOCOL = "https";
@@ -112,28 +104,13 @@ public class LogSearch {
       protcolProperty = HTTP_PROTOCOL;
     }
     String port = null;
-    String keystoreLocation = System.getProperty(KEYSTORE_LOCATION_ARG);
-    String keystorePassword = System.getProperty(KEYSTORE_PASSWORD_ARG);
-    String keystoreType = System.getProperty(KEYSTORE_TYPE_ARG,DEFAULT_KEYSTORE_TYPE);
-    String trustStoreLocation = System.getProperty(TRUSTSTORE_LOCATION_ARG);
-    String trustStorePassword = System.getProperty(TRUSTSTORE_PASSWORD_ARG);
-    String trustStoreType = System.getProperty(TRUSTSTORE_TYPE_ARG,DEFAULT_TRUSTSTORE_TYPE);
-    if (HTTPS_PROTOCOL.equals(protcolProperty) 
-        && !StringUtils.isEmpty(keystoreLocation) && !StringUtils.isEmpty(keystorePassword)) {
+    if (HTTPS_PROTOCOL.equals(protcolProperty) && SSLUtil.isKeyStoreSpecified()) {
       logger.info("Building https server...........");
       port = portSpecified ? argv[0] : HTTPS_PORT;
       checkPort(Integer.parseInt(port));
       HttpConfiguration https = new HttpConfiguration();
       https.addCustomizer(new SecureRequestCustomizer());
-      SslContextFactory sslContextFactory = new SslContextFactory();
-      sslContextFactory.setKeyStorePath(keystoreLocation);
-      sslContextFactory.setKeyStorePassword(keystorePassword);
-      sslContextFactory.setKeyStoreType(keystoreType);
-      if (!StringUtils.isEmpty(trustStoreLocation) && !StringUtils.isEmpty(trustStorePassword)) {
-        sslContextFactory.setTrustStorePath(trustStoreLocation);
-        sslContextFactory.setTrustStorePassword(trustStorePassword);
-        sslContextFactory.setTrustStoreType(trustStoreType);
-      }
+      SslContextFactory sslContextFactory = SSLUtil.getSslContextFactory();
       ServerConnector sslConnector = new ServerConnector(server,
           new SslConnectionFactory(sslContextFactory, "http/1.1"),
           new HttpConnectionFactory(https));
@@ -146,8 +123,7 @@ public class LogSearch {
       connector.setPort(Integer.parseInt(port));
       server.setConnectors(new Connector[] { connector });
     }
-    URI logsearchURI = URI.create(String.format("%s://0.0.0.0:%s", protcolProperty,
-        port));
+    URI logsearchURI = URI.create(String.format("%s://0.0.0.0:%s", protcolProperty, port));
     logger.info("Starting logsearch server URI=" + logsearchURI);
     return server;
   }

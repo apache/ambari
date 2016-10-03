@@ -42,57 +42,30 @@ import org.springframework.security.core.AuthenticationException;
  * call
  */
 @Named
-public class LogsearchExternalServerAuthenticationProvider extends
-    LogsearchAbstractAuthenticationProvider {
+public class LogsearchExternalServerAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
-  private static Logger LOG = Logger
-      .getLogger(LogsearchExternalServerAuthenticationProvider.class);
+  private static Logger LOG = Logger.getLogger(LogsearchExternalServerAuthenticationProvider.class);
 
-  public final static String ALLOWED_ROLE_PROP = "logsearch.roles.allowed";
+  private static final String ALLOWED_ROLE_PROP = "logsearch.roles.allowed";
 
-  public static enum PRIVILEGE_INFO {
-    PERMISSION_LABEL {
-      @Override
-      public String toString() {
-        return "permission_label";
-      }
-    },
-    PERMISSION_NAME {
-      @Override
-      public String toString() {
-        return "permission_name";
-      }
-    },
-    PRINCIPAL_NAME {
-      @Override
-      public String toString() {
-        return "principal_name";
-      }
-    },
-    PRINCIPAL_TYPE {
-      @Override
-      public String toString() {
-        return "principal_type";
-      }
-    },
-    PRIVILEGE_ID {
-      @Override
-      public String toString() {
-        return "privilege_id";
-      }
-    },
-    TYPE {
-      @Override
-      public String toString() {
-        return "type";
-      }
-    },
-    USER_NAME {
-      @Override
-      public String toString() {
-        return "user_name";
-      }
-    };
+  private static enum PrivilegeInfo {
+    PERMISSION_LABEL("permission_label"),
+    PERMISSION_NAME("permission_name"),
+    PRINCIPAL_NAME("principal_name"),
+    PRINCIPAL_TYPE("principal_type"),
+    PRIVILEGE_ID("privilege_id"),
+    TYPE("type"),
+    USER_NAME("user_name");
+    
+    private String propertyKey;
+    
+    private PrivilegeInfo(String name) {
+      this.propertyKey = name;
+    }
+    
+    public String toString() {
+      return propertyKey;
+    }
   }
 
   @Inject
@@ -104,19 +77,17 @@ public class LogsearchExternalServerAuthenticationProvider extends
   /**
    * Authenticating user from external-server using REST call
    * 
-   * @param authentication
-   *          the authentication request object.
+   * @param authentication the authentication request object.
    * @return a fully authenticated object including credentials.
-   * @throws AuthenticationException
-   *           if authentication fails.
+   * @throws AuthenticationException if authentication fails.
    */
   @Override
-  public Authentication authenticate(Authentication authentication)
-      throws AuthenticationException {
+  public Authentication authenticate(Authentication authentication) throws AuthenticationException {
     if (!authPropsConfig.isAuthExternalEnabled()) {
       LOG.debug("external server auth is disabled.");
       return authentication;
     }
+    
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     if (StringUtils.isBlank(username)) {
@@ -125,38 +96,32 @@ public class LogsearchExternalServerAuthenticationProvider extends
     if (StringUtils.isBlank(password)) {
       throw new BadCredentialsException("Password can't be null or empty.");
     }
-    // html unescape
     password = StringEscapeUtils.unescapeHtml(password);
     username = StringEscapeUtils.unescapeHtml(username);
+    
     try {
       String finalLoginUrl = authPropsConfig.getExternalAuthLoginUrl().replace("$USERNAME", username);
-      String responseObj = (String) externalServerClient.sendGETRequest(
-          finalLoginUrl, String.class, null, username, password);
+      String responseObj = (String) externalServerClient.sendGETRequest(finalLoginUrl, String.class, username, password);
       if (!isAllowedRole(responseObj)) {
-        LOG.error(username + " does'nt have permission");
+        LOG.error(username + " doesn't have permission");
         throw new BadCredentialsException("Invalid User");
       }
-
     } catch (Exception e) {
-      LOG.error("Login failed for username :" + username + " Error :"
-          + e.getLocalizedMessage());
+      LOG.error("Login failed for username :" + username + " Error :" + e.getLocalizedMessage());
       throw new BadCredentialsException("Bad credentials");
     }
-    authentication = new UsernamePasswordAuthenticationToken(username,
-        password, getAuthorities(username));
+    authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities());
     return authentication;
   }
 
   /**
    * Return true/false based on PEMISSION NAME return boolean
    */
-  @SuppressWarnings("static-access")
   private boolean isAllowedRole(String responseJson) {
     String allowedRoleList[] = PropertiesHelper.getPropertyStringList(ALLOWED_ROLE_PROP);
 
     List<String> values = new ArrayList<>();
-    JSONUtil.getValuesOfKey(responseJson,
-        PRIVILEGE_INFO.PERMISSION_NAME.toString(), values);
+    JSONUtil.getValuesOfKey(responseJson, PrivilegeInfo.PERMISSION_NAME.toString(), values);
     if (values.isEmpty())
       return true;
     
