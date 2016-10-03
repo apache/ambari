@@ -62,12 +62,12 @@ ADD test-logs /root/test-logs
 RUN chmod -R 777 /root/test-config
 RUN chmod +x /root/start.sh
 
-ENV SOLR_CONFIG_LOCATION /root/test-config/solr
-ENV LOGSEARCH_CONFIG_LOCATION /root/test-config/logsearch
-ENV LOGFEEDER_CONFIG_LOCATION /root/test-config/logfeeder
-ENV SOLR_INCLUDE /root/test-config/solr/solr-env.sh
-ENV LOGSEARCH_INCLUDE /root/test-config/logsearch/logsearch-env.sh
-ENV LOGFEEDER_INCLUDE /root/test-config/logfeeder/logfeeder-env.sh
+ENV SOLR_CONFIG_LOCATION /root/config/solr
+ENV LOGSEARCH_CONFIG_LOCATION /root/config/logsearch
+ENV LOGFEEDER_CONFIG_LOCATION /root/config/logfeeder
+ENV SOLR_INCLUDE /root/config/solr/solr-env.sh
+ENV LOGSEARCH_INCLUDE /root/config/logsearch/logsearch-env.sh
+ENV LOGFEEDER_INCLUDE /root/config/logfeeder/logfeeder-env.sh
 
 RUN mkdir -p /var/run/ambari-logsearch-solr /var/log/ambari-logsearch-solr /var/run/ambari-logsearch-solr-client \
   /var/log/ambari-logsearch-solr-client /root/logsearch_solr_index/data \

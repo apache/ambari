@@ -39,7 +39,7 @@ import javax.inject.Named;
 @Named
 public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthenticationProvider {
 
-  private static Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
+  private static final Logger logger = Logger.getLogger(LogsearchFileAuthenticationProvider.class);
 
   @Inject
   private AuthPropsConfig authPropsConfig;
@@ -53,6 +53,7 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
       logger.debug("File auth is disabled.");
       return authentication;
     }
+    
     String username = authentication.getName();
     String password = (String) authentication.getCredentials();
     if (StringUtils.isBlank(username)) {
@@ -70,16 +71,16 @@ public class LogsearchFileAuthenticationProvider extends LogsearchAbstractAuthen
       logger.error("Username not found.");
       throw new BadCredentialsException("User not found.");
     }
-    if (password == null || password.isEmpty()) {
+    if (StringUtils.isEmpty(user.getPassword())) {
       logger.error("Password can't be null or empty.");
       throw new BadCredentialsException("Password can't be null or empty.");
     }
-
     String encPassword = CommonUtil.encryptPassword(username, password);
     if (!encPassword.equals(user.getPassword())) {
       logger.error("Wrong password for user=" + username);
-      throw new BadCredentialsException("Wrong password");
+      throw new BadCredentialsException("Wrong password.");
     }
+    
     Collection<? extends GrantedAuthority> authorities = user.getAuthorities();
     authentication = new UsernamePasswordAuthenticationToken(username, encPassword, authorities);
     return authentication;

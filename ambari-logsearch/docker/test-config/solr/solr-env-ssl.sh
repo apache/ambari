@@ -91,3 +91,11 @@ SOLR_LOGS_DIR=/var/log/ambari-logsearch-solr
 
 # Sets the port Solr binds to, default is 8983
 SOLR_PORT=8886
+
+SOLR_SSL_KEY_STORE=/root/config/ssl/logsearch.keyStore.jks
+SOLR_SSL_KEY_STORE_PASSWORD=bigdata
+SOLR_SSL_TRUST_STORE=/root/config/ssl/logsearch.trustStore.jks
+SOLR_SSL_TRUST_STORE_PASSWORD=bigdata
+SOLR_SSL_NEED_CLIENT_AUTH=false
+SOLR_SSL_WANT_CLIENT_AUTH=false
+

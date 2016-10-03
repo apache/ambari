@@ -18,18 +18,14 @@
  */
 package org.apache.ambari.logsearch.common;
 
-import java.util.List;
-import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.logsearch.util.SSLUtil;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -42,10 +38,12 @@ import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 public class ExternalServerClient {
 
   private static Logger LOG = Logger.getLogger(ExternalServerClient.class);
-  private static final ThreadLocal<JerseyClient> localJerseyClient = new ThreadLocal<JerseyClient>(){
+  private static final ThreadLocal<JerseyClient> localJerseyClient = new ThreadLocal<JerseyClient>() {
     @Override
     protected JerseyClient initialValue() {
-      return JerseyClientBuilder.createClient();
+      return SSLUtil.isKeyStoreSpecified() ?
+          new JerseyClientBuilder().sslContext(SSLUtil.getSSLContext()).build() :
+          JerseyClientBuilder.createClient();
     }
   };
 
@@ -55,10 +53,8 @@ public class ExternalServerClient {
   /**
    * Send GET request to an external server
    */
-  public Object sendGETRequest(String url, Class klass, MultivaluedMap<String, String> queryParam,
-                               String username, String password)
-      throws Exception {
-    url = authPropsConfig.getExternalAuthHostUrl() + url;
+  public Object sendGETRequest(String loginUrl, Class<?> klass, String username, String password) throws Exception {
+    String url = authPropsConfig.getExternalAuthHostUrl() + loginUrl;
     JerseyClient client = localJerseyClient.get();
     HttpAuthenticationFeature authFeature = HttpAuthenticationFeature.basicBuilder()
       .credentials(username, password)
@@ -67,11 +63,7 @@ public class ExternalServerClient {
 
     WebTarget target = client.target(url);
     LOG.debug("URL: " + url);
-    for (Map.Entry<String, List<String>> entry : queryParam.entrySet()) {
-      target = target.queryParam(entry.getKey(), entry.getValue());
-      LOG.debug(
-        String.format("Query parameter: name - %s  ; value - %s ;" + entry.getKey(), StringUtils.join(entry.getValue(),',')));
-    }
+    
     Invocation.Builder invocationBuilder =  target.request(MediaType.APPLICATION_JSON_TYPE);
     try {
       return invocationBuilder.get().readEntity(klass);
