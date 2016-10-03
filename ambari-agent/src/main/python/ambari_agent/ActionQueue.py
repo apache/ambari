@@ -29,6 +29,7 @@ import time
 import signal
 
 from AgentException import AgentException
+from PythonReflectiveExecutor import PythonReflectiveExecutor
 from LiveStatus import LiveStatus
 from ActualConfigHandler import ActualConfigHandler
 from CommandStatusDict import CommandStatusDict
@@ -82,9 +83,11 @@ class ActionQueue(threading.Thread):
     self.controller = controller
     self.configTags = {}
     self._stop = threading.Event()
+    self.hangingStatusCommands = {}
     self.tmpdir = config.get('agent', 'prefix')
     self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
     self.parallel_execution = config.get_parallel_exec_option()
+    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 5))
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
 
@@ -225,7 +228,24 @@ class ActionQueue(threading.Thread):
           if self.controller.recovery_manager.enabled():
             self.controller.recovery_manager.stop_execution_command()
       elif commandType == self.STATUS_COMMAND:
-        self.execute_status_command(command)
+        component_name = command['componentName']
+
+        if component_name in self.hangingStatusCommands and not self.hangingStatusCommands[component_name].isAlive():
+          del self.hangingStatusCommands[component_name]
+
+        if not component_name in self.hangingStatusCommands:
+          thread = threading.Thread(target = self.execute_status_command, args = (command,))
+          thread.daemon = True # hanging status commands should not be prevent ambari-agent from stopping
+          thread.start()
+          thread.join(timeout=self.status_command_timeout)
+
+          if thread.isAlive():
+            # Force context to reset to normal. By context we mean sys.path, imports, logger setting, etc. They are set by specific status command, and are not relevant to ambari-agent.
+            PythonReflectiveExecutor.last_context.revert()
+            logger.warn("Command {0} for {1} is running for more than {2} seconds. Skipping it for current pack of status commands.".format(commandType, component_name, self.status_command_timeout))
+            self.hangingStatusCommands[component_name] = thread
+        else:
+          logger.info("Not running {0} for {1}, because previous one is still running.".format(commandType, component_name))
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception:
