@@ -212,6 +212,7 @@ class TestActionQueue(TestCase):
   retryable_command = {
     'commandType': 'EXECUTION_COMMAND',
     'role': 'NAMENODE',
+    'componentName': 'NAMENODE',
     'roleCommand': 'INSTALL',
     'commandId': '1-1',
     'taskId': 19,
@@ -309,6 +310,7 @@ class TestActionQueue(TestCase):
     }
     status_command = {
       'commandType' : ActionQueue.STATUS_COMMAND,
+      'componentName': 'NAMENODE'
     }
     wrong_command = {
       'commandType' : "SOME_WRONG_COMMAND",
@@ -1068,7 +1070,6 @@ class TestActionQueue(TestCase):
     self.assertTrue(runCommand_mock.called)
     self.assertEqual(2, runCommand_mock.call_count)
     self.assertEqual(1, sleep_mock.call_count)
-    sleep_mock.assert_has_calls([call(1)], False)
     runCommand_mock.assert_has_calls([
       call(command, os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'output-19.txt',
            os.sep + 'tmp' + os.sep + 'ambari-agent' + os.sep + 'errors-19.txt', override_output_files=True, retry=False),
