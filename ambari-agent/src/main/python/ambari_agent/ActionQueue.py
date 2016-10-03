@@ -86,7 +86,7 @@ class ActionQueue(threading.Thread):
     self.tmpdir = config.get('agent', 'prefix')
     self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
     self.parallel_execution = config.get_parallel_exec_option()
-    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 5))
+    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 2))
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
 
