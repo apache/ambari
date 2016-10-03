@@ -21,7 +21,7 @@ package org.apache.ambari.logfeeder.filter;
 
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.logfeeder.common.LogfeederException;
 import org.apache.ambari.logfeeder.input.InputMarker;
@@ -37,7 +37,8 @@ public class FilterKeyValue extends Filter {
   private String sourceField = null;
   private String valueSplit = "=";
   private String fieldSplit = "\t";
-
+  private String valueBorders = null;
+  
   private MetricData errorMetric = new MetricData("filter.error.keyvalue", false);
 
   @Override
@@ -47,6 +48,7 @@ public class FilterKeyValue extends Filter {
     sourceField = getStringValue("source_field");
     valueSplit = getStringValue("value_split", valueSplit);
     fieldSplit = getStringValue("field_split", fieldSplit);
+    valueBorders = getStringValue("value_borders");
 
     LOG.info("init() done. source_field=" + sourceField + ", value_split=" + valueSplit + ", " + ", field_split=" +
         fieldSplit + ", " + getShortDescription());
@@ -68,23 +70,36 @@ public class FilterKeyValue extends Filter {
     }
     Object valueObj = jsonObj.get(sourceField);
     if (valueObj != null) {
-      StringTokenizer fieldTokenizer = new StringTokenizer(valueObj.toString(), fieldSplit);
-      while (fieldTokenizer.hasMoreTokens()) {
-        String nv = fieldTokenizer.nextToken();
-        StringTokenizer nvTokenizer = new StringTokenizer(nv, valueSplit);
-        while (nvTokenizer.hasMoreTokens()) {
-          String name = nvTokenizer.nextToken();
-          if (nvTokenizer.hasMoreTokens()) {
-            String value = nvTokenizer.nextToken();
+      String splitPattern = Pattern.quote(fieldSplit);
+      String[] tokens = valueObj.toString().split(splitPattern);
+      for (String nv : tokens) {
+        String[] nameValue = getNameValue(nv);
+        String name = nameValue != null && nameValue.length == 2 ? nameValue[0] : null;
+        String value = nameValue != null && nameValue.length == 2 ? nameValue[1] : null;
+        if (name != null && value != null) {
             jsonObj.put(name, value);
-          } else {
-            logParseError("name=" + name + ", pair=" + nv + ", field=" + sourceField + ", field_value=" + valueObj);
-          }
+         } else {
+           logParseError("name=" + name + ", pair=" + nv + ", field=" + sourceField + ", field_value=" + valueObj);
         }
       }
     }
     super.apply(jsonObj, inputMarker);
     statMetric.value++;
+  }
+
+  private String[] getNameValue(String nv) {
+    if (valueBorders != null) {
+      if (nv.charAt(nv.length() - 1) == valueBorders.charAt(1)) {
+        String splitPattern = Pattern.quote("" + valueBorders.charAt(0));
+        return nv.substring(0, nv.length() - 1).split(splitPattern);
+      } else {
+        return null;
+      }
+    }
+    else {
+      String splitPattern = Pattern.quote(valueSplit);
+      return nv.split(splitPattern);
+    }
   }
 
   private void logParseError(String inputStr) {

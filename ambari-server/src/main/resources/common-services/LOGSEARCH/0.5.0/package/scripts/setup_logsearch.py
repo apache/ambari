@@ -38,13 +38,14 @@ def setup_logsearch():
             )
 
   Directory([params.logsearch_dir, params.logsearch_server_conf, params.logsearch_config_set_dir],
-          mode=0755,
-          cd_access='a',
-          owner=params.logsearch_user,
-          group=params.user_group,
-          create_parents=True,
-          recursive_ownership=True
-          )
+            mode=0755,
+            cd_access='a',
+            owner=params.logsearch_user,
+            group=params.user_group,
+            create_parents=True,
+            recursive_ownership=True
+            )
+
   File(params.logsearch_log,
        mode=0644,
        owner=params.logsearch_user,
@@ -53,8 +54,8 @@ def setup_logsearch():
        )
 
   PropertiesFile(format("{logsearch_server_conf}/logsearch.properties"),
-       properties=params.logsearch_properties
-       )
+                 properties=params.logsearch_properties
+                 )
 
   File(format("{logsearch_server_conf}/HadoopServiceConfig.json"),
        content=Template("HadoopServiceConfig.json.j2"),

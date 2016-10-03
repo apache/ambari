@@ -289,6 +289,8 @@
         "logsearch.collection.service.logs.replication.factor": "1",
         "logsearch.collection.audit.logs.numshards": "10",
         "logsearch.collection.audit.logs.replication.factor": "1",
+        "logsearch.solr.audit.logs.use.ranger": "false",
+        "logsearch.ranger.audit.logs.collection.name": "ranger_audits",
         "logsearch.solr.metrics.collector.hosts" : "{metrics_collector_hosts}",
         "logsearch.auth.external_auth.enabled" : "false",
         "logsearch.auth.external_auth.host_url" : "{ambari_server_auth_host_url}",
