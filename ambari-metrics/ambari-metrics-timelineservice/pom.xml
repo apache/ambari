@@ -226,6 +226,8 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <forkMode>always</forkMode>
           <argLine>-XX:-UseSplitVerifier</argLine>
+          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
+          <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -592,6 +594,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Dependency in order to annotate unit tests with a category. -->
+    <dependency>
+      <groupId>utility</groupId>
+      <artifactId>utility</artifactId>
+      <version>1.0.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

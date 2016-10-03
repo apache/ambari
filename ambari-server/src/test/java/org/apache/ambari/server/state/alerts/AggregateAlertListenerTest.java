@@ -48,10 +48,12 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests the {@link AlertAggregateListener}.
  */
+@Category({ category.AlertTest.class})
 public class AggregateAlertListenerTest {
 
   private Injector m_injector;

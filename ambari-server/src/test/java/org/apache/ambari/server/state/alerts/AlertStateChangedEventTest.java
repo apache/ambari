@@ -61,6 +61,7 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests that {@link AlertStateChangeEvent} instances cause
@@ -68,6 +69,7 @@ import junit.framework.Assert;
  * should only be created when received alerts which have a firmness of
  * {@link AlertFirmness#HARD}.
  */
+@Category({ category.AlertTest.class})
 public class AlertStateChangedEventTest extends EasyMockSupport {
 
   private AlertEventPublisher eventPublisher;
