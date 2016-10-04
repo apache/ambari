@@ -22,6 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.RetryLoop;
 import org.apache.curator.RetryPolicy;
+import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.ZooKeeper;
 
@@ -38,7 +39,7 @@ import java.util.concurrent.Callable;
  */
 public class MetricCollectorHAHelper {
   private final String zookeeperQuorum;
-  private final int tryTime;
+  private final int tryCount;
   private final int sleepMsBetweenRetries;
 
   private static final int CONNECTION_TIMEOUT = 2000;
@@ -50,9 +51,9 @@ public class MetricCollectorHAHelper {
 
   private static final Log LOG = LogFactory.getLog(MetricCollectorHAHelper.class);
 
-  public MetricCollectorHAHelper(String zookeeperQuorum, int tryTime, int sleepMsBetweenRetries) {
+  public MetricCollectorHAHelper(String zookeeperQuorum, int tryCount, int sleepMsBetweenRetries) {
     this.zookeeperQuorum = zookeeperQuorum;
-    this.tryTime = tryTime;
+    this.tryCount = tryCount;
     this.sleepMsBetweenRetries = sleepMsBetweenRetries;
   }
 
@@ -63,7 +64,7 @@ public class MetricCollectorHAHelper {
   public Collection<String> findLiveCollectorHostsFromZNode() {
     Set<String> collectors = new HashSet<>();
 
-    RetryPolicy retryPolicy = new RetryUntilElapsed(tryTime, sleepMsBetweenRetries);
+    RetryPolicy retryPolicy = new BoundedExponentialBackoffRetry(sleepMsBetweenRetries, 10*sleepMsBetweenRetries, tryCount);
     final CuratorZookeeperClient client = new CuratorZookeeperClient(zookeeperQuorum,
       SESSION_TIMEOUT, CONNECTION_TIMEOUT, null, retryPolicy);
 
