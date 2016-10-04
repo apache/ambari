@@ -25,6 +25,7 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -44,7 +45,8 @@ public class MetricCollectorHAHelper {
 
   private static final int CONNECTION_TIMEOUT = 2000;
   private static final int SESSION_TIMEOUT = 10000;
-  private static final String ZK_PATH = "/ambari-metrics-cluster/LIVEINSTANCES";
+  private static final String ZNODE = "/ambari-metrics-cluster";
+  private static final String ZK_PATH = ZNODE + "/LIVEINSTANCES";
   private static final String INSTANCE_NAME_DELIMITER = "_";
 
 
@@ -72,6 +74,12 @@ public class MetricCollectorHAHelper {
 
     try {
       client.start();
+      //Check if Znode exists
+      Stat stat = client.getZooKeeper().exists(ZNODE, false);
+      if (stat == null) {
+        LOG.info("/ambari-metrics-cluster znode does not exist. Skipping requesting live instances from zookeeper");
+        return collectors;
+      }
       liveInstances = RetryLoop.callWithRetry(client, new Callable<List<String>>() {
         @Override
         public List<String> call() throws Exception {
