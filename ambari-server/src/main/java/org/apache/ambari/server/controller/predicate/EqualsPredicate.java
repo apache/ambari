@@ -39,6 +39,21 @@ public class EqualsPredicate<T> extends ComparisonPredicate<T> {
         propertyValue != null && compareValueTo(propertyValue) == 0;
   }
 
+  /**
+   * Case insensitive equality support for string types
+   *
+   * @param resource
+   * @return
+     */
+  public boolean evaluateIgnoreCase(Resource resource) {
+    Object propertyValue  = resource.getPropertyValue(getPropertyId());
+    Object predicateValue = getValue();
+
+    return predicateValue == null ?
+            propertyValue == null :
+            propertyValue != null && compareValueToIgnoreCase(propertyValue) == 0;
+  }
+
   @Override
   public String getOperator() {
     return "=";

@@ -76,7 +76,15 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
     visitor.acceptComparisonPredicate(this);
   }
 
+  protected int compareValueToIgnoreCase(Object propertyValue) throws ClassCastException{
+    return compareValueTo(propertyValue, true); // case insensitive
+  }
+
   protected int compareValueTo(Object propertyValue) throws ClassCastException{
+    return compareValueTo(propertyValue, false); // case sensitive
+  }
+
+  private int compareValueTo(Object propertyValue, boolean ignoreCase) throws ClassCastException {
     if (doubleValue != null) {
       if (propertyValue instanceof Number) {
         return doubleValue.compareTo(((Number) propertyValue).doubleValue());
@@ -88,8 +96,14 @@ public abstract class ComparisonPredicate<T> extends PropertyPredicate implement
         }
       }
     }
+
     if (stringValue != null) {
-      return stringValue.compareTo(propertyValue.toString());
+      if (ignoreCase) {
+        return stringValue.compareToIgnoreCase(propertyValue.toString());
+      }
+      else {
+        return stringValue.compareTo(propertyValue.toString());
+      }
     }
 
     return getValue().compareTo((T) propertyValue);
