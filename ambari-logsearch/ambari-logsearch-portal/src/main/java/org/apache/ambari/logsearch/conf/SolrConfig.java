@@ -90,6 +90,11 @@ public class SolrConfig {
     return new SolrSchemaFieldDao();
   }
 
+  @Bean(name = "userConfigSolrFieldDao")
+  public SolrSchemaFieldDao userConfigSolrFieldDao() {
+    return new SolrSchemaFieldDao();
+  }
+
   private CloudSolrClient createClient(String solrUrl, String zookeeperConnectString, String defaultCollection) {
     if (StringUtils.isNotEmpty(zookeeperConnectString)) {
       CloudSolrClient cloudSolrClient = new CloudSolrClient(zookeeperConnectString);

@@ -24,13 +24,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AuthPropsConfig {
 
-  @Value("${logsearch.auth.file.enable:true}")
+  @Value("${logsearch.auth.file.enabled:true}")
   boolean authFileEnabled;
-  @Value("${logsearch.auth.ldap.enable:false}")
+  @Value("${logsearch.auth.ldap.enabled:false}")
   boolean authLdapEnabled;
-  @Value("${logsearch.auth.simple.enable:false}")
+  @Value("${logsearch.auth.simple.enabled:false}")
   boolean authSimpleEnabled;
-  @Value("${logsearch.auth.external_auth.enable:false}")
+  @Value("${logsearch.auth.external_auth.enabled:false}")
   boolean authExternalEnabled;
   @Value("${logsearch.auth.external_auth.host_url:'http://ip:port'}")
   private String externalAuthHostUrl;

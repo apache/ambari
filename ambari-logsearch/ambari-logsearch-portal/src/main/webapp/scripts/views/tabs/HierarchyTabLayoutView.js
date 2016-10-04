@@ -276,7 +276,6 @@ define(['require',
         require(['views/tabs/VisualSearchView'], function (VisualSearchView) {
           var data = _.values(Globals.serviceLogsColumns);
           var columns = _.without(data, _.findWhere(data, "logtime"));
-          console.log("service columns: " + JSON.stringify(columns))
           that.RVisualSearchIncCol.show(new VisualSearchView({
             viewName: "includeServiceColumns",
             placeholder: "Include Search",
