@@ -40,7 +40,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -71,6 +70,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import junit.framework.Assert;
 
@@ -279,7 +279,7 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
       binder.bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
-      binder.bind(RoleGraphFactory.class).toInstance(createNiceMock(RoleGraphFactoryImpl.class));
+      binder.install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
       binder.bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
       binder.bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
       binder.bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));

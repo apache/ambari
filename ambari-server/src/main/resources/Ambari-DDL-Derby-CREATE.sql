@@ -356,6 +356,7 @@ CREATE TABLE stage (
   cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
+  command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 

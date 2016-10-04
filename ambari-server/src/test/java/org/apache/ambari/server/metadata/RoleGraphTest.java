@@ -19,10 +19,6 @@
 package org.apache.ambari.server.metadata;
 
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -41,15 +37,20 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
+import junit.framework.Assert;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class RoleGraphTest {
 
-
   private Injector injector;
+  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    roleCommandOrderProvider = injector.getInstance(RoleCommandOrderProvider.class);
   }
 
   @After
@@ -59,12 +60,11 @@ public class RoleGraphTest {
 
   @Test
   public void testValidateOrder() throws AmbariException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
-
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    when(cluster.getClusterId()).thenReturn(1L);
 
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
     RoleGraphNode datanode_upgrade = new RoleGraphNode(Role.DATANODE, RoleCommand.UPGRADE);
     RoleGraphNode hdfs_client_upgrade = new RoleGraphNode(Role.HDFS_CLIENT, RoleCommand.UPGRADE);
@@ -133,7 +133,7 @@ public class RoleGraphTest {
     when(cluster.getService("HDFS")).thenReturn(hdfsServiceMock);
     when(hdfsServiceMock.getServiceComponent("JOURNALNODE")).thenReturn(jnComponentMock);
 
-    rco.initialize(cluster);
+    rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     Assert.assertEquals(1, rco.order(nn_start, jn_start));
     Assert.assertEquals(1, rco.order(nn_start, zk_server_start));
     Assert.assertEquals(1, rco.order(zkfc_start, nn_start));

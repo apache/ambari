@@ -18,73 +18,42 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.base.Optional;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.actionmanager.ActionDBAccessor;
-import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
-import org.apache.ambari.server.controller.KerberosHelper;
-import org.apache.ambari.server.controller.predicate.EqualsPredicate;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.UserDAO;
-import org.apache.ambari.server.orm.dao.ViewURLDAO;
-import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
-import org.apache.ambari.server.orm.entities.ViewEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
-import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.orm.entities.ViewURLEntity;
-import org.apache.ambari.server.scheduler.ExecutionScheduler;
-import org.apache.ambari.server.security.TestAuthenticationFactory;
-import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.Users;
-import org.apache.ambari.server.security.encryption.CredentialStoreService;
-import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
-import org.apache.ambari.server.stack.StackManagerFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigFactory;
-import org.apache.ambari.server.state.ServiceComponentFactory;
-import org.apache.ambari.server.state.ServiceComponentHostFactory;
-import org.apache.ambari.server.state.ServiceFactory;
-import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
-import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.view.ViewRegistry;
-import org.apache.ambari.server.view.configuration.ViewConfig;
-import org.apache.ambari.view.ViewDefinition;
-import org.easymock.Capture;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.ViewURLDAO;
+import org.apache.ambari.server.orm.entities.ViewEntity;
+import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.orm.entities.ViewURLEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.view.ViewRegistry;
+import org.easymock.Capture;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import com.google.common.base.Optional;
+
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 
 public class ViewURLResourceProviderTest {
 
