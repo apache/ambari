@@ -242,6 +242,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    */
   isDisabledOnInit: function() {
     return  this.get('controller.requestInProgress') ||
+            !this.get('content.isCompatible') ||
             (App.get('upgradeIsRunning') && !App.get('upgradeSuspended')) ||
             this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
   },
@@ -263,6 +264,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
+    if (!this.get('content.isCompatible')) {
+      App.tooltip(this.$(".repo-version-tooltip"), {
+        title: Em.I18n.t('admin.stackVersions.version.noCompatible.tooltip')
+      });
+    }
     Em.run.later(this, function () {
       if (this.get('state') !== 'inDOM') {
         return;

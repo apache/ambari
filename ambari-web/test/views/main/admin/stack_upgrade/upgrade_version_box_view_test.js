@@ -141,7 +141,7 @@ describe('App.UpgradeVersionBoxView', function () {
     });
     it("init tooltips", function () {
       view.didInsertElement();
-      expect(App.tooltip.callCount).to.equal(3);
+      expect(App.tooltip.callCount).to.equal(4);
     });
   });
 
@@ -959,6 +959,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeIsRunning: true,
         upgradeSuspended: true,
         status: 'INSTALLED',
+        isCompatible: true,
         expected: true
       },
       {
@@ -966,6 +967,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeIsRunning: true,
         upgradeSuspended: false,
         status: 'INSTALLED',
+        isCompatible: true,
         expected: true
       },
       {
@@ -973,6 +975,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeIsRunning: false,
         upgradeSuspended: false,
         status: 'INSTALLING',
+        isCompatible: true,
         expected: true
       },
       {
@@ -980,6 +983,15 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeIsRunning: true,
         upgradeSuspended: true,
         status: 'INSTALLED',
+        isCompatible: false,
+        expected: true
+      },
+      {
+        requestInProgress: false,
+        upgradeIsRunning: true,
+        upgradeSuspended: true,
+        status: 'INSTALLED',
+        isCompatible: true,
         expected: false
       },
       {
@@ -987,6 +999,7 @@ describe('App.UpgradeVersionBoxView', function () {
         upgradeIsRunning: false,
         upgradeSuspended: false,
         status: 'INSTALLED',
+        isCompatible: true,
         expected: false
       }
     ];
@@ -1001,15 +1014,17 @@ describe('App.UpgradeVersionBoxView', function () {
 
     testCases.forEach(function(test) {
       it("requestInProgress: " + test.requestInProgress +
-         "upgradeIsRunning: " + test.upgradeIsRunning +
-         "upgradeSuspended: " + test.upgradeSuspended +
-         "status" + test.status, function() {
+         " upgradeIsRunning: " + test.upgradeIsRunning +
+         " upgradeSuspended: " + test.upgradeSuspended +
+         " status" + test.status +
+         " isCompatible" + test.isCompatible, function() {
         this.mock.withArgs('upgradeSuspended').returns(test.upgradeSuspended);
         this.mock.withArgs('upgradeIsRunning').returns(test.upgradeIsRunning);
         view.set('parentView.repoVersions', [Em.Object.create({
           status: test.status
         })]);
         view.set('controller.requestInProgress', test.requestInProgress);
+        view.set('content.isCompatible', test.isCompatible);
         expect(view.isDisabledOnInit()).to.be.equal(test.expected);
       });
     });

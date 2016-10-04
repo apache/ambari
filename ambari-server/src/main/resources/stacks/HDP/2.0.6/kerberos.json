@@ -9,7 +9,7 @@
       "name": "spnego",
       "principal": {
         "value": "HTTP/_HOST@${realm}",
-        "type" : "service"
+        "type": "service"
       },
       "keytab": {
         "file": "${keytab_dir}/spnego.service.keytab",
@@ -27,9 +27,9 @@
       "name": "smokeuser",
       "principal": {
         "value": "${cluster-env/smokeuser}-${cluster_name|toLower()}@${realm}",
-        "type" : "user",
+        "type": "user",
         "configuration": "cluster-env/smokeuser_principal_name",
-        "local_username" : "${cluster-env/smokeuser}"
+        "local_username": "${cluster-env/smokeuser}"
       },
       "keytab": {
         "file": "${keytab_dir}/smokeuser.headless.keytab",
@@ -48,13 +48,15 @@
       "name": "ambari-server",
       "principal": {
         "value": "ambari-server-${cluster_name|toLower()}@${realm}",
-        "type" : "user",
+        "type": "user",
         "configuration": "cluster-env/ambari_principal_name"
       },
       "keytab": {
-        "file": "${keytab_dir}/ambari.server.keytab"
+        "file": "${keytab_dir}/ambari.server.keytab",
+        "owner": {
+          "access": "r"
+        }
       }
     }
   ]
-
 }
