@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -38,6 +39,16 @@ public class ShellCommandUtil {
   private static final String PASS_TOKEN = "pass:";
   private static final String KEY_TOKEN = "-key ";
   private static final String AMBARI_SUDO = "ambari-sudo.sh";
+
+  private static final int MODE_OWNER_READABLE = 400;
+  private static final int MODE_OWNER_WRITABLE = 200;
+  private static final int MODE_OWNER_EXECUTABLE = 100;
+  private static final int MODE_GROUP_READABLE = 40;
+  private static final int MODE_GROUP_WRITABLE = 20;
+  private static final int MODE_GROUP_EXECUTABLE = 10;
+  private static final int MODE_OTHER_READABLE = 4;
+  private static final int MODE_OTHER_WRITABLE = 2;
+  private static final int MODE_OTHER_EXECUTABLE = 1;
 
   /*
   public static String LogAndReturnOpenSslExitCode(String command, int exitCode) {
@@ -177,6 +188,116 @@ public class ShellCommandUtil {
     } else {
       LOG.debug(String.format("Not performing chmod %s command for file %s " +
           "because current OS is not Linux ", mode, path));
+    }
+  }
+
+  /**
+   * Sets the owner for a file.
+   *
+   * @param path      the path to the file
+   * @param ownerName the owner's local username
+   * @return the result of the operation
+   */
+  public static Result setFileOwner(String path, String ownerName) {
+    if (LINUX) {
+      // Set the file owner, if the owner's username is given
+      if (!StringUtils.isEmpty(ownerName)) {
+        try {
+          return runCommand(new String[]{"chown", ownerName, path}, null, null, true);
+        } catch (IOException e) {
+          // Improbable
+          LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        } catch (InterruptedException e) {
+          LOG.warn(String.format("Can not perform chown %s %s", ownerName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        }
+      } else {
+        return new Result(0, "", "");
+      }
+    } else {
+      LOG.debug(String.format("Not performing chown command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
+    }
+  }
+
+  /**
+   * Sets the group for a file.
+   *
+   * @param path      the path to the file
+   * @param groupName the group name
+   * @return the result of the operation
+   */
+  public static Result setFileGroup(String path,  String groupName) {
+    if (LINUX) {
+      // Set the file's group, if the group name is given
+      if (!StringUtils.isEmpty(groupName)) {
+        try {
+          return runCommand(new String[]{"chgrp", groupName, path}, null, null, true);
+        } catch (IOException e) {
+          // Improbable
+          LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        } catch (InterruptedException e) {
+          LOG.warn(String.format("Can not perform chgrp %s %s", groupName, path), e);
+          return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+        }
+      } else {
+        return new Result(0, "", "");
+      }
+    } else {
+      LOG.debug(String.format("Not performing chgrp command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
+    }
+  }
+
+  /**
+   * Set the access modes for a file
+   *
+   * @param path            the path to the file
+   * @param ownerWritable   true if the owner should be able to write to this file; otherwise false
+   * @param ownerReadable   true if the owner should be able to read this file; otherwise false
+   * @param ownerExecutable true if the owner should be able to execute this file; otherwise false
+   * @param groupWritable   true if the group should be able to write to this file; otherwise false
+   * @param groupReadable   true if the group should be able to read this file; otherwise false
+   * @param groupExecutable true if the group should be able to execute this file; otherwise false
+   * @param otherReadable   true if other users should be able to read this file; otherwise false
+   * @param otherWritable   true if other users should be able to write to this file; otherwise false
+   * @param otherExecutable true if other users should be able to execute this file; otherwise false
+   * @return the result of the operation
+   */
+  public static Result setFileMode(String path,
+                                   boolean ownerReadable, boolean ownerWritable, boolean ownerExecutable,
+                                   boolean groupReadable, boolean groupWritable, boolean groupExecutable,
+                                   boolean otherReadable, boolean otherWritable, boolean otherExecutable) {
+    if (LINUX) {
+      int modeValue = ((ownerReadable) ? MODE_OWNER_READABLE : 0) +
+          ((ownerWritable) ? MODE_OWNER_WRITABLE : 0) +
+          ((ownerExecutable) ? MODE_OWNER_EXECUTABLE : 0) +
+          ((groupReadable) ? MODE_GROUP_READABLE : 0) +
+          ((groupWritable) ? MODE_GROUP_WRITABLE : 0) +
+          ((groupExecutable) ? MODE_GROUP_EXECUTABLE : 0) +
+          ((otherReadable) ? MODE_OTHER_READABLE : 0) +
+          ((otherWritable) ? MODE_OTHER_WRITABLE : 0) +
+          ((otherExecutable) ? MODE_OTHER_EXECUTABLE : 0);
+      String mode = String.format("%04d", modeValue);
+
+      try {
+        return runCommand(new String[]{"chmod", mode, path}, null, null, true);
+      } catch (IOException e) {
+        // Improbable
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+        return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+      } catch (InterruptedException e) {
+        LOG.warn(String.format("Can not perform chmod %s %s", mode, path), e);
+        return new Result(-1, "", "Cannot perform operation: " + e.getLocalizedMessage());
+      }
+    } else {
+      LOG.debug(String.format("Not performing chmod command for file %s " +
+          "because current OS is not Linux ", path));
+      return new Result(-1, "", "Cannot perform operation: The current OS is not Linux");
     }
   }
 

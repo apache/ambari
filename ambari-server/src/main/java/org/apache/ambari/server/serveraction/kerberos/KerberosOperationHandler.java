@@ -409,7 +409,7 @@ public abstract class KerberosOperationHandler {
    * @return true if the keytab file was successfully created; false otherwise
    * @throws KerberosOperationException
    */
-  protected boolean createKeytabFile(Keytab keytab, File destinationKeytabFile)
+  public boolean createKeytabFile(Keytab keytab, File destinationKeytabFile)
       throws KerberosOperationException {
 
     if (destinationKeytabFile == null) {
