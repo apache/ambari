@@ -73,7 +73,7 @@ public class UserConfigSolrDao extends SolrDaoBase {
   private SolrCollectionDao solrCollectionDao;
 
   @Inject
-  @Named("serviceSolrFieldDao")
+  @Named("userConfigSolrFieldDao")
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
   @Inject

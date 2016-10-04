@@ -215,17 +215,17 @@ logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearc
 logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port
 
 logsearch_properties['logsearch.login.credentials.file'] = logsearch_admin_credential_file
-logsearch_properties['logsearch.auth.file.enable'] = 'true'
-logsearch_properties['logsearch.auth.ldap.enable'] = 'false'
-logsearch_properties['logsearch.auth.simple.enable'] = 'false'
+logsearch_properties['logsearch.auth.file.enabled'] = 'true'
+logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
+logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 logsearch_properties['logsearch.roles.allowed'] = 'AMBARI.ADMINISTRATOR'
 logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
 
 if security_enabled:
-  logfeeder_properties['logsearch.solr.kerberos.enable'] = 'true'
-  logfeeder_properties['logsearch.solr.jaas.file'] = logsearch_jaas_file
+  logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
+  logsearch_properties['logsearch.solr.jaas.file'] = logsearch_jaas_file
 
 
 logsearch_solr_collection_service_logs = logsearch_properties['logsearch.solr.collection.service.logs']
