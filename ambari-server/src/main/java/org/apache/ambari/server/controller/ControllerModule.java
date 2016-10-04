@@ -77,6 +77,8 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.metrics.system.MetricsService;
 import org.apache.ambari.server.metrics.system.impl.MetricsServiceImpl;
 import org.apache.ambari.server.notifications.DispatchFactory;
@@ -95,8 +97,8 @@ import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -352,9 +354,6 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).
       to(configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration());
 
-
-
-
     bind(AmbariManagementController.class).to(
         AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
@@ -428,7 +427,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         Host.class, HostImpl.class).build(HostFactory.class));
     install(new FactoryModuleBuilder().implement(
-        Service.class, ServiceImpl.class).build(ServiceFactory.class));
+      Service.class, ServiceImpl.class).build(ServiceFactory.class));
 
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
@@ -444,8 +443,8 @@ public class ControllerModule extends AbstractModule {
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
-        ServiceComponent.class, ServiceComponentImpl.class).build(
-        ServiceComponentFactory.class));
+      ServiceComponent.class, ServiceComponentImpl.class).build(
+      ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
         ServiceComponentHostFactory.class));
@@ -454,10 +453,13 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
-        RequestExecutionImpl.class).build(RequestExecutionFactory.class));
+      RequestExecutionImpl.class).build(RequestExecutionFactory.class));
 
     bind(StageFactory.class).to(StageFactoryImpl.class);
-    bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
+    bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
+
+    install(new FactoryModuleBuilder().build(RoleGraphFactory.class));
+
     install(new FactoryModuleBuilder().build(RequestFactory.class));
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
     install(new FactoryModuleBuilder().build(ExecutionCommandWrapperFactory.class));

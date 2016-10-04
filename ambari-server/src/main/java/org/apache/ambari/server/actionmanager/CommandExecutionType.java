@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -15,40 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.stageplanner;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.metadata.RoleCommandOrder;
-
-
-@Singleton
-public class RoleGraphFactoryImpl implements RoleGraphFactory {
-  private Injector injector;
-
-  @Inject
-  public RoleGraphFactoryImpl(Injector injector) {
-    this.injector = injector;
-  }
+package org.apache.ambari.server.actionmanager;
+/**
+ * Enum which indicates the execution type of commands for a stage.
+ */
+public enum CommandExecutionType {
 
   /**
-   *
-   * @return
+   * One or more stages are created depending on dependencies. This is the default.
    */
-  @Override
-  public RoleGraph createNew() {
-    return new RoleGraph(this.injector.getInstance(StageFactory.class));
-  }
+  STAGE,
 
   /**
-   *
-   * @param rd
-   * @return
+   * Create only one stage for each request and instead of handling dependencies with multiple stage, verify that
+   * dependencies are satisfied before scheduling a new command.
    */
-  @Override
-  public RoleGraph createNew(RoleCommandOrder rd) {
-    return new RoleGraph(rd, this.injector.getInstance(StageFactory.class));
-  }
+  DEPENDENCY_ORDERED
 }

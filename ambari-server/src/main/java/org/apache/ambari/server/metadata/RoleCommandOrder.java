@@ -17,25 +17,26 @@
  */
 package org.apache.ambari.server.metadata;
 
-import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-import com.google.inject.Inject;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.stageplanner.RoleGraphNode;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.ambari.server.AmbariException;
+
+import com.google.inject.Inject;
 
 /**
  * This class is used to establish the order between two roles. This class
@@ -43,8 +44,11 @@ import org.apache.ambari.server.AmbariException;
  */
 public class RoleCommandOrder {
 
-  @Inject Configuration configs;
   @Inject AmbariMetaInfo ambariMetaInfo;
+
+  private boolean hasGLUSTERFS;
+  private boolean isNameNodeHAEnabled;
+  private boolean isResourceManagerHAEnabled;
 
   private final static Logger LOG =
 			LoggerFactory.getLogger(RoleCommandOrder.class);
@@ -65,50 +69,6 @@ public class RoleCommandOrder {
             add(RoleCommand.EXECUTE);
             add(RoleCommand.SERVICE_CHECK);
           }};
-
-  static class RoleCommandPair {
-    Role role;
-    RoleCommand cmd;
-
-    public RoleCommandPair(Role _role, RoleCommand _cmd) {
-      if (_role == null || _cmd == null) {
-        throw new IllegalArgumentException("role = "+_role+", cmd = "+_cmd);
-      }
-      this.role = _role;
-      this.cmd = _cmd;
-    }
-
-    @Override
-    public int hashCode() {
-      return (role.toString() + cmd.toString()).hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      if (other != null && (other instanceof RoleCommandPair)
-          && ((RoleCommandPair) other).role.equals(role)
-          && ((RoleCommandPair) other).cmd.equals(cmd)) {
-        return true;
-      }
-      return false;
-    }
-
-    Role getRole() {
-      return role;
-    }
-
-    RoleCommand getCmd() {
-      return cmd;
-    }
-
-    @Override
-    public String toString() {
-      return "RoleCommandPair{" +
-              "role=" + role +
-              ", cmd=" + cmd +
-              '}';
-    }
-  }
 
   /**
    * key -> blocked role command value -> set of blocker role commands.
@@ -160,40 +120,12 @@ public class RoleCommandOrder {
   }
 
   public void initialize(Cluster cluster) {
-    Boolean hasGLUSTERFS = false;
-    Boolean isNameNodeHAEnabled = false;
-    Boolean isResourceManagerHAEnabled = false;
-
-    try {
-      if (cluster != null && cluster.getService("GLUSTERFS") != null) {
-    	  hasGLUSTERFS = true;
-      } 
-    } catch (AmbariException e) {
-    }
-
-    try {
-      if (cluster != null &&
-              cluster.getService("HDFS") != null &&
-              cluster.getService("HDFS").getServiceComponent("JOURNALNODE") != null) {
-        isNameNodeHAEnabled = true;
-      }
-    } catch (AmbariException e) {
-    }
-
-    try {
-      if (cluster != null &&
-              cluster.getService("YARN") != null &&
-              cluster.getService("YARN").getServiceComponent("RESOURCEMANAGER").getServiceComponentHosts().size() > 1) {
-        isResourceManagerHAEnabled = true;
-      }
-    } catch (AmbariException e) {
-    }
 
     StackId stackId = cluster.getCurrentStackVersion();
     StackInfo stack = null;
     try {
       stack = ambariMetaInfo.getStack(stackId.getStackName(),
-            stackId.getStackVersion());
+        stackId.getStackVersion());
     } catch (AmbariException e) {
     }
 
@@ -399,8 +331,8 @@ public class RoleCommandOrder {
       v2 = rco.dependencies.get(roleCommandPairSetEntry.getKey());
       if (!v1.equals(v2)) {
         LOG.debug("different entry found for key ("
-          + roleCommandPairSetEntry.getKey().role.toString() + ", "
-          + roleCommandPairSetEntry.getKey().cmd.toString() + ")" );
+          + roleCommandPairSetEntry.getKey().getRole().toString() + ", "
+          + roleCommandPairSetEntry.getKey().getCmd().toString() + ")" );
         return 1;
       }
     }
@@ -408,11 +340,34 @@ public class RoleCommandOrder {
     return 0;
   }
 
+  public boolean isHasGLUSTERFS() {
+    return hasGLUSTERFS;
+  }
+
+  public void setHasGLUSTERFS(boolean hasGLUSTERFS) {
+    this.hasGLUSTERFS = hasGLUSTERFS;
+  }
+
+  public boolean isNameNodeHAEnabled() {
+    return isNameNodeHAEnabled;
+  }
+
+  public void setIsNameNodeHAEnabled(boolean isNameNodeHAEnabled) {
+    this.isNameNodeHAEnabled = isNameNodeHAEnabled;
+  }
+
+  public boolean isResourceManagerHAEnabled() {
+    return isResourceManagerHAEnabled;
+  }
+
+  public void setIsResourceManagerHAEnabled(boolean isResourceManagerHAEnabled) {
+    this.isResourceManagerHAEnabled = isResourceManagerHAEnabled;
+  }
 
   /**
    * For test purposes
    */
-  Map<RoleCommandPair, Set<RoleCommandPair>> getDependencies() {
+  public Map<RoleCommandPair, Set<RoleCommandPair>> getDependencies() {
     return dependencies;
   }
 }

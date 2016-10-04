@@ -18,13 +18,18 @@
 package org.apache.ambari.server.stageplanner;
 
 import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,26 +38,32 @@ import java.util.TreeMap;
 
 public class RoleGraph {
 
-  private static Log LOG = LogFactory.getLog(RoleGraph.class);
+  private static Logger LOG = LoggerFactory.getLogger(RoleGraph.class);
 
-  
   Map<String, RoleGraphNode> graph = null;
   private RoleCommandOrder roleDependencies;
   private Stage initialStage = null;
   private boolean sameHostOptimization = true;
+  private CommandExecutionType commandExecutionType = CommandExecutionType.STAGE;
 
   @Inject
   private StageFactory stageFactory;
 
-  @Inject
-  public RoleGraph(StageFactory stageFactory) {
-    this.stageFactory = stageFactory;
+  @AssistedInject
+  public RoleGraph() {
   }
 
-  @Inject
-  public RoleGraph(RoleCommandOrder rd, StageFactory stageFactory) {
-    this(stageFactory);
+  @AssistedInject
+  public RoleGraph(@Assisted RoleCommandOrder rd) {
     this.roleDependencies = rd;
+  }
+
+  public CommandExecutionType getCommandExecutionType() {
+    return commandExecutionType;
+  }
+
+  public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
+    this.commandExecutionType = commandExecutionType;
   }
 
   /**
@@ -80,22 +91,28 @@ public class RoleGraph {
       }
     }
 
-    if (null != roleDependencies) {
-      //Add edges
-      for (String roleI : graph.keySet()) {
-        for (String roleJ : graph.keySet()) {
-          if (!roleI.equals(roleJ)) {
-            RoleGraphNode rgnI = graph.get(roleI);
-            RoleGraphNode rgnJ = graph.get(roleJ);
-            int order = roleDependencies.order(rgnI, rgnJ);
-            if (order == -1) {
-              rgnI.addEdge(rgnJ);
-            } else if (order == 1) {
-              rgnJ.addEdge(rgnI);
+    // In case commandExecutionType == DEPENDENCY_ORDERED there will be only one stage, thus no need to add edges to
+    // the graph
+    if (commandExecutionType == CommandExecutionType.STAGE) {
+      if (null != roleDependencies) {
+        //Add edges
+        for (String roleI : graph.keySet()) {
+          for (String roleJ : graph.keySet()) {
+            if (!roleI.equals(roleJ)) {
+              RoleGraphNode rgnI = graph.get(roleI);
+              RoleGraphNode rgnJ = graph.get(roleJ);
+              int order = roleDependencies.order(rgnI, rgnJ);
+              if (order == -1) {
+                rgnI.addEdge(rgnJ);
+              } else if (order == 1) {
+                rgnJ.addEdge(rgnI);
+              }
             }
           }
         }
       }
+    } else {
+      LOG.info("Build stage with DEPENDENCY_ORDERED commandExecutionType: {} ", stage.getRequestContext());
     }
   }
   /**
@@ -166,6 +183,10 @@ public class RoleGraph {
     newStage.setSuccessFactors(origStage.getSuccessFactors());
     newStage.setSkippable(origStage.isSkippable());
     newStage.setAutoSkipFailureSupported(origStage.isAutoSkipOnFailureSupported());
+    if (commandExecutionType != null) {
+      newStage.setCommandExecutionType(commandExecutionType);
+    }
+
     for (RoleGraphNode rgn : stageGraphNodes) {
       for (String host : rgn.getHosts()) {
         newStage.addExecutionCommandWrapper(origStage, host, rgn.getRole());

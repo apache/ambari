@@ -26,6 +26,8 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
@@ -35,6 +37,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 
 @Entity
 @Table(name = "stage")
@@ -76,6 +80,11 @@ public class StageEntity {
   @Column(name = "request_context")
   @Basic
   private String requestContext = "";
+
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "command_execution_type", nullable = false)
+  private CommandExecutionType commandExecutionType = CommandExecutionType.STAGE;
 
   /**
    * On large clusters, this value can be in the 10,000's of kilobytes. During
@@ -176,6 +185,14 @@ public class StageEntity {
     if (requestContext != null) {
       this.requestContext = requestContext;
     }
+  }
+
+  public CommandExecutionType getCommandExecutionType() {
+    return commandExecutionType;
+  }
+
+  public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
+    this.commandExecutionType = commandExecutionType;
   }
 
   @Override

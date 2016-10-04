@@ -18,18 +18,8 @@
 
 package org.apache.ambari.server.metadata;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,12 +28,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.metadata.RoleCommandOrder.RoleCommandPair;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Service;
@@ -65,9 +52,20 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
+import junit.framework.Assert;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
 public class RoleCommandOrderTest {
 
   private Injector injector;
+  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   private final static String TEST_RCO_DATA_FILE = "test_rco_data.json";
 
@@ -75,6 +73,7 @@ public class RoleCommandOrderTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    roleCommandOrderProvider = injector.getInstance(RoleCommandOrderProvider.class);
   }
 
   @After
@@ -90,18 +89,19 @@ public class RoleCommandOrderTest {
   @Test
   public void testInitializeAtGLUSTERFSCluster() throws AmbariException {
 
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+
     ClusterImpl cluster = createMock(ClusterImpl.class);
     Service service = createMock(Service.class);
+    expect(cluster.getClusterId()).andReturn(1L);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.0.6"));
     expect(cluster.getService("GLUSTERFS")).andReturn(service);
     expect(cluster.getService("HDFS")).andReturn(null);
     expect(cluster.getService("YARN")).andReturn(null);
     replay(cluster);
 
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+
     Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
-    assertTrue("Dependencies are empty before initialization", deps.size() == 0);
-    rco.initialize(cluster);
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster);
 	// Check that HDFS components are not present in dependencies
@@ -133,10 +133,9 @@ public class RoleCommandOrderTest {
   @Test
   public void testInitializeAtHDFSCluster() throws AmbariException {
 
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
-
+    expect(cluster.getClusterId()).andReturn(1L);
     Service hdfsService = createMock(Service.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
@@ -147,9 +146,8 @@ public class RoleCommandOrderTest {
     replay(cluster);
     replay(hdfsService);
 
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
-    assertTrue("Dependencies are empty before initialization", deps.size() == 0);
-    rco.initialize(cluster);
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster);
     verify(hdfsService);
@@ -177,10 +175,10 @@ public class RoleCommandOrderTest {
    */
   @Test
   public void testInitializeAtHaHDFSCluster() throws AmbariException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+
     ClusterImpl cluster = createMock(ClusterImpl.class);
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
-
+    expect(cluster.getClusterId()).andReturn(1L);
     Service hdfsService = createMock(Service.class);
     ServiceComponent journalnodeSC = createMock(ServiceComponent.class);
 
@@ -192,9 +190,8 @@ public class RoleCommandOrderTest {
     replay(cluster);
     replay(hdfsService);
 
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
-    assertTrue("Dependencies are empty before initialization", deps.size() == 0);
-    rco.initialize(cluster);
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster);
     verify(hdfsService);
@@ -217,12 +214,12 @@ public class RoleCommandOrderTest {
 
   @Test
   public void testInitializeAtHaRMCluster() throws AmbariException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+
     ClusterImpl cluster = createMock(ClusterImpl.class);
     ServiceComponentHost sch1 = createMock(ServiceComponentHostImpl.class);
     ServiceComponentHost sch2 = createMock(ServiceComponentHostImpl.class);
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
-
+    expect(cluster.getClusterId()).andReturn(1L);
 
     Map<String, ServiceComponentHost> hostComponents = new HashMap<String, ServiceComponentHost>();
     hostComponents.put("1",sch1);
@@ -239,9 +236,8 @@ public class RoleCommandOrderTest {
 
     replay(cluster, yarnService, sch1, sch2, resourcemanagerSC);
 
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     Map<RoleCommandPair, Set<RoleCommandPair>> deps = rco.getDependencies();
-    assertTrue("Dependencies are empty before initialization", deps.size() == 0);
-    rco.initialize(cluster);
     assertTrue("Dependencies are loaded after initialization", deps.size() > 0);
     verify(cluster, yarnService);
     // Check that GLUSTERFS components are not present in dependencies
@@ -262,7 +258,7 @@ public class RoleCommandOrderTest {
     assertNotNull(rmRoleCommandPairs);
     boolean isZookeeperStartPresent = false;
     for (RoleCommandPair pair : rmRoleCommandPairs) {
-      if (pair.cmd == RoleCommand.START && pair.getRole() == Role.ZOOKEEPER_SERVER) {
+      if (pair.getCmd() == RoleCommand.START && pair.getRole() == Role.ZOOKEEPER_SERVER) {
         isZookeeperStartPresent = true;
       }
     }
@@ -271,12 +267,11 @@ public class RoleCommandOrderTest {
 
   @Test
   public void testMissingRestartDependenciesAdded() throws Exception {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
     ServiceComponentHost sch1 = createMock(ServiceComponentHostImpl.class);
     ServiceComponentHost sch2 = createMock(ServiceComponentHostImpl.class);
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
-
+    expect(cluster.getClusterId()).andReturn(1L);
 
     Map<String, ServiceComponentHost> hostComponents = new HashMap<>();
     hostComponents.put("1", sch1);
@@ -293,7 +288,7 @@ public class RoleCommandOrderTest {
 
     replay(cluster, yarnService, sch1, sch2, resourcemanagerSC);
 
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
     verify(cluster, yarnService);
 
@@ -372,10 +367,10 @@ public class RoleCommandOrderTest {
 
   @Test
   public void testInitializeDefault() throws IOException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
+
     ClusterImpl cluster = createMock(ClusterImpl.class);
     expect(cluster.getService("GLUSTERFS")).andReturn(null);
-
+    expect(cluster.getClusterId()).andReturn(1L);
     Service hdfsService = createMock(Service.class);
 
     expect(cluster.getService("HDFS")).andReturn(hdfsService).atLeastOnce();
@@ -387,7 +382,7 @@ public class RoleCommandOrderTest {
     replay(cluster);
     replay(hdfsService);
 
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
     verify(cluster);
     verify(hdfsService);
@@ -395,7 +390,6 @@ public class RoleCommandOrderTest {
 
   @Test
   public void testTransitiveServices() throws AmbariException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = createMock(ClusterImpl.class);
 
     Service hdfsService = createMock(Service.class);
@@ -408,6 +402,7 @@ public class RoleCommandOrderTest {
 
     Service hbaseService = createMock(Service.class);
     expect(cluster.getService("HBASE")).andReturn(hbaseService).atLeastOnce();
+    expect(cluster.getClusterId()).andReturn(1L);
     expect(hbaseService.getCluster()).andReturn(cluster).anyTimes();
 
     ServiceComponent hbaseMaster = createMock(ServiceComponent.class);
@@ -432,7 +427,7 @@ public class RoleCommandOrderTest {
     //replay
     replay(cluster, hdfsService, hbaseService, hbaseMaster, namenode);
 
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
     Set<Service> transitiveServices = rco.getTransitiveServices(
         cluster.getService("HBASE"), RoleCommand.START);

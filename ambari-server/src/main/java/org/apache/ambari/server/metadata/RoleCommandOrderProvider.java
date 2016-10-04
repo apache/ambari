@@ -15,21 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.stageplanner;
+package org.apache.ambari.server.metadata;
 
-import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.state.Cluster;
 
-public interface RoleGraphFactory {
-  /**
-   *
-   * @return
-   */
-  RoleGraph createNew();
+/**
+ * Provider to retrieve RoleCommandOrder objects for a cluster.
+ */
+public interface RoleCommandOrderProvider {
 
-  /**
-   *
-   * @param rd
-   * @return
-   */
-  RoleGraph createNew(RoleCommandOrder rd);
+  RoleCommandOrder getRoleCommandOrder(Cluster cluster);
+  RoleCommandOrder getRoleCommandOrder(Long clusterId);
+
 }

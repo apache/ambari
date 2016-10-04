@@ -51,6 +51,7 @@ import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
@@ -1821,6 +1822,15 @@ public class Configuration {
       "server.stages.parallel", Boolean.TRUE);
 
   /**
+   * In case this is set to DEPENDENCY_ORDERED one stage is created for each request and command dependencies are
+   * handled directly by ActionScheduler. In case of STAGE (which is the default) one or more stages are
+   * created depending on dependencies.
+   */
+  @Markdown(description = "How to execute commands in one stage")
+  public static final ConfigurationProperty<String> COMMAND_EXECUTION_TYPE = new ConfigurationProperty<>(
+    "server.stage.command.execution_type", CommandExecutionType.STAGE.toString());
+
+  /**
    * The time, in {@link TimeUnit#SECONDS}, before agent commands are killed.
    * This does not include package installation commands.
    */
@@ -3059,6 +3069,10 @@ public class Configuration {
 
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
+  }
+
+  public CommandExecutionType getStageExecutionType(){
+    return CommandExecutionType.valueOf(getProperty(COMMAND_EXECUTION_TYPE));
   }
 
   public String getStackAdvisorScript() {
