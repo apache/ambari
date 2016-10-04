@@ -23,11 +23,14 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetricMetadata;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -68,6 +71,25 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
       put(now - 300, 3.0);
     }});
     timelineMetrics.getMetrics().add(metric2);
+
+
+    //Test whitelisting
+    TimelineMetric metric3 = new TimelineMetric();
+    metric3.setMetricName("dummy_metric3");
+    metric3.setHostName("dummy_host3");
+    metric3.setTimestamp(now);
+    metric3.setStartTime(now - 1000);
+    metric3.setAppId("dummy_app3");
+    metric3.setType("Integer");
+    metric3.setMetricValues(new TreeMap<Long, Double>() {{
+      put(now - 100, 1.0);
+      put(now - 200, 2.0);
+      put(now - 300, 3.0);
+    }});
+    timelineMetrics.getMetrics().add(metric3);
+
+    AggregatorUtils.whitelistedMetrics.add("dummy_metric1");
+    AggregatorUtils.whitelistedMetrics.add("dummy_metric2");
 
     hdb.insertMetricRecordsWithMetadata(metadataManager, timelineMetrics, true);
   }
