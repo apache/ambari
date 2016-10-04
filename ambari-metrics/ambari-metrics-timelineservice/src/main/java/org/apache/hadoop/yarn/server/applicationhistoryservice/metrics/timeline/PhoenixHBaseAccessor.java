@@ -68,6 +68,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -713,10 +714,13 @@ public class PhoenixHBaseAccessor {
       LOG.debug("Empty metrics insert request.");
       return;
     }
-    for (TimelineMetric tm: timelineMetrics) {
+    for (Iterator<TimelineMetric> iterator = timelineMetrics.iterator(); iterator.hasNext();) {
+
+      TimelineMetric tm = iterator.next();
 
       if (CollectionUtils.isNotEmpty(AggregatorUtils.whitelistedMetrics) &&
         !AggregatorUtils.whitelistedMetrics.contains(tm.getMetricName())) {
+        iterator.remove();
         continue;
       }
 
