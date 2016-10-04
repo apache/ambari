@@ -126,7 +126,16 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
           File srcKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(destKeytabFilePath));
 
           if (srcKeytabFile.exists()) {
-            installAmbariServerIdentity(evaluatedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath, actionLog);
+            String ownerAccess = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS);
+            boolean ownerWritable = "w".equalsIgnoreCase(ownerAccess) || "rw".equalsIgnoreCase(ownerAccess);
+            boolean ownerReadable = "r".equalsIgnoreCase(ownerAccess) || "rw".equalsIgnoreCase(ownerAccess);
+            String groupAccess = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS);
+            boolean groupWritable = "w".equalsIgnoreCase(groupAccess) || "rw".equalsIgnoreCase(groupAccess);
+            boolean groupReadable = "r".equalsIgnoreCase(groupAccess) || "rw".equalsIgnoreCase(groupAccess);
+
+            installAmbariServerIdentity(evaluatedPrincipal, srcKeytabFile.getAbsolutePath(), destKeytabFilePath,
+                identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME), ownerReadable, ownerWritable,
+                identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME), groupReadable, groupWritable, actionLog);
 
             if ("AMBARI_SERVER".equals(identityRecord.get(KerberosIdentityDataFileReader.COMPONENT))) {
               // Create/update the JAASFile...
@@ -147,6 +156,12 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
    * @param principal          the ambari server principal name
    * @param srcKeytabFilePath  the source location of the ambari server keytab file
    * @param destKeytabFilePath the destination location of the ambari server keytab file
+   * @param ownerName          the username for the owner of the generated keytab file
+   * @param ownerReadable      true if the owner should be able to read this file; otherwise false
+   * @param ownerWritable      true if the owner should be able to write to this file; otherwise false
+   * @param groupName          the name of the group for the generated keytab file
+   * @param groupReadable      true if the group should be able to read this file; otherwise false
+   * @param groupWritable      true if the group should be able to write to this file; otherwise false
    * @param actionLog          the logger
    * @return true if success; false otherwise
    * @throws AmbariException
@@ -154,46 +169,38 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
   public boolean installAmbariServerIdentity(String principal,
                                              String srcKeytabFilePath,
                                              String destKeytabFilePath,
+                                             String ownerName, boolean ownerReadable, boolean ownerWritable,
+                                             String groupName, boolean groupReadable, boolean groupWritable,
                                              ActionLog actionLog) throws AmbariException {
 
-    // Use sudo to copy the file into place....
     try {
-      ShellCommandUtil.Result result;
+      // Copy the keytab file into place (creating the parent directory, if necessary...
+      copyFile(srcKeytabFilePath, destKeytabFilePath);
+      setFileACL(destKeytabFilePath,
+          ownerName, ownerReadable, ownerWritable,
+          groupName, groupReadable, groupWritable);
 
-      // Ensure the parent directory exists...
-      File destKeytabFile = new File(destKeytabFilePath);
-      result = ShellCommandUtil.mkdir(destKeytabFile.getParent(), true);
-      if (!result.isSuccessful()) {
-        throw new AmbariException(result.getStderr());
+      String ambariServerHostName = StageUtils.getHostName();
+      HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
+      Long ambariServerHostID = (ambariServerHostEntity == null)
+          ? null
+          : ambariServerHostEntity.getHostId();
+
+      if (ambariServerHostID == null) {
+        String message = String.format("Failed to add the kerberos_principal_host record for %s on " +
+                "the Ambari server host since the host id for Ambari server host, %s, was not found." +
+                "  This is not an error if an Ambari agent is not installed on the Ambari server host.",
+            principal, ambariServerHostName);
+        LOG.warn(message);
+        if (actionLog != null) {
+          actionLog.writeStdErr(message);
+        }
+      } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID)) {
+        kerberosPrincipalHostDAO.create(principal, ambariServerHostID);
       }
 
-      // Copy the keytab file into place...
-      result = ShellCommandUtil.copyFile(srcKeytabFilePath, destKeytabFilePath, true, true);
-      if (!result.isSuccessful()) {
-        throw new AmbariException(result.getStderr());
-      } else {
-        String ambariServerHostName = StageUtils.getHostName();
-        HostEntity ambariServerHostEntity = hostDAO.findByName(ambariServerHostName);
-        Long ambariServerHostID = (ambariServerHostEntity == null)
-            ? null
-            : ambariServerHostEntity.getHostId();
-
-        if (ambariServerHostID == null) {
-          String message = String.format("Failed to add the kerberos_principal_host record for %s on " +
-                  "the Ambari server host since the host id for Ambari server host, %s, was not found." +
-                  "  This is not an error if an Ambari agent is not installed on the Ambari server host.",
-              principal, ambariServerHostName);
-          LOG.warn(message);
-          if(actionLog != null) {
-            actionLog.writeStdErr(message);
-          }
-        } else if (!kerberosPrincipalHostDAO.exists(principal, ambariServerHostID)) {
-          kerberosPrincipalHostDAO.create(principal, ambariServerHostID);
-        }
-
-        if(actionLog != null) {
-          actionLog.writeStdOut(String.format("Created Ambari server keytab file for %s at %s", principal, destKeytabFile));
-        }
+      if (actionLog != null) {
+        actionLog.writeStdOut(String.format("Created Ambari server keytab file for %s at %s", principal, destKeytabFilePath));
       }
     } catch (InterruptedException | IOException e) {
       throw new AmbariException(e.getLocalizedMessage(), e);
@@ -202,8 +209,16 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
     return true;
   }
 
-  private void configureJAAS(String evaluatedPrincipal, String keytabFilePath, ActionLog actionLog) {
-    String jaasConfPath = System.getProperty(KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+  /**
+   * Configure Ambari's JAAS file to reflect the principal name and keytab file for Ambari's Kerberos
+   * identity.
+   *
+   * @param principal      the Ambari server's principal name
+   * @param keytabFilePath the absolute path to the Ambari server's keytab file
+   * @param actionLog      the logger
+   */
+  public void configureJAAS(String principal, String keytabFilePath, ActionLog actionLog) {
+    String jaasConfPath = getJAASConfFilePath();
     if (jaasConfPath != null) {
       File jaasConfigFile = new File(jaasConfPath);
       try {
@@ -211,16 +226,16 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
         File oldJaasConfigFile = new File(jaasConfPath + ".bak");
         FileUtils.writeStringToFile(oldJaasConfigFile, jaasConfig);
         jaasConfig = jaasConfig.replaceFirst(KEYTAB_PATTERN, "keyTab=\"" + keytabFilePath + "\"");
-        jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + evaluatedPrincipal + "\"");
+        jaasConfig = jaasConfig.replaceFirst(PRINCIPAL_PATTERN, "principal=\"" + principal + "\"");
         FileUtils.writeStringToFile(jaasConfigFile, jaasConfig);
         String message = String.format("JAAS config file %s modified successfully for principal %s.", jaasConfigFile
-            .getName(), evaluatedPrincipal);
+            .getName(), principal);
         if (actionLog != null) {
           actionLog.writeStdOut(message);
         }
       } catch (IOException e) {
-        String message = String.format("Failed to configure JAAS file %s for %s - %s", jaasConfigFile,
-            evaluatedPrincipal, e.getMessage());
+        String message = String.format("Failed to configure JAAS file %s for %s - %s",
+            jaasConfigFile, principal, e.getMessage());
         if (actionLog != null) {
           actionLog.writeStdErr(message);
         }
@@ -236,4 +251,97 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
     }
   }
 
+  /**
+   * Copies the specified source file to the specified destination path, creating any needed parent
+   * directories.
+   * <p>
+   * This method is mocked in unit tests to avoid dealing with ShellCommandUtil in a mocked env.
+   *
+   * @param srcKeytabFilePath  the source location of the ambari server keytab file
+   * @param destKeytabFilePath the destination location of the ambari server keytab file
+   * @throws IOException
+   * @throws InterruptedException
+   * @throws AmbariException
+   * @see ShellCommandUtil#mkdir(String, boolean);
+   * @see ShellCommandUtil#copyFile(String, String, boolean, boolean)
+   */
+  void copyFile(String srcKeytabFilePath, String destKeytabFilePath)
+      throws IOException, InterruptedException {
+
+    ShellCommandUtil.Result result;
+
+    // Create the parent directory if necessary (using sudo)
+    File destKeytabFile = new File(destKeytabFilePath);
+    result = ShellCommandUtil.mkdir(destKeytabFile.getParent(), true);
+    if (!result.isSuccessful()) {
+      throw new AmbariException(result.getStderr());
+    }
+
+    // Copy the file (using sudo)
+    result = ShellCommandUtil.copyFile(srcKeytabFilePath, destKeytabFilePath, true, true);
+    if (!result.isSuccessful()) {
+      throw new AmbariException(result.getStderr());
+    }
+  }
+
+  /**
+   * Sets the access control list for this specified file.
+   * <p>
+   * The owner and group for the file is set as well as the owner's and group's ability to read and write
+   * the file.
+   * <p>
+   * The result of the operation to set the group for the file is ignored since it is possible that
+   * the group does not exist when performing this operation. It is expected this issue will be remedied
+   * when the group becomes available.
+   * <p>
+   * Access for other users is denied and the file is assumed to not be executeable by anyone.
+   *
+   * @param filePath      the path to the file
+   * @param ownerName     the username for the owner of the generated keytab file
+   * @param ownerWritable true if the owner should be able to write to this file; otherwise false
+   * @param ownerReadable true if the owner should be able to read this file; otherwise false
+   * @param groupName     the name of the group for the generated keytab file
+   * @param groupWritable true if the group should be able to write to this file; otherwise false
+   * @param groupReadable true if the group should be able to read this file; otherwise false
+   * @throws AmbariException if an error occurs setting the permissions on the fils
+   */
+  void setFileACL(String filePath,
+                          String ownerName, boolean ownerReadable, boolean ownerWritable,
+                          String groupName, boolean groupReadable, boolean groupWritable)
+      throws AmbariException {
+
+    ShellCommandUtil.Result result;
+
+    result = ShellCommandUtil.setFileOwner(filePath, ownerName);
+
+    if (result.isSuccessful()) {
+      result = ShellCommandUtil.setFileGroup(filePath, groupName);
+
+      if (!result.isSuccessful()) {
+        // Ignore, but log, this it is possible that the group does not exist when performing this operation
+        LOG.warn("Failed to set the group for the file at {} to {}: {}", filePath, groupName, result.getStderr());
+      }
+
+      result = ShellCommandUtil.setFileMode(filePath,
+          ownerReadable, ownerWritable, false,
+          groupReadable, groupWritable, false,
+          false, false, false);
+    }
+
+    if (!result.isSuccessful()) {
+      throw new AmbariException(result.getStderr());
+    }
+  }
+
+  /**
+   * Gets the location of Ambari's JAAS config file.
+   * <p>
+   * This method is mocked in unit tests to avoid having to alter the System properties in
+   * order to locate the test JAAS config file.
+   *
+   * @return the path to Ambari's JAAS config file
+   */
+  String getJAASConfFilePath() {
+    return System.getProperty(KerberosChecker.JAVA_SECURITY_AUTH_LOGIN_CONFIG);
+  }
 }
