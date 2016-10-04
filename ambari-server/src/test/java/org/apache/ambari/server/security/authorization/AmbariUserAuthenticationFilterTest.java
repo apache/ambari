@@ -52,7 +52,7 @@ import static org.junit.Assert.assertNull;
 public class AmbariUserAuthenticationFilterTest {
   private static final String TEST_INTERNAL_TOKEN = "test token";
   private static final String TEST_USER_ID_HEADER = "1";
-  private static final String TEST_USER_NAME = "username"; // use lower case with user entity
+  private static final String TEST_USER_NAME = "userName";
   private static final int TEST_USER_ID = 1;
 
   @Before

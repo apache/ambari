@@ -172,6 +172,6 @@ public class UserService extends BaseService {
    */
   private ResourceInstance createUserResource(String userName) {
     return createResource(Resource.Type.User,
-        Collections.singletonMap(Resource.Type.User, StringUtils.lowerCase(userName)));
+        Collections.singletonMap(Resource.Type.User, userName));
   }
 }
