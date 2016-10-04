@@ -101,8 +101,9 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
     "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
 
-SERVER_INIT_TIMEOUT = 5
-SERVER_START_TIMEOUT = 10
+SERVER_INIT_TIMEOUT = 5   #seconds
+WEB_UI_INIT_TIME = 10     #seconds
+SERVER_START_TIMEOUT = 50 #seconds
 
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
@@ -197,12 +198,17 @@ def wait_for_server_start(pidFile, scmStatus):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def wait_for_server_start(pidFile, scmStatus):
+  properties = get_ambari_properties()
+  if properties == -1:
+    err ="Error getting ambari properties"
+    raise FatalException(-1, err)
+
   #wait for server process for SERVER_START_TIMEOUT seconds
   sys.stdout.write('Waiting for server start...')
   sys.stdout.flush()
 
   pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
-  found_pids = wait_for_pid(pids, SERVER_START_TIMEOUT)
+  found_pids = wait_for_pid(pids, SERVER_INIT_TIMEOUT, SERVER_START_TIMEOUT, WEB_UI_INIT_TIME, properties)
 
   sys.stdout.write('\n')
   sys.stdout.flush()

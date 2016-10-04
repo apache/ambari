@@ -26,6 +26,8 @@ import time
 import glob
 import subprocess
 from ambari_commons import OSConst,OSCheck
+from ambari_commons.logging_utils import print_error_msg
+from ambari_commons.exceptions import FatalException
 
 # PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
@@ -139,13 +141,21 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
       pass
 
 
-def wait_for_pid(pids, timeout):
+def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout, properties):
   """
     Check pid for existence during timeout
   """
+  ambari_server_ui_port = 8080
+  api_ssl = properties.get_property("api.ssl")
+  ssl_api_port = properties.get_property("client.api.ssl.port")
+  if api_ssl and str(api_ssl).lower() == "true":
+    if ssl_api_port:
+      ambari_server_ui_port = int(ssl_api_port)
+
+  server_ui_port_occupied = False
   tstart = time.time()
   pid_live = 0
-  while int(time.time()-tstart) <= timeout and len(pids) > 0:
+  while int(time.time()-tstart) <= occupy_port_timeout and len(pids) > 0:
     sys.stdout.write('.')
     sys.stdout.flush()
     pid_live = 0
@@ -153,6 +163,34 @@ def wait_for_pid(pids, timeout):
       if pid_exists(item["pid"]):
         pid_live += 1
     time.sleep(1)
+
+    try:
+      sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      sock.settimeout(1)
+      sock.connect(('localhost', ambari_server_ui_port))
+      print "\nServer started listening on " + str(ambari_server_ui_port)
+      server_ui_port_occupied = True
+      break
+    except Exception as e:
+      #print str(e)
+      pass
+
+  if not server_ui_port_occupied:
+    raise FatalException(1, "Server not yet listening on http port " + str(ambari_server_ui_port) +
+                            " after " + str(occupy_port_timeout) + str(server_init_timeout) + " seconds. Exiting.")
+
+  tstart = time.time()
+  print "Waiting for 10 seconds, for server WEB UI initialization"
+  while int(time.time()-tstart) <= init_web_ui_timeout and len(pids) > 0:
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    pid_live = 0
+    for item in pids:
+      if pid_exists(item["pid"]):
+        pid_live += 1
+    time.sleep(1)
+
+
   return pid_live
 
 

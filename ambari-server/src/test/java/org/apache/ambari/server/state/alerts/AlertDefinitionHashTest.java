@@ -62,10 +62,12 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests for {@link AlertDefinitionHash}.
  */
+@Category({ category.AlertTest.class})
 public class AlertDefinitionHashTest extends TestCase {
 
   private AlertDefinitionHash m_hash;

@@ -38,6 +38,7 @@ import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -47,6 +48,7 @@ import java.util.Properties;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 
+@Category({ category.KerberosTest.class})
 public class KerberosDescriptorUpdateHelperTest extends EasyMockSupport {
   private static final KerberosDescriptorFactory KERBEROS_DESCRIPTOR_FACTORY = new KerberosDescriptorFactory();
   private static final Gson GSON = new Gson();

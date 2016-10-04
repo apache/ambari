@@ -25,10 +25,13 @@ import junit.framework.Assert;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+
 import java.lang.reflect.Method;
 import java.util.*;
 
 
+@Category({ category.StackUpgradeTest.class})
 public class OSFamilyTest {
    OsFamily os_family = null;
    private Injector injector;
