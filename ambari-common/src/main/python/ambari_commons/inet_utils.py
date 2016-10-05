@@ -22,6 +22,7 @@ import os
 import sys
 import urllib2
 import socket
+from functools import wraps
 
 from exceptions import FatalException, NonFatalException, TimeoutError
 
@@ -181,3 +182,23 @@ def resolve_address(address):
     if address == '0.0.0.0':
       return '127.0.0.1'
   return address
+
+def ensure_ssl_using_tls_v1():
+  """
+  Monkey patching ssl module to force it use tls_v1. Do this in common module to avoid problems with
+  PythonReflectiveExecutor.
+  :return:
+  """
+  from functools import wraps
+  import ssl
+  if hasattr(ssl.wrap_socket, "_ambari_patched"):
+    return # do not create chain of wrappers, patch only once
+  def sslwrap(func):
+    @wraps(func)
+    def bar(*args, **kw):
+      import ssl
+      kw['ssl_version'] = ssl.PROTOCOL_TLSv1
+      return func(*args, **kw)
+    bar._ambari_patched = True
+    return bar
+  ssl.wrap_socket = sslwrap(ssl.wrap_socket)
