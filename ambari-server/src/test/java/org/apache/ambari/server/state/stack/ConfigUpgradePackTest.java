@@ -28,7 +28,6 @@ import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +43,6 @@ import static org.junit.Assert.*;
 /**
  * Tests for the config upgrade pack
  */
-@Category({ category.StackUpgradeTest.class})
 public class ConfigUpgradePackTest {
 
   private Injector injector;
