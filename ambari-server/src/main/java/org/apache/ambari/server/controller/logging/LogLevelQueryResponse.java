@@ -17,10 +17,12 @@
  */
 package org.apache.ambari.server.controller.logging;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LogLevelQueryResponse {
 
   private String startIndex;

@@ -44,8 +44,8 @@ public abstract class AbstractAuditLogRequestQueryConverter<SOURCE extends BaseL
     } else {
       defaultSortOrder = new Sort.Order(Sort.Direction.DESC, AUDIT_EVTTIME);
     }
-    Sort.Order secuqnceIdOrder = new Sort.Order(Sort.Direction.DESC, SEQUENCE_ID);
-    return new Sort(defaultSortOrder, secuqnceIdOrder);
+    Sort.Order sequenceIdOrder = new Sort.Order(Sort.Direction.DESC, SEQUENCE_ID);
+    return new Sort(defaultSortOrder, sequenceIdOrder);
   }
 
   @Override

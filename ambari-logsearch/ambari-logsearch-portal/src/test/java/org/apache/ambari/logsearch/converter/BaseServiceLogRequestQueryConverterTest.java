@@ -19,6 +19,7 @@
 package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogRequest;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,17 +43,17 @@ public class BaseServiceLogRequestQueryConverterTest extends AbstractRequestConv
     ServiceLogRequest logRequest = new ServiceLogRequest();
     fillBaseLogRequestWithTestData(logRequest);
     logRequest.setLevel("FATAL,ERROR,WARN,UNKNOWN");
-    logRequest.setFileName("myfile");
+    logRequest.setFileName("/var/log/myfile-*-hdfs.log");
     logRequest.setComponentName("component");
     logRequest.setHostName("logsearch.com");
     // WHEN
     SimpleQuery query = underTest.convert(logRequest);
     DefaultQueryParser defaultQueryParser = new DefaultQueryParser();
     SolrQuery solrQuery = defaultQueryParser.doConstructSolrQuery(query);
-
+    SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
     // THEN
     assertEquals("?q=*%3A*&start=0&rows=25&fq=log_message%3A*myincludemessage*&fq=-log_message%3A*myexcludemessage*" +
-      "&fq=host%3Alogsearch.com&fq=path%3Amyfile&fq=type%3Acomponent&fq=level%3A%28FATAL+ERROR+WARN+UNKNOWN%29" +
+      "&fq=host%3Alogsearch.com&fq=path%3A%5C%2Fvar%5C%2Flog%5C%2Fmyfile%5C-%5C*%5C-hdfs.log&fq=type%3Acomponent&fq=level%3A%28FATAL+ERROR+WARN+UNKNOWN%29" +
       "&fq=logtime%3A%5B2016-09-13T22%3A00%3A01.000Z+TO+2016-09-14T22%3A00%3A01.000Z%5D&sort=logtime+desc%2Cseq_num+desc",
       solrQuery.toQueryString());
   }
