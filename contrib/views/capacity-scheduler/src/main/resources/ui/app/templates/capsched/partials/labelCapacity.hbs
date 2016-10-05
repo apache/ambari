@@ -19,7 +19,7 @@
 <div class="label-capacity-container">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="panel-title">
+      <div id="collapseLabelCapacityPanelBtn" href="#collapsibleLabelCapacityPanel" data-toggle="collapse" {{bind-attr class=":panel-title :collapsible-panel-btn view.isLabelsPanelCollapsed:collapsed"}}>
         Label Capacity
         {{#if isAnyChildrenQueueLabelDirty}}
           {{#if warnInvalidTotalLabelCapacity}}
@@ -28,7 +28,7 @@
             {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
           {{/if}}
         {{/if}}
-        <a id="collapseLabelCapacityPanelBtn" href="#collapsibleLabelCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isLabelsPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isLabelsPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        <a class="pull-right"><i {{bind-attr class=":fa view.isLabelsPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleLabelCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isLabelsPanelCollapsed::in"}}>

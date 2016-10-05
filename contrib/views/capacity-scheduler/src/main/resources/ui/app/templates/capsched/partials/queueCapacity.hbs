@@ -19,7 +19,7 @@
 <div class="queue-capacity-container">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <div class="panel-title">
+      <div id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":panel-title :collapsible-panel-btn view.isCapacityPanelCollapsed:collapsed"}}>
         Children Queue Capacites for Default Partition
         {{#if isAnyChildrenQueueCapacityDirty}}
           {{#if warnInvalidCapacity}}
@@ -28,7 +28,7 @@
             {{warning-info class="yellow-warning" tooltip="Need refresh queues / restart RM"}}
           {{/if}}
         {{/if}}
-        <a id="collapseQueueCapacityPanelBtn" href="#collapsibleQueueCapacityPanel" data-toggle="collapse" {{bind-attr class=":pull-right view.isCapacityPanelCollapsed:collapsed"}}><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
+        <a class="pull-right"><i {{bind-attr class=":fa view.isCapacityPanelCollapsed:fa-plus:fa-minus"}}></i></a>
       </div>
     </div>
     <div id="collapsibleQueueCapacityPanel" {{bind-attr class=":panel-collapse :collapse view.isCapacityPanelCollapsed::in"}}>
@@ -59,10 +59,20 @@
               <div class="col-md-2 col-sm-2">
                 <label>Total Capacity</label>
               </div>
-              <div class="col-sm-5 col-md-5">
+              <div class="col-sm-4 col-md-4">
                 <div class="progress total-capacity-progress">
                   <div role="progressbar" {{bind-attr class=":progress-bar warnInvalidCapacity:progress-bar-danger:progress-bar-success" style="totalCapacityBarWidth"}}>
                     {{childrenQueuesTotalCapacity}}%
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-3 col-sm-3">
+                <label>Absolute Capacity of Cluster</label>
+              </div>
+              <div class="col-md-3 col-sm-3">
+                <div class="progress total-capacity-progress">
+                  <div role="progressbar" class="progress-bar progress-bar-success" {{bind-attr style="absoluteClusterBarWidth"}}>
+                    {{absoluteClusterCapacity}}%
                   </div>
                 </div>
               </div>
@@ -94,6 +104,18 @@
               </div>
             </div>
             <div class="row">
+              <div class="col-md-4 col-sm-4">
+                <label>Absolute Capacity of Cluster</label>
+              </div>
+              <div class="col-md-4 col-sm-4">
+                <div class="progress total-capacity-progress">
+                  <div role="progressbar" class="progress-bar progress-bar-success" {{bind-attr style="absoluteClusterBarWidth"}}>
+                    {{absoluteClusterCapacity}}%
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="row">
               <div class="col-md-10 col-sm-10">
                 <small><strong>For this queue:</strong> To edit capacity and maximum capacity at parent queue level</small>
                 <small>{{#link-to 'capsched.queuesconf.editqueue' parentQueue}}Click Here{{/link-to}}</small>
@@ -109,6 +131,12 @@
             <div class="col-md-5 col-sm-5">
               <label>Configured Maximum Capacity: </label>
               <span>{{content.maximum_capacity}}%</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-10 col-sm-10">
+              <label>Absolute Capacity of Cluster: </label>
+              <span>{{absoluteClusterCapacity}}%</span>
             </div>
           </div>
         {{/if}}

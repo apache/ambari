@@ -28,6 +28,7 @@ App.CapschedSchedulerController = Ember.Controller.extend({
 
   actions: {
     rollbackSchedulerProps: function() {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
       var sched = this.get('scheduler'),
       attributes = sched.changedAttributes(),
       props = this.schedulerProps;
@@ -36,6 +37,16 @@ App.CapschedSchedulerController = Ember.Controller.extend({
           sched.set(prop, attributes[prop][0]);
         }
       });
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+    },
+    rollbackProp: function(prop, item) {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop, attributes[prop][0]);
+      }
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+      this.afterRollbackProp();
     },
     showConfirmDialog: function() {
       this.set('isConfirmDialogOpen', true);
@@ -102,5 +113,13 @@ App.CapschedSchedulerController = Ember.Controller.extend({
   }, {
     label: 'Dominant Resource Calculator',
     value: 'org.apache.hadoop.yarn.util.resource.DominantResourceCalculator'
-  }]
+  }],
+
+  afterRollbackProp: function() {
+    if (this.get('isSchedulerDirty')) {
+      this.set('isRefreshOrRestartNeeded', true);
+    } else {
+      this.set('isRefreshOrRestartNeeded', false);
+    }
+  }
 });
