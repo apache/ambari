@@ -35,6 +35,7 @@ import optparse
 import shlex
 import datetime
 import tempfile
+import glob
 from AmbariConfig import AmbariConfig
 from ambari_agent.Constants import AGENT_TMP_DIR
 from ambari_commons import OSCheck, OSConst
@@ -388,18 +389,25 @@ class HostCleanup:
 
   def do_erase_dir_silent(self, pathList):
     if pathList:
-      for path in pathList:
-        if path and os.path.exists(path):
-          if os.path.isdir(path):
-            try:
-              shutil.rmtree(path)
-            except:
-              logger.warn("Failed to remove dir: " + path + ", error: " + str(sys.exc_info()[0]))
-          else:
-            logger.info(path + " is a file and not a directory, deleting file")
-            self.do_erase_files_silent([path])
-        else:
-          logger.info("Path doesn't exists: " + path)
+      for aPath in pathList:
+        pathArr = glob.glob(aPath)
+        logger.debug("Resolved {0} to {1}".format(aPath, ','.join(pathArr)))
+        for path in pathArr:
+          if path:
+            if os.path.exists(path):
+              if os.path.isdir(path):
+                try:
+                  shutil.rmtree(path)
+                except:
+                  logger.warn("Failed to remove dir {0} , error: {1}".format(path, str(sys.exc_info()[0])))
+              else:
+                logger.info("{0} is a file, deleting file".format(path))
+                self.do_erase_files_silent([path])
+            elif os.path.islink(path):
+              logger.info("Deleting broken symbolic link {0}".format(path))
+              self.do_erase_files_silent([path])
+            else:
+              logger.info("Path doesn't exists: {0}".format(path))
     return 0
 
   def do_erase_files_silent(self, pathList):
