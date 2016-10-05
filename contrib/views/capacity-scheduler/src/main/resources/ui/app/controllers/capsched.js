@@ -19,6 +19,11 @@
 var App = require('app');
 
 App.CapschedController = Ember.Controller.extend({
+  queues: null,
+  precision: 2,
+  selectedQueue: null,
+  allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
+
   actions: {
     loadTagged: function (tag) {
       this.transitionToRoute('capsched.scheduler').then(function() {
@@ -27,7 +32,7 @@ App.CapschedController = Ember.Controller.extend({
     },
     clearAlert: function () {
       this.set('alertMessage',null);
-    },
+    }
   },
 
   /**
@@ -41,6 +46,26 @@ App.CapschedController = Ember.Controller.extend({
    * @type {Boolean}
    */
   isNotOperator: Ember.computed.not('isOperator'),
+
+  queuesWatcher: function() {
+    var allQueues = this.get('queues') || [];
+    allQueues.forEach(function(queue) {
+      var absCap = this.getAbsoluteCapacityForQueue(queue);
+      queue.set('absolute_capacity', absCap);
+    }.bind(this));
+  }.observes('queues', 'queues.[]', 'queues.@each.capacity').on('init'),
+
+  getAbsoluteCapacityForQueue: function(queue) {
+    var allQueues = this.get('queues');
+    var effectCapRatio = 1;
+    while (queue !== null) {
+      effectCapRatio *= queue.get('capacity') / 100;
+      queue = allQueues.findBy('id', queue.get('parentPath').toLowerCase()) || null;
+    }
+    var effectCapPercent = effectCapRatio * 100,
+    absoluteCap = parseFloat(parseFloat(effectCapPercent).toFixed(this.get('precision')));;
+    return absoluteCap;
+  },
 
   alertMessage: null,
 
@@ -60,5 +85,17 @@ App.CapschedController = Ember.Controller.extend({
 
   stopSpinner: function() {
     this.set('showSpinner', false);
+  },
+
+  diffXmlConfig: null,
+
+  viewConfigXmlDiff: function(config) {
+    this.set('diffXmlConfig', config);
+  },
+
+  viewXmlConfig: null,
+
+  viewCapSchedXml: function(config) {
+    this.set('viewXmlConfig', config);
   }
 });

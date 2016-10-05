@@ -25,6 +25,7 @@ App.CapschedAdvancedController = Ember.Controller.extend({
 
   actions: {
     rollbackQueueMappingProps: function() {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
       var sched = this.get('scheduler'),
       attributes = sched.changedAttributes(),
       props = this.queueMappingProps;
@@ -33,6 +34,16 @@ App.CapschedAdvancedController = Ember.Controller.extend({
           sched.set(prop, attributes[prop][0]);
         }
       });
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+    },
+    rollbackProp: function(prop, item) {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop, attributes[prop][0]);
+      }
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+      this.afterRollbackProp();
     },
     showSaveConfigDialog: function(mode) {
       if (mode) {
@@ -76,5 +87,13 @@ App.CapschedAdvancedController = Ember.Controller.extend({
 
   forceRefreshRequired: function() {
     return !this.get('isQueueMappingsDirty') && this.get('isRefreshOrRestartNeeded');
-  }.property('isQueueMappingsDirty', 'isRefreshOrRestartNeeded')
+  }.property('isQueueMappingsDirty', 'isRefreshOrRestartNeeded'),
+
+  afterRollbackProp: function() {
+    if (this.get('isQueueMappingsDirty')) {
+      this.set('isRefreshOrRestartNeeded', true);
+    } else {
+      this.set('isRefreshOrRestartNeeded', false);
+    }
+  }
 });

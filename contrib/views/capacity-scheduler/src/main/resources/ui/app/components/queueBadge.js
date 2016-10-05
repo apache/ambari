@@ -34,11 +34,13 @@ App.WarningInfoComponent = Em.Component.extend({
   layout:Em.Handlebars.compile('<i class="fa fa-fw fa-lg fa-warning"></i>'),
   tagName:'span',
   tooltip:'Warning',
+  placement:'bottom',
   initTooltip: function(){
-    var tipMsg = this.get('tooltip');
+    var tipMsg = this.get('tooltip'),
+    postion = this.get('placement');
     this.$().tooltip({
       title:tipMsg,
-      placement:'bottom'
+      placement:postion
     });
   }.on('didInsertElement'),
 });

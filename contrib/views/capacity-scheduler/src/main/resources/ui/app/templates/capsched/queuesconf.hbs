@@ -22,7 +22,7 @@
       <div class="row">
         <div class="col-sm-7">
           <div class="list-group queue-hierarchy">
-            {{queue-hierarchy depth=0 queues=queues}}
+            {{queue-hierarchy depth=0 queues=queues deletedQs=deletedQueues}}
           </div>
           {{#if isOperator}}
             {{#if selectedQueue}}
@@ -81,15 +81,16 @@
     </div>
   </div>
   {{#if isOperator}}
-    <div class="btn btn-group-sm col-sm-offset-2">
-      {{#if isQueuesNeedRefreshOrRestart}}
-        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Refresh queues / restart RM is required"}}
+    <div class="btn btn-group-sm col-sm-offset-1">
+      {{#if showNeedRefreshOrRestartWarning}}
+        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Require refresh queues/restart RM" placement="top"}}
       {{/if}}
       <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled needSave::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isQueuesNeedRefreshOrRestart::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
-      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isQueuesNeedRefreshOrRestart::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isDirtyQueuesNeedRefreshQsOp::disabled"}} name="saveAndRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
+      <button type="button" {{bind-attr class=":btn :btn-success canNotSave:disabled isDirtyQueuesNeedRestartRmOp::disabled"}} name="saveAndRestart" {{action "showSaveConfigDialog" "restart"}}>Save And Restart RM</button>
       <button type="button" {{bind-attr class=":btn :btn-danger isAnyQueueDirty::disabled"}} name="cancelQueuesconfBtn" {{action "showConfirmDialog"}}>Discard Changes</button>
-      <button type="button" {{bind-attr class=":btn :btn-primary isAnyQueueDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}} style="display:none;">View XML Diff</button>
+      <button type="button" {{bind-attr class=":btn :btn-primary isAnyQueueDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}}>View Diff</button>
+      <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
     </div>
   {{/if}}
 </div>
