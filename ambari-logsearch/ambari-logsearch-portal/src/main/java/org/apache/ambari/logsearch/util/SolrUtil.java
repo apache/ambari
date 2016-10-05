@@ -19,7 +19,9 @@
 
 package org.apache.ambari.logsearch.util;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.logsearch.common.LogSearchConstants;
@@ -145,6 +147,17 @@ public class SolrUtil {
     newSearch = newSearch.replaceAll("(?=[]\\[+&|!(){}^~=$/@%?:.\\\\-])", "\\\\");
 
     return newSearch.replace(" ", "\\ ");
+  }
+
+  public static void removeDoubleOrTripleEscapeFromFilters(SolrQuery solrQuery) {
+    String[] filterQueries = solrQuery.getFilterQueries();
+    List<String> newArray = new ArrayList<>();
+    if (filterQueries != null && filterQueries.length > 0) {
+      for (String filterQuery : filterQueries) {
+        newArray.add(filterQuery.replaceAll("\\\\\\\\\\\\|\\\\\\\\", "\\\\"));
+      }
+    }
+    solrQuery.setFilterQueries(newArray.toArray(new String[0]));
   }
   
 

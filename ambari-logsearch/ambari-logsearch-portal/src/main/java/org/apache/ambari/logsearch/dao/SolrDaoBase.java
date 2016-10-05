@@ -23,6 +23,7 @@ import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -49,6 +50,7 @@ public abstract class SolrDaoBase {
   }
 
   public QueryResponse process(SolrQuery solrQuery, String event) {
+    SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
     if (getSolrClient() != null) {
       event = event == null ? solrQuery.get("event") : event;
       solrQuery.remove("event");

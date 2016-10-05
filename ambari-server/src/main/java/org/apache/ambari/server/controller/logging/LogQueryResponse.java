@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.logging;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.util.JSONPObject;
 
@@ -29,6 +30,7 @@ import java.util.List;
  * a call to the LogSearch service.
  *
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LogQueryResponse {
 
 

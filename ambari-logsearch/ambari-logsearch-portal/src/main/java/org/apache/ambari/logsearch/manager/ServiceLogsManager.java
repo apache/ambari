@@ -216,15 +216,9 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   public LogListResponse getPageByKeyword(ServiceLogRequest request, String event)
     throws SolrServerException {
     String defaultChoice = "0";
-    String key = request.getKeyWord();
-    if (StringUtils.isBlank(key)) {
+    String keyword = request.getKeyWord();
+    if (StringUtils.isBlank(keyword)) {
       throw RESTErrorUtil.createRESTException("Keyword was not given", MessageEnums.DATA_NOT_FOUND);
-    }
-    String keyword = SolrUtil.escapeForStandardTokenizer(key);
-
-    if (keyword.startsWith("\"") && keyword.endsWith("\"")) {
-      keyword = keyword.substring(1);
-      keyword = keyword.substring(0, keyword.length() - 1);
     }
 
     boolean isNext = !defaultChoice.equals(request.getKeywordType()); // 1 is next, 0 is previous

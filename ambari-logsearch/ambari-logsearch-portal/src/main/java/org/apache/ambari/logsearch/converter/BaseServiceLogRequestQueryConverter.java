@@ -22,6 +22,7 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.BaseServiceLogRequest;
 import org.apache.ambari.logsearch.util.SolrUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.query.SimpleQuery;
@@ -49,7 +50,9 @@ public class BaseServiceLogRequestQueryConverter extends AbstractServiceLogReque
     addEqualsFilterQuery(query, PATH, SolrUtil.escapeQueryChars(request.getFileName()));
     addEqualsFilterQuery(query, COMPONENT, SolrUtil.escapeQueryChars(request.getComponentName()));
     addEqualsFilterQuery(query, BUNDLE_ID, request.getBundleId());
-    addInFilterQuery(query, LEVEL, levels);
+    if (CollectionUtils.isNotEmpty(levels)){
+      addInFilterQuery(query, LEVEL, levels);
+    }
     addRangeFilter(query, LOGTIME, request.getFrom(), request.getTo());
     return query;
   }
@@ -65,8 +68,8 @@ public class BaseServiceLogRequestQueryConverter extends AbstractServiceLogReque
     } else {
       defaultSortOrder = new Sort.Order(Sort.Direction.DESC, LOGTIME);
     }
-    Sort.Order secuqnceIdOrder = new Sort.Order(Sort.Direction.DESC, SEQUENCE_ID);
-    return new Sort(defaultSortOrder, secuqnceIdOrder);
+    Sort.Order sequenceIdOrder = new Sort.Order(Sort.Direction.DESC, SEQUENCE_ID);
+    return new Sort(defaultSortOrder, sequenceIdOrder);
   }
 
   @Override

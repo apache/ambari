@@ -47,7 +47,6 @@ import org.apache.ambari.logsearch.model.response.NodeListResponse;
 import org.apache.ambari.logsearch.model.response.ServiceLogResponse;
 import org.apache.ambari.logsearch.manager.ServiceLogsManager;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.convert.ConversionService;
 
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceOperationDescriptions.*;
 
@@ -59,9 +58,6 @@ public class ServiceLogsResource {
 
   @Inject
   private ServiceLogsManager serviceLogsManager;
-
-  @Inject
-  private ConversionService conversionService;
 
   @GET
   @Produces({"application/json"})

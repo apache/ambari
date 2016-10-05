@@ -318,7 +318,7 @@ define(['require',
                     var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
                     return {
                       includeQuery: JSON.stringify(obj),
-                      iMessage: query
+                      query: query
                     }
                   }
                 }));
@@ -334,7 +334,7 @@ define(['require',
                     var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
                     return {
                       excludeQuery: JSON.stringify(obj),
-                      eMessage: query
+                      query: query
                     }
                   }
                 }));
