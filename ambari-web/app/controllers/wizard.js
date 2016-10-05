@@ -920,19 +920,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
-      _content.get('configs').forEach(function (_configProperties) {
-        if (!Em.isNone(_configProperties.get('group'))) {
+      _content.get('configs').forEach(function (_configProperty) {
+        if (!Em.isNone(_configProperty.get('group'))) {
           return false;
         }
-        var configProperty = App.config.createDefaultConfig(
-          _configProperties.get('name'),
-          _configProperties.get('filename'),
-          // need to invert boolean because this argument will be inverted in method body
-          !_configProperties.get('isUserProperty'),
-          _configProperties.getProperties('value', 'isRequired', 'errorMessage', 'warnMessage')
-        );
-        configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, [], ['name', 'filename', 'isUserProperty', 'value']);
-
+        var configProperty = App.config.createMinifiedConfig(_configProperty);
         if (this.isExcludedConfig(configProperty)) {
           configProperty.value = '';
         }

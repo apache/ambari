@@ -1140,6 +1140,9 @@
     vertical-align: middle;
     font-size: 1.5em;
   }
+  .collapsible-panel-btn {
+    cursor: pointer;
+  }
 }
 
 .queue-summary {
@@ -1297,4 +1300,60 @@
 
 .alert-message-dialog {
   display: block;
+}
+
+.xmldiff-viewer {
+  overflow: hidden;
+  .modal-dialog {
+    width: 98%;
+    .modal-body {
+      overflow: auto;
+    }
+    .modal-footer {
+      padding: 12px 20px 0 0;
+    }
+    .viewxml-textarea {
+      resize: none;
+    }
+  }
+  table.diff {
+    th.author {
+      display: none;
+    }
+  }
+}
+
+.hierarchical-piechart {
+  .sunburst-chart {
+    position: relative;
+    path {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+    svg {
+      margin-left: 20px;
+    }
+    .top-container {
+      padding-bottom: 15px;
+    }
+    .queue-explanation {
+      position: absolute;
+      width: 70px;
+      text-align: center;
+      color: #666;
+      z-index: 999;
+    }
+    .percentage, .queue-name, .queue-path {
+      font-weight: bold;
+    }
+    .queue-info {
+      width: 50%;
+      display: inline-block;
+    }
+    .select-capacity-type {
+      width: 45%;
+      display: inline-block;
+      vertical-align: top;
+    }
+  }
 }

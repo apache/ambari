@@ -31,7 +31,7 @@
 
    isQueueStateNeedRefresh: function() {
      var qsNeedRefresh = this.get('queuesNeedRefresh'),
-      qq = this.get('queue');
+       qq = this.get('queue');
 
      if (qsNeedRefresh && qsNeedRefresh.findBy('path', qq.get('path'))) {
        return true;
@@ -44,7 +44,7 @@
 
    isQueueCapacityNeedRefresh: function() {
      var qsNeedRefresh = this.get('queuesNeedRefresh'),
-      qq = this.get('queue');
+       qq = this.get('queue');
 
      if (qsNeedRefresh && qsNeedRefresh.findBy('path', qq.get('path'))) {
        return true;
@@ -89,22 +89,5 @@
 
    isNewQueue: function() {
      return this.get('queue.isNewQueue');
-   }.property('queue.isNewQueue'),
-
-   effectiveCapacity: function() {
-     var currentQ = this.get('queue'),
-       allQueues = this.get('allQueues'),
-       effectiveCapacityRatio = 1;
-
-     while (currentQ !== null) {
-       effectiveCapacityRatio *= (currentQ.get('capacity') / 100);
-       currentQ = allQueues.findBy('id', currentQ.get('parentPath').toLowerCase()) || null;
-     }
-
-     var effectiveCapacityPercent = effectiveCapacityRatio * 100,
-       absoluteCapacity = parseFloat(parseFloat(effectiveCapacityPercent).toFixed(this.get('precision')));
-       this.get('queue').set('absolute_capacity', absoluteCapacity || 0);
-
-     return absoluteCapacity;
-   }.property('queue.capacity', 'allQueues.@each.capacity', 'allQueues.length')
+   }.property('queue.isNewQueue')
  });

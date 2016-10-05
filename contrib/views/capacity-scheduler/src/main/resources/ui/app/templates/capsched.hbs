@@ -40,6 +40,10 @@
   </div>
 </div>
 <div class="col-lg-4 capsched-versions-wrapper">
+  {{#if selectedQueue}}
+    {{sunburst-chart queues=queues selectedQueue=selectedQueue allNodeLabels=allNodeLabels}}
+  {{/if}}
+
   {{partial "versionsPanel"}}
 </div>
 
@@ -64,3 +68,5 @@
     </div>
   </div>
 </div>
+
+{{xmldiff-viewer diffConfig=diffXmlConfig viewConfig=viewXmlConfig}}

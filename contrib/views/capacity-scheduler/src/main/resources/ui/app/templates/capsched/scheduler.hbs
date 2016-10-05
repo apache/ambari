@@ -137,13 +137,15 @@
 </div>
 {{#if isOperator}}
   <div class="row">
-    <div class="btn btn-group-sm col-sm-offset-3">
+    <div class="btn btn-group-sm col-sm-offset-2">
       {{#if isSchedulerPropsNeedSaveOrRestart}}
-        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Restart RM is required"}}
+        {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Restart RM is required" placement="top"}}
       {{/if}}
       <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerDirty::disabled"}} name="saveOnly" {{action 'showSaveConfigDialog'}}>Save Only</button>
       <button type="button" {{bind-attr class=":btn :btn-default :btn-success isSchedulerPropsNeedSaveOrRestart::disabled"}} name="saveRestart" {{action 'showSaveConfigDialog' 'restart'}}>Save And Restart RM</button>
       <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isSchedulerDirty::disabled"}} name="cancelAdvanced" {{action 'showConfirmDialog'}}>Discard Changes</button>
+      <button type="button" {{bind-attr class=":btn :btn-primary isSchedulerDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}}>View Diff</button>
+      <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
     </div>
   </div>
 {{/if}}

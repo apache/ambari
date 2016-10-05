@@ -49,10 +49,14 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
 
   warnInvalidLabelCapacity: function() {
     var totalCap = this.get('childrenQueueLabelsTotalCapacity');
-    var isInvalid = false;
-    if (totalCap > 100 || totalCap < 100) {
-      isInvalid = true;
-    }
+    var isInvalid = totalCap !== 100;
+    this.get('labels').forEach(function(label) {
+      if (isInvalid) {
+        label.set('overCapMessage', 'Invalid Total Capacity for label: '+label.get('name'));
+      } else {
+        label.set('overCapMessage', undefined);
+      }
+    });
     this.get('labels').setEach('overCapacity', isInvalid);
     this.set('warnInvalidTotalLabelCapacity', isInvalid);
     return isInvalid;
