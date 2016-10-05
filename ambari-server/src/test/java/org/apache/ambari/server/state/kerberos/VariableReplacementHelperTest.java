@@ -21,10 +21,12 @@ package org.apache.ambari.server.state.kerberos;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Category({ category.KerberosTest.class})
 public class VariableReplacementHelperTest {
   VariableReplacementHelper helper = new VariableReplacementHelper();
 

@@ -61,10 +61,12 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests the {@link AlertReceivedListener}.
  */
+@Category({ category.AlertTest.class})
 public class AlertReceivedListenerTest {
 
   private static final String ALERT_DEFINITION = "alert_definition_";
