@@ -31,7 +31,6 @@
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
-    <module>../utility</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -169,9 +168,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
-
-          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
-          <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -301,28 +297,7 @@
   </build>
 
   <dependencies>
-    <!-- Dependency in order to annotate unit tests with a category. -->
-    <dependency>
-      <groupId>utility</groupId>
-      <artifactId>utility</artifactId>
-      <version>1.0.0.0-SNAPSHOT</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
-  <profiles>
-    <profile>
-      <id>FastTests</id>
-      <properties>
-        <testcase.groups>category.FastTest</testcase.groups>
-      </properties>
-      <dependencies>
-        <dependency>
-          <groupId>utility</groupId>
-          <artifactId>utility</artifactId>
-          <version>1.0.0.0-SNAPSHOT</version>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+
 </project>

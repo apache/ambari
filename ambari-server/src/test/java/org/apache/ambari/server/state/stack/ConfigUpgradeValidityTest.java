@@ -39,7 +39,6 @@ import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +52,6 @@ import junit.framework.Assert;
  * Tests that for every upgrade pack found, that all referenced configuration
  * IDs exist in the {@code config-upgrade.xml} which will be used/created.
  */
-@Category({ category.StackUpgradeTest.class})
 public class ConfigUpgradeValidityTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ConfigUpgradeValidityTest.class);
