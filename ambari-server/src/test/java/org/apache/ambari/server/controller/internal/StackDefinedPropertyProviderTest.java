@@ -146,7 +146,6 @@ public class StackDefinedPropertyProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c2");
 

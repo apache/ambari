@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -79,10 +78,10 @@ import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -171,7 +170,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -313,7 +311,6 @@ public class AmbariManagementControllerTest {
       clusters.addHost(hostname);
       setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
       clusters.getHost(hostname).setState(HostState.HEALTHY);
-      clusters.getHost(hostname).persist();
     }
 
     if (null != clusterName) {
@@ -628,8 +625,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host2);
     setOsFamily(clusters.getHost(host1), "redhat", "6.3");
     setOsFamily(clusters.getHost(host2), "redhat", "6.3");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
 
     controller.createCluster(r);
     Assert.assertNotNull(clusters.getCluster(cluster1));
@@ -1674,19 +1669,16 @@ public class AmbariManagementControllerTest {
     h1.setIPv4("ipv41");
     h1.setIPv6("ipv61");
     setOsFamily(h1, "redhat", "6.3");
-    h1.persist();
     clusters.addHost(host2);
     Host h2 = clusters.getHost(host2);
     h2.setIPv4("ipv42");
     h2.setIPv6("ipv62");
     setOsFamily(h2, "redhat", "6.3");
-    h2.persist();
     clusters.addHost(host3);
     Host h3 = clusters.getHost(host3);
     h3.setIPv4("ipv43");
     h3.setIPv6("ipv63");
     setOsFamily(h3, "redhat", "6.3");
-    h3.persist();
 
     try {
       set1.clear();
@@ -1808,8 +1800,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host2);
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
 
     HostRequest request = new HostRequest(host2, "foo", new HashMap<String, String>());
     requests.add(request);
@@ -1864,9 +1854,6 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
     setOsFamily(clusters.getHost(host3), "redhat", "5.9");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
-    clusters.getHost(host3).persist();
 
     HostRequest r1 = new HostRequest(host1, cluster1, null);
     HostRequest r2 = new HostRequest(host2, cluster1, null);
@@ -3136,7 +3123,6 @@ public class AmbariManagementControllerTest {
         "centos5");
     clusters.addHost(host4);
     setOsFamily(clusters.getHost(host4), "redhat", "5.9");
-    clusters.getHost(host4).persist();
 
     Map<String, String> attrs = new HashMap<String, String>();
     attrs.put("a1", "b1");
@@ -8377,7 +8363,6 @@ public class AmbariManagementControllerTest {
         RepositoryVersionState.INSTALLING);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost(hostName1), "redhat", "5.9");
-    clusters.getHost(hostName1).persist();
 
     clusters.mapHostsToCluster(new HashSet<String>(){
       {add(hostName1);}}, cluster1);
@@ -9353,13 +9338,10 @@ public class AmbariManagementControllerTest {
       clusters.addHost("host3");
       Host host = clusters.getHost("host1");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
       host = clusters.getHost("host2");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
       host = clusters.getHost("host3");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
 
       ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, "HDP-1.2.0", null);
       amc.createCluster(clusterRequest);
@@ -9402,12 +9384,10 @@ public class AmbariManagementControllerTest {
       clusters.addHost(HOST1);
       Host host = clusters.getHost(HOST1);
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
 
       clusters.addHost(HOST2);
       host = clusters.getHost(HOST2);
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
 
       AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
 
@@ -9497,13 +9477,10 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host3);
     Host host = clusters.getHost("host1");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
     host = clusters.getHost("host2");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
     host = clusters.getHost("host3");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
 
     ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, "HDP-1.2.0", null);
     amc.createCluster(clusterRequest);
@@ -9802,7 +9779,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(HOST1);
     Host host = clusters.getHost(HOST1);
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
 
     ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(clusterRequest);

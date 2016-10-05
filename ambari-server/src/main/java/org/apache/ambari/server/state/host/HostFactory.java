@@ -21,5 +21,5 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Host;
 
 public interface HostFactory {
-  Host create(HostEntity hostEntity, boolean persisted);
+  Host create(HostEntity hostEntity);
 }

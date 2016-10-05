@@ -146,10 +146,8 @@ public class TestHeartbeatMonitor {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
-    clusters.getHost(hostname1).persist();
     clusters.addHost(hostname2);
     setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
-    clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -232,10 +230,8 @@ public class TestHeartbeatMonitor {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
-    clusters.getHost(hostname1).persist();
     clusters.addHost(hostname2);
     setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
-    clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -360,7 +356,6 @@ public class TestHeartbeatMonitor {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "5.9");
-    clusters.getHost(hostname1).persist();
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -443,7 +438,6 @@ public class TestHeartbeatMonitor {
     Clusters clusters = injector.getInstance(Clusters.class);
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
-    clusters.getHost(hostname1).persist();
 
     clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
@@ -559,11 +553,9 @@ public class TestHeartbeatMonitor {
 
     clusters.addHost(hostname1);
     setOsFamily(clusters.getHost(hostname1), "redhat", "6.3");
-    clusters.getHost(hostname1).persist();
 
     clusters.addHost(hostname2);
     setOsFamily(clusters.getHost(hostname2), "redhat", "6.3");
-    clusters.getHost(hostname2).persist();
     clusters.addCluster(clusterName, stackId);
 
     Cluster cluster = clusters.getCluster(clusterName);

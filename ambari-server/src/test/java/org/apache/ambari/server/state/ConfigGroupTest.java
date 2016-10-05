@@ -72,8 +72,6 @@ public class ConfigGroupTest {
     clusters.addHost("h2");
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
-    clusters.getHost("h1").persist();
-    clusters.getHost("h2").persist();
   }
 
   @After

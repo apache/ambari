@@ -213,7 +213,6 @@ public class HeartbeatTestHelper {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
       host.setHostAttributes(hostAttributes);
-      host.persist();
 
       HostEntity hostEntity = hostDAO.findByName(hostName);
       Assert.assertNotNull(hostEntity);

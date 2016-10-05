@@ -150,7 +150,6 @@ public class ServiceComponentHostTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
       host.setHostAttributes(hostAttributes);
-      host.persist();
     }
 
     clusterEntity.setHostEntities(hostEntities);

@@ -18,8 +18,8 @@
 package org.apache.ambari.server.checks;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -44,8 +44,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -147,7 +145,6 @@ public class InstallPackagesCheckTest {
     final List<HostVersionEntity> hostVersionEntities = new ArrayList<HostVersionEntity>();
     for(String hostName : hostNames) {
       Host host =  Mockito.mock(Host.class);
-      host.setHostName(hostName);
       Mockito.when(host.getHostName()).thenReturn(hostName);
       Mockito.when(host.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
       hosts.add(host);

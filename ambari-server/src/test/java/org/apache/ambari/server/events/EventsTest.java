@@ -110,7 +110,6 @@ public class EventsTest {
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);

@@ -185,7 +185,7 @@ public class ClustersImpl implements Clusters {
   private void loadClustersAndHosts() {
     List<HostEntity> hostEntities = hostDAO.findAll();
     for (HostEntity hostEntity : hostEntities) {
-      Host host = hostFactory.create(hostEntity, true);
+      Host host = hostFactory.create(hostEntity);
       hosts.put(hostEntity.getHostName(), host);
       hostsById.put(hostEntity.getHostId(), host);
     }
@@ -411,7 +411,7 @@ public class ClustersImpl implements Clusters {
     hostEntity.setClusterEntities(new ArrayList<ClusterEntity>());
 
     // not stored to DB
-    Host host = hostFactory.create(hostEntity, false);
+    Host host = hostFactory.create(hostEntity);
     host.setAgentVersion(new AgentVersion(""));
     List<DiskInfo> emptyDiskList = new ArrayList<DiskInfo>();
     host.setDisksInfo(emptyDiskList);

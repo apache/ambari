@@ -152,7 +152,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
@@ -208,7 +207,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster(hostName, clusterName);
 

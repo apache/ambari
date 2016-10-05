@@ -296,9 +296,6 @@ public class ClustersTest {
     setOsFamily(clusters.getHost(h1), "redhat", "6.4");
     setOsFamily(clusters.getHost(h2), "redhat", "5.9");
     setOsFamily(clusters.getHost(h3), "redhat", "6.4");
-    clusters.getHost(h1).persist();
-    clusters.getHost(h2).persist();
-    clusters.getHost(h3).persist();
 
     try {
         clusters.getClustersForHost(h4);
@@ -381,9 +378,6 @@ public class ClustersTest {
     setOsFamily(clusters.getHost(h1), "redhat", "6.4");
     setOsFamily(clusters.getHost(h2), "redhat", "5.9");
     setOsFamily(clusters.getHost(h3), "redhat", "6.4");
-    clusters.getHost(h1).persist();
-    clusters.getHost(h2).persist();
-    clusters.getHost(h3).persist();
     clusters.mapHostToCluster(h1, c1);
     clusters.mapHostToCluster(h2, c1);
 
@@ -435,8 +429,6 @@ public class ClustersTest {
     Host host2 = clusters.getHost(h2);
     setOsFamily(clusters.getHost(h1), "centos", "5.9");
     setOsFamily(clusters.getHost(h2), "centos", "5.9");
-    host1.persist();
-    host2.persist();
 
     clusters.mapHostsToCluster(new HashSet<String>() {
       {
@@ -446,7 +438,6 @@ public class ClustersTest {
 
     // host config override
     host1.addDesiredConfig(cluster.getClusterId(), true, "_test", config2);
-    host1.persist();
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
@@ -705,7 +696,6 @@ public class ClustersTest {
 
     Host host = clusters.getHost(hostName);
     setOsFamily(clusters.getHost(hostName), "centos", "5.9");
-    host.persist();
 
     Set<String> hostnames = new HashSet<>();
     hostnames.add(hostName);

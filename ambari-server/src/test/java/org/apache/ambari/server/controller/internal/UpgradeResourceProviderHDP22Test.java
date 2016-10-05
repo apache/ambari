@@ -174,7 +174,6 @@ public class UpgradeResourceProviderHDP22Test {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
 

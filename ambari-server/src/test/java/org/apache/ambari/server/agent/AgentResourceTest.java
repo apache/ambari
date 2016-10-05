@@ -68,6 +68,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.topology.PersistedState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
@@ -314,6 +315,7 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
       bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
       bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+      bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
     }
 
     private void installDependencies() {

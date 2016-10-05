@@ -18,10 +18,14 @@
 
 package org.apache.ambari.server.state;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ServiceComponentResponse;
@@ -46,13 +50,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import junit.framework.Assert;
 
 public class ServiceComponentTest {
 
@@ -181,12 +183,10 @@ public class ServiceComponentTest {
     h.setIPv6(hostname + "ipv6");
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
-	hostAttributes.put("os_family", "redhat");
-	hostAttributes.put("os_release_version", "6.3");
-	h.setHostAttributes(hostAttributes);
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    h.setHostAttributes(hostAttributes);
 
-
-    h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }
 

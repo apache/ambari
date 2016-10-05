@@ -410,7 +410,6 @@ public class OrmTestHelper {
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster(hostName, cluster.getClusterName());
   }

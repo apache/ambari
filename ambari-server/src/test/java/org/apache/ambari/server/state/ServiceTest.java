@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -39,6 +38,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 public class ServiceTest {
 
@@ -339,8 +340,6 @@ public class ServiceTest {
     hostAttributes.put("os_release_version", "6.3");
     h.setHostAttributes(hostAttributes);
 
-
-    h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }
 }

@@ -115,7 +115,6 @@ public class ConcurrentServiceConfigVersionTest {
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-    clusters.getHost(hostName).persist();
     clusters.mapHostToCluster(hostName, "c1");
 
     Service service = installService("HDFS");

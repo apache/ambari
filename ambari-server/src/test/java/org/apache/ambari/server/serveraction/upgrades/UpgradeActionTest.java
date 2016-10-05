@@ -191,7 +191,6 @@ public class UpgradeActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
@@ -229,7 +228,6 @@ public class UpgradeActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
@@ -295,7 +293,6 @@ public class UpgradeActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // without this, HostEntity will not have a relation to ClusterEntity
     clusters.mapHostsToCluster(Collections.singleton(hostName), clusterName);
@@ -376,7 +373,6 @@ public class UpgradeActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster(hostName, clusterName);
 

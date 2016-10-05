@@ -543,7 +543,6 @@ public class HeartbeatProcessorTest {
   public void testCommandReport() throws AmbariException {
     injector.injectMembers(this);
     clusters.addHost(DummyHostname1);
-    clusters.getHost(DummyHostname1).persist();
 
     StackId dummyStackId = new StackId(DummyStackId);
     clusters.addCluster(DummyCluster, dummyStackId);

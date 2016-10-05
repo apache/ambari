@@ -238,8 +238,6 @@ public class ClusterTest {
     Set<String> hostNames = new HashSet<String>() {{ add("h1"); add("h2"); }};
     for (String hostName : hostNames) {
       clusters.addHost(hostName);
-      Host host = clusters.getHost(hostName);
-      host.persist();
 
       HostEntity hostEntity = hostDAO.findByName(hostName);
       hostEntity.setIpv4("ipv4");
@@ -510,7 +508,6 @@ public class ClusterTest {
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
   }
 
   /**
@@ -1162,7 +1159,6 @@ public class ClusterTest {
     host.setState(HostState.HEALTHY);
     host.setHealthStatus(new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, ""));
     host.setStatus(host.getHealthStatus().getHealthStatus().name());
-    host.persist();
     c1.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     clusters.mapHostToCluster("h3", "c1");
 
@@ -2316,7 +2312,6 @@ public class ClusterTest {
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
-      h.persist();
     }
 
     String v1 = "2.0.5-1";
@@ -2387,7 +2382,6 @@ public class ClusterTest {
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
-      h.persist();
     }
 
     String v1 = "2.0.5-1";

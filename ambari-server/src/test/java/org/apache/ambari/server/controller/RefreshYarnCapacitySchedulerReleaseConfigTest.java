@@ -24,8 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
@@ -46,11 +44,13 @@ import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import junit.framework.Assert;
 
 @SuppressWarnings("serial")
 public class RefreshYarnCapacitySchedulerReleaseConfigTest {
@@ -177,7 +177,6 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
-    clusters.getHost(hostname).persist();
     if (null != clusterName) {
       clusters.mapHostToCluster(hostname, clusterName);
     }

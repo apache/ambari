@@ -232,7 +232,6 @@ public class UpgradeResourceProviderTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
 
@@ -590,7 +589,6 @@ public class UpgradeResourceProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster("h2", "c1");
     Cluster cluster = clusters.getCluster("c1");

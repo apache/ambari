@@ -387,7 +387,6 @@ public class HostVersionOutOfSyncListenerTest {
     addHost("h2");
     clusters.mapHostToCluster("h2", "c1");
     clusters.getHost("h2").setState(HostState.HEALTHY);
-    clusters.getHost("h2").persist();
 
     StackId stackId = new StackId(this.stackId);
     RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
@@ -445,8 +444,6 @@ public class HostVersionOutOfSyncListenerTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.4");
     host1.setHostAttributes(hostAttributes);
-
-    host1.persist();
   }
 
   private void addService(Cluster cl, List<String> hostList,

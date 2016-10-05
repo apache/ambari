@@ -141,7 +141,6 @@ public class ClusterDeadlockTest {
 
       clusters.addHost(hostName);
       setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-      clusters.getHost(hostName).persist();
       clusters.mapHostToCluster(hostName, "c1");
     }
 

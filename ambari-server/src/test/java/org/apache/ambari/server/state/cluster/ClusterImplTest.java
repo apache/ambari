@@ -18,11 +18,20 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -35,26 +44,13 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.verify;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class ClusterImplTest {
 
@@ -211,11 +207,9 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
@@ -279,11 +273,9 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
@@ -320,11 +312,9 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 

@@ -25,9 +25,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.google.inject.Provider;
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -57,8 +54,11 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+
+import junit.framework.Assert;
 
 /**
  * Tests AMBARI-9738 which produced a deadlock during read and writes between
@@ -294,7 +294,6 @@ public class ClustersDeadlockTest {
           String hostName = "c64-" + hostNameCounter.getAndIncrement();
           clusters.addHost(hostName);
           setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-          clusters.getHost(hostName).persist();
           clusters.mapHostToCluster(hostName, CLUSTER_NAME);
 
           Thread.sleep(10);
@@ -322,7 +321,6 @@ public class ClustersDeadlockTest {
           String hostName = "c64-" + hostNameCounter.getAndIncrement();
           clusters.addHost(hostName);
           setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-          clusters.getHost(hostName).persist();
           clusters.mapHostToCluster(hostName, CLUSTER_NAME);
 
           // create DATANODE on this host so that we end up exercising the
@@ -357,7 +355,6 @@ public class ClustersDeadlockTest {
 
           clusters.addHost(hostName);
           setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-          clusters.getHost(hostName).persist();
           clusters.mapHostToCluster(hostName, CLUSTER_NAME);
         }
 

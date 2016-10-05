@@ -74,9 +74,6 @@ public class RequestExecutionTest {
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
     Assert.assertNotNull(clusters.getHost("h3"));
-    clusters.getHost("h1").persist();
-    clusters.getHost("h2").persist();
-    clusters.getHost("h3").persist();
   }
 
   @After
