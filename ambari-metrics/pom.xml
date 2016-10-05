@@ -31,6 +31,7 @@
     <module>ambari-metrics-host-monitoring</module>
     <module>ambari-metrics-grafana</module>
     <module>ambari-metrics-assembly</module>
+    <module>../utility</module>
   </modules>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

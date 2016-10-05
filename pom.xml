@@ -744,10 +744,4 @@ instead of a SNAPSHOT. -->
     </profile>
   </profiles>
   <!-- End of profiles for running unit tests. -->
-
-  <!-- Must depend on the utility project in order to find the
-  categories (testcase.groups) used in the unit test profiles. -->
-  <modules>
-    <module>utility</module>
-  </modules>
 </project>
