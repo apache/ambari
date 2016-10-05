@@ -52,6 +52,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -60,6 +61,7 @@ import com.google.inject.persist.PersistService;
 /**
  * Tests for the upgrade pack
  */
+@Category({ category.StackUpgradeTest.class})
 public class UpgradePackTest {
 
   private Injector injector;

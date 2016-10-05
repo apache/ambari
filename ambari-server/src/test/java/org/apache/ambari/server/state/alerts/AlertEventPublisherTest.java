@@ -56,11 +56,13 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.junit.experimental.categories.Category;
 
 /**
  * Tests that {@link AmbariEvent} instances are fired correctly and that alert
  * data is bootstrapped into the database.
  */
+@Category({ category.AlertTest.class})
 public class AlertEventPublisherTest {
 
   private AlertDispatchDAO dispatchDao;

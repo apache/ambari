@@ -70,6 +70,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <skip>${skipSurefireTests}</skip>
+
+          <!-- Each profile in the top-level pom.xml defines which test group categories to run. -->
+          <groups>${testcase.groups}</groups>
         </configuration>
       </plugin>
       <plugin>
@@ -173,5 +176,15 @@
       </plugin>
     </plugins>
   </build>
+
+  <dependencies>
+    <!-- Dependency in order to annotate unit tests with a category. -->
+    <dependency>
+      <groupId>utility</groupId>
+      <artifactId>utility</artifactId>
+      <version>1.0.0.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
 </project>
