@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
 
@@ -47,7 +48,6 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
   private static final String KAFKA_ENV_CONFIG_TYPE = "kafka-env";
   private static final String RANGER_KMS_ENV_CONFIG_TYPE = "kms-env";
   private static final String HDFS_SITE_CONFIG_TYPE = "hdfs-site";
-  private static final String RANGER_SPNEGO_PRINCIPAL = "ranger.spnego.kerberos.principal";
   private static final String RANGER_SPNEGO_KEYTAB = "ranger.spnego.kerberos.keytab";
   private static final String RANGER_PLUGINS_HDFS_SERVICE_USER = "ranger.plugins.hdfs.serviceuser";
   private static final String RANGER_PLUGINS_HIVE_SERVICE_USER = "ranger.plugins.hive.serviceuser";
@@ -168,9 +168,27 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
     Config stormConfig = cluster.getDesiredConfigByType(STORM_ENV_CONFIG_TYPE);
 
     if (null != stormConfig) {
+      String stormValue = null;
       String stormUser = stormConfig.getProperties().get("storm_user");
+
+      if (cluster.getSecurityType() == SecurityType.KERBEROS) {
+        String stormPrincipal = stormConfig.getProperties().get("storm_principal_name");
+        if (null != stormPrincipal) {
+          String[] stormPrincipalParts = stormPrincipal.split("@");
+          if(null != stormPrincipalParts && stormPrincipalParts.length > 1) {
+            String stormPrincipalBareName = stormPrincipalParts[0];
+            stormValue = stormPrincipalBareName;
+          }
+        }
+      }
+
       if (null != stormUser) {
-        targetValues.put(RANGER_PLUGINS_STORM_SERVICE_USER, stormUser);
+        if(!StringUtils.isBlank(stormValue)) {
+          stormValue = stormValue + "," + stormUser;
+        } else {
+          stormValue = stormUser;
+        }
+        targetValues.put(RANGER_PLUGINS_STORM_SERVICE_USER, stormValue);
         rangerAdminconfig.setProperties(targetValues);
         rangerAdminconfig.persist(false);
         sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_PLUGINS_STORM_SERVICE_USER);
@@ -220,17 +238,7 @@ public class RangerKerberosConfigCalculation extends AbstractServerAction {
       Config hdfsSiteConfig = cluster.getDesiredConfigByType(HDFS_SITE_CONFIG_TYPE);
 
       if (null != hdfsSiteConfig) {
-        String spnegoPrincipal = hdfsSiteConfig.getProperties().get("dfs.web.authentication.kerberos.principal");
         String spnegoKeytab = hdfsSiteConfig.getProperties().get("dfs.web.authentication.kerberos.keytab");
-
-        if (null != spnegoPrincipal) {
-          targetValues.put(RANGER_SPNEGO_PRINCIPAL, spnegoPrincipal);
-          rangerAdminconfig.setProperties(targetValues);
-          rangerAdminconfig.persist(false);
-          sucessMsg = sucessMsg + MessageFormat.format("{0}\n", RANGER_SPNEGO_PRINCIPAL);
-        } else {
-          errMsg = errMsg + MessageFormat.format("{0} not found in {1}\n", "dfs.web.authentication.kerberos.principal", HDFS_SITE_CONFIG_TYPE);          
-        }
 
         if (null != spnegoKeytab) {
           targetValues.put(RANGER_SPNEGO_KEYTAB, spnegoKeytab);

@@ -169,7 +169,7 @@ class WebHDFSUtil:
     cmd = ["curl", "-sS","-L", "-w", "%{http_code}", "-X", method]
     
     if file_to_put:
-      cmd += ["--data-binary", "@"+file_to_put]
+      cmd += ["--data-binary", "@"+file_to_put, "-H", "Content-Type: application/octet-stream"]
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]
     if self.is_https_enabled:

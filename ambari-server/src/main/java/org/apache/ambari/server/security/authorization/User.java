@@ -46,7 +46,7 @@ public class User {
 
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
-    userName = StringUtils.lowerCase(userEntity.getUserName()); // normalize to lower case
+    userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
     userType = userEntity.getUserType();
     ldapUser = userEntity.getLdapUser();

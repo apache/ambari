@@ -67,6 +67,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String COMMENTS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "comments");
 
+  private static final String SELECTION_PROPERTY_ID = PropertyHelper.getPropertyId(
+      "StackServices", "selection");
+
   private static final String VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "service_version");
 
@@ -165,6 +168,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
     setResourceProperty(resource, VERSION_PROPERTY_ID,
         response.getServiceVersion(), requestedIds);
+
+    setResourceProperty(resource, SELECTION_PROPERTY_ID,
+        response.getSelection(), requestedIds);
 
     setResourceProperty(resource, CONFIG_TYPES,
         response.getConfigTypes(), requestedIds);

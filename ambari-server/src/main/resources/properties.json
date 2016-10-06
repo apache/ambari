@@ -208,6 +208,7 @@
         "StackServices/stack_version",
         "StackServices/service_name",
         "StackServices/display_name",
+        "StackServices/selection",
         "StackServices/user_name",
         "StackServices/comments",
         "StackServices/service_version",

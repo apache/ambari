@@ -282,11 +282,9 @@ public class Users {
       throw new AmbariException("UserType not specified.");
     }
 
-    // store user name in lower case
-    userName = StringUtils.lowerCase(userName);
-
-    if (getUser(userName, userType) != null) {
-      throw new AmbariException("User " + userName + " already exists");
+    User existingUser = getUser(userName, userType);
+    if (existingUser != null) {
+      throw new AmbariException("User " + existingUser.getUserName() + " already exists");
     }
 
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
