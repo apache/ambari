@@ -21,15 +21,12 @@ package org.apache.ambari.logsearch.web.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.logsearch.common.PropertiesHelper;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 abstract class LogsearchAbstractAuthenticationProvider implements AuthenticationProvider {
-
-  private static final String AUTH_METHOD_PROPERTY_PREFIX = "logsearch.auth.";
 
   protected enum AuthMethod {
     LDAP, FILE, EXTERNAL_AUTH, SIMPLE
@@ -48,15 +45,4 @@ abstract class LogsearchAbstractAuthenticationProvider implements Authentication
     grantedAuths.add(new SimpleGrantedAuthority("ROLE_USER"));
     return grantedAuths;
   }
-
-  /**
-   * Check authentication provider is enable or disable for specified method
-   */
-  public boolean isEnable(AuthMethod method) {
-    String methodName = method.name().toLowerCase();
-    String property = AUTH_METHOD_PROPERTY_PREFIX + methodName + ".enable";
-    boolean isEnable = PropertiesHelper.getBooleanProperty(property, false);
-    return isEnable;
-  }
-
 }

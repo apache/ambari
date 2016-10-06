@@ -196,7 +196,9 @@ else:
 
 # Logsearch propreties
 
-logsearch_properties = dict(config['configurations']['logsearch-properties'])
+logsearch_properties = {}
+
+# default values
 
 logsearch_properties['logsearch.solr.zk_connect_string'] = zookeeper_quorum + infra_solr_znode
 logsearch_properties['logsearch.solr.audit.logs.zk_connect_string'] = logsearch_solr_audit_logs_zk_quorum + logsearch_solr_audit_logs_zk_node
@@ -205,13 +207,6 @@ logsearch_properties['logsearch.solr.collection.history'] = 'history'
 logsearch_properties['logsearch.solr.history.config.name'] = 'history'
 logsearch_properties['logsearch.collection.history.replication.factor'] = '1'
 
-if logsearch_properties['logsearch.solr.audit.logs.use.ranger'] == 'false':
-  del logsearch_properties['logsearch.ranger.audit.logs.collection.name']
-
-del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
-
-logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
-
 logsearch_properties['logsearch.solr.jmx.port'] = infra_solr_jmx_port
 
 logsearch_properties['logsearch.login.credentials.file'] = logsearch_admin_credential_file
@@ -219,9 +214,22 @@ logsearch_properties['logsearch.auth.file.enabled'] = 'true'
 logsearch_properties['logsearch.auth.ldap.enabled'] = 'false'
 logsearch_properties['logsearch.auth.simple.enabled'] = 'false'
 logsearch_properties['logsearch.roles.allowed'] = 'AMBARI.ADMINISTRATOR'
-logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
 
 logsearch_properties['logsearch.protocol'] = logsearch_ui_protocol
+
+# load config values
+
+logsearch_properties = dict(logsearch_properties.items() + dict(config['configurations']['logsearch-properties']).items())
+
+# load derivated values
+
+if logsearch_properties['logsearch.solr.audit.logs.use.ranger'] == 'false':
+  del logsearch_properties['logsearch.ranger.audit.logs.collection.name']
+
+del logsearch_properties['logsearch.solr.audit.logs.use.ranger']
+
+logsearch_properties['logsearch.solr.metrics.collector.hosts'] = format(logsearch_properties['logsearch.solr.metrics.collector.hosts'])
+logsearch_properties['logsearch.auth.external_auth.host_url'] = format(logsearch_properties['logsearch.auth.external_auth.host_url'])
 
 if security_enabled:
   logsearch_properties['logsearch.solr.kerberos.enable'] = 'true'
@@ -286,9 +294,22 @@ if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
 
 logfeeder_properties = dict(config['configurations']['logfeeder-properties'])
 
+# logfeeder properties
+
+# load default values
+
+logfeeder_properties = {}
+
+logfeeder_properties['logfeeder.solr.core.config.name'] = 'history'
+
+# load config values
+
+logfeeder_properties = dict(logfeeder_properties.items() + dict(config['configurations']['logfeeder-properties']).items())
+
+# load derivated values
+
 logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])
 logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['logfeeder.config.files'])
-logfeeder_properties['logfeeder.solr.core.config.name'] = 'history'
 logfeeder_properties['logfeeder.solr.zk_connect_string'] = zookeeper_quorum + infra_solr_znode
 
 if security_enabled:

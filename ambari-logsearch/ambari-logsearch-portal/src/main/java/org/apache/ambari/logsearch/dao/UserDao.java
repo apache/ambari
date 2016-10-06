@@ -88,17 +88,18 @@ public class UserDao {
     }
   }
 
-  public User loadUserByUsername(final String username) {
+  public User loadUserByUsername(String username) {
     logger.debug(" loadUserByUsername username" + username);
     HashMap<String, String> userInfo = findByusername(username);
-    User user = new User();
-
-    if (userInfo != null) {
-      user.setFirstName(userInfo.get(NAME) != null ? userInfo.get(NAME) : "Unknown");
-      user.setLastName(userInfo.get(NAME) != null ? userInfo.get(NAME) : "Unknown");
-      user.setUsername(userInfo.get(USER_NAME) != null ? userInfo.get(USER_NAME) : "");
-      user.setPassword(userInfo.get(ENC_PASSWORD) != null ? userInfo.get(ENC_PASSWORD) : "");
+    if (userInfo == null) {
+      return null;
     }
+    
+    User user = new User();
+    user.setFirstName(StringUtils.defaultString(userInfo.get(NAME), "Unknown"));
+    user.setLastName(StringUtils.defaultString(userInfo.get(NAME), "Unknown"));
+    user.setUsername(StringUtils.defaultString(userInfo.get(USER_NAME), ""));
+    user.setPassword(StringUtils.defaultString(userInfo.get(ENC_PASSWORD), ""));
 
     Role r = new Role();
     r.setName("ROLE_USER");

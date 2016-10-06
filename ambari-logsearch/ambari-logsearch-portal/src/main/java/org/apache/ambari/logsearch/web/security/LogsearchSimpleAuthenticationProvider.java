@@ -58,15 +58,4 @@ public class LogsearchSimpleAuthenticationProvider extends LogsearchAbstractAuth
     authentication = new UsernamePasswordAuthenticationToken(username, password, getAuthorities());
     return authentication;
   }
-
-  @Override
-  public boolean isEnable(AuthMethod method) {
-    boolean ldapEnabled = super.isEnable(AuthMethod.LDAP);
-    boolean fileEnabled = super.isEnable(AuthMethod.FILE);
-    boolean externalAuthEnabled = super.isEnable(AuthMethod.EXTERNAL_AUTH);
-    boolean simpleEnabled = super.isEnable(method);
-    
-    // simple is enabled only when rest three are disabled and simple is enable
-    return !ldapEnabled && !fileEnabled && !externalAuthEnabled && simpleEnabled;
-  }
 }
