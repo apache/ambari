@@ -805,7 +805,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return configurationValidationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_server2 = properties
     validationItems = []
     #Adding Ranger Plugin logic here
@@ -870,10 +870,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is disabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
-    return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHBASEConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHBASEConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hbase_site = properties
     validationItems = []
 
@@ -909,7 +912,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "If Ranger HBase Plugin is enabled."\
                                 " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
 
-    return self.toConfigurationValidationProblems(validationItems, "hbase-site")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hbase-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateKAFKAConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     kafka_broker = properties
