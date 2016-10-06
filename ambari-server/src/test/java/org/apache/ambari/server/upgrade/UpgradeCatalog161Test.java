@@ -55,6 +55,7 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Binder;
@@ -65,7 +66,9 @@ import com.google.inject.Provider;
 
 /**
  * UpgradeCatalog161 unit tests.
+ * @Deprecated
  */
+@Ignore
 public class UpgradeCatalog161Test {
 
   @Test

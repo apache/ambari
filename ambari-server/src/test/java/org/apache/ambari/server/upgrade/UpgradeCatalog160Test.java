@@ -44,6 +44,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Binder;
@@ -53,7 +54,9 @@ import com.google.inject.Module;
 
 /**
  * UpgradeCatalog160 unit tests.
+ * @Deprecated
  */
+@Ignore
 public class UpgradeCatalog160Test {
 
   @Test

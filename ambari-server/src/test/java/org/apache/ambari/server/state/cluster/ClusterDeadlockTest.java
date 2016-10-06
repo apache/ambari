@@ -63,14 +63,16 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Tests AMBARI-9368 and AMBARI-9761 which produced a deadlock during read and
  * writes of some of the impl classes.
  */
 public class ClusterDeadlockTest {
-  private static final int NUMBER_OF_HOSTS = 100;
-  private static final int NUMBER_OF_THREADS = 3;
+  private static final int NUMBER_OF_HOSTS = 40;
+  private static final int NUMBER_OF_THREADS = 5;
 
   private final AtomicInteger hostNameCounter = new AtomicInteger(0);
 
@@ -274,8 +276,7 @@ public class ClusterDeadlockTest {
       schWriterThread.start();
     }
     
-    DeadlockWarningThread wt = new DeadlockWarningThread(threads);
-    
+    DeadlockWarningThread wt = new DeadlockWarningThread(threads, 20, 1000);
     while (true) {
       if(!wt.isAlive()) {
           break;
@@ -328,7 +329,7 @@ public class ClusterDeadlockTest {
   private final class ClusterDesiredConfigsReaderThread extends Thread {
     @Override
     public void run() {
-      for (int i =0; i<1500; i++) {
+      for (int i =0; i<1000; i++) {
         cluster.getDesiredConfigs();
       }
     }
@@ -343,7 +344,7 @@ public class ClusterDeadlockTest {
 
     @Override
     public void run() {
-      for (int i =0; i<500; i++) {
+      for (int i =0; i<300; i++) {
         config.persist(false);
       }
     }
@@ -361,7 +362,7 @@ public class ClusterDeadlockTest {
     @Override
     public void run() {
       try {
-        for (int i = 0; i < 1500; i++) {
+        for (int i = 0; i < 1000; i++) {
           cluster.convertToResponse();
           Thread.sleep(10);
         }
