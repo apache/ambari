@@ -57,7 +57,7 @@ def setup_logfeeder():
        )
 
   File(format("{logsearch_logfeeder_conf}/grok-patterns"),
-       content=Template("grok-patterns.j2"),
+       content=InlineTemplate(params.logfeeder_grok_patterns),
        encoding="utf-8"
        )
 
@@ -65,6 +65,7 @@ def setup_logfeeder():
     File(format("{logsearch_logfeeder_conf}/" + file_name),
          content=Template(file_name + ".j2")
          )
+
   if params.security_enabled:
     File(format("{logfeeder_jaas_file}"),
          content=Template("logfeeder_jaas.conf.j2")

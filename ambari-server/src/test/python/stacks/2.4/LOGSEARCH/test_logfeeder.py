@@ -76,7 +76,7 @@ class TestLogFeeder(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/grok-patterns',
-                              content=Template('grok-patterns.j2'),
+                              content=InlineTemplate('GP'),
                               encoding='utf-8'
                               )
 

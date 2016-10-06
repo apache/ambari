@@ -273,6 +273,17 @@ logfeeder_config_file_names = \
 
 default_config_files = ','.join(logfeeder_config_file_names)
 
+logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
+if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
+  logfeeder_grok_patterns = \
+    logfeeder_grok_patterns + '\n' + \
+    '\n' + \
+    '########################\n' +\
+    '# Custom Grok Patterns #\n' +\
+    '########################\n' +\
+    '\n' + \
+    config['configurations']['logfeeder-grok']['custom_grok_patterns']
+
 logfeeder_properties = dict(config['configurations']['logfeeder-properties'])
 
 logfeeder_properties['logfeeder.metrics.collector.hosts'] = format(logfeeder_properties['logfeeder.metrics.collector.hosts'])

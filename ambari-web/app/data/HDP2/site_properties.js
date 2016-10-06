@@ -1962,6 +1962,21 @@ var hdp2properties = [
     "category": "Advanced logfeeder-env",
     "index": 14
   },
+  /*logfeeder-grok*/
+  {
+    "name": "default_grok_patterns",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-grok.xml",
+    "category": "Advanced logfeeder-grok",
+    "index": 1
+  },
+  {
+    "name": "custom_grok_patterns",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-grok.xml",
+    "category": "Advanced logfeeder-grok",
+    "index": 2
+  },
   /*logfeeder-log4j*/
   {
     "name": "content",
