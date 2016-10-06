@@ -112,6 +112,36 @@ public class ServiceInfoTest {
   }
 
   @Test
+  public void testSelectionField() throws Exception {
+    String serviceInfoXmlDeprecated = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>DEPRECATED</name>\n" +
+        "      <selection>DEPRECATED</selection>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    Map<String, ServiceInfo> serviceInfoMapDeprecated = getServiceInfo(serviceInfoXmlDeprecated);
+    ServiceInfo deprecated = serviceInfoMapDeprecated.get("DEPRECATED");
+    assertEquals(deprecated.getSelection(), ServiceInfo.Selection.DEPRECATED);
+    assertFalse(deprecated.isSelectionEmpty());
+
+    String serviceInfoXmlDefault = "<metainfo>\n" +
+        "  <schemaVersion>2.0</schemaVersion>\n" +
+        "  <services>\n" +
+        "    <service>\n" +
+        "      <name>DEFAULT</name>\n" +
+        "    </service>\n" +
+        "  </services>\n" +
+        "</metainfo>\n";
+    Map<String, ServiceInfo> serviceInfoMapDefault = getServiceInfo(serviceInfoXmlDefault);
+    ServiceInfo defaultSi = serviceInfoMapDefault.get("DEFAULT");
+    assertEquals(defaultSi.getSelection(), ServiceInfo.Selection.DEFAULT);
+    assertTrue(defaultSi.isSelectionEmpty());
+  }
+
+  @Test
   public void testSetRestartRequiredAfterRackChange() throws Exception {
     ServiceInfo serviceInfo = new ServiceInfo();
 

@@ -258,6 +258,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
+    if (serviceInfo.isSelectionEmpty()) {
+      serviceInfo.setSelection(parent.getSelection());
+    }
+
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices, extensions);
@@ -644,7 +648,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       addErrors(serviceInfo.getErrors());
     }
   }
-  
+
 
   @Override
   public String toString() {
