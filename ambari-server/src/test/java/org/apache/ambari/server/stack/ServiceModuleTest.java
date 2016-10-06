@@ -730,6 +730,25 @@ public class ServiceModuleTest {
   }
 
   @Test
+  public void testResolve_Service__selection() throws Exception {
+    ServiceInfo firstInfo = new ServiceInfo();
+    ServiceInfo secondInfo = new ServiceInfo();
+    ServiceInfo thirdInfo = new ServiceInfo();
+
+    firstInfo.setSelection(ServiceInfo.Selection.MANDATORY);
+
+    resolveService(secondInfo, firstInfo);
+
+    assertEquals(secondInfo.getSelection(), ServiceInfo.Selection.MANDATORY);
+
+    thirdInfo.setSelection(ServiceInfo.Selection.TECH_PREVIEW);
+
+    resolveService(thirdInfo, secondInfo);
+
+    assertEquals(thirdInfo.getSelection(), ServiceInfo.Selection.TECH_PREVIEW);
+  }
+
+  @Test
   public void testResolve_Configuration__attributes() throws Exception {
     ServiceInfo info = new ServiceInfo();
     ServiceInfo parentInfo = new ServiceInfo();
