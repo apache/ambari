@@ -576,6 +576,10 @@ class TestOozieServer(RMFTestCase):
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('Directory', '/var/tmp/oozie',
+        owner = 'oozie',
+        create_parents = True,
+    )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozied.sh stop 60 -force',
         environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
         only_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1'",
@@ -705,6 +709,10 @@ class TestOozieServer(RMFTestCase):
                          config_file="secured.json",
                          stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assertResourceCalled('Directory', '/var/tmp/oozie',
+        owner = 'oozie',
+        create_parents = True,
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozied.sh stop 60 -force',
         environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
