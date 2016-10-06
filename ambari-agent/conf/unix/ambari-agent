@@ -39,6 +39,17 @@ get_agent_property() {
   echo $value
 }
 
+valid_path() {
+  value=${1:?}
+  value=$(readlink -m ${value})
+  if [ "$value" == "/" ]; then
+    echo "path $1 not valid" 1>&2
+    exit 1
+  fi
+  echo $value
+}
+
+
 export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
 export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 
@@ -46,8 +57,14 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 export PYTHONPATH=/usr/lib/python2.6/site-packages:${PYTHONPATH:-}
 
 export AMBARI_PID_DIR=`get_agent_property piddir`
+export AMBARI_PID_DIR=`valid_path "${AMBARI_PID_DIR:?}"`
+export AMBARI_PID_DIR="${AMBARI_PID_DIR:?}"
 export AMBARI_AGENT_LOG_DIR=`get_agent_property logdir`
+export AMBARI_AGENT_LOG_DIR=`valid_path "${AMBARI_AGENT_LOG_DIR:?}"`
+export AMBARI_AGENT_LOG_DIR="${AMBARI_AGENT_LOG_DIR:?}"
 KEYSDIR=`get_agent_property keysdir`
+KEYSDIR=`valid_path "${KEYSDIR:?}"`
+KEYSDIR="${KEYSDIR:?}"
 
 AMBARI_AGENT=ambari-agent
 PYTHON_WRAP=/usr/bin/ambari-python-wrap
