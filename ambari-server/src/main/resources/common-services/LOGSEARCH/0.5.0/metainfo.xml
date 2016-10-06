@@ -109,6 +109,7 @@
             <config-type>infra-solr-env</config-type>
             <config-type>logfeeder-properties</config-type>
             <config-type>logfeeder-env</config-type>
+            <config-type>logfeeder-grok</config-type>
             <config-type>logfeeder-log4j</config-type>
           </configuration-dependencies>
         </component>
