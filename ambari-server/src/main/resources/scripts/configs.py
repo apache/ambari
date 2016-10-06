@@ -343,19 +343,29 @@ def main():
   cluster = options.cluster
   config_type = options.config_type
 
-  if not options.file and (not options.key or not options.value):
-    parser.error("You should use option (-f) to set file where entire configurations are saved OR (-k) key and (-v) value for one property")
-  if options.file:
-    action_args = [options.file]
-  else:
-    action_args = [options.key, options.value]
-
   accessor = api_accessor(host, user, password, protocol, port)
   if action == SET_ACTION:
+
+    if not options.file and (not options.key or not options.value):
+      parser.error("You should use option (-f) to set file where entire configurations are saved OR (-k) key and (-v) value for one property")
+    if options.file:
+      action_args = [options.file]
+    else:
+      action_args = [options.key, options.value]
     return set_properties(cluster, config_type, action_args, accessor)
+
   elif action == GET_ACTION:
+    if options.file:
+      action_args = [options.file]
+    else:
+      action_args = []
     return get_properties(cluster, config_type, action_args, accessor)
+
   elif action == DELETE_ACTION:
+    if not options.key:
+      parser.error("You should use option (-k) to set property name witch will be deleted")
+    else:
+      action_args = [options.key]
     return delete_properties(cluster, config_type, action_args, accessor)
   else:
     logger.error('Action "{0}" is not supported. Supported actions: "get", "set", "delete".'.format(action))
