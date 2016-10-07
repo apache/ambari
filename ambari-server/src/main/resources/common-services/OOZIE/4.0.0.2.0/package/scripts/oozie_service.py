@@ -28,7 +28,7 @@ from resource_management.core import sudo
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
 from resource_management.core.resources.service import Service
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute, File, Directory
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.show_logs import show_logs
 from resource_management.libraries.providers.hdfs_resource import WebHDFSUtil
