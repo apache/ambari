@@ -26,6 +26,7 @@ from math import ceil, floor, log
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.mounted_dirs_helper import get_mounts_with_multiple_data_dirs
+from resource_management.libraries.functions.data_structure_utils import get_from_dict
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -171,118 +172,154 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return ambari_user
 
   def recommendAmbariProxyUsersForHDFS(self, services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute):
-      if "HDFS" in servicesList:
-          ambari_user = self.getAmbariUser(services)
-          ambariHostName = socket.getfqdn()
-          putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
-          putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
-          old_ambari_user = self.getOldAmbariUser(services)
-          if old_ambari_user is not None:
-            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
-            putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
+    if "HDFS" in servicesList:
+      ambari_user = self.getAmbariUser(services)
+      ambariHostName = socket.getfqdn()
+      putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ambariHostName)
+      putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
+      old_ambari_user = self.getOldAmbariUser(services)
+      if old_ambari_user is not None:
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.hosts".format(old_ambari_user), 'delete', 'true')
+        putCoreSitePropertyAttribute("hadoop.proxyuser.{0}.groups".format(old_ambari_user), 'delete', 'true')
 
-  def recommendHadoopProxyUsers (self, configurations, services, hosts):
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+  def getAmbariProxyUsersForHDFSValidationItems(self, properties, services):
+    validationItems = []
+    servicesList = self.get_services_list(services)
+
+    if "HDFS" in servicesList:
+      ambari_user = self.getAmbariUser(services)
+      props = (
+        "hadoop.proxyuser.{0}.hosts".format(ambari_user),
+        "hadoop.proxyuser.{0}.groups".format(ambari_user)
+      )
+      for prop in props:
+        validationItems.append({"config-name": prop, "item": self.validatorNotEmpty(properties, prop)})
+
+    return validationItems
+
+  def _getHadoopProxyUsersForService(self, serviceName, serviceUserComponents, services, hosts):
+    Logger.info("Calculating Hadoop Proxy User recommendations for {0} service.".format(serviceName))
+    servicesList = self.get_services_list(services)
+    resultUsers = {}
+
+    if serviceName in servicesList:
+      usersComponents = {}
+      for values in serviceUserComponents:
+
+        # Filter, if 4th argument is present in the tuple
+        filterFunction = values[3:]
+        if filterFunction and not filterFunction[0](services, hosts):
+          continue
+
+        userNameConfig, userNameProperty, hostSelectorMap = values[:3]
+        user = get_from_dict(services, ("configurations", userNameConfig, "properties", userNameProperty), None)
+        if user:
+          usersComponents[user] = (userNameConfig, userNameProperty, hostSelectorMap)
+
+      for user, (userNameConfig, userNameProperty, hostSelectorMap) in usersComponents.iteritems():
+        proxyUsers = {"config": userNameConfig, "propertyName": userNameProperty}
+        for proxyPropertyName, hostSelector in hostSelectorMap.iteritems():
+          componentHostNamesString = hostSelector if isinstance(hostSelector, basestring) else '*'
+          if isinstance(hostSelector, (list, tuple)):
+            componentHostNames = set()
+            for component in hostSelector:
+              componentHosts = self.getHostsWithComponent(serviceName, component, services, hosts)
+              if componentHosts is not None:
+                for componentHost in componentHosts:
+                  componentHostName =  componentHost["Hosts"]["host_name"]
+                  componentHostNames.add(componentHostName)
+
+            componentHostNamesString = ",".join(sorted(componentHostNames))
+            Logger.info("Host List for [service='{0}'; user='{1}'; components='{2}']: {3}".format(serviceName, user, ','.join(hostSelector), componentHostNamesString))
+
+          if not proxyPropertyName in proxyUsers:
+            proxyUsers[proxyPropertyName] = componentHostNamesString
+
+        if not user in resultUsers:
+          resultUsers[user] = proxyUsers
+
+    return resultUsers
+
+  def getHadoopProxyUsers(self, services, hosts):
+    """
+    Gets Hadoop Proxy User recommendations based on the configuration that is provided by
+    getServiceHadoopProxyUsersConfigurationDict.
+
+    See getServiceHadoopProxyUsersConfigurationDict
+    """
+    servicesList = self.get_services_list(services)
     users = {}
+
+    for serviceName, serviceUserComponents in self.getServiceHadoopProxyUsersConfigurationDict().iteritems():
+      users.update(self._getHadoopProxyUsersForService(serviceName, serviceUserComponents, services, hosts))
+
+    return users
+
+  def getServiceHadoopProxyUsersConfigurationDict(self):
+    """
+    Returns a map that is used by 'getHadoopProxyUsers' to determine service
+    user properties and related components and get proxyuser recommendations.
+    This method can be overridden in stackadvisors for the further stacks to
+    add additional services or change the previous logic.
+
+    Example of the map format:
+    {
+      "serviceName": [
+        ("configTypeName1", "userPropertyName1", {"propertyHosts": "*", "propertyGroups": "exact string value"})
+        ("configTypeName2", "userPropertyName2", {"propertyHosts": ["COMPONENT1", "COMPONENT2", "COMPONENT3"], "propertyGroups": "*"}),
+        ("configTypeName3", "userPropertyName3", {"propertyHosts": ["COMPONENT1", "COMPONENT2", "COMPONENT3"]}, filterFunction)
+      ],
+      "serviceName2": [
+        ...
+    }
+
+    If the third element of a tuple is map that maps proxy property to it's value.
+    The key could be either 'propertyHosts' or 'propertyGroups'. (Both are optional)
+    If the map value is a string, then this string will be used for the proxyuser
+    value (e.g. 'hadoop.proxyuser.{user}.hosts' = '*').
+    Otherwise map value should be alist or a tuple with component names.
+    All hosts with the provided components will be added
+    to the property (e.g. 'hadoop.proxyuser.{user}.hosts' = 'host1,host2,host3')
+
+    The forth element of the tuple is optional and if it's provided,
+    it should be a function that takes two arguments: services and hosts.
+    If it returns False, proxyusers for the tuple will not be added.
+    """
+    ALL_WILDCARD = "*"
+    HOSTS_PROPERTY = "propertyHosts"
+    GROUPS_PROPERTY = "propertyGroups"
+
+    return {
+      "HDFS":   [("hadoop-env", "hdfs_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
+      "OOZIE":  [("oozie-env", "oozie_user", {HOSTS_PROPERTY: ["OOZIE_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
+      "HIVE":   [("hive-env", "hive_user", {HOSTS_PROPERTY: ["HIVE_SERVER", "HIVE_SERVER_INTERACTIVE"], GROUPS_PROPERTY: ALL_WILDCARD}),
+                 ("hive-env", "webhcat_user", {HOSTS_PROPERTY: ["WEBHCAT_SERVER"], GROUPS_PROPERTY: ALL_WILDCARD})],
+      "YARN":   [("yarn-env", "yarn_user", {HOSTS_PROPERTY: ["RESOURCEMANAGER"]}, lambda services, hosts: len(self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)) > 1)],
+      "FALCON": [("falcon-env", "falcon_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})],
+      "SPARK":  [("livy-env", "livy_user", {HOSTS_PROPERTY: ALL_WILDCARD, GROUPS_PROPERTY: ALL_WILDCARD})]
+    }
+
+  def recommendHadoopProxyUsers(self, configurations, services, hosts):
+    servicesList = self.get_services_list(services)
 
     if 'forced-configurations' not in services:
       services["forced-configurations"] = []
 
-    if "HDFS" in servicesList:
-      hdfs_user = None
-      if "hadoop-env" in services["configurations"] and "hdfs_user" in services["configurations"]["hadoop-env"]["properties"]:
-        hdfs_user = services["configurations"]["hadoop-env"]["properties"]["hdfs_user"]
-        if not hdfs_user in users and hdfs_user is not None:
-          users[hdfs_user] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "hadoop-env", "propertyName" : "hdfs_user"}
-
-    if "OOZIE" in servicesList:
-      oozie_user = None
-      if "oozie-env" in services["configurations"] and "oozie_user" in services["configurations"]["oozie-env"]["properties"]:
-        oozie_user = services["configurations"]["oozie-env"]["properties"]["oozie_user"]
-        oozieServerrHosts = self.getHostsWithComponent("OOZIE", "OOZIE_SERVER", services, hosts)
-        if oozieServerrHosts is not None:
-          oozieServerHostsNameList = []
-          for oozieServerHost in oozieServerrHosts:
-            oozieServerHostsNameList.append(oozieServerHost["Hosts"]["host_name"])
-          oozieServerHostsNames = ",".join(oozieServerHostsNameList)
-          if not oozie_user in users and oozie_user is not None:
-            users[oozie_user] = {"propertyHosts" : oozieServerHostsNames,"propertyGroups" : "*", "config" : "oozie-env", "propertyName" : "oozie_user"}
-
-    hive_user = None
-    if "HIVE" in servicesList:
-      webhcat_user = None
-      if "hive-env" in services["configurations"] and "hive_user" in services["configurations"]["hive-env"]["properties"] \
-              and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
-        hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
-        webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
-        hiveServerHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER", services, hosts)
-        hiveServerInteractiveHosts = self.getHostsWithComponent("HIVE", "HIVE_SERVER_INTERACTIVE", services, hosts)
-        webHcatServerHosts = self.getHostsWithComponent("HIVE", "WEBHCAT_SERVER", services, hosts)
-
-        if hiveServerHosts is not None:
-          hiveServerHostsNameList = []
-          for hiveServerHost in hiveServerHosts:
-            hiveServerHostsNameList.append(hiveServerHost["Hosts"]["host_name"])
-          # Append Hive Server Interactive host as well, as it is Hive2/HiveServer2 component.
-          if hiveServerInteractiveHosts:
-            for hiveServerInteractiveHost in hiveServerInteractiveHosts:
-              hiveServerInteractiveHostName = hiveServerInteractiveHost["Hosts"]["host_name"]
-              if hiveServerInteractiveHostName not in hiveServerHostsNameList:
-                hiveServerHostsNameList.append(hiveServerInteractiveHostName)
-                Logger.info("Appended (if not exiting), Hive Server Interactive Host : '{0}', to Hive Server Host List : '{1}'".format(hiveServerInteractiveHostName, hiveServerHostsNameList))
-
-          hiveServerHostsNames = ",".join(hiveServerHostsNameList)  # includes Hive Server interactive host also.
-          Logger.info("Hive Server and Hive Server Interactive (if enabled) Host List : {0}".format(hiveServerHostsNameList))
-          if not hive_user in users and hive_user is not None:
-            users[hive_user] = {"propertyHosts" : hiveServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
-
-        if webHcatServerHosts is not None:
-          webHcatServerHostsNameList = []
-          for webHcatServerHost in webHcatServerHosts:
-            webHcatServerHostsNameList.append(webHcatServerHost["Hosts"]["host_name"])
-          webHcatServerHostsNames = ",".join(webHcatServerHostsNameList)
-          if not webhcat_user in users and webhcat_user is not None:
-            users[webhcat_user] = {"propertyHosts" : webHcatServerHostsNames,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
-
-    if "YARN" in servicesList:
-      yarn_user = None
-      if "yarn-env" in services["configurations"] and "yarn_user" in services["configurations"]["yarn-env"]["properties"]:
-        yarn_user = services["configurations"]["yarn-env"]["properties"]["yarn_user"]
-        rmHosts = self.getHostsWithComponent("YARN", "RESOURCEMANAGER", services, hosts)
-
-        if len(rmHosts) > 1:
-          rmHostsNameList = []
-          for rmHost in rmHosts:
-            rmHostsNameList.append(rmHost["Hosts"]["host_name"])
-          rmHostsNames = ",".join(rmHostsNameList)
-          if not yarn_user in users and yarn_user is not None:
-            users[yarn_user] = {"propertyHosts" : rmHostsNames, "config" : "yarn-env", "propertyName" : "yarn_user"}
-
-
-    if "FALCON" in servicesList:
-      falconUser = None
-      if "falcon-env" in services["configurations"] and "falcon_user" in services["configurations"]["falcon-env"]["properties"]:
-        falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
-        if not falconUser in users and falconUser is not None:
-          users[falconUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "falcon-env", "propertyName" : "falcon_user"}
-
-    if "SPARK" in servicesList:
-      livyUser = None
-      if "livy-env" in services["configurations"] and "livy_user" in services["configurations"]["livy-env"]["properties"]:
-        livyUser = services["configurations"]["livy-env"]["properties"]["livy_user"]
-        if not livyUser in users and livyUser is not None:
-          users[livyUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "livy-env", "propertyName" : "livy_user"}
-
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
 
+    users = self.getHadoopProxyUsers(services, hosts)
+
+    # Force dependencies for HIVE
+    if "HIVE" in servicesList:
+      hive_user = get_from_dict(services, ("configurations", "hive-env", "properties", "hive_user"), default_value=None)
+      if hive_user and get_from_dict(users, (hive_user, "propertyHosts"), default_value=None):
+        services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
+
     for user_name, user_properties in users.iteritems():
-      if hive_user and hive_user == user_name:
-        if "propertyHosts" in user_properties:
-          services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.hosts".format(hive_user)})
       # Add properties "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" to core-site for all users
       putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(user_name) , user_properties["propertyHosts"])
-      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(hive_user, user_properties["propertyHosts"]))
+      Logger.info("Updated hadoop.proxyuser.{0}.hosts as : {1}".format(user_name, user_properties["propertyHosts"]))
       if "propertyGroups" in user_properties:
         putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(user_name) , user_properties["propertyGroups"])
 
@@ -299,6 +336,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           services["forced-configurations"].append({"type" : "core-site", "name" : "hadoop.proxyuser.{0}.groups".format(user_name)})
 
     self.recommendAmbariProxyUsersForHDFS(services, servicesList, putCoreSiteProperty, putCoreSitePropertyAttribute)
+
+  def getHadoopProxyUsersValidationItems(self, properties, services, hosts):
+    validationItems = []
+    users = self.getHadoopProxyUsers(services, hosts)
+    for user_name, user_properties in users.iteritems():
+      props = ["hadoop.proxyuser.{0}.hosts".format(user_name)]
+      if "propertyGroups" in user_properties:
+        props.append("hadoop.proxyuser.{0}.groups".format(user_name))
+
+      for prop in props:
+        validationItems.append({"config-name": prop, "item": self.validatorNotEmpty(properties, prop)})
+
+    return validationItems
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
@@ -938,7 +988,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
   def getServiceConfigurationValidators(self):
     return {
       "HDFS": { "hdfs-site": self.validateHDFSConfigurations,
-                "hadoop-env": self.validateHDFSConfigurationsEnv},
+                "hadoop-env": self.validateHDFSConfigurationsEnv,
+                "core-site": self.validateHDFSConfigurationsCoreSite},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations,
                "yarn-env": self.validateYARNEnvConfigurations},
@@ -1396,6 +1447,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
              "for property {1}".format(recommendedValue, propertyName))
     return None
 
+  def validatorNotEmpty(self, properties, propertyName):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set for {0}".format(propertyName))
+    value = properties.get(propertyName)
+    if not value:
+      return self.getWarnItem("Empty value for {0}".format(propertyName))
+    return None
+
   def validateMinMemorySetting(self, properties, defaultValue, propertyName):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
@@ -1510,6 +1569,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+
+  def validateHDFSConfigurationsCoreSite(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    validationItems.extend(self.getHadoopProxyUsersValidationItems(properties, services, hosts))
+    validationItems.extend(self.getAmbariProxyUsersForHDFSValidationItems(properties, services))
+    return self.toConfigurationValidationProblems(validationItems, "core-site")
 
   def validatorOneDataDirPerPartition(self, properties, propertyName, services, hosts, clusterEnv):
     if not propertyName in properties:

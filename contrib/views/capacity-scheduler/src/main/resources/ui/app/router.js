@@ -202,12 +202,6 @@ App.ErrorRoute = Ember.Route.extend({
 
 App.CapschedRoute = Ember.Route.extend({
   actions: {
-    rollbackProp: function(prop, item) {
-      var attributes = item.changedAttributes();
-      if (attributes.hasOwnProperty(prop)) {
-        item.set(prop, attributes[prop][0]);
-      }
-    },
     saveCapSchedConfigs: function(saveMode, forceRefresh) {
       var store = this.get('store'),
         that = this,
@@ -217,7 +211,8 @@ App.CapschedRoute = Ember.Route.extend({
         advancedCtrl = this.controllerFor("capsched.advanced"),
         restartOrRefreshMap = {
           schedulerTab: schedulerCtrl.get('isRefreshOrRestartNeeded') || false,
-          queuesTab: queuesconfCtrl.get('isRefreshOrRestartNeeded') || false,
+          queuesTabRefresh: queuesconfCtrl.get('isRefreshOrRestartNeeded') || false,
+          queuesTabRestart: queuesconfCtrl.get('isQueuesMustNeedRestart') || false,
           advancedTab: advancedCtrl.get('isRefreshOrRestartNeeded') || false
         };
 
@@ -246,7 +241,8 @@ App.CapschedRoute = Ember.Route.extend({
         Em.run.bind(that,'saveConfigsError', 'save')
       ).then(function () {
         schedulerCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.schedulerTab);
-        queuesconfCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.queuesTab);
+        queuesconfCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.queuesTabRefresh);
+        queuesconfCtrl.set('isQueuesMustNeedRestart', restartOrRefreshMap.queuesTabRestart);
         advancedCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.advancedTab);
         if (opt) {
           return store.relaunchCapSched(opt);
@@ -255,6 +251,7 @@ App.CapschedRoute = Ember.Route.extend({
         if (opt) {
           schedulerCtrl.set('isRefreshOrRestartNeeded', false);
           queuesconfCtrl.set('isRefreshOrRestartNeeded', false);
+          queuesconfCtrl.set('isQueuesMustNeedRestart', false);
           advancedCtrl.set('isRefreshOrRestartNeeded', false);
         }
         return store.getRmSchedulerConfigInfo();
@@ -271,6 +268,15 @@ App.CapschedRoute = Ember.Route.extend({
         lastSavedXML = store.get('lastSavedConfigXML'),
         currentXmlConfigs = store.buildConfig('xml'),
         diffConfigs = {baseXML: lastSavedXML, newXML: currentXmlConfigs};
+
+      controller.viewConfigXmlDiff(diffConfigs);
+    },
+    viewCapSchedConfigXml: function() {
+      var store = this.get('store'),
+        controller = this.controllerFor("capsched"),
+        viewXmlConfigs = store.buildConfig('xml');
+
+      controller.viewCapSchedXml({xmlConfig: viewXmlConfigs});
     }
   },
   beforeModel: function(transition) {
@@ -383,6 +389,7 @@ App.CapschedRoute = Ember.Route.extend({
       schedulerCtrl.set('isRefreshOrRestartNeeded', false);
       advancedCtrl.set('isRefreshOrRestartNeeded', false);
       queuesconfCtrl.set('isRefreshOrRestartNeeded', false);
+      queuesconfCtrl.set('isQueuesMustNeedRestart', false);
     }).catch(
       Em.run.bind(that, 'saveConfigsError', opt)
     ).finally(function() {
@@ -398,6 +405,14 @@ App.CapschedIndexRoute = Ember.Route.extend({
   }
 });
 
+App.CapschedSchedulerRoute = Ember.Route.extend({
+  actions: {
+    didTransition: function() {
+      this.controllerFor('capsched').set('selectedQueue', null);
+    }
+  }
+});
+
 App.CapschedQueuesconfIndexRoute = Ember.Route.extend({
   beforeModel: function(transition) {
     var rootQ = this.store.getById('queue', 'root');
@@ -406,6 +421,16 @@ App.CapschedQueuesconfIndexRoute = Ember.Route.extend({
 });
 
 App.CapschedQueuesconfEditqueueRoute = Ember.Route.extend({
+  actions: {
+    willTransition: function(transition) {
+      if (this.controllerFor('capsched.queuesconf').get('isCreaingOrRenamingQueue')) {
+        transition.abort();
+      }
+    },
+    didTransition: function() {
+      this.controllerFor('capsched').set('selectedQueue', this.controller.get('model'));
+    }
+  },
   model: function(params, transition) {
     var queue = this.store.getById('queue', params.queue_id);
     if (queue) {
@@ -416,6 +441,14 @@ App.CapschedQueuesconfEditqueueRoute = Ember.Route.extend({
   setupController: function(controller, model) {
     controller.set('model', model);
     this.controllerFor('capsched.queuesconf').set('selectedQueue', model);
+  }
+});
+
+App.CapschedAdvancedRoute = Ember.Route.extend({
+  actions: {
+    didTransition: function() {
+      this.controllerFor('capsched').set('selectedQueue', null);
+    }
   }
 });
 

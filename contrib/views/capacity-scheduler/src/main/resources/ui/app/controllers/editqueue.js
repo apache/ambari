@@ -66,16 +66,19 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     editQueueName: function() {
       this.set('enableEditQName', true);
       this.set('updatedQName', this.get('content.name'));
+      this.set('controllers.capschedQueuesconf.isEditingQueueName', true);
     },
     cancelQNameEdit: function() {
       this.set('enableEditQName', false);
       this.set('isInvalidQName', false);
       this.set('invalidQNameMessage', '');
+      this.set('controllers.capschedQueuesconf.isEditingQueueName', false);
     },
     renameQueue: function() {
       if (this.validateQName()) {
         return;
       }
+      this.set('controllers.capschedQueuesconf.isEditingQueueName', false);
       this.set('content.name', this.get('updatedQName'));
       this.set('enableEditQName', false);
     },
@@ -83,6 +86,24 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
       this.send('rollbackProp', 'disable_preemption', this.get('content'));
       this.send('rollbackProp', 'isPreemptionInherited', this.get('content'));
       this.set('content.isPreemptionOverriden', false);
+    },
+    rollbackProp: function(prop, item) {
+      var tempRefreshNeeded = this.get('isRefreshOrRestartNeeded');
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop, attributes[prop][0]);
+      }
+      this.set('isRefreshOrRestartNeeded', tempRefreshNeeded);
+      this.afterRollbackProp();
+    }
+  },
+
+  afterRollbackProp: function() {
+    var isAnyQDirty = this.get('allQueues').isAny('isAnyDirty', true);
+    if (isAnyQDirty) {
+      this.set('isRefreshOrRestartNeeded', true);
+    } else {
+      this.set('isRefreshOrRestartNeeded', false);
     }
   },
 
@@ -113,6 +134,15 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
   qNameDidChage: function() {
     this.validateQName();
   }.observes('updatedQName', 'updatedQName.length'),
+
+  absoluteClusterCapacity: function() {
+    return this.get('content.absolute_capacity');
+  }.property('content', 'content.absolute_capacity'),
+
+  absoluteClusterBarWidth: function() {
+    var absCap = this.get('absoluteClusterCapacity');
+    return this.get('widthPattern').fmt(absCap);
+  }.property('absoluteClusterCapacity'),
 
   /**
    * Collection of modified fields in queue.
@@ -250,9 +280,10 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    },
 
    isAnyQueueResourcesDirty: function() {
-     return this.get('queueDirtyFields.user_limit_factor') || this.get('queueDirtyFields.minimum_user_limit_percent')
-      || this.get('queueDirtyFields.maximum_applications') || this.get('queueDirtyFields.maximum_am_resource_percent')
-      || this.get('queueDirtyFields.ordering_policy') || this.get('queueDirtyFields.enable_size_based_weight');
+     var changedAttrs = this.get('content').changedAttributes();
+     return changedAttrs.hasOwnProperty('user_limit_factor') || changedAttrs.hasOwnProperty('minimum_user_limit_percent')
+      || changedAttrs.hasOwnProperty('maximum_applications') || changedAttrs.hasOwnProperty('maximum_am_resource_percent')
+      || changedAttrs.hasOwnProperty('ordering_policy') || changedAttrs.hasOwnProperty('enable_size_based_weight');
    }.property(
      'content.user_limit_factor',
      'content.minimum_user_limit_percent',
@@ -382,7 +413,8 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     },
 
     isAnyAccessControlListDirty: function() {
-      return this.get('queueDirtyFields.acl_administer_queue') || this.get('queueDirtyFields.acl_submit_applications');
+      var chagedAttrs = this.get('content').changedAttributes();
+      return chagedAttrs.hasOwnProperty('acl_administer_queue') || chagedAttrs.hasOwnProperty('acl_submit_applications');
     }.property('content.acl_submit_applications', 'content.acl_administer_queue'),
 
     /**
@@ -443,8 +475,9 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
       if (this.get('isLeafQ')) {
         return false;
       }
-      return this.get('queueDirtyFields.queues') || this.get('childrenQueues').anyBy('isDirtyCapacity', true) || this.get('childrenQueues').anyBy('isDirtyMaxCapacity', true);
-    }.property('content', 'content.queues', 'childrenQueues.@each.isDirtyCapacity', 'childrenQueues.@each.isDirtyMaxCapacity'),
+      return this.get('queueDirtyFields.queues') || this.get('childrenQueues').anyBy('isDirtyCapacity', true)
+        || this.get('childrenQueues').anyBy('isDirtyMaxCapacity', true) || this.get('warnInvalidCapacity');
+    }.property('content', 'content.queues', 'childrenQueues.@each.isDirtyCapacity', 'childrenQueues.@each.isDirtyMaxCapacity', 'warnInvalidCapacity'),
 
    /**
     * Adds observers for each queue attribute.
@@ -598,12 +631,14 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    warnInvalidTotalLabelCapacity: false,
 
    isAnyChildrenQueueLabelDirty: function() {
-     if (this.get('isLeafQ')) {
-       return this.get('queueDirtyFields.default_node_label_expression') || false;
+     var changedAttrs = this.get('content').changedAttributes();
+     if (this.get('content.queues') === null) {
+       return changedAttrs.hasOwnProperty('default_node_label_expression');
      }
-     return this.get('childrenQueues').anyBy('isLabelsDirty', true) || this.get('queueDirtyFields.default_node_label_expression')
-      || this.get('childrenLabelsForQueue').anyBy('isDirtyLabelCapacity', true) || this.get('childrenLabelsForQueue').anyBy('isDirtyLabelMaxCapacity', true);
-   }.property('content', 'childrenQueues.@each.isLabelsDirty', 'childrenLabelsForQueue.@each.isDirtyLabelCapacity', 'childrenLabelsForQueue.@each.isDirtyLabelMaxCapacity', 'content.default_node_label_expression'),
+     return this.get('childrenQueues').anyBy('isLabelsDirty', true) || changedAttrs.hasOwnProperty('default_node_label_expression')
+      || this.get('childrenLabelsForQueue').anyBy('isDirtyLabelCapacity', true) || this.get('childrenLabelsForQueue').anyBy('isDirtyLabelMaxCapacity', true)
+      || this.get('warnInvalidTotalLabelCapacity');
+   }.property('content', 'childrenQueues.@each.isLabelsDirty', 'childrenLabelsForQueue.@each.isDirtyLabelCapacity', 'childrenLabelsForQueue.@each.isDirtyLabelMaxCapacity', 'content.default_node_label_expression', 'warnInvalidTotalLabelCapacity'),
 
    //Preemption
    isPreemptionSupported: Ember.computed.alias('store.isPreemptionSupported'),
@@ -644,7 +679,7 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
    },
 
    isQueuePreemptionDirty: function() {
-     return this.get('queueDirtyFields.disable_preemption');
+     return this.get('content').changedAttributes().hasOwnProperty('disable_preemption');
    }.property('content.disable_preemption', 'content.isPreemptionInherited'),
 
    doOverridePreemption: function(key, value) {
@@ -667,10 +702,5 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
        this.set('content.isPreemptionInherited', true);
        this.set('content.disable_preemption', '');
      }
-   }.observes('content.isPreemptionOverriden'),
-
-   saveRefreshRestartWatcher: function() {
-     this.set('isRefreshOrRestartNeeded', this.get('isAnyQueueResourcesDirty') || this.get('isAnyAccessControlListDirty')
-      || this.get('isAnyChildrenQueueCapacityDirty') || this.get('isAnyChildrenQueueLabelDirty') || this.get('isQueuePreemptionDirty'));
-   }.observes('isAnyQueueResourcesDirty', 'isAnyAccessControlListDirty', 'isAnyChildrenQueueCapacityDirty', 'isAnyChildrenQueueLabelDirty', 'isQueuePreemptionDirty')
+   }.observes('content.isPreemptionOverriden')
 });

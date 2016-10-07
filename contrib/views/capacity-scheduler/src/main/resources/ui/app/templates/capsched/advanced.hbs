@@ -20,18 +20,25 @@
   {{!-- QUEUE MAPPING --}}
   {{#if isOperator}}
     <div class="hidden-sm hidden-xs">
-      {{queue-mapping mappings=scheduler.queue_mappings mappingsOverrideEnable=scheduler.queue_mappings_override_enable queues=queues isQueueMappingsDirty=isQueueMappingsDirty}}
+      {{queue-mapping mappings=scheduler.queue_mappings
+        mappingsOverrideEnable=scheduler.queue_mappings_override_enable
+        queues=queues
+        isQueueMappingsDirty=isQueueMappingsDirty
+        scheduler=scheduler
+        rollbackProp="rollbackProp"}}
     </div>
   {{/if}}
 </div>
 <div class="row">
-  <div class="btn btn-group-sm col-sm-offset-3">
+  <div class="btn btn-group-sm col-sm-offset-2">
     {{#if isQueueMappignsNeedSaveOrRefresh}}
-      {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Refresh queues is required"}}
+      {{warning-info class="yellow-warning fa-2x resfresh-restart-warning" tooltip="Refresh queues is required" placement="top"}}
     {{/if}}
     <button type="button" {{bind-attr class=":btn :btn-default :btn-success isQueueMappingsDirty::disabled"}} name="saveOnly" {{action "showSaveConfigDialog"}}>Save Only</button>
     <button type="button" {{bind-attr class=":btn :btn-default :btn-success isQueueMappignsNeedSaveOrRefresh::disabled"}} name="saveRefresh" {{action "showSaveConfigDialog" "refresh"}}>Save And Refresh Queues</button>
     <button type="button" {{bind-attr class=":btn :btn-default :btn-danger isQueueMappingsDirty::disabled"}} name="cancelAdvanced" {{action "showConfirmDialog"}}>Discard Changes</button>
+    <button type="button" {{bind-attr class=":btn :btn-primary isQueueMappingsDirty::disabled"}} name="viewXmlDiff" {{action "viewConfigXmlDiff"}}>View Diff</button>
+    <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
   </div>
 </div>
 

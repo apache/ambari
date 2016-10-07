@@ -148,6 +148,7 @@ var files = [
   'test/mappers/users_mapper_test',
   'test/mappers/stack_mapper_test',
   'test/mappers/stack_service_mapper_test',
+  'test/mappers/repository_version_mapper_test',
   'test/mappers/stack_upgrade_history_mapper_test',
   'test/mappers/configs/config_groups_mapper_test',
   'test/mappers/configs/service_config_version_mapper_test',

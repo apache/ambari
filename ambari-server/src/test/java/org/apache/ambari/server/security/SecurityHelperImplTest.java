@@ -44,13 +44,13 @@ public class SecurityHelperImplTest {
     SecurityContext ctx = SecurityContextHolder.getContext();
     UserEntity userEntity = new UserEntity();
     userEntity.setPrincipal(new PrincipalEntity());
-    userEntity.setUserName("username"); // with user entity, always use lower case
+    userEntity.setUserName("userName");
     userEntity.setUserId(1);
     User user = new User(userEntity);
     Authentication auth = new AmbariUserAuthentication(null, user, null);
     ctx.setAuthentication(auth);
 
-    Assert.assertEquals("username", SecurityHelperImpl.getInstance().getCurrentUserName());
+    Assert.assertEquals("userName", SecurityHelperImpl.getInstance().getCurrentUserName());
   }
 
   @Test

@@ -34,7 +34,7 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class MICROSOFT_R800ServiceAdvisor(service_advisor.ServiceAdvisor):
+class MICROSOFT_R805ServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
     # colocate R_SERVER_CLIENT with NODEMANAGERs and YARN_CLIENTs

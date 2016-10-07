@@ -33,7 +33,7 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 from resource_management.libraries.functions.get_path_from_url import get_path_from_url
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from ambari_commons import OSCheck
-from ambari_commons.inet_utils import resolve_address
+from ambari_commons.inet_utils import resolve_address, ensure_ssl_using_tls_v1
 from ambari_agent import Constants
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
@@ -54,15 +54,7 @@ DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
 
-# patch ssl module to fix SSLv3 communication bug
-# for more info see http://stackoverflow.com/questions/9835506/urllib-urlopen-works-on-sslv3-urls-with-python-2-6-6-on-1-machine-but-not-wit
-def sslwrap(func):
-    @wraps(func)
-    def bar(*args, **kw):
-        kw['ssl_version'] = ssl.PROTOCOL_TLSv1
-        return func(*args, **kw)
-    return bar
-ssl.wrap_socket = sslwrap(ssl.wrap_socket)
+ensure_ssl_using_tls_v1()
 
 class WebAlert(BaseAlert):
 

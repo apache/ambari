@@ -68,6 +68,7 @@ public class ServiceInfo implements Validable{
   private String version;
   private String comment;
   private String serviceType;
+  private Selection selection;
 
   @XmlTransient
   private List<PropertyInfo> properties;
@@ -322,6 +323,26 @@ public String getVersion() {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public Selection getSelection() {
+    if (selection == null) {
+      return Selection.DEFAULT;
+    }
+    return selection;
+  }
+
+  public void setSelection(Selection selection) {
+    this.selection = selection;
+  }
+
+  /**
+   * Check if selection was presented in xml. We need this for proper stack inheritance, because {@link ServiceInfo#getSelection}
+   * by default returns {@link Selection#DEFAULT}, even if no value found in metainfo.xml.
+   * @return true, if selection not defined in metainfo.xml
+   */
+  public boolean isSelectionEmpty() {
+    return selection == null;
   }
 
   public String getComment() {
@@ -977,4 +998,10 @@ public String getVersion() {
     }
   }
 
+  public enum Selection {
+    DEFAULT,
+    TECH_PREVIEW,
+    MANDATORY,
+    DEPRECATED
+  }
 }

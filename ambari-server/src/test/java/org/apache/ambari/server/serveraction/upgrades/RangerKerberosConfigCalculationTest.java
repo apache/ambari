@@ -118,6 +118,7 @@ public class RangerKerberosConfigCalculationTest {
     Config stormConfig = new ConfigImpl("storm-env") {
       Map<String, String> mockProperties = new HashMap<String, String>() {{
         put("storm_user", "storm");
+        put("storm_principal_name", "storm-c1@EXAMLE.COM");
       }};
 
       @Override
@@ -150,7 +151,6 @@ public class RangerKerberosConfigCalculationTest {
 
     Config hdfsSiteConfig = new ConfigImpl("hdfs-site") {
       Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("dfs.web.authentication.kerberos.principal", "HTTP/_HOST.COM");
         put("dfs.web.authentication.kerberos.keytab", "/etc/security/keytabs/spnego.kytab");
       }};
 
@@ -236,7 +236,6 @@ public class RangerKerberosConfigCalculationTest {
     assertTrue(map.containsKey("ranger.plugins.storm.serviceuser"));
     assertTrue(map.containsKey("ranger.plugins.kafka.serviceuser"));
     assertTrue(map.containsKey("ranger.plugins.kms.serviceuser"));
-    assertTrue(map.containsKey("ranger.spnego.kerberos.principal"));
     assertTrue(map.containsKey("ranger.spnego.kerberos.keytab"));    
 
 
@@ -245,10 +244,9 @@ public class RangerKerberosConfigCalculationTest {
     assertEquals("yarn", map.get("ranger.plugins.yarn.serviceuser"));
     assertEquals("hbase", map.get("ranger.plugins.hbase.serviceuser"));
     assertEquals("knox", map.get("ranger.plugins.knox.serviceuser"));
-    assertEquals("storm", map.get("ranger.plugins.storm.serviceuser"));
+    assertEquals("storm-c1,storm", map.get("ranger.plugins.storm.serviceuser"));
     assertEquals("kafka", map.get("ranger.plugins.kafka.serviceuser"));
     assertEquals("kms", map.get("ranger.plugins.kms.serviceuser"));
-    assertEquals("HTTP/_HOST.COM", map.get("ranger.spnego.kerberos.principal"));
     assertEquals("/etc/security/keytabs/spnego.kytab", map.get("ranger.spnego.kerberos.keytab"));
 
     report = action.execute(null);

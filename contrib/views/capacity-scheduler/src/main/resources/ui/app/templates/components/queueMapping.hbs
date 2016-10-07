@@ -17,12 +17,12 @@
 
 <div class="panel panel-default panel-queue-mapping">
   <div class="panel-heading">
-    <div class="panel-title">
+    <div id="collapseQueueMappingsBtn" href="#queueMappingsCollapsiblePanel" data-toggle="collapse" {{bind-attr class=":panel-title :collapsible-panel-btn isCollapsed:collapsed"}}>
       Queue Mappings
       {{#if isQueueMappingsDirty}}
         {{warning-info class="yellow-warning" tooltip="Need refresh queues"}}
       {{/if}}
-      <a href="#queueMappingsCollapsiblePanel" id="collapseQueueMappingsBtn" data-toggle="collapse" {{bind-attr class=":pull-right isCollapsed:collapsed"}}><i {{bind-attr class=":fa isCollapsed:fa-plus:fa-minus"}}></i></a>
+      <a class="pull-right"><i {{bind-attr class=":fa isCollapsed:fa-plus:fa-minus"}}></i></a>
     </div>
   </div>
   <div id="queueMappingsCollapsiblePanel" {{bind-attr class=":panel-collapse :collapse isCollapsed::in"}}>
@@ -46,6 +46,11 @@
             <div class="btn-group btn-group-sm">
               <button type="button" class="btn btn-default btn-primary" name="button" {{action "showMappingOptions"}}>Add Mapping</button>
             </div>
+            {{#if isMappingsDirty}}
+              <div class="btn-group btn-group-xs">
+                <a {{action 'rollbackProp' 'queue_mappings' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+              </div>
+            {{/if}}
           </div>
           {{#if isShowing}}
             <div class="queue-mapping-options">
@@ -164,6 +169,11 @@
                 message='When checked, applications submitted with queues specified will be used other than those defined in configured queue mapping'
               }}
             </label>
+            {{#if isOverrideEnableDirty}}
+              <span class="btn-group btn-group-xs">
+                <a {{action 'rollbackProp' 'queue_mappings_override_enable' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+              </span>
+            {{/if}}
           </div>
         </div>
       </div>

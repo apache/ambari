@@ -36,7 +36,6 @@ App.Label = DS.Model.extend({
   isDefault: function () {
     return this.get('queue.default_node_label_expression') === this.get('name');
   }.property('queue.default_node_label_expression'),
-  absoluteCapacity: 0,
   setCapacity: function(cap) {
     this.set('capacity', cap);
   },
@@ -244,7 +243,7 @@ App.Queue = DS.Model.extend({
 
   capacity: DS.attr('number', { defaultValue: 0 }),
   maximum_capacity: DS.attr('number', { defaultValue: 0 }),
-  //unfunded_capacity: DS.attr('number', { defaultValue: 0 }),
+  absolute_capacity: 0,
   isDirtyCapacity: false,
   isDirtyMaxCapacity: false,
 
@@ -320,5 +319,9 @@ App.Queue = DS.Model.extend({
     if (Em.isEmpty(this.get('labels').findBy('name',this.get('default_node_label_expression')))) {
       this.set('default_node_label_expression',null);
     }
-  }.observes('labels','default_node_label_expression')
+  }.observes('labels','default_node_label_expression'),
+
+  isLeafQ: function() {
+    return this.get('queues') === null;
+  }.property('queues')
 });

@@ -37,15 +37,16 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#realRepoUrl", function() {
     before(function () {
       this.mock = sinon.stub(App, 'get');
-      this.mock.withArgs('apiPrefix').returns('apiPrefix')
-        .withArgs('stackVersionURL').returns('stackVersionURL');
+      this.mock.withArgs('apiPrefix').returns('apiPrefix');
     });
     after(function () {
       this.mock.restore();
     });
     it("should be valid", function() {
+      var expected = 'apiPrefix/stacks?fields=versions/repository_versions/RepositoryVersions,' +
+        'versions/repository_versions/operating_systems/*,versions/repository_versions/operating_systems/repositories/*';
       controller.propertyDidChange('realRepoUrl');
-      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/compatible_repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
+      expect(controller.get('realRepoUrl')).to.equal(expected);
     });
   });
 
@@ -121,6 +122,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(controller, 'loadRepoVersionsToModel').returns({
         done: Em.clb
       });
+      sinon.stub(controller, 'loadCompatibleVersions').returns({
+        done: Em.clb
+      });
       sinon.stub(App.StackVersion, 'find').returns([Em.Object.create({
         state: 'CURRENT',
         repositoryVersion: {
@@ -134,6 +138,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.loadUpgradeData.restore();
       controller.loadStackVersionsToModel.restore();
       controller.loadRepoVersionsToModel.restore();
+      controller.loadCompatibleVersions.restore();
       App.StackVersion.find.restore();
     });
     it("loadUpgradeData called with valid arguments", function() {
@@ -144,6 +149,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it('loadRepoVersionsToModel called once', function () {
       expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+    });
+    it('loadCompatibleVersions called once', function () {
+      expect(controller.loadCompatibleVersions.calledOnce).to.be.true;
     });
     it('currentVersion is corrent', function () {
       expect(controller.get('currentVersion')).to.eql({
@@ -3117,6 +3125,66 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.get('serviceVersionsMap')).to.be.eql({
         "S1": "v1"
       });
+    });
+  });
+
+  describe("#loadCompatibleVersions()", function () {
+
+    beforeEach(function() {
+      sinon.stub(App, 'get').returns('stack');
+    });
+
+    afterEach(function() {
+      App.get.restore();
+    });
+
+    it("App.ajax.send should be called", function() {
+      controller.loadCompatibleVersions();
+      var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.get_compatible_versions');
+      expect(args[0]).to.be.eql({
+        name: 'admin.upgrade.get_compatible_versions',
+        sender: controller,
+        data: {
+          stackName: 'stack',
+          stackVersion: 'stack'
+        },
+        success: 'loadCompatibleVersionsSuccessCallback'
+      });
+    });
+  });
+
+  describe("#loadCompatibleVersionsSuccessCallback()", function () {
+    var mock = [
+      Em.Object.create({
+        repositoryVersion: 'HDP-1',
+        isCompatible: false
+      }),
+      Em.Object.create({
+        repositoryVersion: 'HDP-2',
+        isCompatible: false
+      })
+    ];
+
+    beforeEach(function() {
+      sinon.stub(App.RepositoryVersion, 'find').returns(mock);
+    });
+
+    afterEach(function() {
+      App.RepositoryVersion.find.restore();
+    });
+
+    it("should set isCompatible property", function() {
+      var data = {
+        items: [
+          {
+            CompatibleRepositoryVersions: {
+              repository_version: 'HDP-2'
+            }
+          }
+        ]
+      };
+      controller.loadCompatibleVersionsSuccessCallback(data);
+      expect(mock.mapProperty('isCompatible')).to.be.eql([false, true])
     });
   });
 

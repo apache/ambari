@@ -36,8 +36,8 @@ CREATE TABLE stack(
 
 CREATE TABLE extension(
   extension_id BIGINT NOT NULL,
-  extension_name VARCHAR(255) NOT NULL,
-  extension_version VARCHAR(255) NOT NULL,
+  extension_name VARCHAR(100) NOT NULL,
+  extension_version VARCHAR(100) NOT NULL,
   CONSTRAINT PK_extension PRIMARY KEY (extension_id),
   CONSTRAINT UQ_extension UNIQUE (extension_name, extension_version));
 
@@ -279,8 +279,8 @@ CREATE TABLE users (
   principal_id BIGINT NOT NULL,
   create_time TIMESTAMP DEFAULT NOW(),
   ldap_user INTEGER NOT NULL DEFAULT 0,
-  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
-  user_name VARCHAR(255) NOT NULL,
+  user_type VARCHAR(100) NOT NULL DEFAULT 'LOCAL',
+  user_name VARCHAR(100) NOT NULL,
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
@@ -368,13 +368,13 @@ CREATE TABLE host_role_command (
   host_id BIGINT,
   last_attempt_time BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
-  role VARCHAR(255),
+  role VARCHAR(100),
   role_command VARCHAR(255),
   stage_id BIGINT NOT NULL,
   start_time BIGINT NOT NULL,
   original_start_time BIGINT NOT NULL,
   end_time BIGINT,
-  status VARCHAR(255),
+  status VARCHAR(100),
   auto_skip_on_failure SMALLINT DEFAULT 0 NOT NULL,
   std_error LONGBLOB,
   std_out LONGBLOB,

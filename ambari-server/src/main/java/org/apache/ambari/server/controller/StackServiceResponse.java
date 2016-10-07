@@ -38,6 +38,7 @@ public class StackServiceResponse {
   private String userName;
   private String comments;
   private String serviceVersion;
+  private ServiceInfo.Selection selection;
   private boolean serviceCheckSupported;
   private List<String> customCommands;
 
@@ -73,6 +74,7 @@ public class StackServiceResponse {
     excludedConfigTypes = service.getExcludedConfigTypes();
     requiredServices = service.getRequiredServices();
     serviceCheckSupported = null != service.getCommandScript();
+    selection = service.getSelection();
 
     // the custom command names defined at the service (not component) level
     List<CustomCommandDefinition> definitions = service.getCustomCommands();
@@ -88,6 +90,14 @@ public class StackServiceResponse {
     kerberosDescriptorFile = service.getKerberosDescriptorFile();
 
     serviceProperties = service.getServiceProperties();
+  }
+
+  public ServiceInfo.Selection getSelection() {
+    return selection;
+  }
+
+  public void setSelection(ServiceInfo.Selection selection) {
+    this.selection = selection;
   }
 
   public String getStackName() {
@@ -115,14 +125,14 @@ public class StackServiceResponse {
   }
 
   public String getServiceType() {
-	return serviceType;
+    return serviceType;
   }
 
   public void setServiceType(String serviceType) {
-	this.serviceType = serviceType;
+    this.serviceType = serviceType;
   }
 
-public String getServiceDisplayName() {
+  public String getServiceDisplayName() {
     return serviceDisplayName;
   }
 

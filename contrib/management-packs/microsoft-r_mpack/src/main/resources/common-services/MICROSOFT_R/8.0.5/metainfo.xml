@@ -23,7 +23,7 @@
       <name>MICROSOFT_R</name>
       <displayName>Microsoft R</displayName>
       <comment>Microsoft R Server</comment>
-      <version>8.0.0</version>
+      <version>8.0.5</version>
 
       <components>
         <component>

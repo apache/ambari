@@ -22,12 +22,14 @@ import com.google.gson.reflect.TypeToken;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
+@Category({ category.KerberosTest.class})
 public class KerberosIdentityDescriptorTest {
   public static final String JSON_VALUE =
       "{" +

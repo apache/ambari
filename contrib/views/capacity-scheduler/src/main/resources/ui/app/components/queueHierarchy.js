@@ -29,6 +29,17 @@
        .filterBy('parentPath', this.get('parent'));
    }.property('depth', 'parent', 'queues.length', 'queues.@each.name'),
 
+   cildrenQueues: function() {
+     var leafQs = this.get('leafQs'),
+      deltedQs = this.get('deletedQs');
+
+     var deletedAtDepth = deltedQs
+      .filterBy('depth', this.get('depth'))
+      .filterBy('parentPath', this.get('parent'));
+
+     return leafQs.pushObjects(deletedAtDepth);
+   }.property('leafQs.length', 'deletedQs.[]'),
+
    childDepth: function () {
      return this.get('leafQs.firstObject.depth') + 1;
    }.property('depth'),

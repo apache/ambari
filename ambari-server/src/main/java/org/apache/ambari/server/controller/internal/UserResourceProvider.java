@@ -21,6 +21,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.UserResponse;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -35,7 +36,7 @@ import java.util.Set;
 /**
  * Resource provider for user resources.
  */
-public class UserResourceProvider extends AbstractControllerResourceProvider {
+public class UserResourceProvider extends AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -186,6 +187,28 @@ public class UserResourceProvider extends AbstractControllerResourceProvider {
     });
 
     return getRequestStatus(null);
+  }
+
+  /**
+   * ResourcePredicateEvaluator implementation. If property type is User/user_name,
+   * we do a case insensitive comparison so that we can return the retrieved
+   * username when it differs only in case with respect to the requested username.
+   *
+   * @param predicate  the predicate
+   * @param resource   the resource
+   *
+     * @return
+     */
+  @Override
+  public boolean evaluate(Predicate predicate, Resource resource) {
+    if (predicate instanceof EqualsPredicate) {
+      EqualsPredicate equalsPredicate = (EqualsPredicate)predicate;
+      String propertyId = equalsPredicate.getPropertyId();
+      if (propertyId.equals(USER_USERNAME_PROPERTY_ID)) {
+        return equalsPredicate.evaluateIgnoreCase(resource);
+      }
+    }
+    return predicate.evaluate(resource);
   }
 
   @Override

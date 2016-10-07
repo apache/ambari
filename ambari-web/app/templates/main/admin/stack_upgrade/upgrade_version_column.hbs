@@ -27,7 +27,7 @@
 <p class="version-column-show-details">
   <a {{action openVersionBoxPopup target="view"}}>{{t admin.stackVersions.version.column.showDetails}}</a>
 </p>
-<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
+<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state :repo-version-tooltip"}}>
   {{#if view.stateElement.isButton}}
     <button class="btn btn-primary"
       {{action runAction target="view"}}

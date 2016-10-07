@@ -123,9 +123,13 @@ class TestUtils(TestCase):
   @patch('time.time')
   @patch.object(utils, 'pid_exists')
   @patch('time.sleep')
-  def test_wait_for_pid(self, sleep_mock, pid_exists_mock, time_mock):
+  @patch("ambari_server.serverConfiguration.get_ambari_properties")
+  @patch("socket.socket")
+  def test_wait_for_pid(self, socket_mock, get_properties_mock, sleep_mock, pid_exists_mock, time_mock):
     pid_exists_mock.return_value = True
-    time_mock.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 11]
+    time_mock.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51]
+    s = socket_mock.return_value
+    s.connect = MagicMock()
 
     out = StringIO.StringIO()
     sys.stdout = out
@@ -138,8 +142,8 @@ class TestUtils(TestCase):
                                     "exe": "",
                                     "cmd": ""
                                     },
-                                   ], 10)
-    self.assertEqual("..........", out.getvalue())
+                                   ], 5, 40, 10, get_properties_mock)
+    self.assertEqual(".\nServer started listening on 8080\nWaiting for 10 seconds, for server WEB UI initialization\n........", out.getvalue())
     sys.stdout = sys.__stdout__
 
     self.assertEquals(2, live_pids)
