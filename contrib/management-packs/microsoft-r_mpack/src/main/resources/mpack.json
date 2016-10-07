@@ -25,7 +25,7 @@
       "service_versions_map": [
         {
           "service_name" : "MICROSOFT_R",
-          "service_version" : "8.0.0",
+          "service_version" : "8.0.5",
           "applicable_stacks" : [
             {
               "stack_name" : "HDP",
