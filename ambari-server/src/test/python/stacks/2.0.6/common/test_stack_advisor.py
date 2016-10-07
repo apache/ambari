@@ -1620,6 +1620,221 @@ class TestHDP206StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
 
+  @patch("socket.getfqdn", new=lambda: 'test-mock-ambari-server-hostname1')
+  def test_recommendHadoopProxyUsers(self):
+    # input data stub
+    configurations = {'hadoop-env': {'properties': {'hdfs_user': 'hdfs-user'}},
+                      'yarn-env':   {'properties': {'yarn_user': 'yarn-user'}},
+                      'oozie-env':  {'properties': {'oozie_user': 'oozie-user'}},
+                      'hive-env':   {'properties': {'hive_user': 'hive-user',
+                                                    'webhcat_user': 'webhcat-user'}},
+                      'falcon-env': {'properties': {'falcon_user': 'falcon-user'}},
+                      'livy-env':   {'properties': {'livy_user': 'livy-user'}}
+                     }
+    services = {
+      'services':  [
+        { 'StackServices': {'service_name': 'HDFS'}},
+        { 'StackServices': {'service_name': 'FALCON'}},
+        { 'StackServices': {'service_name': 'SPARK'}},
+        { 'StackServices': {'service_name': 'YARN'},
+          'components': [
+           {
+             'StackServiceComponents': {
+               'component_name': 'RESOURCEMANAGER',
+               'hostnames': ['host1', 'host2']
+             }
+           }
+          ]
+        },
+        { 'StackServices': {'service_name': 'OOZIE'},
+          'components': [
+           {
+             'StackServiceComponents': {
+               'component_name': 'OOZIE_SERVER',
+               'hostnames': ['host2']
+             }
+           }
+          ]
+        },
+        { 'StackServices': {'service_name': 'HIVE'},
+          'components': [
+           {
+             'StackServiceComponents': {
+               'component_name': 'HIVE_SERVER',
+               'hostnames': ['host1']
+             }
+           },
+           {
+             'StackServiceComponents': {
+               'component_name': 'HIVE_SERVER_INTERACTIVE',
+               'hostnames': ['host3']
+             }
+           },
+           {
+             'StackServiceComponents': {
+               'component_name': 'WEBHCAT_SERVER',
+               'hostnames': ['host4']
+             }
+           }
+          ]
+        },
+      ],
+      'ambari-server-properties': {'ambari-server.user': 'ambari-user'},
+      'configurations': configurations
+    }
+    hosts = {
+      'items' : [
+        {'Hosts' : {'host_name' : 'host1'}},
+        {'Hosts' : {'host_name' : 'host2'}},
+        {'Hosts' : {'host_name' : 'host3'}},
+        {'Hosts' : {'host_name' : 'host4'}}
+      ]
+    }
+
+    # 1) ok: check recommendations
+    expected = {
+      'hadoop.proxyuser.ambari-user.groups': '*',
+      'hadoop.proxyuser.ambari-user.hosts': 'test-mock-ambari-server-hostname1',
+      'hadoop.proxyuser.falcon-user.groups': '*',
+      'hadoop.proxyuser.falcon-user.hosts': '*',
+      'hadoop.proxyuser.hdfs-user.groups': '*',
+      'hadoop.proxyuser.hdfs-user.hosts': '*',
+      'hadoop.proxyuser.hive-user.groups': '*',
+      'hadoop.proxyuser.hive-user.hosts': 'host1,host3',
+      'hadoop.proxyuser.livy-user.groups': '*',
+      'hadoop.proxyuser.livy-user.hosts': '*',
+      'hadoop.proxyuser.oozie-user.groups': '*',
+      'hadoop.proxyuser.oozie-user.hosts': 'host2',
+      'hadoop.proxyuser.webhcat-user.groups': '*',
+      'hadoop.proxyuser.webhcat-user.hosts': 'host4',
+      'hadoop.proxyuser.yarn-user.hosts': 'host1,host2'
+    }
+
+    self.stackAdvisor.recommendHadoopProxyUsers(configurations, services, hosts)
+    self.assertEquals(expected, configurations['core-site']['properties'])
+
+  @patch("socket.getfqdn", new=lambda: 'test-mock-ambari-server-hostname1')
+  def test_validateHDFSConfigurationsCoreSite(self):
+    # input data stub
+    configurations = {'hadoop-env': {'properties': {'hdfs_user': 'hdfs-user'}},
+                      'yarn-env': {'properties': {'yarn_user': 'yarn-user'}}}
+    recommendedDefaults = {'hadoop.proxyuser.ambari-user.hosts': '*',
+                           'hadoop.proxyuser.ambari-user.groups': '*',
+                           'hadoop.proxyuser.hdfs-user.hosts': '*',
+                           'hadoop.proxyuser.hdfs-user.groups': '*',
+                           'hadoop.proxyuser.yarn-user.hosts': 'host1,host2',
+                           'hadoop.proxyuser.yarn-user.groups': '*'}
+    properties = {'hadoop.proxyuser.ambari-user.hosts': '*',
+                  'hadoop.proxyuser.ambari-user.groups': '*',
+                  'hadoop.proxyuser.hdfs-user.hosts': '*',
+                  'hadoop.proxyuser.hdfs-user.groups': '*',
+                  'hadoop.proxyuser.yarn-user.hosts': 'host1,host2',
+                  'hadoop.proxyuser.yarn-user.groups': '*'}
+    services = {
+      'services':  [
+        { 'StackServices': {'service_name': 'HDFS'}},
+        { 'StackServices': {'service_name': 'YARN'},
+          'components': [
+           {
+             'StackServiceComponents': {
+               'component_name': 'RESOURCEMANAGER',
+               'hostnames': ['host1', 'host2']
+             }
+           }
+          ]
+        }
+      ],
+      'ambari-server-properties': {'ambari-server.user': 'ambari-user'},
+      'configurations': configurations
+    }
+    hosts = {
+      'items' : [
+        {'Hosts' : {'host_name' : 'host1'}},
+        {'Hosts' : {'host_name' : 'host2'}}
+      ]
+    }
+
+    # 1) ok: HDFS and Ambari proxyusers are present
+    res_expected = []
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: test filter function: two RESOURCE_MANAGERs, hadoop.proxyuser.yarn-user.hosts is expected to be set
+    del properties['hadoop.proxyuser.yarn-user.hosts']
+    res_expected = [{'config-name': 'hadoop.proxyuser.yarn-user.hosts',
+                     'config-type': 'core-site',
+                     'level': 'ERROR',
+                     'message': 'Value should be set for hadoop.proxyuser.yarn-user.hosts',
+                     'type': 'configuration'}]
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+
+    # 3) ok: test filter function: only one RESOURCE_MANAGER
+    services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
+    res_expected = []
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+
+    # 4) fail: some proxyusers are empty or absent:
+    del properties['hadoop.proxyuser.ambari-user.hosts']
+    properties['hadoop.proxyuser.hdfs-user.groups'] = ''
+    res_expected = [{'config-name': 'hadoop.proxyuser.hdfs-user.groups',
+                     'config-type': 'core-site',
+                     'level': 'WARN',
+                     'message': 'Empty value for hadoop.proxyuser.hdfs-user.groups',
+                     'type': 'configuration'},
+                    {'config-type': 'core-site',
+                     'message': 'Value should be set for hadoop.proxyuser.ambari-user.hosts',
+                     'type': 'configuration',
+                     'config-name': 'hadoop.proxyuser.ambari-user.hosts',
+                     'level': 'ERROR'}]
+    res = self.stackAdvisor.validateHDFSConfigurationsCoreSite(properties, recommendedDefaults, configurations, services, hosts)
+    self.assertEquals(res, res_expected)
+
+  def test_getHadoopProxyUsers(self):
+    # input data stub
+    configurations = {'hadoop-env': {'properties': {'hdfs_user': 'hdfs-user'}},
+                      'yarn-env': {'properties': {'yarn_user': 'yarn-user'}}}
+    services = {
+      'services':  [
+        { 'StackServices': {'service_name': 'HDFS'}},
+        { 'StackServices': {'service_name': 'YARN'},
+          'components': [
+           {
+             'StackServiceComponents': {
+               'component_name': 'RESOURCEMANAGER',
+               'hostnames': ['host1', 'host2']
+             }
+           }
+          ]
+        }
+      ],
+      'ambari-server-properties': {'ambari-server.user': 'ambari-user'},
+      'configurations': configurations
+    }
+    hosts = {
+      'items' : [
+        {'Hosts' : {'host_name' : 'host1'}},
+        {'Hosts' : {'host_name' : 'host2'}}
+      ]
+    }
+
+    # 1) HDFS + YARN:
+    res_expected = {
+      'hdfs-user': {'propertyName': 'hdfs_user', 'config': 'hadoop-env', 'propertyHosts': '*', 'propertyGroups': '*'},
+      'yarn-user': {'propertyName': 'yarn_user', 'config': 'yarn-env', 'propertyHosts': 'host1,host2'}
+    }
+    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts)
+    self.assertEquals(res, res_expected)
+
+    # 2) test filter function: only one RESOURCE_MANAGER
+    services['services'][1]['components'][0]['StackServiceComponents']['hostnames'] = ["host1"]
+    res_expected = {
+        'hdfs-user': {'propertyName': 'hdfs_user', 'config': 'hadoop-env', 'propertyHosts': '*', 'propertyGroups': '*'}
+    }
+    res = self.stackAdvisor.getHadoopProxyUsers(services, hosts)
+    self.assertEquals(res, res_expected)
+
   def test_validateOneDataDirPerPartition(self):
     recommendedDefaults = {
       'dfs.datanode.du.reserved': '1024'

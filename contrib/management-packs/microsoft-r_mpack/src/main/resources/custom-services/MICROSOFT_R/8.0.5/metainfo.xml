@@ -21,8 +21,8 @@
   <services>
     <service>
       <name>MICROSOFT_R</name>
-      <extends>common-services/MICROSOFT_R/8.0.0</extends>
-      <version>8.0.0.0</version>
+      <extends>common-services/MICROSOFT_R/8.0.5</extends>
+      <version>8.0.5.0</version>
     </service>
   </services>
 </metainfo>
