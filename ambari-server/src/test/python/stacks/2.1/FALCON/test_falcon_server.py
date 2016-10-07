@@ -43,6 +43,13 @@ class TestFalconServer(RMFTestCase):
 
     self.assert_configure_default()
 
+    self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon-config.sh server falcon',
+      path = ['/usr/bin'],
+      user = 'falcon',
+      environment = {'HADOOP_HOME': '/usr/lib/hadoop'},
+      not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
+    )
+
     self.assertResourceCalled('File', '/usr/lib/falcon/server/webapp/falcon/WEB-INF/lib/je-5.0.73.jar',
       content=DownloadSource('http://c6401.ambari.apache.org:8080/resources//je-5.0.73.jar'),
       mode=0755
@@ -374,6 +381,13 @@ class TestFalconServer(RMFTestCase):
         create_parents = True,
     )
    
+    self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-config.sh server falcon',
+        environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
+        path = ['/usr/hdp/current/hadoop-client/bin'],
+        user = 'falcon',
+        not_if = 'ls /var/run/falcon/falcon.pid && ps -p ',
+    )
+
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},
         path = ['/usr/hdp/current/hadoop-client/bin'],
