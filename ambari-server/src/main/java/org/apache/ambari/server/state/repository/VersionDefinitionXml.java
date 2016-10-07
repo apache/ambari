@@ -120,7 +120,7 @@ public class VersionDefinitionXml {
    * collection is either the subset of the manifest, or the manifest itself if no services
    * are specified as "available".
    */
-  public Collection<AvailableService> getAvailableServices(StackInfo stack) {
+  public synchronized Collection<AvailableService> getAvailableServices(StackInfo stack) {
     if (null == m_availableMap) {
       Map<String, ManifestService> manifests = buildManifest();
       m_availableMap = new HashMap<>();
@@ -155,7 +155,7 @@ public class VersionDefinitionXml {
    * @param stack the stack for which to get the information
    * @return the list of {@code ManifestServiceInfo} instances for each service in the stack
    */
-  public List<ManifestServiceInfo> getStackServices(StackInfo stack) {
+  public synchronized List<ManifestServiceInfo> getStackServices(StackInfo stack) {
 
     if (null != m_manifest) {
       return m_manifest;

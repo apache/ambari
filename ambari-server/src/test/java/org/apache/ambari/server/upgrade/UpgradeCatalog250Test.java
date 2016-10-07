@@ -18,13 +18,37 @@
 
 package org.apache.ambari.server.upgrade;
 
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.persistence.EntityManager;
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
@@ -47,32 +71,15 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertTrue;
+import junit.framework.Assert;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -99,10 +106,37 @@ public class UpgradeCatalog250Test {
   public void testExecuteDDLUpdates() throws Exception {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
 
+    Configuration configuration = createNiceMock(Configuration.class);
+    Connection connection = createNiceMock(Connection.class);
+    Statement statement = createNiceMock(Statement.class);
+    ResultSet resultSet = createNiceMock(ResultSet.class);
+
+
+    // !!! setup capture for host_version
     dbAccessor.addUniqueConstraint("host_version", "UQ_host_repo", "repo_version_id", "host_id");
     expectLastCall().once();
 
-    replay(dbAccessor);
+    // !!! setup capture for servicecomponent_version
+    Capture<List<DBAccessor.DBColumnInfo>> capturedComponentVersionColumns = newCapture();
+
+    dbAccessor.createTable(eq(UpgradeCatalog250.COMPONENT_VERSION_TABLE), capture(capturedComponentVersionColumns),
+        eq((String[]) null));
+
+    dbAccessor.addPKConstraint(eq(UpgradeCatalog250.COMPONENT_VERSION_TABLE),
+        eq(UpgradeCatalog250.COMPONENT_VERSION_PK), eq("id"));
+    dbAccessor.addFKConstraint(eq(UpgradeCatalog250.COMPONENT_VERSION_TABLE),
+        eq(UpgradeCatalog250.COMPONENT_VERSION_FK_COMPONENT), eq("component_id"),
+        eq(UpgradeCatalog250.COMPONENT_TABLE), eq("id"), eq(false));
+    dbAccessor.addFKConstraint(eq(UpgradeCatalog250.COMPONENT_VERSION_TABLE),
+        eq(UpgradeCatalog250.COMPONENT_VERSION_FK_REPO_VERSION), eq("repo_version_id"),
+        eq("repo_version"), eq("repo_version_id"), eq(false));
+
+
+    expect(dbAccessor.getConnection()).andReturn(connection);
+    expect(connection.createStatement()).andReturn(statement);
+    expect(statement.executeQuery(anyObject(String.class))).andReturn(resultSet);
+
+    replay(dbAccessor, configuration, connection, statement, resultSet);
 
     Module module = new Module() {
       @Override
@@ -118,6 +152,35 @@ public class UpgradeCatalog250Test {
     upgradeCatalog250.executeDDLUpdates();
 
     verify(dbAccessor);
+
+    // !!! check the captured for host_version
+    // (no checks)
+
+    // !!! check the captured for servicecomponent_version
+    Map<String, DBAccessor.DBColumnInfo> expected = new HashMap<>();
+    expected.put("id", new DBAccessor.DBColumnInfo("id", Long.class, null, null, false));
+    expected.put("component_id", new DBAccessor.DBColumnInfo("component_id", Long.class, null, null, false));
+    expected.put("repo_version_id", new DBAccessor.DBColumnInfo("repo_version_id", Long.class, null, null, false));
+    expected.put("state", new DBAccessor.DBColumnInfo("state", String.class, 32, null, false));
+    expected.put("user_name", new DBAccessor.DBColumnInfo("user_name", String.class, 255, null, false));
+
+    List<DBAccessor.DBColumnInfo> captured = capturedComponentVersionColumns.getValue();
+    Assert.assertEquals(5, captured.size());
+
+    for (DBAccessor.DBColumnInfo column : captured) {
+      DBAccessor.DBColumnInfo expectedColumn = expected.remove(column.getName());
+
+      Assert.assertNotNull(expectedColumn);
+      Assert.assertEquals(expectedColumn.getDefaultValue(), column.getDefaultValue());
+      Assert.assertEquals(expectedColumn.getName(), column.getName());
+      Assert.assertEquals(expectedColumn.getLength(), column.getLength());
+      Assert.assertEquals(expectedColumn.getType(), column.getType());
+      Assert.assertEquals(expectedColumn.getClass(), column.getClass());
+    }
+
+    // did we get them all?
+    Assert.assertEquals(0, expected.size());
+
   }
 
   @Test
