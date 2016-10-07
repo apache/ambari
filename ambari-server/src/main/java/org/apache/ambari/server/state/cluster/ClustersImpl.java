@@ -464,8 +464,6 @@ public class ClustersImpl implements Clusters {
         host.setHostAttributes(attributes);
       }
 
-      host.refresh();
-
       Set<String> hostClusterNames = hostClusters.get(hostname);
       for (String clusterName : hostClusterNames) {
         if (clusterName != null && !clusterName.isEmpty()) {
@@ -554,7 +552,6 @@ public class ClustersImpl implements Clusters {
     clusterHostMap.get(clusterName).add(host);
 
     cluster.refresh();
-    host.refresh();
   }
 
   /**
@@ -673,7 +670,6 @@ public class ClustersImpl implements Clusters {
     unmapHostFromClusters(host, Sets.newHashSet(cluster));
 
     cluster.refresh();
-    host.refresh();
   }
 
   @Transactional

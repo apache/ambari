@@ -333,8 +333,6 @@ public interface Host extends Comparable {
 
   HostResponse convertToResponse();
 
-  void refresh();
-
   void importHostInfo(HostInfo hostInfo);
 
   /**

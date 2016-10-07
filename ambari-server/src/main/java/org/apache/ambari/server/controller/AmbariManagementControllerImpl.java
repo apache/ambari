@@ -4705,11 +4705,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public ServiceFactory getServiceFactory() {
-    return serviceFactory;
-  }
-
-  @Override
   public ServiceComponentFactory getServiceComponentFactory() {
     return serviceComponentFactory;
   }

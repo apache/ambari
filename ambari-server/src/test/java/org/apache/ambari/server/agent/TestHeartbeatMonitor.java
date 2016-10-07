@@ -168,7 +168,6 @@ public class TestHeartbeatMonitor {
 
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
-    hdfs.persist();
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -261,7 +260,6 @@ public class TestHeartbeatMonitor {
 
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
-    hdfs.persist();
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
       (hostname1).persist();
@@ -370,7 +368,6 @@ public class TestHeartbeatMonitor {
     clusters.mapHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
-    hdfs.persist();
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -453,7 +450,6 @@ public class TestHeartbeatMonitor {
     clusters.mapHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
-    hdfs.persist();
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -573,7 +569,6 @@ public class TestHeartbeatMonitor {
     clusters.mapHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
-    hdfs.persist();
 
     hdfs.addServiceComponent(Role.DATANODE.name()).persist();
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();

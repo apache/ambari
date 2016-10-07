@@ -135,7 +135,6 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();
@@ -171,7 +170,6 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();
@@ -209,7 +207,6 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();
@@ -250,7 +247,6 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();
@@ -287,7 +283,6 @@ public class RecoveryConfigHelperTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();
@@ -330,7 +325,6 @@ public class RecoveryConfigHelperTest {
 
     // Add HDFS service with DATANODE component to the cluster
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
     hdfs.getServiceComponent(DATANODE).persist();

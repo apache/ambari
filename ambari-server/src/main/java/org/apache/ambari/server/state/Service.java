@@ -72,12 +72,6 @@ public interface Service {
 
   void debugDump(StringBuilder sb);
 
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
-
   ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException;
 

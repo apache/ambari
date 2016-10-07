@@ -27,7 +27,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.UpgradeState;
 
 import com.google.inject.Inject;
@@ -177,13 +176,7 @@ public class HostComponentStateDAO {
 
   @Transactional
   public void remove(HostComponentStateEntity hostComponentStateEntity) {
-    HostEntity hostEntity = hostDAO.findByName(hostComponentStateEntity.getHostName());
-
-    entityManagerProvider.get().remove(merge(hostComponentStateEntity));
-
-    // Make sure that the state entity is removed from its host entity
-    hostEntity.removeHostComponentStateEntity(hostComponentStateEntity);
-    hostDAO.merge(hostEntity);
+    entityManagerProvider.get().remove(hostComponentStateEntity);
   }
 
   /**

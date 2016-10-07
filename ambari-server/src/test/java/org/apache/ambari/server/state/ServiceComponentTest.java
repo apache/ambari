@@ -100,7 +100,6 @@ public class ServiceComponentTest {
 
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
     service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
   }

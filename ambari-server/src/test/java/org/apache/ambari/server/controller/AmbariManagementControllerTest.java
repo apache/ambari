@@ -1006,8 +1006,6 @@ public class AmbariManagementControllerTest {
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(s1);
     c1.addService(s2);
-    s1.persist();
-    s2.persist();
 
     set1.clear();
     ServiceComponentRequest valid1 =
@@ -1311,8 +1309,6 @@ public class AmbariManagementControllerTest {
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(s1);
     c1.addService(s2);
-    s1.persist();
-    s2.persist();
 
     Set<ServiceComponentRequest> set1 = new HashSet<ServiceComponentRequest>();
     ServiceComponentRequest valid1 =
@@ -1622,13 +1618,10 @@ public class AmbariManagementControllerTest {
 
     Service s1 = serviceFactory.createNew(foo, "HDFS");
     foo.addService(s1);
-    s1.persist();
     Service s2 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s2);
-    s2.persist();
     Service s3 = serviceFactory.createNew(c2, "HDFS");
     c2.addService(s3);
-    s3.persist();
 
 
     try {
@@ -2268,8 +2261,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredStackVersion(new StackId("HDP-0.1"));
     s1.setDesiredState(State.INSTALLED);
 
-    s1.persist();
-
     ServiceRequest r = new ServiceRequest(cluster1, null, null);
     Set<ServiceResponse> resp = ServiceResourceProviderTest.getServices(controller, Collections.singleton(r));
 
@@ -2313,12 +2304,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredState(State.INSTALLED);
     s2.setDesiredState(State.INSTALLED);
     s4.setDesiredState(State.INSTALLED);
-
-    s1.persist();
-    s2.persist();
-    s3.persist();
-    s4.persist();
-    s5.persist();
 
     ServiceRequest r = new ServiceRequest(null, null, null);
     Set<ServiceResponse> resp;
@@ -2378,7 +2363,6 @@ public class AmbariManagementControllerTest {
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s1);
     s1.setDesiredState(State.INSTALLED);
-    s1.persist();
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
     sc1.persist();
@@ -2429,12 +2413,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredState(State.INSTALLED);
     s2.setDesiredState(State.INSTALLED);
     s4.setDesiredState(State.INSTALLED);
-
-    s1.persist();
-    s2.persist();
-    s3.persist();
-    s4.persist();
-    s5.persist();
 
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     ServiceComponent sc2 = serviceComponentFactory.createNew(s1, "NAMENODE");
@@ -2548,7 +2526,6 @@ public class AmbariManagementControllerTest {
     Cluster c1 = setupClusterWithHosts(cluster1, "HDP-0.1", Lists.newArrayList(host1), "centos5");
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s1);
-    s1.persist();
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
     sc1.setDesiredState(State.UNINSTALLED);
@@ -2963,10 +2940,6 @@ public class AmbariManagementControllerTest {
 
     s1.setDesiredState(State.INSTALLED);
     s2.setDesiredState(State.INSTALLED);
-
-    s1.persist();
-    s2.persist();
-    s3.persist();
 
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     ServiceComponent sc2 = serviceComponentFactory.createNew(s1, "NAMENODE");
@@ -4285,10 +4258,7 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config3);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -4454,7 +4424,6 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -4564,10 +4533,7 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service hive = cluster.addService("HIVE");
-    hive.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -4852,8 +4818,6 @@ public class AmbariManagementControllerTest {
 
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
-    hdfs.persist();
-    mapReduce.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name()).persist();
@@ -6532,10 +6496,7 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -6641,10 +6602,7 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
     hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
@@ -10101,7 +10059,6 @@ public class AmbariManagementControllerTest {
       "centos5");
 
     Service hdfs = c1.addService("HDFS");
-    hdfs.persist();
     createServiceComponent(cluster1, "HDFS", "NAMENODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "DATANODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "HDFS_CLIENT", State.INIT);

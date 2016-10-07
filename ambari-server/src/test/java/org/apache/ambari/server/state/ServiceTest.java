@@ -120,7 +120,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -142,7 +141,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
 
@@ -268,7 +266,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -292,7 +289,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);

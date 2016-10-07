@@ -383,9 +383,6 @@ public class ClusterTest {
     cluster.addService(s1);
     cluster.addService(s2);
     cluster.addService(s3);
-    s1.persist();
-    s2.persist();
-    s3.persist();
 
     // Add HDFS components
     ServiceComponent sc1CompA = serviceComponentFactory.createNew(s1, "NAMENODE");
@@ -666,9 +663,6 @@ public class ClusterTest {
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
 
-    s1.persist();
-    s2.persist();
-
     Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);
     Assert.assertEquals("HDFS", s.getName());
@@ -696,7 +690,6 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
     ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(sc);
     sc.persist();
@@ -716,7 +709,6 @@ public class ClusterTest {
         iterator.next();
         Service s1 = serviceFactory.createNew(c1, "PIG");
         c1.addService(s1);
-        s1.persist();
         ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
         s1.addServiceComponent(sc1);
         sc1.persist();
@@ -738,7 +730,6 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
@@ -772,7 +763,6 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
@@ -812,7 +802,6 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
@@ -850,11 +839,9 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
@@ -915,11 +902,9 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
@@ -981,11 +966,9 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
@@ -1185,10 +1168,9 @@ public class ClusterTest {
   public void testDeleteService() throws Exception {
     createDefaultCluster();
 
-    c1.addService("MAPREDUCE").persist();
+    c1.addService("MAPREDUCE");
 
     Service hdfs = c1.addService("HDFS");
-    hdfs.persist();
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.persist();
 
@@ -1208,7 +1190,7 @@ public class ClusterTest {
   public void testDeleteServiceWithConfigHistory() throws Exception {
     createDefaultCluster();
 
-    c1.addService("HDFS").persist();
+    c1.addService("HDFS");
 
     Config config1 = configFactory.createNew(c1, "hdfs-site",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());

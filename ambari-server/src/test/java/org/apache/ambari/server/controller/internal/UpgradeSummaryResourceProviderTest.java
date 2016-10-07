@@ -178,7 +178,6 @@ public class UpgradeSummaryResourceProviderTest {
     // add a single ZOOKEEPER server
     Service service = cluster.addService("ZOOKEEPER");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

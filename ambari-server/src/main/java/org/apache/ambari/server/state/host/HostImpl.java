@@ -108,7 +108,6 @@ public class HostImpl implements Host {
       new TypeToken<Map<Long, MaintenanceState>>() {}.getType();
 
   ReadWriteLock rwLock;
-  private final Lock readLock;
   private final Lock writeLock;
 
   @Inject
@@ -257,7 +256,6 @@ public class HostImpl implements Host {
 
     stateMachine = stateMachineFactory.make(this);
     rwLock = new ReentrantReadWriteLock();
-    readLock = rwLock.readLock();
     writeLock = rwLock.writeLock();
 
     HostStateEntity hostStateEntity = hostEntity.getHostStateEntity();
@@ -273,8 +271,6 @@ public class HostImpl implements Host {
     // persist the host
     if (null == hostEntity.getHostId()) {
       persistEntities(hostEntity);
-
-      refresh();
 
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
         try {
@@ -958,17 +954,6 @@ public class HostImpl implements Host {
         clusterEntity.getHostEntities().add(hostEntity);
         clusterDAO.merge(clusterEntity);
       }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void refresh() {
-    writeLock.lock();
-    try {
-      getHostEntity();
-    } finally {
-      writeLock.unlock();
     }
   }
 

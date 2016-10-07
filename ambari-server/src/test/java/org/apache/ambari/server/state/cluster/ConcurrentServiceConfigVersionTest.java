@@ -224,7 +224,6 @@ public class ConcurrentServiceConfigVersionTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;

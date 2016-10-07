@@ -19,8 +19,6 @@ package org.apache.ambari.server.state.alerts;
 
 import java.util.UUID;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
@@ -51,12 +49,14 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-import org.junit.experimental.categories.Category;
+
+import junit.framework.Assert;
 
 /**
  * Tests that {@link AmbariEvent} instances are fired correctly and that alert
@@ -306,7 +306,6 @@ public class AlertEventPublisherTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = serviceFactory.createNew(cluster, serviceName);
-    service.persist();
     service = cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

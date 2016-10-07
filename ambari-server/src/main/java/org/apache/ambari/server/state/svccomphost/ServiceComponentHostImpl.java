@@ -1563,12 +1563,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     try {
       if (persisted) {
         removeEntities();
-
-        // host must be re-loaded from db to refresh the cached JPA HostEntity
-        // that references HostComponentDesiredStateEntity
-        // and HostComponentStateEntity JPA entities
-        host.refresh();
-
         persisted = false;
         fireRemovalEvent = true;
       }
@@ -1604,14 +1598,16 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   protected void removeEntities() {
     HostComponentStateEntity stateEntity = getStateEntity();
     if (stateEntity != null) {
-      // make sure that the state entities are removed from the associated (detached) host entity
-      // Also refresh before delete
-      stateEntity.getHostEntity().removeHostComponentStateEntity(stateEntity);
+      HostEntity hostEntity = stateEntity.getHostEntity();
       HostComponentDesiredStateEntity desiredStateEntity = getDesiredStateEntity();
-      desiredStateEntity.getHostEntity().removeHostComponentDesiredStateEntity(desiredStateEntity);
+
+      // Make sure that the state entity is removed from its host entity
+      hostEntity.removeHostComponentStateEntity(stateEntity);
+      hostEntity.removeHostComponentDesiredStateEntity(desiredStateEntity);
+
+      hostDAO.merge(hostEntity);
 
       hostComponentDesiredStateDAO.remove(desiredStateEntity);
-
       hostComponentStateDAO.remove(stateEntity);
     }
   }

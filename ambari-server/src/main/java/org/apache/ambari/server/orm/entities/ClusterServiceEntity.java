@@ -49,7 +49,7 @@ public class ClusterServiceEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
-  @OneToOne(mappedBy = "clusterServiceEntity")
+  @OneToOne(mappedBy = "clusterServiceEntity", cascade = { CascadeType.PERSIST, CascadeType.MERGE })
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
 
   @OneToMany(mappedBy = "clusterServiceEntity")

@@ -238,7 +238,6 @@ public class UpgradeResourceProviderTest {
     // add a single ZK server
     Service service = cluster.addService("ZOOKEEPER");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -734,7 +733,6 @@ public class UpgradeResourceProviderTest {
     // add additional service for the test
     Service service = cluster.addService("HIVE");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

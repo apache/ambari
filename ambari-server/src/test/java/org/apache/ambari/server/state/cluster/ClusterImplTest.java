@@ -214,7 +214,6 @@ public class ClusterImplTest {
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
     nameNode.persist();
@@ -231,7 +230,6 @@ public class ClusterImplTest {
     hdfsClient.addServiceComponentHost(hostName2).persist();
 
     Service tez = cluster.addService(serviceToDelete);
-    tez.persist();
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     tezClient.persist();

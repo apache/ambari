@@ -86,6 +86,7 @@ public class RetryHelper {
   public static void invalidateAffectedClusters() {
     for (Cluster cluster : affectedClusters.get()) {
       s_clusters.invalidate(cluster);
+      affectedClusters.get().remove(cluster);
     }
   }
 

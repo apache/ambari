@@ -182,7 +182,6 @@ public class ServiceComponentHostTest {
           + ", serviceName=" + svc);
       s = serviceFactory.createNew(c, svc);
       c.addService(s);
-      s.persist();
     }
 
     ServiceComponent sc = null;

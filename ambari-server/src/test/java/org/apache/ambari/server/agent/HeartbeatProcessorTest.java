@@ -159,7 +159,6 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -229,7 +228,6 @@ public class HeartbeatProcessorTest {
   public void testRestartRequiredAfterInstallClient() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(HDFS_CLIENT).persist();
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
 
@@ -295,7 +293,6 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatCustomCommandWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -380,7 +377,6 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatCustomStartStop() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -465,7 +461,6 @@ public class HeartbeatProcessorTest {
   public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -595,7 +590,6 @@ public class HeartbeatProcessorTest {
       throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
 
@@ -715,7 +709,6 @@ public class HeartbeatProcessorTest {
   public void testUpgradeSpecificHandling() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
 
@@ -810,7 +803,6 @@ public class HeartbeatProcessorTest {
   public void testCommandStatusProcesses() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
@@ -892,7 +884,6 @@ public class HeartbeatProcessorTest {
   public void testComponentUpgradeCompleteReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -977,7 +968,6 @@ public class HeartbeatProcessorTest {
   public void testComponentUpgradeFailReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -1098,7 +1088,6 @@ public class HeartbeatProcessorTest {
   public void testComponentUpgradeInProgressReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
     hdfs.addServiceComponent(NAMENODE).persist();
@@ -1305,7 +1294,6 @@ public class HeartbeatProcessorTest {
   public void testComponentInProgressStatusSafeAfterStatusReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
     hdfs.addServiceComponent(DATANODE).persist();
     hdfs.getServiceComponent(DATANODE).
         addServiceComponentHost(DummyHostname1).persist();
