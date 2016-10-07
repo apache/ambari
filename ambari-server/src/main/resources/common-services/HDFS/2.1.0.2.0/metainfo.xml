@@ -32,50 +32,6 @@
           <cardinality>1-2</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
-          <dependencies>
-            <dependency>
-              <name>HDFS/ZKFC</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-              </auto-deploy>
-              <conditions>
-                <condition>
-                  <condition-type>IF-PROPERTY-EXISTS</condition-type>
-                  <configType>hdfs-site</configType>
-                  <property>dfs.nameservices</property>
-                </condition>
-              </conditions>
-            </dependency>
-            <dependency>
-              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-              </auto-deploy>
-              <conditions>
-                <condition>
-                  <condition-type>IF-PROPERTY-EXISTS</condition-type>
-                  <configType>hdfs-site</configType>
-                  <property>dfs.nameservices</property>
-                </condition>
-              </conditions>
-            </dependency>
-            <dependency>
-              <name>HDFS/JOURNALNODE</name>
-              <scope>host</scope>
-              <auto-deploy>
-                <enabled>false</enabled>
-              </auto-deploy>
-              <conditions>
-                <condition>
-                  <condition-type>IF-PROPERTY-EXISTS</condition-type>
-                  <configType>hdfs-site</configType>
-                  <property>dfs.nameservices</property>
-                </condition>
-              </conditions>
-            </dependency>
-          </dependencies>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>

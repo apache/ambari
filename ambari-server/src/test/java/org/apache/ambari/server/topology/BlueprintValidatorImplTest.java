@@ -34,9 +34,7 @@ import java.util.Map;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -68,22 +66,15 @@ public class BlueprintValidatorImplTest {
 
   @Mock(type = MockType.NICE)
   private DependencyInfo dependency1;
-  @Mock(type = MockType.NICE)
-  private DependencyInfo dependency2;
 
   @Mock(type = MockType.NICE)
   private ComponentInfo dependencyComponentInfo;
-  @Mock(type = MockType.NICE)
-  private DependencyConditionInfo dependencyConditionInfo1;
-  @Mock(type = MockType.NICE)
-  private DependencyConditionInfo dependencyConditionInfo2;
 
   private final Collection<String> group1Components = new ArrayList<String>();
   private final Collection<String> group2Components = new ArrayList<String>();
   private final Collection<String> services = new ArrayList<String>();
 
   private Collection<DependencyInfo> dependencies1 = new ArrayList<DependencyInfo>();
-  private List<DependencyConditionInfo> dependenciesConditionInfos1 = new ArrayList<DependencyConditionInfo>();
   private AutoDeployInfo autoDeploy = new AutoDeployInfo();
   private Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
   private Configuration configuration = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
@@ -114,15 +105,13 @@ public class BlueprintValidatorImplTest {
     expect(stack.getCardinality("component1")).andReturn(new Cardinality("1"));
     expect(stack.getCardinality("component2")).andReturn(new Cardinality("1+"));
     expect(stack.getCardinality("component3")).andReturn(new Cardinality("1+"));
-    dependenciesConditionInfos1.add(dependencyConditionInfo1);
-    dependenciesConditionInfos1.add(dependencyConditionInfo2);
 
     expect(blueprint.getConfiguration()).andReturn(configuration).anyTimes();
   }
 
   @After
   public void tearDown() {
-    reset(blueprint, stack, group1, group2, dependency1, dependency2, dependencyConditionInfo1, dependencyConditionInfo2);
+    reset(blueprint, stack, group1, group2, dependency1);
   }
 
   @Test
@@ -343,68 +332,6 @@ public class BlueprintValidatorImplTest {
     expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
 
     replay(blueprint, stack, group1, group2, dependency1, dependencyComponentInfo);
-
-    // WHEN
-    BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
-    validator.validateTopology();
-
-    // THEN
-    verify(group1);
-
-  }
-  @Test(expected=InvalidTopologyException.class)
-  public void testWhenComponentIsConditionallyDependentAndOnlyOneOfTheConditionsIsSatisfied() throws Exception {
-    // GIVEN
-    hostGroups.clear();
-    hostGroups.put("group1", group1);
-
-    group1Components.add("component-1");
-    dependencies1.add(dependency1);
-    dependencies1.add(dependency2);
-    services.addAll(Collections.singleton("service-1"));
-
-
-    expect(blueprint.getHostGroupsForComponent("component-1")).andReturn(Arrays.asList(group1)).anyTimes();
-    expect(blueprint.getName()).andReturn("blueprint-1").anyTimes();
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    Map<String, String> typeProps = new HashMap<String, String>();
-    typeProps.put("yarn.resourcemanager.hostname", "testhost");
-    properties.put("yarn-site", typeProps);
-
-    Configuration clusterConfig = new Configuration(properties,
-       Collections.<String, Map<String, Map<String, String>>>emptyMap());
-
-    Cardinality cardinality = new Cardinality("1");
-
-    expect(stack.getComponents("service-1")).andReturn(Arrays.asList("component-1")).anyTimes();
-    expect(stack.getAutoDeployInfo("component-1")).andReturn(autoDeploy).anyTimes();
-    expect(stack.getDependenciesForComponent("component-1")).andReturn(dependencies1).anyTimes();
-    expect(stack.getCardinality("component-1")).andReturn(cardinality).anyTimes();
-
-    AutoDeployInfo dependencyAutoDeploy = null;
-
-    expect(dependency1.getScope()).andReturn("host").anyTimes();
-    expect(dependency1.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
-    expect(dependency1.getComponentName()).andReturn("component-d").anyTimes();
-    expect(dependency1.getServiceName()).andReturn("service-d").anyTimes();
-    expect(dependency1.getName()).andReturn("dependency-1").anyTimes();
-    expect(dependency1.hasDependencyConditions()).andReturn(true).anyTimes();
-    expect(dependency1.getDependencyConditions()).andReturn(dependenciesConditionInfos1).anyTimes();
-    expect(dependency2.getScope()).andReturn("host").anyTimes();
-    expect(dependency2.getAutoDeploy()).andReturn(dependencyAutoDeploy).anyTimes();
-    expect(dependency2.getComponentName()).andReturn("component-d").anyTimes();
-    expect(dependency2.getServiceName()).andReturn("service-d").anyTimes();
-    expect(dependency2.getName()).andReturn("dependency-2").anyTimes();
-    expect(dependency2.hasDependencyConditions()).andReturn(false).anyTimes();
-
-    expect(dependencyConditionInfo1.isResolved(EasyMock.anyObject(Map.class))).andReturn(true).anyTimes();
-    expect(dependencyConditionInfo2.isResolved(EasyMock.anyObject(Map.class))).andReturn(false).anyTimes();
-
-
-    expect(dependencyComponentInfo.isClient()).andReturn(false).anyTimes();
-    expect(stack.getComponentInfo("component-d")).andReturn(dependencyComponentInfo).anyTimes();
-
-    replay(blueprint, stack, group1, group2, dependency1, dependency2, dependencyComponentInfo,dependencyConditionInfo1,dependencyConditionInfo2);
 
     // WHEN
     BlueprintValidator validator = new BlueprintValidatorImpl(blueprint);
