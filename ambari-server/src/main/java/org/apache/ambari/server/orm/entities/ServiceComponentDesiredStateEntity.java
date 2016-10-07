@@ -117,6 +117,9 @@ public class ServiceComponentDesiredStateEntity {
       cascade = { CascadeType.ALL })
   private Collection<ServiceComponentHistoryEntity> serviceComponentHistory;
 
+  @OneToMany(mappedBy = "m_serviceComponentDesiredStateEntity", cascade = { CascadeType.ALL })
+  private Collection<ServiceComponentVersionEntity> serviceComponentVersion;
+
   public Long getId() {
     return id;
   }
@@ -194,6 +197,27 @@ public class ServiceComponentDesiredStateEntity {
   public Collection<ServiceComponentHistoryEntity> getHistory() {
     return serviceComponentHistory;
   }
+
+
+  /**
+   * @param versionEntry the version to add
+   */
+  public void addVersion(ServiceComponentVersionEntity versionEntry) {
+    if (null == serviceComponentVersion) {
+      serviceComponentVersion = new ArrayList<>();
+    }
+
+    serviceComponentVersion.add(versionEntry);
+    versionEntry.setServiceComponentDesiredState(this);
+  }
+
+  /**
+   * @return the collection of versions for the component
+   */
+  public Collection<ServiceComponentVersionEntity> getVersions() {
+    return serviceComponentVersion;
+  }
+
 
   public boolean isRecoveryEnabled() {
     return recoveryEnabled != 0;

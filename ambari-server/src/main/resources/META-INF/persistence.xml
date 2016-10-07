@@ -67,6 +67,7 @@
     <class>org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceComponentHistoryEntity</class>
+    <class>org.apache.ambari.server.orm.entities.ServiceComponentVersionEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceConfigEntity</class>
     <class>org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity</class>
     <class>org.apache.ambari.server.orm.entities.StackEntity</class>
