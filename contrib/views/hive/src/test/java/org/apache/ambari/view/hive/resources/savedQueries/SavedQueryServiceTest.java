@@ -122,7 +122,7 @@ public class SavedQueryServiceTest extends HDFSTest {
   @Test
   public void notFound() {
     thrown.expect(NotFoundFormattedException.class);
-    savedQueryService.getOne("4242");
+    savedQueryService.getOne("4242", null);
   }
 
   @Test
@@ -137,7 +137,7 @@ public class SavedQueryServiceTest extends HDFSTest {
     Response response = savedQueryService.update(request, String.valueOf(createdId));
     Assert.assertEquals(204, response.getStatus());
 
-    Response response2 = savedQueryService.getOne(String.valueOf(createdId));
+    Response response2 = savedQueryService.getOne(String.valueOf(createdId), "");
     Assert.assertEquals(200, response2.getStatus());
 
     JSONObject obj = ((JSONObject) response2.getEntity());
@@ -154,7 +154,7 @@ public class SavedQueryServiceTest extends HDFSTest {
     Assert.assertEquals(204, response.getStatus());
 
     thrown.expect(NotFoundFormattedException.class);
-    savedQueryService.getOne(String.valueOf(createdId));
+    savedQueryService.getOne(String.valueOf(createdId),null);
   }
 
   @Test
@@ -177,5 +177,15 @@ public class SavedQueryServiceTest extends HDFSTest {
     for(SavedQuery item : items)
         containsTitle = containsTitle || item.getTitle().compareTo("Title 2") == 0;
     Assert.assertTrue(containsTitle);
+  }
+  @Test
+  public void downloadQuery() {
+    Response created = doCreateSavedQuery();
+    Object createdId = ((SavedQuery) ((JSONObject) created.getEntity()).get("savedQuery")).getId();
+    SavedQueryService.SavedQueryRequest request = new SavedQueryService.SavedQueryRequest();
+    request.savedQuery = new SavedQuery();
+    request.savedQuery.setTitle("Download Query");
+    Response response = savedQueryService.getOne(String.valueOf(createdId), "download");
+    Assert.assertEquals(200, response.getStatus());
   }
 }
