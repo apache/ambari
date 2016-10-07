@@ -30,6 +30,7 @@ public class PropertyValidator implements Validator {
   public static final String HIVE_PORT = "hive.port";
   public static final String YARN_ATS_URL = "yarn.ats.url";
   public static final String HIVE_SESSION_PARAMS = "hive.session.params";
+  public static final String USE_HIVE_INTERACTIVE_MODE = "use.hive.interactive.mode";
 
   @Override
   public ValidationResult validateInstance(ViewInstanceDefinition viewInstanceDefinition, ValidationContext validationContext) {
@@ -49,6 +50,13 @@ public class PropertyValidator implements Validator {
             return new InvalidPropertyValidationResult(false, "Can not parse session param " + param + " in " + auth);
           }
         }
+      }
+    }
+
+    if (property.equals(USE_HIVE_INTERACTIVE_MODE)) {
+      String value = viewInstanceDefinition.getPropertyMap().get(USE_HIVE_INTERACTIVE_MODE);
+      if (!("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value))) {
+        return new InvalidPropertyValidationResult(false, "Must be 'true' or 'false'");
       }
     }
 

@@ -33,7 +33,7 @@ public class ConnectionFactory {
   private static final String ZK_HIVE_NAMESPACE_KEY = "hive.server2.zookeeper.namespace";
   private static final String ZK_HIVE_QUORUM = "hive.zookeeper.quorum";
 
-  private static final  String AMBARI_HIVE_SERVICE_NAME = "HIVE";
+  private static final String AMBARI_HIVE_SERVICE_NAME = "HIVE";
   private static final String AMBARI_HIVESERVER_COMPONENT_NAME = "HIVE_SERVER";
 
   private static final String HIVE_SITE = "hive-site";
@@ -47,6 +47,7 @@ public class ConnectionFactory {
   private static final String HIVE_TRANSPORT_MODE_KEY = "hive.server2.transport.mode";
   private static final String HTTP_PATH_KEY = "hive.server2.thrift.http.path";
   private static final String HS2_PROXY_USER = "hive.server2.proxy.user";
+  private static final String USE_HIVE_INTERACTIVE_MODE = "use.hive.interactive.mode";
 
 
   public static ConnectionConfig create(ViewContext context) {
@@ -66,9 +67,16 @@ public class ConnectionFactory {
   }
 
   private static String getFromHiveConfiguration(ViewContext context) {
+    boolean useLLAP = Boolean.valueOf(context.getProperties().get(USE_HIVE_INTERACTIVE_MODE));
     String transportMode = context.getCluster().getConfigurationValue(HIVE_SITE, HIVE_TRANSPORT_MODE_KEY);
     String binaryPort = context.getCluster().getConfigurationValue(HIVE_SITE, BINARY_PORT_KEY);
     String httpPort = context.getCluster().getConfigurationValue(HIVE_SITE, HTTP_PORT_KEY);
+    if (useLLAP) {
+      binaryPort = context.getCluster().getConfigurationValue(HIVE_INTERACTIVE_SITE, BINARY_PORT_KEY);
+      httpPort = context.getCluster().getConfigurationValue(HIVE_INTERACTIVE_SITE, HTTP_PORT_KEY);
+    }
+
+
     String pathKey = context.getCluster().getConfigurationValue(HIVE_SITE, HTTP_PATH_KEY);
     List<String> hiveHosts = context.getCluster().getHostsForServiceComponent(AMBARI_HIVE_SERVICE_NAME, AMBARI_HIVESERVER_COMPONENT_NAME);
     String sessionParams = context.getProperties().get(HIVE_SESSION_PARAMS);
@@ -87,9 +95,10 @@ public class ConnectionFactory {
 
     StringBuilder builder = new StringBuilder();
     builder.append("jdbc:hive2://")
-      .append(concatHostPorts)
-      .append(";")
-      .append(sessionParams);
+        .append(concatHostPorts);
+    if(!Strings.isNullOrEmpty(sessionParams)) {
+      builder.append(";").append(sessionParams);
+    }
 
     if (!isBinary) {
       builder.append(";").append("transportMode=http;httpPath=").append(pathKey);
@@ -99,27 +108,31 @@ public class ConnectionFactory {
   }
 
   private static String getFromClusterZookeeperConfig(ViewContext context) {
+    boolean useLLAP = Boolean.valueOf(context.getProperties().get(USE_HIVE_INTERACTIVE_MODE));
     String quorum = context.getCluster().getConfigurationValue(HIVE_SITE, ZK_HIVE_QUORUM);
-    if (quorum == null) {
-      quorum = context.getCluster().getConfigurationValue(HIVE_INTERACTIVE_SITE, ZK_HIVE_QUORUM);
-    }
 
     String namespace = context.getCluster().getConfigurationValue(HIVE_SITE, ZK_HIVE_NAMESPACE_KEY);
-    if (namespace == null) {
+    if (useLLAP) {
       namespace = context.getCluster().getConfigurationValue(HIVE_INTERACTIVE_SITE, ZK_HIVE_NAMESPACE_KEY);
     }
 
     String sessionParams = context.getProperties().get(HIVE_SESSION_PARAMS);
 
     String formatted = String.format("jdbc:hive2://%s/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=%s", quorum, namespace);
-    if(Strings.isNullOrEmpty(sessionParams)){
+    if (Strings.isNullOrEmpty(sessionParams)) {
       sessionParams = "";
     }
 
-    if(!sessionParams.contains(HS2_PROXY_USER)) {
-      sessionParams = sessionParams + ";" + HS2_PROXY_USER + "=" + context.getUsername();
+    if (!sessionParams.contains(HS2_PROXY_USER)) {
+      if (!sessionParams.isEmpty()) {
+        sessionParams += ";";
+      }
+      sessionParams = sessionParams + HS2_PROXY_USER + "=" + context.getUsername();
     }
-    
+
+    if (sessionParams.isEmpty()) {
+      return formatted;
+    }
     return formatted + ";" + sessionParams;
   }
 
