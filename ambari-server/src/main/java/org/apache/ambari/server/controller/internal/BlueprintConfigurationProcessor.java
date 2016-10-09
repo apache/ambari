@@ -83,7 +83,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Single host topology updaters
    */
-  private static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
+  protected static Map<String, Map<String, PropertyUpdater>> singleHostTopologyUpdaters =
       new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
@@ -116,7 +116,7 @@ public class BlueprintConfigurationProcessor {
    * removed from export, but do not require an update during
    * cluster creation
    */
-  private static Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
+  private Map<String, Map<String, PropertyUpdater>> removePropertyUpdaters =
     new HashMap<String, Map<String, PropertyUpdater>>();
 
   /**
@@ -200,6 +200,81 @@ public class BlueprintConfigurationProcessor {
 
   public BlueprintConfigurationProcessor(ClusterTopology clusterTopology) {
     this.clusterTopology = clusterTopology;
+    initRemovePropertyUpdaters();
+  }
+
+  public Map<String, Map<String, PropertyUpdater>> getRemovePropertyUpdaters() {
+    return removePropertyUpdaters;
+  }
+
+  public void initRemovePropertyUpdaters() {
+
+    if (containsHostFromHostGroups("oozie-site", "oozie.service.JPAService.jdbc.url")) {
+      Map<String, PropertyUpdater> oozieSiteUpdaters = singleHostTopologyUpdaters.get("oozie-site");
+      Map<String, PropertyUpdater> oozieEnvUpdaters = singleHostTopologyUpdaters.get("oozie-env");
+      if (oozieSiteUpdaters == null) {
+        oozieSiteUpdaters = new HashMap<>();
+      }
+      if (oozieEnvUpdaters == null) {
+        oozieEnvUpdaters = new HashMap<>();
+      }
+      oozieEnvUpdaters.put("oozie_existing_mysql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_oracle_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieEnvUpdaters.put("oozie_existing_postgresql_host", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+      oozieSiteUpdaters.put("oozie.service.JPAService.jdbc.url",  new SingleHostTopologyUpdater("OOZIE_SERVER"));
+
+      singleHostTopologyUpdaters.put("oozie-env", oozieEnvUpdaters);
+      singleHostTopologyUpdaters.put("oozie-site", oozieSiteUpdaters);
+    } else {
+      Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+      Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
+      // register updaters for Oozie properties that may point to an external DB
+      oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_oracle_host", new OriginalValuePropertyUpdater());
+      oozieEnvOriginalValueMap.put("oozie_existing_postgresql_host", new OriginalValuePropertyUpdater());
+      oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
+
+      removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
+      removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
+    }
+
+    Map<String, PropertyUpdater> hiveEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
+    // register updaters for Hive properties that may point to an external DB
+    hiveEnvOriginalValueMap.put("hive_existing_oracle_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_2_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mssql_server_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_postgresql_host", new OriginalValuePropertyUpdater());
+    hiveEnvOriginalValueMap.put("hive_existing_mysql_host", new OriginalValuePropertyUpdater());
+
+    removePropertyUpdaters.put("hive-env", hiveEnvOriginalValueMap);
+
+  }
+
+  private boolean containsHostFromHostGroups(String configType, String propertyName) {
+    String propertyValue = clusterTopology.getConfiguration().getPropertyValue(configType, propertyName);
+    if (StringUtils.isEmpty(propertyValue)) {
+      return false;
+    }
+    // check fir bp import
+    Matcher m = HOSTGROUP_REGEX.matcher(propertyValue);
+    if (m.find()) {
+      return true;
+    }
+
+    // check for bp export
+    for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
+      Collection<String> hosts = groupInfo.getHostNames();
+      for (String host : hosts) {
+        if (propertyValue.contains(host)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public Collection<String> getRequiredHostGroups() {
@@ -2277,7 +2352,6 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> hiveInteractiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieEnvHeapSizeMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> oozieEnvOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiWebhcatSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiHbaseSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiStormSiteMap = new HashMap<String, PropertyUpdater>();
@@ -2312,7 +2386,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("yarn-site", yarnSiteMap);
     singleHostTopologyUpdaters.put("hive-site", hiveSiteMap);
     singleHostTopologyUpdaters.put("hive-interactive-env", hiveInteractiveEnvMap);
-    singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
     singleHostTopologyUpdaters.put("accumulo-site", accumuloSiteMap);
     singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
@@ -2356,9 +2429,6 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
-
-    removePropertyUpdaters.put("oozie-env", oozieEnvOriginalValueMap);
-    removePropertyUpdaters.put("oozie-site", oozieSiteOriginalValueMap);
 
     nonTopologyUpdaters.put("hive-site", hiveSiteNonTopologyMap);
     nonTopologyUpdaters.put("kafka-broker", kafkaBrokerNonTopologyMap);
@@ -2537,14 +2607,17 @@ public class BlueprintConfigurationProcessor {
 
 
     // OOZIE_SERVER
-    oozieSiteMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.ha.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    oozieSiteMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
-    multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
+    Map<String, PropertyUpdater> oozieStringPropertyUpdaterMap = singleHostTopologyUpdaters.get("oozie-site");
+    if (oozieStringPropertyUpdaterMap == null) {
+      oozieStringPropertyUpdaterMap = new HashMap<>();
+    }
+    oozieStringPropertyUpdaterMap.put("oozie.base.url", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.ha.authentication.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    oozieStringPropertyUpdaterMap.put("oozie.service.HadoopAccessorService.kerberos.principal", new SingleHostTopologyUpdater("OOZIE_SERVER"));
+    singleHostTopologyUpdaters.put("oozie-site", oozieStringPropertyUpdaterMap);
 
-    // register updaters for Oozie properties that may point to an external DB
-    oozieEnvOriginalValueMap.put("oozie_existing_mysql_host", new OriginalValuePropertyUpdater());
+    multiCoreSiteMap.put("hadoop.proxyuser.oozie.hosts", new MultipleHostTopologyUpdater("OOZIE_SERVER"));
     oozieSiteOriginalValueMap.put("oozie.service.JPAService.jdbc.url", new OriginalValuePropertyUpdater());
 
     // ZOOKEEPER_SERVER
