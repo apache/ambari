@@ -182,7 +182,9 @@ public class ServiceComponentHostRequest {
       .append(", state=").append(state)
       .append(", desiredStackId=").append(desiredStackId)
       .append(", staleConfig=").append(staleConfig)
-      .append(", adminState=").append(adminState).append("}");
+      .append(", adminState=").append(adminState)
+      .append(", maintenanceState=").append(maintenanceState)
+      .append("}");
     return sb.toString();
   }
 
