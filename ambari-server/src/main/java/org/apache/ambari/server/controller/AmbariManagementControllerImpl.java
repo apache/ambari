@@ -2452,7 +2452,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if ((changedServices == null || changedServices.isEmpty())
         && (changedComps == null || changedComps.isEmpty())
         && (changedScHosts == null || changedScHosts.isEmpty())) {
-      LOG.debug("Created 0 stages");
+      LOG.info("Created 0 stages");
       return requestStages;
     }
 
