@@ -41,12 +41,18 @@ public class AmbariViewsSecurityHeaderFilterTest extends AbstractSecurityHeaderF
     map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE.getKey());
     map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE.getKey());
     map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER, Configuration.VIEWS_HTTP_X_CONTENT_TYPE_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER, Configuration.VIEWS_HTTP_CACHE_CONTROL_HEADER_VALUE.getKey());
+    map.put(AbstractSecurityHeaderFilter.PRAGMA_HEADER, Configuration.VIEWS_HTTP_PRAGMA_HEADER_VALUE.getKey());
     PROPERTY_NAME_MAP = Collections.unmodifiableMap(map);
 
     map = new HashMap<String, String>();
     map.put(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER, Configuration.VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE.getDefaultValue());
     map.put(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER, Configuration.VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE.getDefaultValue());
     map.put(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER, Configuration.VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER, Configuration.VIEWS_HTTP_X_CONTENT_TYPE_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER, Configuration.VIEWS_HTTP_CACHE_CONTROL_HEADER_VALUE.getDefaultValue());
+    map.put(AbstractSecurityHeaderFilter.PRAGMA_HEADER, Configuration.VIEWS_HTTP_PRAGMA_HEADER_VALUE.getDefaultValue());
     DEFAULT_PROPERTY_VALUE_MAP = Collections.unmodifiableMap(map);
   }
 

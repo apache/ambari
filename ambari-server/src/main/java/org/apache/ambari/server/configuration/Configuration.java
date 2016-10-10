@@ -2326,6 +2326,27 @@ public class Configuration {
       "http.x-xss-protection", "1; mode=block");
 
   /**
+   * The value that will be used to set the {@code X-Content-Type} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_X_CONTENT_TYPE_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.x-content-type-options", "nosniff");
+
+  /**
+   * The value that will be used to set the {@code Cache-Control} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `Cache-Control` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_CACHE_CONTROL_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.cache-control", "no-store");
+
+  /**
+   * The value that will be used to set the {@code PRAGMA} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the `PRAGMA` HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_PRAGMA_HEADER_VALUE = new ConfigurationProperty<>(
+      "http.pragma", "no-cache");
+
+  /**
    * The value that will be used to set the {@code Strict-Transport-Security}
    * HTTP response header for Ambari View requests.
    */
@@ -2349,6 +2370,30 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.x-xss-protection", "1; mode=block");
+
+  /**
+   * The value that will be used to set the {@code X-Content-Type} HTTP response header.
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `X-CONTENT-TYPE` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_X_CONTENT_TYPE_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.x-content-type-options", "nosniff");
+
+  /**
+   * The value that will be used to set the {@code Cache-Control} HTTP response header.
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `Cache-Control` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_CACHE_CONTROL_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.cache-control", "no-store");
+
+  /**
+   * The value that will be used to set the {@code PRAGMA} HTTP response header.
+   * HTTP response header for Ambari View requests.
+   */
+  @Markdown(description = "The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_PRAGMA_HEADER_VALUE = new ConfigurationProperty<>(
+      "views.http.pragma", "no-cache");
 
   /**
    * The time, in milliseconds, that requests to connect to a URL to retrieve
@@ -3551,6 +3596,51 @@ public class Configuration {
   }
 
   /**
+   * Get the value that should be set for the <code>X-Content-Type</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be <code>nosniff</code>. For example:
+   * <p/>
+   * <code>
+   * X-Content-Type: nosniff
+   * </code>
+   *
+   * @return the X-Content-Type value - null or "" indicates that the value is not set
+   */
+  public String getXContentTypeHTTPResponseHeader() {
+    return getProperty(HTTP_X_CONTENT_TYPE_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Cache-Control</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be <code>no-store</code>. For example:
+   * <p/>
+   * <code>
+   * Cache-control: no-store
+   * </code>
+   *
+   * @return the Cache-Control value - null or "" indicates that the value is not set
+   */
+  public String getCacheControlHTTPResponseHeader() {
+    return getProperty(HTTP_CACHE_CONTROL_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Pragma</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be <code>no-cache</code>. For example:
+   * <p/>
+   * <code>
+   * Pragma: no-cache
+   * </code>
+   *
+   * @return the Pragma value - null or "" indicates that the value is not set
+   */
+  public String getPragmaHTTPResponseHeader() {
+    return getProperty(HTTP_PRAGMA_HEADER_VALUE);
+  }
+
+  /**
    * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Views.
    * <p/>
    * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
@@ -3595,6 +3685,51 @@ public class Configuration {
    */
   public String getViewsXXSSProtectionHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-Content-Type</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>nosniff</code>. For example:
+   * <p/>
+   * <code>
+   * X-Content-Type: nosniff
+   * </code>
+   *
+   * @return the X-Content-Type value - null or "" indicates that the value is not set
+   */
+  public String getViewsXContentTypeHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_X_CONTENT_TYPE_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Cache-Control</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>no-store</code>. For example:
+   * <p/>
+   * <code>
+   * Cache-control: no-store
+   * </code>
+   *
+   * @return the Cache-Control value - null or "" indicates that the value is not set
+   */
+  public String getViewsCacheControlHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_CACHE_CONTROL_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Pragma</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>no-cache</code>. For example:
+   * <p/>
+   * <code>
+   * Pragma: no-cache
+   * </code>
+   *
+   * @return the Pragma value - null or "" indicates that the value is not set
+   */
+  public String getViewsPragmaHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_PRAGMA_HEADER_VALUE);
   }
 
   /**
