@@ -575,7 +575,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
       if (newState == null) {
-        logComponentInfo("Nothing to do for new updateServiceComponentHost", request, oldState, null);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Nothing to do for new updateServiceComponentHost", request, oldState, null));
         continue;
       }
 
@@ -589,7 +589,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       if (sc.isClientComponent() && newState == State.STARTED &&
             !requestProperties.containsKey(sch.getServiceComponentName().toLowerCase())) {
         ignoredScHosts.add(sch);
-        logComponentInfo("Ignoring ServiceComponentHost", request, sch.getState(), newState);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Ignoring ServiceComponentHost as STARTED new desired state for client components is not valid", request, sch.getState(), newState));
         continue;
       }
 
@@ -605,13 +605,13 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           !requestProperties.containsKey(sch.getServiceComponentName().toLowerCase())) {
 
         ignoredScHosts.add(sch);
-        logComponentInfo("Ignoring ServiceComponentHost", request, oldState, newState);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Ignoring ServiceComponentHost as the current state matches the new desired state", request, oldState, newState));
         continue;
       }
 
       if (! maintenanceStateHelper.isOperationAllowed(reqOpLvl, sch)) {
         ignoredScHosts.add(sch);
-        logComponentInfo("Ignoring ServiceComponentHost", request, oldState, newState);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Ignoring ServiceComponentHost as operation is not allowed", request, oldState, newState));
         continue;
       }
 
@@ -627,7 +627,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       }
 
       if (isDirectTransition(oldSchState, newState)) {
-        logComponentInfo("Handling direct transition update to host component", request, oldState, newState);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Handling direct transition update to host component", request, oldState, newState));
         directTransitionScHosts.put(sch, newState);
       } else {
         if (!changedScHosts.containsKey(sc.getName())) {
@@ -638,7 +638,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           changedScHosts.get(sc.getName()).put(newState,
               new ArrayList<ServiceComponentHost>());
         }
-        logComponentInfo("Handling update to host component", request, oldState, newState);
+        LOG.info(getServiceComponentRequestInfoLogMessage("Handling update to host component", request, oldState, newState));
         changedScHosts.get(sc.getName()).get(newState).add(sch);
       }
     }
@@ -932,22 +932,24 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   }
 
   /**
-   * Logs component info.
-   *
-   * @param msg              base log msg
-   * @param request          the request to log
-   * @param oldState         current state
-   * @param newDesiredState  new desired state
+   * Constructs INFO level log message for {@link ServiceComponentHostRequest}
+   * @param msg base  message
+   * @param request the request to construct the log message for
+   * @param oldState current state of the service host component that the request is for.
+   * @param newDesiredState new desired state for the service host component
    */
-  private void logComponentInfo(String msg, ServiceComponentHostRequest request, State oldState, State newDesiredState) {
-    LOG.debug("{}, clusterName={}, serviceName={}, componentName={}, hostname={}, currentState={}, newDesiredState={}",
-        msg,
-        request.getClusterName(),
-        request.getServiceName(),
-        request.getComponentName(),
-        request.getHostname(),
-        oldState == null ? "null" : oldState,
-        newDesiredState == null ? "null" : newDesiredState);
+  private String getServiceComponentRequestInfoLogMessage(String msg, ServiceComponentHostRequest request, State oldState, State newDesiredState) {
+    StringBuilder sb = new StringBuilder();
+
+    sb.append(msg)
+      .append(", clusterName=").append(request.getClusterName())
+      .append(", serviceName=").append(request.getServiceName())
+      .append(", componentName=").append(request.getComponentName())
+      .append(", hostname=").append(request.getHostname())
+      .append(", currentState=").append(oldState == null ? "null" : oldState)
+      .append(", newDesiredState=").append(newDesiredState == null ? "null" : newDesiredState);
+
+    return sb.toString();
   }
 
   /**
