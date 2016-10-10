@@ -23,6 +23,13 @@
             <reponame>MSFT_R</reponame>
         </repo>
     </os>
+    <os family="redhat7">
+        <repo>
+            <baseurl>http://PLEASE_ENTER_REPO_URL</baseurl>
+            <repoid>MSFT_R-8.0</repoid>
+            <reponame>MSFT_R</reponame>
+        </repo>
+    </os>
     <os family="suse11">
         <repo>
             <baseurl>http://PLEASE_ENTER_REPO_URL</baseurl>
