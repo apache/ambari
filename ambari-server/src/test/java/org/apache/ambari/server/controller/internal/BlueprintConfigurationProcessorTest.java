@@ -1700,6 +1700,10 @@ public class BlueprintConfigurationProcessorTest {
     // call top-level export method
     configProcessor.doUpdateForBlueprintExport();
 
+    // check that jdbc url and related properties are removed if oozie external db is on host which not included to cluster
+    assertFalse(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertTrue(configProcessor.getRemovePropertyUpdaters().get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+
     assertEquals("oozie property not exported correctly",
         createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.base.url"));
     assertEquals("oozie property not exported correctly",
@@ -1723,6 +1727,84 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("oozie_permsize should have been included in exported configuration",
       "2048m", oozieEnvProperties.get("oozie_permsize"));
 
+  }
+
+  @Test
+  public void testOozieJDBCPropertiesNotRemoved() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNum = "80000";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedHostNameTwo + "/ooziedb");
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("OOZIE_SERVER");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
+
+    assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertNull(blueprintConfigurationProcessor.getRemovePropertyUpdaters().get("oozie-site"));
+  }
+
+  @Test
+  public void testOozieJDBCPropertyAddedToSingleHostMapDuringImport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNum = "80000";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + "%HOSTGROUP::group1%" + "/ooziedb");
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("OOZIE_SERVER");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor blueprintConfigurationProcessor = new BlueprintConfigurationProcessor(topology);
+
+    assertTrue(BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").containsKey("oozie.service.JPAService.jdbc.url"));
+    assertNull(blueprintConfigurationProcessor.getRemovePropertyUpdaters().get("oozie-site"));
   }
 
   @Test

@@ -207,6 +207,15 @@
         <required>true</required>
     </parameter>
 
+
+    <parameter>
+        <name>use.hive.interactive.mode</name>
+        <description>Connects to the hive interactive server if set true</description>
+        <label>Use Interactive Mode(Tech Preview)</label>
+        <default-value>false</default-value>
+        <required>true</required>
+    </parameter>
+
     <parameter>
         <name>yarn.ats.url</name>
         <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration.</description>
