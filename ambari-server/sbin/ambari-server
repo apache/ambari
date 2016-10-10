@@ -44,8 +44,10 @@ case "${1:-}" in
 esac
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export ROOT=`dirname $(dirname $SCRIPT_DIR)`
+# the below line (ROOT="/") is replaced by install-helper.sh. Don't edit/remove it.
+ROOT="/"
 ROOT=`echo $ROOT | sed 's/\/$//'`
+export ROOT
 
 export PATH=$ROOT/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
 export AMBARI_CONF_DIR=$ROOT/etc/ambari-server/conf
