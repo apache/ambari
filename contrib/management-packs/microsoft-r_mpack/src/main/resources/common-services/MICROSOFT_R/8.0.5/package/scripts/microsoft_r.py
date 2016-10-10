@@ -22,22 +22,13 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources import Package
 
 
-rpms = ['microsoft-r-server-mro-8.0',
-        'microsoft-r-server-intel-mkl-8.0',
-        'microsoft-r-server-packages-8.0',
-        'microsoft-r-server-hadoop-8.0']
-
 class MicrosoftR(Script):
 
   def install(self, env):
     Logger.info('Installing R Server Client...')
     tmp_dir = Script.tmp_dir
     Logger.debug('Using temp dir: {0}'.format(tmp_dir))
-
-    for rpm in rpms:
-      Logger.info('Installing {0}'.format(rpm))
-      Package(rpm)
-
+    self.install_packages(env)
     Logger.info('Installed R Server')
 
   def configure(self, env):
