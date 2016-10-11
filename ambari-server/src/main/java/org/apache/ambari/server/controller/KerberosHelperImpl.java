@@ -2890,7 +2890,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Create Principals",
-          configuration.getDefaultServerTaskTimeout());
+          Math.max(ServerAction.DEFAULT_LONG_RUNNING_TASK_TIMEOUT_SECONDS, configuration.getDefaultServerTaskTimeout()));
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2913,7 +2913,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Destroy Principals",
-          configuration.getDefaultServerTaskTimeout());
+          Math.max(ServerAction.DEFAULT_LONG_RUNNING_TASK_TIMEOUT_SECONDS, configuration.getDefaultServerTaskTimeout()));
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
@@ -2959,7 +2959,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           event,
           commandParameters,
           "Create Keytabs",
-          configuration.getDefaultServerTaskTimeout());
+          Math.max(ServerAction.DEFAULT_LONG_RUNNING_TASK_TIMEOUT_SECONDS, configuration.getDefaultServerTaskTimeout()));
 
       RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);

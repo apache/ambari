@@ -1484,35 +1484,45 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         if (os.get('isSelected')) {
           os.get('repositories').forEach(function (repo) {
             totalCalls++;
-            App.ajax.send({
-              name: 'admin.stack_versions.validate.repo',
-              sender: this,
-              data: {
-                repo: repo,
-                repoId: repo.get('repoId'),
-                baseUrl: repo.get('baseUrl'),
-                osType: os.get('osType'),
-                stackName: App.get('currentStackName'),
-                stackVersion: stackVersionNumber
-              }
+            this.validationCall(repo, os, stackVersionNumber)
+            .success(function () {
+              totalCalls--;
+              if (totalCalls === 0) deferred.resolve(invalidUrls);
             })
-              .success(function () {
-                totalCalls--;
-                if (totalCalls === 0) deferred.resolve(invalidUrls);
-              })
-              .error(function () {
-                repo.set('hasError', true);
-                invalidUrls.push(repo);
-                totalCalls--;
-                if (totalCalls === 0) deferred.resolve(invalidUrls);
-              });
-          });
+            .error(function () {
+              repo.set('hasError', true);
+              invalidUrls.push(repo);
+              totalCalls--;
+              if (totalCalls === 0) deferred.resolve(invalidUrls);
+            });
+          }, this);
         } else {
           return deferred.resolve(invalidUrls);
         }
-      });
+      }, this);
     }
     return deferred.promise();
+  },
+
+  /**
+   *
+   * @param {Em.Object} repo
+   * @param {Em.Object} os
+   * @param {string} stackVersionNumber
+   */
+  validationCall: function(repo, os, stackVersionNumber) {
+    return App.ajax.send({
+      name: 'admin.stack_versions.validate.repo',
+      sender: this,
+      data: {
+        repo: repo,
+        repoId: repo.get('repoId'),
+        baseUrl: repo.get('baseUrl'),
+        osType: os.get('osType'),
+        stackName: App.get('currentStackName'),
+        stackVersion: stackVersionNumber
+      }
+    })
   },
 
   /**

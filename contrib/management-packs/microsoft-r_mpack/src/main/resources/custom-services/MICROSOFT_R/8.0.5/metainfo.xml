@@ -23,6 +23,25 @@
       <name>MICROSOFT_R</name>
       <extends>common-services/MICROSOFT_R/8.0.5</extends>
       <version>8.0.5.0</version>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat6,redhat7,suse11</osFamily>
+            <packages>
+              <package>
+                <name>microsoft-r-server-mro-8.0</name>
+              </package>
+              <package>
+                <name>microsoft-r-server-intel-mkl-8.0</name>
+              </package>
+              <package>
+                <name>microsoft-r-server-packages-8.0</name>
+              </package>
+              <package>
+                <name>microsoft-r-server-hadoop-8.0</name>
+              </package>
+            </packages>
+        </osSpecific>
+      </osSpecifics>
     </service>
   </services>
 </metainfo>

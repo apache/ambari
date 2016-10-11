@@ -305,7 +305,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   filteredCategoryConfigs: function () {
     Em.run.once(this, 'collapseCategory');
-  }.observes('categoryConfigs.@each.isHiddenByFilter'),
+  }.observes('serviceConfigs.@each.isHiddenByFilter'),
 
   collapseCategory: function () {
     if (this.get('state') === 'destroyed') return;
@@ -330,7 +330,15 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     } else if (isInitialRendering && !filteredResult.length) {
       this.set('category.isCollapsed', true);
     }
-    var categoryBlock = $('.' + this.get('category.name').split(' ').join('.') + '>.accordion-body');
+    var classNames = this.get('category.name').split(' ');
+    // Escape the dots in category names
+    classNames = classNames.map(function(className) {
+      if(className.indexOf(".")) {
+        className = className.split(".").join("\\.");
+      }
+      return className;
+    });
+    var categoryBlock = $('.' + classNames.join('.') + '>.accordion-body');
     this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
   },
 
