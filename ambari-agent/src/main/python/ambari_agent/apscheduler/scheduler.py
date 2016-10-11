@@ -544,6 +544,7 @@ class Scheduler(object):
                 for job in tuple(jobstore.jobs):
                     run_times = job.get_run_times(now)
                     if run_times:
+                        logger.debug('Scheduler submitting job %s to run', job.name)
                         self._threadpool.submit(self._run_job, job, run_times)
 
                         # Increase the job's run count

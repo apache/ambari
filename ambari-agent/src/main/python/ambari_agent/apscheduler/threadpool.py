@@ -83,6 +83,7 @@ class ThreadPool(object):
                 break
 
             try:
+                logger.debug('Worker thread starting job %s', args[0])
                 func(*args, **kwargs)
             except:
                 logger.exception('Error in worker thread')
