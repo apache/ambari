@@ -44,15 +44,20 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
-import java.util.ArrayList;
 import java.util.Collections;
 
+/**
+ * UpgradeCatalog150 tests.
+ * @Deprecated
+ */
+@Ignore
 public class UpgradeCatalog150Test {
   private Injector injector;
   private final String CLUSTER_NAME = "c1";

@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
@@ -41,7 +42,9 @@ import static org.easymock.EasyMock.verify;
 
 /**
  * UpgradeCatalog151 tests.
+ * @Deprecated
  */
+@Ignore
 public class UpgradeCatalog151Test {
 
 
