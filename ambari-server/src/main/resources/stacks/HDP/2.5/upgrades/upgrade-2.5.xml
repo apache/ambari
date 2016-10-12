@@ -247,8 +247,8 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="HIVE">
-        <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
+        <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER_INTERACTIVE</component>
         <component>WEBHCAT_SERVER</component>
       </service>
