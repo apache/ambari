@@ -831,6 +831,9 @@ App.InstallerController = App.WizardController.extend({
         return os.get('repositories.length');
       }).reduce(Em.sum, 0));
       var verifyBaseUrl = !wizardStep1Controller.get('skipValidationChecked') && !wizardStep1Controller.get('selectedStack.useRedhatSatellite');
+      if (!verifyBaseUrl) {
+        dfd.resolve();
+      }
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
