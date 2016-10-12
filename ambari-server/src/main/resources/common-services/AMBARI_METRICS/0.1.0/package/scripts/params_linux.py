@@ -18,8 +18,10 @@ limitations under the License.
 
 """
 
+import status_params
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.core.shell import as_user
 from ambari_commons import OSCheck
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.expect import expect
@@ -31,6 +33,8 @@ ams_monitor_conf_dir = "/etc/ambari-metrics-monitor/conf/"
 ams_user = config['configurations']['ams-env']['ambari_metrics_user']
 #RPM versioning support
 rpm_version = default("/configurations/hadoop-env/rpm_version", None)
+
+ams_grafana_pid_dir = config['configurations']['ams-grafana-env']['metrics_grafana_pid_dir']
 
 #hadoop params
 if rpm_version is not None:
@@ -54,3 +58,6 @@ dfs_type = default("/commandParams/dfs_type", "")
 
 hbase_regionserver_shutdown_timeout = expect('/configurations/ams-hbase-env/hbase_regionserver_shutdown_timeout', int,
                                              30)
+
+grafana_pid_file = format("{ams_grafana_pid_dir}/grafana-server.pid")
+grafana_process_exists_cmd = as_user(format("test -f {grafana_pid_file} && ps -p `cat {grafana_pid_file}`"), ams_user)
