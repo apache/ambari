@@ -34,7 +34,8 @@ import java.util.List;
 public class DeadlockWarningThread extends Thread {
 
   private final List<String> errorMessages;
-  private static final int MAX_STACK_DEPTH = 30;
+  private int MAX_STACK_DEPTH = 30;
+  private int SLEEP_TIME_MS = 3000;
   private Collection<Thread> monitoredThreads = null;
   private boolean deadlocked = false;
   private static final ThreadMXBean mbean = ManagementFactory.getThreadMXBean();
@@ -47,10 +48,16 @@ public class DeadlockWarningThread extends Thread {
     return deadlocked;
   }
 
-  public DeadlockWarningThread(Collection<Thread> monitoredThreads) {
+  public DeadlockWarningThread(Collection<Thread> monitoredThreads, int maxStackDepth, int sleepTimeMS) {
     this.errorMessages = new ArrayList<String>();
     this.monitoredThreads = monitoredThreads;
+    this.MAX_STACK_DEPTH = maxStackDepth;
+    this.SLEEP_TIME_MS = sleepTimeMS;
     start();
+  }
+
+  public DeadlockWarningThread(Collection<Thread> monitoredThreads) {
+    this(monitoredThreads, 30, 3000);
   }
 
   public String getThreadsStacktraces(Collection<Long> ids) {
@@ -73,7 +80,7 @@ public class DeadlockWarningThread extends Thread {
   public void run() {
     while (true) {
       try {
-        Thread.sleep(3000);
+        Thread.sleep(SLEEP_TIME_MS);
       } catch (InterruptedException ex) {
       }
       long[] ids = mbean.findMonitorDeadlockedThreads();

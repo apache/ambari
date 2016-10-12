@@ -124,6 +124,7 @@ import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Binder;
@@ -135,7 +136,9 @@ import com.google.inject.persist.PersistService;
 
 /**
  * UpgradeCatalog170 unit tests.
+ * @Deprecated
  */
+@Ignore
 public class UpgradeCatalog170Test {
 
   private Injector injector;
