@@ -359,6 +359,13 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     Map<String, Set<String>> propertiesToIgnore = new HashMap<String, Set<String>>();
 
+    // If Ambari is managing it own identities then add AMBARI to the set of installed servcie so
+    // that its Kerberos descriptor entries will be included.
+    if(createAmbariIdentities(existingConfigurations.get("kerberos-env"))) {
+      installedServices = new HashMap<String, Set<String>>(installedServices);
+      installedServices.put("AMBARI", Collections.singleton("AMBARI_SERVER"));
+    }
+
     // Create the context to use for filtering Kerberos Identities based on the state of the cluster
     Map<String, Object> filterContext = new HashMap<String, Object>();
     filterContext.put("configurations", configurations);
@@ -397,28 +404,6 @@ public class KerberosHelperImpl implements KerberosHelper {
               }
             }
           }
-        }
-      }
-    }
-
-    if (kerberosDetails.createAmbariPrincipal()) {
-      KerberosIdentityDescriptor ambariServerIdentityDescriptor = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
-      Map<String, Map<String, String>> map = new HashMap<String, Map<String, String>>();
-      if (ambariServerIdentityDescriptor != null) {
-
-        KerberosPrincipalDescriptor principalDescriptor = ambariServerIdentityDescriptor.getPrincipalDescriptor();
-        if (principalDescriptor != null) {
-          putConfiguration(map, principalDescriptor.getConfiguration(), principalDescriptor.getValue());
-        }
-
-        KerberosKeytabDescriptor keytabDescriptor = ambariServerIdentityDescriptor.getKeytabDescriptor();
-        if (keytabDescriptor != null) {
-          putConfiguration(map, keytabDescriptor.getConfiguration(), keytabDescriptor.getFile());
-        }
-
-        for (Map.Entry<String, Map<String, String>> entry : map.entrySet()) {
-          String configType = entry.getKey();
-          mergeConfigurations(kerberosConfigurations, configType, entry.getValue(), configurations);
         }
       }
     }
@@ -813,39 +798,35 @@ public class KerberosHelperImpl implements KerberosHelper {
    *                                 configuration
    * @throws AmbariException
    */
-  private void installAmbariIdentities(AbstractKerberosDescriptorContainer kerberosDescriptor,
+  private void installAmbariIdentities(KerberosDescriptor kerberosDescriptor,
                                        KerberosOperationHandler kerberosOperationHandler,
                                        Map<String, String> kerberosEnvProperties,
                                        Map<String, Map<String, String>> configurations,
                                        KerberosDetails kerberosDetails) throws AmbariException {
 
-    // Install Ambari's user/service principal...
-    String ambariServerHostname = StageUtils.getHostName();
-    KerberosIdentityDescriptor identity;
+    // Install Ambari's identities.....
+    List<KerberosIdentityDescriptor> ambariIdentities = getAmbariServerIdentities(kerberosDescriptor);
 
-    identity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
-    if (identity != null) {
-      KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
-      if (principal != null) {
-        Keytab keytab = createIdentity(identity, principal.getType(), kerberosEnvProperties, kerberosOperationHandler, configurations, ambariServerHostname);
-        installAmbariIdentity(identity, keytab, configurations, ambariServerHostname, kerberosDetails, true);
+    if (!ambariIdentities.isEmpty()) {
+      String ambariServerHostname = StageUtils.getHostName();
 
-        try {
-          KerberosChecker.checkJaasConfiguration();
-        } catch (AmbariException e) {
-          LOG.error("Error in Ambari JAAS configuration: " + e.getLocalizedMessage(), e);
+      for (KerberosIdentityDescriptor identity : ambariIdentities) {
+        if (identity != null) {
+          KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
+          if (principal != null) {
+            boolean updateJAASFile = AMBARI_SERVER_KERBEROS_IDENTITY_NAME.equals(identity.getName());
+            Keytab keytab = createIdentity(identity, principal.getType(), kerberosEnvProperties, kerberosOperationHandler, configurations, ambariServerHostname);
+            installAmbariIdentity(identity, keytab, configurations, ambariServerHostname, kerberosDetails, updateJAASFile);
+
+            if (updateJAASFile) {
+              try {
+                KerberosChecker.checkJaasConfiguration();
+              } catch (AmbariException e) {
+                LOG.error("Error in Ambari JAAS configuration: " + e.getLocalizedMessage(), e);
+              }
+            }
+          }
         }
-      }
-    }
-
-    // Install Ambari's SPNGEO principal...
-    identity = kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME);
-    if (identity != null) {
-      KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
-
-      if (principal != null) {
-        Keytab keytab = createIdentity(identity, principal.getType(), kerberosEnvProperties, kerberosOperationHandler, configurations, ambariServerHostname);
-        installAmbariIdentity(identity, keytab, configurations, ambariServerHostname, kerberosDetails, false);
       }
     }
   }
@@ -1400,7 +1381,14 @@ public class KerberosHelperImpl implements KerberosHelper {
                 serviceName, componentName, kerberosDescriptor, filterContext);
 
             if (hostname.equals(ambariServerHostname)) {
-              addAmbariServerIdentities(kerberosEnvConfig.getProperties(), kerberosDescriptor, identities);
+              // Determine if we should _calculate_ the Ambari service identities.
+              // If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
+              if(createAmbariIdentities(kerberosEnvConfig.getProperties())) {
+                List<KerberosIdentityDescriptor> ambariIdentities = getAmbariServerIdentities(kerberosDescriptor);
+                if (ambariIdentities != null) {
+                  identities.addAll(ambariIdentities);
+                }
+              }
             }
 
             if (!identities.isEmpty()) {
@@ -1476,35 +1464,34 @@ public class KerberosHelperImpl implements KerberosHelper {
     return activeIdentities;
   }
 
-  /**
-   * Conditionally add the Ambari server Kerberos identity to the set of Kerberos Identities expected
-   * to be available when Kerberos is enabled.
-   * <p>
-   * The Ambari server Kerberos identity should only be added if the <code>kerberos-env/create_ambari_principal</code>
-   * property is not explicitly set to <code>false</code>.
-   *
-   * @param kerberosEnvProperties the kerberos-env properties
-   * @param kerberosDescriptor    the kerberos descriptor
-   * @param identities            the collection of identities to add to
-   */
-  void addAmbariServerIdentities(Map<String, String> kerberosEnvProperties, KerberosDescriptor kerberosDescriptor, List<KerberosIdentityDescriptor> identities) {
-    // Determine if we should _calculate_ the Ambari service identity.
-    // If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
-    boolean createAmbariPrincipal = (kerberosEnvProperties == null) || !"false".equalsIgnoreCase(kerberosEnvProperties.get(CREATE_AMBARI_PRINCIPAL));
+  @Override
+  public List<KerberosIdentityDescriptor> getAmbariServerIdentities(KerberosDescriptor kerberosDescriptor) throws AmbariException {
+    List<KerberosIdentityDescriptor> ambariIdentities = new ArrayList<KerberosIdentityDescriptor>();
 
-    // append Ambari server principal
-    if (createAmbariPrincipal) {
-      KerberosIdentityDescriptor ambariServerIdentity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
-      if (ambariServerIdentity != null) {
-        identities.add(ambariServerIdentity);
+    KerberosServiceDescriptor ambariKerberosDescriptor = kerberosDescriptor.getService("AMBARI");
+    if (ambariKerberosDescriptor != null) {
+      List<KerberosIdentityDescriptor> serviceIdentities = ambariKerberosDescriptor.getIdentities(true, null);
+      KerberosComponentDescriptor ambariServerKerberosComponentDescriptor = ambariKerberosDescriptor.getComponent("AMBARI_SERVER");
+
+      if (serviceIdentities != null) {
+        ambariIdentities.addAll(serviceIdentities);
       }
 
-      // Add the spnego principal for the Ambari server host....
-      KerberosIdentityDescriptor spnegoIdentity = kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME);
-      if (spnegoIdentity != null) {
-        identities.add(spnegoIdentity);
+      if (ambariServerKerberosComponentDescriptor != null) {
+        List<KerberosIdentityDescriptor> componentIdentities = ambariServerKerberosComponentDescriptor.getIdentities(true, null);
+
+        if (componentIdentities != null) {
+          ambariIdentities.addAll(componentIdentities);
+        }
       }
     }
+
+    return ambariIdentities;
+  }
+
+  @Override
+  public boolean createAmbariIdentities(Map<String, String> kerberosEnvProperties) {
+    return (kerberosEnvProperties == null) || !"false".equalsIgnoreCase(kerberosEnvProperties.get(CREATE_AMBARI_PRINCIPAL));
   }
 
   /**

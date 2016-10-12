@@ -43,20 +43,36 @@
         },
         "configuration": "cluster-env/smokeuser_keytab"
       }
-    },
+    }
+  ],
+  "services": [
     {
-      "name": "ambari-server",
-      "principal": {
-        "value": "ambari-server-${cluster_name|toLower()}@${realm}",
-        "type": "user",
-        "configuration": "cluster-env/ambari_principal_name"
-      },
-      "keytab": {
-        "file": "${keytab_dir}/ambari.server.keytab",
-        "owner": {
-          "access": "r"
+      "name": "AMBARI",
+      "components": [
+        {
+          "name": "AMBARI_SERVER",
+          "identities": [
+            {
+              "name": "ambari-server",
+              "principal": {
+                "value": "ambari-server-${cluster_name|toLower()}@${realm}",
+                "type": "user",
+                "configuration": "cluster-env/ambari_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/ambari.server.keytab",
+                "owner": {
+                  "access": "r"
+                }
+              }
+            },
+            {
+              "name" : "ambari-server_spnego",
+              "reference" : "/spnego"
+            }
+          ]
         }
-      }
+      ]
     }
   ]
 }
