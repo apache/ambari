@@ -137,7 +137,7 @@ public class ConfigureAmbariIdentitiesServerAction extends KerberosServerAction 
                 identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME), ownerReadable, ownerWritable,
                 identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME), groupReadable, groupWritable, actionLog);
 
-            if ("AMBARI_SERVER".equals(identityRecord.get(KerberosIdentityDataFileReader.COMPONENT))) {
+            if ("AMBARI_SERVER_SELF".equals(identityRecord.get(KerberosIdentityDataFileReader.COMPONENT))) {
               // Create/update the JAASFile...
               configureJAAS(evaluatedPrincipal, destKeytabFilePath, actionLog);
             }
