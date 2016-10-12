@@ -70,8 +70,9 @@ class TestMetricsGrafana(RMFTestCase):
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /some_tmp_dir',
                               )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-grafana start',
-                              user = 'ams'
-                              )
+        not_if = "ambari-sudo.sh su ams -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /var/run/ambari-metrics-grafana/grafana-server.pid && ps -p `cat /var/run/ambari-metrics-grafana/grafana-server.pid`'",
+        user = 'ams',
+    )
     create_ams_datasource_mock.assertCalled()
     create_ams_dashboards_mock.assertCalled()
     self.assertNoMoreResources()
