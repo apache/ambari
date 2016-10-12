@@ -2457,7 +2457,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     testEnsureHeadlessIdentities(true, true);
   }
 
-  private void testEnsureHeadlessIdentities(boolean createAmbariPrincipal, boolean ambariServerPrincipalAsService) throws Exception {
+  private void testEnsureHeadlessIdentities(boolean createAmbariIdentities, boolean ambariServerPrincipalAsService) throws Exception {
     String clusterName = "c1";
     String realm = "EXAMPLE.COM";
     String ambariServerHostname = StageUtils.getHostName();
@@ -2488,7 +2488,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     propertiesKerberosEnv.put("password_min_digits", "1");
     propertiesKerberosEnv.put("password_min_punctuation", "0");
     propertiesKerberosEnv.put("password_min_whitespace", "0");
-    propertiesKerberosEnv.put("create_ambari_principal", (createAmbariPrincipal) ? "true" : "false");
+    propertiesKerberosEnv.put("create_ambari_principal", (createAmbariIdentities) ? "true" : "false");
 
     Config configKrb5Conf = createMock(Config.class);
     expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).times(1);
@@ -2578,21 +2578,29 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
     expect(kerberosDescriptor.getService("SERVICE2")).andReturn(service2KerberosDescriptor).times(1);
 
-    if (createAmbariPrincipal) {
+    if (createAmbariIdentities) {
       String spnegoPrincipalNameExpected = String.format("HTTP/%s@%s", ambariServerHostname, realm);
 
-      KerberosIdentityDescriptor ambariIdentity = createMockIdentityDescriptor(
-          KerberosHelper.AMBARI_IDENTITY_NAME,
+      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<KerberosIdentityDescriptor>();
+      ambarServerComponent1Identities.add(createMockIdentityDescriptor(
+          KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME,
           createMockPrincipalDescriptor(ambariServerPrincipalName, ambariServerPrincipalType, "ambari", null),
-          createMockKeytabDescriptor(ambariServerKeytabFilePath, null));
+          createMockKeytabDescriptor(ambariServerKeytabFilePath, null)));
 
-      KerberosIdentityDescriptor spnegoIdentity = createMockIdentityDescriptor(
-          KerberosHelper.SPNEGO_IDENTITY_NAME,
+      ambarServerComponent1Identities.add(createMockIdentityDescriptor(
+          "spnego",
           createMockPrincipalDescriptor("HTTP/_HOST@${realm}", KerberosPrincipalType.SERVICE, null, null),
-          createMockKeytabDescriptor("spnego.service.keytab", null));
+          createMockKeytabDescriptor("spnego.service.keytab", null)));
 
-      expect(kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME)).andReturn(ambariIdentity).once();
-      expect(kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME)).andReturn(spnegoIdentity).once();
+      KerberosComponentDescriptor ambariServerComponentKerberosDescriptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
+
+      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+      ambariServerComponentDescriptorMap.put("AMBARI_SERVER", ambariServerComponentKerberosDescriptor);
+
+      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor("AMBARI", ambariServerComponentDescriptorMap, null);
+      expect(ambariServiceKerberosDescriptor.getComponent("AMBARI_SERVER")).andReturn(ambariServerComponentKerberosDescriptor).once();
+
+      expect(kerberosDescriptor.getService("AMBARI")).andReturn(ambariServiceKerberosDescriptor).once();
 
       ConfigureAmbariIdentitiesServerAction configureAmbariIdentitiesServerAction = injector.getInstance(ConfigureAmbariIdentitiesServerAction.class);
       expect(configureAmbariIdentitiesServerAction.installAmbariServerIdentity(eq(ambariServerPrincipalNameExpected), anyString(), eq(ambariServerKeytabFilePath),
@@ -2628,7 +2636,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
         .times(3);
 
-    if(createAmbariPrincipal) {
+    if(createAmbariIdentities) {
       if (ambariServerPrincipalAsService) {
         expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(true), anyObject(Map.class), anyObject(KerberosOperationHandler.class), eq(false), isNull(ActionLog.class)))
             .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
@@ -2646,7 +2654,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     CreateKeytabFilesServerAction createKeytabFilesServerAction = injector.getInstance(CreateKeytabFilesServerAction.class);
     expect(createKeytabFilesServerAction.createKeytab(capture(capturePrincipalForKeytab), eq("password"), eq(1), anyObject(KerberosOperationHandler.class), eq(true), eq(true), isNull(ActionLog.class)))
         .andReturn(new Keytab())
-        .times(createAmbariPrincipal ? 5 : 3);
+        .times(createAmbariIdentities ? 5 : 3);
 
     replayAll();
 
@@ -2663,18 +2671,18 @@ public class KerberosHelperTest extends EasyMockSupport {
     verifyAll();
 
     List<? extends String> capturedPrincipals = capturePrincipal.getValues();
-    assertEquals(createAmbariPrincipal ? 5 : 3, capturedPrincipals.size());
+    assertEquals(createAmbariIdentities ? 5 : 3, capturedPrincipals.size());
     assertTrue(capturedPrincipals.contains("s1_1@EXAMPLE.COM"));
     assertTrue(capturedPrincipals.contains("s1c1_1@EXAMPLE.COM"));
     assertTrue(capturedPrincipals.contains("s2_1@EXAMPLE.COM"));
 
     List<? extends String> capturedPrincipalsForKeytab = capturePrincipalForKeytab.getValues();
-    assertEquals(createAmbariPrincipal ? 5 : 3, capturedPrincipalsForKeytab.size());
+    assertEquals(createAmbariIdentities ? 5 : 3, capturedPrincipalsForKeytab.size());
     assertTrue(capturedPrincipalsForKeytab.contains("s1_1@EXAMPLE.COM"));
     assertTrue(capturedPrincipalsForKeytab.contains("s1c1_1@EXAMPLE.COM"));
     assertTrue(capturedPrincipalsForKeytab.contains("s2_1@EXAMPLE.COM"));
 
-    if(createAmbariPrincipal) {
+    if(createAmbariIdentities) {
       String spnegoPrincipalName = String.format("HTTP/%s@EXAMPLE.COM", ambariServerHostname);
 
       assertTrue(capturedPrincipals.contains(ambariServerPrincipalNameExpected));
@@ -3863,31 +3871,53 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   private void addAmbariServerIdentity(Map<String, String> kerberosEnvProperties) throws Exception {
 
-    boolean createAmbariPrincipal = (kerberosEnvProperties == null)
-        || !"false".equalsIgnoreCase(kerberosEnvProperties.get("create_ambari_principal"));
-
     KerberosHelperImpl kerberosHelper = injector.getInstance(KerberosHelperImpl.class);
 
-    KerberosIdentityDescriptor ambariKerberosIdentity = createMock(KerberosIdentityDescriptor.class);
+    boolean createAmbariIdentities = kerberosHelper.createAmbariIdentities(kerberosEnvProperties);
+
+    KerberosIdentityDescriptor ambariKerberosIdentity = null;
 
     KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
-    if (createAmbariPrincipal) {
-      expect(kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME)).andReturn(ambariKerberosIdentity).once();
-      expect(kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME)).andReturn(ambariKerberosIdentity).once();
-    }
+    if (createAmbariIdentities) {
+      String ambariServerPrincipalName = "ambari-server-${cluster_name}@${realm}";
+      KerberosPrincipalType ambariServerPrincipalType = KerberosPrincipalType.USER;
+      String ambariServerKeytabFilePath = new File("ambari.server.keytab").getAbsolutePath();
 
-    List<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
+      ambariKerberosIdentity = createMockIdentityDescriptor(
+          KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME,
+          createMockPrincipalDescriptor(ambariServerPrincipalName, ambariServerPrincipalType, "ambari", null),
+          createMockKeytabDescriptor(ambariServerKeytabFilePath, null));
+
+      ArrayList<KerberosIdentityDescriptor> ambarServerComponent1Identities = new ArrayList<KerberosIdentityDescriptor>();
+      ambarServerComponent1Identities.add(ambariKerberosIdentity);
+
+      ambarServerComponent1Identities.add(createMockIdentityDescriptor(
+          "ambari-server_spnego",
+          createMockPrincipalDescriptor("HTTP/_HOST@${realm}", KerberosPrincipalType.SERVICE, null, null),
+          createMockKeytabDescriptor("spnego.service.keytab", null)));
+
+      HashMap<String, KerberosComponentDescriptor> ambariServerComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+      KerberosComponentDescriptor componentDescrptor = createMockComponentDescriptor("AMBARI_SERVER", ambarServerComponent1Identities, null);
+      ambariServerComponentDescriptorMap.put("AMBARI_SERVER", componentDescrptor);
+
+      KerberosServiceDescriptor ambariServiceKerberosDescriptor = createMockServiceDescriptor("AMBARI", ambariServerComponentDescriptorMap, null);
+      expect(ambariServiceKerberosDescriptor.getComponent("AMBARI_SERVER")).andReturn(componentDescrptor).once();
+
+      expect(kerberosDescriptor.getService("AMBARI")).andReturn(ambariServiceKerberosDescriptor).once();
+    }
 
     replayAll();
 
     // Needed by infrastructure
     injector.getInstance(AmbariMetaInfo.class).init();
 
-    kerberosHelper.addAmbariServerIdentities(kerberosEnvProperties, kerberosDescriptor, identities);
+    List<KerberosIdentityDescriptor> identities = (createAmbariIdentities)
+        ? kerberosHelper.getAmbariServerIdentities(kerberosDescriptor)
+        : new ArrayList<KerberosIdentityDescriptor>();
 
     verifyAll();
 
-    if (createAmbariPrincipal) {
+    if (createAmbariIdentities) {
       Assert.assertEquals(2, identities.size());
       Assert.assertSame(ambariKerberosIdentity, identities.get(0));
     } else {

@@ -378,8 +378,8 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
-              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining",
+              "metric_path": "metrics/FSDatasetState/org/apache/hadoop/hdfs/server/datanode/fsdataset/impl/FsDatasetImpl/Remaining",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
@@ -393,7 +393,7 @@
           "values": [
             {
               "name": "HDFS Space Utilization",
-              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}"
+              "value": "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity - FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining)/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}"
             }
           ],
           "properties": {
@@ -620,8 +620,8 @@
           "is_visible": false,
           "metrics": [
             {
-              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
-              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining",
+              "metric_path": "metrics/FSDatasetState/org/apache/hadoop/hdfs/server/datanode/fsdataset/impl/FsDatasetImpl/Remaining",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             },
@@ -635,7 +635,7 @@
           "values": [
             {
               "name": "HDFS Space Utilization",
-              "value": "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity) * 100}"
+              "value": "${((FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity - FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Remaining)/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity) * 100}"
             }
           ],
           "properties": {
