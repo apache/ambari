@@ -513,7 +513,7 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <reuseForks>false</reuseForks>
-          <forkCount>1.5C</forkCount>
+          <forkCount>1C</forkCount>
         </configuration>
       </plugin>
       <plugin>
