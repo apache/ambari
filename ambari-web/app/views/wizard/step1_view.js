@@ -76,7 +76,13 @@ App.WizardStep1View = Em.View.extend({
    *
    * @type {bool}
    */
-  showWarning: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
+  warningExist: Em.computed.or('invalidFormatUrlExist', 'isNoOsChecked', 'isNoOsFilled'),
+
+  skipVerifyBaseUrl: Em.computed.or('controller.selectedStack.skipValidationChecked', 'controller.selectedStack.useRedhatSatellite'),
+
+  verifyBaseUrl: Em.computed.not('skipVerifyBaseUrl'),
+
+  showWarning: Em.computed.and('warningExist', 'verifyBaseUrl'),
 
   /**
    * Onclick handler for recheck repos urls. Used in Advanced Repository Options.
