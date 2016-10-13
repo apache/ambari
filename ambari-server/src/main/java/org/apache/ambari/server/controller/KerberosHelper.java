@@ -65,15 +65,24 @@ public interface KerberosHelper {
    * The alias to assign to the KDC administrator credential Keystore item
    */
   String KDC_ADMINISTRATOR_CREDENTIAL_ALIAS = "kdc.admin.credential";
-
+  /**
+   * The hostname used to hold the place of the actual hostname of the host that the Ambari server
+   * is on.
+   */
   String AMBARI_SERVER_HOST_NAME = "ambari_server";
-
-  String AMBARI_IDENTITY_NAME = "ambari-server";
-
-  String SPNEGO_IDENTITY_NAME = "spnego";
-
+  /**
+   * The name of the Ambari server's Kerberos identities as defined in the Kerberos descriptor
+   */
+  String AMBARI_SERVER_KERBEROS_IDENTITY_NAME = "ambari-server";
+  /**
+   * The kerberos-env property name declaring whether Ambari should manage its own required
+   * identities or not
+   */
   String CREATE_AMBARI_PRINCIPAL = "create_ambari_principal";
-
+  /**
+   * The kerberos-env property name declaring whether Ambari should manage the cluster's required
+   * identities or not
+   */
   String MANAGE_IDENTITIES = "manage_identities";
 
   /**
@@ -605,6 +614,23 @@ public interface KerberosHelper {
                                                                           String componentName,
                                                                           boolean replaceHostNames)
       throws AmbariException;
+
+  /**
+   * Gets the Ambari server Kerberos identities found in the Kerberos descriptor.
+   *
+   * @param kerberosDescriptor the kerberos descriptor
+   */
+  List<KerberosIdentityDescriptor> getAmbariServerIdentities(KerberosDescriptor kerberosDescriptor) throws AmbariException;
+
+  /**
+   * Determines if the Ambari identities should be created when enabling Kerberos.
+   * <p>
+   * If kerberos-env/create_ambari_principal is not set to false the identity should be calculated.
+   *
+   * @param kerberosEnvProperties the kerberos-env configuration properties
+   * @return true if the Ambari identities should be created; otherwise false
+   */
+  boolean createAmbariIdentities(Map<String, String> kerberosEnvProperties);
 
   /**
    * Gets the previously stored KDC administrator credentials.

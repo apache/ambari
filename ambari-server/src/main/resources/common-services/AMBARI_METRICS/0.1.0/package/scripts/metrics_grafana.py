@@ -43,7 +43,8 @@ class AmsGrafana(Script):
 
     start_cmd = format("{ams_grafana_script} start")
     Execute(start_cmd,
-            user=params.ams_user
+            user=params.ams_user,
+            not_if = params.grafana_process_exists_cmd,
             )
     # Create datasource
     create_ams_datasource()
@@ -55,7 +56,8 @@ class AmsGrafana(Script):
     env.set_params(params)
     self.configure(env, action = 'stop')
     Execute((format("{ams_grafana_script}"), 'stop'),
-            sudo=True
+            sudo=True,
+            only_if = params.grafana_process_exists_cmd,
             )
 
   def status(self, env):

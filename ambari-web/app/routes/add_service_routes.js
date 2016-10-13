@@ -46,6 +46,16 @@ module.exports = App.WizardRoute.extend({
                 App.router.transitionTo('main.services.index');
               },
               onClose: function () {
+                var controller = router.get('addServiceController');
+                var currentStep = controller.get('currentStep');
+                if(currentStep == '7') {
+                  // Show a warning popup
+                  this.showWarningPopup();
+                } else {
+                  this.afterWarning();
+                }
+              },
+              afterWarning: function () {
                 this.set('showCloseButton', false); // prevent user to click "Close" many times
                 App.router.get('updateController').set('isWorking', true);
                 App.router.get('updateController').updateServices(function () {
@@ -53,6 +63,20 @@ module.exports = App.WizardRoute.extend({
                 });
                 var exitPath = addServiceController.getDBProperty('onClosePath') || 'main.services.index';
                 addServiceController.resetOnClose(addServiceController, exitPath);
+              },
+              showWarningPopup: function() {
+                var mainPopupContext = this;
+                App.ModalPopup.show({
+                  encodeBody: false,
+                  header: Em.I18n.t('common.warning'),
+                  primaryClass: 'btn-warning',
+                  secondary: Em.I18n.t('form.cancel'),
+                  body: Em.I18n.t('services.add.warning'),
+                  onPrimary: function () {
+                    this.hide();
+                    mainPopupContext.afterWarning();
+                  }
+                });
               },
               didInsertElement: function () {
                 this._super();

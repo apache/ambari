@@ -147,28 +147,26 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
             }
           }
 
-          // Add ambari-server principal (and keytab) only if 'kerberos-env.create_ambari_principal = true'
-          Map<String, String> kerberosEnvProperties = configurations.get("kerberos-env");
-          if (kerberosEnvProperties != null && kerberosEnvProperties.get(KerberosHelper.CREATE_AMBARI_PRINCIPAL) != null
-            && "true".equalsIgnoreCase(kerberosEnvProperties.get(KerberosHelper.CREATE_AMBARI_PRINCIPAL))
-              && includeAmbariIdentity) {
-            KerberosIdentityDescriptor ambariServerIdentity = kerberosDescriptor.getIdentity(KerberosHelper.AMBARI_IDENTITY_NAME);
-            if (ambariServerIdentity != null) {
-              List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(ambariServerIdentity);
-              kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI_SERVER", "AMBARI_SERVER", kerberosConfigurations, configurations);
-              propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
-            }
+          // Add ambari-server identities only if 'kerberos-env.create_ambari_principal = true'
+          if (includeAmbariIdentity && kerberosHelper.createAmbariIdentities(configurations.get("kerberos-env"))) {
+            List<KerberosIdentityDescriptor> ambariIdentities = kerberosHelper.getAmbariServerIdentities(kerberosDescriptor);
 
-            KerberosIdentityDescriptor spnegoIdentity = kerberosDescriptor.getIdentity(KerberosHelper.SPNEGO_IDENTITY_NAME);
-            if (spnegoIdentity != null) {
-              List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(spnegoIdentity);
-              kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
-                identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI_SERVER", "SPNEGO", kerberosConfigurations, configurations);
-              propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
+            if (!ambariIdentities.isEmpty()) {
+              for (KerberosIdentityDescriptor identity : ambariIdentities) {
+                // If the identity represents the ambari-server user, use the component name "AMBARI_SERVER_SELF"
+                // so it can be distinguished between other identities related to the AMBARI-SERVER
+                // component.
+                String componentName = KerberosHelper.AMBARI_SERVER_KERBEROS_IDENTITY_NAME.equals(identity.getName())
+                    ? "AMBARI_SERVER_SELF"
+                    : "AMBARI_SERVER";
+
+                List<KerberosIdentityDescriptor> componentIdentities = Collections.singletonList(identity);
+                kerberosHelper.addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
+                    identityFilter, KerberosHelper.AMBARI_SERVER_HOST_NAME, "AMBARI", componentName, kerberosConfigurations, configurations);
+                propertiesToIgnore = gatherPropertiesToIgnore(componentIdentities, propertiesToIgnore);
+              }
             }
           }
-
         } catch (IOException e) {
           String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
           LOG.error(message, e);

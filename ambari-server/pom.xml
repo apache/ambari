@@ -549,6 +549,9 @@
           <transformationSets>
             <transformationSet>
               <dir>${project.basedir}/target/findbugs</dir>
+              <includes>
+                <include>*.xml</include>
+              </includes>
               <outputDir>${project.basedir}/target/findbugs</outputDir>
               <stylesheet>fancy-hist.xsl</stylesheet>
               <fileMappers>
