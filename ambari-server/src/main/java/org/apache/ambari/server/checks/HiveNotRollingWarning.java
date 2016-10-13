@@ -28,21 +28,26 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import com.google.inject.Singleton;
 
 /**
- * The {@link HiveRollingPortChangeWarning} to see if Hive is installed and if
- * the upgrade type is {@link UpgradeType#ROLLING}. If so, then a
+ * The {@link HiveNotRollingWarning} to see if Hive is installed and if the
+ * upgrade type is {@link UpgradeType#ROLLING}. If so, then a
  * {@link PrereqCheckStatus#WARNING} is produced which will let the operator
- * know that the port for Hive must change in order to preserve the uptime of
- * the service.
+ * know that Hive does not support rolling upgrades.
+ * <p/>
+ * In actuality, it does, however in order to support no downtime, a new Hive
+ * server is spun up on a new port while the old server drains. If clients are
+ * not using the ZK discovery service for Hive and connecting via a URL
+ * directly, they will cease to function. For this reason, it's been determined
+ * that at this point in time, Hive will not be upgraded in a rolling fashion.
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.INFORMATIONAL_WARNING, required = true)
-public class HiveRollingPortChangeWarning extends AbstractCheckDescriptor {
+public class HiveNotRollingWarning extends AbstractCheckDescriptor {
 
   /**
    * Constructor.
    */
-  public HiveRollingPortChangeWarning() {
-    super(CheckDescription.SERVICES_HIVE_ROLLING_PORT_WARNING);
+  public HiveNotRollingWarning() {
+    super(CheckDescription.SERVICES_HIVE_ROLLING_WARNING);
   }
 
   /**

@@ -19,37 +19,6 @@
 <upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
   <services>
-    <service name="HIVE">
-      <component name="HIVE_SERVER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_restore_transport_mode_on_downgrade">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
-          </definition>
-        </changes>
-      </component>
-    </service>
     <service name="STORM">
       <component name="NIMBUS">
         <changes>

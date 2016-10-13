@@ -30,14 +30,18 @@ from resource_management.libraries.functions.stack_features import check_stack_f
 from resource_management.libraries.functions.version import format_stack_version
 
 
-def post_upgrade_deregister():
+def deregister():
   """
   Runs the "hive --service hiveserver2 --deregister <version>" command to
   de-provision the server in preparation for an upgrade. This will contact
   ZooKeeper to remove the server so that clients that attempt to connect
   will be directed to other servers automatically. Once all
-  clients have drained, the server will shutdown automatically; this process
-  could take a very long time.
+  clients have drained, the server will shutdown automatically.
+
+  However, since Ambari does not support Hive Server rolling upgrades due to the port change
+  affecting Hive Clients not using the ZK discovery service, the daemon might be forcefully
+  killed before it has been deregistered and drained.
+
   This function will obtain the Kerberos ticket if security is enabled.
   :return:
   """
