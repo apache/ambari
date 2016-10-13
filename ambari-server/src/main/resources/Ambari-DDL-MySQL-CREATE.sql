@@ -507,7 +507,7 @@ CREATE TABLE requestschedulebatchrequest (
   CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id));
 
 CREATE TABLE blueprint (
-  blueprint_name VARCHAR(255) NOT NULL,
+  blueprint_name VARCHAR(100) NOT NULL,
   stack_id BIGINT NOT NULL,
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
