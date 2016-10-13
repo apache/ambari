@@ -20,12 +20,9 @@ limitations under the License.
 
 
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import stack_select
-from resource_management.libraries.functions import format
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
-from resource_management.libraries.functions.get_stack_version import get_stack_version
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.functions import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
@@ -37,7 +34,6 @@ if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
 
 import hive_server_upgrade
@@ -47,7 +43,6 @@ from hive_service import hive_service
 
 class HiveServer(Script):
   def install(self, env):
-    import params
     self.install_packages(env)
 
   def configure(self, env):
@@ -87,21 +82,23 @@ class HiveServerDefault(HiveServer):
     setup_ranger_hive(upgrade_type=upgrade_type)
     hive_service('hiveserver2', action = 'start', upgrade_type=upgrade_type)
 
-    # only perform this if upgrading and rolling; a non-rolling upgrade doesn't need
-    # to do this since hive is already down
-    if upgrade_type == UPGRADE_TYPE_ROLLING:
-      hive_server_upgrade.post_upgrade_deregister()
-
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
-    # During rolling upgrade, HiveServer2 should not be stopped before new server is available.
-    # Once new server is started, old one is stopped by the --deregister command which is 
-    # invoked by the 'hive_server_upgrade.post_upgrade_deregister()' method
-    if upgrade_type != UPGRADE_TYPE_ROLLING:
-      hive_service( 'hiveserver2', action = 'stop' )
+    # always de-register the old hive instance so that ZK can route clients
+    # to the newly created hive server
+    try:
+      if upgrade_type is not None:
+        hive_server_upgrade.deregister()
+    except Exception as exception:
+      Logger.exception(str(exception))
+
+    # even during rolling upgrades, Hive Server will be stopped - this is because Ambari will
+    # not support the "port-change/deregister" workflow as it would impact Hive clients
+    # which do not use ZK discovery.
+    hive_service( 'hiveserver2', action = 'stop' )
 
 
   def status(self, env):

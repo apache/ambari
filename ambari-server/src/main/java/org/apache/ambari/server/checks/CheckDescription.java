@@ -290,12 +290,12 @@ public class CheckDescription {
       .put(AbstractCheckDescriptor.DEFAULT,
           "Kafka is currently not Kerberized, but your cluster is. After upgrading, Kafka will automatically be Kerberized for you.").build());
 
-  public static CheckDescription SERVICES_HIVE_ROLLING_PORT_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_PORT_WARNING",
+  public static CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
-    "Hive Server Port Change",
+    "Hive Server Downtime",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "In order to support rolling upgrades, the Hive server is required to change its port. Applications and users which use a URL that includes the port will no longer be able to connect after Hive has upgraded. If this behavior is not desired, then the port can be restored to its original value after the upgrade has been finalized.").build());
+          "Hive does not currently support rolling upgrades. Hive will be upgraded, however existing queries which have been submitted will fail and need to be resubmitted after Hive has been upgraded.").build());
   
   public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
     PrereqCheckType.SERVICE,

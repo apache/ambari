@@ -395,7 +395,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -409,12 +409,6 @@
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
           <message>Please confirm you are ready to finalize.</message>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER" title="Hive Server Port Change">
-        <task xsi:type="manual">
-          <message>If there are users or applications using URLS that specify the Hive Server port number, they will now fail to connect. You can restore the port back to its original value after the upgrade has been finalized.</message>
         </task>
       </execute-stage>
 
@@ -461,9 +455,9 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
 
           <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation"/>
-          
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync"/>
-            
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source"/>
@@ -594,7 +588,6 @@
       </component>
 
       <component name="RESOURCEMANAGER">
-        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
 
@@ -606,6 +599,9 @@
 
           <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark Shuffle" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
         </pre-upgrade>
+
+        <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -684,6 +680,7 @@
 
           <task xsi:type="server_action" summary="Verifying LZO codec path for Tez" class="org.apache.ambari.server.serveraction.upgrades.FixLzoCodecPath"/>
         </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -715,12 +712,6 @@
 
       <component name="HIVE_SERVER">
         <pre-upgrade>
-          <task xsi:type="manual">
-            <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10010 if Hive is using a binary transfer mode or 10011 if Hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
-          </task>
-
-          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_policy"/>
@@ -730,14 +721,7 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
         </pre-upgrade>
 
-        <pre-downgrade>
-          <task xsi:type="manual">
-            <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10000 if Hive is using a binary transfer mode or 10001 if Hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
-          </task>
-
-          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_restore_transport_mode_on_downgrade"/>
-        </pre-downgrade>
+        <pre-downgrade/>
 
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -915,7 +899,7 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
-          
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>

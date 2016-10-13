@@ -118,57 +118,6 @@
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_restore_transport_mode_on_downgrade">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_restore_transport_mode_on_downgrade">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_configure_authentication" summary="Removing unused properties for current hive authentication type">
             <type>hive-site</type>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
@@ -218,32 +167,6 @@
             <transfer operation="delete" delete-key="atlas.rest.address" />
             <transfer operation="delete" delete-key="atlas.hook.hive.minThreads" />
             <transfer operation="delete" delete-key="atlas.hook.hive.maxThreads" />
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_5_0_0_hive_server_restore_transport_mode_on_downgrade">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
           </definition>
 
         </changes>
