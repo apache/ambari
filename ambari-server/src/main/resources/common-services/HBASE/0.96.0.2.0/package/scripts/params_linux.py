@@ -336,9 +336,7 @@ if has_ranger_admin:
   sql_connector_jar = ''
 
   if security_enabled:
-    hbase_master_hosts = default('/clusterHostInfo/hbase_master_hosts', [])
-    hbase_master_host = hbase_master_hosts[0] if len(hbase_master_hosts) > 0 else 'localhost'
-    master_principal = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST', hbase_master_host)
+    master_principal = config['configurations']['hbase-site']['hbase.master.kerberos.principal']
 
   hbase_ranger_plugin_config = {
     'username': repo_config_username,
