@@ -23,7 +23,7 @@ Ambari Agent
 import sys
 import traceback
 
-__all__ = ["Fail", "ExecuteTimeoutException", "InvalidArgument", "ClientComponentHasNoStatus", "ComponentIsNotRunning"]
+__all__ = ["Fail", "ExecutionFailed", "ExecuteTimeoutException", "InvalidArgument", "ClientComponentHasNoStatus", "ComponentIsNotRunning"]
 
 class Fail(Exception):
   def __init__(self, message="", print_cause=True):
@@ -58,3 +58,15 @@ class ComponentIsNotRunning(Fail):
   Later exception is silently processed at script.py
   """
   pass
+
+class ExecutionFailed(Fail):
+  """
+  Is thrown when shell command returns non-zero return code
+  """
+  def __init__(self, exception_message, code, out, err=None):
+    self.exception_message = exception_message
+    self.code = code
+    self.out = out
+    self.err = err
+
+    super(ExecutionFailed, self).__init__(exception_message)
