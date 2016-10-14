@@ -50,9 +50,7 @@ import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -63,24 +61,21 @@ import junit.framework.Assert;
 
 public class ServiceComponentTest {
 
-  private static Clusters clusters;
-  private static Cluster cluster;
-  private static Cluster cluster2;
-  private static Service service;
-  private static Service service2;
-  private static String clusterName;
-  private static String cluster2Name;
-  private static String serviceName;
-  private static Injector injector;
-  private static ServiceFactory serviceFactory;
-  private static ServiceComponentFactory serviceComponentFactory;
-  private static ServiceComponentHostFactory serviceComponentHostFactory;
-  private static AmbariMetaInfo metaInfo;
-  private static OrmTestHelper helper;
-  private static HostDAO hostDAO;
+  private Clusters clusters;
+  private Cluster cluster;
+  private Service service;
+  private String clusterName;
+  private String serviceName;
+  private Injector injector;
+  private ServiceFactory serviceFactory;
+  private ServiceComponentFactory serviceComponentFactory;
+  private ServiceComponentHostFactory serviceComponentHostFactory;
+  private AmbariMetaInfo metaInfo;
+  private OrmTestHelper helper;
+  private HostDAO hostDAO;
 
-  @BeforeClass
-  public static void setup() throws Exception {
+  @Before
+  public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
@@ -94,40 +89,27 @@ public class ServiceComponentTest {
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
 
     clusterName = "foo";
-    cluster2Name = "bar";
     serviceName = "HDFS";
 
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
-    clusters.addCluster(cluster2Name, stackId);
-
     cluster = clusters.getCluster(clusterName);
-    cluster2 = clusters.getCluster(cluster2Name);
+
     cluster.setDesiredStackVersion(stackId);
-    cluster2.setCurrentStackVersion(stackId);
     Assert.assertNotNull(cluster);
-    Assert.assertNotNull(cluster2);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
-    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
-      RepositoryVersionState.INSTALLING);
 
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
     s.persist();
     service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
-
-    s = serviceFactory.createNew(cluster2, serviceName);
-    cluster2.addService(s);
-    s.persist();
-    service2 = cluster2.getService(serviceName);
-    Assert.assertNotNull(service2);
   }
 
-  @AfterClass
-  public static void teardown() throws AmbariException {
+  @After
+  public void teardown() throws AmbariException {
     injector.getInstance(PersistService.class).stop();
   }
 
@@ -215,7 +197,7 @@ public class ServiceComponentTest {
 
   @Test
   public void testAddAndGetServiceComponentHosts() throws AmbariException {
-    String componentName = "DATANODE";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
@@ -316,20 +298,20 @@ public class ServiceComponentTest {
 
   @Test
   public void testConvertToResponse() throws AmbariException {
-    String componentName = "SECONDARY_NAMENODE";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
     component.persist();
 
-    addHostToCluster("h12", service.getCluster().getClusterName());
+    addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch =
-      serviceComponentHostFactory.createNew(component, "h12");
+      serviceComponentHostFactory.createNew(component, "h1");
     sch.setState(State.INSTALLED);
 
     Map<String, ServiceComponentHost> compHosts =
       new HashMap<String, ServiceComponentHost>();
-    compHosts.put("h12", sch);
+    compHosts.put("h1", sch);
     component.addServiceComponentHosts(compHosts);
     Assert.assertEquals(1, component.getServiceComponentHosts().size());
     sch.persist();
@@ -369,7 +351,7 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service,
                                                                    componentName);
-    addHostToCluster("h11", service.getCluster().getClusterName());
+    addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch = serviceComponentHostFactory.createNew(component, "h1");
     component.addServiceComponentHost(sch);
 
@@ -394,7 +376,7 @@ public class ServiceComponentTest {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
         ServiceComponentDesiredStateDAO.class);
 
-    String componentName = "HDFS_CLIENT";
+    String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
     component.persist();
@@ -416,7 +398,7 @@ public class ServiceComponentTest {
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
-    UpgradeEntity upgradeEntity = createUpgradeEntity(cluster, "2.2.0.0", "2.2.0.1");
+    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
     ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
     history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
@@ -446,38 +428,38 @@ public class ServiceComponentTest {
         ServiceComponentDesiredStateDAO.class);
 
     String componentName = "NAMENODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service2, componentName);
-    service2.addServiceComponent(component);
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
     component.persist();
 
-    ServiceComponent sc = service2.getServiceComponent(componentName);
+    ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
 
     sc.setDesiredState(State.STARTED);
     Assert.assertEquals(State.STARTED, sc.getDesiredState());
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster2.getClusterId(), serviceName, componentName);
+        cluster.getClusterId(), serviceName, componentName);
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
     Assert.assertTrue(sc.getServiceComponentHosts().isEmpty());
 
-    addHostToCluster("h21", service2.getCluster().getClusterName());
-    addHostToCluster("h22", service2.getCluster().getClusterName());
+    addHostToCluster("h1", service.getCluster().getClusterName());
+    addHostToCluster("h2", service.getCluster().getClusterName());
 
-    HostEntity hostEntity1 = hostDAO.findByName("h21");
+    HostEntity hostEntity1 = hostDAO.findByName("h1");
     assertNotNull(hostEntity1);
 
     ServiceComponentHost sch1 =
-        serviceComponentHostFactory.createNew(sc, "h21");
+        serviceComponentHostFactory.createNew(sc, "h1");
     ServiceComponentHost sch2 =
-        serviceComponentHostFactory.createNew(sc, "h22");
+        serviceComponentHostFactory.createNew(sc, "h2");
 
     Map<String, ServiceComponentHost> compHosts =
         new HashMap<String, ServiceComponentHost>();
-    compHosts.put("h21", sch1);
-    compHosts.put("h22", sch2);
+    compHosts.put("h1", sch1);
+    compHosts.put("h2", sch2);
     sc.addServiceComponentHosts(compHosts);
 
     sch1.setState(State.STARTED);
@@ -497,7 +479,7 @@ public class ServiceComponentTest {
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster2.getClusterId(), serviceName, componentName);
+        cluster.getClusterId(), serviceName, componentName);
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
  }
@@ -513,12 +495,12 @@ public class ServiceComponentTest {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(
         ServiceComponentDesiredStateDAO.class);
 
-    String componentName = "DATANODE";
-    ServiceComponent component = serviceComponentFactory.createNew(service2, componentName);
-    service2.addServiceComponent(component);
+    String componentName = "NAMENODE";
+    ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
+    service.addServiceComponent(component);
     component.persist();
 
-    ServiceComponent sc = service2.getServiceComponent(componentName);
+    ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
 
     sc.setDesiredState(State.INSTALLED);
@@ -531,12 +513,12 @@ public class ServiceComponentTest {
     Assert.assertEquals("HDP-2.2.0", sc.getDesiredStackVersion().getStackId());
 
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster2.getClusterId(), serviceName, componentName);
+        cluster.getClusterId(), serviceName, componentName);
 
 
     Assert.assertNotNull(serviceComponentDesiredStateEntity);
 
-    UpgradeEntity upgradeEntity = createUpgradeEntity(cluster2, "2.2.0.0", "2.2.0.1");
+    UpgradeEntity upgradeEntity = createUpgradeEntity("2.2.0.0", "2.2.0.1");
     ServiceComponentHistoryEntity history = new ServiceComponentHistoryEntity();
     history.setFromStack(serviceComponentDesiredStateEntity.getDesiredStack());
     history.setToStack(serviceComponentDesiredStateEntity.getDesiredStack());
@@ -549,7 +531,7 @@ public class ServiceComponentTest {
         serviceComponentDesiredStateEntity);
 
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster2.getClusterId(), serviceName, componentName);
+        cluster.getClusterId(), serviceName, componentName);
 
     assertEquals(1, serviceComponentDesiredStateEntity.getHistory().size());
 
@@ -564,7 +546,7 @@ public class ServiceComponentTest {
 
     // verify history is gone, too
     serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByName(
-        cluster2.getClusterId(), serviceName, componentName);
+        cluster.getClusterId(), serviceName, componentName);
 
     Assert.assertNull(serviceComponentDesiredStateEntity);
 
@@ -695,10 +677,10 @@ public class ServiceComponentTest {
    * @param toVersion
    * @return
    */
-  private UpgradeEntity createUpgradeEntity(Cluster cl, String fromVersion, String toVersion) {
+  private UpgradeEntity createUpgradeEntity(String fromVersion, String toVersion) {
     UpgradeDAO upgradeDao = injector.getInstance(UpgradeDAO.class);
     UpgradeEntity upgradeEntity = new UpgradeEntity();
-    upgradeEntity.setClusterId(cl.getClusterId());
+    upgradeEntity.setClusterId(cluster.getClusterId());
     upgradeEntity.setDirection(Direction.UPGRADE);
     upgradeEntity.setFromVersion(fromVersion);
     upgradeEntity.setToVersion(toVersion);
@@ -707,7 +689,7 @@ public class ServiceComponentTest {
     upgradeEntity.setRequestId(1L);
 
     upgradeDao.create(upgradeEntity);
-    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cl.getClusterId());
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
     return upgradeEntity;
   }

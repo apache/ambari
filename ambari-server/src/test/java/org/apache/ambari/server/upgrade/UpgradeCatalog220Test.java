@@ -77,10 +77,8 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
@@ -116,11 +114,11 @@ import static org.junit.Assert.assertTrue;
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog220} unit tests.
  */
 public class UpgradeCatalog220Test {
-  private static Injector injector;
-  private static Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  private static EntityManager entityManager = createNiceMock(EntityManager.class);
-  private static UpgradeCatalogHelper upgradeCatalogHelper;
-  private static StackEntity desiredStackEntity;
+  private Injector injector;
+  private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
+  private EntityManager entityManager = createNiceMock(EntityManager.class);
+  private UpgradeCatalogHelper upgradeCatalogHelper;
+  private StackEntity desiredStackEntity;
   private AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
   private AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private StackDAO stackDAO = createNiceMock(StackDAO.class);
@@ -131,8 +129,8 @@ public class UpgradeCatalog220Test {
 
   private IMocksControl mocksControl = EasyMock.createControl();
 
-  @BeforeClass
-  public static void init() {
+  @Before
+  public void init() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
@@ -147,8 +145,8 @@ public class UpgradeCatalog220Test {
     desiredStackEntity = stackDAO.find("HDP", "2.2.0");
   }
 
-  @AfterClass
-  public static void tearDown() {
+  @After
+  public void tearDown() {
     injector.getInstance(PersistService.class).stop();
   }
 

@@ -63,9 +63,7 @@ import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.SynchronousThreadPoolExecutor;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -86,17 +84,17 @@ import junit.framework.Assert;
 public class ConfigHelperTest {
   public static class RunWithInMemoryDefaultTestModule {
     private final static Logger LOG = LoggerFactory.getLogger(ConfigHelperTest.class);
-    private static Clusters clusters;
-    private static Injector injector;
-    private static String clusterName;
-    private static Cluster cluster;
-    private static ConfigGroupFactory configGroupFactory;
-    private static ConfigHelper configHelper;
-    private static AmbariManagementController managementController;
-    private static AmbariMetaInfo metaInfo;
+    private Clusters clusters;
+    private Injector injector;
+    private String clusterName;
+    private Cluster cluster;
+    private ConfigGroupFactory configGroupFactory;
+    private ConfigHelper configHelper;
+    private AmbariManagementController managementController;
+    private AmbariMetaInfo metaInfo;
 
-    @BeforeClass
-    public static void setup() throws Exception {
+    @Before
+    public void setup() throws Exception {
       // Set the authenticated user
       // TODO: remove this or replace the authenticated user to test authorization rules
       SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
@@ -185,57 +183,6 @@ public class ConfigHelperTest {
         add(clusterRequest3);
       }}, null);
 
-
-      //Another version of core-site & global.
-      // core-site2
-      ConfigurationRequest crr = new ConfigurationRequest();
-      crr.setClusterName(clusterName);
-      crr.setType("core-site2");
-      crr.setVersionTag("version1");
-      crr.setProperties(new HashMap<String, String>() {{
-        put("ipc.client.connect.max.retries", "30");
-        put("fs.trash.interval", "30");
-      }});
-      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("ipc.client.connect.max.retries", "1");
-        attrs.put("fs.trash.interval", "2");
-        put("attribute1", attrs);
-      }});
-
-      final ClusterRequest clusterRequestDup =
-        new ClusterRequest(cluster.getClusterId(), clusterName,
-          cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequestDup.setDesiredConfig(Collections.singletonList(crr));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequestDup);
-      }}, null);
-
-      // global
-      crr.setType("global2");
-      crr.setVersionTag("version1");
-      crr.setProperties(new HashMap<String, String>() {{
-        put("dfs_namenode_name_dir", "/hadoop/hdfs/namenode");
-        put("namenode_heapsize", "1024");
-      }});
-      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("dfs_namenode_name_dir", "3");
-        attrs.put("namenode_heapsize", "4");
-        put("attribute2", attrs);
-      }});
-
-      final ClusterRequest clusterRequestGlobalDup =
-        new ClusterRequest(cluster.getClusterId(), clusterName,
-          cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequestGlobalDup.setDesiredConfig(Collections.singletonList(crr));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequestGlobalDup);
-      }}, null);
-
-
       // oozie-site
       ConfigurationRequest cr4 = new ConfigurationRequest();
       cr4.setClusterName(clusterName);
@@ -255,30 +202,10 @@ public class ConfigHelperTest {
       managementController.updateClusters(new HashSet<ClusterRequest>() {{
         add(clusterRequest4);
       }}, null);
-
-      // ams-site
-      ConfigurationRequest cr5 = new ConfigurationRequest();
-      cr5.setClusterName(clusterName);
-      cr5.setType("ams-site");
-      cr5.setVersionTag("version1");
-      cr5.setProperties(new HashMap<String, String>() {{
-        put("timeline.service.operating.mode", "embedded");
-        put("timeline.service.fifo.enabled", "false");
-      }});
-      cr4.setPropertiesAttributes(null);
-
-      final ClusterRequest clusterRequest5 =
-        new ClusterRequest(cluster.getClusterId(), clusterName,
-          cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequest5.setDesiredConfig(Collections.singletonList(cr5));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequest5);
-      }}, null);
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
       injector.getInstance(PersistService.class).stop();
 
       // Clear the authenticated user
@@ -419,7 +346,7 @@ public class ConfigHelperTest {
       properties2.put("namenode_heapsize", "1111");
       config2.setProperties(properties2);
 
-      Long groupId = addConfigGroup("g2", "t1", new ArrayList<String>() {{
+      Long groupId = addConfigGroup("g1", "t1", new ArrayList<String>() {{
         add("h1");
       }}, new ArrayList<Config>() {{
         add(config1);
@@ -446,7 +373,7 @@ public class ConfigHelperTest {
 
     @Test
     public void testEffectivePropertiesAttributesWithOverrides() throws Exception {
-      final Config config1 = new ConfigImpl("core-site2");
+      final Config config1 = new ConfigImpl("core-site");
       config1.setTag("version122");
 
       Map<String, String> attributes = new HashMap<String, String>();
@@ -456,7 +383,7 @@ public class ConfigHelperTest {
       config1Attributes.put("attribute1", attributes);
       config1.setPropertiesAttributes(config1Attributes);
 
-      final Config config2 = new ConfigImpl("global2");
+      final Config config2 = new ConfigImpl("global");
       config2.setTag("version122");
       attributes = new HashMap<String, String>();
       attributes.put("namenode_heapsize", "z");
@@ -465,8 +392,8 @@ public class ConfigHelperTest {
       config2Attributes.put("attribute2", attributes);
       config2.setPropertiesAttributes(config2Attributes);
 
-      Long groupId = addConfigGroup("g3", "t1", new ArrayList<String>() {{
-        add("h2");
+      Long groupId = addConfigGroup("g1", "t1", new ArrayList<String>() {{
+        add("h1");
       }}, new ArrayList<Config>() {{
         add(config1);
         add(config2);
@@ -476,13 +403,13 @@ public class ConfigHelperTest {
 
       Map<String, Map<String, Map<String, String>>> effectiveAttributes = configHelper
           .getEffectiveConfigAttributes(cluster,
-              configHelper.getEffectiveDesiredTags(cluster, "h2"));
+              configHelper.getEffectiveDesiredTags(cluster, "h1"));
 
       Assert.assertNotNull(effectiveAttributes);
-      Assert.assertEquals(7, effectiveAttributes.size());
+      Assert.assertEquals(4, effectiveAttributes.size());
 
-      Assert.assertTrue(effectiveAttributes.containsKey("global2"));
-      Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global2");
+      Assert.assertTrue(effectiveAttributes.containsKey("global"));
+      Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global");
       Assert.assertEquals(1, globalAttrs.size());
       Assert.assertTrue(globalAttrs.containsKey("attribute2"));
       Map<String, String> attribute2Occurances = globalAttrs.get("attribute2");
@@ -494,8 +421,8 @@ public class ConfigHelperTest {
       Assert.assertTrue(attribute2Occurances.containsKey("c"));
       Assert.assertEquals("q", attribute2Occurances.get("c"));
 
-      Assert.assertTrue(effectiveAttributes.containsKey("core-site2"));
-      Map<String, Map<String, String>> coreAttrs = effectiveAttributes.get("core-site2");
+      Assert.assertTrue(effectiveAttributes.containsKey("core-site"));
+      Map<String, Map<String, String>> coreAttrs = effectiveAttributes.get("core-site");
       Assert.assertEquals(1, coreAttrs.size());
       Assert.assertTrue(coreAttrs.containsKey("attribute1"));
       Map<String, String> attribute1Occurances = coreAttrs.get("attribute1");
@@ -800,28 +727,28 @@ public class ConfigHelperTest {
 
     @Test
     public void testUpdateConfigTypeRemovals() throws Exception {
-      Config currentConfig = cluster.getDesiredConfigByType("ams-site");
+      Config currentConfig = cluster.getDesiredConfigByType("oozie-site");
       Map<String, String> properties = currentConfig.getProperties();
       // Config tag before update
       Assert.assertEquals("version1", currentConfig.getTag());
       // Properties before update
-      Assert.assertEquals("embedded", properties.get("timeline.service.operating.mode"));
-      Assert.assertEquals("false", properties.get("timeline.service.fifo.enabled"));
+      Assert.assertEquals("simple", properties.get("oozie.authentication.type"));
+      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
 
       List<String> removals = new ArrayList<String>();
-      removals.add("timeline.service.operating.mode");
+      removals.add("oozie.authentication.type");
 
-      configHelper.updateConfigType(cluster, managementController, "ams-site", null, removals, "admin", "Test note");
+      configHelper.updateConfigType(cluster, managementController, "oozie-site", null, removals, "admin", "Test note");
 
-      Config updatedConfig = cluster.getDesiredConfigByType("ams-site");
+      Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
       // Config tag updated
       Assert.assertFalse("version1".equals(updatedConfig.getTag()));
       // Property removed
       properties = updatedConfig.getProperties();
-      Assert.assertFalse(properties.containsKey("timeline.service.operating.mode"));
+      Assert.assertFalse(properties.containsKey("oozie.authentication.type"));
       // Property unchanged
-      Assert.assertTrue(properties.containsKey("timeline.service.fifo.enabled"));
-      Assert.assertEquals("false", properties.get("timeline.service.fifo.enabled"));
+      Assert.assertTrue(properties.containsKey("oozie.service.HadoopAccessorService.kerberos.enabled"));
+      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
     }
 
     @Test
