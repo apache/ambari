@@ -147,9 +147,9 @@ public class PreUpgradeCheckResourceProviderTest {
     prerequisiteChecks.add("org.apache.ambari.server.sample.checks.SampleServiceCheck");
     expect(upgradePack.getPrerequisiteCheckConfig()).andReturn(config);
     expect(upgradePack.getPrerequisiteChecks()).andReturn(prerequisiteChecks).anyTimes();
-    expect(upgradePack.getTarget()).andReturn("1.1").anyTimes();
+    expect(upgradePack.getTarget()).andReturn("1.1.*.*").anyTimes();
 
-    expect(ambariMetaInfo.getServices("Stack100", "1.1")).andReturn(allServiceInfoMap).anyTimes();
+    expect(ambariMetaInfo.getServices("Stack100", "1.0")).andReturn(allServiceInfoMap).anyTimes();
     String checks = ClassLoader.getSystemClassLoader().getResource("checks").getPath();
     expect(serviceInfo.getChecksFolder()).andReturn(new File(checks));
 

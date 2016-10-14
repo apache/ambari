@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.UpgradeCheckRegistry;
@@ -195,11 +196,15 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
       try {
         // Register all the custom prechecks from the services
-        Map<String, ServiceInfo> services = getManagementController().getAmbariMetaInfo().getServices(stackName, upgradePack.getTarget());
+        Map<String, ServiceInfo> services = getManagementController().getAmbariMetaInfo().getServices(stackName, sourceStackVersion);
         List<AbstractCheckDescriptor> serviceLevelUpgradeChecksToRun = upgradeCheckRegistry.getServiceLevelUpgradeChecks(upgradePack, services);
         upgradeChecksToRun.addAll(serviceLevelUpgradeChecksToRun);
+      } catch (ParentObjectNotFoundException parentNotFoundException) {
+        LOG.error("Invalid stack version: " + stackName + "-" + sourceStackVersion, parentNotFoundException);
       } catch (AmbariException ambariException) {
         LOG.error("Unable to register all the custom prechecks from the services", ambariException);
+      } catch (Exception e) {
+        LOG.error("Failed to register custom prechecks for the services", e);
       }
 
       for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun)) {
