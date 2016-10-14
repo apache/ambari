@@ -34,28 +34,28 @@
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.secNameNode}}</td>
         <td>{{view.secondaryNameNode}}</td>
-        <td><span class="to-be-disabled-red"><i class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></td>
+        <td><span class="to-be-disabled-red"><i class="glyphicon glyphicon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></td>
       </tr>
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.addNameNode}}</td>
         <td>{{view.addNameNode}}</td>
-        <td><span class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
+        <td><span class="to-be-installed-green"><i class="glyphicon glyphicon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
       </tr>
       <tr>
         <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
         <td>
-          <ul>
+          <ul class="list-unstyled">
             {{#each item in view.journalNodes}}
               <li>{{item.hostName}}</li>
             {{/each}}
           </ul>
         </td>
         <td>
-          <ul>
-              {{#each item in view.journalNodes}}
-                  <li><span class="to-be-installed-green"><i
-                          class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
-              {{/each}}
+          <ul class="list-unstyled">
+            {{#each item in view.journalNodes}}
+              <li><span class="to-be-installed-green"><i
+                  class="glyphicon glyphicon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
+            {{/each}}
           </ul>
         </td>
       </tr>
@@ -74,7 +74,7 @@
 </div>
 
 <div class="btn-area">
-  <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+  <a class="btn btn-default" {{action back}}>&larr; {{t common.back}}</a>
   <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isNextDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
   {{#if App.router.nextBtnClickInProgress}}
     {{view App.SpinnerView tagName="span" classNames="pull-right"}}

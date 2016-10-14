@@ -147,17 +147,17 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         taskInfo.set('icon', '');
         taskInfo.set('hostName', _task.Tasks.host_name);
         if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
-          taskInfo.set('icon', 'icon-cog');
+          taskInfo.set('icon', 'glyphicon glyphicon-cog');
         } else if (taskInfo.get('status') == 'in_progress') {
-          taskInfo.set('icon', 'icon-cogs');
+          taskInfo.set('icon', 'glyphicon glyphicon-cogs');
         } else if (taskInfo.get('status') == 'completed') {
-          taskInfo.set('icon', 'icon-ok');
+          taskInfo.set('icon', 'glyphicon glyphicon-ok');
         } else if (taskInfo.get('status') == 'failed') {
-          taskInfo.set('icon', 'icon-exclamation-sign');
+          taskInfo.set('icon', 'glyphicon glyphicon-exclamation-sign');
         } else if (taskInfo.get('status') == 'aborted') {
-          taskInfo.set('icon', 'icon-minus');
+          taskInfo.set('icon', 'glyphicon glyphicon-minus');
         } else if (taskInfo.get('status') == 'timedout') {
-          taskInfo.set('icon', 'icon-time');
+          taskInfo.set('icon', 'glyphicon glyphicon-time');
         }
         tasksArr.push(taskInfo);
       }, this);

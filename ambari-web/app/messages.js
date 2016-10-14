@@ -336,7 +336,7 @@ Em.I18n.translations = {
   'common.levels': 'Levels',
   'common.extension': 'Extension',
   'common.logs': 'Logs',
-  'common.warn.message': '<div class="alert alert-warn">{0}</div>',
+  'common.warn.message': '<div class="alert alert-warning">{0}</div>',
   'common.link': 'Link',
   'common.from.version': 'From Version',
   'common.to.version': 'To Version',
@@ -725,8 +725,8 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.notice':'After manually resolving the issues, click <b>Rerun Checks</b>.'+
     '<br>To manually resolve issues on <b>each host</b> run the HostCleanup script (Python 2.6 or greater is required):'+
     '<br><div class="code-snippet">python /usr/lib/python2.6/site-packages/ambari_agent/HostCleanup.py --silent --skip=users</div>' +
-    '<div class="alert alert-warn"><b>Note</b>: Clean up of Firewall and Transparent Huge Page issues are not supported by the HostCleanup script.</div>' +
-    '<div class="alert alert-warn"><b>Note</b>: To clean up in interactive mode, remove <b>--silent</b> option. To clean up all resources, including <i>users</i>, remove <b>--skip=users</b> option. Use <b>--help</b> for a list of available options.</div>',
+    '<div class="alert alert-warning"><b>Note</b>: Clean up of Firewall and Transparent Huge Page issues are not supported by the HostCleanup script.</div>' +
+    '<div class="alert alert-warning"><b>Note</b>: To clean up in interactive mode, remove <b>--silent</b> option. To clean up all resources, including <i>users</i>, remove <b>--skip=users</b> option. Use <b>--help</b> for a list of available options.</div>',
   'installer.step3.hostWarningsPopup.summary':'{0} on {1}',
   'installer.step3.hostWarningsPopup.jdk':'JDK Issues',
   'installer.step3.hostWarningsPopup.jdk.name':'JDK not found at <i>{0}</i>',
@@ -859,7 +859,7 @@ Em.I18n.translations = {
   'installer.step5.reassign.header':'Select Target Host',
   'installer.step5.attention':' hosts not running master services',
   'installer.step5.body':'Assign master components to hosts you want to run them on.',
-  'installer.step5.body.coHostedComponents':'<i class="icon-asterisks">&#10037;</i> {0} will be hosted on the same host.',
+  'installer.step5.body.coHostedComponents':'<i class="glyphicon glyphicon-asterisks">&#10037;</i> {0} will be hosted on the same host.',
   'installer.step5.hostInfo':'%@ (%@, %@ cores)',
   'installer.step5.hiveGroup':'HiveServer2, WebHCat Server, MySQL Server',
   'installer.step5.validationIssuesAttention.header': 'Validation Issues',
@@ -867,7 +867,7 @@ Em.I18n.translations = {
   'installer.step5.error.host.invalid': 'The host you choose could (1) have an invalid host name; (2) be conflicting with another selection; or (3) be in maintenance mode',
 
   'installer.step6.header':'Assign Slaves and Clients',
-  'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class=icon-asterisks>&#10037;</i>.',
+  'installer.step6.body':'Assign slave and client components to hosts you want to run them on.<br/>Hosts that are assigned master components are shown with <i class="glyphicon glyphicon-asterisks">&#10037;</i>.',
   'installer.step6.body.clientText': ' <br/>&quot;Client&quot; will install ',
   'installer.step6.error.mustSelectOne':'You must assign at least one host to each component.',
   'installer.step6.error.mustSelectOneForHost':'You must assign at least one slave/client component to each.',
@@ -1018,7 +1018,7 @@ Em.I18n.translations = {
   'installer.step10.body':'Here is the summary of the install process.',
   'installer.step10.staleServicesRestartRequired':' You may also need to restart other services for the newly added ' +
     'services to function properly (for example, HDFS and YARN/MapReduce need to be restarted after adding Oozie). After closing this ' +
-    'wizard, please restart all services that have the restart indicator <i class="icon-refresh"></i> next to the service name.',
+    'wizard, please restart all services that have the restart indicator <i class="glyphicon glyphicon-refresh"></i> next to the service name.',
   'installer.step10.hostsSummary':'The cluster consists of {0} hosts',
   'installer.step10.installedAndStarted':'Installed and started services successfully on {0} new ',
   'installer.step10.installed':'Installed services successfully on {0} new ',
@@ -1400,7 +1400,7 @@ Em.I18n.translations = {
     '<div class="alert alert-info">' +
     '<ol start="3">' +
     '<li>Login to the Additional NameNode host <b>{2}</b>.<br>' +
-    '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
+    '<div class="alert alert-warning"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
     '</li>' +
     '<li>Initialize the metadata for the Additional NameNode by running:' +
     '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
@@ -1422,7 +1422,7 @@ Em.I18n.translations = {
     '<li>Once in Safe Mode, create a Checkpoint:' +
     '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
     '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
-    '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 4: Create a Checkpoint"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 4: Create a Checkpoint"</b> command.</div>' +
+    '<div class="alert alert-warning">If the <b>Next</b> button is enabled before you run the <b>"Step 4: Create a Checkpoint"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 4: Create a Checkpoint"</b> command.</div>' +
     '</ol>',
   'admin.highAvailability.wizard.step3.confirm.host.body':'<b>Confirm your host selections.</b>',
   'admin.highAvailability.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
@@ -1517,7 +1517,7 @@ Em.I18n.translations = {
   'admin.security.step1.body.instruction2': 'Install and configure the Kerberos client on every host in the cluster',
   'admin.security.step1.body.instruction3': 'Create Kerberos principals for Hadoop services and hosts',
   'admin.security.step1.body.instruction4': 'Generate keytabs for each principal and place on the appropriate hosts',
-  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-error"><b>deleted</b></span> as part of enabling security in this HDP stack version',
+  'admin.security.step1.body.instruction5': '<b>Application Timeline Server</b> component of YARN service will be <span class="text-danger"><b>deleted</b></span> as part of enabling security in this HDP stack version',
   'admin.security.step2.body.header': 'Configure Kerberos security properties',
   'admin.security.step3.notice': 'You need to create Kerberos principals and keytabs before proceeding.<br />'+
   'Download the CSV file and use it to create a script to generate the principals and keytabs on specified hosts. ' +
@@ -2237,7 +2237,7 @@ Em.I18n.translations = {
       '<div class="alert alert-info">' +
       '<ol start="3">' +
       '<li>Login to the newly installed NameNode host <b>{2}</b>.<br>' +
-      '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the newly installed NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
+      '<div class="alert alert-warning"><strong>Important!</strong> Be sure to login to the newly installed NameNode host.<br>This is a different host from the Steps 1 and 2 above.</div>' +
       '</li>' +
       '<li>Initialize the metadata by running:' +
       "<div class='code-snippet'>sudo su {3} -l -c 'hdfs namenode -bootstrapStandby'</div></li>" +
@@ -2283,7 +2283,7 @@ Em.I18n.translations = {
   '<div class="code-snippet">chmod -R 700 {7}/{8}</div></li>' +
   '</ol>' +
   '</div>',
-  'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +
+  'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warning"> <strong>Note: </strong> Secure cluster' +
     ' requires generating necessary principals for reassigned component and creating keytab files with the principal on ' +
     'the target host. The keytab file should be accessible to the service user.</div> {0} </div>',
   'services.reassign.step5.body.securityConfigsList': 'Create keytab file <b>{0}</b> with principal <b>{1}</b> on <b>{2}</b> host.',
@@ -2642,7 +2642,7 @@ Em.I18n.translations = {
   'charts.horizon.chart.attributes.network':'Network',
   'charts.horizon.chart.attributes.io':'I/O',
 
-  'charts.heatmap.selectMetric':'Select Metric...',
+  'charts.heatmap.selectMetric':'Select Metric',
 
   'charts.heatmap.category.host':'Host',
   'charts.heatmap.item.host.memory':'Memory Used',
@@ -3010,7 +3010,7 @@ Em.I18n.translations = {
   'menu.item.hosts':'Hosts',
   'menu.item.admin':'Admin',
   'menu.item.alerts': 'Alerts',
-  'menu.item.views':'<i class="icon-th"></i>',
+  'menu.item.views':'<i class="glyphicon glyphicon-th"></i>',
   'menu.item.views.noViews':'No Views',
 
   'bulkOperation.loading': 'Loading...',

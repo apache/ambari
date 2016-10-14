@@ -950,6 +950,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       header: Em.I18n.t('common.warning'),
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/save_configuration'),
+        classNames: ['col-md-12'],
         showSaveWarning: true,
         showPasswordChangeWarning: passwordWasChanged,
         notesArea: Em.TextArea.extend({

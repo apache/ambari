@@ -302,7 +302,7 @@ App.WizardStep1Controller = Em.Controller.extend({
             App.showAlertPopup(Em.I18n.t('common.warning'), Em.I18n.t('installer.step1.addVersion.stackChanged.popup.body').format(oldStackNameVersion, response.stackNameVersion));
           }
           Ember.run.next(function () {
-            $("[rel=skip-validation-tooltip]").tooltip({placement: 'right'});
+            App.tooltip($("[rel=skip-validation-tooltip]"), {html: true, placement: 'left'});
             $("[rel=use-redhat-tooltip]").tooltip({placement: 'right'});
           });
         });

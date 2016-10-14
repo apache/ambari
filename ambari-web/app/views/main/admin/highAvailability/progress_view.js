@@ -66,7 +66,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
       this.set('noticeClass', 'alert alert-success');
     } else if (status === 'FAILED') {
       this.set('notice', this.get('noticeFailed'));
-      this.set('noticeClass', 'alert alert-error');
+      this.set('noticeClass', 'alert alert-danger');
     } else {
       this.set('notice', this.get('noticeInProgress'));
       this.set('noticeClass', 'alert alert-info');
@@ -93,16 +93,16 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
     onStatus: function () {
       this.set('linkClass', Boolean(this.get('content.requestIds.length')) ? 'active-link' : 'active-text');
       if (this.get('content.status') === 'IN_PROGRESS') {
-        this.set('icon', 'icon-cog');
+        this.set('icon', 'glyphicon glyphicon-cog');
         this.set('iconColor', 'text-info');
       } else if (this.get('content.status') === 'FAILED') {
-        this.set('icon', 'icon-exclamation-sign');
-        this.set('iconColor', 'text-error');
+        this.set('icon', 'glyphicon glyphicon-exclamation-sign');
+        this.set('iconColor', 'text-danger');
       } else if (this.get('content.status') === 'COMPLETED') {
-        this.set('icon', 'icon-ok');
+        this.set('icon', 'glyphicon glyphicon-ok');
         this.set('iconColor', 'text-success');
       } else {
-        this.set('icon', 'icon-cog');
+        this.set('icon', 'glyphicon glyphicon-cog');
         this.set('iconColor', '');
         this.set('linkClass', 'not-active-link');
       }

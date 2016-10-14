@@ -26,20 +26,20 @@ App.StatusIconView = Em.View.extend({
    * @type {object}
    */
   statusIconMap: {
-    'COMPLETED': 'icon-ok completed',
-    'WARNING': 'icon-warning-sign',
-    'FAILED': 'icon-exclamation-sign failed',
-    'HOLDING_FAILED': 'icon-exclamation-sign failed',
-    'SKIPPED_FAILED': 'icon-share-alt failed',
-    'PENDING': 'icon-cog pending',
-    'QUEUED': 'icon-cog queued',
-    'IN_PROGRESS': 'icon-cogs in_progress',
-    'HOLDING': 'icon-pause',
-    'SUSPENDED': 'icon-pause',
-    'ABORTED': 'icon-minus aborted',
-    'TIMEDOUT': 'icon-time timedout',
-    'HOLDING_TIMEDOUT': 'icon-time timedout',
-    'SUBITEM_FAILED': 'icon-remove failed'
+    'COMPLETED': 'glyphicon glyphicon-ok completed',
+    'WARNING': 'glyphicon glyphicon-warning-sign',
+    'FAILED': 'glyphicon glyphicon-exclamation-sign failed',
+    'HOLDING_FAILED': 'glyphicon glyphicon-exclamation-sign failed',
+    'SKIPPED_FAILED': 'glyphicon glyphicon-share-alt failed',
+    'PENDING': 'glyphicon glyphicon-cog pending',
+    'QUEUED': 'glyphicon glyphicon-cog queued',
+    'IN_PROGRESS': 'glyphicon glyphicon-cogs in_progress',
+    'HOLDING': 'glyphicon glyphicon-pause',
+    'SUSPENDED': 'glyphicon glyphicon-pause',
+    'ABORTED': 'glyphicon glyphicon-minus aborted',
+    'TIMEDOUT': 'glyphicon glyphicon-time timedout',
+    'HOLDING_TIMEDOUT': 'glyphicon glyphicon-time timedout',
+    'SUBITEM_FAILED': 'glyphicon glyphicon-remove failed'
   },
 
   classNameBindings: ['iconClass'],
@@ -57,6 +57,6 @@ App.StatusIconView = Em.View.extend({
    * @type {string}
    */
   iconClass: function () {
-    return this.get('statusIconMap')[this.get('content')] || 'icon-question-sign';
+    return this.get('statusIconMap')[this.get('content')] || 'glyphicon glyphicon-question-sign';
   }.property('content')
 });

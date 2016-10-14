@@ -161,7 +161,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
 
   outOfSyncInfo: Em.View.extend({
     tagName: 'i',
-    classNames: ['icon-question-sign'],
+    classNames: ['glyphicon glyphicon-question-sign'],
     didInsertElement: function() {
       App.tooltip($(this.get('element')), {
         placement: "top",

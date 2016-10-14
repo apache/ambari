@@ -21,11 +21,11 @@
     <div class="alert">
       <div class="clearfix like_pointer collapsable" {{action toggleRestartMessageView target="view"}}>
         {{#if view.isRestartMessageCollapsed}}
-          <i class="icon-caret-down pull-left"></i>
+          <i class="glyphicon glyphicon-caret-down pull-left"></i>
         {{else}}
-          <i class="icon-caret-right pull-left"></i>
+          <i class="iglyphicon glyphicon-caret-right pull-left"></i>
         {{/if}}
-        <i class="icon-refresh"></i>
+        <i class="glyphicon glyphicon-refresh"></i>
         <strong>{{t dashboard.services.configs.popup.restartService.header}}</strong> {{selectedService.restartRequiredMessage}}
       </div>
       <div class="service-body">
@@ -51,9 +51,9 @@
     {{t common.group}}&nbsp;
 	  <span class="btn-group config-groups-dropdown">
       {{#if controller.configGroupsAreLoaded}}
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle first"
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first"
                                                                       data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
+        <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
           <span class="caret"></span>
         </button>
         <ul class="dropdown-menu config-groups-dropdown-menu">
@@ -135,13 +135,11 @@
           {{#if tab.isAdvanced}}
             {{#if tab.isRendered}}
               {{#each category in selectedService.configCategories}}
-                <div class="accordion">
-                  {{#if category.isCustomView}}
-                    {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-                  {{else}}
-                    {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-                  {{/if}}
-                </div>
+                {{#if category.isCustomView}}
+                  {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+                {{else}}
+                  {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+                {{/if}}
               {{/each}}
             {{else}}
               {{view App.SpinnerView}}
@@ -155,13 +153,11 @@
     </div>
   {{else}}
     {{#each category in selectedService.configCategories}}
-      <div class="accordion">
-        {{#if category.isCustomView}}
-          {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-        {{else}}
-          {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-        {{/if}}
-      </div>
+      {{#if category.isCustomView}}
+        {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+      {{else}}
+        {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+      {{/if}}
     {{/each}}
   {{/if}}
   {{#if view.isAllConfigsHidden}}

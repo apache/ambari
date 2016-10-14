@@ -17,7 +17,7 @@
 }}
 
 <div class="span title">
-  {{t common.metrics}} <i class="icon-question-sign"></i>
+  {{t common.metrics}} <i class="glyphicon glyphicon-question-sign"></i>
 </div>
 <ul class="display-inline-block nav nav-pills">
   {{#each metric in view.metrics}}
@@ -31,27 +31,25 @@
     </a>
 
     {{#if view.showMore}}
-    <div class="accordion" id="metricAccordion">
+    <div class="panel panel-default" id="metricAccordion">
       {{#each view.moreMetrics}}
-      <div class="accordion-group">
-        <div class="accordion-heading">
-          <a class="accordion-toggle" data-toggle="collapse" data-parent="#metricAccordion"
+      <div class="panel-group">
+        <div class="panel-heading">
+          <a class="panel-toggle" data-toggle="collapse" data-parent="#metricAccordion"
              href="#{{unbound code}}Collapse">
-            <i class="icon-play"></i>{{unbound label}}
+            <i class="glyphicon glyphicon-play"></i>{{unbound label}}
           </a>
         </div>
-        <div id="{{unbound code}}Collapse" class="accordion-body collapse">
-          <div class="accordion-inner">
-            {{#if items.length }}
-            <ul class="items">
-              {{#each metric in items}}
-              {{view view.moreItemView metricBinding="metric" widgetBinding="view"}}
-              {{/each}}
-            </ul>
-            {{else}}
+        <div id="{{unbound code}}Collapse" class="panel-body collapse">
+          {{#if items.length }}
+          <ul class="items">
+            {{#each metric in items}}
+            {{view view.moreItemView metricBinding="metric" widgetBinding="view"}}
+            {{/each}}
+          </ul>
+          {{else}}
             {{t metric.notFound}}
-            {{/if}}
-          </div>
+          {{/if}}
         </div>
       </div>
       {{/each}}

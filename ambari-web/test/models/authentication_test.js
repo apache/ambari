@@ -35,7 +35,7 @@ var form,
     {
       result: 0,
       message: 'fail',
-      className: 'error'
+      className: 'danger'
     },
     {
       result: 1,
@@ -65,7 +65,7 @@ describe('App.AuthenticationForm', function () {
 
   App.TestAliases.testAsComputedIfThenElse(App.AuthenticationForm.create(), 'testConfigurationMessage', 'testResult', Em.I18n.t('admin.authentication.form.test.success'), Em.I18n.t('admin.authentication.form.test.fail'));
 
-  App.TestAliases.testAsComputedIfThenElse(App.AuthenticationForm.create(), 'testConfigurationClass', 'testResult', 'text-success', 'text-error');
+  App.TestAliases.testAsComputedIfThenElse(App.AuthenticationForm.create(), 'testConfigurationClass', 'testResult', 'text-success', 'text-danger');
 
   describe('#testResult', function () {
     it('should be 0 or 1', function () {

@@ -31,7 +31,7 @@
     -webkit-border-radius: 0;
     -moz-border-radius: 0;
     background-image: none;
-    .icon-plus {
+    .glyphicon-plus {
       font-size: 70px;
       color: #ccc;
     }
@@ -75,10 +75,12 @@
     width: 19.3%;
     background-color: white;
     margin: 5px 0 5px 5px;
+    float: left;
   }
   .widget {
-    .thumbnail {
+    .img-thumbnail {
       position: relative;
+      box-sizing: content-box;
     }
     .spinner {
       margin: 55px auto;
@@ -123,6 +125,7 @@
       .content {
         padding-top: 30px;
         height: 50px;
+        box-sizing: content-box;
         overflow: hidden;
         text-overflow: ellipsis;
       }
@@ -191,7 +194,7 @@
 #widget-preview {
   max-width: 200px;
   .widget {
-    .thumbnail .corner-icon {
+    .img-thumbnail .corner-icon {
       display: none;
     }
     .graph-widget {
@@ -204,10 +207,11 @@
 
 #widget_layout {
   .widget {
-    .thumbnail {
+    .img-thumbnail {
+      box-sizing: content-box;
       .corner-icon {
         display: none;
-        .icon-remove-sign{
+        .glyphicon-remove-sign{
           color: #000000;
           text-shadow: #fff 0 0 15px;
           position: absolute;
@@ -244,9 +248,6 @@
           text-decoration: none;
           z-index: 9;
         }
-        .caption{
-          margin-left: -10px;
-        }
       }
       & .hidden-description{
         display: none;
@@ -268,7 +269,7 @@
       }
     }
   }
-  .thumbnail .chart-legend {
+  .img-thumbnail .chart-legend {
     .description-line {
       padding: 3px 3px 8px 8px;
       line-height: 16px;
@@ -293,21 +294,21 @@
   font-weight: bold;
   word-wrap: break-word;
   white-space: pre-wrap;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 #edit-widget-wizard,
 #add-widget-wizard {
   #add-widget-step1 {
     .widgets-info-container {
-      .span6.widget-info-section {
+      .col-md-6.widget-info-section {
         width: 44%;
         height: 115px;
         margin: 5px 15px;
         padding-top: 10px;
         padding-left: 5px;
       }
-      .span6.widget-info-section:hover {
+      .col-md-6.widget-info-section:hover {
         background-color: #eee;
         cursor: pointer;
         .icon {
@@ -350,12 +351,8 @@
       .control-label {
         width: auto;
       }
-      .controls {
-        margin-left: 130px;
-        line-height: 40px;
-        .threshold-input {
-          width: 100px;
-        }
+      .threshold-input {
+        width: 100px;
       }
     }
     .template.error {
@@ -393,11 +390,11 @@
       bottom: 10px;
       position: absolute;
     }
-    .icon-asterisk {
+    .glyphicon-asterisk {
       color: red;
       font-size: 8px;
     }
-    .is-invalid.controls,
+    .is-invalid,
     .metric-container.is-invalid {
       .metric-field {
         border-color: @invalid-color;
@@ -420,7 +417,7 @@
         }
         .add-number {
           margin-left: 40px;
-          .add-on {
+          .input-group-addon {
             height: inherit;
           }
         }
@@ -449,7 +446,7 @@
           top: 0;
           text-decoration: none;
           display: none;
-          .icon-remove {
+          .glyphicon-remove {
             color: #A69B9B;
             font-size: 12px;
           }
@@ -460,15 +457,7 @@
           display: inline-block;
         }
       }
-      .controls {
-        background-color: #f5f5f5;
-        padding: 0 5px;
-        border: 1px @border-color solid;
-        margin-right: 20px;
-        float: right;
-        border-top: none;
-      }
-      .controls.is-invalid {
+      .is-invalid {
         border-color: @invalid-color;
       }
       .add-item-input {
@@ -521,13 +510,13 @@
   .step3 {
     form {
       margin: 50px 0;
-      .row-fluid {
+      .row {
         line-height: 30px;
         margin: 10px 0;
         .title {
           text-align: right;
         }
-        .icon-asterisk {
+        .glyphicon-asterisk {
           color: red;
           font-size: 8px;
           margin-left: 2px;
@@ -541,7 +530,7 @@
           width: 320px;
           height: 75px;
         }
-        .span10.error {
+        .col-md-10.error {
           .ember-text-field,
           .ember-text-area{
             border: 1px solid #b94a48;
@@ -563,10 +552,7 @@
     width: 240px;
     max-height: 123px;
     padding: 0;
-    border-bottom: 200px transparent solid;
-    border-right: 150px transparent solid;
-    border-left: none;
-    border-top: none;
+    border: none;
     -webkit-box-shadow: none;
     -moz-box-shadow: none;
     box-shadow: none;
@@ -646,9 +632,8 @@
 
 }
 
-.sixty-percent-width-modal.widgets-browser-popup {
+.widgets-browser-popup {
   .modal {
-    max-height: 600px;
     position: fixed;
     .modal-body {
       padding-top: 0;
@@ -656,7 +641,7 @@
       max-height: 460px;
     }
   }
-  
+
   #widget-browser-popup {
     min-width: 750px;
     max-width: 900px;
@@ -687,14 +672,14 @@
     #widgets-info {
        padding-top: 40px;
       .widgets-info-container {
-        .span6.widget-info-section {
+        .col-md-6.widget-info-section {
           width: 44%;
           height: 115px;
           margin: 5px 15px;
           padding-top: 10px;
           padding-left: 5px;
         }
-        .span6.widget-info-section:hover {
+        .col-md-6.widget-info-section:hover {
           background-color: #eee;
           .icon {
             background-color: white;
@@ -749,7 +734,7 @@
           .added-btn.btn {
             margin-left: 63px;
             width: 85px;
-            .icon-ok {
+            .glyphicon-ok {
               color: #468847;
             }
           }
@@ -766,5 +751,3 @@
     }
   }
 }
-
-

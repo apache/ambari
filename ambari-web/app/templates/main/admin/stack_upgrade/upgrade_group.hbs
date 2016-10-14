@@ -17,13 +17,13 @@
 }}
 
 
-<div class="row-fluid">
-  <div {{bindAttr class="view.content.isExpandableGroup::not-active-link :span8 :upgrade-group-text"}}>
+<div class="row">
+  <div {{bindAttr class="view.content.isExpandableGroup::not-active-link :col-md-8 :upgrade-group-text"}}>
     {{statusIcon view.content.upgradeGroupStatus}}
     <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.content.title}}</a>
   </div>
   {{#if view.content.isRunning}}
-    <div class="span3">
+    <div class="col-md-3">
       {{view view.progressBarView
         progressBinding="view.content.progress"
         statusBinding="view.content.status"
@@ -31,7 +31,7 @@
         completedTasksBinding="view.content.completed_task_count"
       }}
     </div>
-    <div class="span1">
+    <div class="col-md-1">
       <div>{{view.content.progress}}%</div>
     </div>
   {{/if}}
@@ -42,19 +42,19 @@
   {{! List of UpgradeItem}}
   {{#each item in view.content.upgradeItems}}
     {{#if item.isVisible}}
-      <div class="row-fluid">
-        <div {{bindAttr class="item.isActive::not-active-link :span8 :upgrade-item-text"}}>
+      <div class="row">
+        <div {{bindAttr class="item.isActive::not-active-link :col-md-8 :upgrade-item-text"}}>
           {{statusIcon item.upgradeItemStatus}}
           <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
         </div>
         {{#if item.isRunning}}
-          <div class="span3">
+          <div class="col-md-3">
             {{view App.ProgressBarView
               progressBinding="item.progress"
               statusBinding="item.status"
             }}
           </div>
-          <div class="span1">
+          <div class="col-md-1">
             <div>{{item.progress}}%</div>
           </div>
         {{/if}}
@@ -63,9 +63,9 @@
       {{#if item.isExpanded}}
         {{#if item.isTasksLoaded}}
         {{! List of Tasks}}
-          <div class="task-list margin-bottom-5">
+          <div class="task-list">
             {{#each task in item.tasks}}
-              {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks"}}
+              {{view App.upgradeTaskView contentBinding="task" tasksBinding="item.tasks" class="row"}}
             {{/each}}
           </div>
         {{else}}

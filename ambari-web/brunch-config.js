@@ -24,6 +24,11 @@ module.exports.config = {
         /^(vendor|app\/data|app\/assets|test)/
       ],
       pattern: /\.(js)$/
+    },
+    assetsmanager: {
+      copyTo: {
+        'stylesheets/fonts' : ['vendor/theme/fonts/*']
+      }
     }
   },
   files: {
@@ -37,7 +42,8 @@ module.exports.config = {
       order: {
         before: [
           'vendor/scripts/console-helper.js',
-          'vendor/scripts/jquery-1.7.2.min.js',
+          'vendor/scripts/jquery-1.9.1.js',
+          'vendor/scripts/jquery-migrate.js',
           'vendor/scripts/handlebars-1.0.0.beta.6.js',
           'vendor/scripts/ember-latest.js',
           'vendor/scripts/ember-data-latest.js',
@@ -87,6 +93,7 @@ module.exports.config = {
       },
       order: {
         before: [
+          'app/styles/theme/bootstrap-ambari.css',
           'vendor/styles/bootstrap.css',
           'vendor/styles/font-awesome.css',
           'vendor/styles/font-awesome-ie7.css',
@@ -99,7 +106,9 @@ module.exports.config = {
           'vendor/styles/diffview.css',
           'vendor/styles/visualsearch-datauri.css'
         ],
-        after: ['app/styles/custom-ui.css']
+        after: [
+          'app/styles/custom-ui.css'
+        ]
       }
     },
 
@@ -109,7 +118,7 @@ module.exports.config = {
       defaultExtensions: ['hbs'],
       joinTo: {'javascripts/app.js': /^app/},
       paths: {
-        jquery: 'vendor/scripts/jquery-1.7.2.min.js',
+        jquery: 'vendor/scripts/jquery-1.9.1.js',
         handlebars: 'vendor/scripts/handlebars-1.0.0.beta.6.js',
         ember: 'vendor/scripts/ember-latest.js'
       }

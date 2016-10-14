@@ -25,7 +25,7 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th class="span3" id="service-name">
+      <th class="col-md-3" id="service-name">
           {{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isAllChecked"}}{{t common.service}}
       </th>
       <th id="service-version">{{t common.version}}</th>
@@ -36,9 +36,15 @@
     {{#each controller}}
       {{#unless isHiddenOnSelectServicePage}}
         <tr {{bindAttr class="isSelected:success isSelected:service-selected"}}>
-          <td><label class="checkbox">{{view Ember.Checkbox classBinding="serviceName"
-          disabledBinding="isInstalled"
-          checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>
+          <td>
+            <div class="checkbox">
+              <label>
+                {{view Ember.Checkbox classBinding="serviceName"
+                  disabledBinding="isInstalled"
+                  checkedBinding="isSelected"}}
+                  {{displayNameOnSelectServicePage}}
+              </label>
+            </div>
           </td>
           <td>{{serviceVersionDisplay}}</td>
           <td>{{{comments}}}</td>
@@ -50,7 +56,7 @@
 
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
-      <button type="button" class="btn pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+      <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
         &larr; {{t common.back}}
         {{#if App.router.backBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

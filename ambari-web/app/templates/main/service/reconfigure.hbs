@@ -38,7 +38,7 @@
           {{else}}
             {{#if command.isStarted}}
               {{#if command.isPolling}}
-                <div class="progress-bar pull-left">
+                <div class="progress-wrapper pull-left">
                   {{view App.StageInProgressView commandBinding=command}}
                 </div>
                 <div class="progress-percentage pull-left">{{command.progress}}%</div>
@@ -50,7 +50,7 @@
           {{#if command.isError}}
             <a class="btn btn-primary"
                href="javascript:void(null)" {{action retry target = "controller"}}><i
-                    class="icon-repeat icon-white"></i>
+                    class="glyphicon glyphicon-repeat glyphicon-white"></i>
               {{t common.retry}}
             </a>
           {{/if}}

@@ -16,7 +16,8 @@
     "ember-precompiler-brunch": ">= 1.0 < 1.5",
     "ember-radio-button": "0.1.2",
     "less-brunch": ">= 1.0 < 1.5",
-    "cssstyle": "0.2.3"
+    "cssstyle": "0.2.3",
+    "assetsmanager-brunch": "~1.8.1"
   },
   "devDependencies": {
     "phantomjs": "^1.9.2",

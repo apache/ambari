@@ -35,9 +35,9 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
       if (self.$())
       self.$('input[type="checkbox"]:eq(0)').checkbox({
         defaultState: self.get('config.value'),
-        buttonStyle: 'btn-link btn-large',
-        checkedClass: 'icon-check',
-        uncheckedClass: 'icon-check-empty'
+        buttonStyle: 'btn-link',
+        checkedClass: 'glyphicon glyphicon-check',
+        uncheckedClass: 'glyphicon glyphicon-unchecked'
       });
     });
   },

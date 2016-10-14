@@ -18,23 +18,23 @@
 
 <p>{{{deleteComponentMsg}}}</p>
 {{#if lastComponent}}
-  <div class="alert-error row-fluid">
+  <div class="alert alert-danger row">
     <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
-    <div class='span10'>{{{lastComponentError}}}</div>
+    <div class='col-md-10'>{{{lastComponentError}}}</div>
   </div>
 {{/if}}
 {{#if isZkServer}}
-  <div class='alert'>{{{deleteZkServerMsg}}}</div>
+  <div class='alert alert-warning'>{{{deleteZkServerMsg}}}</div>
 {{/if}}
 {{#if isHiveMetastore}}
-  <div class='alert'>{{{deleteHiveMetastoreMsg}}}</div>
+  <div class='alert alert-warning'>{{{deleteHiveMetastoreMsg}}}</div>
 {{/if}}
 {{#if isWebHCatServer}}
-  <div class='alert'>{{{deleteWebHCatServerMsg}}}</div>
+  <div class='alert alert-warning'>{{{deleteWebHCatServerMsg}}}</div>
 {{/if}}
 {{#if isNimbus}}
-  <div class='alert'>{{{deleteNimbusMsg}}}</div>
+  <div class='alert alert-warning'>{{{deleteNimbusMsg}}}</div>
 {{/if}}
 {{#if isRangerKMSServer}}
-  <div class='alert'>{{{deleteRangerKMSServereMsg}}}</div>
+  <div class='alert alert-warning'>{{{deleteRangerKMSServereMsg}}}</div>
 {{/if}}

@@ -15,9 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div {{bindAttr class="view.property.unit:input-append"}}>
-  {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled"}}
-  {{#if view.property.unit}}
-    <span class="add-on">{{view.property.unit}}</span>
-  {{/if}}
+<div {{bindAttr class="view.colWidth"}}>
+  <div {{bindAttr class="view.property.unit:input-group"}}>
+    {{view Em.TextField class="form-control" valueBinding="view.property.value" disabledBinding="view.property.isDisabled"}}
+    {{#if view.property.unit}}
+      <span class="input-group-addon">{{view.property.unit}}</span>
+    {{/if}}
+  </div>
 </div>

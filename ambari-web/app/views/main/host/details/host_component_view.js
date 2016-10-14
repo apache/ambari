@@ -58,12 +58,12 @@ App.HostComponentView = Em.View.extend({
   statusClass: function () {
     //Class when install failed
     if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
-      return 'health-status-color-red icon-cog';
+      return 'health-status-color-red glyphicon glyphicon-cog';
     }
 
     //Class when installing
     if (this.get('workStatus') === App.HostComponentStatus.installing) {
-      return 'health-status-color-blue icon-cog';
+      return 'health-status-color-blue glyphicon glyphicon-cog';
     }
 
     //For all other cases

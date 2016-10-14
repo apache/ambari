@@ -16,173 +16,186 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid host-block">
-  <div class="span12">
-    <div class="span6">
+<div class="row host-block">
+  <div class="col-md-6">
       {{!components}}
-      <div class="box">
-        <div class="box-header">
-          <div class="pull-left">
-            <h4>{{t common.components}}</h4>
-          </div>
-          <div class="pull-right span5 row-fluid" style="padding:0 10px;">
+    <div class="box">
+      <div class="box-header">
+        <div class="pull-left">
+          <h4>{{t common.components}}</h4>
+        </div>
+        <div class="pull-right col-md-5 row" style="padding:0 10px;">
             {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
-              <div class="btn-group pull-right">
-                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :dropdown-toggle"}}>
-                  <span class="icon-plus"></span>&nbsp;{{t add}}
+              <div class="btn-group pull-right col-md-6">
+                <button id="add_component"
+                        data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle"}}>
+                  <span class="glyphicon glyphicon-plus"></span>&nbsp;{{t add}}
                 </button>
                 <ul class="dropdown-menu">
-                  {{#each component in view.addableComponents}}
-                    <li>
-                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
-                        {{component.displayName}}
-                      </a>
-                    </li>
-                  {{/each}}
+                    {{#each component in view.addableComponents}}
+                      <li>
+                        <a href="javascript:void(null)"
+                           data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
+                            {{component.displayName}}
+                        </a>
+                      </li>
+                    {{/each}}
                 </ul>
               </div>
             {{/isAuthorized}}
-          </div>
         </div>
-        <div class="host-components">
-        {{#if view.sortedComponents.length}}
+      </div>
+      <div class="host-components">
+          {{#if view.sortedComponents.length}}
 
-          {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
-            {{#if view.content.componentsWithStaleConfigsCount}}
-              <div class="alert alert-warning clearfix">
-                <i class="icon-refresh"></i> {{view.needToRestartMessage}}
-                  <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
-                    {{t hosts.host.details.needToRestart.button}}
-                  </button>
-              </div>
-            {{/if}}
-          {{/isAuthorized}}
+              {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
+                  {{#if view.content.componentsWithStaleConfigsCount}}
+                    <div class="alert alert-warning clearfix restart-required">
+                      <i class="glyphicon glyphicon-refresh"></i> {{view.needToRestartMessage}}
+                      <button {{bindAttr class=":btn :restart-components :pull-right :btn-warning"}} {{action restartAllStaleConfigComponents target="controller"}}>
+                          {{t hosts.host.details.needToRestart.button}}
+                      </button>
+                    </div>
+                  {{/if}}
+              {{/isAuthorized}}
 
-          {{#each component in view.sortedComponents}}
-            <div class="row-fluid">
-              {{view component.viewClass contentBinding="component"}}
-            </div>
-          {{/each}}
-        {{/if}}
+              {{#each component in view.sortedComponents}}
+                <div class="row">
+                    {{view component.viewClass contentBinding="component"}}
+                </div>
+              {{/each}}
+          {{/if}}
           {{!clients and add component button}}
-          <div class="clients row-fluid">
-            <div class="span7 row client-list">
+        <div class="clients row">
+          <div class="col-md-7 row client-list">
               {{#if view.clients.length}}
-                  <div class="span3 align-right">{{t common.clients}}&nbsp;/</div>
-                <div class="span7">
-                  {{#each component in view.clients}}
-                    <span {{bindAttr class="component.staleConfigs:component-restart-required-name"}}> {{component.displayName}} </span> {{#if component.isInstallFailed}}&nbsp;<span class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}&nbsp;<span class="text-warning icon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}&nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}},{{/unless}}
-                  {{/each}}
+                <div class="col-md-3 align-right">{{t common.clients}}&nbsp;/</div>
+                <div class="col-md-7">
+                    {{#each component in view.clients}}
+                      <span {{bindAttr class="component.staleConfigs:component-restart-required-name"}}> {{component.displayName}} </span> {{#if component.isInstallFailed}}
+                      &nbsp;<span
+                      class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}
+                      &nbsp;<span
+                      class="text-warning glyphicon glyphicon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}
+                      &nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}}
+                      ,{{/unless}}
+                    {{/each}}
                 </div>
               {{/if}}
-            </div>
-            <div class="span5 row pull-right">
+          </div>
+          <div class="col-md-5 pull-right">
               {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
-                {{#if view.clients.length}}
-                  <div class="btn-group pull-right">
-                    <button id="add_component" data-toggle="dropdown" {{bindAttr class=":btn :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
-                      {{t common.installed}}
-                      <span class="caret pull-right"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                      <li>
-                        <a href="javascript:void(null)" data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
-                          {{t hosts.host.details.refreshConfigs}}
-                        </a>
-                      </li>
-                      <li>
-                        <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }} data-toggle="modal" {{action installClients target="view"}}>
-                          {{t host.host.details.installClients}}
-                        </a>
-                      </li>
-                      {{#if view.anyClientFailedToInstall}}
+                  {{#if view.clients.length}}
+                    <div class="btn-group pull-right">
+                      <button id="add_component"
+                              data-toggle="dropdown" {{bindAttr class=":btn :btn-default :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
+                          {{t common.installed}}
+                        <span class="caret pull-right button-caret-margin"></span>
+                      </button>
+                      <ul class="dropdown-menu">
                         <li>
-                          <a href="javascript:void(null)" {{action reinstallClients target="view"}}>
-                            {{t host.host.details.reinstallClients}}
+                          <a href="javascript:void(null)"
+                             data-toggle="modal" {{action refreshConfigs view.clients target="controller"}}>
+                              {{t hosts.host.details.refreshConfigs}}
                           </a>
                         </li>
-                      {{/if}}
-                      {{#each option in view.clientsWithCustomCommands}}
-                        <li class="dropdown-submenu submenu-left">
-                          <a href="javascript:void(null)" >
-                            <i class="icon-play-circle"></i>
-                            {{option.label}}
+                        <li>
+                          <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }}
+                             data-toggle="modal" {{action installClients target="view"}}>
+                              {{t host.host.details.installClients}}
                           </a>
-                            <div class="dropdown-menu-wrap">
-                              <ul class="dropdown-menu">
-                                {{#each command in option.commands}}
-                                  <li>
-                                    <a href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
-                                  </li>
-                                {{/each}}
-                              </ul>
-                            </div>
                         </li>
-                      {{/each}}
-                    </ul>
-                  </div>
-                {{/if}}
+                          {{#if view.anyClientFailedToInstall}}
+                            <li>
+                              <a href="javascript:void(null)" {{action reinstallClients target="view"}}>
+                                  {{t host.host.details.reinstallClients}}
+                              </a>
+                            </li>
+                          {{/if}}
+                          {{#each option in view.clientsWithCustomCommands}}
+                            <li class="dropdown-submenu submenu-left">
+                              <a href="javascript:void(null)">
+                                <i class="glyphicon glyphicon-play-circle"></i>
+                                  {{option.label}}
+                              </a>
+
+                              <div class="dropdown-menu-wrap">
+                                <ul class="dropdown-menu">
+                                    {{#each command in option.commands}}
+                                      <li>
+                                        <a
+                                          href="javascript:void(null)" {{action "executeCustomCommand" command target="controller" href=true}}>{{command.label}}</a>
+                                      </li>
+                                    {{/each}}
+                                </ul>
+                              </div>
+                            </li>
+                          {{/each}}
+                      </ul>
+                    </div>
+                  {{/if}}
               {{/isAuthorized}}
-            </div>
           </div>
         </div>
       </div>
-      <div class="host-configuration">
-            <div class="box">
-                <div class="box-header">
-                    <h4>{{t hosts.host.summary.header}}</h4>
-                </div>
-                <div class="host-summary-content">
-                    <dl class="dl-horizontal host-details-summary-list">
-
-                        <dt class="summary-hostname-label">{{t hosts.host.summary.hostname}}:</dt>
-                          <dd class="summary-hostname-value">&nbsp;{{view.content.hostName}}</dd>
-
-                        <dt class="summary-ipaddress-label">{{t common.ipAddress}}:</dt>
-                          <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
-
-                        <dt class="summary-rack-label">{{t common.rack}}:</dt>
-                        <dd class="summary-rack-value">&nbsp;{{view.content.rack}}
-                          {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
-                            <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i class="icon-pencil"></i></a>
-                          {{/isAuthorized}}
-                        </dd>
-
-                        <dt class="summary-os-label">{{t common.os}}:</dt>
-                          <dd class="summary-os-value">&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
-
-                        <dt class="summary-cores-label">{{t common.cores.cpu}}:</dt>
-                          <dd class="summary-cores-value">&nbsp;{{view.content.coresFormatted}}</dd>
-
-                        <dt class="summary-disk-label">{{t common.disk}}:</dt>
-                          <dd class="summary-disk-value">&nbsp;{{view.content.diskInfoBar}}</dd>
-
-                        <dt class="summary-memory-label">{{t common.memory}}:</dt>
-                          <dd class="summary-memory-value">&nbsp;{{view.content.memoryFormatted}}</dd>
-
-                        <dt class="summary-load-avg-label">{{t common.loadAvg}}:</dt>
-                          <dd class="summary-load-avg-value">&nbsp;{{view.content.loadAvg}}</dd>
-
-                        <dt class="summary-agent-heart-label">{{t hosts.host.summary.agentHeartbeat}}:</dt>
-                          <dd class="summary-agent-heart-value">&nbsp;{{view.timeSinceHeartBeat}}</dd>
-
-                        <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
-                          <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
-                    </dl>
-                </div>
-            </div>
-        </div>
     </div>
-    <div class="span6">
+    <div class="host-configuration">
+      <div class="box">
+        <div class="box-header">
+          <h4>{{t hosts.host.summary.header}}</h4>
+        </div>
+        <div class="host-summary-content">
+          <dl class="dl-horizontal host-details-summary-list">
+
+            <dt class="summary-hostname-label">{{t hosts.host.summary.hostname}}:</dt>
+            <dd class="summary-hostname-value">&nbsp;{{view.content.hostName}}</dd>
+
+            <dt class="summary-ipaddress-label">{{t common.ipAddress}}:</dt>
+            <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
+
+            <dt class="summary-rack-label">{{t common.rack}}:</dt>
+            <dd class="summary-rack-value">&nbsp;{{view.content.rack}}
+                {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
+                  <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i
+                    class="glyphicon glyphicon-pencil"></i></a>
+                {{/isAuthorized}}
+            </dd>
+
+            <dt class="summary-os-label">{{t common.os}}:</dt>
+            <dd class="summary-os-value">&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
+
+            <dt class="summary-cores-label">{{t common.cores.cpu}}:</dt>
+            <dd class="summary-cores-value">&nbsp;{{view.content.coresFormatted}}</dd>
+
+            <dt class="summary-disk-label">{{t common.disk}}:</dt>
+            <dd class="summary-disk-value">&nbsp;{{view.content.diskInfoBar}}</dd>
+
+            <dt class="summary-memory-label">{{t common.memory}}:</dt>
+            <dd class="summary-memory-value">&nbsp;{{view.content.memoryFormatted}}</dd>
+
+            <dt class="summary-load-avg-label">{{t common.loadAvg}}:</dt>
+            <dd class="summary-load-avg-value">&nbsp;{{view.content.loadAvg}}</dd>
+
+            <dt class="summary-agent-heart-label">{{t hosts.host.summary.agentHeartbeat}}:</dt>
+            <dd class="summary-agent-heart-value">&nbsp;{{view.timeSinceHeartBeat}}</dd>
+
+            <dt class="summary-cur-ver-label">{{t hosts.host.summary.currentVersion}}:</dt>
+            <dd class="summary-cur-ver-value">&nbsp;{{view.content.currentVersion}}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
       {{!metrics}}
       {{#unless view.isNoHostMetricsService}}
         <div class="box">
           <div class="box-header">
             <h4>{{t hosts.host.summary.hostMetrics}}</h4>
-            {{view view.timeRangeListView}}
+              {{view view.timeRangeListView}}
           </div>
           <div>
-            {{view App.MainHostMetricsView contentBinding="view.content"}}
+              {{view App.MainHostMetricsView contentBinding="view.content"}}
           </div>
         </div>
       {{/unless}}
@@ -194,10 +207,9 @@
             <h4>{{t hosts.host.summary.hostLogMetrics}}</h4>
           </div>
           <div>
-            {{view App.MainHostLogMetrics contentBinding="view.content"}}
+              {{view App.MainHostLogMetrics contentBinding="view.content"}}
           </div>
         </div>
       {{/if}}
-    </div>
   </div>
 </div>

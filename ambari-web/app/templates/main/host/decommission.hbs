@@ -17,9 +17,6 @@
 }}
 
 
-<li rel='decommissionTooltip' {{bindAttr data-original-title="view.parentView.decommissionTooltipMessage" class="view.parentView.noActionAvailable"}}>
-    <a href="javascript:void(null)" data-toggle="modal" {{bindAttr class="view.parentView.isComponentDecommissionDisable:disabled"}}>
-      {{view.text}}
-    </a>
-</li>
-
+<a href="javascript:void(null)" rel="decommissionTooltip" {{bindAttr data-original-title="view.parentView.decommissionTooltipMessage" class="view.parentView.noActionAvailable view.parentView.isComponentDecommissionDisable:disabled"}} data-toggle="modal">
+  {{view.text}}
+</a>

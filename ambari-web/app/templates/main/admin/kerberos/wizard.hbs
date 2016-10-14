@@ -18,13 +18,12 @@
 
 <div class="wizard">
   <div class="container">
-    <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span3">
+      <div class="row">
+        <div class="col-md-3">
           <!--Sidebar content-->
           <div class="well">
             <ul class="nav nav-pills nav-stacked">
-              <li class="nav-header"> <i class="icon-lock"></i>&nbsp;{{t admin.kerberos.wizard.header}}</li>
+              <li class="nav-header"> <i class="glyphicon glyphicon-lock"></i>&nbsp;{{t admin.kerberos.wizard.header}}</li>
               <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t admin.kerberos.wizard.step1.header}}</a></li>
               <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t admin.kerberos.wizard.step2.header}}</a></li>
               <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t admin.kerberos.wizard.step3.header}}</a></li>
@@ -36,10 +35,9 @@
             </ul>
           </div>
         </div>
-        <div class="wizard-content well span9">
+        <div class="wizard-content well col-md-9">
           {{outlet}}
         </div>
       </div>
-    </div>
   </div>
 </div>

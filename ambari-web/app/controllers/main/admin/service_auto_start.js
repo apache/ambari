@@ -89,11 +89,11 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
               totalComponents: 1,
               indicator: function () {
                 var percentage = this.get('enabledComponents') / this.get('totalComponents');
-                var indicator = "icon-adjust";
+                var indicator = "glyphicon glyphicon-adjust";
                 if (percentage === 1) {
-                  indicator = "icon-circle";
+                  indicator = "glyphicon glyphicon-circle";
                 } else if (percentage === 0) {
-                  indicator = "icon-circle-blank";
+                  indicator = "glyphicon glyphicon-circle-blank";
                 }
                 return indicator;
               }.property('enabledComponents', 'totalComponents')

@@ -20,8 +20,8 @@
   <div class="alert alert-info config-manage-nav">
     {{t common.group}}&nbsp;
 	  <span class="btn-group config-groups-dropdown">
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle first" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
-		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn dropdown-toggle" data-toggle="dropdown">
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle first" data-toggle="dropdown">{{selectedConfigGroup.displayNameHosts}}</button>
+		  <button {{bindAttr disabled="controller.isHostsConfigsPage"}} class="btn btn-default dropdown-toggle" data-toggle="dropdown">
         <span class="caret"></span>
       </button>
 		  <ul class="dropdown-menu config-groups-dropdown-menu">
@@ -72,11 +72,9 @@
     {{#each tab in view.tabs}}
       <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
         {{#if tab.isAdvanced}}
-          <div class="accordion">
-            {{#each catView in view.serviceConfigsByCategoryView.childViews}}
-              {{view catView}}
-            {{/each}}
-          </div>
+          {{#each catView in view.serviceConfigsByCategoryView.childViews}}
+            {{view catView}}
+          {{/each}}
         {{else}}
           {{! Render Enhanced Config Section }}
           {{view App.ServiceConfigLayoutTabView contentBinding="tab"}}
@@ -85,11 +83,9 @@
     {{/each}}
   </div>
 {{else}}
-  <div class="accordion">
-    {{#each catView in view.serviceConfigsByCategoryView.childViews}}
-      {{view catView}}
-    {{/each}}
-  </div>
+  {{#each catView in view.serviceConfigsByCategoryView.childViews}}
+    {{view catView}}
+  {{/each}}
 {{/if}}
 {{#if view.isAllConfigsHidden}}
   <div class="alert alert-info col-sm-12">

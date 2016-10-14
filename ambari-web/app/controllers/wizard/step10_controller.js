@@ -161,7 +161,7 @@ App.WizardStep10Controller = Em.Controller.extend({
       this.get('clusterInfo').pushObject(Em.Object.create({
         id: 2,
         displayStatement: Em.I18n.t('installer.step10.installStatus.failed'),
-        color: 'text-error',
+        color: 'text-danger',
         status: []
       }));
       return false;
@@ -233,7 +233,7 @@ App.WizardStep10Controller = Em.Controller.extend({
     } else {
       this.get('clusterInfo').pushObject(Em.Object.create({
         id: 3,
-        color: 'text-error',
+        color: 'text-danger',
         displayStatement: Em.I18n.t('installer.step10.startStatus.failed'),
         status: []
       }));

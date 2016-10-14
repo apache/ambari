@@ -62,12 +62,7 @@
           <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
         </div>
         <div class="info">{{view.paginationInfo}}</div>
-        <div class="paging_two_button">
-          {{view view.paginationFirst}}
-          {{view view.paginationLeft}}
-          {{view view.paginationRight}}
-          {{view view.paginationLast}}
-        </div>
+        {{view view.pagination4Btns}}
       </div>
     {{/if}}
   {{else}}

@@ -31,6 +31,6 @@ App.RMHighAvailabilityWizardStep4View = App.HighAvailabilityProgressPageView.ext
 
   submitButtonText: Em.I18n.t('common.complete'),
 
-  labelWidth: 'span5'
+  labelWidth: 'col-md-5'
 
 });

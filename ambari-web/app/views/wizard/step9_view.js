@@ -232,14 +232,14 @@ App.WizardStep9View = App.TableView.extend({
   onStatus: function () {
     if (this.get('controller.status') === 'info') {
       this.set('resultMsg', '');
-      this.set('barColor', 'progress-info');
+      this.set('barColor', 'progress-bar-info');
     } else if (this.get('controller.status') === 'warning') {
-      this.set('barColor', 'progress-warning');
+      this.set('barColor', 'progress-bar-warning');
       this.set('resultMsg', Em.I18n.t('installer.step9.status.warning'));
       this.set('resultMsgColor', 'alert-warning');
     } else if (this.get('controller.status') === 'failed') {
-      this.set('barColor', 'progress-danger');
-      this.set('resultMsgColor', 'alert-error');
+      this.set('barColor', 'progress-bar-danger');
+      this.set('resultMsgColor', 'alert-danger');
       if (this.get('isHostHeartbeatLost')) {
         // When present requests succeeds but some host components are in UNKNOWN or INSTALL_FAILED state and
         // hosts are in HEARTBEAT_LOST state
@@ -250,7 +250,7 @@ App.WizardStep9View = App.TableView.extend({
         this.set('resultMsg', Em.I18n.t('installer.step9.status.failed'));
       }
     } else if (this.get('controller.status') === 'success') {
-      this.set('barColor', 'progress-success');
+      this.set('barColor', 'progress-bar-success');
       this.set('resultMsg', this.get('controller.content.cluster.status') === 'START_SKIPPED' ? Em.I18n.t('installer.step9.status.skipStartSuccess') : Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');
     }
@@ -265,7 +265,8 @@ App.WizardStep9View = App.TableView.extend({
     var controller = this.get('controller');
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step9.host.heartbeat_lost.header'),
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
       autoHeight: false,
       secondary: null,
 
@@ -353,24 +354,24 @@ App.HostStatusView = Em.View.extend({
    */
   onStatus: function () {
     if (this.get('obj.status') === 'info') {
-      this.set('barColor', 'progress-info');
+      this.set('barColor', 'progress-bar-info');
     } else if (this.get('obj.status') === 'warning') {
-      this.set('barColor', 'progress-warning');
+      this.set('barColor', 'progress-bar-warning');
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.warning'));
       }
     } else if (this.get('obj.status') === 'failed') {
-      this.set('barColor', 'progress-danger');
+      this.set('barColor', 'progress-bar-danger');
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.failed'));
       }
     } else if (this.get('obj.status') === 'heartbeat_lost') {
-      this.set('barColor', 'progress-danger');
+      this.set('barColor', 'progress-bar-danger');
       if (this.get('obj.progress') === '100') {
         this.set('obj.message', Em.I18n.t('installer.step9.host.heartbeat_lost'));
       }
     } else if (this.get('obj.status') === 'success' && this.get('isHostCompleted') && parseInt(this.get('controller.progress')) > 34) {
-        this.set('barColor', 'progress-success');
+        this.set('barColor', 'progress-bar-success');
         this.set('obj.message', Em.I18n.t('installer.step9.host.status.success'));
     }
   }.observes('obj.status', 'obj.progress', 'controller.progress'),
@@ -388,7 +389,8 @@ App.HostStatusView = Em.View.extend({
 
       header: host.get('name'),
 
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
 
       autoHeight: false,
 

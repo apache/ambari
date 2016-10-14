@@ -36,7 +36,7 @@
                   <b>{{t admin.addHawqStandby.wizard.step3.newHawqStandby}}</b>:
                 </td>
                 <td>{{controller.content.hawqHosts.newHawqStandby}}</td>
-                <td><span class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
+                <td><span class="to-be-installed-green"><i class="glyphicon glyphicon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
             </tr>
         </table>
     </div>
@@ -53,6 +53,6 @@
 {{/if}}
 
 <div class="btn-area">
-    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-default" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{action submit target="controller"}} {{bindAttr disabled="controller.isSubmitDisabled"}}>{{t common.next}} &rarr;</a>
 </div>

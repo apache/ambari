@@ -99,6 +99,6 @@ App.AuthenticationForm = App.Form.extend({
   },
   testConfigurationMessage: Em.computed.ifThenElse('testResult', Em.I18n.t('admin.authentication.form.test.success'), Em.I18n.t('admin.authentication.form.test.fail')),
 
-  testConfigurationClass: Em.computed.ifThenElse('testResult', 'text-success', 'text-error')
+  testConfigurationClass: Em.computed.ifThenElse('testResult', 'text-success', 'text-danger')
 
 });

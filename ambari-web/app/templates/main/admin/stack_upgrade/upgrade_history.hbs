@@ -22,7 +22,7 @@
   </div>
   <div {{bindAttr class="view.isReady::hidden"}}>
 	  <div class="btn-group display-inline-block">
-	    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+	    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
 	      <span class="filters-label">{{t common.filter}}: </span>
 	        <span>
 	          {{view.selectedCategory.label}}
@@ -94,12 +94,7 @@
 	      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
 	    </div>
 	    <div class="info">{{view.paginationInfo}}</div>
-	    <div class="paging_two_button">
-	      <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i
-	              class="icon-arrow-left"></i></a>
-	      <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i
-	              class="icon-arrow-right"></i></a>
-	    </div>
+      {{view view.pagination2Btns}}
 	  </div>
   </div>
 </div>

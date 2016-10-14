@@ -17,25 +17,31 @@
 }}
 
 <div class="jobs-custom-dates">
-  <div {{bindAttr class=":control-group view.errors.isStartDateError:error"}}>
+  <div {{bindAttr class=":form-group view.errors.isStartDateError:has-error"}}>
     <label>{{t jobs.customDateFilter.startTime}}</label>
-    {{view Ember.TextField valueBinding="view.customDateFormFields.startDate" class="input-small datepicker no-autofocus"}}
-    {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForStart" class="input-mini"}}
-    {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForStart" class="input-mini"}}
-    {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForStart" class="input-mini"}}
-    <span class="help-inline">{{view.errorMessages.startDate}}</span>
+    <div class="form-inline">
+      {{view Ember.TextField valueBinding="view.customDateFormFields.startDate" class="input-sm datepicker no-autofocus form-control"}}
+      {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForStart" class="input-sm form-control"}}
+      {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForStart" class="input-sm form-control"}}
+      {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForStart" class="input-sm form-control"}}
+    </div>
+    <span class="help-block validation-block">{{view.errorMessages.startDate}}</span>
   </div>
-  <div class="control-group">
+  <div class="form-group">
     <label>{{t common.duration}}</label>
-    {{view view.durationSelect selectionBinding="view.customDateFormFields.duration"}}
+    <div class="form-inline">
+      {{view view.durationSelect selectionBinding="view.customDateFormFields.duration" class="form-control input-sm"}}
+    </div>
   </div>
-  <div {{bindAttr class=":control-group view.errors.isEndDateError:error view.isCustomEndDate::hidden"}}>
+  <div {{bindAttr class=":form-group :form-inline view.errors.isEndDateError:has-error view.isCustomEndDate::hidden"}}>
     <label>{{t jobs.customDateFilter.endTime}}</label>
-    {{view Ember.TextField valueBinding="view.customDateFormFields.endDate" class="input-small datepicker no-autofocus"}}
-    {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForEnd" class="input-mini"}}
-    {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForEnd" class="input-mini"}}
-    {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForEnd" class="input-mini"}}
-    <span class="help-inline">{{view.errorMessages.endDate}}</span>
+    <div class="form-inline">
+      {{view Ember.TextField valueBinding="view.customDateFormFields.endDate" class="input-sm datepicker no-autofocus form-control"}}
+      {{view Ember.Select contentBinding="view.hourOptions" selectionBinding="view.customDateFormFields.hoursForEnd" class="input-sm form-control"}}
+      {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForEnd" class="input-sm form-control"}}
+      {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForEnd" class="input-sm form-control"}}
+    </div>
+    <span class="help-block validation-block">{{view.errorMessages.endDate}}</span>
   </div>
   <div class="timezone">
     <strong>{{t common.timezone}}</strong>: {{App.router.userSettingsController.userSettings.timezone.label}}

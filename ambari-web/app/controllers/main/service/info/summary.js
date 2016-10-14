@@ -742,7 +742,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.browser.header'),
 
-      classNames: ['sixty-percent-width-modal', 'widgets-browser-popup'],
+      classNames: ['common-modal-wrapper', 'widgets-browser-popup'],
+      modalDialogClasses: ['modal-lg'],
       onPrimary: function () {
         this.hide();
         self.set('isAllSharedWidgetsLoaded', false);

@@ -16,12 +16,12 @@
 * limitations under the License.
 }}
 
-<div class="span7 component-label host-component-block">
+<div class="col-md-7 component-label host-component-block">
   <div class="health-icon-block">
     {{#if view.isUpgradeFailed}}
       {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
         <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
-          <i title="Component upgrade failed" class="components-health icon-arrow-up"></i>
+          <i title="Component upgrade failed" class="components-health glyphicon glyphicon-arrow-up"></i>
         </a>
       {{/isAuthorized}}
     {{else}}
@@ -39,7 +39,7 @@
   </div>
   <div class="refresh-icon-block">
     {{#if component.staleConfigs}}
-      <span class="text-warning icon-refresh"></span>
+      <span class="text-warning glyphicon glyphicon-refresh"></span>
     {{/if}}
   </div>
   <div class="medkit-icon-block">
@@ -48,13 +48,13 @@
     {{/unless}}
   </div>
 </div>
-<div class="span5 pull-right">
+<div class="col-md-5 pull-right">
   {{#isAuthorized "SERVICE.DECOMMISSION_RECOMMISSION"}}
     <div class="btn-group pull-right">
-      <a {{ bindAttr class="view.disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
+      <button {{ bindAttr class="view.disabled :btn :btn-default :dropdown-toggle"}} data-toggle="dropdown">
         {{view.componentTextStatus}}
-        <span class="caret pull-right"></span>
-      </a>
+        <span class="caret pull-right button-caret-margin"></span>
+      </button>
       <ul class="dropdown-menu">
         {{#if view.isComponentDecommissionAvailable}}
           {{view view.decommissionView}}

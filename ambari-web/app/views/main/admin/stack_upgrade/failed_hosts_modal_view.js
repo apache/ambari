@@ -36,8 +36,8 @@ App.FailedHostsPopupBodyView = Em.View.extend({
 
   didInsertElement: function () {
     App.tooltip(this.$("[rel='UsageTooltip']"));
-    this.$(".accordion").on("show hide", function (e) {
-      $(e.target).siblings(".accordion-heading").find("i.accordion-toggle").toggleClass('icon-caret-right icon-caret-down')
+    this.$(".panel").on("show hide", function (e) {
+      $(e.target).siblings(".panel-heading").find("i.panel-toggle").toggleClass('icon-caret-right icon-caret-down')
     });
   },
 

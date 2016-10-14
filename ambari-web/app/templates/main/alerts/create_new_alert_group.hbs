@@ -24,10 +24,12 @@
         &nbsp;
     {{/if}}
   </div>
-  <table>
-    <tr>
-       <td class="title">{{t common.name}}: &nbsp;</td>
-       <td>{{view Ember.TextField maxlength="255" valueBinding="alertGroupName"}}</td>
-    </tr>
-  </table>
+  <form class="form-horizontal">
+    <div class="form-group">
+     <label class="control-label col-md-3">{{t common.name}}: &nbsp;</label>
+     <div class="col-md-7">
+       {{view Ember.TextField maxlength="255" valueBinding="alertGroupName" classNames="form-control"}}
+     </div>
+    </div>
+  </form>
 </div>

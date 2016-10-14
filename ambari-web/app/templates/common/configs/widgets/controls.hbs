@@ -28,9 +28,9 @@
 {{/if}}
 {{#if view.canEdit}}
   <div {{bindAttr class=":widget-config-controls view.referToSelectedGroup::clear-min-height"}}>
-    <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
+    <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::hidden"}}>
       <a href="#"
-        {{bindAttr class=":widget-action :widget-action-undo view.undoAllowed::not-show"}}
+        {{bindAttr class=":widget-action :widget-action-undo view.undoAllowed::hidden"}}
         data-toggle="tooltip" {{translateAttr data-original-title="common.undo"}}
         {{action "restoreValue" target="view"}}>
          <i class="icon-undo"></i>
@@ -41,11 +41,11 @@
         {{#if view.isWidgetViewAllowed}}
           <a href="#"
             data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
-            {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
+            {{bindAttr class=":glyphicon :glyphicon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
             {{action "toggleWidgetView" target="view"}}>
           </a>
         {{else}}
-          <i class="icon-pencil widget-action widget-action-switch-view text-error"
+          <i class="icon-pencil widget-action widget-action-switch-view text-danger"
              data-toggle="tooltip" {{bindAttr data-original-title="view.issueMessage"}}></i>
         {{/if}}
       {{/if}}
@@ -64,7 +64,7 @@
           {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
           {{action "toggleFinalFlag" view.config target="view"}}
           {{translateAttr data-original-title="services.service.config.final"}}>
-          <i class="icon-lock"></i>
+          <i class="glyphicon glyphicon-lock"></i>
         </a>
       {{/if}}
       {{#unless view.isOriginalSCP}}
@@ -74,7 +74,7 @@
                                                                                                 data-toggle="tooltip"
               {{action "removeOverride" view.config target="view.parentView"}}
               {{translateAttr data-original-title="common.remove"}}>
-              <i class="icon-minus-sign"></i>
+              <i class="glyphicon glyphicon-minus-sign"></i>
             </a>
           {{/isAuthorized}}
         {{/unless}}
@@ -85,7 +85,7 @@
             <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
               {{action "createOverrideProperty" view.config target="view.parentView"}}
               {{translateAttr data-original-title="common.override"}}>
-              <i class="icon-plus-sign"></i>
+              <i class="glyphicon glyphicon-plus-sign"></i>
             </a>
           </div>
         {{/isAuthorized}}
@@ -105,10 +105,10 @@
     {{#if controller.selectedConfigGroup.isDefault}}
       <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
       {{#if controller.isCurrentSelected}}
-        <span class="label label-success icon-ok label-current" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
+        <span class="label label-success glyphicon glyphicon-ok label-current" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
       {{/if}}
       {{#if view.config.supportsFinal}}
-        <i {{bindAttr class=":icon-lock view.config.isFinal::hidden" }}></i>
+        <i {{bindAttr class=":glyphicon :glyphicon-lock view.config.isFinal::hidden" }}></i>
       {{/if}}
     {{else}}
       <span class="label label-info">{{t common.default}}
@@ -120,7 +120,7 @@
     {{#unless view.canEdit}}
       {{#if view.config.supportsFinal}}
       <div class="widget-config-controls version-labels">
-        <i {{bindAttr class=":icon-lock view.config.isFinal::hidden" }}></i>
+        <i {{bindAttr class=":glyphicon :glyphicon-lock view.config.isFinal::hidden" }}></i>
       </div>
       {{/if}}
     {{/unless}}

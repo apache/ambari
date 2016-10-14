@@ -163,7 +163,6 @@ App.AlertConfigProperties = {
     name: 'alert_name',
     label: 'Alert Name',
     displayType: 'textField',
-    classNames: 'alert-text-input',
     apiProperty: 'name'
   }),
 
@@ -222,7 +221,6 @@ App.AlertConfigProperties = {
     name: 'description',
     label: 'Description',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area',
     // todo: check value after API will be provided
     apiProperty: 'description'
   }),
@@ -232,7 +230,7 @@ App.AlertConfigProperties = {
     label: 'Check Interval',
     displayType: 'textField',
     unit: 'Minute',
-    classNames: 'alert-interval-input',
+    colWidth: 'col-md-3',
     apiProperty: 'interval',
     isValid: function () {
       var value = this.get('value');
@@ -293,8 +291,6 @@ App.AlertConfigProperties = {
     text: '',
 
     displayType: 'threshold',
-
-    classNames: 'alert-thresholds-input',
 
     apiProperty: [],
 
@@ -410,7 +406,6 @@ App.AlertConfigProperties = {
     name: 'uri',
     label: 'URI',
     displayType: 'textField',
-    classNames: 'alert-text-input',
     apiProperty: 'source.uri'
   }),
 
@@ -418,7 +413,6 @@ App.AlertConfigProperties = {
     name: 'uri',
     label: 'URI',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area',
     apiProperty: 'source.uri',
     apiFormattedValue: function () {
       var result = {};
@@ -435,7 +429,6 @@ App.AlertConfigProperties = {
     name: 'default_port',
     label: 'Default Port',
     displayType: 'textField',
-    classNames: 'alert-port-input',
     apiProperty: 'source.default_port'
   }),
 
@@ -443,7 +436,6 @@ App.AlertConfigProperties = {
     name: 'path',
     label: 'Path',
     displayType: 'textField',
-    classNames: 'alert-text-input',
     apiProperty: 'source.path'
   }),
 
@@ -451,7 +443,6 @@ App.AlertConfigProperties = {
     name: 'metrics',
     label: 'JMX/Ganglia Metrics',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area',
     apiProperty: Em.computed.ifThenElse('isJMXMetric', 'source.jmx.property_list', 'source.ganglia.property_list'),
     apiFormattedValue: function () {
       return this.get('value').split(',\n');
@@ -462,7 +453,6 @@ App.AlertConfigProperties = {
     name: 'metrics_string',
     label: 'Format String',
     displayType: 'textArea',
-    classNames: 'alert-config-text-area',
     apiProperty: Em.computed.ifThenElse('isJMXMetric', 'source.jmx.value', 'source.ganglia.value')
   }),
 
@@ -482,7 +472,7 @@ App.AlertConfigProperties = {
      * Custom css-class for different badges
      * type {string}
      */
-    badgeCssClass: Em.computed.format('alert-state-{0}', 'badge'),
+    badgeCssClass: Em.computed.format('alert-state-{0}', 'badge')
 
   })
 

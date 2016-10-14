@@ -87,12 +87,12 @@ App.Decommissionable = Em.Mixin.create({
 
     //Class when install failed
     if (this.get('workStatus') === App.HostComponentStatus.install_failed) {
-      return 'health-status-color-red icon-cog';
+      return 'health-status-color-red glyphicon glyphicon-cog';
     }
 
     //Class when installing
     if (this.get('workStatus') === App.HostComponentStatus.installing) {
-      return 'health-status-color-blue icon-cog';
+      return 'health-status-color-blue glyphicon glyphicon-cog';
     }
 
     if (this.get('isComponentRecommissionAvailable') && (this.get('isStart') || this.get('workStatus') == 'INSTALLED')) {
@@ -317,7 +317,8 @@ App.Decommissionable = Em.Mixin.create({
 
 
   decommissionView: Em.View.extend({
-
+    classNameBindings: ['parentView.noActionAvailable'],
+    tagName: 'li',
     templateName: require('templates/main/host/decommission'),
 
     text: Em.computed.ifThenElse('parentView.isComponentDecommissionAvailable', Em.I18n.t('common.decommission'), Em.I18n.t('common.recommission')),

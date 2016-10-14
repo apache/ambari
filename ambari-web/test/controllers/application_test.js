@@ -57,18 +57,6 @@ describe('App.ApplicationController', function () {
     });
   });
 
-  describe('#clusterName', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns('cl1');
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return cluster name', function() {
-      expect(applicationController.get('clusterName')).to.equal('cl1');
-    });
-  });
-
   describe('#startKeepAlivePoller', function() {
     it ('Should change run poller state', function() {
       applicationController.set('isPollerRunning', false);

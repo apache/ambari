@@ -20,9 +20,9 @@
   <h2>{{t widget.create.wizard.step3.header}}</h2>
 
   <form>
-    <div class="row-fluid">
-      <div class="span2 title">{{t widget.create.wizard.step3.widgetName}}<i class="icon-asterisk"></i></div>
-      <div {{bindAttr class=":span10 isNameInvalid:error"}}>
+    <div class="row">
+      <div class="col-md-2 title">{{t widget.create.wizard.step3.widgetName}}<i class="glyphicon glyphicon-asterisk"></i></div>
+      <div {{bindAttr class=":col-md-10 isNameInvalid:error"}}>
         {{view Ember.TextField valueBinding="widgetName"}}
         {{#if isNameInvalid}}
           <div>{{widgetNameErrorMessage}}</div>
@@ -30,24 +30,26 @@
       </div>
     </div>
 
-    <div class="row-fluid">
-      <div class="span2 title">{{t common.author}}</div>
-      <div class="span10">{{widgetAuthor}}</div>
+    <div class="row">
+      <div class="col-md-2 title">{{t common.author}}</div>
+      <div class="col-md-10">{{widgetAuthor}}</div>
     </div>
 
-    <div class="row-fluid">
-      <div class="span2 title">{{t widget.create.wizard.step3.sharing}}</div>
-      <div class="span10">
-        <label class="checkbox">
-          {{view Ember.Checkbox disabledBinding="controller.isSharedCheckboxDisabled" checkedBinding="controller.isSharedChecked"}} &nbsp;
-          {{t widget.create.wizard.step3.sharing.msg}}
-        </label>
+    <div class="row">
+      <div class="col-md-2 title">{{t widget.create.wizard.step3.sharing}}</div>
+      <div class="col-md-10">
+        <div class="checkbox">
+          <label>
+            {{view Ember.Checkbox disabledBinding="controller.isSharedCheckboxDisabled" checkedBinding="controller.isSharedChecked"}} &nbsp;
+            {{t widget.create.wizard.step3.sharing.msg}}
+          </label>
+        </div>
       </div>
     </div>
 
-    <div class="row-fluid">
-      <div class="span2 title">{{t common.description}}</div>
-      <div {{bindAttr class=":span10 isDescriptionInvalid:error"}}>
+    <div class="row">
+      <div class="col-md-2 title">{{t common.description}}</div>
+      <div {{bindAttr class=":col-md-10 isDescriptionInvalid:error"}}>
         {{view Ember.TextArea valueBinding="widgetDescription" class="description-text-area"}}
         {{#if isDescriptionInvalid}}
           <div>{{descriptionErrorMessage}}</div>
@@ -58,8 +60,8 @@
   </form>
 
   <div class="btn-area">
-    <button id="add-widget-step3-back" class="btn" {{action back}}>&larr; {{t common.back}}</button>
+    <button id="add-widget-step3-back" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
     <button id="add-widget-step3-save" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "complete" target="controller"}}>{{t common.save}}</button>
-    <button id="add-widget-step3-cancel" class="btn pull-right" {{action "cancel" target="controller"}}>{{t common.cancel}}</button>
+    <button id="add-widget-step3-cancel" class="btn btn-default pull-right" {{action "cancel" target="controller"}}>{{t common.cancel}}</button>
   </div>
 </div>

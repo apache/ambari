@@ -19,7 +19,7 @@ var App = require('app');
 
 App.ControlsView = Ember.View.extend({
 
-	classNames: ['display-inline-block'],
+	classNames: ['display-inline-block', 'config-controls'],
 
 	templateName: require('templates/common/configs/controls'),
 

@@ -18,39 +18,33 @@
   <form class="form-horizontal" id="addLocalRepositoryPopup" autocomplete="off">
     <div class="each-row">
       <label class="control-label">{{t installer.step1.advancedRepo.localRepo.label.os}}</label>
-      <div class="controls">
-        <div class="btn-group">
-				  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-				    {{view.selectedOS.osType}}
-				    <span class="caret"></span>
-				  </a>
-				  <ul class="dropdown-menu">
-  				  {{#each os in view.oses}}
-					    <li>
-  					    <a href="#" {{action selectOS os target="view"}}>
-                  {{os.osType}}
-                </a>
-              </li>
-				    {{/each}}
-				  </ul>
-				</div>
+      <div class="btn-group">
+        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+          {{view.selectedOS.osType}}
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          {{#each os in view.oses}}
+            <li>
+              <a href="#" {{action selectOS os target="view"}}>
+                {{os.osType}}
+              </a>
+            </li>
+          {{/each}}
+        </ul>
       </div>
     </div>
     <div class="each-row">
       <label class="control-label">{{t installer.step1.advancedRepo.localRepo.label.baseUrl}}</label>
-      <div class="controls">
-        {{view Em.TextField valueBinding="view.enteredUrl" classNames="span6"}}
-      </div>
+      {{view Em.TextField valueBinding="view.enteredUrl" classNames="col-md-6"}}
     </div>
     <div class="each-row">
       <label class="control-label">{{t installer.step1.advancedRepo.localRepo.label.stack}}</label>
-      <div class="controls">
-        {{view.stackName}}
-      </div>
+      {{view.stackName}}
     </div>
     <div style="height:100px;"></div>
     {{#if view.errorMessage}}
-	    <div class="alert">
+	    <div class="alert alert-warning">
 			  <strong>{{t common.warning}}</strong>  {{view.errorMessage}}
 			</div>
 	  {{else}}

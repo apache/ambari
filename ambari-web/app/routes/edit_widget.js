@@ -23,7 +23,8 @@ module.exports = App.WizardRoute.extend({
     router.get('mainController').dataLoading().done(function () {
       var widgetEditController = router.get('widgetEditController');
       var popup = App.ModalPopup.show({
-        classNames: ['full-width-modal'],
+        classNames: ['wizard-modal-wrapper'],
+        modalDialogClasses: ['modal-xlg'],
         header: Em.I18n.t('widget.edit.wizard.header'),
         bodyClass: App.WidgetEditView.extend({
           controller: widgetEditController

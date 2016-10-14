@@ -19,13 +19,13 @@
 <div>
   <div class="task-top-wrap">
     <div class="task-detail-ico-wrap">
-      <a href="#" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
+      <a href="#" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger"}} class="task-detail-copy"><i class="glyphicon glyphicon-copy"></i> {{t common.copy}}</a>
     </div>
   </div>
   <div class="task-detail-log-info">
     <div class="content-area" >
       <div {{bindAttr class="view.textareaVisible::hidden :task-detail-log-clipboard-wrap"}}>
-        <textarea class="task-detail-log-clipboard"></textarea>
+        <textarea class="task-detail-log-clipboard form-control"></textarea>
       </div>
       <div {{bindAttr class="view.textareaVisible:hidden :task-detail-log-maintext"}}>
         {{content}}

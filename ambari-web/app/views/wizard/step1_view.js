@@ -220,7 +220,6 @@ App.WizardStep1View = Em.View.extend({
   redhatCheckBoxView: Em.Checkbox.extend({
     attributeBindings: [ 'type', 'checked' ],
     checkedBinding: 'controller.selectedStack.useRedhatSatellite',
-    classNames: ['checkbox'],
     disabledBinding: 'controller.selectedStack.usePublicRepo',
     click: function () {
       // click triggered before value is toggled, so if-statement is inverted

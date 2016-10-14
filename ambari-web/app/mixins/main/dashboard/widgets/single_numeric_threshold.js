@@ -79,7 +79,8 @@ App.SingleNumericThresholdMixin = Em.Mixin.create({
     var browserVersion = this.getInternetExplorerVersion();
     App.ModalPopup.show({
         header: Em.I18n.t('dashboard.widgets.popupHeader'),
-        classNames: ['sixty-percent-width-modal-edit-widget'],
+        classNames: ['modal-edit-widget'],
+        modalDialogClasses: ['modal-lg'],
         bodyClass: Ember.View.extend({
           templateName: require('templates/main/dashboard/edit_widget_popup_single_threshold'),
           configPropertyObj: configObj

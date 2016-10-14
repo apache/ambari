@@ -458,17 +458,17 @@ App.WidgetMixin = Ember.Mixin.create({
 
     if (this.get('isLoaded')) {
       Em.run.next(function(){
-        App.tooltip(self.$(".corner-icon > .icon-copy"), {title: Em.I18n.t('common.clone')});
-        App.tooltip(self.$(".corner-icon > .icon-edit"), {title: Em.I18n.t('common.edit')});
-        App.tooltip(self.$(".corner-icon > .icon-save"), {title: Em.I18n.t('common.export')});
+        App.tooltip(self.$(".corner-icon > .glyphicon-copy"), {title: Em.I18n.t('common.clone')});
+        App.tooltip(self.$(".corner-icon > .glyphicon-edit"), {title: Em.I18n.t('common.edit')});
+        App.tooltip(self.$(".corner-icon > .glyphicon-save"), {title: Em.I18n.t('common.export')});
       });
     }
   }.observes('isLoaded'),
 
   willDestroyElement: function() {
-    this.$(".corner-icon > .icon-copy").tooltip('destroy');
-    this.$(".corner-icon > .icon-edit").tooltip('destroy');
-    this.$(".corner-icon > .icon-save").tooltip('destroy');
+    this.$(".corner-icon > .glyphicon-copy").tooltip('destroy');
+    this.$(".corner-icon > .glyphicon-edit").tooltip('destroy');
+    this.$(".corner-icon > .glyphicon-save").tooltip('destroy');
   },
 
   /**

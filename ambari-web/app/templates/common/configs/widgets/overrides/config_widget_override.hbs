@@ -17,7 +17,7 @@
 }}
 {{#each overriddenSCP in view.serviceConfigProperty.overrides}}
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-  <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
+  <div {{bindAttr class="overriddenSCP.errorMessage:error: :form-group :overrideField"}}>
     {{view view.serviceConfigProperty.widget configBinding="overriddenSCP" isPopoverEnabled="false"}}
   </div>
   <div class="clearfix"></div>

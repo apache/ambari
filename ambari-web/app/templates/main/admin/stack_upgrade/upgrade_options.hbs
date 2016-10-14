@@ -19,12 +19,12 @@
 <div id="upgrade-options-popup-content">
   <div class="text version-text">{{{view.versionText}}}</div>
   <div class="text method-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method}}</div>
-  <div {{bindAttr class=":row-fluid :method-options view.isInUpgradeWizard:disabled"}}>
+  <div {{bindAttr class=":row :method-options view.isInUpgradeWizard:disabled"}}>
     {{#each method in view.upgradeMethods}}
-      <div class="method-option span5">
+      <div class="method-option col-md-6">
         <div {{bindAttr class="method.allowed::not-allowed method.allowed::not-allowed-by-version
           method.isPrecheckFailed:not-allowed method.isPrecheckFailed:check-failed
-          method.selected:selected method.type :thumbnail"}}
+          method.selected:selected method.type :img-thumbnail"}}
           {{action selectMethod method target="view"}}>
             <div {{bindAttr class="method.icon :method-icon"}}></div>
             <div class="method-name">{{method.displayName}}</div>
@@ -53,11 +53,15 @@
   </div>
 
   <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
-    <i class="icon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
-    <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
-      {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</label>
-    <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
-      {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</label>
+    <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+    <div>
+      <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
+          {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</label>
+    </div>
+    <div>
+      <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
+          {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</label>
+    </div>
   </div>
   <div class="alert alert-warning">{{t admin.stackVersions.version.upgrade.alertsWarning}}</div>
 </div>

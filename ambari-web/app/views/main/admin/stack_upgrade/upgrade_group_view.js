@@ -28,7 +28,7 @@ App.upgradeGroupView = Em.View.extend({
    */
   progressBarView: App.ProgressBarView.extend({
     classNames: ['progress-counter'],
-    template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="view.progressWidth"}}></div>' +
+    template: Ember.Handlebars.compile('<div class="progress-bar" {{bindAttr style="view.progressWidth"}}></div>' +
     '<div class="counters-label">{{view.completedTasks}}/{{view.totalTasks}}</div>')
   }),
 

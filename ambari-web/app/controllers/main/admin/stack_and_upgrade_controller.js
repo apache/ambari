@@ -115,7 +115,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
       type: 'ROLLING',
-      icon: "icon-dashboard",
+      icon: "glyphicon glyphicon-dashboard",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
       selected: false,
       allowed: true,
@@ -128,7 +128,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
       type: 'NON_ROLLING',
-      icon: "icon-bolt",
+      icon: "glyphicon glyphicon-bolt",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
       selected: false,
       allowed: true,
@@ -149,20 +149,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       template: 'admin.stackUpgrade.preCheck.warning.message',
       precheckResultsMessageClass: 'ORANGE',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-warning-sign'
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-warning-sign'
     },
     'BYPASS': {
       template: 'admin.stackUpgrade.preCheck.bypass.message',
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-remove',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-remove',
       bypassedFailures: true
     },
     'FAIL': {
       template: 'admin.stackUpgrade.preCheck.fail.message',
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: true,
-      precheckResultsMessageIconClass: 'icon-remove'
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-remove'
     }
   },
 
@@ -366,7 +366,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           id: upgradeId
         },
         success: 'loadUpgradeDataSuccessCallback'
-      }).then(deferred.resolve).complete(function () {
+      }).then(deferred.resolve).always(function () {
           self.set('isLoadUpgradeDataPending', false);
         });
     }
@@ -769,7 +769,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
          * @type {string}
          */
         barWidth: 'width: 100%;',
-        progressBarClass: 'progress progress-striped active log_popup',
+        progressBarClass: 'progress log_popup',
 
         /**
          * Popup-message
@@ -950,7 +950,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip')
           });
           Em.run.later(this, function () {
-            App.tooltip($(".thumbnail.check-failed"), {
+            App.tooltip($(".img-thumbnail.check-failed"), {
               placement: "bottom",
               title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
             });
@@ -1172,7 +1172,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsMessage: '',
       recheckResultsMessageClass: 'GREEN',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-ok',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-ok',
       bypassedFailures: false
     };
 
@@ -1210,12 +1210,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   addPrecheckMessageTooltip: function() {
     Em.run.later(this, function () {
       // add tooltip for the type with preCheck errors
-      App.tooltip($(".thumbnail.check-failed"), {
+      App.tooltip($(".img-thumbnail.check-failed"), {
         placement: "bottom",
         title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
       });
       // destroy the tooltip for the type wo preCheck errors
-      $(".thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
+      $(".img-thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
     }, 1000);
   },
 
@@ -1226,7 +1226,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title'),
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: true,
-      precheckResultsMessageIconClass: 'icon-warning-sign',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-warning-sign',
       action: 'rerunCheck'
     });
   },

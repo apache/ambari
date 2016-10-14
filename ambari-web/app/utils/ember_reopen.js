@@ -144,12 +144,11 @@ Ember.RadioButton = Ember.Checkbox.extend({
   tagName: "input",
   type: "radio",
   attributeBindings: [ "type", "name", "value", "checked", "style", "disabled" ],
-  style: "vertical-align: middle; margin: 0px;",
   click: function () {
     this.set("selection", this.$().val())
   },
   checked: function () {
-    return this.get("value") == this.get("selection");
+    return this.get("value") === this.get("selection");
   }.property('value', 'selection')
 });
 
