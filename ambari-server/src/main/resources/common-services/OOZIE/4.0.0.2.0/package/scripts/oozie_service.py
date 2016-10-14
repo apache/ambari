@@ -24,7 +24,7 @@ import os
 from oozie import copy_atlas_hive_hook_to_dfs_share_lib
 
 # Resource Managemente Imports
-from resource_management.core import sudo
+from resource_management.core import shell, sudo
 from resource_management import *
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
