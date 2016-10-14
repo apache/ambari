@@ -868,6 +868,17 @@ CREATE TABLE servicecomponent_history(
   CONSTRAINT FK_sc_history_to_stack_id FOREIGN KEY (to_stack_id) REFERENCES stack (stack_id)
 );
 
+CREATE TABLE servicecomponent_version(
+  id NUMERIC(19) NOT NULL,
+  component_id NUMERIC(19) NOT NULL,
+  repo_version_id NUMERIC(19) NOT NULL,
+  state VARCHAR(32) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  CONSTRAINT PK_sc_version PRIMARY KEY (id),
+  CONSTRAINT FK_scv_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
+  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id)
+);
+
 CREATE TABLE ambari_operation_history(
   id NUMERIC(19) NOT NULL,
   from_version VARCHAR(255) NOT NULL,
@@ -1087,6 +1098,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('blueprint_s
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('ambari_operation_history_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('remote_cluster_service_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('servicecomponent_version_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

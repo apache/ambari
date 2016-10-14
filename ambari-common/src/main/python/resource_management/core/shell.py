@@ -32,8 +32,7 @@ import string
 import subprocess
 import threading
 import traceback
-from exceptions import Fail
-from exceptions import ExecuteTimeoutException
+from exceptions import Fail, ExecutionFailed, ExecuteTimeoutException
 from resource_management.core.logger import Logger
 from resource_management.core import utils
 from ambari_commons.constants import AMBARI_SUDO_BINARY
@@ -301,7 +300,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
   
   if throw_on_failure and code:
     err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
-    raise Fail(err_msg)
+    raise ExecutionFailed(err_msg, code, out, err)
   
   # if separate stderr is enabled (by default it's redirected to out)
   if stderr == subprocess.PIPE:

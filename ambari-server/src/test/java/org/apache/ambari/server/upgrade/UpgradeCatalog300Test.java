@@ -47,8 +47,6 @@ public class UpgradeCatalog300Test {
     upgradeCatalog300.executeDMLUpdates();
 
     verify(upgradeCatalog300);
-
-
   }
 
 }

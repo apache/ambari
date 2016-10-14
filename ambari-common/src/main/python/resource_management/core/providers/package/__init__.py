@@ -25,7 +25,7 @@ import time
 import re
 import logging
 
-from resource_management.core.base import Fail
+from resource_management.core.exceptions import ExecutionFailed
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
@@ -67,6 +67,9 @@ class PackageProvider(Provider):
     else:
       return self.resource.package_name
 
+  def get_repo_update_cmd(self):
+    raise NotImplementedError()
+
   def is_locked_output(self, out):
     return False
 
@@ -84,44 +87,58 @@ class PackageProvider(Provider):
 
   def _call_with_retries(self, cmd, is_checked=True, **kwargs):
     func = shell.checked_call if is_checked else shell.call
+    # at least do one retry, to run after repository is cleaned
+    try_count = 2 if self.resource.retry_count < 2 else self.resource.retry_count
 
-    for i in range(self.resource.retry_count):
-      is_last_time = (i == self.resource.retry_count - 1)
+    for i in range(try_count):
+      is_first_time = (i == 0)
+      is_last_time = (i == try_count - 1)
+
       try:
         code, out = func(cmd, **kwargs)
-      except Fail as ex:
-        # non-lock error
-        if not self._is_handled_error(str(ex), is_last_time) or is_last_time:
+      except ExecutionFailed as ex:
+        should_stop_retries = self._handle_retries(cmd, ex.code, ex.out, is_first_time, is_last_time)
+        if should_stop_retries:
           raise
-
-        self._notify_about_handled_error(str(ex), is_last_time)
       else:
-        # didn't fail or failed with non-lock error.
-        if not code or not self._is_handled_error(out, is_last_time):
+        should_stop_retries = self._handle_retries(cmd, code, out, is_first_time, is_last_time)
+        if should_stop_retries:
           break
-
-        self._notify_about_handled_error(str(out), is_last_time)
 
       time.sleep(self.resource.retry_sleep)
 
     return code, out
 
-  def _is_handled_error(self, output, is_last_time):
-    if self.resource.retry_on_locked and self.is_locked_output(output):
-      return True
-    elif self.resource.retry_on_repo_unavailability and self.is_repo_error_output(output):
-      return True
+  def _handle_retries(self, cmd, code, out, is_first_time, is_last_time):
+    # handle first failure in a special way (update repo metadata after it, so next try has a better chance to succeed)
+    if is_first_time and code and not self.is_locked_output(out):
+      self._update_repo_metadata_after_bad_try(cmd, code, out)
+      return False
 
-    return False
+    handled_error_log_message = None
+    if self.resource.retry_on_locked and self.is_locked_output(out):
+      handled_error_log_message = PACKAGE_MANAGER_LOCK_ACQUIRED_MSG.format(self.resource.retry_sleep, out)
+    elif self.resource.retry_on_repo_unavailability and self.is_repo_error_output(out):
+      handled_error_log_message = PACKAGE_MANAGER_REPO_ERROR_MSG.format(self.resource.retry_sleep, out)
 
-  def _notify_about_handled_error(self, output, is_last_time):
-    if is_last_time:
-      return
+    is_handled_error = (handled_error_log_message is not None)
+    if is_handled_error and not is_last_time:
+      Logger.info(handled_error_log_message)
 
-    if self.resource.retry_on_locked and self.is_locked_output(output):
-      Logger.info(PACKAGE_MANAGER_LOCK_ACQUIRED_MSG.format(self.resource.retry_sleep, str(output)))
-    elif self.resource.retry_on_repo_unavailability and self.is_repo_error_output(output):
-      Logger.info(PACKAGE_MANAGER_REPO_ERROR_MSG.format(self.resource.retry_sleep, str(output)))
+    return (is_last_time or not code or not is_handled_error)
+
+  def _update_repo_metadata_after_bad_try(self, cmd, code, out):
+    name = self.get_package_name_with_version()
+    repo_update_cmd = self.get_repo_update_cmd()
+
+    Logger.info("Execution of '%s' returned %d. %s" % (shell.string_cmd_from_args_list(cmd), code, out))
+    Logger.info("Failed to install package %s. Executing '%s'" % (name, shell.string_cmd_from_args_list(repo_update_cmd)))
+    code, out = shell.call(repo_update_cmd, sudo=True, logoutput=self.get_logoutput())
+
+    if code:
+      Logger.info("Execution of '%s' returned %d. %s" % (repo_update_cmd, code, out))
+
+    Logger.info("Retrying to install package %s after %d seconds" % (name, self.resource.retry_sleep))
 
   def yum_check_package_available(self, name):
     """

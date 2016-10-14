@@ -78,23 +78,7 @@ class AptProvider(PackageProvider):
 
       cmd = cmd + [name]
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
-      code, out = self.call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
-      
-      if self.is_locked_output(out):
-        err_msg = Logger.filter_text("Execution of '%s' returned %d. %s" % (cmd, code, out))
-        raise Fail(err_msg)
-      
-      # apt-get update wasn't done too long maybe?
-      if code:
-        Logger.info("Execution of '%s' returned %d. %s" % (cmd, code, out))
-        Logger.info("Failed to install package %s. Executing `%s`" % (name, string_cmd_from_args_list(REPO_UPDATE_CMD)))
-        code, out = self.call_with_retries(REPO_UPDATE_CMD, sudo=True, logoutput=self.get_logoutput())
-        
-        if code:
-          Logger.info("Execution of '%s' returned %d. %s" % (REPO_UPDATE_CMD, code, out))
-          
-        Logger.info("Retrying to install package %s" % (name))
-        self.checked_call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
+      self.checked_call_with_retries(cmd, sudo=True, env=INSTALL_CMD_ENV, logoutput=self.get_logoutput())
 
       if is_tmp_dir_created:
         for temporal_sources_file in copied_sources_files:
@@ -110,6 +94,9 @@ class AptProvider(PackageProvider):
 
   def is_repo_error_output(self, out):
     return "Failure when receiving data from the peer" in out
+
+  def get_repo_update_cmd(self):
+    return REPO_UPDATE_CMD
 
   @replace_underscores
   def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):

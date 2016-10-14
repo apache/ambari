@@ -122,5 +122,4 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
 
   }
 
-
 }
