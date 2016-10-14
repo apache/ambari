@@ -438,7 +438,6 @@ public class OrmTestHelper {
 
     service.addServiceComponent(datanode);
     datanode.setDesiredState(State.INSTALLED);
-    datanode.persist();
 
     ServiceComponentHost sch = schFactory.createNew(datanode, hostName);
 
@@ -454,7 +453,6 @@ public class OrmTestHelper {
 
     service.addServiceComponent(namenode);
     namenode.setDesiredState(State.INSTALLED);
-    namenode.persist();
 
     sch = schFactory.createNew(namenode, hostName);
     namenode.addServiceComponentHost(sch);
@@ -483,7 +481,6 @@ public class OrmTestHelper {
 
     service.addServiceComponent(resourceManager);
     resourceManager.setDesiredState(State.INSTALLED);
-    resourceManager.persist();
 
     ServiceComponentHost sch = schFactory.createNew(resourceManager, hostName);
 

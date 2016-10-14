@@ -72,12 +72,6 @@ public interface ServiceComponent {
 
   ServiceComponentResponse convertToResponse();
 
-  void refresh();
-
-  boolean isPersisted();
-
-  void persist();
-
   void debugDump(StringBuilder sb);
 
   boolean isClientComponent();

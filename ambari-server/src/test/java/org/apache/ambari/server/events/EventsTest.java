@@ -387,7 +387,6 @@ public class EventsTest {
     ServiceComponent component = m_componentFactory.createNew(service, "DATANODE");
     service.addServiceComponent(component);
     component.setDesiredState(State.INSTALLED);
-    component.persist();
 
     ServiceComponentHost sch = m_schFactory.createNew(component, HOSTNAME);
 

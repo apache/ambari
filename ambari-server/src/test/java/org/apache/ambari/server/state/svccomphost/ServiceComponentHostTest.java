@@ -190,7 +190,6 @@ public class ServiceComponentHostTest {
     } catch (ServiceComponentNotFoundException e) {
       sc = serviceComponentFactory.createNew(s, svcComponent);
       s.addServiceComponent(sc);
-      sc.persist();
     }
 
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(

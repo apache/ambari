@@ -27,8 +27,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -194,7 +192,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void addServiceComponents(
       Map<String, ServiceComponent> components) throws AmbariException {
     for (ServiceComponent sc : components.values()) {
@@ -203,7 +200,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void addServiceComponent(ServiceComponent component) throws AmbariException {
     if (components.containsKey(component.getName())) {
       throw new AmbariException("Cannot add duplicate ServiceComponent"
@@ -217,7 +213,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException {
     ServiceComponent component = serviceComponentFactory.createNew(this, serviceComponentName);
@@ -345,7 +340,6 @@ public class ServiceImpl implements Service {
   /**
    *
    */
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   private void persist(ClusterServiceEntity serviceEntity) {
     persistEntities(serviceEntity);
     refresh();
@@ -382,7 +376,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public boolean canBeRemoved() {
     //
     // A service can be deleted if all it's components
@@ -439,7 +432,6 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void deleteAllComponents() throws AmbariException {
     lock.lock();
     try {
@@ -465,7 +457,6 @@ public class ServiceImpl implements Service {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void deleteServiceComponent(String componentName)
       throws AmbariException {
     lock.lock();
@@ -495,7 +486,6 @@ public class ServiceImpl implements Service {
 
   @Override
   @Transactional
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void delete() throws AmbariException {
     deleteAllComponents();
     deleteAllServiceConfigs();

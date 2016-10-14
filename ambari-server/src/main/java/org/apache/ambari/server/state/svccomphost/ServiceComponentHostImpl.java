@@ -30,8 +30,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.annotations.Experimental;
-import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -1028,7 +1026,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void handleEvent(ServiceComponentHostEvent event)
       throws InvalidStateTransitionException {
     if (LOG.isDebugEnabled()) {
@@ -1344,7 +1341,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs) {
     readLock.lock();
     try {
@@ -1538,7 +1534,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public boolean canBeRemoved() {
     boolean schLockAcquired = false;
     try {
@@ -1555,7 +1550,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
-  @Experimental(feature = ExperimentalFeature.CLUSTER_GLOBAL_LOCK_REMOVAL)
   public void delete() {
     boolean fireRemovalEvent = false;
 

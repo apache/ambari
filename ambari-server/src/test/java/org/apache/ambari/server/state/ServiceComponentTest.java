@@ -118,7 +118,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -141,7 +140,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -198,7 +196,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -299,7 +296,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch =
@@ -376,7 +372,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -427,7 +422,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -495,7 +489,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -562,7 +555,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -613,7 +605,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);

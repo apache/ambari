@@ -444,12 +444,9 @@ public class ClustersTest {
     Assert.assertNotNull(injector.getInstance(ClusterServiceDAO.class).findByClusterAndServiceNames(c1, "HDFS"));
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
-    dataNode.persist();
 
     ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
-    serviceCheckNode.persist();
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
     nameNodeHost.persist();

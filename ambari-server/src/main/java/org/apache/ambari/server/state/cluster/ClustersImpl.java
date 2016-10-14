@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.persistence.RollbackException;
 
@@ -413,10 +414,10 @@ public class ClustersImpl implements Clusters {
     // not stored to DB
     Host host = hostFactory.create(hostEntity);
     host.setAgentVersion(new AgentVersion(""));
-    List<DiskInfo> emptyDiskList = new ArrayList<DiskInfo>();
+    List<DiskInfo> emptyDiskList = new CopyOnWriteArrayList<DiskInfo>();
     host.setDisksInfo(emptyDiskList);
     host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, ""));
-    host.setHostAttributes(new HashMap<String, String>());
+    host.setHostAttributes(new ConcurrentHashMap<String, String>());
     host.setState(HostState.INIT);
 
     // the hosts by ID map is updated separately since the host has not yet

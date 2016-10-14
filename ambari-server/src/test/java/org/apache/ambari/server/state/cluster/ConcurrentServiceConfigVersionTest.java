@@ -239,7 +239,6 @@ public class ConcurrentServiceConfigVersionTest {
           componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;

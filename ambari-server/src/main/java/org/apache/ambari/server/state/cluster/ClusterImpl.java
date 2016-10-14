@@ -396,7 +396,8 @@ public class ClusterImpl implements Cluster {
           String hostname = svchost.getKey();
           ServiceComponentHost svcHostComponent = svchost.getValue();
           if (!serviceComponentHostsByHost.containsKey(hostname)) {
-            serviceComponentHostsByHost.put(hostname, new ArrayList<ServiceComponentHost>());
+            serviceComponentHostsByHost.put(hostname,
+                new CopyOnWriteArrayList<ServiceComponentHost>());
           }
 
           List<ServiceComponentHost> compList = serviceComponentHostsByHost.get(hostname);
@@ -670,7 +671,7 @@ public class ClusterImpl implements Cluster {
 
     if (!serviceComponentHostsByHost.containsKey(hostname)) {
       serviceComponentHostsByHost.put(hostname,
-        new ArrayList<ServiceComponentHost>());
+          new CopyOnWriteArrayList<ServiceComponentHost>());
     }
 
     if (LOG.isDebugEnabled()) {

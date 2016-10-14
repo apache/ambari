@@ -391,25 +391,18 @@ public class ClusterTest {
     s1.addServiceComponent(sc1CompA);
     s1.addServiceComponent(sc1CompB);
     s1.addServiceComponent(sc1CompC);
-    sc1CompA.persist();
-    sc1CompB.persist();
-    sc1CompC.persist();
 
     // Add ZK
     ServiceComponent sc2CompA = serviceComponentFactory.createNew(s2, "ZOOKEEPER_SERVER");
     ServiceComponent sc2CompB = serviceComponentFactory.createNew(s2, "ZOOKEEPER_CLIENT");
     s2.addServiceComponent(sc2CompA);
     s2.addServiceComponent(sc2CompB);
-    sc2CompA.persist();
-    sc2CompB.persist();
 
     // Add Ganglia
     ServiceComponent sc3CompA = serviceComponentFactory.createNew(s3, "GANGLIA_SERVER");
     ServiceComponent sc3CompB = serviceComponentFactory.createNew(s3, "GANGLIA_MONITOR");
     s3.addServiceComponent(sc3CompA);
     s3.addServiceComponent(sc3CompB);
-    sc3CompA.persist();
-    sc3CompB.persist();
 
     // Host 1 will have all components
     ServiceComponentHost schHost1Serv1CompA = serviceComponentHostFactory.createNew(sc1CompA, "h-1");
@@ -692,7 +685,7 @@ public class ClusterTest {
     c1.addService(s);
     ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(sc);
-    sc.persist();
+
     ServiceComponentHost sch =
         serviceComponentHostFactory.createNew(sc, "h1");
     sc.addServiceComponentHost(sch);
@@ -711,7 +704,6 @@ public class ClusterTest {
         c1.addService(s1);
         ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
         s1.addServiceComponent(sc1);
-        sc1.persist();
         ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1");
         sc1.addServiceComponentHost(sch1);
         sch1.persist();
@@ -733,14 +725,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -766,14 +756,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -805,14 +793,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -845,14 +831,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -862,7 +846,6 @@ public class ClusterTest {
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
     schJTH1.persist();
@@ -908,14 +891,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -925,7 +906,6 @@ public class ClusterTest {
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
     schJTH1.persist();
@@ -972,14 +952,12 @@ public class ClusterTest {
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
     schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
     scDNH1.persist();
@@ -989,7 +967,6 @@ public class ClusterTest {
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
     schJTH1.persist();
@@ -1172,8 +1149,6 @@ public class ClusterTest {
 
     Service hdfs = c1.addService("HDFS");
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
-
 
     assertEquals(2, c1.getServices().size());
     assertEquals(2, injector.getProvider(EntityManager.class).get().

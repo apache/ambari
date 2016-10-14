@@ -18,12 +18,12 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -141,7 +141,7 @@ public class HostImpl implements Host {
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
-  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
+  private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<DiskInfo>();
   private RecoveryReport recoveryReport = new RecoveryReport();
   private Integer currentPingPort = null;
 

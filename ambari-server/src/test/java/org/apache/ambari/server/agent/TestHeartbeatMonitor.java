@@ -168,11 +168,11 @@ public class TestHeartbeatMonitor {
 
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name());
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
 
     hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
@@ -260,16 +260,16 @@ public class TestHeartbeatMonitor {
 
     clusters.mapHostsToCluster(hostNames, clusterName);
     Service hdfs = cluster.addService(serviceName);
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost
       (hostname1).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost
       (hostname1).persist();
-    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name());
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).
       addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost
       (hostname1).persist();
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost
@@ -368,11 +368,11 @@ public class TestHeartbeatMonitor {
     clusters.mapHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name());
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
 
     hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
@@ -408,12 +408,12 @@ public class TestHeartbeatMonitor {
     hm.start();
     Thread.sleep(3 * heartbeatMonitorWakeupIntervalMS);
     hm.shutdown();
-    
+
     int tryNumber = 0;
     while(hm.isAlive()) {
       hm.join(2*heartbeatMonitorWakeupIntervalMS);
       tryNumber++;
-      
+
       if(tryNumber >= 5) {
         fail("HeartbeatMonitor should be already stopped");
       }
@@ -450,13 +450,13 @@ public class TestHeartbeatMonitor {
     clusters.mapHostsToCluster(hostNames, clusterName);
 
     Service hdfs = cluster.addService(serviceName);
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name());
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(hostname1);
 
     ActionQueue aq = new ActionQueue();
@@ -570,11 +570,11 @@ public class TestHeartbeatMonitor {
 
     Service hdfs = cluster.addService(serviceName);
 
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.DATANODE.name());
     hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(hostname1).persist();
-    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name()).persist();
+    hdfs.addServiceComponent(Role.SECONDARY_NAMENODE.name());
     hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).addServiceComponentHost(hostname1).persist();
 
     hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);

@@ -1637,13 +1637,10 @@ public class AmbariManagementControllerTest {
 
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "NAMENODE");
     s1.addServiceComponent(sc1);
-    sc1.persist();
     ServiceComponent sc2 = serviceComponentFactory.createNew(s2, "NAMENODE");
     s2.addServiceComponent(sc2);
-    sc2.persist();
     ServiceComponent sc3 = serviceComponentFactory.createNew(s3, "NAMENODE");
     s3.addServiceComponent(sc3);
-    sc3.persist();
 
 
     try {
@@ -2365,7 +2362,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredState(State.INSTALLED);
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
-    sc1.persist();
     sc1.setDesiredStackVersion(new StackId("HDP-0.1"));
     sc1.setDesiredState(State.UNINSTALLED);
 
@@ -2442,15 +2438,6 @@ public class AmbariManagementControllerTest {
     sc6.setDesiredState(State.UNINSTALLED);
     sc7.setDesiredState(State.UNINSTALLED);
     sc8.setDesiredState(State.UNINSTALLED);
-
-    sc1.persist();
-    sc2.persist();
-    sc3.persist();
-    sc4.persist();
-    sc5.persist();
-    sc6.persist();
-    sc7.persist();
-    sc8.persist();
 
     ServiceComponentRequest r = new ServiceComponentRequest(null, null,
         null, null);
@@ -2529,7 +2516,6 @@ public class AmbariManagementControllerTest {
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
     sc1.setDesiredState(State.UNINSTALLED);
-    sc1.persist();
     ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, host1);
     sc1.addServiceComponentHost(sch1);
     sch1.setDesiredState(State.INSTALLED);
@@ -2952,10 +2938,6 @@ public class AmbariManagementControllerTest {
 
     sc1.setDesiredState(State.UNINSTALLED);
     sc3.setDesiredState(State.UNINSTALLED);
-
-    sc1.persist();
-    sc2.persist();
-    sc3.persist();
 
     ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, host1);
     ServiceComponentHost sch2 = serviceComponentHostFactory.createNew(sc1, host2);
@@ -4260,11 +4242,11 @@ public class AmbariManagementControllerTest {
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
@@ -4425,9 +4407,9 @@ public class AmbariManagementControllerTest {
 
     Service hdfs = cluster.addService("HDFS");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
@@ -4535,11 +4517,11 @@ public class AmbariManagementControllerTest {
     Service hdfs = cluster.addService("HDFS");
     Service hive = cluster.addService("HIVE");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    hive.addServiceComponent(Role.HIVE_SERVER.name()).persist();
+    hive.addServiceComponent(Role.HIVE_SERVER.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
@@ -4819,8 +4801,8 @@ public class AmbariManagementControllerTest {
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2).persist();
@@ -6498,11 +6480,11 @@ public class AmbariManagementControllerTest {
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
@@ -6604,11 +6586,11 @@ public class AmbariManagementControllerTest {
     Service hdfs = cluster.addService("HDFS");
     Service mapred = cluster.addService("YARN");
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
     hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
