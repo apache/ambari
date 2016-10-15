@@ -726,6 +726,17 @@ App.InstallerController = App.WizardController.extend({
         });
         existedOS.push(supportedOS);
       }
+      if(existedMap[supportedOS.OperatingSystems.os_type]) {
+        existedMap[supportedOS.OperatingSystems.os_type].repositories.forEach(function (repo) {
+          supportedOS.repositories.forEach(function (supportedRepo) {
+            if (supportedRepo.Repositories.repo_id == repo.Repositories.repo_id) {
+              repo.Repositories.base_url = supportedRepo.Repositories.base_url;
+              repo.Repositories.default_base_url = supportedRepo.Repositories.default_base_url;
+              repo.Repositories.latest_base_url = supportedRepo.Repositories.latest_base_url;
+            }
+          });
+        });
+      }
     });
     App.stackMapper.map(data.versionDefinition);
 
