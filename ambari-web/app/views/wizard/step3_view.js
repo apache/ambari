@@ -260,7 +260,7 @@ App.WizardStep3View = App.TableView.extend({
     var failedHosts = hosts.filterProperty('bootStatus', 'FAILED').length;
 
     if (hosts.length === 0) {
-      this.set('status', 'alert-warn');
+      this.set('status', 'alert-warning');
       this.set('linkText', '');
       this.set('message', Em.I18n.t('installer.step3.warnings.missingHosts'));
     }
@@ -273,7 +273,7 @@ App.WizardStep3View = App.TableView.extend({
       else {
         if (this.get('controller.isHostHaveWarnings') || this.get('controller.repoCategoryWarnings.length') || this.get('controller.diskCategoryWarnings.length') || this.get('controller.jdkCategoryWarnings.length')
           || this.get('controller.hostCheckWarnings.length') || this.get('controller.thpCategoryWarnings.length')) {
-          this.set('status', 'alert-warn');
+          this.set('status', 'alert-warning');
           this.set('linkText', Em.I18n.t('installer.step3.warnings.linkText'));
           this.set('message', Em.I18n.t('installer.step3.warnings.fails').format(hosts.length - failedHosts));
         }
@@ -287,7 +287,7 @@ App.WizardStep3View = App.TableView.extend({
           else {
             if (failedHosts == hosts.length) {
               // all failed
-              this.set('status', 'alert-warn');
+              this.set('status', 'alert-warning');
               this.set('linkText', '');
               this.set('message', Em.I18n.t('installer.step3.warnings.allFailed').format(failedHosts));
             }

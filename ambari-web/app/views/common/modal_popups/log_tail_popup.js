@@ -23,7 +23,8 @@ var fileUtils = require('utils/file_utils');
 
 App.showLogTailPopup = function(content) {
   return App.ModalPopup.show({
-    classNames: ['log-tail-popup', 'full-width-modal', 'full-height-modal'],
+    classNames: ['log-tail-popup', 'wizard-modal-wrapper', 'full-height-modal'],
+    modalDialogClasses: ['modal-xlg'],
     header: fileUtils.fileNameFromPath(content.get('filePath')),
     primary: false,
     secondary: Em.I18n.t('common.dismiss'),

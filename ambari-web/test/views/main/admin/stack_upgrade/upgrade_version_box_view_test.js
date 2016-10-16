@@ -563,7 +563,7 @@ describe('App.UpgradeVersionBoxView', function () {
         expected: {
           status: 'INSTALLED',
           isLink: true,
-          iconClass: 'icon-ok',
+          iconClass: 'glyphicon glyphicon-ok',
           text: Em.I18n.t('common.installed'),
           action: null
         },
@@ -656,7 +656,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALLED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-cog',
+          iconClass: 'glyphicon glyphicon-cog',
           text: Em.I18n.t('admin.stackVersions.version.downgrade.running')
         },
         title: 'downgrading'
@@ -676,7 +676,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'INSTALLED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-cog',
+          iconClass: 'glyphicon glyphicon-cog',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.running')
         },
         title: 'upgrading'
@@ -696,7 +696,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADING',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
         },
         title: 'upgrading, holding'
@@ -716,7 +716,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADING',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
         },
         title: 'upgrading, holding failed'
@@ -736,7 +736,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADING',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
         },
         title: 'upgrading, upgrade aborted'
@@ -756,7 +756,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADE_FAILED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
         },
         title: 'upgrade failed, holding finished on timeout'
@@ -776,7 +776,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADE_FAILED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
         },
         title: 'downgrading, holding'
@@ -796,7 +796,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
         },
         title: 'downgrading, holding failed'
@@ -816,7 +816,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
         },
         title: 'downgrading, upgrade aborted'
@@ -836,7 +836,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADED',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'icon-pause',
+          iconClass: 'glyphicon glyphicon-pause',
           text: Em.I18n.t('admin.stackVersions.version.downgrade.pause')
         },
         title: 'downgrading, holding finished on timeout'

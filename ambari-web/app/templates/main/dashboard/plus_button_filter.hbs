@@ -22,15 +22,17 @@
       <ul>
         {{#each widget in view.hiddenWidgets}}
           <li>
-            <label class="checkbox">
-              {{view view.widgetCheckbox checkedBinding="widget.checked"}} {{unbound widget.displayName}}
-            </label>
+            <div class="checkbox">
+              <label>
+                {{view view.widgetCheckbox checkedBinding="widget.checked"}} {{unbound widget.displayName}}
+              </label>
+            </div>
           </li>
         {{/each}}
       </ul>
     </li>
     <li>
-      <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+      <button class="btn btn-default" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
       <button class="btn btn-primary" {{action "applyFilter" target="view"}}>{{t common.apply}}</button>
     </li>
   {{else}}
@@ -40,7 +42,7 @@
       </ul>
     </li>
     <li>
-      <button class="btn" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
+      <button class="btn btn-default" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
     </li>
   {{/if}}
 </ul>

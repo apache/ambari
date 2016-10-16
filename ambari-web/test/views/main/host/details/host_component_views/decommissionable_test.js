@@ -115,13 +115,13 @@ describe('App.Decommissionable', function() {
         workStatus: App.HostComponentStatus.install_failed,
         passiveState: 'OFF',
         isComponentRecommissionAvailable: false,
-        e: 'health-status-color-red icon-cog'
+        e: 'health-status-color-red glyphicon glyphicon-cog'
       },
       {
         workStatus: App.HostComponentStatus.installing,
         passiveState: 'OFF',
         isComponentRecommissionAvailable: false,
-        e: 'health-status-color-blue icon-cog'
+        e: 'health-status-color-blue glyphicon glyphicon-cog'
       },
       {
         workStatus: 'STARTED',

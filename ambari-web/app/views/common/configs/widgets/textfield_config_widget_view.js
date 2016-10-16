@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -35,7 +34,7 @@ App.TextFieldConfigWidgetView = App.ConfigWidgetView.extend({
     var fieldView = (this.get('config.unit')) ? App.ServiceConfigTextFieldWithUnit : App.ServiceConfigTextField;
     return fieldView.extend({
       isPopoverEnabled: 'false',
-      textFieldClassName: 'span12',
+      textFieldClassName: 'col-md-12',
       serviceConfigBinding: 'parentView.config'
     });
   }.property('config.unit'),

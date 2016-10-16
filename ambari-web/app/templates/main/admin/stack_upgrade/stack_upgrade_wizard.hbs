@@ -18,19 +18,19 @@
 
 <div id="stack-upgrade-dialog">
   <div {{bindAttr class=":upgrade-options-link controller.isDowngrade:disabled"}} {{action openUpgradeOptions target="controller"}}>
-    <i class="icon-cogs"></i><a>{{t common.options}}</a>
+    <i class="glyphicon glyphicon-cogs"></i><a>{{t common.options}}</a>
   </div>
 
-  <div {{bindAttr class="view.isLoaded::hidden :row-fluid"}}>
-    <div class="span3 task-list-main-warp">{{statusIcon controller.requestStatus}}
+  <div {{bindAttr class="view.isLoaded::hidden :row"}}>
+    <div class="col-md-3 task-list-main-warp">{{statusIcon controller.requestStatus}}
       &nbsp;{{view.upgradeStatusLabel}}</div>
-    <div class="span8">
+    <div class="col-md-8">
       {{view App.ProgressBarView
         progressBinding="view.overallProgress"
         statusBinding="controller.requestStatus"
       }}
     </div>
-    <div class="span1">
+    <div class="col-md-1">
       {{view.overallProgress}}%
     </div>
   </div>
@@ -39,40 +39,40 @@
     {{#if view.isLoaded}}
       <div>
         {{#if view.runningItem}}
-          <div class="box details-box">
-            <div class="row-fluid">
-              <div class="pull-left">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.text}}</div>
+          <div class="box details-box row">
+            <div class="row col-md-12">
+              <div class="pull-left col-md-6">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.text}}</div>
               {{#if view.isDetailsOpened}}
-                  <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
+                  <div class="pull-right col-md-6"><a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a></div>
                 {{#if view.runningItem.isTasksLoaded}}
-                  <div class="clear">
+                  <div class="clear col-md-12">
                     {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
                   </div>
                 {{else}}
                   {{view App.SpinnerView classNames="clear"}}
                 {{/if}}
               {{else}}
-                <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a>
+              <div class="pull-right col-md-6"><a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a></div>
               {{/if}}
             </div>
           </div>
         {{/if}}
         {{#if view.failedItem}}
           {{#unless view.isSlaveComponentFailuresItem}}
-            <div class="box details-box">
-              <div class="row-fluid">
-                <div class="pull-left">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.text}}</div>
+            <div class="box details-box row">
+              <div class="row col-md-12">
+                <div class="pull-left col-md-6">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.text}}</div>
                 {{#if view.isDetailsOpened}}
-                  <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a>
+                <div class="pull-right col-md-6"><a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.hide}}</a></div>
                   {{#if view.failedItem.isTasksLoaded}}
-                    <div class="clear">
+                    <div class="clear col-md-12">
                       {{view App.upgradeTaskView contentBinding="view.taskDetails" outsideViewBinding="view.outsideView"}}
                     </div>
                   {{else}}
                     {{view App.SpinnerView classNames="clear"}}
                   {{/if}}
                 {{else}}
-                    <a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a>
+                    <div class="pull-right col-md-6"><a href="#" class="pull-right" {{action toggleDetails target="view"}}>{{t admin.stackUpgrade.dialog.details.open}}</a></div>
                 {{/if}}
               </div>
               {{#if view.isHoldingState}}
@@ -81,14 +81,14 @@
                     <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.failedItem target="controller"}}>{{t common.downgrade}}</button>
                   {{/if}}
                   {{#if isDowngrade}}
-                    <button class="btn" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                    <button class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
                   {{else}}
-                    <button class="btn" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                    <button class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
                   {{/if}}
                   {{#if view.failedItem.skippable}}
                     <button class="btn btn-warning" {{bindAttr disabled="controller.requestInProgress"}} {{action continue view.failedItem target="view"}}>{{t admin.stackUpgrade.dialog.continue}}</button>
                   {{/if}}
-                    <button class="btn" {{bindAttr disabled="controller.requestInProgress"}} {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
+                    <button class="btn btn-default" {{bindAttr disabled="controller.requestInProgress"}} {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
                 </div>
               {{/if}}
             </div>
@@ -109,9 +109,9 @@
                 <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                <button class="btn" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
-                <button class="btn" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                   {{t common.proceed}}
@@ -150,7 +150,7 @@
               {{#if view.isDowngradeAvailable}}
                 <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
-                <button class="btn" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.finalize.later}}</button>
+                <button class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.finalize.later}}</button>
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                   {{t common.finalize}}
                 </button>
@@ -190,12 +190,12 @@
                 <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                <button class="btn" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
-                <button class="btn" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
               {{#if view.isHoldingState}}
-                <button class="btn" {{bindAttr disabled="controller.requestInProgress"}} {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
+                <button class="btn btn-default" {{bindAttr disabled="controller.requestInProgress"}} {{action retry view.failedItem target="view"}}>{{t common.retry}}</button>
               {{else}}
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                   {{t common.proceed}}
@@ -253,9 +253,9 @@
                   <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
               {{/if}}
               {{#if isDowngrade}}
-                <button class="btn" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseDowngrade target="view"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
               {{else}}
-                <button class="btn" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                <button class="btn btn-default" {{action confirmPauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
               {{/if}}
                 <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                   {{t common.proceed}}

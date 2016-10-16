@@ -22,7 +22,7 @@ var stringUtils = require('utils/string_utils');
 App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_version_column'),
   isVersionColumnView: true,
-  classNames: ['version-column', 'span4'],
+  classNames: ['version-column', 'col-md-4'],
 
   didInsertElement: function () {
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
@@ -83,13 +83,13 @@ App.UpgradeVersionColumnView = App.UpgradeVersionBoxView.extend({
       class: 'spinner'
     },
     'INSTALLING': {
-      iconClass: 'icon-cog',
+      iconClass: 'glyphicon glyphicon-cog',
       isLink: true,
       text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
       action: 'showProgressPopup'
     },
     'INSTALLED': {
-      iconClass: 'icon-ok',
+      iconClass: 'glyphicon glyphicon-ok',
       isLink: true,
       text: Em.I18n.t('common.installed'),
       action: null

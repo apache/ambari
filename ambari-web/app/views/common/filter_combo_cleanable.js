@@ -26,7 +26,7 @@ var App = require('app');
 App.FilterComboCleanableView = Ember.View.extend({
   templateName: require('templates/common/filter_combo_cleanable'),
 
-  classNames: ['filter-combobox', 'input-append'],
+  classNames: ['filter-combobox', 'input-group'],
 
   didInsertElement: function() {
     App.popover(this.$("input[type=text]"), {

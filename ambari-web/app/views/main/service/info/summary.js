@@ -417,7 +417,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   staticGeneralWidgetActions: [
     Em.Object.create({
       label: Em.I18n.t('dashboard.widgets.actions.browse'),
-      class: 'icon-th',
+      class: 'glyphicon glyphicon-th',
       action: 'goToWidgetsBrowser',
       isAction: true
     })
@@ -431,7 +431,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   staticAdminPrivelegeWidgetActions: [
     Em.Object.create({
       label: Em.I18n.t('dashboard.widgets.create'),
-      class: 'icon-plus',
+      class: 'glyphicon glyphicon-plus',
       action: 'createWidget',
       isAction: true
     })
@@ -443,13 +443,13 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   staticWidgetLayoutActions: [
     Em.Object.create({
       label: Em.I18n.t('dashboard.widgets.layout.save'),
-      class: 'icon-download-alt',
+      class: 'glyphicon glyphicon-download-alt',
       action: 'saveLayout',
       isAction: true
     }),
     Em.Object.create({
       label: Em.I18n.t('dashboard.widgets.layout.import'),
-      class: 'icon-file',
+      class: 'glyphicon glyphicon-file',
       isAction: true,
       layouts: App.WidgetLayout.find()
     })
@@ -559,8 +559,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     Em.run.later(this, function () {
       App.tooltip($("[rel='add-widget-tooltip']"));
       // enable description show up on hover
-      $('.thumbnail').hoverIntent(function() {
-        if ($(this).is(':hover')) {
+      $('.img-thumbnail').hoverIntent(function() {
+        if ($(this).is('hover')) {
           $(this).find('.hidden-description').delay(1000).fadeIn(200).end();
         }
       }, function() {
@@ -590,7 +590,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
   willDestroyElement: function() {
     $("[rel='add-widget-tooltip']").tooltip('destroy');
-    $('.thumbnail').off();
+    $('.img-thumbnail').off();
     $('#widget_layout').sortable('destroy');
     $('.widget.span2p4').detach().remove();
     this.get('serviceMetricGraphs').clear();

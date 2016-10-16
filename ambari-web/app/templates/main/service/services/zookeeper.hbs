@@ -17,8 +17,8 @@
 }}
 
 <div class="clearfix">
-  <div class="name span2">
-    <i class="pull-left icon-empty"></i>
+  <div class="name col-md-2">
+    <i class="pull-left glyphicon glyphicon-empty"></i>
     {{view App.MainDashboardServiceHealthView serviceBinding="view.service"}}
     <a {{action selectService view.service href=true}}>{{view.service.displayName}}</a>
     {{#if view.alertsCount}}

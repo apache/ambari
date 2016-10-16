@@ -95,7 +95,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
       });
       view.set('controller.status', 'FAILED');
       expect(view.get('notice')).to.equal('noticeFailed');
-      expect(view.get('noticeClass')).to.equal('alert alert-error');
+      expect(view.get('noticeClass')).to.equal('alert alert-danger');
     });
     it("IN_PROGRESS status", function() {
       view.reopen({
@@ -139,7 +139,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
         taskView.set('content.requestIds', []);
         taskView.onStatus();
         expect(taskView.get('linkClass')).to.equal('active-text');
-        expect(taskView.get('icon')).to.equal('icon-cog');
+        expect(taskView.get('icon')).to.equal('glyphicon glyphicon-cog');
         expect(taskView.get('iconColor')).to.equal('text-info');
       });
       it("FAILED status", function() {
@@ -147,15 +147,15 @@ describe('App.HighAvailabilityProgressPageView', function () {
         taskView.set('content.requestIds', [{}]);
         taskView.onStatus();
         expect(taskView.get('linkClass')).to.equal('active-link');
-        expect(taskView.get('icon')).to.equal('icon-exclamation-sign');
-        expect(taskView.get('iconColor')).to.equal('text-error');
+        expect(taskView.get('icon')).to.equal('glyphicon glyphicon-exclamation-sign');
+        expect(taskView.get('iconColor')).to.equal('text-danger');
       });
       it("COMPLETED status", function() {
         taskView.set('content.status', 'COMPLETED');
         taskView.set('content.requestIds', []);
         taskView.onStatus();
         expect(taskView.get('linkClass')).to.equal('active-text');
-        expect(taskView.get('icon')).to.equal('icon-ok');
+        expect(taskView.get('icon')).to.equal('glyphicon glyphicon-ok');
         expect(taskView.get('iconColor')).to.equal('text-success');
       });
       it("else status", function() {
@@ -163,7 +163,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
         taskView.set('content.requestIds', []);
         taskView.onStatus();
         expect(taskView.get('linkClass')).to.equal('not-active-link');
-        expect(taskView.get('icon')).to.equal('icon-cog');
+        expect(taskView.get('icon')).to.equal('glyphicon glyphicon-cog');
         expect(taskView.get('iconColor')).to.be.empty;
       });
     });

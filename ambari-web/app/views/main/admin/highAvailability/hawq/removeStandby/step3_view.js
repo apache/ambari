@@ -31,6 +31,6 @@ App.RemoveHawqStandbyWizardStep3View = App.HighAvailabilityProgressPageView.exte
 
   submitButtonText: Em.I18n.t('common.complete'),
 
-  labelWidth: 'span5'
+  labelWidth: 'col-md-5'
 
 });

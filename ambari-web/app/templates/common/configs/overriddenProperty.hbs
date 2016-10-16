@@ -16,39 +16,47 @@
 * limitations under the License.
 }}
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-<div {{bindAttr class="view.overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
-  {{view view.overriddenSCP.viewClass serviceConfigBinding="view.overriddenSCP" categoryConfigsBinding="view.parentView.categoryConfigs"}}
-  {{#if view.overriddenSCP.supportsFinal}}
-    <a href="#" data-toggle="tooltip"
-      {{bindAttr class=":btn-small :btn-final view.overriddenSCP.isFinal:active view.overriddenSCP.hideFinalIcon:hidden" disabled="view.overriddenSCP.isNotEditable"}}
-      {{action "toggleFinalFlag" view.overriddenSCP target="view.parentView"}}
-      {{translateAttr data-original-title="services.service.config.final"}}>
-      <i class="icon-lock"></i>
-    </a>
-  {{/if}}
-  {{#if view.parentView.isDefaultGroupSelected}}
-    {{#if view.overriddenSCP.group}}
-      {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="view.overriddenSCP.group"}}
-    {{/if}}
-  {{else}}
-    {{#if view.overriddenSCP.isEditable}}
-      {{#if isNotDefaultValue}}
-        <a class="btn-small" href="#" data-toggle="tooltip"
-          {{action "doRestoreDefaultValue" view.overriddenSCP target="view.parentView"}}
-          {{translateAttr data-original-title="common.undo"}}>
-          <i class="icon-undo"></i>
+<div {{bindAttr class="view.overriddenSCP.errorMessage:has-error: :form-group :overrideField"}}>
+  <div class="row">
+    <div class="col-md-9">
+      {{view view.overriddenSCP.viewClass serviceConfigBinding="view.overriddenSCP" categoryConfigsBinding="view.parentView.categoryConfigs"}}
+    </div>
+    <div class="col-md-3">
+      {{#if view.overriddenSCP.supportsFinal}}
+        <a href="#" data-toggle="tooltip"
+          {{bindAttr class=":btn-sm :btn-final view.overriddenSCP.isFinal:active view.overriddenSCP.hideFinalIcon:hidden" disabled="view.overriddenSCP.isNotEditable"}}
+          {{action "toggleFinalFlag" view.overriddenSCP target="view.parentView"}}
+          {{translateAttr data-original-title="services.service.config.final"}}>
+          <i class="glyphicon glyphicon-lock"></i>
         </a>
       {{/if}}
-      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-        <a class="btn-small" href="#" data-toggle="tooltip"
-          {{action "removeOverride" view.overriddenSCP target="view.parentView"}}
-          {{translateAttr data-original-title="common.remove"}}>
-          <i class="icon-minus-sign"></i>
-        </a>
-      {{/isAuthorized}}
-      <span class="help-inline">{{view.overriddenSCP.errorMessage}}</span>
-    {{else}}
-      <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
-    {{/if}}
-  {{/if}}
+      {{#if view.parentView.isDefaultGroupSelected}}
+        {{#if view.overriddenSCP.group}}
+          {{view App.SwitchToGroupView controllerBinding="controller" groupBinding="view.overriddenSCP.group"}}
+        {{/if}}
+      {{else}}
+        {{#if view.overriddenSCP.isEditable}}
+          {{#if isNotDefaultValue}}
+            <a class="btn-sm" href="#" data-toggle="tooltip"
+              {{action "doRestoreDefaultValue" view.overriddenSCP target="view.parentView"}}
+              {{translateAttr data-original-title="common.undo"}}>
+              <i class="icon-undo"></i>
+            </a>
+          {{/if}}
+          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+            <a class="btn-sm" href="#" data-toggle="tooltip"
+              {{action "removeOverride" view.overriddenSCP target="view.parentView"}}
+              {{translateAttr data-original-title="common.remove"}}>
+              <i class="icon-minus-sign"></i>
+            </a>
+          {{/isAuthorized}}
+          {{#if view.overriddenSCP.errorMessage}}
+            <span class="help-block validation-block pull-right">{{view.overriddenSCP.errorMessage}}</span>
+          {{/if}}
+        {{else}}
+          <a class="action">{{view.overriddenSCP.group.switchGroupTextShort}}</a> {{view App.SpinnerView}}
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
 </div>

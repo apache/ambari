@@ -18,17 +18,17 @@
 
 {{#isAuthorized "SERVICE.START_STOP, SERVICE.ADD_DELETE_SERVICES"}}
     <div class="service-button" style="margin-top: 10px;">
-        <div class="btn-group display-inline-block span11 offset1">
-            <a class="btn dropdown-toggle span10" data-toggle="dropdown" href="#">{{t common.actions}}
+        <div class="btn-group display-inline-block col-md-11 col-md-offset-1">
+            <button class="btn btn-default dropdown-toggle col-md-10" data-toggle="dropdown" href="#">{{t common.actions}}
                 <span class="caret"></span>
-            </a>
+            </button>
             <ul class="pull-left dropdown-menu">
                 {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
                     <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled :add-service-button"}}>
                         <a href="#"
                             {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
                             {{action gotoAddService target="view.serviceController"}}>
-                            <i class="icon-plus icon-white"></i> {{t services.service.add}}</a>
+                            <i class="glyphicon glyphicon-plus glyphicon-white"></i> {{t services.service.add}}</a>
                     </li>
                 {{/isAuthorized}}
                 {{#isAuthorized "SERVICE.START_STOP"}}
@@ -37,7 +37,7 @@
                         <a href="#" data-toggle="modal"
                             {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}
                             {{action "startAllService" target="view.serviceController"}}>
-                            <i {{bindAttr class=":icon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
+                            <i {{bindAttr class=":glyphicon glyphicon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
                             {{t services.service.startAll}}
                         </a>
                     </li>
@@ -45,7 +45,7 @@
                         <a href="#" data-toggle="modal"
                             {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}
                             {{action "stopAllService" target="view.serviceController"}}>
-                            <i {{bindAttr class=":icon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
+                            <i {{bindAttr class=":glyphicon glyphicon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
                             {{t services.service.stopAll}}
                         </a>
                     </li>
@@ -53,7 +53,7 @@
                         <a href="#" data-toggle="modal"
                             {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}
                             {{action "restartAllRequired" target="view.serviceController"}}>
-                            <i {{bindAttr class=":icon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+                            <i {{bindAttr class=":glyphicon glyphicon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
                             {{t services.service.restartAllRequired}}
                         </a>
                     </li>

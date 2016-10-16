@@ -125,13 +125,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
       class: 'spinner'
     },
     'INSTALLING': {
-      iconClass: 'icon-cog',
+      iconClass: 'glyphicon glyphicon-cog',
       isLink: true,
       text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
       action: 'showProgressPopup'
     },
     'INSTALLED': {
-      iconClass: 'icon-ok',
+      iconClass: 'glyphicon glyphicon-ok',
       isLink: true,
       text: Em.I18n.t('common.installed'),
       action: null
@@ -202,7 +202,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isLink', true);
       element.set('action', 'openUpgradeDialog');
       if (['HOLDING', 'HOLDING_FAILED', 'HOLDING_TIMEDOUT', 'ABORTED'].contains(App.get('upgradeState'))) {
-        element.set('iconClass', 'icon-pause');
+        element.set('iconClass', 'glyphicon glyphicon-pause');
         if (this.get('controller.isDowngrade')) {
           element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.pause'));
         }
@@ -211,7 +211,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         }
       }
       else {
-        element.set('iconClass', 'icon-cog');
+        element.set('iconClass', 'glyphicon glyphicon-cog');
         if (this.get('controller.isDowngrade')) {
           element.set('text', Em.I18n.t('admin.stackVersions.version.downgrade.running'));
         }
@@ -350,7 +350,8 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
 
     return this.get('isRepoUrlsEditDisabled') ? null : App.ModalPopup.show({
-      classNames: ['repository-list', 'sixty-percent-width-modal'],
+      classNames: ['repository-list', 'common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
       skipValidation: false,
       autoHeight: false,
       /**

@@ -228,7 +228,8 @@ App.DashboardWidgetView = Em.View.extend({
 
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
-      classNames: ['sixty-percent-width-modal-edit-widget'],
+      classNames: ['modal-edit-widget'],
+      modalDialogClasses: ['modal-lg'],
       bodyClass: Ember.View.extend({
         templateName: require('templates/main/dashboard/edit_widget_popup'),
         configPropertyObj: configObj

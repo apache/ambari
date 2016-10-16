@@ -22,15 +22,15 @@
     <span class="muted">{{view.content.filePath}}</span>
     <div class="pull-right action-bar">
       <a href="#" {{action toggleCopy target="view"}}>
-        <i class="icon-copy"></i>
+        <i class="glyphicon glyphicon-copy"></i>
         {{t common.copy}}
       </a>
       <a href="#" {{action openInNewTab target="view"}}>
-        <i class="icon-external-link"></i>
+        <i class="glyphicon glyphicon-external-link"></i>
         {{t common.open}}
       </a>
       <a class="open-in-log-search" {{bindAttr href="view.logSearchUrl"}} target="_blank">
-        <i class="icon-external-link"></i>
+        <i class="glyphicon glyphicon-external-link"></i>
         {{t popup.logTail.openInLogSearch}}
       </a>
     </div>

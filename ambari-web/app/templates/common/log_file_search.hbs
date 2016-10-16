@@ -76,23 +76,23 @@
     </div>
   </div>
   <div class="context-menu pull-left">
-    <a href="#" {{action moveTableTop target="view"}} class="move-to-top icon-caret-up"></a>
-    <a href="#" {{action moveTableBottom target="view"}} class="move-to-bottom icon-caret-down"></a>
-    <a href="#" {{action navigateToLogUI target="view"}} class="icon-external-link"></a>
+    <a href="#" {{action moveTableTop target="view"}} class="move-to-top glyphicon glyphicon-caret-up"></a>
+    <a href="#" {{action moveTableBottom target="view"}} class="move-to-bottom glyphicon glyphicon-caret-down"></a>
+    <a href="#" {{action navigateToLogUI target="view"}} class="glyphicon glyphicon-external-link"></a>
   </div>
   <div class="clearfix"></div>
 </div>
 <div class="log-file-search-content container">
   {{#each logData in view.content}}
-    <div class="row-fluid log-data-item">
-      <div class="span1 log-data-date">
+    <div class="row log-data-item">
+      <div class="col-md-1 log-data-date">
         {{logData.date}}
         <br />
         <span class="log-data-level">
           {{logData.level}}
         </span>
       </div>
-      <div class="span11 log-data-message">{{logData.message}}</div>
+      <div class="col-md-11 log-data-message">{{logData.message}}</div>
       <div class="clearfix"></div>
     </div>
   {{/each}}

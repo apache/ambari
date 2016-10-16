@@ -16,9 +16,11 @@
 * limitations under the License.
 }}
 
-<div class="controls">
-  <label class="checkbox" for="input{{unbound view.field.name}}">
-    {{view view.field.viewClass valueBinding="view.field.value" }} {{unbound view.field.displayName}}
-  </label>
-  <span class="help-inline">{{view.field.errorMessage}}</span>
+<div>
+  <div class="checkbox">
+    <label for="input{{unbound view.field.name}}">
+      {{view view.field.viewClass valueBinding="view.field.value" }} {{unbound view.field.displayName}}
+    </label>
+  </div>
+  <span class="help-block">{{view.field.errorMessage}}</span>
 </div>

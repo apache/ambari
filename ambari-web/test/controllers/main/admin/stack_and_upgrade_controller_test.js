@@ -2767,7 +2767,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         precheckResultsMessage: '',
         recheckResultsMessageClass: 'GREEN',
         isPrecheckFailed: false,
-        precheckResultsMessageIconClass: 'icon-ok',
+        precheckResultsMessageIconClass: 'glyphicon glyphicon-ok',
         bypassedFailures: false
       };
       controller.runPreUpgradeCheckOnlySuccess(data, {}, {type: 'ROLLING'});
@@ -2816,7 +2816,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "precheckResultsMessage": "1 Required pre",
         "precheckResultsMessageClass": "RED",
         "isPrecheckFailed": true,
-        "precheckResultsMessageIconClass": "icon-remove"
+        "precheckResultsMessageIconClass": "glyphicon glyphicon-remove"
       });
     });
   });
@@ -2854,7 +2854,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "precheckResultsTitle": Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title'),
         "precheckResultsMessageClass": "RED",
         "isPrecheckFailed": true,
-        "precheckResultsMessageIconClass": "icon-warning-sign",
+        "precheckResultsMessageIconClass": "glyphicon glyphicon-warning-sign",
         "action": "rerunCheck"
       }));
     });

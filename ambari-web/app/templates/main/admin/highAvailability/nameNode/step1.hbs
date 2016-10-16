@@ -20,7 +20,7 @@
 
   <div class="alert alert-info">
     {{t admin.highAvailability.wizard.step1.body}}
-    <div class="alert alert-warn">
+    <div class="alert alert-warning">
       {{t admin.highAvailability.wizard.step1.alert}}
       {{#if controller.isHawqInstalled}}
         {{{t admin.highAvailability.wizard.step1.hawq.alert}}}
@@ -28,12 +28,12 @@
     </div>
   </div>
 
-  <div {{bindAttr class=":control-group view.showInputError:error :form-horizontal :nameserviceid-input"}}>
+  <div {{bindAttr class=":form-group view.showInputError:error view.showInputError:has-error :form-horizontal :nameserviceid-input"}}>
     <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
 
-    <div class="controls">
-      {{view Ember.TextField valueBinding="content.nameServiceId"}}
-      <span  {{bindAttr class=":help-inline view.showInputError::hidden"}}>
+    <div>
+      {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm"}}
+      <span {{bindAttr class=":help-block :validation-block :col-sm-9 :pull-right view.showInputError::hidden"}}>
         {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
       </span>
     </div>

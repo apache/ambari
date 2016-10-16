@@ -131,7 +131,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
-                  "validation": "icon-repeat"
+                  "validation": "glyphicon glyphicon-repeat"
                 }
               ]
             }
@@ -220,7 +220,7 @@ describe('App.InstallerController', function () {
                   "isEmpty": false,
                   "errorTitle": "1",
                   "errorContent": "1",
-                  "validation": "icon-ok"
+                  "validation": "glyphicon glyphicon-ok"
                 }
               ]
             }
@@ -307,7 +307,7 @@ describe('App.InstallerController', function () {
                   "repoId": 11,
                   "errorTitle": "500:error",
                   "errorContent": "",
-                  "validation": "icon-exclamation-sign"
+                  "validation": "glyphicon glyphicon-exclamation-sign"
                 }
               ]
             }

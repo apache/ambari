@@ -17,34 +17,36 @@
 }}
 {{#if view.isDataLoaded}}
 
-  <div id="widgets-options-menu" class="dropdown btn-group pull-left">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-      <span>{{t dashboard.widgets.actions.title}}</span>
-      <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-      <li class="dropdown-submenu add-widgets-text">
-        <a href="javascript:void(null);"><i class="icon-plus"></i> &nbsp; {{t common.add}}</a>
-        {{view view.plusButtonFilterView}}
-      </li>
-      <li class="dropdown-submenu">
-        <a href="javascript:void(null);"><i class="icon-cog"></i> &nbsp; {{t common.edit}}</a>
-        <ul class="dropdown-menu">
-          <li>
-            <a href="#" {{action "resetAllWidgets" target="view"}}>
-              <i class="icon-refresh"></i> &nbsp; {{t dashboard.button.reset}}
-            </a>
-          </li>
-        </ul>
-      </li>
-    </ul>
+  <div class="btn-toolbar" role="toolbar">
+    <div id="widgets-options-menu" class="dropdown btn-group pull-left">
+      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+        <span>{{t dashboard.widgets.actions.title}}</span>
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        <li class="add-widgets-text dropdown-submenu">
+          <a href="javascript:void(null);"><i class="glyphicon glyphicon-plus"></i> &nbsp; {{t common.add}}</a>
+          {{view view.plusButtonFilterView}}
+        </li>
+        <li class="dropdown-submenu">
+          <a href="javascript:void(null);"><i class="glyphicon glyphicon-cog"></i> &nbsp; {{t common.edit}}</a>
+          <ul class="dropdown-menu">
+            <li>
+              <a href="#" {{action "resetAllWidgets" target="view"}}>
+                <i class="glyphicon glyphicon-refresh"></i> &nbsp; {{t dashboard.button.reset}}
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    {{view view.timeRangeListView}}
+    <div class="clearfix"></div>
   </div>
-  {{view view.timeRangeListView}}
-  <div class="clearfix"></div>
 
   <div class="dashboard-widgets-box">
     <div id="dashboard-widgets"  class="widgets-container">
-      <div class="thumbnails row-fluid" id="sortable">
+      <div class="thumbnails" id="sortable">
         {{#if view.visibleWidgets.length}}
           {{#each widgetClass in view.visibleWidgets}}
             <div {{bindAttr class="widgetClass.class"}}>

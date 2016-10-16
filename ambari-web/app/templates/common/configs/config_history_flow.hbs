@@ -19,23 +19,23 @@
 
 <div id="config_history_flow" {{bindAttr class="view.parentView.supportsConfigLayout:with-enhanced-config"}}>
   <div class="version-slider">
-    <div {{bindAttr class=":icon-chevron-box :pull-left view.showLeftArrow::disabled"}} {{action shiftBack target="view"}} data-toggle="arrow-tooltip"
-      {{bindAttr data-original-title="view.leftArrowTooltip"}}><i class="icon-chevron-left icon-3x"></i></div>
-    <div {{bindAttr class=":icon-chevron-box :pull-left view.showRightArrow::disabled"}} {{action shiftForward target="view"}} data-toggle="arrow-tooltip"
-      {{bindAttr data-original-title="view.rightArrowTooltip"}}><i class="icon-chevron-right icon-3x"></i></div>
+    <div {{bindAttr class=":glyphicon :glyphicon-chevron-box :pull-left view.showLeftArrow::disabled"}} {{action shiftBack target="view"}} data-toggle="arrow-tooltip"
+      {{bindAttr data-original-title="view.leftArrowTooltip"}}><i class="glyphicon-chevron-left glyphicon glyphicon-3x"></i></div>
+    <div {{bindAttr class=":glyphicon :glyphicon-chevron-box :pull-left view.showRightArrow::disabled"}} {{action shiftForward target="view"}} data-toggle="arrow-tooltip"
+      {{bindAttr data-original-title="view.rightArrowTooltip"}}><i class="glyphicon-chevron-right glyphicon glyphicon-3x"></i></div>
     {{#each sV in view.visibleServiceVersion}}
       {{view App.ConfigsServiceVersionBoxView serviceVersionBinding="sV"}}
     {{/each}}
 
   </div>
-  <div class="version-info-bar-wrapper">
+  <div class="version-info-bar-wrapper row">
     {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
-      <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar"}}>
-        <div class="row-fluid">
-          <div class="span1 remove-compare-bar" {{action removeCompareVersionBar target="view"}} data-toggle="arrow-tooltip" {{translateAttr data-original-title="services.service.config.configHistory.dismissIcon.tooltip"}}>
-            <i class="icon-remove-circle icon-large"></i>
+      <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar :col-md-12"}}>
+        <div class="version-info-bar">
+          <div class="col-md-1 remove-compare-bar" {{action removeCompareVersionBar target="view"}} data-toggle="arrow-tooltip" {{translateAttr data-original-title="services.service.config.configHistory.dismissIcon.tooltip"}}>
+            <i class="glyphicon-remove-circle glyphicon glyphicon-large"></i>
           </div>
-          <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.compareServiceVersion.fullNotes"}}>
+          <div class="label-wrapper col-md-8" data-toggle="tooltip" {{bindAttr data-original-title="view.compareServiceVersion.fullNotes"}}>
             {{t services.service.config.configHistory.comparing}}
             <span class="label label-info current-version-label">{{view.displayedServiceVersion.versionText}}</span>
             ...
@@ -46,7 +46,7 @@
               <strong>{{view.compareServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}
               &nbsp;<strong>{{view.compareServiceVersion.createdDate}}</strong>
           </div>
-          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+            {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
             <div class="pull-right operations-button">
               <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.compare view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.compareServiceVersion.canBeMadeCurrent::hidden"}}>{{view.compareServiceVersion.makeCurrentButtonText}}</button>
             </div>
@@ -64,21 +64,21 @@
           <div class="notes">{{view.parentView.hoveredServiceVersion.fullNotes}}</div>
         </div>
         <div class="version-operations-buttons">
-          <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.view" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.view"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.SWITCH target="view.parentView"}}><i class="icon-search"></i>&nbsp;{{t common.view}}</button>
+          <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.view" class=":btn :btn-default view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.view"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.SWITCH target="view.parentView"}}><i class="glyphicon glyphicon-search"></i>&nbsp;{{t common.view}}</button>
           {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
-            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.compare" class=":btn view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.compare"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.COMPARE target="view.parentView"}}><i class="icon-copy"></i>&nbsp;{{t common.compare}}</button>
+            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.compare" class=":btn :btn-default view.parentView.hoveredServiceVersion.isDisplayed:not-allowed-cursor" title="view.parentView.hoveredServiceVersion.disabledActionMessages.compare"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.COMPARE target="view.parentView"}}><i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.compare}}</button>
           {{/isAuthorized}}
           {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.revert" class=":btn view.parentView.hoveredServiceVersion.isCurrent:not-allowed-cursor view.parentView.hoveredServiceVersion.isCompatible::hidden" title="view.parentView.hoveredServiceVersion.disabledActionMessages.revert"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
+            <button {{bindAttr disabled="view.parentView.hoveredServiceVersion.disabledActionAttr.revert" class=":btn :btn-default view.parentView.hoveredServiceVersion.isCurrent:not-allowed-cursor view.parentView.hoveredServiceVersion.isCompatible::hidden" title="view.parentView.hoveredServiceVersion.disabledActionMessages.revert"}} {{action doAction view.parentView.hoveredServiceVersion view.parentView.actionTypes.REVERT target="view.parentView"}}>{{t dashboard.configHistory.info-bar.revert.button}}</button>
           {{/isAuthorized}}
         </div>
       {{/if}}
     {{/view}}
-    <div class="version-info-bar">
-      <div class="row-fluid">
+    <div class="version-info-bar col-md-12">
+      <div>
         <div class="btn-group pull-left">
-          <button id="toggle-dropdown-button" class="btn dropdown-toggle" data-toggle="dropdown" href="#" {{action hideFullList target="view"}} {{bindAttr disabled="view.versionActionsDisabled"}}>
-            <i class="icon-random"></i>
+          <button id="toggle-dropdown-button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#" {{action hideFullList target="view"}} {{bindAttr disabled="view.versionActionsDisabled"}}>
+            <i class="glyphicon glyphicon-random"></i>
             <span class="caret"></span>
           </button>
           <div id="dropdown_content" class="dropdown-menu">
@@ -98,21 +98,23 @@
             </ul>
           </div>
         </div>
-        <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.fullNotes"}}>
+        <div class="label-wrapper col-md-8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.fullNotes"}}>
           {{#if view.displayedServiceVersion.versionText}}
             <span class="label label-info current-version-label">{{view.displayedServiceVersion.versionText}}</span>
           {{/if}}
           {{#if view.displayedServiceVersion.isCurrent}}
-              <span class="label-current label label-success icon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
+              <span class="label label-current label-success" data-toggle="tooltip" {{translateAttr title="common.current"}}>
+                <i class="glyphicon glyphicon-ok"></i>
+              </span>
           {{/if}}
           {{#if view.displayedServiceVersion.author}}
-            <strong>{{view.displayedServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
+            &nbsp;<strong>{{view.displayedServiceVersion.authorFormatted}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{view.displayedServiceVersion.createdDate}}</strong>
           {{/if}}
         </div>
         {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
           <div class="pull-right operations-button">
             <div {{bindAttr class="view.displayedServiceVersion.isCurrent::hidden"}}>
-              <button class="btn" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
+              <button class="btn btn-default" {{action doCancel target="controller"}} {{bindAttr disabled="view.isDiscardDisabled"}}>{{t common.discard}}</button>
               <button class="btn btn-success" {{action save target="view"}} {{bindAttr disabled="view.isSaveDisabled"}}>{{t common.save}}</button>
             </div>
             <button class="btn btn-success"  {{action doAction view.serviceVersionsReferences.displayed view.actionTypes.REVERT target="view"}} {{bindAttr disabled="view.versionActionsDisabled" class="view.displayedServiceVersion.canBeMadeCurrent::hidden"}}>{{view.displayedServiceVersion.makeCurrentButtonText}}</button>

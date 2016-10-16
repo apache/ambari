@@ -20,7 +20,7 @@
   <p class="alert alert-info">
     {{t installer.step0.body}}
   </p>
-  <div {{bindAttr class="view.onError:error :control-group"}}>
+  <div {{bindAttr class="view.onError:has-error :form-group"}}>
     <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
       <a href="javascript:void(null)"
          rel="popover"
@@ -28,9 +28,11 @@
         data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
     </label>
 
-    <div class="controls">
-      {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller"}}
-      <p class="help-inline">{{clusterNameError}}</p>
+    <div>
+      {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="col-sm-3"}}
+      {{#if clusterNameError}}
+        <p class="help-block validation-block col-sm-9">{{clusterNameError}}</p>
+      {{/if}}
     </div>
   </div>
 

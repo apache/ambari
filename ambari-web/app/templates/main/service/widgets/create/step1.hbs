@@ -22,15 +22,15 @@
   <div id="add-widget-step1-options-body">
     <h4>{{t widget.create.wizard.step1.body.text}}</h4>
 
-    <div class="widgets-info-container row-fluid">
+    <div class="widgets-info-container row">
       {{#each option in options}}
-        <div class="span6 row-fluid widget-info-section" rel="selectable-tooltip"
+        <div class="col-md-6 row widget-info-section" rel="selectable-tooltip"
           {{translateAttr data-original-title="widget.create.wizard.step1.body.choose.tooltip"}}
           {{action "chooseOption" option.name target="controller"}}>
-          <div class="icon span4">
+          <div class="icon col-md-4">
             <a class="widget-icon-image" target="_blank"><img {{bindAttr src="option.iconPath"}}></a>
           </div>
-          <div class="label-description span8">
+          <div class="label-description col-md-8">
             <p class="label-text">{{option.displayName}}</p>
             <p class="description-text">{{option.description}}</p>
           </div>

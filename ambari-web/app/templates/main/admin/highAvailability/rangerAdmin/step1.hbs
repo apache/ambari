@@ -23,13 +23,15 @@ right ownership.  The ASF licenses this file
     {{t admin.ra_highAvailability.wizard.step1.body}}
   </div>
   <form class="form-horizontal">
-    <div {{bindAttr class=":control-group showloadBalancerURLError:error"}}>
+    <div {{bindAttr class=":form-group showloadBalancerURLError:error showloadBalancerURLError:has-error :col-md-12"}}>
       <label class="control-label">{{t admin.ra_highAvailability.wizard.step1.load_balancer_url}}:</label>
 
-      <div class="controls">
-        {{view Em.TextField valueBinding="content.loadBalancerURL"}}
+      <div class="row">
+        <div class="col-md-3">
+          {{view Em.TextField valueBinding="content.loadBalancerURL" classNames="input-sm form-control"}}
+        </div>
         {{#if showloadBalancerURLError}}
-          <span class="help-inline">{{t admin.ra_highAvailability.wizard.step1.invalid_url}}</span>
+          <span class="help-block validation-block col-sm-9 help-inline">{{t admin.ra_highAvailability.wizard.step1.invalid_url}}</span>
         {{/if}}
       </div>
     </div>

@@ -56,7 +56,7 @@ module.exports = [
   {
     value: Em.I18n.t('hosts.host.alerts.label'),
     hostProperty: 'criticalWarningAlertsCount',
-    class: 'icon-exclamation-sign',
+    class: 'glyphicon glyphicon-exclamation-sign',
     isHealthStatus: false,
     healthClass: 'health-status-WITH-ALERTS',
     healthStatus: 'health-status-WITH-ALERTS',
@@ -67,7 +67,7 @@ module.exports = [
   {
     value: Em.I18n.t('common.restart'),
     hostProperty: 'componentsWithStaleConfigsCount',
-    class: 'icon-refresh',
+    class: 'glyphicon glyphicon-refresh',
     isHealthStatus: false,
     healthClass: 'health-status-RESTART',
     healthStatus: 'health-status-RESTART',

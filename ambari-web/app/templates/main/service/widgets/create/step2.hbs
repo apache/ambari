@@ -33,15 +33,13 @@
   <div>
     <form class="form-horizontal">
       {{#each property in widgetPropertiesViews}}
-        <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
+        <div {{bindAttr class=":form-group :col-md-12 property.name property.isValid::error"}}>
           <label class="control-label">{{property.label}}
             {{#if property.isRequired }}
-              <i class="icon-asterisk"></i>
+              <i class="glyphicon glyphicon-asterisk"></i>
             {{/if}}
           </label>
-          <div class="controls">
-            {{view property.viewClass propertyBinding="property"}}
-          </div>
+          {{view property.viewClass propertyBinding="property"}}
         </div>
       {{/each}}
     </form>
@@ -50,7 +48,7 @@
 
   <div class="btn-area">
     {{#unless isEditWidget}}
-      <button id="add-widget-step2-back" class="btn" {{action back}}>&larr; {{t common.back}}</button>
+      <button id="add-widget-step2-back" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
     {{/unless}}
     <button id="add-widget-step2-next" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</button>
   </div>

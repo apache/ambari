@@ -83,12 +83,12 @@
                     <div class="clear-td">
                       {{#if repository.clearAll}}
                         <a {{action "clearGroupLocalRepository" repository target="view" }}>
-                          <i class="icon-remove-sign"></i>
+                          <i class="glyphicon glyphicon-remove-sign"></i>
                         </a>
                       {{/if}}
                     </div>
                     <div class="edit-buttons-td">
-                      <a class="btn" {{action doCancel repository target="view"}}>{{t common.cancel}}</a>
+                      <a class="btn btn-default" {{action doCancel repository target="view"}}>{{t common.cancel}}</a>
                     </div>
                     <div class="edit-buttons-td">
                       {{#if repository.empty-error}}
@@ -104,7 +104,7 @@
                     </div>
                     <div class="edit-td">
                       <a {{action "onEditClick" repository target="view" }}>
-                        <i class="icon-edit"></i> {{t common.edit}}
+                        <i class="glyphicon glyphicon-edit"></i> {{t common.edit}}
                       </a>
                     </div>
                   {{/if}}

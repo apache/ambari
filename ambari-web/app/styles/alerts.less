@@ -17,27 +17,27 @@
  */
 @import 'common.less';
 
-.alert-state-OK {
+.label.alert-state-OK {
   background-color: @health-status-green;
 }
 
-.alert-state-WARNING {
+.label.alert-state-WARNING {
   background-color: @health-status-orange;
 }
 
-.alert-state-CRITICAL {
+.label.alert-state-CRITICAL {
   background-color: @health-status-red;
 }
 
-.alert-state-DISABLED {
+.label.alert-state-DISABLED {
   color: #000;
 }
 
-.alert-state-UNKNOWN {
+.label.alert-state-UNKNOWN {
   background-color: @health-status-yellow;
 }
 
-.alert-state-PENDING {
+.label.alert-state-PENDING {
   background-color: #999;
 }
 
@@ -69,6 +69,10 @@
   margin-bottom: 10px;
   font-size: 13px \9;
 
+  .filter-input-width {
+    width: ~"calc(100% - 20px)";
+  }
+
   .filter-row {
     th {
       padding: 0;
@@ -95,54 +99,44 @@
     }
   }
 
+  .filter-input-width {
+    width: ~"calc(100% - 20px)";
+  }
+
   .col0,
   td:first-child,
   th:first-child {
     width: 35%;
+
   }
 
   .col1,
   td:first-child + td,
   th:first-child + th {
     width: 15%;
-    .filter-input-width {
-      width: 80%;
-    }
   }
 
   .col2,
   td:first-child + td + td,
   th:first-child + th + th {
     width: 20%;
-    .filter-input-width {
-      width: 80%;
-    }
   }
   .col3,
   td:first-child + td + td + td,
   th:first-child + th + th + th {
     width: 15%;
-    .filter-input-width {
-      width: 80%;
-    }
   }
 
   .col4,
   td:first-child + td + td + td + td,
   th:first-child + th + th + th + th {
     width: 15%;
-    .filter-input-width {
-      width: 80%;
-    }
   }
 
   .col5,
   td:first-child + td + td + td + td + td,
   th:first-child + th + th + th + th + th {
     width: 10%;
-    .filter-input-width {
-      width: 80%;
-    }
   }
 
   .type-icon {
@@ -190,6 +184,12 @@
     white-space: nowrap;
     width: 100%;
   }
+
+  .filter-row {
+    input, select {
+      width: ~"calc(100% - 20px)";
+    }
+  }
 }
 
 #alert-definition-details {
@@ -199,7 +199,7 @@
   .box {
     .box-header {
       .edit-link {
-        margin: 5px;
+        margin: 3px;
       }
     }
     margin-bottom: 0;
@@ -267,7 +267,7 @@
       margin-top: -4px;
       float: left;
       margin-left: 7px;
-    }    
+    }
   }
 
   .error-msg {
@@ -277,7 +277,6 @@
   .edit-buttons {
     text-align: right;
     margin-bottom: 10px;
-    margin-right: 10px;
   }
 
   .text-area-edit {
@@ -301,65 +300,22 @@
 
 .alert-configs {
 
-  label.shifted {
-    width: 170px;
+  textarea {
+    resize: vertical;
   }
 
-  .stuck-left {
-    margin-left: 0!important;
+  .alert-label {
+    line-height: 26px;
+    width: 100%;
+    font-size: 85%;
   }
 
-  .controls.shifted {
-    margin-left: 190px;
+  // ":last-child" used in the Bootstrap affects "script"-tag created by Handlebars and not ".input-group-addon"
+  // ":last-of-type" should be used instead
+  .input-group-addon:last-of-type {
+    border-left: 0 !important;
+    border-radius: 0 4px 4px 0;
   }
-
-  margin-top: 20px;
-
-  .alert-config-text-area {
-    height: 100px;
-  }
-
-  .alert-text-input {
-    input {
-      width: 98%;
-    }
-  }
-
-  .input-append {
-    padding-right: 13px;
-  }
-
-  .alert-interval-input {
-    input {
-      width: 20%;
-    }
-  }
-
-  .alert-port-input {
-    input {
-      width: 30%;
-    }
-  }
-
-  .badge-container {
-    height: 26px;
-    .alert-threshold-badge,
-    .alert-parameter-badge {
-      line-height: 26px;
-      height: 26px;
-    }
-  }
-
-  .control-group.error{
-    .alert-text-input input{
-      color: #555555;
-      border-color: #ccc;
-    }
-  }
-  .error-message {
-    color: #b94a48;
-  }
-
 
 }
 
@@ -432,9 +388,6 @@
 
 #create-edit-alert-notification {
   .form-horizontal {
-    .controls {
-      margin-left: 140px;
-    }
     .control-label {
       font-weight: bold;
     }
@@ -449,7 +402,7 @@
     }
   }
 
-  .icon-minus-sign {
+  .glyphicon-minus-sign {
     color: #FF4B4B;
   }
 
@@ -469,13 +422,6 @@
 
 }
 
-.create-edit-alert-notification-popup {
-  .modal {
-    margin-top: 0;
-    top: 5%;
-    width: 600px;
-  }
-}
 
 .service-block .summary-box-header {
   .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
@@ -489,13 +435,13 @@
   cursor: pointer;
 }
 
-.alerts-crit-count {
+.label.alerts-crit-count {
   background: @health-status-red;
 }
-.alerts-warn-count {
+.label.alerts-warn-count {
   background: @health-status-orange;
 }
-.no-alerts-label {
+.label.no-alerts-label {
   background: @health-status-green;
 }
 
@@ -510,13 +456,7 @@
 }
 
 /*****start styles for manage alerts popup*****/
-.sixty-percent-width-modal.manage-alert-group-popup {
-  .modal{
-    max-height: 650px;
-  }
-  .modal-body {
-    max-height: 500px;
-  }
+.manage-alert-group-popup {
   .group-select {
     width: 100%;
     height: 250px;
@@ -541,8 +481,6 @@
 
 .forty-percent-width-modal {
   .modal {
-    width: 40%;
-
     .definition-latest-text {
       overflow-x: auto;
       text-overflow: inherit;

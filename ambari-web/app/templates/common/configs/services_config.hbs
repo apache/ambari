@@ -46,13 +46,13 @@
     <p class="loading align-center"></p>
     {{#unless controller.transitionInProgress}}
       {{#if controller.hasStepConfigIssues}}
-        <div class="alert">
-          <span class="icon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
+        <div class="alert alert-warning">
+          <span class="glyphicon glyphicon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
           {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
         </div>
       {{else}}
         <div class="alert alert-success">
-          <span class="icon-check"></span> {{t installer.step7.noIssues}}<br />
+          <span class="glyphicon glyphicon-check"></span> {{t installer.step7.noIssues}}<br />
           {{#if controller.issuesFilterSelected}}
             <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
           {{/if}}

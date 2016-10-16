@@ -132,6 +132,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * @type {Ember.View}
    */
   rowsPerPageSelectView: Em.Select.extend({
+    classNames: ['form-control'],
     content: ['10', '25', '50', '100'],
     attributeBindings: ['disabled'],
     disabled: true,

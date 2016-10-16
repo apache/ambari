@@ -26,7 +26,7 @@ var App = require('app');
 App.FilterComboboxView = Ember.View.extend({
   templateName: require('templates/common/filter_combobox'),
 
-  classNames: ['filter-combobox', 'input-append'],
+  classNames: ['filter-combobox', 'input-group'],
 
   //filter: '', binding outside
   //columns: [], binding outside

@@ -16,19 +16,23 @@
 * limitations under the License.
 }}
 
-  {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder"}}
-  <div class="btn-group">
-      <button class="btn dropdown-toggle" data-toggle="dropdown">
+<div class="btn-group">
+  <div class="input-group">
+    {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder"}}
+    <div class="input-group-btn">
+      <button class="btn btn-default dropdown-toggle btn-icon" data-toggle="dropdown">
           <span class="caret"></span>
       </button>
       <ul class="dropdown-menu">
         {{#each column in view.columns}}
             <li>
                 <a href="#" {{action selectFilterColumn column target="view"}}>
-                  <i {{bindAttr class="column.selected:icon-ok-sign:icon-placeholder :text-success"}}></i>
+                  <i {{bindAttr class="column.selected:glyphicon-ok-sign:glyphicon-placeholder :glyphicon :text-success"}}></i>
                   {{column.name}}
                 </a>
             </li>
         {{/each}}
       </ul>
+    </div>
   </div>
+</div>

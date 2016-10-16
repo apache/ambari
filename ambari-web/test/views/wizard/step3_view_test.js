@@ -286,7 +286,7 @@ describe('App.WizardStep3View', function () {
       {
         controller: Em.Object.create({bootHosts: Em.A([])}),
         m: 'Empty hosts list',
-        e: {status: 'alert-warn', linkText: ''}
+        e: {status: 'alert-warning', linkText: ''}
       },
       {
         controller: Em.Object.create({bootHosts: Em.A([{}]), isWarningsLoaded: false}),
@@ -296,17 +296,17 @@ describe('App.WizardStep3View', function () {
       {
         controller: Em.Object.create({bootHosts: Em.A([{}]), isWarningsLoaded: true, isHostHaveWarnings: true}),
         m: 'isWarningsLoaded true, isHostHaveWarnings true',
-        e: {status: 'alert-warn', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
+        e: {status: 'alert-warning', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
       },
       {
         controller: Em.Object.create({bootHosts: Em.A([{}]), isWarningsLoaded: true, repoCategoryWarnings: ['']}),
         m: 'isWarningsLoaded true, repoCategoryWarnings not empty',
-        e: {status: 'alert-warn', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
+        e: {status: 'alert-warning', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
       },
       {
         controller: Em.Object.create({bootHosts: Em.A([{}]), isWarningsLoaded: true, diskCategoryWarnings: ['']}),
         m: 'isWarningsLoaded true, diskCategoryWarnings not empty',
-        e: {status: 'alert-warn', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
+        e: {status: 'alert-warning', linkText: Em.I18n.t('installer.step3.warnings.linkText')}
       },
       {
         controller: Em.Object.create({bootHosts: Em.A([{}]), isWarningsLoaded: true, diskCategoryWarnings: [], repoCategoryWarnings: []}),
@@ -316,7 +316,7 @@ describe('App.WizardStep3View', function () {
       {
         controller: Em.Object.create({bootHosts: Em.A([{bootStatus: 'FAILED'}]), isWarningsLoaded: true, diskCategoryWarnings: [], repoCategoryWarnings: []}),
         m: 'isWarningsLoaded true, diskCategoryWarnings is empty, repoCategoryWarnings is empty, all failed',
-        e: {status: 'alert-warn', linkText: ''}
+        e: {status: 'alert-warning', linkText: ''}
       }
     ]);
 

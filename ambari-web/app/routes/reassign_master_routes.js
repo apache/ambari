@@ -35,7 +35,8 @@ module.exports = App.WizardRoute.extend({
         Em.run.next(function () {
           App.router.get('updateController').set('isWorking', false);
           var popup = App.ModalPopup.show({
-            classNames: ['full-width-modal'],
+            classNames: ['wizard-modal-wrapper'],
+            modalDialogClasses: ['modal-xlg'],
             header: Em.I18n.t('services.reassign.header'),
             bodyClass: App.ReassignMasterView.extend({
               controller: reassignMasterController

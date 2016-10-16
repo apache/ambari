@@ -18,13 +18,13 @@
 @import 'common.less';
 
 #advancedRepoAccordion{
-  .accordion-heading {
+  .panel-heading {
     background-color: #f0f0f0;
     a:hover {
       text-decoration: none;
     }
   }
-  .accordion-body {
+  .panel-body {
     .repositories-table {
       overflow: auto;
       margin-bottom: 10px;
@@ -82,12 +82,12 @@
                 text-decoration: none;
                 &.disabled-clear-button {
                   cursor: default;
-                  .icon-remove-sign {
+                  .glyphicon-remove-sign {
                     cursor: default;
                   }
                 }
               }
-              .icon-remove-sign {
+              .glyphicon-remove-sign {
                 color: #808080;
               }
             }
@@ -126,16 +126,16 @@
 }
 .version-box-popup {
   .modal{
-    max-height: 563px;
-    max-width: 340px;
-    margin: -250px 0 0 -180px;
+    .modal-dialog{
+      width: 340px;
+    }
     .modal-body {
-      padding: 0px 0px;
+      padding: 0;
     }
   }
   .version-box-in-popup.version-box {
-    padding: 0px 0px;
-    margin: 0px 0px;
+    padding: 0;
+    margin: 0;
     border: none;
     .hosts-section {
       padding-bottom: 16px;
@@ -148,15 +148,15 @@
   .versions-slides {
     overflow-x: auto;
     padding-bottom: 25px;
-    margin-left: 0;
-    margin-top: 5px;
+    padding-left: 0;
+    margin-top: 10px;
     .versions-slides-bar {
       display: inline-flex;
     }
   }
   .left-menu-table {
     padding: 10px 0;
-    margin-top: 124px;
+    margin-top: 122px;
     td.service-display-name {
       border-top: 2px solid #e4e4e4;
       border-bottom: 2px solid #e4e4e4;
@@ -263,6 +263,7 @@
       font-weight: 500;
     }
     .hosts-section .host-link {
+      margin: 0;
       font-size: 12px;
     }
   }
@@ -304,8 +305,7 @@
       }
     }
     .state.installing {
-      padding-bottom: 5px;
-      margin: 10px 0px;
+      margin: 5px 0 15px 0;
     }
     .services-section {
       width: 100%;
@@ -343,84 +343,24 @@
         }
       }
     }
-
-
+  }
+  .nav.nav-tabs {
+    margin-bottom: 20px;
   }
 }
 
-#stack-upgrade-dialog {
-  .details-box {
-    padding: 5px;
-    margin-left: 15px;
-    margin-right: 95px;
-    .button-row {
-      text-align: right;
-      padding: 5px;
-    }
-    input[type="checkbox"] {
-      margin: 0;
-    }
-    .message {
-      line-height: 30px;
-    }
-  }
-  .task-details {
-    .manage-controls a {
-      cursor: pointer;
-      margin-right: 12px;
-    }
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      box-sizing: border-box;
-    }
-  }
-  .task-list {
-    overflow-x: hidden;
-    .progress {
-      margin-bottom: 0;
-    }
-    padding-left: 20px;
-    i {
-      margin-right: 5px;
-    }
-  }
-  .task-list-main-warp i {
-    font-size: 16px;
-  }
-  ul.failed-info-list {
-    max-height: 500px;
-    margin-top: 5px;
-  }
-  .upgrade-options-link {
-    position: absolute;
-    cursor: pointer;
-    right: 10%;
-    top: 13px;
-    width: 100px;
-    a {
-      font-size: 13px;
-    }
-    .icon-cogs {
-      color: #0088cc;
-      margin-right: 3px;
-    }
-  }
-  .upgrade-options-link.disabled {
-    cursor: not-allowed;
-    a, .icon-cogs {
-      color: #808080;
-    }
-    a:hover {
-      text-decoration: none;
-    }
-  }
-}
-
+#stack-upgrade-dialog,
 #stack-upgrade-record-dialog {
+  .row {
+    margin: 0;
+    padding: 5px 0;
+  }
+  .upgrade-item-text,
+  .upgrade-group-text {
+    padding-left: 0;
+  }
   .details-box {
     padding: 5px;
-    margin-left: 15px;
     margin-right: 95px;
     .button-row {
       text-align: right;
@@ -449,7 +389,7 @@
     .progress {
       margin-bottom: 0;
     }
-    padding-left: 20px;
+    padding-left: 15px;
     i {
       margin-right: 5px;
     }
@@ -470,14 +410,14 @@
     a {
       font-size: 13px;
     }
-    .icon-cogs {
+    .glyphicon-cogs {
       color: #0088cc;
       margin-right: 3px;
     }
   }
   .upgrade-options-link.disabled {
     cursor: not-allowed;
-    a, .icon-cogs {
+    a, .glyphicon-cogs {
       color: #808080;
     }
     a:hover {
@@ -502,10 +442,8 @@
 #upgrade-options-popup-content {
   .method-options {
     margin: 10px;
-    .method-option {
-      width: 43.5%;
-    }
-    .thumbnail {
+
+    .img-thumbnail {
 
       cursor: pointer;
       border: none;
@@ -549,16 +487,16 @@
       background-color: #cbe3c2;
     }
 
-    .thumbnail.not-allowed:hover {
+    .img-thumbnail.not-allowed:hover {
       background-color: #e4e4e4;
     }
-    .thumbnail.not-allowed {
+    .img-thumbnail.not-allowed {
       cursor: not-allowed;
     }
   }
 
   .method-options.disabled {
-    .thumbnail {
+    .img-thumbnail {
       cursor: not-allowed;
       .method-name,.method-icon,.method-description {
         color: #a9a9a9;
@@ -599,19 +537,19 @@
     }
   }
   .method-precheck-message.GREEN {
-    .icon-ok {
+    .glyphicon-ok {
       color: @health-status-green;
       font-size: 16px;
     }
   }
   .method-precheck-message.RED {
-    .icon-remove {
+    .glyphicon-remove {
       color: #cf2a27;
       font-size: 16px;
     }
   }
   .method-precheck-message.ORANGE {
-    .icon-warning-sign {
+    .glyphicon-warning-sign {
       color: @health-status-orange;
       font-size: 16px;
     }
@@ -625,7 +563,7 @@
   .text {
     margin-left: 10px;
   }
-  .icon-question-sign {
+  .glyphicon-question-sign {
     color: @blue;
   }
 }
@@ -706,7 +644,7 @@
               cursor: pointer;
               text-decoration: none;
             }
-            .icon-remove-sign {
+            .glyphicon-remove-sign {
               color: #808080;
             }
           }
@@ -742,8 +680,14 @@
 
 #skip-validation,
 #use-redhat {
-  .icon-question-sign {
+  .glyphicon-question-sign {
     color: @blue;
+  }
+}
+
+.upgrade-wizard-modal {
+  .modal-body {
+    position: static;
   }
 }
 
@@ -752,11 +696,11 @@
     overflow-y: auto;
     max-height: 320px;
     margin-right: -15px;
-    .accordion {
+    .panel {
       margin-bottom: 0;
-      .accordion-group {
+      .panel-group {
         border: none;
-        .accordion-toggle {
+        .panel-toggle {
           line-height: 20px;
           padding: 5px 0;
           .label {
@@ -765,11 +709,5 @@
         }
       }
     }
-  }
-  .sub-header {
-    padding: 0 15px;
-    width: 530px;
-    margin-left: -15px;
-    border-bottom: 1px solid #eee;
   }
 }

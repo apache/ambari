@@ -17,17 +17,17 @@
 }}
 
 <div class="has-hidden-info">
-  <ul>
-    <li class="thumbnail row">
-      <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}}
+  <ul class="list-unstyled">
+    <li class="img-thumbnail row">
+      <a {{bindAttr class=":corner-icon :col-md-1 view.parentView.isMoving:hidden"}}
               href="#" {{action deleteWidget target="view"}}>
-        <i class="icon-remove-sign icon-large"></i>
+        <i class="glyphicon-remove-sign glyphicon glyphicon-large"></i>
       </a>
 
-      <div class="caption span10">{{view.title}}</div>
+      <div class="caption col-md-10">{{view.title}}</div>
       {{#if view.isDataLoaded}}
-        <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
-          <i class="icon-edit"></i>
+        <a class="corner-icon col-md-1" href="#" {{action editWidget target="view"}}>
+          <i class="glyphicon glyphicon-edit"></i>
         </a>
 
         <div {{bindAttr class=":hidden-info-general view.hiddenInfoClass" }}>

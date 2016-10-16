@@ -17,20 +17,20 @@
 }}
 
 {{#if view.isOutOfSync}}
-  <i class="icon-exclamation-sign out-of-sync-badge"></i>
+  <i class="glyphicon glyphicon-exclamation-sign out-of-sync-badge"></i>
 {{/if}}
 
 <p {{bindAttr class=":version view.isRepoUrlsEditDisabled:not-active-link"}}>
   <span>{{view.content.displayName}}</span>
   <a class="pull-right not-active link-tooltip" {{action editRepositories target="view"}}>
-    <i class="icon-edit"></i>
+    <i class="glyphicon glyphicon-edit"></i>
   </a>
 </p>
 <p class="repository-name">({{view.content.repositoryVersion}})</p>
 
 <p class="patch-icon">
   {{#if view.isPatch}}
-    <i class="icon-umbrella"></i>&nbsp;{{t common.patch}}
+    <i class="glyphicon glyphicon-umbrella"></i>&nbsp;{{t common.patch}}
   {{/if}}
 </p>
 
@@ -86,20 +86,20 @@
 
 <div class="hosts-section">
   <div class="hosts-bar">{{t common.hosts}}</div>
-  <div class="row-fluid host-link">
-    <div class="span4 align-center not-installed-hosts">
+  <div class="row host-link">
+    <div class="col-md-4 align-center not-installed-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInitHostsTooltip" }}
         {{action showHosts view.versionStateMap.not_installed target="view"}}>
         {{view.notInstalledHosts.length}}</a></div>
       <div>{{t admin.stackVersions.version.notInstalled}}</div>
     </div>
-    <div class="span4 align-center installed-hosts">
+    <div class="col-md-4 align-center installed-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInstalledHostsTooltip" }}
         {{action showHosts view.versionStateMap.installed target="view"}}>
         {{view.installedHosts.length}}</a></div>
       <div>{{t common.installed}}</div>
     </div>
-    <div class="span4 align-center current-hosts">
+    <div class="col-md-4 align-center current-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noCurrentHostsTooltip" }}
         {{action showHosts view.versionStateMap.current target="view"}}>
         {{view.currentHosts.length}}</a></div>

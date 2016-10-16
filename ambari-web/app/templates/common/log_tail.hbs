@@ -21,14 +21,14 @@
     {{#if view.isDataReady}}
       {{#if view.oldLogsIsFetching}}
         <div class="log-tail-spinner-container text-center">
-          <i class="icon-spinner icon-spin"></i>
+          {{view App.SpinnerView}}
         </div>
       {{/if}}
       {{#each row in view.logRows}}
         <div>{{row.logtimeFormatted}} {{row.level}} {{row.logMessage}}</div>
       {{/each}}
     {{else}}
-      <div class="log-tail-spinner-container text-center"><i class="icon-spinner icon-spin"></i></div>
+      <div class="log-tail-spinner-container text-center">{{view App.SpinnerView}}</div>
     {{/if}}
   </div>
 </div>

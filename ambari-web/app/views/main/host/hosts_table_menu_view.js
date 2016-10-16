@@ -68,7 +68,6 @@ App.HostTableMenuView = Em.View.extend({
   slaveItemView: Em.View.extend({
 
     tagName: 'li',
-
     classNames: ['dropdown-submenu'],
 
     /**
@@ -239,7 +238,6 @@ App.HostTableMenuView = Em.View.extend({
   hostItemView: Em.View.extend({
 
     tagName: 'li',
-
     classNames: ['dropdown-submenu'],
 
     label: Em.I18n.t('common.hosts'),

@@ -40,7 +40,7 @@ App.WizardStep3HostWarningPopupFooter = Em.View.extend({
     }
     else {
       if (status === 'FAILED') {
-        return 'text-error';
+        return 'text-danger';
       }
       else {
         return null;

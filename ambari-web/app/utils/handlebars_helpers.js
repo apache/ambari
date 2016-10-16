@@ -91,7 +91,7 @@ App.registerBoundHelper('formatWordBreak', App.FormatWordBreakView);
  * Examples:
  *
  * {{statusIcon view.status}}
- * returns 'icon-cog'
+ * returns 'glyphicon glyphicon-cog'
  *
  */
 App.registerBoundHelper('statusIcon', App.StatusIconView);

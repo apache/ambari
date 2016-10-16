@@ -26,16 +26,16 @@
   {{view App.TopNavServiceMenuView}}
 {{/if}}
 {{#if view.isAdminItem}}
-  <ul class="top-nav-dropdown-menu">
+  <ul class="top-nav-dropdown-menu dropdown-menu">
     {{#each category in view.dropdownCategories}}
-      {{#view view.AdminDropdownItemView itemBinding="category.name" }}
+      {{#view view.AdminDropdownItemView itemBinding="category.name"}}
         <a href="#" {{action "goToCategory" category.url target="view"}}>{{category.label}}</a>
       {{/view}}
     {{/each}}
   </ul>
 {{/if}}
 {{#if view.isViewsItem}}
-  <ul class="top-nav-dropdown-menu">
+  <ul class="top-nav-dropdown-menu dropdown-menu">
     {{#if view.content.views.length}}
       {{#each category in view.content.views}}
         <li><a href="#" {{action "setView" category target="App.router.mainViewsController"}}>{{category.label}}</a></li>

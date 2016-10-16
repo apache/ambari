@@ -30,7 +30,7 @@
 {{/unless}}
 {{#if view.isLoaded}}
   {{#if view.runningHosts}}
-      <i class="icon-warning-sign"></i>  {{view.runningHostsMessage}}
+      <i class="glyphicon glyphicon-warning-sign"></i>  {{view.runningHostsMessage}}
       <table class="table-striped running-host-components-table">
           <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
         {{#each host in view.runningHosts}}
@@ -39,7 +39,7 @@
       </table>
   {{/if}}
   {{#if view.unknownHosts}}
-      <i class="icon-warning-sign"></i>  {{view.unknownHostsMessage}}
+      <i class="glyphicon glyphicon-warning-sign"></i>  {{view.unknownHostsMessage}}
       <table class="table-striped running-host-components-table">
           <tr><th>{{t common.host}}</th><th>{{t common.components}}</th></tr>
         {{#each host in view.unknownHosts}}

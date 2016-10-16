@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="alert alert-error">
+<div class="alert alert-danger">
   <h2>Ambari's Experimental Functionality</h2>
   <p>
     <span class="label label-important">Important</span> <strong>Changes made here are neither tested nor supported by Ambari</strong>
@@ -49,15 +49,15 @@
     </tbody>
     </table>
     <div class="control-group" style="margin-bottom: 70px;">
-        <div class="controls pull-right">
-	      <button class="btn" {{action doCancel target="controller"}}>{{t form.cancel}}</button>
+        <div class="pull-right">
+	      <button class="btn btn-default" {{action doCancel target="controller"}}>{{t form.cancel}}</button>
 	      <button class="btn btn-primary" {{action doSave target="controller"}}>{{t common.save}}</button>
 	    </div>
 	</div>
     <hr>
     <div class="control-group" style="margin-bottom: 100px;">
       {{#isAuthorized "CLUSTER.MANAGE_USER_PERSISTED_DATA"}}
-        <div class="controls pull-left" style="margin-bottom: 100px;">
+        <div class="pull-left" style="margin-bottom: 100px;">
           <button class="btn btn-danger" {{action doResetUIStates target="controller"}}>{{t reset.ui.states}}</button>
           <p class="pull-right" style="margin-left: 10px; padding-top: 5px;">
               Reset UI state locally and on the server
@@ -66,12 +66,12 @@
       {{/isAuthorized}}
     </div>
   {{else}}
-    <div class="alert alert-error">
+    <div class="alert alert-danger">
       No application supports found. Please login to Ambari and revisit this page.
     </div>
   {{/if}}
 {{else}}
-  <div class="alert alert-error">
+  <div class="alert alert-danger">
     No application found. Please login to Ambari and revisit this page.
   </div>
 {{/if}}

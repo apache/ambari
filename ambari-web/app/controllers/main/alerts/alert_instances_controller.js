@@ -210,7 +210,8 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
       header: Em.computed.i18nFormat('alerts.fastAccess.popup.header', 'alertsNumber'),
 
-      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
+      classNames: ['common-modal-wrapper', 'alerts-popup'],
+      modalDialogClasses: ['modal-lg'],
 
       secondary: Em.I18n.t('alerts.fastAccess.popup.body.showmore'),
 

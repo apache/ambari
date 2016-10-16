@@ -17,13 +17,17 @@
 }}
 
 {{#isAuthorized "AMBARI.MANAGE_SETTINGS"}}
-  <label id="footer-checkbox">{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isNotShowBgChecked"}}
-    &nbsp;{{t app.settings.notShowBgOperations}}</label>
+  <div class="checkbox pull-left checkbox-row">
+    <label id="footer-checkbox">
+      {{view Ember.Checkbox checkedBinding="view.parentView.isNotShowBgChecked"}}
+      &nbsp;{{t app.settings.notShowBgOperations}}
+    </label>
+  </div>
 {{/isAuthorized}}
 {{#if view.parentView.primary}}
   <button {{bindAttr
             disabled="view.parentView.disablePrimary"
-            class=":btn view.parentView.primaryClass"}}
+            class=":btn view.parentView.primaryClass :pull-right"}}
           {{action onPrimary target="view.parentView"}}>
       {{view.parentView.primary}}
   </button>

@@ -266,7 +266,7 @@ App.Router = Em.Router.extend({
       success: 'onAuthenticationSuccess',
       error: 'onAuthenticationError'
     }).complete(function (xhr) {
-      if (xhr.isResolved()) {
+      if (xhr.state() === 'resolved') {
         // if server knows the user and user authenticated by UI
         if (auth) {
           dfd.resolve(self.get('loggedIn'));
@@ -478,7 +478,8 @@ App.Router = Em.Router.extend({
 
     if(text && status){
       return App.ModalPopup.show({
-        classNames: ['sixty-percent-width-modal'],
+        classNames: ['common-modal-wrapper'],
+        modalDialogClasses: ['modal-lg'],
         header: Em.I18n.t('login.message.title'),
         bodyClass: Ember.View.extend({
           template: Ember.Handlebars.compile(text)

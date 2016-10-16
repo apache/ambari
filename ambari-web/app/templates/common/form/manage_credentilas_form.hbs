@@ -22,10 +22,10 @@
   </p>
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.principal}}</label>
-    <div class="controls">
+    <div>
       {{view Ember.TextField valueBinding="view.principal" class="form-control"}}
       {{#if view.principalError}}
-        <p class="mtm text-error">
+        <p class="mtm text-danger">
           {{view.principalError}}
         </p>
       {{/if}}
@@ -33,10 +33,10 @@
   </div>
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.password}}</label>
-    <div class="controls">
+    <div>
       {{view Ember.TextField type="password" valueBinding="view.password" class="form-control"}}
       {{#if view.passwordError}}
-        <p class="mtm text-error">
+        <p class="mtm text-danger">
           {{view.passwordError}}
         </p>
       {{/if}}

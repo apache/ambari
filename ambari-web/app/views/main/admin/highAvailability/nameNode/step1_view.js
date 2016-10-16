@@ -24,7 +24,7 @@ App.HighAvailabilityWizardStep1View = Em.View.extend({
   templateName: require('templates/main/admin/highAvailability/nameNode/step1'),
 
   didInsertElement: function() {
-    App.popover($("div.controls input[type=text]"), {'placement': 'right', 'trigger': 'hover', 'title': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.title'), 'content': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.content')});
+    App.popover($("input[type=text]"), {'placement': 'right', 'trigger': 'hover', 'title': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.title'), 'content': this.t('admin.highAvailability.wizard.step1.nameserviceid.tooltip.content')});
   },
 
   showInputError: Em.computed.and('!controller.isNameServiceIdValid', 'controller.content.nameServiceId.length')

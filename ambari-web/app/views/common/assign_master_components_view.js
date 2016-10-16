@@ -127,6 +127,7 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
 
 App.SelectHostView = Em.Select.extend(App.SelectHost, {
 
+  classNames: ['form-control'],
   attributeBindings: ['disabled'],
 
   didInsertElement: function () {
@@ -172,7 +173,7 @@ App.AddControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge", "badge-important"],
+  classNames: ["badge"],
 
   classNameBindings: ['uniqueId'],
 
@@ -211,7 +212,7 @@ App.RemoveControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge", "badge-important"],
+  classNames: ["badge"],
 
   template: Em.Handlebars.compile('-'),
 

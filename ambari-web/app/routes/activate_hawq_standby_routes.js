@@ -27,7 +27,8 @@ module.exports = App.WizardRoute.extend({
       App.router.set('mainServiceItemController.content', App.Service.find().findProperty('serviceName', 'HAWQ'));
       App.router.get('updateController').set('isWorking', false);
       var popup = App.ModalPopup.show({
-        classNames: ['full-width-modal'],
+        classNames: ['wizard-modal-wrapper'],
+        modalDialogClasses: ['modal-xlg'],
         header: Em.I18n.t('admin.activateHawqStandby.wizard.header'),
         bodyClass: App.ActivateHawqStandbyWizardView.extend({
           controller: activateHawqStandbyWizardController

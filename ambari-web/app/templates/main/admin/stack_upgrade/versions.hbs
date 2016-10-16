@@ -16,20 +16,20 @@
 * limitations under the License.
 }}
 
-<div id="versions-filter-section">
+<div id="versions-filter-section" class="btn-toolbar">
   {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
     <button class="btn btn-primary" {{action goToVersions target="view"}} id="manage-versions-link">
-        <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
+        <i class="glyphicon glyphicon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
     </button>
   {{/isAuthorized}}
   <div class="btn-group display-inline-block">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
       <span class="filters-label">{{t common.filter}}: </span>
         <span>
           {{view.selectedCategory.label}}
           <span class="caret"></span>
         </span>
-    </a>
+    </button>
     <ul class="dropdown-menu">
       {{#each category in view.categories}}
         <li>
@@ -41,8 +41,8 @@
     </ul>
   </div>
 </div>
-<div id="versions-section" class="row-fluid">
-  <div class="span2 left-menu-table">
+<div id="versions-section" class="row col-md-12">
+  <div class="col-md-2 left-menu-table">
     <table class="table">
       <thead>
       </thead>
@@ -55,7 +55,7 @@
       </tbody>
     </table>
   </div>
-  <div class="span10 versions-slides">
+  <div class="col-md-10 versions-slides">
     {{#if isLoaded}}
       <div class="versions-slides-bar">
         {{#each version in view.repoVersionsDisplay}}

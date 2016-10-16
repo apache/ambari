@@ -31,13 +31,13 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
     this.$().on('mouseleave', function () {
       self.set('isExportMenuHidden', true);
     });
-    App.tooltip(this.$('.corner-icon > .icon-save'), {
+    App.tooltip(this.$('.corner-icon > .glyphicon-save'), {
       title: Em.I18n.t('common.export')
     });
   },
 
   willDestroyElement: function () {
-    this.$('.corner-icon > .icon-save').tooltip('destroy');
+    this.$('.corner-icon > .glyphicon-save').tooltip('destroy');
   }
 
 });

@@ -17,7 +17,7 @@
 }}
 <div id="pre-upgrade-check">
   {{#if view.isAllPassed}}
-    <i class="icon-ok"></i>&nbsp;<span>{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg}}</span>
+    <i class="glyphicon glyphicon-ok"></i>&nbsp;<span>{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg}}</span>
   {{/if}}
   {{#if view.fails.length}}
     {{#if view.failTitle}}
@@ -30,7 +30,7 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.fails}}
-        <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
         <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
       {{/each}}
     </div>
@@ -48,7 +48,7 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.bypass}}
-        <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <i class="glyphicon glyphicon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
         <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
       {{/each}}
     </div>
@@ -65,7 +65,7 @@
     {{/if}}
     <div class="limited-height-2">
       {{#each item in view.warnings}}
-        <i class="icon-warning-sign"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
+        <i class="glyphicon glyphicon-warning-sign"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
         <pre>{{t popup.clusterCheck.reason}}{{item.UpgradeChecks.reason}}<br/>{{t popup.clusterCheck.failedOn}}{{item.UpgradeChecks.failed_on}}</pre>
       {{/each}}
     </div>

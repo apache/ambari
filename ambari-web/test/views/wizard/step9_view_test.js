@@ -358,7 +358,7 @@ describe('App.WizardStep9View', function () {
         {
           status: 'success',
           e: {
-            barColor: 'progress-success',
+            barColor: 'progress-bar-success',
             resultMsg: Em.I18n.t('installer.step9.status.success'),
             resultMsgColor: 'alert-success'
           }
@@ -366,14 +366,14 @@ describe('App.WizardStep9View', function () {
         {
           status: 'info',
           e: {
-            barColor: 'progress-info',
+            barColor: 'progress-bar-info',
             resultMsg: ''
           }
         },
         {
           status: 'warning',
           e: {
-            barColor: 'progress-warning',
+            barColor: 'progress-bar-warning',
             resultMsg: Em.I18n.t('installer.step9.status.warning'),
             resultMsgColor: 'alert-warning'
           }
@@ -381,8 +381,8 @@ describe('App.WizardStep9View', function () {
         {
           status: 'failed',
           e: {
-            barColor: 'progress-danger',
-            resultMsgColor: 'alert-error'
+            barColor: 'progress-bar-danger',
+            resultMsgColor: 'alert-danger'
           }
         }
       ]).forEach(function (test) {
@@ -595,7 +595,7 @@ describe('App.HostStatusView', function () {
             status: 'info'
           },
           e: {
-            barColor: 'progress-info'
+            barColor: 'progress-bar-info'
           }
         },
         {
@@ -603,7 +603,7 @@ describe('App.HostStatusView', function () {
             status: 'warning'
           },
           e: {
-            barColor: 'progress-warning'
+            barColor: 'progress-bar-warning'
           }
         },
         {
@@ -612,7 +612,7 @@ describe('App.HostStatusView', function () {
             progress: '100'
           },
           e: {
-            barColor: 'progress-warning',
+            barColor: 'progress-bar-warning',
             'obj.message': Em.I18n.t('installer.step9.host.status.warning')
           }
         },
@@ -621,7 +621,7 @@ describe('App.HostStatusView', function () {
             status: 'failed'
           },
           e: {
-            barColor: 'progress-danger'
+            barColor: 'progress-bar-danger'
           }
         },
         {
@@ -630,7 +630,7 @@ describe('App.HostStatusView', function () {
             progress: '100'
           },
           e: {
-            barColor: 'progress-danger',
+            barColor: 'progress-bar-danger',
             'obj.message': Em.I18n.t('installer.step9.host.status.failed')
           }
         },
@@ -639,7 +639,7 @@ describe('App.HostStatusView', function () {
             status: 'heartbeat_lost'
           },
           e: {
-            barColor: 'progress-danger'
+            barColor: 'progress-bar-danger'
           }
         },
         {
@@ -648,7 +648,7 @@ describe('App.HostStatusView', function () {
             progress: '100'
           },
           e: {
-            barColor: 'progress-danger',
+            barColor: 'progress-bar-danger',
             'obj.message': Em.I18n.t('installer.step9.host.heartbeat_lost')
           }
         }
@@ -715,13 +715,13 @@ describe('App.HostStatusView', function () {
           if (test.e) {
             it('completed successful', function () {
               expect(hv.get('obj.message')).to.be.equal(Em.I18n.t('installer.step9.host.status.success'));
-              expect(hv.get('barColor')).to.be.equal('progress-success');
+              expect(hv.get('barColor')).to.be.equal('progress-bar-success');
             });
           }
           else {
             it('completed not successful', function () {
               expect(hv.get('obj.message')).to.be.not.equal(Em.I18n.t('installer.step9.host.status.success'));
-              expect(hv.get('barColor')).to.be.not.equal('progress-success');
+              expect(hv.get('barColor')).to.be.not.equal('progress-bar-success');
             });
           }
         });

@@ -17,9 +17,11 @@
 }}
 
 <div id="host-rack-id-popup">
-  <div {{bindAttr class=":control-group :inline view.isValid::error"}}>
+  <div {{bindAttr class=":form-group :list-inline view.isValid::has-error"}}>
     <span>{{t hostPopup.RackId}}:&nbsp;</span>
     {{view Em.TextField valueBinding="view.parentView.rackId" class="input-xlarge"}}
-    <span class="help-inline">{{view.errorMessage}}</span>
+    {{#if view.errorMessage}}
+      <span class="help-block validation-block">{{view.errorMessage}}</span>
+    {{/if}}
   </div>
 </div>

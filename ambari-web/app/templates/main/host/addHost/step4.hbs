@@ -33,11 +33,14 @@
             <tr {{bindAttr id="service.serviceId"}}>
               <td>{{service.displayName}}</td>
               <td>
-                {{
-                  view Ember.Select
-                  contentBinding="service.configGroupsNames"
-                  selectionBinding="service.selectedConfigGroup"
-                }}
+                <div class="col-md-6">
+                  {{
+                    view Ember.Select
+                    contentBinding="service.configGroupsNames"
+                    selectionBinding="service.selectedConfigGroup"
+                    classNames="form-control"
+                  }}
+                </div>
               </td>
             </tr>
           {{/each}}
@@ -45,7 +48,7 @@
       </table>
   </div>
    <div class="btn-area">
-      <button class="btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
+      <button class="btn btn-default" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
         &larr; {{t common.back}}
         {{#if App.router.backBtnClickInProgress}}
           {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}

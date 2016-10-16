@@ -18,18 +18,18 @@
 
 <div class="update-progress pull-left">
   {{#if view.isUpdateInProgress}}
-    <div class="progress-info active progress">
-      <div class="bar" {{bindAttr style="view.progressWidth"}}></div>
+    <div class="progress">
+      <div class="progress-bar-info active progress-bar" {{bindAttr style="view.progressWidth"}}></div>
     </div>
   {{else}}
-    <label {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</label>
+    <span {{bindAttr class="view.updateStatusClass"}}>{{view.updateStatus}}</span>
   {{/if}}
 </div>
 {{#if view.parentView.secondary}}
   <button type="button"
           class="btn btn-info" {{bindAttr disabled="view.isUpdateInProgress"}} {{action onSecondary target="view.parentView"}}>
-    <i class="icon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>
+    <i class="glyphicon glyphicon-repeat"></i>&nbsp;{{view.parentView.secondary}}</button>
 {{/if}}
 {{#if view.parentView.primary}}
-  <button type="button" class="btn" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>
+  <button type="button" class="btn btn-default" {{action onPrimary target="view.parentView"}}>{{view.parentView.primary}}</button>
 {{/if}}

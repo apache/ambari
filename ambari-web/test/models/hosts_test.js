@@ -33,18 +33,18 @@ describe('App.HostInfo', function () {
     DONE: 'Registering',
     REGISTERING: 'Registering'}});
 
-  App.TestAliases.testAsComputedGetByKey(getModel(), 'bootBarColor', 'bootBarColorMap', 'bootStatus', {defaultValue: 'progress-info', map: {
-    REGISTERED: 'progress-success',
-    FAILED: 'progress-danger',
-    PENDING: 'progress-info',
-    RUNNING: 'progress-info',
-    DONE: 'progress-info',
-    REGISTERING: 'progress-info'
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'bootBarColor', 'bootBarColorMap', 'bootStatus', {defaultValue: 'progress-bar-info', map: {
+    REGISTERED: 'progress-bar-success',
+    FAILED: 'progress-bar-danger',
+    PENDING: 'progress-bar-info',
+    RUNNING: 'progress-bar-info',
+    DONE: 'progress-bar-info',
+    REGISTERING: 'progress-bar-info'
   }});
 
   App.TestAliases.testAsComputedGetByKey(getModel(), 'bootStatusColor', 'bootStatusColorMap', 'bootStatus', {defaultValue: 'text-info', map: {
     REGISTERED: 'text-success',
-    FAILED: 'text-error',
+    FAILED: 'text-danger',
     PENDING: 'text-info',
     RUNNING: 'text-info',
     DONE: 'text-info',

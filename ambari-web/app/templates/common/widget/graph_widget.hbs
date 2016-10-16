@@ -16,22 +16,22 @@
 * limitations under the License.
 }}
 
-<div class="graph-widget thumbnail">
+<div class="graph-widget img-thumbnail">
   {{#if view.isLoaded}}
-    <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget view.id target="view"}}>
-      <i class="icon-remove-sign icon-large"></i>
+    <a {{bindAttr class=":corner-icon :col-md-1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget view.id target="view"}}>
+      <i class="glyphicon-remove-sign glyphicon glyphicon-large"></i>
     </a>
-    <div class="caption title span11">{{view.content.widgetName}}</div>
+    <div class="caption title col-md-11">{{view.content.widgetName}}</div>
       <div class="widget-icons">
         <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
-          <i class="icon-save"></i>
+          <i class="glyphicon glyphicon-save"></i>
         </a>
         {{#if controller.isAmbariMetricsInstalled}}
           <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-            <i class="icon-edit"></i>
+            <i class="glyphicon glyphicon-edit"></i>
           </a>
           <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-            <i class="icon-copy"></i>
+            <i class="glyphicon glyphicon-copy"></i>
           </a>
         {{/if}}
         {{view view.exportMetricsMenuView}}

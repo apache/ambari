@@ -93,16 +93,16 @@ describe('MainChartsHeatmapController', function () {
       });
     });
 
-    it('should return "span12" for 1 cluster rack', function () {
-      expect(controller.get('rackClass')).to.equal('span12');
+    it('should return "col-md-12" for 1 cluster rack', function () {
+      expect(controller.get('rackClass')).to.equal('col-md-12');
     });
-    it('should return "span6" for 2 cluster racks', function () {
+    it('should return "col-md-6" for 2 cluster racks', function () {
       controller.set('racks', [1, 2]);
-      expect(controller.get('rackClass')).to.equal('span6');
+      expect(controller.get('rackClass')).to.equal('col-md-6');
     });
-    it('should return "span4" for 3 cluster racks', function () {
+    it('should return "col-md-4" for 3 cluster racks', function () {
       controller.set('racks', [1, 2, 3]);
-      expect(controller.get('rackClass')).to.equal('span4');
+      expect(controller.get('rackClass')).to.equal('col-md-4');
     });
   });
 

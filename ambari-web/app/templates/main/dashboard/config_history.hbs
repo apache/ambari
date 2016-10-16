@@ -49,7 +49,7 @@
                   {{item.displayName}}
                 </a>
               {{/if}}
-              <i {{bindAttr class=":icon-refresh :restart-required-service item.isRestartRequired::hidden"}}
+              <i {{bindAttr class=":glyphicon :glyphicon-refresh :restart-required-service item.isRestartRequired::hidden"}}
                 rel="Tooltip" {{translateAttr data-original-title="dashboard.configHistory.table.restart.tooltip"}}></i>
             </td>
             <td>{{item.configGroupName}}
@@ -90,7 +90,7 @@
 </table>
 
   <div class="page-bar">
-    <div class="filtered-info span4">
+    <div class="filtered-info col-md-4">
     {{#if view.showFilteredContent}}
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
               href="#">{{t tableView.filters.clearAllFilters}}</a></label>
@@ -100,9 +100,6 @@
       <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
     </div>
     <div class="info">{{view.paginationInfo}}</div>
-    <div class="paging_two_button">
-      {{view view.paginationLeft}}
-      {{view view.paginationRight}}
-    </div>
+    {{view view.pagination2Btns}}
   </div>
 </div>

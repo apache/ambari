@@ -17,30 +17,30 @@
 }}
 <div class="alert alert-info margin-bottom-5">{{t alerts.actions.manageNotifications.info}}</div>
 {{#if controller.isLoaded}}
-  <div class="row-fluid manage-configuration-group-content" id="manage-alert-notification-content">
-    <div class="span12">
-      <div class="row-fluid">
-        <div class="span4 notification-list">
+  <div class="row manage-configuration-group-content" id="manage-alert-notification-content">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-4 notification-list">
           <span>&nbsp;</span>
           {{view Em.Select
             contentBinding="alertNotifications"
             optionLabelPath="content.displayName"
             multiple="multiple"
-            class="group-select"
+            class="group-select form-control"
             selectionBinding="view.selectedAlertNotification"
           }}
           <div class="btn-toolbar pull-right">
-            <button rel="button-info" class="btn add-notification-button"
+            <button rel="button-info" class="btn btn-default add-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.addButton"}}
               {{bindAttr disabled="view.isAddButtonDisabled"}}
-              {{action addAlertNotification target="controller"}}><i class="icon-plus"></i></button>
-            <button rel="button-info" class="btn remove-notification-button"
+              {{action addAlertNotification target="controller"}}><i class="glyphicon glyphicon-plus"></i></button>
+            <button rel="button-info" class="btn btn-default remove-notification-button"
               {{translateAttr data-original-title="alerts.actions.manage_alert_notifications_popup.removeButton"}}
               {{bindAttr disabled="view.isRemoveButtonDisabled"}}
-              {{action deleteAlertNotification target="controller"}}><i class="icon-minus"></i></button>
-            <div class="btn-group notification-actions-button">
-              <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.isAddButtonDisabled"}}>
-                <i class="icon-cog"></i>&nbsp;<span class="caret"></span>
+              {{action deleteAlertNotification target="controller"}}><i class="glyphicon glyphicon-minus"></i></button>
+            <div class="btn-group notification-actions-button dropup">
+              <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.isAddButtonDisabled"}}>
+                <i class="glyphicon glyphicon-cog"></i>&nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                   <li {{bindAttr class="view.isEditButtonDisabled:disabled"}}>
@@ -70,20 +70,20 @@
             </div>
           </div>
         </div>
-        <div class="span8 notification-info">
+        <div class="col-md-8 notification-info">
           <span>&nbsp;</span>
 
-          <div class="row-fluid">
-            <div class="span12 pull-right">
+          <div class="row">
+            <div class="col-md-12 pull-right">
               {{#if alertNotifications.length}}
                 {{#if selectedAlertNotification}}
-                  <div class="row-fluid notification-name">
-                    <div class="span3 input-label">{{t common.name}}</div>
-                    <div class="span9 input-value">{{selectedAlertNotification.name}}</div>
+                  <div class="row notification-name">
+                    <div class="col-md-3 input-label">{{t common.name}}</div>
+                    <div class="col-md-9 input-value">{{selectedAlertNotification.name}}</div>
                   </div>
-                  <div class="row-fluid notification-groups">
-                    <div class="span3 input-label">{{t common.groups}}</div>
-                    <div class="span9 input-value">
+                  <div class="row notification-groups">
+                    <div class="col-md-3 input-label">{{t common.groups}}</div>
+                    <div class="col-md-9 input-value">
                       {{#if selectedAlertNotification.global}}
                         {{t common.all}}
                       {{else}}
@@ -95,28 +95,28 @@
                       {{/if}}
                     </div>
                   </div>
-                  <div class="row-fluid notification-severity">
-                    <div class="span3 input-label">{{t common.severity}}</div>
-                    <div class="span9 input-value">{{view.severities}}</div>
+                  <div class="row notification-severity">
+                    <div class="col-md-3 input-label">{{t common.severity}}</div>
+                    <div class="col-md-9 input-value">{{view.severities}}</div>
                   </div>
-                  <div class="row-fluid notification-method">
-                    <div class="span3 input-label">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
-                    <div class="span9 input-value">{{selectedAlertNotification.type}}</div>
+                  <div class="row notification-method">
+                    <div class="col-md-3 input-label">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
+                    <div class="col-md-9 input-value">{{selectedAlertNotification.type}}</div>
                   </div>
                   {{#if view.showEmailDetails}}
-                    <div class="row-fluid notification-email">
-                      <div class="span3 input-label">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
-                      <div class="span9 input-value">{{view.email}}</div>
+                    <div class="row notification-email">
+                      <div class="col-md-3 input-label">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
+                      <div class="col-md-9 input-value">{{view.email}}</div>
                     </div>
                   {{/if}}
                   {{#if view.showSNMPDetails}}
                   {{/if}}
-                  <div class="row-fluid notification-description">
-                    <div class="span3 input-label">{{t common.description}}</div>
+                  <div class="row notification-description">
+                    <div class="col-md-3 input-label">{{t common.description}}</div>
                     {{#if selectedAlertNotification.description}}
-                      <div class="span9 input-value">{{selectedAlertNotification.description}}</div>
+                      <div class="col-md-9 input-value">{{selectedAlertNotification.description}}</div>
                     {{else}}
-                      <div class="span9 input-value">{{t alerts.actions.manage_alert_notifications_popup.noDescription}}</div>
+                      <div class="col-md-9 input-value">{{t alerts.actions.manage_alert_notifications_popup.noDescription}}</div>
                     {{/if}}
                   </div>
                 {{/if}}
@@ -129,8 +129,8 @@
           </div>
         </div>
         <div class="clearfix"></div>
-        <div class="row-fluid">
-          <div class="span12 text-error" id="manage-alert-notifications-error">
+        <div class="col-md-12 row">
+          <div class="col-md-12 text-danger" id="manage-alert-notifications-error">
             {{#if controller.errorMessage}}
               {{controller.errorMessage}}
             {{else}}

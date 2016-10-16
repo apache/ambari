@@ -36,7 +36,7 @@ var wrapperView = Ember.View.extend({
   template: Ember.Handlebars.compile(
     '{{#if view.fieldId}}<input type="hidden" id="{{unbound view.fieldId}}" value="" />{{/if}}' +
     '{{view view.filterView}}' +
-    '{{#if view.showApply}}<button {{action "setValueOnApply" target="view"}} class="apply-btn btn"><span>{{t common.apply}}</span></button>{{/if}} '
+    '{{#if view.showApply}}<button {{action "setValueOnApply" target="view"}} class="apply-btn btn btn-default"><span>{{t common.apply}}</span></button>{{/if}} '
   ),
 
   value: null,
@@ -224,6 +224,7 @@ var wrapperView = Ember.View.extend({
  * Simple input control for wrapperView
  */
 var textFieldView = Ember.TextField.extend({
+  classNames: ['input-sm', 'form-control'],
   type: 'text',
   placeholder: Em.I18n.t('any'),
   valueBinding: "parentView.value"
@@ -296,6 +297,7 @@ var componentFieldView = Ember.View.extend({
  * Simple select control for wrapperView
  */
 var selectFieldView = Ember.Select.extend({
+  classNames: ['input-sm', 'form-control'],
   selectionBinding: 'parentView.selected',
   contentBinding: 'parentView.content',
   optionValuePath: "content.value",

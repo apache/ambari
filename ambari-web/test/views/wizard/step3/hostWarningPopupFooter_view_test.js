@@ -51,7 +51,7 @@ describe('App.WizardStep3HostWarningPopupFooter', function() {
   describe('#updateStatusClass', function() {
     var tests = Em.A([
       {checksUpdateStatus: 'SUCCESS', e: 'text-success'},
-      {checksUpdateStatus: 'FAILED', e: 'text-error'},
+      {checksUpdateStatus: 'FAILED', e: 'text-danger'},
       {checksUpdateStatus: 'PANIC', e: null}
     ]);
     tests.forEach(function(test) {

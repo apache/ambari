@@ -16,25 +16,25 @@
 * limitations under the License.
 }}
 
-<div {{bindAttr class=":accordion view.toggleIndex"}}>
-  <div class="accordion-group box">
-    <div class="accordion-heading box-header">
-      <span class="pull-left accordion-toggle metrics-header"
+<div {{bindAttr class=":panel view.toggleIndex"}}>
+  <div class="panel-group box">
+    <div class="panel-heading box-header">
+      <div class="pull-left panel-toggle metrics-header"
             data-toggle="collapse" {{bindAttr dataParent="view.toggleIndex" href="view.toggleIndex"}}>
-        <i class="pull-left icon-caret-toggle"></i>
-        <span>{{view.header}}</span>
-      </span>
+        <h4>
+          <i class="pull-left glyphicon"></i>
+          {{view.header}}
+        </h4>
+      </div>
         {{#if showTimeRangeControl}}
           {{view view.timeRangeListView}}
         {{/if}}
       <div class="clearfix"></div>
     </div>
-    <div class="accordion-body collapse in" {{bindAttr id="view.id"}}>
-      <div class="accordion-inner">
-        {{#if view.metricView}}
-          {{view view.metricView viewDataBinding="view.metricViewData"}}
-        {{/if}}
-      </div>
+    <div class="panel-body collapse in" {{bindAttr id="view.id"}}>
+      {{#if view.metricView}}
+        {{view view.metricView viewDataBinding="view.metricViewData"}}
+      {{/if}}
     </div>
   </div>
 </div>

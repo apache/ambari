@@ -17,12 +17,12 @@
 }}
 
 <div class="links">
-  <ul>
-  <li class="thumbnail row">
-    <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
-      <i class="icon-remove-sign icon-large"></i>
+  <ul class="list-unstyled">
+  <li class="img-thumbnail row">
+    <a {{bindAttr class=":corner-icon :col-md-1 view.parentView.isMoving:hidden"}} href="#" {{action deleteWidget target="view"}}>
+      <i class="glyphicon-remove-sign glyphicon glyphicon-large"></i>
     </a>
-    <div class="caption span10"> {{view.title}}</div>
+    <div class="caption col-md-10"> {{view.title}}</div>
 
     <div class="widget-content" >
       {{#if view.isHAEnabled }}
@@ -81,10 +81,10 @@
       {{#if view.model.quickLinks.length}}
         {{#view App.QuickViewLinks contentBinding="view.model"}}
           <div class="btn-group">
-            <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#">
+            <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
               {{t common.more}}
               <span class="caret"></span>
-            </a>
+            </button>
               <ul class="dropdown-menu">
                 {{#if view.isLoaded}}
                   {{#if view.quickLinksArray}}

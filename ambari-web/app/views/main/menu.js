@@ -24,7 +24,7 @@ var App = require('app');
  */
 App.MainMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ['nav', 'top-nav-menu'],
+  classNames: ['nav', 'top-nav-menu', 'navbar-nav'],
 
   views: function () {
     return App.router.get('mainViewsController.ambariViews');
@@ -61,20 +61,22 @@ App.MainMenuView = Em.CollectionView.extend({
 
   itemViewClass: Em.View.extend({
 
-    classNameBindings: ['active', ':top-nav-dropdown'],
+    classNameBindings: ['active', 'dropdownMenu:dropdown'],
+
+    classNames: ['top-nav-dropdown'],
 
     active: function () {
       if (App.get('clusterName') && App.router.get('clusterController.isLoaded')) {
-        var last_url = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
-        if (last_url.substr(1, 4) !== 'main' || !this._childViews) {
-          return;
+        var lastUrl = App.router.location.lastSetURL || location.href.replace(/^[^#]*#/, '');
+        if (lastUrl.substr(1, 4) !== 'main' || !this._childViews) {
+          return '';
         }
         var reg = /^\/main\/([a-z]+)/g;
-        var sub_url = reg.exec(last_url);
-        var chunk = (null != sub_url) ? sub_url[1] : 'dashboard';
+        var subUrl = reg.exec(lastUrl);
+        var chunk = null !== subUrl ? subUrl[1] : 'dashboard';
         return this.get('content.routing').indexOf(chunk) === 0 ? "active" : "";
       }
-      return "";
+      return '';
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
     templateName: require('templates/main/menu_item'),
@@ -100,19 +102,19 @@ App.MainMenuView = Em.CollectionView.extend({
     selectedAdminItemBinding: 'App.router.mainAdminController.category',
 
     dropdownCategories: function () {
-      var itemName = this.get('content').routing;
+      var itemName = this.get('content.routing');
       var categories = [];
+      var upg = App.get('upgradeInProgress') || App.get('upgradeHolding');
       // create dropdown categories for each menu item
-      if (itemName == 'admin') {
-        categories = [];
-        if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+      if (itemName === 'admin') {
+        if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK') || upg) {
           categories.push({
             name: 'stackAndUpgrade',
             url: 'stack',
             label: Em.I18n.t('admin.stackUpgrade.title')
           });
         }
-        if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') ||  (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+        if(App.isAuthorized('SERVICE.SET_SERVICE_USERS_GROUPS') || upg) {
           categories.push({
             name: 'adminServiceAccounts',
             url: 'serviceAccounts',
@@ -120,7 +122,7 @@ App.MainMenuView = Em.CollectionView.extend({
             disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
           });
         }
-        if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+        if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS') || upg) {
           categories.push({
             name: 'kerberos',
             url: 'kerberos/',
@@ -128,7 +130,7 @@ App.MainMenuView = Em.CollectionView.extend({
             disabled: App.get('upgradeInProgress') || App.get('upgradeHolding')
           });
         }
-        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || (App.get('upgradeInProgress') || App.get('upgradeHolding'))) {
+        if (App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS') || upg) {
           if (App.supports.serviceAutoStart) {
             categories.push({
               name: 'serviceAutoStart',
@@ -139,14 +141,14 @@ App.MainMenuView = Em.CollectionView.extend({
         }
       }
       return categories;
-    }.property(''),
+    }.property('content.routing'),
 
     AdminDropdownItemView: Ember.View.extend({
       tagName: 'li',
-      classNameBindings: 'isActive:active isDisabled:disabled'.w(),
+      classNameBindings: ['isActive:active', 'isDisabled:disabled'],
       isActive: Em.computed.equalProperties('item', 'parentView.selectedAdminItem'),
       isDisabled: function () {
-        return !!this.get('parentView.dropdownCategories').findProperty('name', this.get('item'))['disabled'];
+        return !!this.get('parentView.dropdownCategories').findProperty('name', this.get('item')).disabled;
       }.property('item', 'parentView.dropdownCategories.@each.disabled'),
       goToCategory: function (event) {
         var itemName = this.get('parentView').get('content').routing;

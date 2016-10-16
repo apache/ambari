@@ -25,7 +25,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
   templateName: require('templates/common/configs/service_config_category'),
 
-  classNames: ['accordion-group', 'common-config-category'],
+  classNames: ['panel-group', 'common-config-category'],
 
   classNameBindings: ['category.name', 'isShowBlock::hidden'],
 
@@ -230,6 +230,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       var self = this;
       return App.ModalPopup.show({
         classNames: ['modal-690px-width'],
+        modalDialogClasses: ['modal-lg'],
         showCloseButton: false,
         header: "Warning: you must also change these Service properties",
         onApply: function () {
@@ -338,7 +339,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       }
       return className;
     });
-    var categoryBlock = $('.' + classNames.join('.') + '>.accordion-body');
+    var categoryBlock = $('.' + classNames.join('.') + '>.panel-body');
     this.get('category.isCollapsed') ? categoryBlock.hide() : categoryBlock.show();
   },
 
@@ -374,12 +375,12 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * @method onToggleBlock
    */
   onToggleBlock: function () {
-    this.$('.accordion-body').toggle('blind', 500);
+    this.$('.panel-body').toggle('blind', 500);
     this.toggleProperty('category.isCollapsed');
   },
 
   /**
-   * Determines should accordion be collapsed by default
+   * Determines should panel be collapsed by default
    * @returns {boolean}
    * @method calcIsCollapsed
    */
@@ -515,7 +516,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     });
 
     App.ModalPopup.show({
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
       header: Em.I18n.t('installer.step7.config.addProperty'),
       primary: Em.I18n.t('add'),
       secondary: Em.I18n.t('common.cancel'),
@@ -627,8 +629,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         },
         filterByKey: function (event) {
           var controller = (App.router.get('currentState.name') == 'configs')
-            ? App.router.get('mainServiceInfoConfigsController')
-            : App.router.get('wizardStep7Controller');
+              ? App.router.get('mainServiceInfoConfigsController')
+              : App.router.get('wizardStep7Controller');
           this.get('parentView').onClose();
           controller.set('filter', event.view.get('serviceConfigObj.name'));
         }

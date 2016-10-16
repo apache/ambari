@@ -45,7 +45,7 @@
   <property>
     <name>hive_server_interactive_host</name>
     <value>localhost</value>
-    <description>HiveServer2 Interactive Host</description>
+    <description>The host that has been assigned to run HiveServer2 Interactive</description>
     <display-name>HiveServer2 Interactive Host</display-name>
     <value-attributes>
       <overridable>false</overridable>

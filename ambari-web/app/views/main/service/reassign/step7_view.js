@@ -33,5 +33,5 @@ App.ReassignMasterWizardStep7View = App.HighAvailabilityProgressPageView.extend(
 
   templateName: require('templates/main/service/reassign/step7'),
 
-  labelWidth: 'span5'
+  labelWidth: 'col-md-5'
 });

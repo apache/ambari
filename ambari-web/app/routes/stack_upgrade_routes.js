@@ -34,7 +34,8 @@ module.exports = App.WizardRoute.extend({
           App.router.get('updateController').set('isWorking', false);
 
           return App.ModalPopup.show({
-            classNames: ['full-width-modal'],
+            classNames: ['upgrade-wizard-modal'],
+            modalDialogClasses: ['modal-xlg'],
             header: function () {
               var controller = App.router.get('mainAdminStackAndUpgradeController');
               if (controller.get('isDowngrade')) {

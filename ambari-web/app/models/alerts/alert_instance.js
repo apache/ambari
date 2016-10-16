@@ -144,7 +144,7 @@ App.AlertInstance = DS.Model.extend({
    * @type {object}
    */
   typeIcons: {
-    'DISABLED': 'icon-off'
+    'DISABLED': 'glyphicon glyphicon-off'
   },
 
   repeatToleranceReceived: function () {
