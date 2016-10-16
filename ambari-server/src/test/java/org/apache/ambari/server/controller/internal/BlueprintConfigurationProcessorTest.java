@@ -1692,6 +1692,11 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
+    if (BlueprintConfigurationProcessor.singleHostTopologyUpdaters != null &&
+            BlueprintConfigurationProcessor.singleHostTopologyUpdaters.containsKey("oozie-site")) {
+      BlueprintConfigurationProcessor.singleHostTopologyUpdaters.get("oozie-site").remove("oozie.service.JPAService.jdbc.url");
+    }
+
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
