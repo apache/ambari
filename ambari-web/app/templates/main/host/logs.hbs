@@ -16,9 +16,9 @@
 * limitations under the License.
 }}
 
-<table class="table advanced-header-table table-bordered table-striped">
+<table class="table advanced-header-table table-hover">
   <thead>
-    {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+    {{#view view.sortView contentBinding="view.filteredContent"}}
       {{view view.parentView.serviceNameSort classNames="first"}}
       {{view view.parentView.componentNameSort}}
       {{view view.parentView.fileExtensionsSort}}
@@ -37,7 +37,7 @@
           <td>{{row.componentDisplayName}}</td>
           <td>
             {{#each file in row.fileNamesObject}}
-              <p>
+              <div>
                 <a {{action openLogFile row file.filePath target="view.parentView"}} href="#" rel="log-file-name-tooltip" {{bindAttr data-original-title="file.filePath"}}>{{file.fileName}}</a>
                 {{#view App.LogSearchUILinkView linkQueryParamsBinding="file.linkTail" tagName="span"}}
                   <a {{bindAttr href="view.formatedLink"}} target="_blank" rel="log-file-name-tooltip" {{translateAttr title="popup.logTail.openInLogSearch"}} class="pull-right external-link">
@@ -45,7 +45,7 @@
                     {{t popup.logTail.openInLogSearch}}
                   </a>
                 {{/view}}
-              </p>
+              </div>
               {{/each}}
           </td>
         {{/view}}

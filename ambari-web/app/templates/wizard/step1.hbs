@@ -53,13 +53,15 @@
           {{#unless servicesForSelectedStack}}
             <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.content.empty}}</div>
           {{/unless}}
-          <table class="table table-striped table-condensed">
-          {{#each service in servicesForSelectedStack}}
-            <tr>
-              <td class="col-md-4">{{service.displayName}}</td>
-              <td class="col-md-8">{{service.latestVersion}}</td>
-            </tr>
-          {{/each}}
+          <table class="table table-hover">
+            <tbody>
+              {{#each service in servicesForSelectedStack}}
+                <tr>
+                  <td class="col-md-4">{{service.displayName}}</td>
+                  <td class="col-md-8">{{service.latestVersion}}</td>
+                </tr>
+              {{/each}}
+            </tbody>
           </table>
         </div>
       </div>

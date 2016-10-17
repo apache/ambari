@@ -408,25 +408,6 @@ h2.table-title {
 .table.table-hover > tbody > tr > td:last-of-type {
   border-right-width: 1px;
 }
-.table.table-hover > tbody > tr:hover {
-  background-color: #E7F6FC;
-}
-.table.table-hover > tbody > tr:hover > td {
-  background-color: #E7F6FC;
-  border-color: #A7DFF2 transparent;
-}
-.table.table-hover > tbody > tr:hover > td:first-of-type {
-  border-left-color: #A7DFF2;
-}
-.table.table-hover > tbody > tr:hover > td:last-of-type {
-  border-right-color: #A7DFF2;
-}
-.table.table-hover > tbody > tr:hover + tr > td {
-  border-top-color: transparent;
-}
-.table.table-hover > tbody > tr:hover > td .action {
-  visibility: visible;
-}
 .table.table-hover > tbody > tr.active {
   background-color: #EEE;
 }
@@ -445,6 +426,25 @@ h2.table-title {
 }
 .table.table-hover > tbody > tr.active + tr:hover > td {
   border-top-color: #A7DFF2;
+}
+.table.table-hover > tbody > tr:hover {
+  background-color: #E7F6FC;
+}
+.table.table-hover > tbody > tr:hover > td {
+  background-color: #E7F6FC;
+  border-color: #A7DFF2 transparent;
+}
+.table.table-hover > tbody > tr:hover > td:first-of-type {
+  border-left-color: #A7DFF2;
+}
+.table.table-hover > tbody > tr:hover > td:last-of-type {
+  border-right-color: #A7DFF2;
+}
+.table.table-hover > tbody > tr:hover + tr > td {
+  border-top-color: transparent;
+}
+.table.table-hover > tbody > tr:hover > td .action {
+  visibility: visible;
 }
 h1,
 h2,

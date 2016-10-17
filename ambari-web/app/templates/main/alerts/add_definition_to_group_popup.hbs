@@ -83,9 +83,9 @@
           </div>
         </div>
       </div>
-      <table class="table table-striped hosts-table">
+      <table class="table table-hover">
         <thead>
-        <tr class="success">
+        <tr>
           <th width="10%">
             {{view Ember.Checkbox checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
           </th>
@@ -96,30 +96,32 @@
         </thead>
       </table>
       <div class="hosts-table-container">
-        <table class="table table-striped hosts-table">
-          {{#if view.pageContent}}
-            {{#each entry in view.pageContent}}
-              <tr {{bindAttr class="entry.filtered::hidden"}}>
-                <td width="10%">
-                  {{view Ember.Checkbox checkedBinding="entry.selected"}}
-                </td>
-                <td width="35%">
-                  {{entry.label}}
-                </td>
-                <td>
-                  {{entry.serviceNameDisplay}}
-                </td>
-                <td>
-                  {{entry.componentNameDisplay}}
-                </td>
+        <table class="table table-hover">
+          <tbody>
+            {{#if view.pageContent}}
+              {{#each entry in view.pageContent}}
+                <tr {{bindAttr class="entry.filtered::hidden"}}>
+                  <td width="10%">
+                    {{view Ember.Checkbox checkedBinding="entry.selected"}}
+                  </td>
+                  <td width="35%">
+                    {{entry.label}}
+                  </td>
+                  <td>
+                    {{entry.serviceNameDisplay}}
+                  </td>
+                  <td>
+                    {{entry.componentNameDisplay}}
+                  </td>
+                </tr>
+              {{/each}}
+            {{else}}
+              <tr>
+                <td width="30%"></td>
+                <td>{{t alerts.actions.manage_alert_groups_popup.addDefinition.noDefinitions}}</td>
               </tr>
-            {{/each}}
-          {{else}}
-            <tr>
-              <td width="30%"></td>
-              <td>{{t alerts.actions.manage_alert_groups_popup.addDefinition.noDefinitions}}</td>
-            </tr>
-          {{/if}}
+            {{/if}}
+          </tbody>
         </table>
       </div>
     </div>
