@@ -591,6 +591,7 @@ App.ConfigHistoryDropdownRowView = Em.View.extend({
       var $el = $('#config_version_popup');
       var $currentTarget = $(event.currentTarget);
       var parentView = view.get('parentView');
+      parentView.set('hoveredServiceVersion', null);
       if (!serviceVersion.get("isDisplayed"))  {
         parentView.set('hoveredServiceVersion', serviceVersion);
         parentView.set('isHovered', true);
@@ -616,7 +617,6 @@ App.ConfigHistoryDropdownRowView = Em.View.extend({
       parentView.set('isHovered', false);
       Em.run.later(function() {
         if(!parentView.get('displaySubMenuFlag') && !parentView.get('isHovered')) {
-          parentView.set('hoveredServiceVersion', null);
           $('#config_version_popup').removeAttr('style');
         }
       }, 200);
@@ -637,7 +637,6 @@ App.ConfigHistoryDropdownSubMenuView = Em.View.extend({
     mouseLeave: function(event, view) {
       var parentView = view.get('parentView');
       parentView.set('displaySubMenuFlag', false);
-      parentView.set('hoveredServiceVersion', null);
       $("#config_version_popup").removeAttr('style');
     }
   })
