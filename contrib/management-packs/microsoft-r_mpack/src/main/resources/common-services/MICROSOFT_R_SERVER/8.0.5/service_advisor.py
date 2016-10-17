@@ -34,22 +34,22 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class MICROSOFT_R805ServiceAdvisor(service_advisor.ServiceAdvisor):
+class MICROSOFT_R_SERVER805ServiceAdvisor(service_advisor.ServiceAdvisor):
 
   def colocateService(self, hostsComponentsMap, serviceComponents):
-    # colocate R_SERVER_CLIENT with NODEMANAGERs and YARN_CLIENTs
-    rClientComponent = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "MICROSOFT_R_SERVER_CLIENT"]
+    # colocate R_NODE_CLIENT with NODEMANAGERs and YARN_CLIENTs
+    rClientComponent = [component for component in serviceComponents if component["StackServiceComponents"]["component_name"] == "MICROSOFT_R_NODE_CLIENT"]
     traceback.print_tb(None)
     rClientComponent = rClientComponent[0]
     if not self.isComponentHostsPopulated(rClientComponent):
       for hostName in hostsComponentsMap.keys():
         hostComponents = hostsComponentsMap[hostName]
         if ({"name": "NODEMANAGER"} in hostComponents or {"name": "YARN_CLIENT"} in hostComponents) \
-            and {"name": "MICROSOFT_R_SERVER_CLIENT"} not in hostComponents:
-          hostsComponentsMap[hostName].append({ "name": "MICROSOFT_R_SERVER_CLIENT" })
+            and {"name": "MICROSOFT_R_NODE_CLIENT"} not in hostComponents:
+          hostsComponentsMap[hostName].append({ "name": "MICROSOFT_R_NODE_CLIENT" })
         if ({"name": "NODEMANAGER"} not in hostComponents and {"name": "YARN_CLIENT"} not in hostComponents) \
-            and {"name": "MICROSOFT_R_SERVER_CLIENT"} in hostComponents:
-          hostsComponentsMap[hostName].remove({"name": "MICROSOFT_R_SERVER_CLIENT"})
+            and {"name": "MICROSOFT_R_NODE_CLIENT"} in hostComponents:
+          hostsComponentsMap[hostName].remove({"name": "MICROSOFT_R_NODE_CLIENT"})
 
   def getServiceComponentLayoutValidations(self, services, hosts):
     componentsListList = [service["components"] for service in services["services"]]
@@ -57,17 +57,17 @@ class MICROSOFT_R805ServiceAdvisor(service_advisor.ServiceAdvisor):
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     hostsCount = len(hostsList)
 
-    rClientHosts = self.getHosts(componentsList, "MICROSOFT_R_SERVER_CLIENT")
+    rClientHosts = self.getHosts(componentsList, "MICROSOFT_R_NODE_CLIENT")
     expectedrClientHosts = set(self.getHosts(componentsList, "NODEMANAGER")) | set(self.getHosts(componentsList, "YARN_CLIENT"))
 
     items = []
 
-    # Generate WARNING if any R_SERVER_CLIENT is not colocated with NODEMANAGER or YARN_CLIENT
+    # Generate WARNING if any R_NODE_CLIENT is not colocated with NODEMANAGER or YARN_CLIENT
     mismatchHosts = sorted(expectedrClientHosts.symmetric_difference(set(rClientHosts)))
     if len(mismatchHosts) > 0:
       hostsString = ', '.join(mismatchHosts)
-      message = "Microsoft R Server Client must be installed on NodeManagers and YARN Clients. " \
+      message = "Microsoft R Node Client must be installed on NodeManagers and YARN Clients. " \
                 "The following {0} host(s) do not satisfy the colocation recommendation: {1}".format(len(mismatchHosts), hostsString)
-      items.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'MICROSOFT_R_SERVER_CLIENT' } )
+      items.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'MICROSOFT_R_NODE_CLIENT' } )
 
     return items
