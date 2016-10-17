@@ -241,6 +241,9 @@ public class URLStreamProvider implements StreamProvider {
     } else {
         // not a 401 Unauthorized status code
         // we would let the original response propagate
+        if (statusCode == HttpStatus.SC_NOT_FOUND || statusCode == HttpStatus.SC_FORBIDDEN){
+          LOG.error(String.format("Received HTTP %s response from URL: %s", statusCode, spec));
+        }
         return connection;
     }
   }

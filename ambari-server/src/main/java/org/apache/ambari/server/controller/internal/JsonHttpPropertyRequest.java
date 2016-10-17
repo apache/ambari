@@ -62,7 +62,9 @@ public abstract class JsonHttpPropertyRequest extends HttpPropertyProvider.HttpP
 
     try {
       Map<String, Object> responseMap = GSON.fromJson(IOUtils.toString(inputStream, "UTF-8"), MAP_TYPE);
-
+      if (responseMap == null){
+        LOG.error("Properties map from HTTP response is null");
+      }
       for (Map.Entry<String, String> entry : getPropertyMappings().entrySet()) {
         Object propertyValueToSet = getPropertyValue(responseMap, entry.getKey());
         resource.setProperty(entry.getValue(), propertyValueToSet);
@@ -77,7 +79,7 @@ public abstract class JsonHttpPropertyRequest extends HttpPropertyProvider.HttpP
 
   // get the property value from the response map for the given property name
   private Object getPropertyValue(Map<String, Object> responseMap, String property) throws SystemException {
-    if (property == null) {
+    if (property == null || responseMap == null) {
       return null;
     }
 
