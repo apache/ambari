@@ -1577,15 +1577,6 @@ h1 {
   }
 }
 
-.running-host-components-table{
-  width: 100%;
-  margin-top: 10px;
-  text-align: left;
-  tbody {
-    vertical-align: top;
-  }
-}
-
 a:focus {
   outline: none;
 }
@@ -3303,17 +3294,6 @@ table.graphs {
   #hosts-table {
     margin-top: 10px;
     margin-bottom: 10px;
-    font-size: 13px\9;
-
-    .filter-row {
-      th {
-        padding: 0;
-        padding-left: 4px;
-      }
-    }
-	  thead {
-      background: none repeat scroll 0 0 #F8F8F8;
-    }
 
     .set-rack-id {
       text-decoration: none;
@@ -3920,9 +3900,6 @@ table.graphs {
   .host-tab-content,
   .logs-tab-content {
     margin-top: 20px;
-    .table thead {
-      background: none repeat scroll 0 0 #F8F8F8;
-    }
   }
   .logs-tab-content {
     a.external-link {
@@ -4709,19 +4686,7 @@ ul.list-inline li {
 }
 
 .advanced-header-table {
-  th.first, td.first {
-    border-left-width: 1px;
-  }
   table-layout: fixed;
-  thead > tr > th {
-    border-top: none;
-  }
-  thead > tr > th,
-  tbody > tr > td {
-    border-bottom: none;
-    border-left: none;
-    border-right: none;
-  }
 
   td {
     &.rack-id {
@@ -5565,7 +5530,8 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     td.icon {
       width: 6%;
-      padding: 13px 5px 5px 20px;
+      padding-left: 20px;
+      padding-right: 5px;
       .view-icon-image {
         img {
           height: 32px;
@@ -5666,7 +5632,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     }
     .empty-label {
       border-top: 1px solid #dddddd;
-      text-align: center
+      text-align: center;
     }
   }
   .wrapp-flume-status{

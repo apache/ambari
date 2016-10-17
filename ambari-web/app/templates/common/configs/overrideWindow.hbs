@@ -89,9 +89,9 @@
             </td>
           </tr>
         </table>
-        <table class="table table-striped hosts-table">
+        <table class="table table-hover">
           <thead>
-            <tr class="success">
+            <tr>
               <th width="10%">
                 {{view Ember.Checkbox checkedBinding="view.allHostsSelected" disabledBinding="view.isDisabled"}}
               </th>
@@ -101,20 +101,22 @@
           </thead>
          </table>
         <div class="hosts-table-container">
-          <table class="table table-striped hosts-table">
-          {{#each entry in view.pageContent}}
-            <tr {{bindAttr class="entry.filtered::hidden"}}>
-              <td width="10%">
-                {{view Ember.Checkbox checkedBinding="entry.selected"}}
-              </td>
-              <td width="45%">
-                {{entry.host.hostName}}
-              </td>
-              <td>
-                {{entry.filterColumnValue}}
-              </td>
-            </tr>
-          {{/each}}
+          <table class="table table-hover">
+            <tbody>
+              {{#each entry in view.pageContent}}
+                <tr {{bindAttr class="entry.filtered::hidden"}}>
+                  <td width="10%">
+                    {{view Ember.Checkbox checkedBinding="entry.selected"}}
+                  </td>
+                  <td width="45%">
+                    {{entry.host.hostName}}
+                  </td>
+                  <td>
+                    {{entry.filterColumnValue}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
          </table>
         </div>
       </div>

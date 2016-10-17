@@ -26,7 +26,7 @@
     </div>
   </div>
   {{outlet}}
-  <table class="table advanced-header-table table-bordered table-striped" id="hosts-table">
+  <table class="table advanced-header-table table-hover" id="hosts-table">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
         <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox class="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}</div></th>

@@ -22,7 +22,7 @@
   <div class="alert alert-info">
     {{t installer.step4.body}}
   </div>
-  <table class="table table-striped">
+  <table class="table table-hover">
     <thead>
     <tr>
       <th class="col-md-3" id="service-name">
@@ -35,7 +35,7 @@
     <tbody>
     {{#each controller}}
       {{#unless isHiddenOnSelectServicePage}}
-        <tr {{bindAttr class="isSelected:success isSelected:service-selected"}}>
+        <tr {{bindAttr class="isSelected:active isSelected:service-selected"}}>
           <td>
             <div class="checkbox">
               <label>

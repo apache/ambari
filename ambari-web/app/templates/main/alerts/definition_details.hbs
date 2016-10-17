@@ -201,9 +201,9 @@
 
       {{#if App.router.mainAlertInstancesController.isLoaded}}
 
-        <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
+        <table class="table advanced-header-table table-hover alerts-table" id="alert-instances-table">
           <thead>
-          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+          {{#view view.sortView contentBinding="view.filteredContent"}}
             {{view view.parentView.serviceSort class="first service-sorting"}}
             {{view view.parentView.hostNameSort class="host-sorting"}}
             {{view view.parentView.stateSort class="state-sorting"}}
