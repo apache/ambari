@@ -31,6 +31,10 @@ from ambari_commons import OSConst
 
 from resource_management.core.logger import Logger
 
+NO_DOCS_FOLDER_MESSAGE = "Cannot find {oozie_examples_regex}. Possible reason is that /etc/yum.conf contains" \
+" tsflags=nodocs which prevents this folder from being installed along with oozie-client package." \
+" If this is the case, please fix /etc/yum.conf and re-install the package."
+
 class OozieServiceCheck(Script):
   pass
 
@@ -61,7 +65,10 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     )
 
     os_family = System.get_instance().os_family
-    oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
+    oozie_examples_dir_regex_matches = glob.glob(params.oozie_examples_regex)
+    if not oozie_examples_dir_regex_matches:
+      raise Fail(format(NO_DOCS_FOLDER_MESSAGE))
+    oozie_examples_dir = oozie_examples_dir_regex_matches[0]
 
     Execute((format("{tmp_dir}/{prepare_hdfs_file_name}"), params.conf_dir, oozie_examples_dir, params.hadoop_conf_dir, params.yarn_resourcemanager_address, params.fs_root, params.service_check_queue_name),
             tries=3,
