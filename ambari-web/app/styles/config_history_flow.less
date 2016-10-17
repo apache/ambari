@@ -242,22 +242,38 @@
 
     ul#dropdown_menu {
       position: absolute;
-      top: 0;
       left: 0;
       z-index: 1000;
-      float: left;
       min-width: 400px;
-      height: 300px;
-      overflow: hidden;
-      overflow-y: scroll;
       padding: 5px 0;
-      margin: 5px 0;
+      margin: 0;
     }
 
     #dropdown_content {
-      height: 300px;
       overflow: hidden;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    #dropdown_outer_container, #dropdown_menu_container {
+      min-width: 400px;
+      height: 300px;
+    }
+
+    #dropdown_outer_container {
+      position: relative;
+      overflow: hidden;
+    }
+
+    #dropdown_inner_container {
+      position: absolute;
+      left: 0;
+      overflow-x: hidden;
       overflow-y: scroll;
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
 
     .dropdown-menu {
@@ -416,12 +432,12 @@
 }
 
 // Firefox specific styles
-body:not(:-moz-handler-blocked) {
+@-moz-document url-prefix() {
   #config_history_flow {
     .version-info-bar {
       .dropdown-menu {
         li {
-          line-height: 30px;
+          line-height: 30px !important;
         }
       }
     }

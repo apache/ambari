@@ -82,20 +82,26 @@
             <span class="caret"></span>
           </button>
           <div id="dropdown_content" class="dropdown-menu">
-            <ul id="dropdown_menu">
-              {{#each serviceVersion in view.dropDownList}}
-                {{view App.ConfigHistoryDropdownRowView serviceVersionBinding="serviceVersion"}}
-              {{/each}}
+            <div id="dropdown_outer_container">
+              <div id="dropdown_inner_container">
+                <div id="dropdown_menu_container">
+                  <ul id="dropdown_menu">
+                    {{#each serviceVersion in view.dropDownList}}
+                      {{view App.ConfigHistoryDropdownRowView serviceVersionBinding="serviceVersion"}}
+                    {{/each}}
 
-              {{#unless view.showFullList}}
-                <li class="align-center pointer" id="show_more">
-                  <a {{action openFullList target="view"}}>
-                    {{t dashboard.configHistory.info-bar.showMore}}&nbsp;{{view.displayName}}
-                    &nbsp;<span class="lowercase ellipsis">{{t dashboard.configHistory.title}}</span>
-                  </a>
-                </li>
-              {{/unless}}
-            </ul>
+                    {{#unless view.showFullList}}
+                      <li class="align-center pointer" id="show_more">
+                        <a {{action openFullList target="view"}}>
+                          {{t dashboard.configHistory.info-bar.showMore}}&nbsp;{{view.displayName}}
+                          &nbsp;<span class="lowercase ellipsis">{{t dashboard.configHistory.title}}</span>
+                        </a>
+                      </li>
+                    {{/unless}}
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.fullNotes"}}>
