@@ -53,6 +53,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -60,6 +61,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -71,6 +73,7 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
@@ -168,6 +171,9 @@ public class AmbariCustomCommandExecutionHelper {
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
+
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String START_COMMAND_NAME = "START";
@@ -500,31 +506,36 @@ public class AmbariCustomCommandExecutionHelper {
       smokeTestRole = actionExecutionContext.getActionName();
     }
 
-    long nowTimestamp = System.currentTimeMillis();
-    Map<String, String> actionParameters = actionExecutionContext.getParameters();
-    final Set<String> candidateHosts;
+    Set<String> candidateHosts;
     final Map<String, ServiceComponentHost> serviceHostComponents;
 
     if (componentName != null) {
-      serviceHostComponents = cluster.getService(serviceName).getServiceComponent(
-          componentName).getServiceComponentHosts();
+      serviceHostComponents = cluster.getService(serviceName).getServiceComponent(componentName).getServiceComponentHosts();
 
       if (serviceHostComponents.isEmpty()) {
-        throw new AmbariException("Hosts not found, component="
-            + componentName + ", service = " + serviceName
-            + ", cluster = " + clusterName);
+        throw new AmbariException(MessageFormat.format("No hosts found for service: {0}, component: {1} in cluster: {2}",
+            serviceName, componentName, clusterName));
       }
 
+      // If specified a specific host, run on it as long as it contains the component.
+      // Otherwise, use candidates that contain the component.
       List<String> candidateHostsList = resourceFilter.getHostNames();
       if (candidateHostsList != null && !candidateHostsList.isEmpty()) {
         candidateHosts = new HashSet<String>(candidateHostsList);
+
+        // Get the intersection.
+        candidateHosts.retainAll(serviceHostComponents.keySet());
+
+        if (candidateHosts.isEmpty()) {
+          throw new AmbariException(MessageFormat.format("The resource filter for hosts does not contain components for " +
+                  "service: {0}, component: {1} in cluster: {2}", serviceName, componentName, clusterName));
+        }
       } else {
         candidateHosts = serviceHostComponents.keySet();
       }
     } else {
-      // TODO: this code branch looks unreliable(taking random component)
-      Map<String, ServiceComponent> serviceComponents =
-              cluster.getService(serviceName).getServiceComponents();
+      // TODO: This code branch looks unreliable (taking random component, should prefer the clients)
+      Map<String, ServiceComponent> serviceComponents = cluster.getService(serviceName).getServiceComponents();
 
       // Filter components without any HOST
       Iterator<String> serviceComponentNameIterator = serviceComponents.keySet().iterator();
@@ -536,18 +547,17 @@ public class AmbariCustomCommandExecutionHelper {
       }
 
       if (serviceComponents.isEmpty()) {
-        throw new AmbariException("Components not found, service = "
-            + serviceName + ", cluster = " + clusterName);
+        throw new AmbariException(MessageFormat.format("Did not find any hosts with components for service: {0} in cluster: {1}",
+            serviceName, clusterName));
       }
 
+      // Pick a random service (should prefer clients).
       ServiceComponent serviceComponent = serviceComponents.values().iterator().next();
-
       serviceHostComponents = serviceComponent.getServiceComponentHosts();
       candidateHosts = serviceHostComponents.keySet();
     }
 
-    // filter out hosts that are in maintenance mode - they should never be
-    // included in service checks
+    // Filter out hosts that are in maintenance mode - they should never be included in service checks
     Set<String> hostsInMaintenanceMode = new HashSet<String>();
     if (actionExecutionContext.isMaintenanceModeHostExcluded()) {
       Iterator<String> iterator = candidateHosts.iterator();
@@ -562,10 +572,10 @@ public class AmbariCustomCommandExecutionHelper {
       }
     }
 
-    // pick a random healthy host from the remaining set, throwing an exception
-    // if there are none to choose from
-    String hostName = managementController.getHealthyHost(candidateHosts);
-    if (hostName == null) {
+    // Filter out hosts that are not healthy, i.e., all hosts should be heartbeating.
+    // Pick one randomly. If there are none, throw an exception.
+    List<String> healthyHostNames = managementController.selectHealthyHosts(candidateHosts);
+    if (healthyHostNames.isEmpty()) {
       String message = MessageFormat.format(
           "While building a service check command for {0}, there were no healthy eligible hosts: unhealthy[{1}], maintenance[{2}]",
           serviceName, StringUtils.join(candidateHosts, ','),
@@ -574,9 +584,53 @@ public class AmbariCustomCommandExecutionHelper {
       throw new AmbariException(message);
     }
 
-    addServiceCheckAction(stage, hostName, smokeTestRole, nowTimestamp, serviceName, componentName,
+    String preferredHostName = selectRandomHostNameWithPreferenceOnAvailability(healthyHostNames);
+
+    long nowTimestamp = System.currentTimeMillis();
+    Map<String, String> actionParameters = actionExecutionContext.getParameters();
+    addServiceCheckAction(stage, preferredHostName, smokeTestRole, nowTimestamp, serviceName, componentName,
         actionParameters, actionExecutionContext.isRetryAllowed(),
         actionExecutionContext.isFailureAutoSkipped());
+  }
+
+  /**
+   * Assuming all hosts are healthy and not in maintenance mode. Rank the hosts based on availability.
+   * Let S = all hosts with 0 PENDING/RUNNING/QUEUED/IN-PROGRESS tasks
+   * Let S' be all such other hosts.
+   *
+   * If S is non-empty, pick a random host from it. If S is empty and S' is non-empty, pick a random host from S'.
+   * @param candidateHostNames All possible host names
+   * @return Random host with a preference for those that are available to process commands immediately.
+   */
+  private String selectRandomHostNameWithPreferenceOnAvailability(List<String> candidateHostNames) throws AmbariException {
+    if (null == candidateHostNames || candidateHostNames.isEmpty()) {
+      return null;
+    }
+    if (candidateHostNames.size() == 1) {
+      return candidateHostNames.get(0);
+    }
+
+    List<String> hostsWithZeroCommands = new ArrayList<>();
+    List<String> hostsWithInProgressCommands = new ArrayList<>();
+
+    Map<Long, Integer> hostIdToCount = hostRoleCommandDAO.getHostIdToCountOfCommandsWithStatus(HostRoleStatus.IN_PROGRESS_STATUSES);
+    for (String hostName : candidateHostNames) {
+      Host host = clusters.getHost(hostName);
+
+      if (hostIdToCount.containsKey(host.getHostId()) && hostIdToCount.get(host.getHostId()) > 0) {
+        hostsWithInProgressCommands.add(hostName);
+      } else {
+        hostsWithZeroCommands.add(hostName);
+      }
+    }
+
+    List<String> preferredList = !hostsWithZeroCommands.isEmpty() ? hostsWithZeroCommands : hostsWithInProgressCommands;
+    if (!preferredList.isEmpty()) {
+      int randomIndex = new Random().nextInt(preferredList.size());
+      return preferredList.get(randomIndex);
+    }
+
+    return null;
   }
 
   /**

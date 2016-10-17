@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
@@ -405,6 +406,7 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
         bind(UserDAO.class).toInstance(createMock(UserDAO.class));
         bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
         bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
+        bind(HostRoleCommandDAO.class).toInstance(createMock(HostRoleCommandDAO.class));
       }
     });
   }
