@@ -1,7 +1,7 @@
 {
   "services": [
     {
-      "name": "MICROSOFT_R",
+      "name": "MICROSOFT_R_SERVER",
       "identities": [
         {
           "name": "/HDFS/NAMENODE/hdfs"

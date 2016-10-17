@@ -22,17 +22,17 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources import Package
 
 
-class MicrosoftR(Script):
+class MicrosoftRServer(Script):
 
   def install(self, env):
-    Logger.info('Installing R Server Client...')
+    Logger.info('Installing R Node Client...')
     tmp_dir = Script.tmp_dir
     Logger.debug('Using temp dir: {0}'.format(tmp_dir))
     self.install_packages(env)
-    Logger.info('Installed R Server')
+    Logger.info('Installed R Node Client')
 
   def configure(self, env):
     Logger.info('Configure R Server. Nothing to do.')
 
 if __name__ == "__main__":
-  MicrosoftR().execute()
+  MicrosoftRServer().execute()

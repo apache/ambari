@@ -1,8 +1,8 @@
 {
   "type": "full-release",
-  "name": "microsoft_r-ambari.mpack",
+  "name": "microsoft_r_server-ambari.mpack",
   "version": "1.0.0.0",
-  "description": "Ambari Management Pack for Microsoft R",
+  "description": "Ambari Management Pack for Microsoft R Server",
   "prerequisites": {
     "min-ambari-version": "2.2.0.0",
     "min-stack-versions": [
@@ -14,17 +14,17 @@
   },
   "artifacts": [
     {
-      "name": "MICROSOFT_R-common-services",
+      "name": "MICROSOFT_R_SERVER-common-services",
       "type" : "service-definitions",
       "source_dir" : "common-services"
     },
     {
-      "name" : "MICROSOFT_R-custom-services",
+      "name" : "MICROSOFT_R_SERVER-custom-services",
       "type" : "stack-addon-service-definitions",
       "source_dir": "custom-services",
       "service_versions_map": [
         {
-          "service_name" : "MICROSOFT_R",
+          "service_name" : "MICROSOFT_R_SERVER",
           "service_version" : "8.0.5",
           "applicable_stacks" : [
             {
