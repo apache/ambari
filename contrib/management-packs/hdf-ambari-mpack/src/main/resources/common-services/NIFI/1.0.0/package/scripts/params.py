@@ -350,7 +350,7 @@ if has_ranger_admin:
   nifi_authentication = config['configurations']['ranger-nifi-plugin-properties']['nifi.authentication']
   ranger_id_owner_for_certificate = config['configurations']['ranger-nifi-plugin-properties']['owner.for.certificate']
   nifi_id_owner_for_certificate = config['configurations']['ranger-nifi-policymgr-ssl']['owner.for.certificate']
-  regex = r"(CN)=([a-zA-Z0-9\.\-\* ]*)"
+  regex = r"(CN)=([a-zA-Z0-9\.\-\*\[\]\|\:]*)"
   match = re.search(regex, nifi_id_owner_for_certificate)
   common_name_for_certificate = match.group(2) if match else 'NONE'
 
