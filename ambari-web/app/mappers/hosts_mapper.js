@@ -65,6 +65,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     work_status: 'HostRoles.state',
     stale_configs: 'HostRoles.stale_configs',
     host_name: 'host_name',
+    public_host_name: 'public_host_name',
     admin_state: 'HostRoles.desired_admin_state'
   },
   stackVersionConfig: {
@@ -131,6 +132,7 @@ App.hostsMapper = App.QuickDataMapper.create({
           component.id = id;
           component.host_id = item.Hosts.host_name;
           component.host_name = item.Hosts.host_name;
+          component.public_host_name = item.Hosts.public_host_name;
           components.push(component);
           componentsIdMap[id] = component;
           if (!newHostComponentsMap[serviceName]) {

@@ -944,11 +944,12 @@ public class ConfigHelper {
    * @param cluster
    *          the cluster to use when determining which services default
    *          configurations to include (not {@code null}).
+   * @param onStackUpgradeFilter if true skip {@code <on-stack-upgrade merge="false"/>} properties
    * @return a mapping of configuration type to map of key/value pairs for the
    *         default configurations.
    * @throws AmbariException
    */
-  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster)
+  public Map<String, Map<String, String>> getDefaultProperties(StackId stack, Cluster cluster, boolean onStackUpgradeFilter)
       throws AmbariException {
     Map<String, Map<String, String>> defaultPropertiesByType = new HashMap<String, Map<String, String>>();
 
@@ -962,9 +963,10 @@ public class ConfigHelper {
       if (!defaultPropertiesByType.containsKey(type)) {
         defaultPropertiesByType.put(type, new HashMap<String, String>());
       }
-
-      defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
-          stackDefaultProperty.getValue());
+      if (!onStackUpgradeFilter || stackDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
+        defaultPropertiesByType.get(type).put(stackDefaultProperty.getName(),
+            stackDefaultProperty.getValue());
+      }
     }
 
     // for every installed service, populate the default service properties
@@ -979,9 +981,10 @@ public class ConfigHelper {
         if (!defaultPropertiesByType.containsKey(type)) {
           defaultPropertiesByType.put(type, new HashMap<String, String>());
         }
-
-        defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
-            serviceDefaultProperty.getValue());
+        if (!onStackUpgradeFilter || serviceDefaultProperty.getPropertyStackUpgradeBehavior().isMerge()) {
+          defaultPropertiesByType.get(type).put(serviceDefaultProperty.getName(),
+              serviceDefaultProperty.getValue());
+        }
       }
     }
 

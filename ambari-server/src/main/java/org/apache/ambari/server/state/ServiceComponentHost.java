@@ -60,6 +60,12 @@ public interface ServiceComponentHost {
   String getHostName();
 
   /**
+   * Get the public host name this object maps to
+   * @return Host's public hostname
+   */
+  String getPublicHostName();
+
+  /**
    * Get the Host this object maps to
    * @return Host Object
    */

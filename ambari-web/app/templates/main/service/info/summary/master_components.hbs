@@ -19,7 +19,7 @@
 {{#each comp in view.mastersComp}}
   <tr {{bindAttr class="comp.isSubComponent:component-small :component comp.componentName"}}>
     <td {{bindAttr class=":summary-label comp.summaryLabelClassName"}}>
-      <a href="#" {{action showDetails comp.host}} title="{{unbound comp.host.publicHostName}}" rel="UsageTooltip">
+      <a href="#" {{action showDetails comp.host}} title="{{unbound comp.publicHostName}}" rel="UsageTooltip">
         {{#if comp.displayNameAdvanced}}
           {{comp.displayNameAdvanced}}
         {{else}}

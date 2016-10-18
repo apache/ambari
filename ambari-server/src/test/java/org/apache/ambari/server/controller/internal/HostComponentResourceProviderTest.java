@@ -184,14 +184,14 @@ public class HostComponentResourceProviderTest {
     StackId stackId = new StackId("HDP-0.1");
     StackId stackId2 = new StackId("HDP-0.2");
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component100", "Component 100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component100", "Component 100", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), null));
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component101", "Component 101", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component101", "Component 101", "Host100", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), null));
 
     allResponse.add(new ServiceComponentHostResponse(
-        "Cluster100", "Service100", "Component102", "Component 102", "Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
+        "Cluster100", "Service100", "Component102", "Component 102", "Host100","Host100", State.INSTALLED.toString(), stackId.getStackId(), State.STARTED.toString(),
         stackId2.getStackId(), null));
     Map<String, String> expectedNameValues = new HashMap<String, String>();
     expectedNameValues.put(
@@ -337,7 +337,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "INSTALLED", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
@@ -538,7 +538,7 @@ public class HostComponentResourceProviderTest {
 
     Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
     nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "INSTALLED", "", "", "", null));
+        "Cluster102", "Service100", "Component100", "Component 100", "Host100", "Host100","INSTALLED", "", "", "", null));
 
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();

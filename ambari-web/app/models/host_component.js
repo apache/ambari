@@ -29,6 +29,7 @@ App.HostComponent = DS.Model.extend({
   host: DS.belongsTo('App.Host'),
   componentLogs: DS.belongsTo('App.HostComponentLog'),
   hostName: DS.attr('string'),
+  publicHostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
 
