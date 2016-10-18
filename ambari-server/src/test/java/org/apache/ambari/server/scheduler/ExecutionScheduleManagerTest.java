@@ -48,8 +48,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.Schedule;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.quartz.CronTrigger;
 import org.quartz.JobDataMap;
@@ -88,22 +88,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ExecutionScheduleManagerTest {
-  private static Clusters clusters;
-  private static Cluster cluster;
-  private static String clusterName;
-  private static Injector injector;
-  private static AmbariMetaInfo metaInfo;
-  private static ExecutionScheduleManager executionScheduleManager;
-  private static RequestExecutionFactory requestExecutionFactory;
-  private static ExecutionScheduler executionScheduler;
-  private static Scheduler scheduler;
-  static Properties properties;
+  private Clusters clusters;
+  private Cluster cluster;
+  private String clusterName;
+  private Injector injector;
+  private AmbariMetaInfo metaInfo;
+  private ExecutionScheduleManager executionScheduleManager;
+  private RequestExecutionFactory requestExecutionFactory;
+  private ExecutionScheduler executionScheduler;
+  private Scheduler scheduler;
+  Properties properties;
 
   private static final Logger LOG =
     LoggerFactory.getLogger(ExecutionScheduleManagerTest.class);
 
-  @BeforeClass
-  public static void setup() throws Exception {
+  @Before
+  public void setup() throws Exception {
     InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
     properties = defaultTestModule.getProperties();
     injector  = Guice.createInjector(Modules.override(defaultTestModule)
@@ -129,8 +129,8 @@ public class ExecutionScheduleManagerTest {
     executionScheduleManager.start();
   }
 
-  @AfterClass
-  public static void teardown() throws Exception {
+  @After
+  public void teardown() throws Exception {
     executionScheduleManager.stop();
     injector.getInstance(PersistService.class).stop();
   }
@@ -155,7 +155,7 @@ public class ExecutionScheduleManagerTest {
     }
   }
 
-  public static class ExecutionSchedulerTestModule implements Module {
+  public class ExecutionSchedulerTestModule implements Module {
     @Override
     public void configure(Binder binder) {
       binder.bind(ExecutionScheduler.class).to(TestExecutionScheduler.class);
