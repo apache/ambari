@@ -1377,7 +1377,7 @@ var urls = {
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.load_current_repo_stack_services': {
-    'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/stack_services',
+    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/state',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.save_provisioning_state': {
