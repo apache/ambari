@@ -26,6 +26,7 @@ public class ServiceComponentHostRequest {
   private String serviceName;
   private String componentName;
   private String hostname;
+  private String publicHostname;
   private String state;
   private String desiredState; // CREATE/UPDATE
   private String desiredStackId; // UPDATE
@@ -178,6 +179,7 @@ public class ServiceComponentHostRequest {
       .append(", serviceName=").append(serviceName)
       .append(", componentName=").append(componentName)
       .append(", hostname=").append(hostname)
+      .append(", publicHostname=").append(publicHostname)
       .append(", desiredState=").append(desiredState)
       .append(", state=").append(state)
       .append(", desiredStackId=").append(desiredStackId)
@@ -200,5 +202,13 @@ public class ServiceComponentHostRequest {
    */
   public String getMaintenanceState() {
     return maintenanceState;
+  }
+
+  public String getPublicHostname() {
+    return publicHostname;
+  }
+
+  public void setPublicHostname(String publicHostname) {
+    this.publicHostname = publicHostname;
   }
 }

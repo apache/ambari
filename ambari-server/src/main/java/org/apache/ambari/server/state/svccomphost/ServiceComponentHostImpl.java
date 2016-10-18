@@ -1092,6 +1092,11 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Override
+  public String getPublicHostName() {
+    return host.getPublicHostName();
+  }
+
+  @Override
   public Host getHost() {
     return host;
   }
@@ -1364,6 +1369,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         String serviceName = serviceComponent.getServiceName();
         String serviceComponentName = serviceComponent.getName();
         String hostName = getHostName();
+        String publicHostName = getPublicHostName();
         String state = getState().toString();
         String stackId = getStackVersion().getStackId();
         String desiredState = getDesiredState().toString();
@@ -1382,7 +1388,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
         ServiceComponentHostResponse r = new ServiceComponentHostResponse(
             clusterName, serviceName,
-            serviceComponentName, displayName, hostName, state,
+            serviceComponentName, displayName, hostName,
+            publicHostName, state,
             stackId, desiredState,
             desiredStackId, componentAdminState);
 
