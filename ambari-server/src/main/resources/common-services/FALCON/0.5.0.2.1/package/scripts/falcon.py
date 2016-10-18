@@ -213,6 +213,17 @@ def falcon(type, action = None, upgrade_type=None):
     process_exists = format("ls {server_pid_file} && ps -p {pid}")
 
     if action == 'start':
+      try:
+        Execute(format('{falcon_home}/bin/falcon-config.sh server falcon'),
+          user = params.falcon_user,
+          path = params.hadoop_bin_dir,
+          environment=environment_dictionary,
+          not_if = process_exists,
+        )
+      except:
+        show_logs(params.falcon_log_dir, params.falcon_user)
+        raise
+
       if not os.path.exists(params.target_jar_file):
         try :
           File(params.target_jar_file,
