@@ -29,14 +29,12 @@ import time
 import signal
 
 from AgentException import AgentException
-from PythonReflectiveExecutor import PythonReflectiveExecutor
 from LiveStatus import LiveStatus
 from ActualConfigHandler import ActualConfigHandler
 from CommandStatusDict import CommandStatusDict
 from CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.BackgroundCommandExecutionHandle import BackgroundCommandExecutionHandle
 from ambari_commons.str_utils import split_on_chunks
-from ambari_commons.thread_utils import terminate_thread
 
 
 logger = logging.getLogger()
@@ -87,7 +85,6 @@ class ActionQueue(threading.Thread):
     self.tmpdir = config.get('agent', 'prefix')
     self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
     self.parallel_execution = config.get_parallel_exec_option()
-    self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 2))
     if self.parallel_execution == 1:
       logger.info("Parallel execution is enabled, will execute agent commands in parallel")
 
@@ -228,18 +225,7 @@ class ActionQueue(threading.Thread):
           if self.controller.recovery_manager.enabled():
             self.controller.recovery_manager.stop_execution_command()
       elif commandType == self.STATUS_COMMAND:
-        component_name = command['componentName']
-
-        thread = threading.Thread(target = self.execute_status_command, args = (command,))
-        thread.daemon = True # hanging status commands should not be prevent ambari-agent from stopping
-        thread.start()
-        thread.join(timeout=self.status_command_timeout)
-
-        if thread.isAlive():
-          terminate_thread(thread)
-          # Force context to reset to normal. By context we mean sys.path, imports, logger setting, etc. They are set by specific status command, and are not relevant to ambari-agent.
-          PythonReflectiveExecutor.last_context.revert()
-          logger.warn("Command {0} for {1} was running for more than {2} seconds. Terminated due to timeout.".format(commandType, component_name, self.status_command_timeout))
+        self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception:
