@@ -241,7 +241,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 

@@ -419,7 +419,6 @@ public class OrmTestHelper {
     ServiceComponent serviceComponent = service.getServiceComponent(componentName);
     ServiceComponentHost serviceComponentHost = serviceComponent.addServiceComponentHost(hostName);
     serviceComponentHost.setDesiredState(State.INSTALLED);
-    serviceComponentHost.persist();
   }
 
   /**
@@ -447,8 +446,6 @@ public class OrmTestHelper {
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
 
-    sch.persist();
-
     ServiceComponent namenode = componentFactory.createNew(service, "NAMENODE");
 
     service.addServiceComponent(namenode);
@@ -460,8 +457,6 @@ public class OrmTestHelper {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 
   /**
@@ -489,8 +484,6 @@ public class OrmTestHelper {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 
   /**

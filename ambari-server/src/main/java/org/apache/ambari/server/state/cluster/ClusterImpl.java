@@ -606,19 +606,12 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  @Transactional
   public void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
     for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
       Service service = getService(serviceComponentHost.getServiceName());
       ServiceComponent serviceComponent = service.getServiceComponent(serviceComponentHost.getServiceComponentName());
       serviceComponent.addServiceComponentHost(serviceComponentHost);
-    }
-    persistServiceComponentHosts(serviceComponentHosts);
-  }
-
-  @Transactional
-  void persistServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) {
-    for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
-      serviceComponentHost.persist();
     }
   }
 

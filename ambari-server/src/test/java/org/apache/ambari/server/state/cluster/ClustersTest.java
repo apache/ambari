@@ -449,15 +449,12 @@ public class ClustersTest {
     ServiceComponent serviceCheckNode = hdfs.addServiceComponent("HDFS_CLIENT");
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
-    nameNodeHost.persist();
     HostEntity nameNodeHostEntity = hostDAO.findByName(nameNodeHost.getHostName());
     Assert.assertNotNull(nameNodeHostEntity);
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
-    dataNodeHost.persist();
 
     ServiceComponentHost serviceCheckNodeHost = serviceCheckNode.addServiceComponentHost(h2);
-    serviceCheckNodeHost.persist();
     serviceCheckNodeHost.setState(State.UNKNOWN);
 
     HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();

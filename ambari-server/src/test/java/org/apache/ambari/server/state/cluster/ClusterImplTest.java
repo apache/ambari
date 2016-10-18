@@ -63,7 +63,7 @@ public class ClusterImplTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
   }
-  
+
   @Test
   public void testAddSessionAttributes() throws Exception {
     Map<String, Object> attributes = new HashMap<String, Object>();
@@ -216,23 +216,21 @@ public class ClusterImplTest {
     Service hdfs = cluster.addService("HDFS");
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.addServiceComponentHost(hostName1).persist();
+    nameNode.addServiceComponentHost(hostName1);
 
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
-    dataNode.addServiceComponentHost(hostName1).persist();
-    dataNode.addServiceComponentHost(hostName2).persist();
+    dataNode.addServiceComponentHost(hostName1);
+    dataNode.addServiceComponentHost(hostName2);
 
     ServiceComponent hdfsClient = hdfs.addServiceComponent("HDFS_CLIENT");
-    hdfsClient.addServiceComponentHost(hostName1).persist();
-    hdfsClient.addServiceComponentHost(hostName2).persist();
+    hdfsClient.addServiceComponentHost(hostName1);
+    hdfsClient.addServiceComponentHost(hostName2);
 
     Service tez = cluster.addService(serviceToDelete);
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
-    tezClientHost1.persist();
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
-    tezClientHost2.persist();
 
     // When
     cluster.deleteService(serviceToDelete);

@@ -212,7 +212,6 @@ public class ConcurrentServiceConfigVersionTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 

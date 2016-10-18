@@ -395,7 +395,5 @@ public class EventsTest {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 }

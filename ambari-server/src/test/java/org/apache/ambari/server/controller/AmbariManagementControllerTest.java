@@ -2523,8 +2523,6 @@ public class AmbariManagementControllerTest {
     sch1.setDesiredStackVersion(new StackId("HDP-1.2.0"));
     sch1.setStackVersion(new StackId("HDP-0.1"));
 
-    sch1.persist();
-
     sch1.updateActualConfigs(new HashMap<String, Map<String,String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
     }});
@@ -2957,13 +2955,6 @@ public class AmbariManagementControllerTest {
     sch2.setDesiredState(State.INIT);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.UNINSTALLED);
-
-    sch1.persist();
-    sch2.persist();
-    sch3.persist();
-    sch4.persist();
-    sch5.persist();
-    sch6.persist();
 
     ServiceComponentHostRequest r =
         new ServiceComponentHostRequest(null, null, null, null, null);
@@ -3959,9 +3950,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("testServiceComponentHostUpdateStackId", stages.get(0).getRequestContext());
     Assert.assertEquals(State.UPGRADING, sch1.getState());
     Assert.assertEquals(State.UPGRADING, sch2.getState());
-    sch1.refresh();
     Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch2.refresh();
     Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
     for (HostRoleCommand command : stages.get(0).getOrderedHostRoleCommands()) {
       ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
@@ -4005,11 +3994,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.UPGRADING, sch1.getState());
     Assert.assertEquals(State.UPGRADING, sch2.getState());
     Assert.assertEquals(State.UPGRADING, sch3.getState());
-    sch1.refresh();
     Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch2.refresh();
     Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch3.refresh();
     Assert.assertTrue(sch3.getDesiredStackVersion().compareTo(newStack) == 0);
     for (Stage stage : stages) {
       for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -4248,10 +4234,10 @@ public class AmbariManagementControllerTest {
 
     mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
     String actionDef1 = getUniqueName();
     String actionDef2 = getUniqueName();
@@ -4411,9 +4397,9 @@ public class AmbariManagementControllerTest {
     hdfs.addServiceComponent(Role.NAMENODE.name());
     hdfs.addServiceComponent(Role.DATANODE.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
 
     installService(cluster1, "HDFS", false, false);
 
@@ -4523,9 +4509,9 @@ public class AmbariManagementControllerTest {
 
     hive.addServiceComponent(Role.HIVE_SERVER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -4804,8 +4790,8 @@ public class AmbariManagementControllerTest {
     hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
     mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -6486,10 +6472,10 @@ public class AmbariManagementControllerTest {
 
     mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
     String action1 = getUniqueName();
 
@@ -6592,12 +6578,12 @@ public class AmbariManagementControllerTest {
 
     mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
-    mapred.getServiceComponent(Role.RESOURCEMANAGER.name()).addServiceComponentHost(host2).persist();
+    mapred.getServiceComponent(Role.RESOURCEMANAGER.name()).addServiceComponentHost(host2);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");

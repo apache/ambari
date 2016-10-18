@@ -1007,8 +1007,6 @@ public class UpgradeActionTest {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(cluster.getDesiredStackVersion());
     sch.setStackVersion(cluster.getCurrentStackVersion());
-
-    sch.persist();
     return sch;
   }
 

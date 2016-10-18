@@ -107,7 +107,7 @@ public class RecoveryConfigHelperTest {
 
   /**
    * Test cluster-env properties from a dummy cluster
-   * 
+   *
    * @throws Exception
    */
   @Test
@@ -137,7 +137,7 @@ public class RecoveryConfigHelperTest {
     Service hdfs = cluster.addService(HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -145,7 +145,7 @@ public class RecoveryConfigHelperTest {
 
     // Install HDFS::NAMENODE to trigger a component installed event
     hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Verify that the config is stale now
     boolean isConfigStale = recoveryConfigHelper.isConfigStale(cluster.getClusterName(), DummyHostname1,
@@ -170,10 +170,10 @@ public class RecoveryConfigHelperTest {
     Service hdfs = cluster.addService(HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -205,7 +205,7 @@ public class RecoveryConfigHelperTest {
     Service hdfs = cluster.addService(HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setDesiredState(State.INSTALLED);
 
     // Get the recovery configuration
@@ -244,10 +244,10 @@ public class RecoveryConfigHelperTest {
     Service hdfs = cluster.addService(HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     hdfs.addServiceComponent(NAMENODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -278,7 +278,7 @@ public class RecoveryConfigHelperTest {
     Service hdfs = cluster.addService(HDFS);
 
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     // Get the recovery configuration
     RecoveryConfig recoveryConfig = recoveryConfigHelper.getRecoveryConfig(cluster.getClusterName(), DummyHostname1);
@@ -321,8 +321,8 @@ public class RecoveryConfigHelperTest {
     hdfs.addServiceComponent(DATANODE).setRecoveryEnabled(true);
 
     // Add SCH to Host1 and Host2
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host1").persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host2").persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host1");
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost("Host2");
 
     // Simulate registration for Host1: Get the recovery configuration right away for Host1.
     // It makes an entry for cluster name and Host1 in the timestamp dictionary.

@@ -363,7 +363,6 @@ public class ComponentVersionCheckActionTest {
     sch.setDesiredStackVersion(cluster.getDesiredStackVersion());
     sch.setStackVersion(cluster.getCurrentStackVersion());
 
-    sch.persist();
     return sch;
   }
 

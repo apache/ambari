@@ -420,7 +420,6 @@ public class ClustersDeadlockTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 

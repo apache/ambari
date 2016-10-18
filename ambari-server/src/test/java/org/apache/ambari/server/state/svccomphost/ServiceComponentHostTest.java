@@ -195,8 +195,6 @@ public class ServiceComponentHostTest {
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(
         sc, hostName);
 
-    impl.persist();
-
     Assert.assertEquals(State.INIT, impl.getState());
     Assert.assertEquals(State.INIT, impl.getDesiredState());
     Assert.assertEquals(SecurityState.UNSECURED, impl.getSecurityState());
