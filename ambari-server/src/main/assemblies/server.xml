@@ -295,6 +295,10 @@
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
     </file>
     <file>
+      <source>src/main/resources/APACHE-AMBARI-MIB.txt</source>
+      <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
       <source>src/main/resources/slider_resources/README.txt</source>
       <outputDirectory>/var/lib/ambari-server/resources/apps</outputDirectory>
     </file>
