@@ -69,5 +69,6 @@
       </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>
+    <on-stack-upgrade merge="false"/>
   </property>
 </configuration>

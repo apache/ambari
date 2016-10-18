@@ -1111,10 +1111,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       // used when determining if a property has been customized and should be
       // overriden with the new stack value)
       Map<String, Map<String, String>> oldStackDefaultConfigurationsByType = configHelper.getDefaultProperties(
-          currentStackId, cluster);
+          currentStackId, cluster, true);
 
       // populate a map with default configurations from the new stack
-      newConfigurationsByType = configHelper.getDefaultProperties(targetStackId, cluster);
+      newConfigurationsByType = configHelper.getDefaultProperties(targetStackId, cluster, true);
 
       // We want to skip updating config-types of services that are not in the upgrade pack.
       // Care should be taken as some config-types could be in services that are in and out

@@ -53,6 +53,9 @@ public class PropertyInfo {
   @XmlElement(name="on-ambari-upgrade", required = true)
   private PropertyUpgradeBehavior propertyAmbariUpgradeBehavior;
 
+  @XmlElement(name="on-stack-upgrade")
+  private PropertyStackUpgradeBehavior propertyStackUpgradeBehavior = new PropertyStackUpgradeBehavior();
+
   @XmlAttribute(name = "require-input")
   private boolean requireInput;
 
@@ -246,6 +249,14 @@ public class PropertyInfo {
       ", dependsOnProperties=" + dependsOnProperties +
       ", dependedByProperties=" + dependedByProperties +
       '}';
+  }
+
+  public PropertyStackUpgradeBehavior getPropertyStackUpgradeBehavior() {
+    return propertyStackUpgradeBehavior;
+  }
+
+  public void setPropertyStackUpgradeBehavior(PropertyStackUpgradeBehavior propertyStackUpgradeBehavior) {
+    this.propertyStackUpgradeBehavior = propertyStackUpgradeBehavior;
   }
 
   public enum PropertyType {
