@@ -43,6 +43,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -115,10 +116,13 @@ public class ConfigHelperTest {
       Assert.assertNotNull(cluster);
       clusters.addHost("h1");
       clusters.addHost("h2");
+      clusters.addHost("h3");
       Assert.assertNotNull(clusters.getHost("h1"));
       Assert.assertNotNull(clusters.getHost("h2"));
+      Assert.assertNotNull(clusters.getHost("h3"));
       clusters.getHost("h1").persist();
       clusters.getHost("h2").persist();
+      clusters.getHost("h3").persist();
 
       // core-site
       ConfigurationRequest cr = new ConfigurationRequest();
@@ -185,57 +189,6 @@ public class ConfigHelperTest {
         add(clusterRequest3);
       }}, null);
 
-
-      //Another version of core-site & global.
-      // core-site2
-      ConfigurationRequest crr = new ConfigurationRequest();
-      crr.setClusterName(clusterName);
-      crr.setType("core-site2");
-      crr.setVersionTag("version1");
-      crr.setProperties(new HashMap<String, String>() {{
-        put("ipc.client.connect.max.retries", "30");
-        put("fs.trash.interval", "30");
-      }});
-      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("ipc.client.connect.max.retries", "1");
-        attrs.put("fs.trash.interval", "2");
-        put("attribute1", attrs);
-      }});
-
-      final ClusterRequest clusterRequestDup =
-        new ClusterRequest(cluster.getClusterId(), clusterName,
-          cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequestDup.setDesiredConfig(Collections.singletonList(crr));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequestDup);
-      }}, null);
-
-      // global
-      crr.setType("global2");
-      crr.setVersionTag("version1");
-      crr.setProperties(new HashMap<String, String>() {{
-        put("dfs_namenode_name_dir", "/hadoop/hdfs/namenode");
-        put("namenode_heapsize", "1024");
-      }});
-      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("dfs_namenode_name_dir", "3");
-        attrs.put("namenode_heapsize", "4");
-        put("attribute2", attrs);
-      }});
-
-      final ClusterRequest clusterRequestGlobalDup =
-        new ClusterRequest(cluster.getClusterId(), clusterName,
-          cluster.getDesiredStackVersion().getStackVersion(), null);
-
-      clusterRequestGlobalDup.setDesiredConfig(Collections.singletonList(crr));
-      managementController.updateClusters(new HashSet<ClusterRequest>() {{
-        add(clusterRequestGlobalDup);
-      }}, null);
-
-
       // oozie-site
       ConfigurationRequest cr4 = new ConfigurationRequest();
       cr4.setClusterName(clusterName);
@@ -265,7 +218,7 @@ public class ConfigHelperTest {
         put("timeline.service.operating.mode", "embedded");
         put("timeline.service.fifo.enabled", "false");
       }});
-      cr4.setPropertiesAttributes(null);
+      cr5.setPropertiesAttributes(null);
 
       final ClusterRequest clusterRequest5 =
         new ClusterRequest(cluster.getClusterId(), clusterName,
@@ -375,7 +328,28 @@ public class ConfigHelperTest {
 
     @Test
     public void testEffectiveTagsForHost() throws Exception {
-      final Config config = new ConfigImpl("core-site");
+
+      //Setup
+      ConfigurationRequest cr5 = new ConfigurationRequest();
+      cr5.setClusterName(clusterName);
+      cr5.setType("ams-env");
+      cr5.setVersionTag("version1");
+      cr5.setProperties(new HashMap<String, String>() {{
+        put("metrics_collector_log_dir", "/var/log/ambari-metrics-collector");
+        put("metrics_collector_pid_dir", "/var/run/ambari-metrics-collector");
+      }});
+      cr5.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequest6 =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest6.setDesiredConfig(Collections.singletonList(cr5));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest6);
+      }}, null);
+
+      final Config config = new ConfigImpl("ams-env");
       config.setTag("version122");
 
       Map<String, String> properties = new HashMap<String, String>();
@@ -395,7 +369,7 @@ public class ConfigHelperTest {
           .getEffectiveDesiredTags(cluster, "h1");
 
       Assert.assertNotNull(configTags);
-      Map<String, String> tagsWithOverrides = configTags.get("core-site");
+      Map<String, String> tagsWithOverrides = configTags.get("ams-env");
       Assert.assertNotNull(tagsWithOverrides);
       Assert.assertTrue(tagsWithOverrides.containsKey(ConfigHelper.CLUSTER_DEFAULT_TAG));
       Assert.assertEquals("version1", tagsWithOverrides.get(ConfigHelper.CLUSTER_DEFAULT_TAG));
@@ -405,7 +379,57 @@ public class ConfigHelperTest {
 
     @Test
     public void testEffectivePropertiesWithOverrides() throws Exception {
-      final Config config1 = new ConfigImpl("core-site");
+
+      //Setup
+      // core-site
+      ConfigurationRequest cr = new ConfigurationRequest();
+      cr.setClusterName(clusterName);
+      cr.setType("core-site2");
+      cr.setVersionTag("version1");
+      cr.setProperties(new HashMap<String, String>() {{
+        put("ipc.client.connect.max.retries", "30");
+        put("fs.trash.interval", "30");
+      }});
+      cr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put("ipc.client.connect.max.retries", "1");
+        attrs.put("fs.trash.interval", "2");
+        put("attribute1", attrs);
+      }});
+
+      final ClusterRequest clusterRequest1 =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest1.setDesiredConfig(Collections.singletonList(cr));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest1);
+      }}, null);
+
+      // global
+      cr.setType("global2");
+      cr.setVersionTag("version1");
+      cr.setProperties(new HashMap<String, String>() {{
+        put("dfs_namenode_name_dir", "/hadoop/hdfs/namenode");
+        put("namenode_heapsize", "1024");
+      }});
+      cr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put("dfs_namenode_name_dir", "3");
+        attrs.put("namenode_heapsize", "4");
+        put("attribute2", attrs);
+      }});
+
+      final ClusterRequest clusterRequest3 =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest3.setDesiredConfig(Collections.singletonList(cr));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest3);
+      }}, null);
+
+      final Config config1 = new ConfigImpl("core-site2");
       config1.setTag("version122");
 
       Map<String, String> properties = new HashMap<String, String>();
@@ -413,7 +437,7 @@ public class ConfigHelperTest {
       properties.put("c", "d");
       config1.setProperties(properties);
 
-      final Config config2 = new ConfigImpl("global");
+      final Config config2 = new ConfigImpl("global2");
       config2.setTag("version122");
       Map<String, String> properties2 = new HashMap<String, String>();
       properties2.put("namenode_heapsize", "1111");
@@ -433,12 +457,12 @@ public class ConfigHelperTest {
               configHelper.getEffectiveDesiredTags(cluster, "h1"));
 
       Assert.assertNotNull(propertyMap);
-      Assert.assertTrue(propertyMap.containsKey("global"));
-      Map<String, String> globalProps = propertyMap.get("global");
+      Assert.assertTrue(propertyMap.containsKey("global2"));
+      Map<String, String> globalProps = propertyMap.get("global2");
       Assert.assertEquals("1111", globalProps.get("namenode_heapsize"));
       Assert.assertEquals("/hadoop/hdfs/namenode", globalProps.get("dfs_namenode_name_dir"));
       Assert.assertTrue(propertyMap.containsKey("core-site"));
-      Map<String, String> coreProps = propertyMap.get("core-site");
+      Map<String, String> coreProps = propertyMap.get("core-site2");
       Assert.assertTrue(coreProps.containsKey("a"));
       Assert.assertTrue(coreProps.containsKey("c"));
       Assert.assertEquals("30", coreProps.get("ipc.client.connect.max.retries"));
@@ -446,7 +470,58 @@ public class ConfigHelperTest {
 
     @Test
     public void testEffectivePropertiesAttributesWithOverrides() throws Exception {
-      final Config config1 = new ConfigImpl("core-site2");
+
+      //Another version of core-site & global.
+      // core-site3
+      ConfigurationRequest crr = new ConfigurationRequest();
+      crr.setClusterName(clusterName);
+      crr.setType("core-site3");
+      crr.setVersionTag("version1");
+      crr.setProperties(new HashMap<String, String>() {{
+        put("ipc.client.connect.max.retries", "30");
+        put("fs.trash.interval", "30");
+      }});
+      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put("ipc.client.connect.max.retries", "1");
+        attrs.put("fs.trash.interval", "2");
+        put("attribute1", attrs);
+      }});
+
+      final ClusterRequest clusterRequestDup =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequestDup.setDesiredConfig(Collections.singletonList(crr));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequestDup);
+      }}, null);
+
+      // global3
+      crr.setType("global3");
+      crr.setVersionTag("version1");
+      crr.setProperties(new HashMap<String, String>() {{
+        put("dfs_namenode_name_dir", "/hadoop/hdfs/namenode");
+        put("namenode_heapsize", "1024");
+      }});
+      crr.setPropertiesAttributes(new HashMap<String, Map<String, String>>() {{
+        Map<String, String> attrs = new HashMap<String, String>();
+        attrs.put("dfs_namenode_name_dir", "3");
+        attrs.put("namenode_heapsize", "4");
+        put("attribute2", attrs);
+      }});
+
+      final ClusterRequest clusterRequestGlobalDup =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequestGlobalDup.setDesiredConfig(Collections.singletonList(crr));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequestGlobalDup);
+      }}, null);
+
+
+      final Config config1 = new ConfigImpl("core-site3");
       config1.setTag("version122");
 
       Map<String, String> attributes = new HashMap<String, String>();
@@ -456,7 +531,7 @@ public class ConfigHelperTest {
       config1Attributes.put("attribute1", attributes);
       config1.setPropertiesAttributes(config1Attributes);
 
-      final Config config2 = new ConfigImpl("global2");
+      final Config config2 = new ConfigImpl("global3");
       config2.setTag("version122");
       attributes = new HashMap<String, String>();
       attributes.put("namenode_heapsize", "z");
@@ -466,7 +541,7 @@ public class ConfigHelperTest {
       config2.setPropertiesAttributes(config2Attributes);
 
       Long groupId = addConfigGroup("g3", "t1", new ArrayList<String>() {{
-        add("h2");
+        add("h3");
       }}, new ArrayList<Config>() {{
         add(config1);
         add(config2);
@@ -476,13 +551,13 @@ public class ConfigHelperTest {
 
       Map<String, Map<String, Map<String, String>>> effectiveAttributes = configHelper
           .getEffectiveConfigAttributes(cluster,
-              configHelper.getEffectiveDesiredTags(cluster, "h2"));
+              configHelper.getEffectiveDesiredTags(cluster, "h3"));
 
       Assert.assertNotNull(effectiveAttributes);
-      Assert.assertEquals(7, effectiveAttributes.size());
+      Assert.assertEquals(10, effectiveAttributes.size());
 
-      Assert.assertTrue(effectiveAttributes.containsKey("global2"));
-      Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global2");
+      Assert.assertTrue(effectiveAttributes.containsKey("global3"));
+      Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global3");
       Assert.assertEquals(1, globalAttrs.size());
       Assert.assertTrue(globalAttrs.containsKey("attribute2"));
       Map<String, String> attribute2Occurances = globalAttrs.get("attribute2");
@@ -494,8 +569,8 @@ public class ConfigHelperTest {
       Assert.assertTrue(attribute2Occurances.containsKey("c"));
       Assert.assertEquals("q", attribute2Occurances.get("c"));
 
-      Assert.assertTrue(effectiveAttributes.containsKey("core-site2"));
-      Map<String, Map<String, String>> coreAttrs = effectiveAttributes.get("core-site2");
+      Assert.assertTrue(effectiveAttributes.containsKey("core-site3"));
+      Map<String, Map<String, String>> coreAttrs = effectiveAttributes.get("core-site3");
       Assert.assertEquals(1, coreAttrs.size());
       Assert.assertTrue(coreAttrs.containsKey("attribute1"));
       Map<String, String> attribute1Occurances = coreAttrs.get("attribute1");
