@@ -90,6 +90,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "display_name");
   public static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "host_name");
+  public static final String HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID
+      = PropertyHelper.getPropertyId("HostRoles", "public_host_name");
   public static final String HOST_COMPONENT_STATE_PROPERTY_ID
       = PropertyHelper.getPropertyId("HostRoles", "state");
   public static final String HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID
@@ -228,6 +230,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getDisplayName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
               response.getHostname(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID,
+          response.getPublicHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID,
               response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID,
@@ -685,6 +689,11 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       serviceComponentHostRequest.setAdminState(
           properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
     }
+    if (properties.get(HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID) != null) {
+      serviceComponentHostRequest.setPublicHostname(
+          properties.get(HOST_COMPONENT_PUBLIC_HOST_NAME_PROPERTY_ID).toString());
+    }
+
 
     Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {

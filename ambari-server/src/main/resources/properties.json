@@ -74,6 +74,7 @@
         "HostRoles/role_id",
         "HostRoles/cluster_name",
         "HostRoles/host_name",
+        "HostRoles/public_host_name",
         "HostRoles/component_name",
         "HostRoles/display_name",
         "HostRoles/state",

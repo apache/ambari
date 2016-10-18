@@ -466,6 +466,7 @@ App.UpdateController = Em.Controller.extend({
         'ServiceComponentInfo/service_name,' +
         'host_components/HostRoles/display_name,' +
         'host_components/HostRoles/host_name,' +
+        'host_components/HostRoles/public_host_name,' +
         'host_components/HostRoles/state,' +
         'host_components/HostRoles/maintenance_state,' +
         'host_components/HostRoles/stale_configs,' +
@@ -533,7 +534,7 @@ App.UpdateController = Em.Controller.extend({
   },
   updateComponentConfig: function (callback) {
     var testUrl = '/data/services/host_component_stale_configs.json';
-    var componentConfigUrl = this.getUrl(testUrl, '/components?host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/display_name,host_components/HostRoles/service_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/host_name,host_components/HostRoles/stale_configs,host_components/HostRoles/desired_admin_state&minimal_response=true');
+    var componentConfigUrl = this.getUrl(testUrl, '/components?host_components/HostRoles/stale_configs=true&fields=host_components/HostRoles/display_name,host_components/HostRoles/service_name,host_components/HostRoles/state,host_components/HostRoles/maintenance_state,host_components/HostRoles/host_name,host_components/HostRoles/public_host_name,host_components/HostRoles/stale_configs,host_components/HostRoles/desired_admin_state&minimal_response=true');
     App.HttpClient.get(componentConfigUrl, App.componentConfigMapper, {
       complete: callback
     });
