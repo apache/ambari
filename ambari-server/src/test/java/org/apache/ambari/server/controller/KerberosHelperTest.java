@@ -18,10 +18,42 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.ActionManager;
@@ -76,7 +108,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosConfigurationDescriptor;
@@ -96,45 +127,16 @@ import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.persistence.EntityManager;
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("unchecked")
 public class KerberosHelperTest extends EasyMockSupport {
@@ -227,7 +229,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
         bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
-        bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
+        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
         bind(ClusterController.class).toInstance(clusterController);

@@ -188,12 +188,6 @@ public interface ServiceComponentHost {
    */
   ServiceComponentHostResponse convertToResponse(Map<String, DesiredConfig> desiredConfigs);
 
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
-
   void debugDump(StringBuilder sb);
 
   boolean canBeRemoved();

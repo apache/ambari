@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -79,10 +78,10 @@ import org.apache.ambari.server.actionmanager.TargetHostType;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ClusterStackVersionResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
+import org.apache.ambari.server.controller.internal.DeleteStatusMetaData;
 import org.apache.ambari.server.controller.internal.HostComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
@@ -171,7 +170,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -313,7 +311,6 @@ public class AmbariManagementControllerTest {
       clusters.addHost(hostname);
       setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
       clusters.getHost(hostname).setState(HostState.HEALTHY);
-      clusters.getHost(hostname).persist();
     }
 
     if (null != clusterName) {
@@ -628,8 +625,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host2);
     setOsFamily(clusters.getHost(host1), "redhat", "6.3");
     setOsFamily(clusters.getHost(host2), "redhat", "6.3");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
 
     controller.createCluster(r);
     Assert.assertNotNull(clusters.getCluster(cluster1));
@@ -1011,8 +1006,6 @@ public class AmbariManagementControllerTest {
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(s1);
     c1.addService(s2);
-    s1.persist();
-    s2.persist();
 
     set1.clear();
     ServiceComponentRequest valid1 =
@@ -1316,8 +1309,6 @@ public class AmbariManagementControllerTest {
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(s1);
     c1.addService(s2);
-    s1.persist();
-    s2.persist();
 
     Set<ServiceComponentRequest> set1 = new HashSet<ServiceComponentRequest>();
     ServiceComponentRequest valid1 =
@@ -1627,13 +1618,10 @@ public class AmbariManagementControllerTest {
 
     Service s1 = serviceFactory.createNew(foo, "HDFS");
     foo.addService(s1);
-    s1.persist();
     Service s2 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s2);
-    s2.persist();
     Service s3 = serviceFactory.createNew(c2, "HDFS");
     c2.addService(s3);
-    s3.persist();
 
 
     try {
@@ -1649,13 +1637,10 @@ public class AmbariManagementControllerTest {
 
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "NAMENODE");
     s1.addServiceComponent(sc1);
-    sc1.persist();
     ServiceComponent sc2 = serviceComponentFactory.createNew(s2, "NAMENODE");
     s2.addServiceComponent(sc2);
-    sc2.persist();
     ServiceComponent sc3 = serviceComponentFactory.createNew(s3, "NAMENODE");
     s3.addServiceComponent(sc3);
-    sc3.persist();
 
 
     try {
@@ -1674,19 +1659,16 @@ public class AmbariManagementControllerTest {
     h1.setIPv4("ipv41");
     h1.setIPv6("ipv61");
     setOsFamily(h1, "redhat", "6.3");
-    h1.persist();
     clusters.addHost(host2);
     Host h2 = clusters.getHost(host2);
     h2.setIPv4("ipv42");
     h2.setIPv6("ipv62");
     setOsFamily(h2, "redhat", "6.3");
-    h2.persist();
     clusters.addHost(host3);
     Host h3 = clusters.getHost(host3);
     h3.setIPv4("ipv43");
     h3.setIPv6("ipv63");
     setOsFamily(h3, "redhat", "6.3");
-    h3.persist();
 
     try {
       set1.clear();
@@ -1808,8 +1790,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host2);
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
 
     HostRequest request = new HostRequest(host2, "foo", new HashMap<String, String>());
     requests.add(request);
@@ -1864,9 +1844,6 @@ public class AmbariManagementControllerTest {
     setOsFamily(clusters.getHost(host1), "redhat", "5.9");
     setOsFamily(clusters.getHost(host2), "redhat", "5.9");
     setOsFamily(clusters.getHost(host3), "redhat", "5.9");
-    clusters.getHost(host1).persist();
-    clusters.getHost(host2).persist();
-    clusters.getHost(host3).persist();
 
     HostRequest r1 = new HostRequest(host1, cluster1, null);
     HostRequest r2 = new HostRequest(host2, cluster1, null);
@@ -2281,8 +2258,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredStackVersion(new StackId("HDP-0.1"));
     s1.setDesiredState(State.INSTALLED);
 
-    s1.persist();
-
     ServiceRequest r = new ServiceRequest(cluster1, null, null);
     Set<ServiceResponse> resp = ServiceResourceProviderTest.getServices(controller, Collections.singleton(r));
 
@@ -2326,12 +2301,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredState(State.INSTALLED);
     s2.setDesiredState(State.INSTALLED);
     s4.setDesiredState(State.INSTALLED);
-
-    s1.persist();
-    s2.persist();
-    s3.persist();
-    s4.persist();
-    s5.persist();
 
     ServiceRequest r = new ServiceRequest(null, null, null);
     Set<ServiceResponse> resp;
@@ -2391,10 +2360,8 @@ public class AmbariManagementControllerTest {
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s1);
     s1.setDesiredState(State.INSTALLED);
-    s1.persist();
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
-    sc1.persist();
     sc1.setDesiredStackVersion(new StackId("HDP-0.1"));
     sc1.setDesiredState(State.UNINSTALLED);
 
@@ -2443,12 +2410,6 @@ public class AmbariManagementControllerTest {
     s2.setDesiredState(State.INSTALLED);
     s4.setDesiredState(State.INSTALLED);
 
-    s1.persist();
-    s2.persist();
-    s3.persist();
-    s4.persist();
-    s5.persist();
-
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     ServiceComponent sc2 = serviceComponentFactory.createNew(s1, "NAMENODE");
     ServiceComponent sc3 = serviceComponentFactory.createNew(s3,
@@ -2477,15 +2438,6 @@ public class AmbariManagementControllerTest {
     sc6.setDesiredState(State.UNINSTALLED);
     sc7.setDesiredState(State.UNINSTALLED);
     sc8.setDesiredState(State.UNINSTALLED);
-
-    sc1.persist();
-    sc2.persist();
-    sc3.persist();
-    sc4.persist();
-    sc5.persist();
-    sc6.persist();
-    sc7.persist();
-    sc8.persist();
 
     ServiceComponentRequest r = new ServiceComponentRequest(null, null,
         null, null);
@@ -2561,19 +2513,15 @@ public class AmbariManagementControllerTest {
     Cluster c1 = setupClusterWithHosts(cluster1, "HDP-0.1", Lists.newArrayList(host1), "centos5");
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s1);
-    s1.persist();
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     s1.addServiceComponent(sc1);
     sc1.setDesiredState(State.UNINSTALLED);
-    sc1.persist();
     ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, host1);
     sc1.addServiceComponentHost(sch1);
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
     sch1.setDesiredStackVersion(new StackId("HDP-1.2.0"));
     sch1.setStackVersion(new StackId("HDP-0.1"));
-
-    sch1.persist();
 
     sch1.updateActualConfigs(new HashMap<String, Map<String,String>>() {{
       put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
@@ -2977,10 +2925,6 @@ public class AmbariManagementControllerTest {
     s1.setDesiredState(State.INSTALLED);
     s2.setDesiredState(State.INSTALLED);
 
-    s1.persist();
-    s2.persist();
-    s3.persist();
-
     ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "DATANODE");
     ServiceComponent sc2 = serviceComponentFactory.createNew(s1, "NAMENODE");
     ServiceComponent sc3 = serviceComponentFactory.createNew(s3,
@@ -2992,10 +2936,6 @@ public class AmbariManagementControllerTest {
 
     sc1.setDesiredState(State.UNINSTALLED);
     sc3.setDesiredState(State.UNINSTALLED);
-
-    sc1.persist();
-    sc2.persist();
-    sc3.persist();
 
     ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, host1);
     ServiceComponentHost sch2 = serviceComponentHostFactory.createNew(sc1, host2);
@@ -3015,13 +2955,6 @@ public class AmbariManagementControllerTest {
     sch2.setDesiredState(State.INIT);
     sch4.setDesiredState(State.INSTALLED);
     sch5.setDesiredState(State.UNINSTALLED);
-
-    sch1.persist();
-    sch2.persist();
-    sch3.persist();
-    sch4.persist();
-    sch5.persist();
-    sch6.persist();
 
     ServiceComponentHostRequest r =
         new ServiceComponentHostRequest(null, null, null, null, null);
@@ -3136,7 +3069,6 @@ public class AmbariManagementControllerTest {
         "centos5");
     clusters.addHost(host4);
     setOsFamily(clusters.getHost(host4), "redhat", "5.9");
-    clusters.getHost(host4).persist();
 
     Map<String, String> attrs = new HashMap<String, String>();
     attrs.put("a1", "b1");
@@ -4018,9 +3950,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("testServiceComponentHostUpdateStackId", stages.get(0).getRequestContext());
     Assert.assertEquals(State.UPGRADING, sch1.getState());
     Assert.assertEquals(State.UPGRADING, sch2.getState());
-    sch1.refresh();
     Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch2.refresh();
     Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
     for (HostRoleCommand command : stages.get(0).getOrderedHostRoleCommands()) {
       ExecutionCommand execCommand = command.getExecutionCommandWrapper().getExecutionCommand();
@@ -4064,11 +3994,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(State.UPGRADING, sch1.getState());
     Assert.assertEquals(State.UPGRADING, sch2.getState());
     Assert.assertEquals(State.UPGRADING, sch3.getState());
-    sch1.refresh();
     Assert.assertTrue(sch1.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch2.refresh();
     Assert.assertTrue(sch2.getDesiredStackVersion().compareTo(newStack) == 0);
-    sch3.refresh();
     Assert.assertTrue(sch3.getDesiredStackVersion().compareTo(newStack) == 0);
     for (Stage stage : stages) {
       for (HostRoleCommand command : stage.getOrderedHostRoleCommands()) {
@@ -4299,21 +4226,18 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config3);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
     String actionDef1 = getUniqueName();
     String actionDef2 = getUniqueName();
@@ -4468,15 +4392,14 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
 
     installService(cluster1, "HDFS", false, false);
 
@@ -4578,20 +4501,17 @@ public class AmbariManagementControllerTest {
     cluster.addDesiredConfig("_test", Collections.singleton(config2));
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service hive = cluster.addService("HIVE");
-    hive.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    hive.addServiceComponent(Role.HIVE_SERVER.name()).persist();
+    hive.addServiceComponent(Role.HIVE_SERVER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -4866,14 +4786,12 @@ public class AmbariManagementControllerTest {
 
     Service hdfs = cluster.addService("HDFS");
     Service mapReduce = cluster.addService("MAPREDUCE");
-    hdfs.persist();
-    mapReduce.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    mapReduce.addServiceComponent(Role.MAPREDUCE_CLIENT.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    mapReduce.getServiceComponent(Role.MAPREDUCE_CLIENT.name()).addServiceComponentHost(host2);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -6539,21 +6457,18 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
     String action1 = getUniqueName();
 
@@ -6648,23 +6563,20 @@ public class AmbariManagementControllerTest {
     cluster.addConfig(config2);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
-
     Service mapred = cluster.addService("YARN");
-    mapred.persist();
 
-    hdfs.addServiceComponent(Role.HDFS_CLIENT.name()).persist();
-    hdfs.addServiceComponent(Role.NAMENODE.name()).persist();
-    hdfs.addServiceComponent(Role.DATANODE.name()).persist();
+    hdfs.addServiceComponent(Role.HDFS_CLIENT.name());
+    hdfs.addServiceComponent(Role.NAMENODE.name());
+    hdfs.addServiceComponent(Role.DATANODE.name());
 
-    mapred.addServiceComponent(Role.RESOURCEMANAGER.name()).persist();
+    mapred.addServiceComponent(Role.RESOURCEMANAGER.name());
 
-    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1).persist();
-    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2).persist();
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host1);
+    hdfs.getServiceComponent(Role.DATANODE.name()).addServiceComponentHost(host2);
 
-    mapred.getServiceComponent(Role.RESOURCEMANAGER.name()).addServiceComponentHost(host2).persist();
+    mapred.getServiceComponent(Role.RESOURCEMANAGER.name()).addServiceComponentHost(host2);
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
@@ -8370,7 +8282,6 @@ public class AmbariManagementControllerTest {
         RepositoryVersionState.INSTALLING);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost(hostName1), "redhat", "5.9");
-    clusters.getHost(hostName1).persist();
 
     clusters.mapHostsToCluster(new HashSet<String>(){
       {add(hostName1);}}, cluster1);
@@ -9346,13 +9257,10 @@ public class AmbariManagementControllerTest {
       clusters.addHost("host3");
       Host host = clusters.getHost("host1");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
       host = clusters.getHost("host2");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
       host = clusters.getHost("host3");
       setOsFamily(host, "redhat", "6.3");
-      host.persist();
 
       ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, "HDP-1.2.0", null);
       amc.createCluster(clusterRequest);
@@ -9396,13 +9304,11 @@ public class AmbariManagementControllerTest {
       Host host = clusters.getHost(HOST1);
       setOsFamily(host, "redhat", "6.3");
       clusters.getHost(HOST1).setState(HostState.HEALTHY);
-      host.persist();
 
       clusters.addHost(HOST2);
       host = clusters.getHost(HOST2);
       setOsFamily(host, "redhat", "6.3");
       clusters.getHost(HOST1).setState(HostState.HEALTHY);
-      host.persist();
 
       AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);
 
@@ -9492,13 +9398,10 @@ public class AmbariManagementControllerTest {
     clusters.addHost(host3);
     Host host = clusters.getHost("host1");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
     host = clusters.getHost("host2");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
     host = clusters.getHost("host3");
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
 
     ClusterRequest clusterRequest = new ClusterRequest(null, cluster1, "HDP-1.2.0", null);
     amc.createCluster(clusterRequest);
@@ -9797,7 +9700,6 @@ public class AmbariManagementControllerTest {
     clusters.addHost(HOST1);
     Host host = clusters.getHost(HOST1);
     setOsFamily(host, "redhat", "5.9");
-    host.persist();
 
     ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(clusterRequest);
@@ -10120,7 +10022,6 @@ public class AmbariManagementControllerTest {
       "centos5");
 
     Service hdfs = c1.addService("HDFS");
-    hdfs.persist();
     createServiceComponent(cluster1, "HDFS", "NAMENODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "DATANODE", State.INIT);
     createServiceComponent(cluster1, "HDFS", "HDFS_CLIENT", State.INIT);

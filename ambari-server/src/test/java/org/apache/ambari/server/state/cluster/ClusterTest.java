@@ -79,11 +79,8 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.ResourceEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -232,41 +229,24 @@ public class ClusterTest {
 
     String clusterName = "c1";
 
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
-    if (resourceTypeEntity == null) {
-      resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
-      resourceTypeEntity.setName(ResourceType.CLUSTER.name());
-      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
-    }
-    ResourceEntity resourceEntity = new ResourceEntity();
-    resourceEntity.setResourceType(resourceTypeEntity);
-
-    ClusterEntity clusterEntity = new ClusterEntity();
-    clusterEntity.setClusterName(clusterName);
-    clusterEntity.setResource(resourceEntity);
-    clusterEntity.setDesiredStack(stackEntity);
-    clusterDAO.create(clusterEntity);
+    clusters.addCluster(clusterName, stackId);
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
 
-    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
     Set<String> hostNames = new HashSet<String>() {{ add("h1"); add("h2"); }};
     for (String hostName : hostNames) {
-      HostEntity hostEntity = new HostEntity();
-      hostEntity.setHostName(hostName);
+      clusters.addHost(hostName);
+
+      HostEntity hostEntity = hostDAO.findByName(hostName);
       hostEntity.setIpv4("ipv4");
       hostEntity.setIpv6("ipv6");
       hostEntity.setHostAttributes(gson.toJson(hostAttributes));
-      hostEntity.setClusterEntities(Arrays.asList(clusterEntity));
-      hostEntities.add(hostEntity);
-      hostDAO.create(hostEntity);
+      hostDAO.merge(hostEntity);
     }
 
-    clusterEntity.setHostEntities(hostEntities);
-    clusterDAO.merge(clusterEntity);
+    clusters.mapHostsToCluster(hostNames, clusterName);
     c1 = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -403,9 +383,6 @@ public class ClusterTest {
     cluster.addService(s1);
     cluster.addService(s2);
     cluster.addService(s3);
-    s1.persist();
-    s2.persist();
-    s3.persist();
 
     // Add HDFS components
     ServiceComponent sc1CompA = serviceComponentFactory.createNew(s1, "NAMENODE");
@@ -414,25 +391,18 @@ public class ClusterTest {
     s1.addServiceComponent(sc1CompA);
     s1.addServiceComponent(sc1CompB);
     s1.addServiceComponent(sc1CompC);
-    sc1CompA.persist();
-    sc1CompB.persist();
-    sc1CompC.persist();
 
     // Add ZK
     ServiceComponent sc2CompA = serviceComponentFactory.createNew(s2, "ZOOKEEPER_SERVER");
     ServiceComponent sc2CompB = serviceComponentFactory.createNew(s2, "ZOOKEEPER_CLIENT");
     s2.addServiceComponent(sc2CompA);
     s2.addServiceComponent(sc2CompB);
-    sc2CompA.persist();
-    sc2CompB.persist();
 
     // Add Ganglia
     ServiceComponent sc3CompA = serviceComponentFactory.createNew(s3, "GANGLIA_SERVER");
     ServiceComponent sc3CompB = serviceComponentFactory.createNew(s3, "GANGLIA_MONITOR");
     s3.addServiceComponent(sc3CompA);
     s3.addServiceComponent(sc3CompB);
-    sc3CompA.persist();
-    sc3CompB.persist();
 
     // Host 1 will have all components
     ServiceComponentHost schHost1Serv1CompA = serviceComponentHostFactory.createNew(sc1CompA, "h-1");
@@ -449,26 +419,16 @@ public class ClusterTest {
     sc2CompB.addServiceComponentHost(schHost1Serv2CompB);
     sc3CompA.addServiceComponentHost(schHost1Serv3CompA);
     sc3CompB.addServiceComponentHost(schHost1Serv3CompB);
-    schHost1Serv1CompA.persist();
-    schHost1Serv1CompB.persist();
-    schHost1Serv1CompC.persist();
-    schHost1Serv2CompA.persist();
-    schHost1Serv2CompB.persist();
-    schHost1Serv3CompA.persist();
-    schHost1Serv3CompB.persist();
 
     // Host 2 will have ZK_CLIENT and GANGLIA_MONITOR
     ServiceComponentHost schHost2Serv2CompB = serviceComponentHostFactory.createNew(sc2CompB, "h-2");
     ServiceComponentHost schHost2Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-2");
     sc2CompB.addServiceComponentHost(schHost2Serv2CompB);
     sc3CompB.addServiceComponentHost(schHost2Serv3CompB);
-    schHost2Serv2CompB.persist();
-    schHost2Serv3CompB.persist();
 
     // Host 3 will have GANGLIA_MONITOR
     ServiceComponentHost schHost3Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-3");
     sc3CompB.addServiceComponentHost(schHost3Serv3CompB);
-    schHost3Serv3CompB.persist();
 
     // Verify count of components
     List<ServiceComponentHost> scHost1 = cluster.getServiceComponentHosts("h-1");
@@ -528,7 +488,6 @@ public class ClusterTest {
     host.setIPv4("ipv4");
     host.setIPv6("ipv6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
   }
 
   /**
@@ -687,9 +646,6 @@ public class ClusterTest {
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
 
-    s1.persist();
-    s2.persist();
-
     Service s = c1.getService("HDFS");
     Assert.assertNotNull(s);
     Assert.assertEquals("HDFS", s.getName());
@@ -717,14 +673,12 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
     ServiceComponent sc = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(sc);
-    sc.persist();
+
     ServiceComponentHost sch =
         serviceComponentHostFactory.createNew(sc, "h1");
     sc.addServiceComponentHost(sch);
-    sch.persist();
 
     List<ServiceComponentHost> scHosts = c1.getServiceComponentHosts("h1");
     Assert.assertEquals(1, scHosts.size());
@@ -737,13 +691,10 @@ public class ClusterTest {
         iterator.next();
         Service s1 = serviceFactory.createNew(c1, "PIG");
         c1.addService(s1);
-        s1.persist();
         ServiceComponent sc1 = serviceComponentFactory.createNew(s1, "PIG");
         s1.addServiceComponent(sc1);
-        sc1.persist();
         ServiceComponentHost sch1 = serviceComponentHostFactory.createNew(sc1, "h1");
         sc1.addServiceComponentHost(sch1);
-        sch1.persist();
       }
     } catch (ConcurrentModificationException e ) {
       Assert.assertTrue("Failed to work concurrently with sch", false);
@@ -759,24 +710,18 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     List<ServiceComponentHost> scHosts;
 
@@ -793,24 +738,18 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     List<ServiceComponentHost> scHosts;
 
@@ -833,24 +772,18 @@ public class ClusterTest {
 
     Service s = serviceFactory.createNew(c1, "HDFS");
     c1.addService(s);
-    s.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(s, "NAMENODE");
     s.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(s, "DATANODE");
     s.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     Map<String, Set<String>> componentHostMap;
 
@@ -871,35 +804,26 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
-    schJTH1.persist();
 
     Map<String, Set<String>> componentHostMap;
 
@@ -936,35 +860,26 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
-    schJTH1.persist();
 
     Map<String, Set<String>> componentHostMap;
 
@@ -1002,35 +917,26 @@ public class ClusterTest {
 
     Service sfHDFS = serviceFactory.createNew(c1, "HDFS");
     c1.addService(sfHDFS);
-    sfHDFS.persist();
 
     Service sfMR = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(sfMR);
-    sfMR.persist();
 
     ServiceComponent scNN = serviceComponentFactory.createNew(sfHDFS, "NAMENODE");
     sfHDFS.addServiceComponent(scNN);
-    scNN.persist();
     ServiceComponentHost schNNH1 = serviceComponentHostFactory.createNew(scNN, "h1");
     scNN.addServiceComponentHost(schNNH1);
-    schNNH1.persist();
 
     ServiceComponent scDN = serviceComponentFactory.createNew(sfHDFS, "DATANODE");
     sfHDFS.addServiceComponent(scDN);
-    scDN.persist();
     ServiceComponentHost scDNH1 = serviceComponentHostFactory.createNew(scDN, "h1");
     scDN.addServiceComponentHost(scDNH1);
-    scDNH1.persist();
     ServiceComponentHost scDNH2 = serviceComponentHostFactory.createNew(scDN, "h2");
     scDN.addServiceComponentHost(scDNH2);
-    scDNH2.persist();
 
     ServiceComponent scJT = serviceComponentFactory.createNew(sfMR, "JOBTRACKER");
     sfMR.addServiceComponent(scJT);
-    scJT.persist();
     ServiceComponentHost schJTH1 = serviceComponentHostFactory.createNew(scJT, "h1");
     scJT.addServiceComponentHost(schJTH1);
-    schJTH1.persist();
 
     Map<String, Set<String>> componentHostMap;
 
@@ -1180,7 +1086,6 @@ public class ClusterTest {
     host.setState(HostState.HEALTHY);
     host.setHealthStatus(new HostHealthStatus(HostHealthStatus.HealthStatus.HEALTHY, ""));
     host.setStatus(host.getHealthStatus().getHealthStatus().name());
-    host.persist();
     c1.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     clusters.mapHostToCluster("h3", "c1");
 
@@ -1207,13 +1112,10 @@ public class ClusterTest {
   public void testDeleteService() throws Exception {
     createDefaultCluster();
 
-    c1.addService("MAPREDUCE").persist();
+    c1.addService("MAPREDUCE");
 
     Service hdfs = c1.addService("HDFS");
-    hdfs.persist();
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
-
 
     assertEquals(2, c1.getServices().size());
     assertEquals(2, injector.getProvider(EntityManager.class).get().
@@ -1230,7 +1132,7 @@ public class ClusterTest {
   public void testDeleteServiceWithConfigHistory() throws Exception {
     createDefaultCluster();
 
-    c1.addService("HDFS").persist();
+    c1.addService("HDFS");
 
     Config config1 = configFactory.createNew(c1, "hdfs-site",
       new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
@@ -2159,9 +2061,6 @@ public class ClusterTest {
     sc2CompA.addServiceComponentHost(schHost4Serv2CompA);
     sc2CompB.addServiceComponentHost(schHost4Serv2CompB);
     sc3CompB.addServiceComponentHost(schHost4Serv3CompB);
-    schHost4Serv2CompA.persist();
-    schHost4Serv2CompB.persist();
-    schHost4Serv3CompB.persist();
 
     simulateStackVersionListener(stackId, v1, cluster, hostComponentStateDAO.findByHost("h-4"));
 
@@ -2193,7 +2092,6 @@ public class ClusterTest {
     clusters.mapHostToCluster("h-5", clusterName);
     ServiceComponentHost schHost5Serv3CompB = serviceComponentHostFactory.createNew(sc3CompB, "h-5");
     sc3CompB.addServiceComponentHost(schHost5Serv3CompB);
-    schHost5Serv3CompB.persist();
 
     // Host 5 will be in OUT_OF_SYNC, so redistribute bits to it so that it reaches a state of INSTALLED
     HostVersionEntity h5Version2 = hostVersionDAO.findByClusterStackVersionAndHost(clusterName, stackId, v2, "h-5");
@@ -2334,7 +2232,6 @@ public class ClusterTest {
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
-      h.persist();
     }
 
     String v1 = "2.0.5-1";
@@ -2405,7 +2302,6 @@ public class ClusterTest {
       hostAttributes.put("os_family", "redhat");
       hostAttributes.put("os_release_version", "5.9");
       h.setHostAttributes(hostAttributes);
-      h.persist();
     }
 
     String v1 = "2.0.5-1";

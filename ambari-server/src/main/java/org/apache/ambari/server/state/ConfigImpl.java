@@ -27,9 +27,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.ambari.annotations.TransactionalLock;
-import org.apache.ambari.annotations.TransactionalLock.LockArea;
-import org.apache.ambari.annotations.TransactionalLock.LockType;
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
@@ -356,68 +353,63 @@ public class ConfigImpl implements Config {
   @Override
   @Transactional
   public void persist(boolean newConfig) {
-    cluster.getClusterGlobalLock().writeLock().lock(); //null cluster is not expected, NPE anyway later in code
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+      ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
-        if (newConfig) {
-          ClusterConfigEntity entity = new ClusterConfigEntity();
-          entity.setClusterEntity(clusterEntity);
-          entity.setClusterId(cluster.getClusterId());
-          entity.setType(getType());
-          entity.setVersion(getVersion());
-          entity.setTag(getTag());
-          entity.setTimestamp(new Date().getTime());
-          entity.setStack(clusterEntity.getDesiredStack());
-          entity.setData(gson.toJson(getProperties()));
+      if (newConfig) {
+        ClusterConfigEntity entity = new ClusterConfigEntity();
+        entity.setClusterEntity(clusterEntity);
+        entity.setClusterId(cluster.getClusterId());
+        entity.setType(getType());
+        entity.setVersion(getVersion());
+        entity.setTag(getTag());
+        entity.setTimestamp(new Date().getTime());
+        entity.setStack(clusterEntity.getDesiredStack());
+        entity.setData(gson.toJson(getProperties()));
 
-          if (null != getPropertiesAttributes()) {
-            entity.setAttributes(gson.toJson(getPropertiesAttributes()));
+        if (null != getPropertiesAttributes()) {
+          entity.setAttributes(gson.toJson(getPropertiesAttributes()));
+        }
+
+        clusterDAO.createConfig(entity);
+        clusterEntity.getClusterConfigEntities().add(entity);
+
+        // save the entity, forcing a flush to ensure the refresh picks up the
+        // newest data
+        clusterDAO.merge(clusterEntity, true);
+      } else {
+        // only supporting changes to the properties
+        ClusterConfigEntity entity = null;
+
+        // find the existing configuration to update
+        for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
+          if (getTag().equals(cfe.getTag()) && getType().equals(cfe.getType())
+              && getVersion().equals(cfe.getVersion())) {
+            entity = cfe;
+            break;
           }
+        }
 
-          clusterDAO.createConfig(entity);
-          clusterEntity.getClusterConfigEntities().add(entity);
+        // if the configuration was found, then update it
+        if (null != entity) {
+          LOG.debug(
+              "Updating {} version {} with new configurations; a new version will not be created",
+              getType(), getVersion());
+
+          entity.setData(gson.toJson(getProperties()));
 
           // save the entity, forcing a flush to ensure the refresh picks up the
           // newest data
           clusterDAO.merge(clusterEntity, true);
-          cluster.refresh();
-        } else {
-          // only supporting changes to the properties
-          ClusterConfigEntity entity = null;
-
-          // find the existing configuration to update
-          for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
-            if (getTag().equals(cfe.getTag()) &&
-                getType().equals(cfe.getType()) &&
-                getVersion().equals(cfe.getVersion())) {
-              entity = cfe;
-              break;
-            }
-          }
-
-          // if the configuration was found, then update it
-          if (null != entity) {
-            LOG.debug(
-                    "Updating {} version {} with new configurations; a new version will not be created",
-                    getType(), getVersion());
-
-            entity.setData(gson.toJson(getProperties()));
-
-            // save the entity, forcing a flush to ensure the refresh picks up the
-            // newest data
-            clusterDAO.merge(clusterEntity, true);
-            cluster.refresh();
-          }
         }
-      } finally {
-        readWriteLock.writeLock().unlock();
       }
     } finally {
-      cluster.getClusterGlobalLock().writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
+
+    // re-load the entity associations for the cluster
+    cluster.refresh();
 
     // broadcast the change event for the configuration
     ClusterConfigChangedEvent event = new ClusterConfigChangedEvent(cluster.getClusterName(),

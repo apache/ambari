@@ -152,7 +152,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Create the starting repo version
     m_helper.getOrCreateRepositoryVersion(sourceStack, sourceRepo);
@@ -208,7 +207,6 @@ public class ComponentVersionCheckActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -365,7 +363,6 @@ public class ComponentVersionCheckActionTest {
     sch.setDesiredStackVersion(cluster.getDesiredStackVersion());
     sch.setStackVersion(cluster.getCurrentStackVersion());
 
-    sch.persist();
     return sch;
   }
 
@@ -377,7 +374,6 @@ public class ComponentVersionCheckActionTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;
@@ -392,7 +388,6 @@ public class ComponentVersionCheckActionTest {
       serviceComponent = serviceComponentFactory.createNew(service, componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;

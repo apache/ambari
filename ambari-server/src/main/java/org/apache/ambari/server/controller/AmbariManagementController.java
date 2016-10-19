@@ -53,7 +53,6 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
 import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
@@ -547,13 +546,6 @@ public interface AmbariManagementController {
    * @return the meta info
    */
   AmbariMetaInfo getAmbariMetaInfo();
-
-  /**
-   * Get the service factory for this management controller.
-   *
-   * @return the service factory
-   */
-  ServiceFactory getServiceFactory();
 
   /**
    * Get the service component factory for this management controller.

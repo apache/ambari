@@ -18,10 +18,12 @@
 package org.apache.ambari.server.state.host;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -65,13 +67,13 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.persist.Transactional;
 
@@ -96,38 +98,55 @@ public class HostImpl implements Host {
   private static final String TIMEZONE = "timezone";
   private static final String OS_RELEASE_VERSION = "os_release_version";
 
-
+  @Inject
   private final Gson gson;
 
   private static final Type hostAttributesType =
       new TypeToken<Map<String, String>>() {}.getType();
+
   private static final Type maintMapType =
       new TypeToken<Map<Long, MaintenanceState>>() {}.getType();
 
   ReadWriteLock rwLock;
-  private final Lock readLock;
   private final Lock writeLock;
 
-  // TODO : caching the JPA entities here causes issues if they become stale and get re-merged.
-  private HostEntity hostEntity;
-  private HostStateEntity hostStateEntity;
-
+  @Inject
   private HostDAO hostDAO;
+
+  @Inject
   private HostStateDAO hostStateDAO;
+
+  @Inject
   private HostVersionDAO hostVersionDAO;
+
+  @Inject
   private ClusterDAO clusterDAO;
+
+  @Inject
   private Clusters clusters;
+
+  @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
+
+  /**
+   * The ID of the host which is to retrieve it from JPA.
+   */
+  private final long hostId;
+
+  /**
+   * The name of the host, stored inside of this business object to prevent JPA
+   * lookups since it never changes.
+   */
+  private final String hostName;
 
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
-  private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
+  private List<DiskInfo> disksInfo = new CopyOnWriteArrayList<DiskInfo>();
   private RecoveryReport recoveryReport = new RecoveryReport();
-  private boolean persisted = false;
   private Integer currentPingPort = null;
 
   private final StateMachine<HostState, HostEventType, HostEvent> stateMachine;
-  private Map<Long, MaintenanceState> maintMap = null;
+  private final ConcurrentMap<Long, MaintenanceState> maintMap;
 
   // In-memory status, based on host components states
   private String status = HealthStatus.UNKNOWN.name();
@@ -141,7 +160,8 @@ public class HostImpl implements Host {
   @Inject
   private AmbariEventPublisher eventPublisher;
 
-  private static TopologyManager topologyManager;
+  @Inject
+  private TopologyManager topologyManager;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -229,38 +249,46 @@ public class HostImpl implements Host {
    .installTopology();
 
   @Inject
-  public HostImpl(@Assisted HostEntity hostEntity,
-      @Assisted boolean persisted, Injector injector) {
+  public HostImpl(@Assisted HostEntity hostEntity, Gson gson, HostDAO hostDAO, HostStateDAO hostStateDAO) {
+    this.gson = gson;
+    this.hostDAO = hostDAO;
+    this.hostStateDAO = hostStateDAO;
+
     stateMachine = stateMachineFactory.make(this);
     rwLock = new ReentrantReadWriteLock();
-    readLock = rwLock.readLock();
     writeLock = rwLock.writeLock();
 
-    this.hostEntity = hostEntity;
-    this.persisted = persisted;
-    hostDAO = injector.getInstance(HostDAO.class);
-    hostStateDAO = injector.getInstance(HostStateDAO.class);
-    hostVersionDAO = injector.getInstance(HostVersionDAO.class);
-    gson = injector.getInstance(Gson.class);
-    clusterDAO = injector.getInstance(ClusterDAO.class);
-    clusters = injector.getInstance(Clusters.class);
-    hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
-    //todo: proper static injection
-    HostImpl.topologyManager = injector.getInstance(TopologyManager.class);
-
-    hostStateEntity = hostEntity.getHostStateEntity();
+    HostStateEntity hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
       hostStateEntity = new HostStateEntity();
       hostStateEntity.setHostEntity(hostEntity);
       hostEntity.setHostStateEntity(hostStateEntity);
       hostStateEntity.setHealthStatus(gson.toJson(new HostHealthStatus(HealthStatus.UNKNOWN, "")));
-      if (persisted) {
-        hostStateDAO.create(hostStateEntity);
-      }
     } else {
       stateMachine.setCurrentState(hostStateEntity.getCurrentState());
     }
 
+    // persist the host
+    if (null == hostEntity.getHostId()) {
+      persistEntities(hostEntity);
+
+      for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
+        try {
+          clusters.getClusterById(clusterEntity.getClusterId()).refresh();
+        } catch (AmbariException e) {
+          LOG.error("Error while looking up the cluster", e);
+          throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed",
+              e);
+        }
+      }
+    }
+
+    // set the host ID which will be used to retrieve it from JPA
+    hostId = hostEntity.getHostId();
+    hostName = hostEntity.getHostName();
+
+    // populate the maintenance map
+    maintMap = ensureMaintMap(hostEntity.getHostStateEntity());
   }
 
   @Override
@@ -296,7 +324,6 @@ public class HostImpl implements Host {
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
 
-      host.persist();
       host.clusters.updateHostMappings(host);
 
       //todo: proper host joined notification
@@ -307,10 +334,10 @@ public class HostImpl implements Host {
         associatedWithCluster = false;
       } catch (AmbariException e1) {
         // only HostNotFoundException is thrown
-        e1.printStackTrace();
+        LOG.error("Unable to determine the clusters for host", e1);
       }
 
-      topologyManager.onHostRegistered(host, associatedWithCluster);
+      host.topologyManager.onHostRegistered(host, associatedWithCluster);
     }
   }
 
@@ -405,7 +432,7 @@ public class HostImpl implements Host {
           + ", lastHeartbeatTime=" + host.getLastHeartbeatTime());
       host.setHealthStatus(new HostHealthStatus(HealthStatus.UNKNOWN, host.getHealthStatus().getHealthReport()));
 
-      topologyManager.onHostHeartBeatLost(host);
+      host.topologyManager.onHostHeartBeatLost(host);
     }
   }
 
@@ -413,160 +440,120 @@ public class HostImpl implements Host {
    * @param hostInfo  the host information
    */
   @Override
+  @Transactional
   public void importHostInfo(HostInfo hostInfo) {
-    try {
-      writeLock.lock();
+    if (hostInfo.getIPAddress() != null && !hostInfo.getIPAddress().isEmpty()) {
+      setIPv4(hostInfo.getIPAddress());
+      setIPv6(hostInfo.getIPAddress());
+    }
 
-      if (hostInfo.getIPAddress() != null
-          && !hostInfo.getIPAddress().isEmpty()) {
-        setIPv4(hostInfo.getIPAddress());
-        setIPv6(hostInfo.getIPAddress());
-      }
+    setCpuCount(hostInfo.getProcessorCount());
+    setPhCpuCount(hostInfo.getPhysicalProcessorCount());
+    setTotalMemBytes(hostInfo.getMemoryTotal());
+    setAvailableMemBytes(hostInfo.getFreeMemory());
 
-      setCpuCount(hostInfo.getProcessorCount());
-      setPhCpuCount(hostInfo.getPhysicalProcessorCount());
-      setTotalMemBytes(hostInfo.getMemoryTotal());
-      setAvailableMemBytes(hostInfo.getFreeMemory());
+    if (hostInfo.getArchitecture() != null && !hostInfo.getArchitecture().isEmpty()) {
+      setOsArch(hostInfo.getArchitecture());
+    }
 
-      if (hostInfo.getArchitecture() != null
-          && !hostInfo.getArchitecture().isEmpty()) {
-        setOsArch(hostInfo.getArchitecture());
-      }
-
-      if (hostInfo.getOS() != null
-          && !hostInfo.getOS().isEmpty()) {
-        String osType = hostInfo.getOS();
-        if (hostInfo.getOSRelease() != null) {
-          String[] release = hostInfo.getOSRelease().split("\\.");
-          if (release.length > 0) {
-            osType += release[0];
-          }
-        }
-        setOsType(osType.toLowerCase());
-      }
-
-      if (hostInfo.getMounts() != null
-          && !hostInfo.getMounts().isEmpty()) {
-        setDisksInfo(hostInfo.getMounts());
-      }
-
-      // FIXME add all other information into host attributes
-      setAgentVersion(new AgentVersion(
-          hostInfo.getAgentUserId()));
-
-      Map<String, String> attrs = new HashMap<String, String>();
-      if (hostInfo.getHardwareIsa() != null) {
-        attrs.put(HARDWAREISA, hostInfo.getHardwareIsa());
-      }
-      if (hostInfo.getHardwareModel() != null) {
-        attrs.put(HARDWAREMODEL, hostInfo.getHardwareModel());
-      }
-      if (hostInfo.getInterfaces() != null) {
-        attrs.put(INTERFACES, hostInfo.getInterfaces());
-      }
-      if (hostInfo.getKernel() != null) {
-        attrs.put(KERNEL, hostInfo.getKernel());
-      }
-      if (hostInfo.getKernelMajVersion() != null) {
-        attrs.put(KERNELMAJOREVERSON, hostInfo.getKernelMajVersion());
-      }
-      if (hostInfo.getKernelRelease() != null) {
-        attrs.put(KERNELRELEASE, hostInfo.getKernelRelease());
-      }
-      if (hostInfo.getKernelVersion() != null) {
-        attrs.put(KERNELVERSION, hostInfo.getKernelVersion());
-      }
-      if (hostInfo.getMacAddress() != null) {
-        attrs.put(MACADDRESS, hostInfo.getMacAddress());
-      }
-      if (hostInfo.getNetMask() != null) {
-        attrs.put(NETMASK, hostInfo.getNetMask());
-      }
-      if (hostInfo.getOSFamily() != null) {
-        attrs.put(OSFAMILY, hostInfo.getOSFamily());
-      }
-      if (hostInfo.getPhysicalProcessorCount() != 0) {
-        attrs.put(PHYSICALPROCESSORCOUNT,
-          Long.toString(hostInfo.getPhysicalProcessorCount()));
-      }
-      if (hostInfo.getProcessorCount() != 0) {
-        attrs.put(PROCESSORCOUNT,
-          Long.toString(hostInfo.getProcessorCount()));
-      }
-      if (Boolean.toString(hostInfo.getSeLinux()) != null) {
-        attrs.put(SELINUXENABLED, Boolean.toString(hostInfo.getSeLinux()));
-      }
-      if (hostInfo.getSwapSize() != null) {
-        attrs.put(SWAPSIZE, hostInfo.getSwapSize());
-      }
-      if (hostInfo.getSwapFree() != null) {
-        attrs.put(SWAPFREE, hostInfo.getSwapFree());
-      }
-      if (hostInfo.getTimeZone() != null) {
-        attrs.put(TIMEZONE, hostInfo.getTimeZone());
-      }
+    if (hostInfo.getOS() != null && !hostInfo.getOS().isEmpty()) {
+      String osType = hostInfo.getOS();
       if (hostInfo.getOSRelease() != null) {
-        attrs.put(OS_RELEASE_VERSION, hostInfo.getOSRelease());
+        String[] release = hostInfo.getOSRelease().split("\\.");
+        if (release.length > 0) {
+          osType += release[0];
+        }
       }
-
-      setHostAttributes(attrs);
-
-      saveIfPersisted();
+      setOsType(osType.toLowerCase());
     }
-    finally {
-      writeLock.unlock();
+
+    if (hostInfo.getMounts() != null && !hostInfo.getMounts().isEmpty()) {
+      setDisksInfo(hostInfo.getMounts());
     }
+
+    // FIXME add all other information into host attributes
+    setAgentVersion(new AgentVersion(hostInfo.getAgentUserId()));
+
+    Map<String, String> attrs = new HashMap<String, String>();
+    if (hostInfo.getHardwareIsa() != null) {
+      attrs.put(HARDWAREISA, hostInfo.getHardwareIsa());
+    }
+    if (hostInfo.getHardwareModel() != null) {
+      attrs.put(HARDWAREMODEL, hostInfo.getHardwareModel());
+    }
+    if (hostInfo.getInterfaces() != null) {
+      attrs.put(INTERFACES, hostInfo.getInterfaces());
+    }
+    if (hostInfo.getKernel() != null) {
+      attrs.put(KERNEL, hostInfo.getKernel());
+    }
+    if (hostInfo.getKernelMajVersion() != null) {
+      attrs.put(KERNELMAJOREVERSON, hostInfo.getKernelMajVersion());
+    }
+    if (hostInfo.getKernelRelease() != null) {
+      attrs.put(KERNELRELEASE, hostInfo.getKernelRelease());
+    }
+    if (hostInfo.getKernelVersion() != null) {
+      attrs.put(KERNELVERSION, hostInfo.getKernelVersion());
+    }
+    if (hostInfo.getMacAddress() != null) {
+      attrs.put(MACADDRESS, hostInfo.getMacAddress());
+    }
+    if (hostInfo.getNetMask() != null) {
+      attrs.put(NETMASK, hostInfo.getNetMask());
+    }
+    if (hostInfo.getOSFamily() != null) {
+      attrs.put(OSFAMILY, hostInfo.getOSFamily());
+    }
+    if (hostInfo.getPhysicalProcessorCount() != 0) {
+      attrs.put(PHYSICALPROCESSORCOUNT, Long.toString(hostInfo.getPhysicalProcessorCount()));
+    }
+    if (hostInfo.getProcessorCount() != 0) {
+      attrs.put(PROCESSORCOUNT, Long.toString(hostInfo.getProcessorCount()));
+    }
+    if (Boolean.toString(hostInfo.getSeLinux()) != null) {
+      attrs.put(SELINUXENABLED, Boolean.toString(hostInfo.getSeLinux()));
+    }
+    if (hostInfo.getSwapSize() != null) {
+      attrs.put(SWAPSIZE, hostInfo.getSwapSize());
+    }
+    if (hostInfo.getSwapFree() != null) {
+      attrs.put(SWAPFREE, hostInfo.getSwapFree());
+    }
+    if (hostInfo.getTimeZone() != null) {
+      attrs.put(TIMEZONE, hostInfo.getTimeZone());
+    }
+    if (hostInfo.getOSRelease() != null) {
+      attrs.put(OS_RELEASE_VERSION, hostInfo.getOSRelease());
+    }
+
+    setHostAttributes(attrs);
   }
 
   @Override
   public void setLastAgentEnv(AgentEnv env) {
-    writeLock.lock();
-    try {
-      lastAgentEnv = env;
-    } finally {
-      writeLock.unlock();
-    }
-
+    lastAgentEnv = env;
   }
 
   @Override
   public AgentEnv getLastAgentEnv() {
-    readLock.lock();
-    try {
-      return lastAgentEnv;
-    } finally {
-      readLock.unlock();
-    }
-
+    return lastAgentEnv;
   }
 
   @Override
   public HostState getState() {
-    try {
-      readLock.lock();
-      return stateMachine.getCurrentState();
-    }
-    finally {
-      readLock.unlock();
-    }
+    return stateMachine.getCurrentState();
   }
 
   @Override
   public void setState(HostState state) {
-    try {
-      writeLock.lock();
-      stateMachine.setCurrentState(state);
+    stateMachine.setCurrentState(state);
+    HostStateEntity hostStateEntity = getHostStateEntity();
 
-      HostStateEntity hostStateEntity = getHostStateEntity();
-
-      if (hostStateEntity != null) {
-        hostStateEntity.setCurrentState(state);
-        hostStateEntity.setTimeInState(System.currentTimeMillis());
-        saveIfPersisted();
-      }
-    }
-    finally {
-      writeLock.unlock();
+    if (hostStateEntity != null) {
+      hostStateEntity.setCurrentState(state);
+      hostStateEntity.setTimeInState(System.currentTimeMillis());
+      hostStateDAO.merge(hostStateEntity);
     }
   }
 
@@ -608,268 +595,146 @@ public class HostImpl implements Host {
 
   @Override
   public String getHostName() {
-    // Not an updatable attribute - No locking necessary
-    return hostEntity.getHostName();
+    return hostName;
   }
 
   @Override
   public Long getHostId() {
-    return hostEntity.getHostId();
-  }
-
-  @Override
-  public void setHostName(String hostName) {
-    try {
-      writeLock.lock();
-      if (!isPersisted()) {
-        hostEntity.setHostName(hostName);
-      } else {
-        throw new UnsupportedOperationException("PK of persisted entity cannot be modified");
-      }
-    } finally {
-      writeLock.unlock();
-    }
+    return hostId;
   }
 
   @Override
   public Integer getCurrentPingPort() {
-    try {
-      readLock.lock();
-      return currentPingPort;
-    }
-    finally {
-      readLock.unlock();
-    }
+    return currentPingPort;
   }
 
   @Override
   public void setCurrentPingPort(Integer currentPingPort) {
-    try {
-      writeLock.lock();
-      this.currentPingPort = currentPingPort;
-    }
-    finally {
-      writeLock.unlock();
-    }
+    this.currentPingPort = currentPingPort;
   }
 
   @Override
   public void setPublicHostName(String hostName) {
-    try {
-      writeLock.lock();
-      getHostEntity().setPublicHostName(hostName);
-      saveIfPersisted();
-    }
-    finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setPublicHostName(hostName);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public String getPublicHostName() {
-    try {
-      readLock.lock();
-      return getHostEntity().getPublicHostName();
-    }
-    finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getPublicHostName();
   }
 
   @Override
   public String getIPv4() {
-    try {
-      readLock.lock();
-      return getHostEntity().getIpv4();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getIpv4();
   }
 
   @Override
   public void setIPv4(String ip) {
-    try {
-      writeLock.lock();
-      getHostEntity().setIpv4(ip);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setIpv4(ip);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public String getIPv6() {
-    try {
-      readLock.lock();
-      return getHostEntity().getIpv6();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getIpv6();
   }
 
   @Override
   public void setIPv6(String ip) {
-    try {
-      writeLock.lock();
-      getHostEntity().setIpv6(ip);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setIpv6(ip);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public int getCpuCount() {
-    try {
-      readLock.lock();
-      return getHostEntity().getCpuCount();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getCpuCount();
   }
 
   @Override
   public void setCpuCount(int cpuCount) {
-    try {
-      writeLock.lock();
-      getHostEntity().setCpuCount(cpuCount);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setCpuCount(cpuCount);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public int getPhCpuCount() {
-    try {
-      readLock.lock();
-      return getHostEntity().getPhCpuCount();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getPhCpuCount();
   }
 
   @Override
   public void setPhCpuCount(int phCpuCount) {
-    try {
-      writeLock.lock();
-      getHostEntity().setPhCpuCount(phCpuCount);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setPhCpuCount(phCpuCount);
+    hostDAO.merge(hostEntity);
   }
 
 
   @Override
   public long getTotalMemBytes() {
-    try {
-      readLock.lock();
-      return getHostEntity().getTotalMem();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getTotalMem();
   }
 
   @Override
   public void setTotalMemBytes(long totalMemBytes) {
-    try {
-      writeLock.lock();
-      getHostEntity().setTotalMem(totalMemBytes);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setTotalMem(totalMemBytes);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public long getAvailableMemBytes() {
-    try {
-      readLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      return hostStateEntity != null ? hostStateEntity.getAvailableMem() : null;
-    }
-    finally {
-      readLock.unlock();
-    }
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    return hostStateEntity != null ? hostStateEntity.getAvailableMem() : null;
   }
 
   @Override
   public void setAvailableMemBytes(long availableMemBytes) {
-    try {
-      writeLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        getHostStateEntity().setAvailableMem(availableMemBytes);
-        saveIfPersisted();
-      }
-    }
-    finally {
-      writeLock.unlock();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      hostStateEntity.setAvailableMem(availableMemBytes);
+      hostStateDAO.merge(hostStateEntity);
     }
   }
 
   @Override
   public String getOsArch() {
-    try {
-      readLock.lock();
-      return getHostEntity().getOsArch();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getOsArch();
   }
 
   @Override
   public void setOsArch(String osArch) {
-    try {
-      writeLock.lock();
-      getHostEntity().setOsArch(osArch);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setOsArch(osArch);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public String getOsInfo() {
-    try {
-      readLock.lock();
-      return getHostEntity().getOsInfo();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getOsInfo();
   }
 
   @Override
   public void setOsInfo(String osInfo) {
-    try {
-      writeLock.lock();
-      getHostEntity().setOsInfo(osInfo);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setOsInfo(osInfo);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public String getOsType() {
-    try {
-      readLock.lock();
-      return getHostEntity().getOsType();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getOsType();
   }
 
   @Override
   public void setOsType(String osType) {
-    try {
-      writeLock.lock();
-      getHostEntity().setOsType(osType);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setOsType(osType);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
@@ -881,212 +746,129 @@ public class HostImpl implements Host {
 
   @Override
   public List<DiskInfo> getDisksInfo() {
-    try {
-      readLock.lock();
-      return disksInfo;
-    } finally {
-      readLock.unlock();
-    }
+    return disksInfo;
   }
 
   @Override
   public void setDisksInfo(List<DiskInfo> disksInfo) {
-    try {
-      writeLock.lock();
-      this.disksInfo = disksInfo;
-    } finally {
-      writeLock.unlock();
-    }
+    this.disksInfo = disksInfo;
   }
 
   @Override
   public RecoveryReport getRecoveryReport() {
-    try {
-      readLock.lock();
-      return recoveryReport;
-    } finally {
-      readLock.unlock();
-    }
+    return recoveryReport;
   }
 
   @Override
   public void setRecoveryReport(RecoveryReport recoveryReport) {
-    try {
-      writeLock.lock();
-      this.recoveryReport = recoveryReport;
-    } finally {
-      writeLock.unlock();
-    }
+    this.recoveryReport = recoveryReport;
   }
 
   @Override
   public HostHealthStatus getHealthStatus() {
-    try {
-      readLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
-      }
-      return null;
-    } finally {
-      readLock.unlock();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
     }
+
+    return null;
   }
 
   @Override
   public void setHealthStatus(HostHealthStatus healthStatus) {
-    try {
-      writeLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
 
-        if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN)) {
-          setStatus(HealthStatus.UNKNOWN.name());
-        }
-
-        saveIfPersisted();
+      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN)) {
+        setStatus(HealthStatus.UNKNOWN.name());
       }
-    } finally {
-      writeLock.unlock();
+
+      hostStateDAO.merge(hostStateEntity);
     }
   }
 
   @Override
-  public String getPrefix() { return prefix; }
+  public String getPrefix() {
+    return prefix;
+  }
 
   @Override
   public void setPrefix(String prefix) {
-    if (prefix != null && !prefix.equals(this.prefix)) {
-      try {
-        writeLock.lock();
-        this.prefix = prefix;
-      } finally {
-        writeLock.unlock();
-      }
+    if (StringUtils.isNotBlank(prefix) && !StringUtils.equals(this.prefix, prefix)) {
+      this.prefix = prefix;
     }
   }
 
   @Override
   public Map<String, String> getHostAttributes() {
-    try {
-      readLock.lock();
-      return gson.fromJson(getHostEntity().getHostAttributes(),
-          hostAttributesType);
-    } finally {
-      readLock.unlock();
-    }
+    return gson.fromJson(getHostEntity().getHostAttributes(), hostAttributesType);
   }
 
   @Override
   public void setHostAttributes(Map<String, String> hostAttributes) {
-    try {
-      writeLock.lock();
-      HostEntity hostEntity = getHostEntity();
-      Map<String, String> hostAttrs = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
-      if (hostAttrs == null) {
-        hostAttrs = new HashMap<String, String>();
-      }
-      hostAttrs.putAll(hostAttributes);
-      hostEntity.setHostAttributes(gson.toJson(hostAttrs,hostAttributesType));
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
+    HostEntity hostEntity = getHostEntity();
+    Map<String, String> hostAttrs = gson.fromJson(hostEntity.getHostAttributes(), hostAttributesType);
+
+    if (hostAttrs == null) {
+      hostAttrs = new ConcurrentHashMap<String, String>();
     }
+
+    hostAttrs.putAll(hostAttributes);
+    hostEntity.setHostAttributes(gson.toJson(hostAttrs,hostAttributesType));
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public String getRackInfo() {
-    try {
-      readLock.lock();
-      return getHostEntity().getRackInfo();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getRackInfo();
   }
 
   @Override
   public void setRackInfo(String rackInfo) {
-    try {
-      writeLock.lock();
-      getHostEntity().setRackInfo(rackInfo);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setRackInfo(rackInfo);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public long getLastRegistrationTime() {
-    try {
-      readLock.lock();
-      return getHostEntity().getLastRegistrationTime();
-    } finally {
-      readLock.unlock();
-    }
+    return getHostEntity().getLastRegistrationTime();
   }
 
   @Override
   public void setLastRegistrationTime(long lastRegistrationTime) {
-    try {
-      writeLock.lock();
-      getHostEntity().setLastRegistrationTime(lastRegistrationTime);
-      saveIfPersisted();
-    } finally {
-      writeLock.unlock();
-    }
+    HostEntity hostEntity = getHostEntity();
+    hostEntity.setLastRegistrationTime(lastRegistrationTime);
+    hostDAO.merge(hostEntity);
   }
 
   @Override
   public long getLastHeartbeatTime() {
-    try {
-      readLock.lock();
-      return lastHeartbeatTime;
-    }
-    finally {
-      readLock.unlock();
-    }
+    return lastHeartbeatTime;
   }
 
   @Override
   public void setLastHeartbeatTime(long lastHeartbeatTime) {
-    try {
-      writeLock.lock();
-      this.lastHeartbeatTime = lastHeartbeatTime;
-    }
-    finally {
-      writeLock.unlock();
-    }
+    this.lastHeartbeatTime = lastHeartbeatTime;
   }
 
   @Override
   public AgentVersion getAgentVersion() {
-    try {
-      readLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        return gson.fromJson(getHostStateEntity().getAgentVersion(),
-            AgentVersion.class);
-      }
-      return null;
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      return gson.fromJson(hostStateEntity.getAgentVersion(), AgentVersion.class);
     }
-    finally {
-      readLock.unlock();
-    }
+
+    return null;
   }
 
   @Override
   public void setAgentVersion(AgentVersion agentVersion) {
-    try {
-      writeLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        getHostStateEntity().setAgentVersion(gson.toJson(agentVersion));
-        saveIfPersisted();
-      }
-    }
-    finally {
-      writeLock.unlock();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      hostStateEntity.setAgentVersion(gson.toJson(agentVersion));
+      hostStateDAO.merge(hostStateEntity);
     }
   }
 
@@ -1098,16 +880,10 @@ public class HostImpl implements Host {
 
   @Override
   public void setTimeInState(long timeInState) {
-    try {
-      writeLock.lock();
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        getHostStateEntity().setTimeInState(timeInState);
-        saveIfPersisted();
-      }
-    }
-    finally {
-      writeLock.unlock();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      hostStateEntity.setTimeInState(timeInState);
+      hostStateDAO.merge(hostStateEntity);
     }
   }
 
@@ -1119,14 +895,7 @@ public class HostImpl implements Host {
 
   @Override
   public void setStatus(String status) {
-    if (status != null && !status.equals(this.status)) {
-      try {
-        writeLock.lock();
-        this.status = status;
-      } finally {
-        writeLock.unlock();
-      }
-    }
+    this.status = status;
   }
 
   @Override
@@ -1148,119 +917,43 @@ public class HostImpl implements Host {
     return (null == getHostName() ? 0 : getHostName().hashCode());
   }
 
-  public int compareTo(HostEntity other) {
-    return getHostName().compareTo(other.getHostName());
-  }
-
   @Override
   public HostResponse convertToResponse() {
-    try {
-      readLock.lock();
-      HostResponse r = new HostResponse(getHostName());
+    HostResponse r = new HostResponse(getHostName());
 
-      r.setAgentVersion(getAgentVersion());
-      r.setAvailableMemBytes(getAvailableMemBytes());
-      r.setPhCpuCount(getPhCpuCount());
-      r.setCpuCount(getCpuCount());
-      r.setDisksInfo(getDisksInfo());
-      r.setHealthStatus(getHealthStatus());
-      r.setHostAttributes(getHostAttributes());
-      r.setIpv4(getIPv4());
-      r.setIpv6(getIPv6());
-      r.setLastHeartbeatTime(getLastHeartbeatTime());
-      r.setLastAgentEnv(lastAgentEnv);
-      r.setLastRegistrationTime(getLastRegistrationTime());
-      r.setOsArch(getOsArch());
-      r.setOsInfo(getOsInfo());
-      r.setOsType(getOsType());
-      r.setRackInfo(getRackInfo());
-      r.setTotalMemBytes(getTotalMemBytes());
-      r.setPublicHostName(getPublicHostName());
-      r.setHostState(getState().toString());
-      r.setStatus(getStatus());
-      r.setRecoveryReport(getRecoveryReport());
-      r.setRecoverySummary(getRecoveryReport().getSummary());
-
-      return r;
-    }
-    finally {
-      readLock.unlock();
-    }
-  }
-
-  /**
-   * Shows if Host is persisted to database
-   *
-   * @return true if persisted
-   */
-  @Override
-  public boolean isPersisted() {
-    readLock.lock();
-    try {
-      return persisted;
-    } finally {
-      readLock.unlock();
-    }
-  }
-
-  /**
-   * Save host to database and make all changes to be saved afterwards
-   */
-  @Override
-  public void persist() {
-    writeLock.lock();
-    try {
-      if (!persisted) {
-        persistEntities();
-        refresh();
-        for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
-          try {
-            clusters.getClusterById(clusterEntity.getClusterId()).refresh();
-          } catch (AmbariException e) {
-            LOG.error("Error while looking up the cluster", e);
-            throw new RuntimeException("Cluster '" + clusterEntity.getClusterId() + "' was removed", e);
-          }
-        }
-        persisted = true;
-      } else {
-        //refresh entities from active session
-        getHostEntity();
-        getHostStateEntity();
-        saveIfPersisted();
-      }
-    } finally {
-      writeLock.unlock();
-    }
+    r.setAgentVersion(getAgentVersion());
+    r.setAvailableMemBytes(getAvailableMemBytes());
+    r.setPhCpuCount(getPhCpuCount());
+    r.setCpuCount(getCpuCount());
+    r.setDisksInfo(getDisksInfo());
+    r.setHealthStatus(getHealthStatus());
+    r.setHostAttributes(getHostAttributes());
+    r.setIpv4(getIPv4());
+    r.setIpv6(getIPv6());
+    r.setLastHeartbeatTime(getLastHeartbeatTime());
+    r.setLastAgentEnv(lastAgentEnv);
+    r.setLastRegistrationTime(getLastRegistrationTime());
+    r.setOsArch(getOsArch());
+    r.setOsInfo(getOsInfo());
+    r.setOsType(getOsType());
+    r.setRackInfo(getRackInfo());
+    r.setTotalMemBytes(getTotalMemBytes());
+    r.setPublicHostName(getPublicHostName());
+    r.setHostState(getState().toString());
+    r.setStatus(getStatus());
+    r.setRecoveryReport(getRecoveryReport());
+    r.setRecoverySummary(getRecoveryReport().getSummary());
+    return r;
   }
 
   @Transactional
-  void persistEntities() {
+  private void persistEntities(HostEntity hostEntity) {
     hostDAO.create(hostEntity);
-    hostStateDAO.create(hostStateEntity);
     if (!hostEntity.getClusterEntities().isEmpty()) {
       for (ClusterEntity clusterEntity : hostEntity.getClusterEntities()) {
         clusterEntity.getHostEntities().add(hostEntity);
         clusterDAO.merge(clusterEntity);
       }
-    }
-  }
-
-  @Override
-  @Transactional
-  public void refresh() {
-    writeLock.lock();
-    try {
-      getHostEntity();
-    } finally {
-      writeLock.unlock();
-    }
-  }
-
-  @Transactional
-  void saveIfPersisted() {
-    if (isPersisted()) {
-      hostDAO.merge(hostEntity);
-      hostStateDAO.merge(hostStateEntity);
     }
   }
 
@@ -1317,7 +1010,7 @@ public class HostImpl implements Host {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
 
     for (HostConfigMapping e : hostConfigMappingDAO.findSelected(
-        clusterId, hostEntity.getHostId())) {
+        clusterId, getHostId())) {
 
       DesiredConfig dc = new DesiredConfig();
       dc.setTag(e.getVersion());
@@ -1388,66 +1081,50 @@ public class HostImpl implements Host {
   }
 
   private HostConfigMapping getDesiredConfigEntity(long clusterId, String type) {
-    return hostConfigMappingDAO.findSelectedByType(clusterId, hostEntity.getHostId(), type);
+    return hostConfigMappingDAO.findSelectedByType(clusterId, getHostId(), type);
   }
 
-  private void ensureMaintMap() {
-    if (null == maintMap) {
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        String entity = hostStateEntity.getMaintenanceState();
-        if (null == entity) {
-          maintMap = new HashMap<Long, MaintenanceState>();
-        } else {
-          try {
-            maintMap = gson.fromJson(entity, maintMapType);
-          } catch (Exception e) {
-            maintMap = new HashMap<Long, MaintenanceState>();
-          }
-        }
-      }
+  private ConcurrentMap<Long, MaintenanceState> ensureMaintMap(HostStateEntity hostStateEntity) {
+    if (null == hostStateEntity || null == hostStateEntity.getMaintenanceState()) {
+      return new ConcurrentHashMap<>();
     }
+
+    String entity = hostStateEntity.getMaintenanceState();
+    final ConcurrentMap<Long, MaintenanceState> map;
+
+    try {
+      Map<Long, MaintenanceState> gsonMap = gson.fromJson(entity, maintMapType);
+      map = new ConcurrentHashMap<>(gsonMap);
+    } catch (Exception e) {
+      return new ConcurrentHashMap<>();
+    }
+
+    return map;
   }
 
   @Override
   public void setMaintenanceState(long clusterId, MaintenanceState state) {
-    try {
-      writeLock.lock();
+    maintMap.put(clusterId, state);
+    String json = gson.toJson(maintMap, maintMapType);
 
-      ensureMaintMap();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    if (hostStateEntity != null) {
+      hostStateEntity.setMaintenanceState(json);
+      hostStateDAO.merge(hostStateEntity);
 
-      maintMap.put(clusterId, state);
-      String json = gson.toJson(maintMap, maintMapType);
-
-      HostStateEntity hostStateEntity = getHostStateEntity();
-      if (hostStateEntity != null) {
-        getHostStateEntity().setMaintenanceState(json);
-        saveIfPersisted();
-
-        // broadcast the maintenance mode change
-        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
-        eventPublisher.publish(event);
-      }
-    } finally {
-      writeLock.unlock();
+      // broadcast the maintenance mode change
+      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+      eventPublisher.publish(event);
     }
   }
 
   @Override
   public MaintenanceState getMaintenanceState(long clusterId) {
-    try {
-      readLock.lock();
-
-      ensureMaintMap();
-
-      if (!maintMap.containsKey(clusterId)) {
-        maintMap.put(clusterId, MaintenanceState.OFF);
-      }
-
-      return maintMap.get(clusterId);
-    } finally {
-      readLock.unlock();
+    if (!maintMap.containsKey(clusterId)) {
+      maintMap.put(clusterId, MaintenanceState.OFF);
     }
+
+    return maintMap.get(clusterId);
   }
 
   /**
@@ -1462,20 +1139,13 @@ public class HostImpl implements Host {
 
   // Get the cached host entity or load it fresh through the DAO.
   public HostEntity getHostEntity() {
-    if (isPersisted()) {
-      hostEntity = hostDAO.findById(hostEntity.getHostId());
-    }
-    return hostEntity;
+    return hostDAO.findById(hostId);
   }
 
   // Get the cached host state entity or load it fresh through the DAO.
   public HostStateEntity getHostStateEntity() {
-    if (isPersisted()) {
-      hostStateEntity = hostStateDAO.findByHostId(hostEntity.getHostId()) ;
-    }
-    return hostStateEntity;
+    return hostStateDAO.findByHostId(hostId);
   }
-
 }
 
 

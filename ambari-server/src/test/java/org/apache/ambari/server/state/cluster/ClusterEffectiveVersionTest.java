@@ -39,7 +39,9 @@ import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
@@ -75,6 +77,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import junit.framework.Assert;
 
@@ -99,11 +102,10 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
 
     expectClusterEntityMocks();
 
-    AmbariEventPublisher eventPublisher = createNiceMock(AmbariEventPublisher.class);
-
     replayAll();
 
-    m_cluster = new ClusterImpl(m_clusterEntity, m_injector, eventPublisher);
+    ClusterFactory clusterFactory = m_injector.getInstance(ClusterFactory.class);
+    m_cluster = clusterFactory.create(m_clusterEntity);
 
     verifyAll();
   }
@@ -227,6 +229,12 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
         new ArrayList<ClusterServiceEntity>()).anyTimes();
     EasyMock.expect(m_clusterEntity.getClusterConfigEntities()).andReturn(
         new ArrayList<ClusterConfigEntity>()).anyTimes();
+
+    EasyMock.expect(m_clusterEntity.getConfigGroupEntities()).andReturn(
+        new ArrayList<ConfigGroupEntity>()).anyTimes();
+
+    EasyMock.expect(m_clusterEntity.getRequestScheduleEntities()).andReturn(
+        new ArrayList<RequestScheduleEntity>()).anyTimes();
   }
 
   /**
@@ -262,13 +270,16 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(PasswordEncoder.class).toInstance(EasyMock.createNiceMock(PasswordEncoder.class));
       binder.bind(KerberosHelper.class).toInstance(EasyMock.createNiceMock(KerberosHelper.class));
       binder.bind(Users.class).toInstance(EasyMock.createNiceMock(Users.class));
+      binder.bind(AmbariEventPublisher.class).toInstance(createNiceMock(AmbariEventPublisher.class));
 
+      binder.install(new FactoryModuleBuilder().implement(
+          Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
 
       try {
         AmbariMetaInfo ambariMetaInfo = EasyMock.createNiceMock(AmbariMetaInfo.class);
         EasyMock.expect(
             ambariMetaInfo.getServices(EasyMock.anyString(), EasyMock.anyString())).andReturn(
-                new HashMap<String, ServiceInfo>());
+                new HashMap<String, ServiceInfo>()).anyTimes();
 
         EasyMock.replay(ambariMetaInfo);
 

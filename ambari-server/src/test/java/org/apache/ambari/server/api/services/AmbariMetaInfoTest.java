@@ -87,6 +87,7 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
 import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
@@ -1838,6 +1839,8 @@ public class AmbariMetaInfoTest {
   public void testAlertDefinitionMerging() throws Exception {
     Injector injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
+
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(EntityManager.class);

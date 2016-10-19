@@ -41,6 +41,7 @@ import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Binder;
@@ -51,7 +52,6 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
-import org.junit.experimental.categories.Category;
 
 /**
  * Tests that {@link InitialAlertEventTest} instances are fired correctly.
@@ -177,7 +177,6 @@ public class InitialAlertEventTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);
-    service.persist();
     service = m_cluster.getService(serviceName);
 
     Assert.assertNotNull(service);

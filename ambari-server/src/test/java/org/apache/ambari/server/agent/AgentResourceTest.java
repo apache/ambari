@@ -18,10 +18,12 @@
 
 package org.apache.ambari.server.agent;
 
+import static org.easymock.EasyMock.createNiceMock;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import javax.persistence.EntityManager;
 import javax.ws.rs.core.MediaType;
 
 import org.apache.ambari.server.RandomPortJerseyTest;
@@ -35,6 +37,7 @@ import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
@@ -55,7 +58,6 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceImpl;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.configgroup.ConfigGroupImpl;
@@ -66,6 +68,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.topology.PersistedState;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
@@ -80,7 +83,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.persist.jpa.AmbariJpaPersistModule;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
@@ -296,7 +298,6 @@ public class AgentResourceTest extends RandomPortJerseyTest {
         // The test will fail anyway
       }
       requestStaticInjection(AgentResource.class);
-      bind(Clusters.class).to(ClustersImpl.class);
       os_family = mock(OsFamily.class);
       actionManager = mock(ActionManager.class);
       ambariMetaInfo = mock(AmbariMetaInfo.class);
@@ -311,10 +312,13 @@ public class AgentResourceTest extends RandomPortJerseyTest {
       bind(AmbariMetaInfo.class).toInstance(ambariMetaInfo);
       bind(DBAccessor.class).toInstance(mock(DBAccessor.class));
       bind(HostRoleCommandDAO.class).toInstance(mock(HostRoleCommandDAO.class));
+      bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+      bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
+      bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+      bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
     }
 
     private void installDependencies() {
-      install(new AmbariJpaPersistModule("ambari-javadb"));
       install(new FactoryModuleBuilder().implement(
           Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
       install(new FactoryModuleBuilder().implement(

@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -522,12 +521,6 @@ public interface Cluster {
   Service addService(String serviceName) throws AmbariException;
 
   /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
-
-  /**
    * Fetch desired configs for list of hosts in cluster
    * @param hostIds
    * @return
@@ -668,11 +661,6 @@ public interface Cluster {
    *          {@code null}).
    */
   void removeConfigurations(StackId stackId);
-
-  /**
-   * Clear cluster caches and re-read data from database
-   */
-  void invalidateData();
 
   /**
    * Returns whether this cluster was provisioned by a Blueprint or not.

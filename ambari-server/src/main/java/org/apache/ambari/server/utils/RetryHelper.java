@@ -17,16 +17,17 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.state.Cluster;
-import org.eclipse.persistence.exceptions.DatabaseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.eclipse.persistence.exceptions.DatabaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides utility methods to support operations retry
@@ -34,6 +35,7 @@ import java.util.concurrent.Callable;
  */
 public class RetryHelper {
   protected final static Logger LOG = LoggerFactory.getLogger(RetryHelper.class);
+  private static Clusters s_clusters;
 
   private static ThreadLocal<Set<Cluster>> affectedClusters = new ThreadLocal<Set<Cluster>>(){
     @Override
@@ -44,7 +46,8 @@ public class RetryHelper {
 
   private static int operationsRetryAttempts = 0;
 
-  public static void init(int operationsRetryAttempts) {
+  public static void init(Clusters clusters, int operationsRetryAttempts) {
+    s_clusters = clusters;
     RetryHelper.operationsRetryAttempts = operationsRetryAttempts;
   }
 
@@ -82,7 +85,8 @@ public class RetryHelper {
 
   public static void invalidateAffectedClusters() {
     for (Cluster cluster : affectedClusters.get()) {
-      cluster.invalidateData();
+      s_clusters.invalidate(cluster);
+      affectedClusters.get().remove(cluster);
     }
   }
 
@@ -90,7 +94,6 @@ public class RetryHelper {
     RetryHelper.clearAffectedClusters();
     int retryAttempts = RetryHelper.getOperationsRetryAttempts();
     do {
-
       try {
         return command.call();
       } catch (Exception e) {

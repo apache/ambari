@@ -28,6 +28,8 @@ import java.net.URL;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
@@ -145,6 +147,7 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
@@ -864,7 +867,7 @@ public class AmbariServer {
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
-    RetryHelper.init(configs.getOperationsRetryAttempts());
+    RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
   }
 
   /**

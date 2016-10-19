@@ -170,14 +170,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -262,14 +260,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 
@@ -365,14 +361,12 @@ public class JMXHostProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
     clusters.getHost("h1").setHostAttributes(hostAttributes);
-    clusters.getHost("h1").persist();
     String host2 = "h2";
     clusters.addHost(host2);
     hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     clusters.getHost("h2").setHostAttributes(hostAttributes);
-    clusters.getHost("h2").persist();
     clusters.mapHostToCluster(host1, clusterName);
     clusters.mapHostToCluster(host2, clusterName);
 

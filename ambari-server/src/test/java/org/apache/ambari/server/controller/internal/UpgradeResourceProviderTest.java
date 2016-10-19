@@ -232,14 +232,12 @@ public class UpgradeResourceProviderTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZK server
     Service service = cluster.addService("ZOOKEEPER");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
@@ -590,7 +588,6 @@ public class UpgradeResourceProviderTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     clusters.mapHostToCluster("h2", "c1");
     Cluster cluster = clusters.getCluster("c1");
@@ -736,7 +733,6 @@ public class UpgradeResourceProviderTest {
     // add additional service for the test
     Service service = cluster.addService("HIVE");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

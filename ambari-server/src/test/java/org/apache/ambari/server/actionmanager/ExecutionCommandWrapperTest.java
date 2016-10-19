@@ -103,7 +103,6 @@ public class ExecutionCommandWrapperTest {
 
     clusters = injector.getInstance(Clusters.class);
     clusters.addHost(HOST1);
-    clusters.getHost(HOST1).persist();
     clusters.addCluster(CLUSTER1, new StackId("HDP-0.1"));
 
     Cluster cluster1 = clusters.getCluster(CLUSTER1);

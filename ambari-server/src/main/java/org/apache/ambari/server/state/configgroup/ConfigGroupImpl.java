@@ -44,7 +44,6 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,8 +79,6 @@ public class ConfigGroupImpl implements ConfigGroup {
   private ClusterDAO clusterDAO;
   @Inject
   Clusters clusters;
-  @Inject
-  private ConfigFactory configFactory;
 
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster,
@@ -317,23 +314,18 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void persist() {
-    cluster.getClusterGlobalLock().writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        if (!isPersisted) {
-          persistEntities();
-          refresh();
-          cluster.refresh();
-          isPersisted = true;
-        } else {
-          saveIfPersisted();
-        }
-      } finally {
-        readWriteLock.writeLock().unlock();
+      if (!isPersisted) {
+        persistEntities();
+        refresh();
+        cluster.refresh();
+        isPersisted = true;
+      } else {
+        saveIfPersisted();
       }
     } finally {
-      cluster.getClusterGlobalLock().writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
@@ -465,20 +457,15 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public void delete() {
-    cluster.getClusterGlobalLock().writeLock().lock();
+    readWriteLock.writeLock().lock();
     try {
-      readWriteLock.writeLock().lock();
-      try {
-        configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-        configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
-        configGroupDAO.removeByPK(configGroupEntity.getGroupId());
-        cluster.refresh();
-        isPersisted = false;
-      } finally {
-        readWriteLock.writeLock().unlock();
-      }
+      configGroupConfigMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+      configGroupHostMappingDAO.removeAllByGroup(configGroupEntity.getGroupId());
+      configGroupDAO.removeByPK(configGroupEntity.getGroupId());
+      cluster.refresh();
+      isPersisted = false;
     } finally {
-      cluster.getClusterGlobalLock().writeLock().unlock();
+      readWriteLock.writeLock().unlock();
     }
   }
 
@@ -526,40 +513,33 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   public ConfigGroupResponse convertToResponse() throws AmbariException {
-    cluster.getClusterGlobalLock().readLock().lock();
+    readWriteLock.readLock().lock();
     try {
-      readWriteLock.readLock().lock();
-      try {
-        Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
-        for (Host host : hosts.values()) {
-          Map<String, Object> hostMap = new HashMap<String, Object>();
-          hostMap.put("host_name", host.getHostName());
-          hostnames.add(hostMap);
-        }
+      Set<Map<String, Object>> hostnames = new HashSet<Map<String, Object>>();
+      for (Host host : hosts.values()) {
+        Map<String, Object> hostMap = new HashMap<String, Object>();
+        hostMap.put("host_name", host.getHostName());
+        hostnames.add(hostMap);
+      }
 
-        Set<Map<String, Object>> configObjMap = new HashSet<Map<String,
-          Object>>();
+      Set<Map<String, Object>> configObjMap = new HashSet<Map<String, Object>>();
 
-        for (Config config : configurations.values()) {
-          Map<String, Object> configMap = new HashMap<String, Object>();
-          configMap.put(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, config.getType());
-          configMap.put(ConfigurationResourceProvider
-            .CONFIGURATION_CONFIG_TAG_PROPERTY_ID, config.getTag());
-          configObjMap.add(configMap);
-        }
+      for (Config config : configurations.values()) {
+        Map<String, Object> configMap = new HashMap<String, Object>();
+        configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TYPE_PROPERTY_ID,
+            config.getType());
+        configMap.put(ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID,
+            config.getTag());
+        configObjMap.add(configMap);
+      }
 
-        ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(
+      ConfigGroupResponse configGroupResponse = new ConfigGroupResponse(
           configGroupEntity.getGroupId(), cluster.getClusterName(),
           configGroupEntity.getGroupName(), configGroupEntity.getTag(),
-          configGroupEntity.getDescription(),
-          hostnames, configObjMap);
-        return configGroupResponse;
-      } finally {
-        readWriteLock.readLock().unlock();
-      }
+          configGroupEntity.getDescription(), hostnames, configObjMap);
+      return configGroupResponse;
     } finally {
-      cluster.getClusterGlobalLock().readLock().unlock();
+      readWriteLock.readLock().unlock();
     }
   }
 

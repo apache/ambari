@@ -17,8 +17,13 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -26,19 +31,15 @@ import org.apache.ambari.server.orm.entities.SettingEntity;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class SettingDAOTest {
   private  Injector injector;
   private SettingDAO dao;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     dao = injector.getInstance(SettingDAO.class);
     injector.getInstance(GuiceJpaInitializer.class);
