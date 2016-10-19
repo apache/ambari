@@ -3136,32 +3136,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           items: [
             {
               ClusterStackVersions: {
-                state: 'CURRENT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S1', versions: ['v1']}
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        currentStackData: {
-          currentStackVersionNumber: '2.2',
-          currentStackName: 'HDP'
-        },
-        m: 'should add stack services from stack version with state CURRENT',
-        e: { "S1": "v1"}
-      },
-      {
-        jsonData: {
-          items: [
-            {
-              ClusterStackVersions: {
                 version: '2.3',
                 stack: 'HDP',
                 state: 'INIT'
@@ -3198,54 +3172,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           currentStackVersionNumber: '2.2',
           currentStackName: 'HDP'
         },
-        m: 'should add stack services from stack version by current stack name and version number' +
-           'when CURRENT version not available',
+        m: 'should add stack services from stack version by current stack name and version number',
         e: { "S2": "v2"}
-      },
-      {
-        jsonData: {
-          items: [
-            {
-              ClusterStackVersions: {
-                version: '2.3',
-                stack: 'HDP',
-                state: 'CURRENT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S3', versions: ['v3']}
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              ClusterStackVersions: {
-                version: '2.2',
-                stack: 'HDP',
-                state: 'INIT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S2', versions: ['v2']}
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        currentStackData: {
-          currentStackVersionNumber: '2.2',
-          currentStackName: 'HDP'
-        },
-        m: 'should add stack services by state CURRENT even when there is stack version with ' +
-           'current stack name and version number',
-        e: { "S3": "v3"}
       }
     ];
 
