@@ -24,16 +24,22 @@
      &nbsp;
     {{/if}}
   </div>
-  <table>
-    <tr>
-      <td class="title">{{t services.service.config_groups_popup.group_name_lable }}:&nbsp;</td>
-      <td>{{view Ember.TextField maxlength="255" valueBinding="configGroupName"}}</td>
-    </tr>
-    <tr>
-      <td class="title">{{t services.service.config_groups_popup.group_desc_lable }}:&nbsp;</td>
-      <td class="row-fluid">
-        {{view Ember.TextArea classNames="span12" valueBinding="configGroupDesc" rows="4"}}
-      </td>
-    </tr>
-  </table>
+  <div class="row">
+    <div class="col-md-12">
+      <form class="form-horizontal">
+        <div class="form-group">
+          <label class="col-md-2 control-label">{{t services.service.config_groups_popup.group_name_lable }}:&nbsp;</label>
+          <div class="col-md-6">
+            {{view Ember.TextField maxlength="255" valueBinding="configGroupName" classNames="form-control"}}</td>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-2 control-label">{{t services.service.config_groups_popup.group_desc_lable }}:&nbsp;</label>
+          <div class="col-md-10">
+            {{view Ember.TextArea classNames="col-md-12 form-control" valueBinding="configGroupDesc" rows="4"}}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

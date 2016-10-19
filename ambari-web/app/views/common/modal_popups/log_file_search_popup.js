@@ -20,7 +20,8 @@ var App = require('app');
 
 App.LogFileSearchPopup = function(header) {
   return App.ModalPopup.show({
-    classNames: ['modal-full-width', 'sixty-percent-width-modal', 'log-file-search-popup'],
+    classNames: ['modal-full-width', 'common-modal-wrapper', 'log-file-search-popup'],
+    modalDialogClasses: ['modal-lg'],
     header: header,
     bodyView: null,
     bodyClass: App.LogFileSearchView.extend({

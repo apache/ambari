@@ -15,7 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<table class="table advanced-header-table table-bordered table-striped">
+<table class="table advanced-header-table table-hover">
   <thead>
   {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
     {{view view.parentView.stackSort classNames="first"}}
@@ -41,7 +41,7 @@
             <span class="label label-success">{{t common.current}}</span>
           {{else}}
             {{#if version.isInstalling}}
-              <a href="#" {{action showInstallProgress version target="view"}}><i class="icon-cog in_progress"></i>&nbsp;{{version.displayStatus}}</a>
+              <a href="#" {{action showInstallProgress version target="view"}}><i class="glyphicon glyphicon-cog in_progress"></i>&nbsp;{{version.displayStatus}}</a>
             {{else}}
               {{version.displayStatus}}
               {{#if version.isOutOfSync}}
@@ -52,7 +52,7 @@
         </td>
         <td class="install-repo-version align-center">
           {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
-            <button class="btn" {{action installVersionConfirmation version target="controller"}} {{bindAttr disabled="version.installDisabled"}}><i class="icon-off"></i>&nbsp;{{t common.install}}</button>
+            <button class="btn btn-default" {{action installVersionConfirmation version target="controller"}} {{bindAttr disabled="version.installDisabled"}}><i class="glyphicon glyphicon-off"></i>&nbsp;{{t common.install}}</button>
           {{/isAuthorized}}
         </td>
       </tr>
@@ -68,7 +68,7 @@
 </table>
 
 <div class="page-bar">
-  <div class="filtered-info span4">
+  <div class="filtered-info col-md-4">
     {{#if view.showFilteredContent}}
       <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
         href="#">{{t tableView.filters.clearAllFilters}}</a></label>
@@ -78,8 +78,5 @@
     <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.parentView.displayLength"}}</label>
   </div>
   <div class="info">{{view.paginationInfo}}</div>
-  <div class="paging_two_button">
-    {{view view.paginationLeft}}
-    {{view view.paginationRight}}
-  </div>
+  {{view view.pagination2Btns}}
 </div>

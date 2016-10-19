@@ -18,12 +18,8 @@
 
 <div class="wizard">
   <div class="container">
-    <div class="container-fluid">
-
-      <!--<a class="btn back" {{action backToHostsList}}>\u2190 Back to Hosts</a>-->
-
-      <div class="row-fluid">
-        <div class="span3">
+      <div class="row">
+        <div class="col-md-3">
           <!--Sidebar content-->
           <div class="well">
             <ul class="nav nav-pills nav-stacked">
@@ -38,7 +34,7 @@
             </ul>
           </div>
         </div>
-          <div class="wizard-content well span9">
+          <div class="wizard-content well col-md-9">
             {{#if view.isLoaded}}
               {{outlet}}
             {{else}}
@@ -46,6 +42,5 @@
             {{/if}}
           </div>
       </div>
-    </div>
   </div>
 </div>

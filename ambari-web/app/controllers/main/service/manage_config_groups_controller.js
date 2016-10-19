@@ -806,7 +806,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         controller: configsController
       }),
 
-      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+      classNames: ['common-modal-wrapper', 'manage-configuration-group-popup'],
+      modalDialogClasses: ['modal-lg'],
 
       primary: Em.I18n.t('common.save'),
 

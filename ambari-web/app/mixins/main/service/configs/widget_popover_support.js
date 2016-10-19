@@ -52,7 +52,7 @@ App.WidgetPopoverSupport = Em.Mixin.create({
       this.destroyPopover();
       var leftPopoverTemplate = '<div class="popover config-widget-left-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>',
         isWidget = !Em.isEmpty(this.$('.original-widget')),
-        popoverSelector = isWidget ? this.$('.original-widget') : this.$('.input-append');
+        popoverSelector = isWidget ? this.$('.original-widget') : this.$('.input-group');
 
       App.popover(popoverSelector, {
         template: this.get('popoverPlacement') === 'left'? leftPopoverTemplate : undefined,
@@ -63,6 +63,7 @@ App.WidgetPopoverSupport = Em.Mixin.create({
         content: this.get('config.description'),
         placement: this.get('popoverPlacement'),
         trigger: 'hover',
+        html: true,
         delay: {
           show: 1000,
           hide: 0
@@ -87,7 +88,7 @@ App.WidgetPopoverSupport = Em.Mixin.create({
   }.observes('config.showAsTextBox'),
 
   movePopover: function (action) {
-    var popoverSelector = Em.isEmpty(this.$('.original-widget')) ? this.$('.input-append') : this.$('.original-widget');
+    var popoverSelector = Em.isEmpty(this.$('.original-widget')) ? this.$('.input-group') : this.$('.original-widget');
     if (popoverSelector) {
       this.$(popoverSelector).popover(action)
     }

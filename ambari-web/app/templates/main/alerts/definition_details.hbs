@@ -20,17 +20,17 @@
 
   <div id="alert-definition-details">
 
-  <div class="alert-definition-details-header row-fluid">
-    <div class="span8">
+  <div class="alert-definition-details-header row">
+    <div class="col-md-8">
       {{! Alert Definition Name }}
-      <div class="definition-name row-fluid">
+      <div class="definition-name row">
         {{#if controller.editing.label.isEditing}}
-          <div {{bindAttr class="controller.editing.label.isError:error :span5 :name-text-field :control-group"}}>
+          <div {{bindAttr class="controller.editing.label.isError:error :col-md-5 :name-text-field :form-group"}}>
             {{view Em.TextField valueBinding="controller.editing.label.value" maxlength="255"}}
           </div>
           <div class="edit-buttons">
             <button {{action cancelEdit controller.editing.label target="controller"}}
-                class="btn cancel-button">{{t common.cancel}}</button>
+                class="btn btn-default cancel-button">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
                 class="btn btn-primary save-button">{{t common.save}}
             </button>
@@ -43,32 +43,32 @@
         {{#unless controller.editing.label.isEditing}}
           {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
             <a {{action edit controller.editing.label target="controller"}} class="edit-description-button"><i
-                class="icon-pencil"></i></a>
+                class="glyphicon glyphicon-pencil"></i></a>
           {{/isAuthorized}}
         {{/unless}}
       </div>
       {{! Alert Definition Name end }}
       <div class="error-msg"> {{controller.errorMessage}} </div>
-      <div><a href="javascript:void(null)" data-toggle="modal" {{action back}}><i
-          class="icon-arrow-left"></i>&nbsp;{{t common.back}}</a>
+      <div class="row"><a href="javascript:void(null)" {{action back}}><i
+          class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.back}}</a>
       </div>
     </div>
 
-    <div class="status span4">
+    <div class="status col-md-4">
       {{view App.AlertDefinitionSummary contentBinding="view.controller.content"}}
     </div>
   </div>
 
-  <div class="row-fluid" style="display: flex; align-items: stretch;">
+  <div class="row" style="display: flex; align-items: stretch;">
 
     {{! Left column }}
     {{! Alert Definition Configs }}
-    <div class="box span8">
-      <div class="box-header">
-        <div class="pull-left">
+    <div class="box col-md-8">
+      <div class="box-header row">
+        <div class="pull-left col-md-7">
           <h4>{{t common.configuration}}</h4>
         </div>
-        <div class="pull-right span5 row-fluid" style="padding:0 10px;">
+        <div class="pull-right col-md-5">
           {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
               <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}}
@@ -83,7 +83,7 @@
       {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
         <div class="edit-buttons">
           <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}}
-              class="btn">{{t common.cancel}}</button>
+              class="btn btn-default">{{t common.cancel}}</button>
           <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
               class="btn btn-primary">{{t common.save}}
           </button>
@@ -94,11 +94,11 @@
     {{! Left column end }}
 
     {{! Right column }}
-    <div class="span4 right-column">
+    <div class="col-md-4 right-column">
       <div class="properties-list background-text">
-        <div class="row-fluid">
-          <div class="span6 property-name">{{t alerts.table.state}}:</div>
-          <div class="span6">
+        <div class="row">
+          <div class="col-md-5 property-name">{{t alerts.table.state}}:</div>
+          <div class="col-md-7">
             {{#if controller.content.enabled}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -125,28 +125,28 @@
           </div>
         </div>
         {{#if controller.content.serviceDisplayName}}
-          <div class="row-fluid">
-            <div class="span6 property-name">{{t common.service}}:</div>
-            <div class="span6"><span>{{controller.content.serviceDisplayName}}</span></div>
+          <div class="row">
+            <div class="col-md-5 property-name">{{t common.service}}:</div>
+            <div class="col-md-7"><span>{{controller.content.serviceDisplayName}}</span></div>
           </div>
         {{/if}}
         {{#if controller.content.componentNameFormatted}}
-          <div class="row-fluid">
-            <div class="span6 property-name">{{t common.component}}:</div>
-            <div class="span6">{{controller.content.componentNameFormatted}}</div>
+          <div class="row">
+            <div class="col-md-5 property-name">{{t common.component}}:</div>
+            <div class="col-md-7">{{controller.content.componentNameFormatted}}</div>
           </div>
         {{/if}}
-        <div class="row-fluid">
-          <div class="span6 property-name">{{t common.type}}:</div>
-          <div class="span6">
+        <div class="row">
+          <div class="col-md-5 property-name">{{t common.type}}:</div>
+          <div class="col-md-7">
             <span {{bindAttr class=":type-icon  controller.content.typeIconClass"}}></span> {{controller.content.type}}
           </div>
         </div>
         {{#if controller.groupsList.length}}
-          <div class="row-fluid">
-            <div class="span6 property-name">{{t alerts.definition.details.groups}}:</div>
-            <div class="span6">
-              <ul>
+          <div class="row">
+            <div class="col-md-5 property-name">{{t alerts.definition.details.groups}}:</div>
+            <div class="col-md-7">
+              <ul class="list-unstyled">
                 {{#each groupName in controller.groupsList}}
                   <li>{{groupName}}</li>
                 {{/each}}
@@ -154,14 +154,14 @@
             </div>
           </div>
         {{/if}}
-        <div class="row-fluid">
-          <div class="span6 property-name">{{t alerts.table.header.lastTrigger}}:</div>
-          <div class="span6">{{controller.content.lastTriggeredFormatted}}</div>
+        <div class="row">
+          <div class="col-md-5 property-name">{{t alerts.table.header.lastTrigger}}:</div>
+          <div class="col-md-7">{{controller.content.lastTriggeredFormatted}}</div>
         </div>
         {{#unless controller.content.isTypeAggregate}}
-          <div class="row-fluid">
-            <div class="span6 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
-            <div class="span6">
+          <div class="row">
+            <div class="col-md-5 property-name">{{t alerts.table.header.repeatTolerance}}:</div>
+            <div class="col-md-7">
               {{#if controller.content.repeat_tolerance_enabled}}
                 <span>
                   {{controller.content.repeat_tolerance}}
@@ -174,16 +174,16 @@
               {{/if}}
               {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a {{action editRepeatTolerance target="controller"}} class="edit-description-button">
-                  <i class="icon-pencil"></i>
+                  <i class="glyphicon glyphicon-pencil"></i>
                 </a>
               {{/isAuthorized}}
             </div>
           </div>
         {{/unless}}
         {{#if controller.content.hasHelpUrl}}
-          <div class="row-fluid">
-            <div class="span6 property-name">{{t alerts.table.header.helpUrl}}:</div>
-            <div class="span6"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
+          <div class="row">
+            <div class="col-md-5 property-name">{{t alerts.table.header.helpUrl}}:</div>
+            <div class="col-md-7"><label for=""><a {{bindAttr href="controller.content.helpUrl"}} target="_blank">{{t common.link}}</a></label></div>
           </div>
         {{/if}}
       </div>
@@ -192,7 +192,7 @@
   {{! Right column end }}
 
   {{! List of alerts }}
-  <div class="definition-details-block">
+  <div class="definition-details-block row">
   <span class="background-text">
     <strong>{{t alerts.definition.details.instances}}</strong>
   </span>
@@ -201,9 +201,9 @@
 
       {{#if App.router.mainAlertInstancesController.isLoaded}}
 
-        <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
+        <table class="table advanced-header-table table-hover alerts-table" id="alert-instances-table">
           <thead>
-          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+          {{#view view.sortView contentBinding="view.filteredContent"}}
             {{view view.parentView.serviceSort class="first service-sorting"}}
             {{view view.parentView.hostNameSort class="host-sorting"}}
             {{view view.parentView.stateSort class="state-sorting"}}
@@ -261,7 +261,7 @@
         </table>
 
         <div class="page-bar">
-          <div class="filtered-info span4">
+          <div class="filtered-info col-md-4">
             {{#if view.showFilteredContent}}
               <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
                 href="#">{{t tableView.filters.clearAllFilters}}</a></label>
@@ -271,12 +271,7 @@
             <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
           </div>
           <div class="info">{{view.paginationInfo}}</div>
-          <div class="paging_two_button">
-            <a {{bindAttr class="view.paginationLeftClass"}}{{action previousPage target="view"}}><i
-                class="icon-arrow-left"></i></a>
-            <a {{bindAttr class="view.paginationRightClass"}}{{action nextPage target="view"}}><i
-                class="icon-arrow-right"></i></a>
-          </div>
+          {{view view.pagination2Btns}}
         </div>
 
       {{else}}

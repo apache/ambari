@@ -15,18 +15,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<p><i class="icon-warning-sign"></i> {{t hosts.bulkOperation.deleteHosts.confirmation.body}}</p>
+<p><i class="glyphicon glyphicon-warning-sign"></i> {{t hosts.bulkOperation.deleteHosts.confirmation.body}}</p>
 {{#each host in view.hosts}}
   <div><i>{{{host.deleted.key}}}</i></div>
 {{/each}}
 <br />
-<div class='alert'>{{{t common.important.strong}}}
+<div class='alert alert-warning'>{{{t common.important.strong}}}
     {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg1}}
 </div>
 
-<div class='alert'>
+<div class='alert alert-warning'>
     {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg2}}
     <span style="color: red;">{{t hosts.bulkOperation.deleteHosts.confirmation.body.msg3}}</span>
 </div>
 
-<div class='alert'>{{{t common.important.strong}}} {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg4}}</div>
+<div class='alert alert-warning'>{{{t common.important.strong}}} {{t hosts.bulkOperation.deleteHosts.confirmation.body.msg4}}</div>

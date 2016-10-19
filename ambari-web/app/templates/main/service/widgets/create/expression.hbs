@@ -16,22 +16,28 @@
 * limitations under the License.
 }}
 
-<div class="actions-field row-fluid">
-  {{view App.AddMetricExpressionView class="add-metric-menu"}}
-  <div class="btn-group span2 add-operator">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-      {{t dashboard.widgets.wizard.step2.newOperator}}
+<div class="actions-field row">
+  {{view App.AddMetricExpressionView class="add-metric-menu col-md-2"}}
+  <div class="col-md-2">
+    <div class="btn-group add-operator">
+      <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+        {{t dashboard.widgets.wizard.step2.newOperator}}
         <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-      {{#each operator in view.OPERATORS}}
+      </a>
+      <ul class="dropdown-menu">
+        {{#each operator in view.OPERATORS}}
           <li><a href="#" {{action addOperator operator target="view"}}>{{operator}}</a></li>
-      {{/each}}
-    </ul>
+        {{/each}}
+      </ul>
+    </div>
   </div>
-  <div class="input-append span2 add-number">
-    {{view App.AddNumberExpressionView valueBinding="view.numberValue" class="input-small"}}
-    <button class="btn add-on" {{action addNumber target="view"}} {{bindAttr disabled="view.isNumberValueInvalid"}}>{{t dashboard.widgets.wizard.step2.newNumber}}</button>
+  <div class="col-md-7 row add-number">
+    <div class="input-group col-md-5">
+      {{view App.AddNumberExpressionView valueBinding="view.numberValue" class="form-control col-md-3"}}
+      <div class="input-group-btn">
+        <button class="btn btn-default" {{action addNumber target="view"}} {{bindAttr disabled="view.isNumberValueInvalid"}}>{{t dashboard.widgets.wizard.step2.newNumber}}</button>
+      </div>
+    </div>
   </div>
 </div>
 {{#if view.isInvalid}}
@@ -42,14 +48,14 @@
     {{/if}}
   </div>
 {{/if}}
-<div class="metric-field">
+<div class="col-md-12 metric-field">
   {{#if view.expression.isRemovable}}
-      <a {{action removeExpression view.expression target="controller"}} class="remove-link"><i class="icon-trash"></i></a>
+      <a {{action removeExpression view.expression target="controller"}} class="remove-link"><i class="glyphicon glyphicon-trash"></i></a>
   {{/if}}
   {{#if view.expression.data.length}}
     {{#each element in view.expression.data}}
       <div class="metric-instance" {{bindAttr id="element.id"}}>{{element.name}}
-        <a href="#" {{action removeElement element target="view"}}><i class="icon-remove"></i></a>
+        <a href="#" {{action removeElement element target="view"}}><i class="glyphicon glyphicon-remove"></i></a>
       </div>
     {{/each}}
     <div class="add-item-input">
@@ -62,4 +68,3 @@
     <div class="placeholder">{{t dashboard.widgets.wizard.step2.addMetrics}}</div>
   {{/if}}
 </div>
-

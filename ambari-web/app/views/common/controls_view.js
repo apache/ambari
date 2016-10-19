@@ -71,7 +71,8 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
       ),
       content: this.get('serviceConfig.description'),
       placement: this.get('popoverPlacement'),
-      trigger: 'hover'
+      trigger: 'hover',
+      html: true
     });
   },
 
@@ -101,7 +102,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
       controller.removeCurrentFromDependentList(config, saveRecommended);
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0) 
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0)
          || (config.get('displayType') === 'user' && config.get('oldValue') !== config.get('value'))) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
@@ -213,7 +214,7 @@ App.ServiceConfigCalculateId = Ember.Mixin.create({
  * @type {*}
  */
 App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.ValueObserver, {
-
+  classNames: ['form-control'],
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
   placeholderBinding: 'serviceConfig.placeholder',
@@ -235,11 +236,11 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 
   textFieldClassName: function () {
     if (this.get('serviceConfig.unit')) {
-      return ['input-small'];
+      return ['input-sm'];
     } else if (this.get('serviceConfig.displayType') === 'principal') {
-      return ['span12'];
+      return ['col-md-12'];
     } else {
-      return ['span9'];
+      return ['col-md-9 long-input'];
     }
   }.property('serviceConfig.displayType', 'serviceConfig.unit')
 
@@ -251,7 +252,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  */
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, App.ValueObserver, {
   valueBinding: 'serviceConfig.value',
-  classNames: ['input-append', 'with-unit'],
+  classNames: ['input-group', 'with-unit', 'col-md-4'],
   placeholderBinding: 'serviceConfig.savedValue',
 
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
@@ -261,38 +262,21 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
  * Password control
  * @type {*}
  */
-App.ServiceConfigPasswordField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigPasswordField = Ember.View.extend(App.ServiceConfigPopoverSupport, {
 
   serviceConfig: null,
-  type: 'password',
-  attributeBindings:['readOnly'],
-  valueBinding: 'serviceConfig.value',
-  classNames: [ 'span4' ],
+
   placeholder: Em.I18n.t('form.item.placeholders.typePassword'),
 
-  template: Ember.Handlebars.compile('{{view view.retypePasswordView}}'),
+  templateName: require('templates/common/configs/widgets/service_config_password_field'),
+
+  readOnly: Em.computed.not('serviceConfig.isEditable'),
 
   keyPress: function (event) {
     if (event.keyCode == 13) {
       return false;
     }
-  },
-
-  retypePasswordView: Ember.TextField.extend({
-    placeholder: Em.I18n.t('form.passwordRetype'),
-    attributeBindings:['readOnly'],
-    type: 'password',
-    classNames: [ 'span4', 'retyped-password' ],
-    keyPress: function (event) {
-      if (event.keyCode == 13) {
-        return false;
-      }
-    },
-    valueBinding: 'parentView.serviceConfig.retypedPassword',
-    readOnly: Em.computed.not('parentView.serviceConfig.isEditable')
-  }),
-
-  readOnly: Em.computed.not('serviceConfig.isEditable')
+  }
 
 });
 
@@ -304,9 +288,9 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['directories'],
+  classNames: ['directories', 'form-control'],
   classNameBindings: ['widthClass'],
-  widthClass: 'span9'
+  widthClass: 'col-md-9'
 });
 
 
@@ -350,7 +334,7 @@ App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopove
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
-  classNames: ['span10']
+  classNames: ['col-md-10', 'form-control']
 });
 
 /**
@@ -378,6 +362,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   falseValue: false,
 
   checked: false,
+  checkboxInstance: null,
 
   elementForPopover: function () {
     return this.$().parent('.control-group').find('.bootstrap-checkbox');
@@ -403,12 +388,12 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     this.propertyDidChange('checked');
     Em.run.next(function () {
       if (self.$()) {
-        self.$().checkbox({
+        self.set('checkboxInstance', self.$().checkbox({
           defaultState: self.get('serviceConfig.value'),
-          buttonStyle: 'btn-link btn-large',
-          checkedClass: 'icon-check',
-          uncheckedClass: 'icon-check-empty'
-        });
+          buttonStyle: 'btn-link',
+          checkedClass: 'glyphicon glyphicon-check',
+          uncheckedClass: 'glyphicon glyphicon-unchecked'
+        }));
         self.propertyDidChange('elementForPopover');
         self.addPopover();
       }
@@ -417,6 +402,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   willDestroyElement: function() {
     this.removeObserver('serviceConfig.value', this, 'checkedBinding');
+    this.set('checkboxInstance', null);
   },
 
   /***
@@ -450,6 +436,11 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   },
 
   disabled: Em.computed.not('serviceConfig.isEditable'),
+
+  disabledDidChange: function() {
+    if (!this.get('checkboxInstance')) return;
+    this.get('checkboxInstance').checkbox('refresh');
+  }.observes('disabled'),
 
   //Set editDone false for all current category config text field parameter
   focusIn: function (event) {
@@ -720,7 +711,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       dbType = this.getDefaultPropertyValue('db_type'),
       additionalView1 = shouldAdditionalViewsBeSet ? App.CheckDBConnectionView.extend({databaseName: dbType}) : null,
       additionalView2 = shouldAdditionalViewsBeSet ? Ember.View.extend({
-        template: Ember.Handlebars.compile('<div class="alert">{{{view.message}}}</div>'),
+        template: Ember.Handlebars.compile('<div class="alert alert-warning">{{{view.message}}}</div>'),
         message: function() {
           return Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(dbType, driver);
         }.property()
@@ -816,7 +807,7 @@ App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport,
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.savedValue',
-  classNames: [ 'span3' ]
+  classNames: [ 'col-md-3' ]
 });
 
 
@@ -847,7 +838,7 @@ App.ServiceConfigHostPopoverSupport = Ember.Mixin.create({
  */
 App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
-  classNames: ['master-host', 'span6'],
+  classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
 
   template: Ember.Handlebars.compile('{{value}}')
@@ -883,7 +874,7 @@ App.checkConnectionView = App.ServiceConfigTextField.extend({
  */
 App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
-  classNames: ['master-host', 'span6'],
+  classNames: ['master-host', 'col-md-6'],
   valueBinding: 'serviceConfig.value',
   unitBinding: 'serviceConfig.unit',
 
@@ -936,7 +927,7 @@ App.ServiceConfigComponentHostsView = Ember.View.extend(App.ServiceConfigMultipl
 
   viewName: 'serviceConfigSlaveHostsView',
 
-  classNames: ['component-hosts', 'span6'],
+  classNames: ['component-hosts'],
 
   valueBinding: 'serviceConfig.value',
 
@@ -1469,7 +1460,7 @@ App.SwitchToGroupView = Em.View.extend({
  */
 App.BaseUrlTextField = Ember.TextField.extend({
 
-  layout: Ember.Handlebars.compile('<div class="pull-left">{{yield}}</div> {{#if view.valueWasChanged}}<div class="pull-right"><a class="btn-small" {{action "restoreValue" target="view"}}><i class="icon-undo"></i></a></div>{{/if}}'),
+  layout: Ember.Handlebars.compile('<div class="pull-left">{{yield}}</div> {{#if view.valueWasChanged}}<div class="pull-right"><a class="btn-sm" {{action "restoreValue" target="view"}}><i class="icon-undo"></i></a></div>{{/if}}'),
 
   /**
    * Binding in the template

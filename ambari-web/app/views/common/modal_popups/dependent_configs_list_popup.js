@@ -30,7 +30,8 @@ App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
   return App.ModalPopup.show({
     encodeBody: false,
     header: Em.I18n.t('popup.dependent.configs.header'),
-    classNames: ['sixty-percent-width-modal','modal-full-width'],
+    classNames: ['common-modal-wrapper','modal-full-width'],
+    modalDialogClasses: ['modal-lg'],
     recommendations: recommendations,
     secondaryClass: 'cancel-button',
     bodyClass: Em.View.extend({

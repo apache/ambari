@@ -25,7 +25,7 @@ import sys
 import tempfile
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.core.exceptions import Fail
+from resource_management.core.exceptions import ExecutionFailed
 
 def get_user_call_output(command, user, quiet=False, is_checked_call=True, **call_kwargs):
   """
@@ -59,7 +59,7 @@ def get_user_call_output(command, user, quiet=False, is_checked_call=True, **cal
       err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_string, code, all_output))
       
       if is_checked_call:
-        raise Fail(err_msg)
+        raise ExecutionFailed(err_msg, code, files_output[0], files_output[1])
       else:
         Logger.warning(err_msg)
 

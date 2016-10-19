@@ -18,17 +18,18 @@
 
 <div>
   {{#if view.property.thresholdExists}}
-  <div {{bindAttr class=":span3 :badge-container :stuck-left"}}>
-    <span {{bindAttr class="view.property.badgeCssClass :alert-parameter-badge :alert-state-single-host view.property.threshold:label"}}>
+  <div class="col-md-3">
+    <span {{bindAttr class="view.property.badgeCssClass :label :alert-label :alert-state-single-host"}}>
       {{view.property.badge}}
-    </span>&nbsp;
+    </span>
   </div>
   {{/if}}
-  <div
-    rel="parameter-tooltip" {{bindAttr data-original-title="view.property.description" class="view.bigInput:span12:span3 view.property.units:input-append view.property.thresholdNotExists:stuck-left"}}>
-    {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled" class ="view.bigInput:span12:span6"}}
-    {{#if view.property.units}}
-      <span class="add-on">{{view.property.units}}</span>
-    {{/if}}
+  <div rel="parameter-tooltip" {{bindAttr data-original-title="view.property.description" class="view.bigInput:col-md-12:col-md-4"}}>
+    <div {{bindAttr class="view.property.units:input-group"}}>
+      {{view Em.TextField valueBinding="view.property.value" disabledBinding="view.property.isDisabled" class="form-control"}}
+      {{#if view.property.units}}
+        <span class="input-group-addon">{{view.property.units}}</span>
+      {{/if}}
+    </div>
   </div>
 </div>

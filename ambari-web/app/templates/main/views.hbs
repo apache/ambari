@@ -17,9 +17,9 @@
 }}
 
 <div id="views">
-  <h4 class="background-text">{{t views.main.yourViews}}</h4>
+  <h2 class="table-title">{{t views.main.yourViews}}</h2>
   {{#if view.views.length}}
-    <table class="table views-table">
+    <table class="table table-hover views-table">
       <tbody>
         {{#each instance in view.views}}
           {{#if instance.visible}}

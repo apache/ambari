@@ -193,11 +193,11 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
 
     // HDP 2.4 configs
     EasyMock.expect(configHelper.getDefaultProperties(EasyMock.eq(s_currentStackId),
-        EasyMock.anyObject(Cluster.class))).andReturn(oldStackDefaultConfigurationsByType);
+        EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(oldStackDefaultConfigurationsByType);
 
     // HDP 2.5 configs
     EasyMock.expect(configHelper.getDefaultProperties(EasyMock.eq(s_targetStackId),
-        EasyMock.anyObject(Cluster.class))).andReturn(newConfigurationsByType);
+        EasyMock.anyObject(Cluster.class), EasyMock.anyBoolean())).andReturn(newConfigurationsByType);
 
     // CURRENT HDP 2.4 configs
     Config currentClusterConfigFoo = createNiceMock(Config.class);

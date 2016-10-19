@@ -228,12 +228,12 @@ describe('App.HostComponentView', function() {
       {
         workStatus: App.HostComponentStatus.install_failed,
         passiveState: 'OFF',
-        e: 'health-status-color-red icon-cog'
+        e: 'health-status-color-red glyphicon glyphicon-cog'
       },
       {
         workStatus: App.HostComponentStatus.installing,
         passiveState: 'OFF',
-        e: 'health-status-color-blue icon-cog'
+        e: 'health-status-color-blue glyphicon glyphicon-cog'
       },
       {
         workStatus: 'STARTED',
@@ -312,7 +312,7 @@ describe('App.HostComponentView', function() {
         return {
           SLAVE_CUSTOM_COMMAND: {
             customCommand: 'SLAVE_CUSTOM_COMMAND',
-            cssClass: 'icon-play-circle',
+            cssClass: 'glyphicon-play-circle',
             label: 'Custom Command',
             context: 'Custom Command',
             isHidden: false,
@@ -340,7 +340,7 @@ describe('App.HostComponentView', function() {
         return {
           MASTER_CUSTOM_COMMAND: {
             action: 'executeCustomCommand',
-            cssClass: 'icon-play-circle',
+            cssClass: 'glyphicon-play-circle',
             isHidden: false,
             disabled: false
           },
@@ -349,7 +349,7 @@ describe('App.HostComponentView', function() {
             customCommand: 'REFRESHQUEUES',
             context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
             label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
-            cssClass: 'icon-refresh',
+            cssClass: 'glyphicon glyphicon-refresh',
             disabled: false
           }
         }

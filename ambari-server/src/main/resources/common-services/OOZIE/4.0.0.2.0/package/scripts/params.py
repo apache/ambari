@@ -36,4 +36,4 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
 sysprep_skip_copy_oozie_share_lib_to_hdfs = False
 if host_sys_prepped:
-  sysprep_skip_copy_oozie_share_lib_to_hdfs = default("/cluster-env/sysprep_skip_copy_oozie_share_lib_to_hdfs", False)
+  sysprep_skip_copy_oozie_share_lib_to_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_oozie_share_lib_to_hdfs", False)

@@ -142,7 +142,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
     tagName: 'i',
 
-    classNames: ['icon-warning-sign'],
+    classNames: ['glyphicon glyphicon-warning-sign'],
 
     classNameBindings: ['issueIconClass'],
 
@@ -191,7 +191,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         ERROR: {
           iconClass: '',
           message: this.get('issuedConfig.errorMessage'),
-          configLabelClass: 'text-error'
+          configLabelClass: 'text-danger'
         },
         WARN: {
           iconClass: 'warning',

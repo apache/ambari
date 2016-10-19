@@ -46,49 +46,49 @@ App.MainServiceItemView = Em.View.extend({
    addActionMap: function() {
      return [
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hbase.masterServer')),
          service: 'HBASE',
          component: 'HBASE_MASTER'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.metastore')),
          service: 'HIVE',
          component: 'HIVE_METASTORE'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2')),
          service: 'HIVE',
          component: 'HIVE_SERVER'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
          service: 'ZOOKEEPER',
          component: 'ZOOKEEPER_SERVER'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.flume.agentLabel')),
          service: 'FLUME',
          component: 'FLUME_HANDLER'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER', false)),
          service: 'RANGER_KMS',
          component: 'RANGER_KMS_SERVER'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS', false)),
          service: 'STORM',
          component: 'NIMBUS'
        },
        {
-         cssClass: 'icon-plus',
+         cssClass: 'glyphicon glyphicon-plus',
          'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER', false)),
          service: 'OOZIE',
          component: 'OOZIE_SERVER'

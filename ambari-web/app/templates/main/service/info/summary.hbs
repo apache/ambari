@@ -19,14 +19,14 @@
 {{#if view.service.isRestartRequired}}
   {{#isAuthorized "SERVICE.START_STOP"}}
     <div id="summary-restart-bar">
-      <div class="alert alert-warning clearfix">
-        <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}
+      <div class="alert alert-warning clearfix restart-required">
+        <i class="glyphicon glyphicon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}
         <a href="#" {{action showComponentsShouldBeRestarted controller.content target="App.router.mainServiceInfoConfigsController"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
         <a href="#" {{action showHostsShouldBeRestarted controller.content target="App.router.mainServiceInfoConfigsController"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
         <span class="restart-components pull-right">&nbsp</span>
 
         <div class="btn-group pull-right">
-          <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
+          <button type="button" class="btn dropdown-toggle btn-warning" data-toggle="dropdown">
             {{t hosts.host.details.needToRestart.button}}
             <span class="caret"></span>
           </button>
@@ -113,7 +113,7 @@
         </div>
         <div>
           {{#if isServiceWithEnhancedWidgets}}
-            <div id="widget_layout" class="row-fluid">
+            <div id="widget_layout" class="thumbnails">
               {{#each widget in controller.widgets}}
                 <div class="widget span2p4" {{bindAttr id="widget.id"}}>
                   {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
@@ -124,7 +124,7 @@
                   <button id="add-widget-action-box"
                           class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}
                           rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
-                    <i class="icon-plus"></i></button>
+                    <i class="glyphicon glyphicon-plus"></i></button>
                 </div>
               {{/if}}
             </div>
@@ -149,8 +149,8 @@
 </div>
 
 {{#if view.collapsedSections}}
-  <div class="row-fluid">
-    <div class="span12 metrics-collapsed-graphs">
+  <div class="row">
+    <div class="col-md-12 metrics-collapsed-graphs">
       {{#each collapsedSection in view.collapsedSections}}
         {{view collapsedSection}}
       {{/each}}

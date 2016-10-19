@@ -696,10 +696,16 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   serviceVersionsMap: {},
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
+    var versions = Em.getWithDefault(jsonData, 'items', []);
+    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
+    var rv = currentVersion || versions.filter(function(i) {
+      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
+       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    })[0];
     var map = this.get('serviceVersionsMap');
-    if (rv) {
-      rv.stack_services.forEach(function (item) {
+    var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
+    if (stackServices) {
+      stackServices.forEach(function (item) {
         map[item.name] = item.versions[0];
       });
     }

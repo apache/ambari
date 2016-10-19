@@ -20,10 +20,12 @@
   <div class="setting-wrapper">
     <h4>{{t app.settings.categories.general}}</h4>
     <hr />
-    <label>
-      {{view Ember.Checkbox checkedBinding="view.isNotShowBgChecked" class="checkbox"}}
-      {{t app.settings.notshowBgOperationsPopup}}
-    </label>
+    <div class="checkbox">
+      <label>
+        {{view Ember.Checkbox checkedBinding="view.isNotShowBgChecked" class="checkbox"}}
+        {{t app.settings.notshowBgOperationsPopup}}
+      </label>
+    </div>
   </div>
   <div class="setting-wrapper">
     <h4>{{t app.settings.categories.locale}}</h4>
@@ -35,13 +37,13 @@
           optionLabelPath="content.label"
           optionValuePath="content.value"
           selectionBinding="view.parentView.selectedTimezone"
-          class="group-select select-group-box"
+          class="group-select select-group-box form-control"
         }}
     </label>
   </div>
   <div>
     {{#unless view.hidePrivileges}}
-      <table class="table">
+      <table class="table table-hover">
         <thead>
         <tr>
           <th>{{t common.cluster}}</th>

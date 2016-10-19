@@ -35,6 +35,8 @@ REMOVE_CMD = {
   False: ['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm'],
 }
 
+REPO_UPDATE_CMD = ['/usr/bin/zypper', 'clean']
+
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
 
 class ZypperProvider(PackageProvider):
@@ -89,6 +91,9 @@ class ZypperProvider(PackageProvider):
 
   def is_repo_error_output(self, out):
     return "Failure when receiving data from the peer" in out
+
+  def get_repo_update_cmd(self):
+    return REPO_UPDATE_CMD
 
   def _check_existence(self, name):
     """

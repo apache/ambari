@@ -16,31 +16,36 @@
 * limitations under the License.
 }}
 
-  {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder"}}
-  <div class="btn-group">
+<div class="btn-group">
+  <div class="input-group">
+
+  {{view Ember.TextField valueBinding="view.filter" placeholderBinding="view.placeHolder" classNames="form-control"}}
+  <div class="input-group-btn">
     <div id="cleanerContainer" class="pull-left">
       <a href="#" id="filterCleaner" {{action "clearFilter" target="view"}}
         {{bindAttr class="view.filterNotEmpty::hidden :ui-icon :ui-icon-circle-close"}}></a>
     </div>
-      <button class="btn dropdown-toggle" data-toggle="dropdown">
-          <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu">
-        {{#each column in view.columns}}
-            <li>
-                <a href="#" {{action selectFilterColumn column target="view"}}>
-                  <i {{bindAttr class="column.selected:icon-ok-sign:icon-placeholder :text-success"}}></i>
-                  {{column.name}}
-                </a>
-            </li>
-        {{/each}}
-        {{#if view.showClearFilter}}
-          <li class="divider"></li>
+    <button class="btn btn-default dropdown-toggle btn-icon" data-toggle="dropdown">
+        <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      {{#each column in view.columns}}
           <li>
-            <a href="#" {{action clearFilterColumn target="view"}}>
-            {{t tableView.filters.clearFilters}}
-            </a>
+              <a href="#" {{action selectFilterColumn column target="view"}}>
+                <i {{bindAttr class="column.selected:glyphicon-ok-sign:glyphicon-placeholder :glyphicon :text-success"}}></i>
+                {{column.name}}
+              </a>
           </li>
-        {{/if}}
-      </ul>
+      {{/each}}
+      {{#if view.showClearFilter}}
+        <li class="divider"></li>
+        <li>
+          <a href="#" {{action clearFilterColumn target="view"}}>
+          {{t tableView.filters.clearFilters}}
+          </a>
+        </li>
+      {{/if}}
+    </ul>
   </div>
+  </div>
+</div>

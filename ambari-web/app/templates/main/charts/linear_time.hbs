@@ -31,8 +31,8 @@
       {{view.title}}
     </div>
     {{#if view.isReady}}
-      <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :span1"}} href="#" {{action toggleFormatsList target="view"}}>
-        <i class="icon-save"></i>
+      <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :col-md-1"}} href="#" {{action toggleFormatsList target="view"}}>
+        <i class="glyphicon glyphicon-save"></i>
       </a>
       <div class="export-graph-list-top"></div>
       {{view view.exportMetricsMenuView}}

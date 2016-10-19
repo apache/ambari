@@ -31,7 +31,7 @@ App.StringConfigWidgetView = App.ConfigWidgetView.extend({
    * @property configView
    */
   configView: App.ServiceConfigTextArea.extend({
-    widthClass: 'span12',
+    widthClass: 'col-md-12',
     serviceConfigBinding: 'parentView.config',
     popoverPlacement: 'top'
   }),

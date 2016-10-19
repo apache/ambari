@@ -34,7 +34,7 @@ App.DirectoryConfigWidgetView = App.ConfigWidgetView.extend({
    */
   configView: App.ServiceConfigTextArea.extend({
     isPopoverEnabled: 'false',
-    widthClass: 'span12',
+    widthClass: 'col-md-12',
     serviceConfigBinding: 'parentView.config',
     popoverPlacement: 'top'
   }),

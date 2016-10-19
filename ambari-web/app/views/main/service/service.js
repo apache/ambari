@@ -53,7 +53,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
   healthStatus: function () {
     var isClientOnlyService = App.get('services.clientOnly').contains(this.get('service.serviceName'));
     if (isClientOnlyService) {
-      return 'icon-laptop';
+      return 'glyphicon glyphicon-blackboard';
     }
     if (this.get('service.passiveState') != 'OFF') {
       return 'icon-medkit';

@@ -36,9 +36,9 @@ import org.junit.Test;
 import com.google.inject.Provider;
 
 /**
- * Tests {@link HiveRollingPortChangeWarning}.
+ * Tests {@link HiveNotRollingWarning}.
  */
-public class HiveRollingPortChangeWarningTest extends EasyMockSupport {
+public class HiveNotRollingWarningTest extends EasyMockSupport {
 
   private final String m_clusterName = "c1";
   private final Clusters m_clusters = niceMock(Clusters.class);
@@ -48,8 +48,8 @@ public class HiveRollingPortChangeWarningTest extends EasyMockSupport {
    */
   @Test
   public void testIsApplicable() throws Exception {
-    final HiveRollingPortChangeWarning portChangeWarning = new HiveRollingPortChangeWarning();
-    portChangeWarning.clustersProvider = new Provider<Clusters>() {
+    final HiveNotRollingWarning hiveWarningCheck = new HiveNotRollingWarning();
+    hiveWarningCheck.clustersProvider = new Provider<Clusters>() {
 
       @Override
       public Clusters get() {
@@ -75,7 +75,7 @@ public class HiveRollingPortChangeWarningTest extends EasyMockSupport {
 
     replayAll();
 
-    Assert.assertTrue(portChangeWarning.isApplicable(request));
+    Assert.assertTrue(hiveWarningCheck.isApplicable(request));
 
     verifyAll();
   }
@@ -85,12 +85,12 @@ public class HiveRollingPortChangeWarningTest extends EasyMockSupport {
    */
   @Test
   public void testPerform() throws Exception {
-    final HiveRollingPortChangeWarning portChangeWarning = new HiveRollingPortChangeWarning();
+    final HiveNotRollingWarning hiveWarningCheck = new HiveNotRollingWarning();
 
     PrereqCheckRequest request = new PrereqCheckRequest(m_clusterName);
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
 
-    portChangeWarning.perform(check, request);
+    hiveWarningCheck.perform(check, request);
     Assert.assertEquals(PrereqCheckStatus.WARNING, check.getStatus());
   }
 }

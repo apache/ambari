@@ -87,7 +87,7 @@ App.MainAdminStackUpgradeHistoryController = Em.ArrayController.extend({
           id: record.get('requestId')
         },
         success: 'loadUpgradeRecordSuccessCallback'
-      }).then(dfd.resolve).complete(function () {
+      }).then(dfd.resolve).always(function () {
       });
     } else {
       dfd.resolve();

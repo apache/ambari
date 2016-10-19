@@ -20,12 +20,14 @@
   {{#each view.parentView.content.configs}}
     {{#if isVisible}}
       <div class="rw-fluid control-group">
-        <div {{bindAttr class="errorMessage:error :control-label-span :span4"}}>
+        <div {{bindAttr class="errorMessage:error :control-label-span :col-md-4"}}>
           <label>{{displayName}}</label>
         </div>
-        <div {{bindAttr class="errorMessage:error :control-group :span8"}}>
+        <div {{bindAttr class="errorMessage:error :form-group :col-md-8"}}>
           {{view viewClass serviceConfigBinding="this" categoryConfigsBinding="view.categoryConfigs" }}
-          <span class="help-inline">{{errorMessage}}</span>
+          {{#if errorMessage}}
+            <span class="help-block validation-block">{{errorMessage}}</span>
+          {{/if}}
         </div>
       </div>
     {{/if}}

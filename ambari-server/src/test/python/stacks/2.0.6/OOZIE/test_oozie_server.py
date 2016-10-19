@@ -510,6 +510,9 @@ class TestOozieServer(RMFTestCase):
   @patch("os.path.isfile")
   @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
   def test_start_default(self, isfile_mock, call_mocks):
+    self._test_start(isfile_mock, call_mocks)
+
+  def _test_start(self, isfile_mock, call_mocks):
     isfile_mock.return_value = True
     call_mocks = MagicMock(return_value=(0, "New Oozie WAR file with added"))
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
@@ -567,6 +570,13 @@ class TestOozieServer(RMFTestCase):
         user = 'oozie',
     )
     self.assertNoMoreResources()
+
+  @patch.object(WebHDFSUtil, 'is_webhdfs_available', return_value=False)
+  @patch.object(shell, "call")
+  @patch("os.path.isfile")
+  @patch('os.path.exists', new=MagicMock(side_effect = [False, True, False, True]))
+  def test_start_no_webhdfs(self, webhdfsutil_mock, isfile_mock, call_mocks):
+    self._test_start(isfile_mock, call_mocks)
 
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",

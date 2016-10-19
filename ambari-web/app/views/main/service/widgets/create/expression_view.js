@@ -387,7 +387,7 @@ App.AddMetricExpressionView = Em.View.extend({
       }
       result.push(Em.Object.create({
         serviceName: serviceName,
-        //in order to support accordion lists
+        //in order to support panel lists
         href: '#' + serviceName,
         displayName: App.StackService.find(serviceName).get('displayName'),
         count: servicesMap[serviceName].count,

@@ -30,11 +30,11 @@ from resource_management.libraries.script.script import Script
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 
-class MicrosoftRServiceCheck(Script):
+class MicrosoftRServerServiceCheck(Script):
   pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
-class MicrosoftRServiceCheckLinux(MicrosoftRServiceCheck):
+class MicrosoftRServerServiceCheckLinux(MicrosoftRServerServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -55,14 +55,14 @@ class MicrosoftRServiceCheckLinux(MicrosoftRServiceCheck):
         user=params.smokeuser
       )
 
-    output_file = format('{tmp_dir}/microsoft_r_serviceCheck.out')
+    output_file = format('{tmp_dir}/microsoft_r_server_serviceCheck.out')
 
-    File( format("{tmp_dir}/microsoft_r_serviceCheck.r"),
-      content = StaticFile("microsoft_r_serviceCheck.r"),
+    File( format("{tmp_dir}/microsoft_r_server_serviceCheck.r"),
+      content = StaticFile("microsoft_r_server_serviceCheck.r"),
       mode = 0755
     )
 
-    Execute( format("Revo64 --no-save  < {tmp_dir}/microsoft_r_serviceCheck.r | tee {output_file}"),
+    Execute( format("Revo64 --no-save  < {tmp_dir}/microsoft_r_server_serviceCheck.r | tee {output_file}"),
       tries     = 1,
       try_sleep = 1,
       path      = format('/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'),
@@ -86,4 +86,4 @@ class MicrosoftRServiceCheckLinux(MicrosoftRServiceCheck):
 
 
 if __name__ == "__main__":
-  MicrosoftRServiceCheck().execute()
+  MicrosoftRServerServiceCheck().execute()

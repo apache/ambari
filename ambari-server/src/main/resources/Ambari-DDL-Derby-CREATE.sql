@@ -880,7 +880,7 @@ CREATE TABLE servicecomponent_version(
   user_name VARCHAR(255) NOT NULL,
   CONSTRAINT PK_sc_version PRIMARY KEY (id),
   CONSTRAINT FK_scv_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (id)
+  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id)
 );
 
 CREATE TABLE ambari_operation_history(
@@ -1153,7 +1153,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'remote_cluster_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
-  select 'remote_cluster_service_id_seq', 0 FROM SYSIBM.SYSDUMMY
+  select 'remote_cluster_service_id_seq', 0 FROM SYSIBM.SYSDUMMY1
   union all
   select 'servicecomponent_version_id_seq', 0 FROM SYSIBM.SYSDUMMY1;
 

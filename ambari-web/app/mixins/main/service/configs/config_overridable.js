@@ -102,7 +102,8 @@ App.ConfigOverridable = Em.Mixin.create({
     var serviceName = App.format.role(serviceId, true);
 
     return App.ModalPopup.show({
-      classNames: ['sixty-percent-width-modal'],
+      classNames: ['common-modal-wrapper'],
+      modalDialogClasses: ['modal-lg'],
       header: Em.I18n.t('config.group.selection.dialog.title').format(serviceName),
       subTitle: Em.I18n.t('config.group.selection.dialog.subtitle').format(serviceName),
       selectExistingGroupLabel: Em.I18n.t('config.group.selection.dialog.option.select').format(serviceName),

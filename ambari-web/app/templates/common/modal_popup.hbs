@@ -17,46 +17,55 @@
 }}
 
 
-<div class="modal-backdrop"></div>
+<div class="modal-backdrop in"></div>
 <div {{bindAttr class=":modal view.showFooter:with-footer:no-footer"}} id="modal" tabindex="-1" role="dialog" aria-labelledby="modal-label" aria-hidden="true">
-  <div class="modal-header">
-    {{#if view.showCloseButton}}
-      <a class="close" {{action onClose target="view"}}>x</a>
-    {{/if}}
-    <h3 id="modal-label">
-      {{#if view.headerClass}}
-        {{view view.headerClass}}
-      {{else}}
-        {{view.header}}
-      {{/if}}
-    </h3>
-  </div>
-  <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}}>
-    {{#if view.bodyClass}}
-      {{view view.bodyClass}}
-    {{else}}
-      {{#if view.encodeBody}}
-        {{view.body}}
-      {{else}}
-        {{{view.body}}}
-      {{/if}}
-    {{/if}}
-  </div>
-  {{#if view.showFooter}}
-    {{#if view.footerClass}}
-      {{view view.footerClass}}
-    {{else}}
-      <div class="modal-footer">
-        {{#if view.third}}
-          <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass"}} {{action onThird target="view"}}>{{view.third}}</button>
+  <div {{bindAttr class="view.modalDialogClassesStr :modal-dialog"}}>
+    <div class="modal-content">
+      {{! Modal header }}
+      <div class="modal-header">
+        {{#if view.showCloseButton}}
+          <a class="close" {{action onClose target="view"}}>x</a>
         {{/if}}
-        {{#if view.secondary}}
-          <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
-        {{/if}}
-        {{#if view.primary}}
-          <button {{bindAttr disabled="view.disablePrimary" class=":btn view.primaryClass"}} {{action onPrimary target="view"}}>{{view.primary}}</button>
+        <h4 id="modal-label">
+          {{#if view.headerClass}}
+            {{view view.headerClass}}
+          {{else}}
+            {{view.header}}
+          {{/if}}
+        </h4>
+      </div>
+
+      {{! Modal Body }}
+      <div {{bindAttr class=":modal-body view.isHideBodyScroll:hidden-scroll"}}>
+        {{#if view.bodyClass}}
+          {{view view.bodyClass}}
+        {{else}}
+          {{#if view.encodeBody}}
+            {{view.body}}
+          {{else}}
+            {{{view.body}}}
+          {{/if}}
         {{/if}}
       </div>
-    {{/if}}
-  {{/if}}
+
+      {{! Modal footer }}
+      {{#if view.showFooter}}
+        {{#if view.footerClass}}
+          {{view view.footerClass}}
+        {{else}}
+          <div class="modal-footer">
+            {{#if view.third}}
+              <button {{bindAttr disabled="view.disableThird" class=":btn :btn-default view.thirdClass"}} {{action onThird target="view"}}>{{view.third}}</button>
+            {{/if}}
+            {{#if view.secondary}}
+              <button {{bindAttr disabled="view.disableSecondary" class=":btn :btn-default view.secondaryClass"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>
+            {{/if}}
+            {{#if view.primary}}
+              <button {{bindAttr disabled="view.disablePrimary" class=":btn :btn-default view.primaryClass"}} {{action onPrimary target="view"}}>{{view.primary}}</button>
+            {{/if}}
+          </div>
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
 </div>

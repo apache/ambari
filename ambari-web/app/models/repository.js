@@ -73,9 +73,9 @@ App.Repository = DS.Model.extend({
 
 App.Repository.validation = {
   PENDING: '',
-  INVALID: 'icon-exclamation-sign',
-  OK: 'icon-ok',
-  INPROGRESS: 'icon-repeat'
+  INVALID: 'glyphicon glyphicon-exclamation-sign',
+  OK: 'glyphicon glyphicon-ok',
+  INPROGRESS: 'glyphicon glyphicon-repeat'
 };
 
 

@@ -242,7 +242,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add tooltip', function() {
         App.tooltip($('#tooltip-test'));
-        expect($('#tooltip-test').data('tooltip').enabled).to.be.true;
+        expect($('#tooltip-test').data('bs.tooltip').enabled).to.be.true;
       });
     });
     describe('#popover()', function() {
@@ -250,7 +250,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add popover', function() {
         App.popover($('#tooltip-test'));
-        expect($('#tooltip-test').data('popover').enabled).to.be.true;
+        expect($('#tooltip-test').data('bs.popover').enabled).to.be.true;
       });
     });
     describe('#App.format', function(){

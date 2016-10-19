@@ -19,7 +19,9 @@
 <label class="control-label"
        for="input{{unbound view.field.name}}">{{unbound view.field.displayName}}</label>
 
-<div class="controls">
+<div>
   {{view view.field.viewClass valueBinding="view.field.value" }}
-  <span class="help-inline">{{view.field.errorMessage}}</span>
+  {{#if view.field.errorMessage}}
+    <span class="help-block validation-block">{{view.field.errorMessage}}</span>
+  {{/if}}
 </div>

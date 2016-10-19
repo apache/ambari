@@ -16,10 +16,18 @@
 * limitations under the License.
 }}
 
-<div class="input-prepend input-append">
-  <button class="btn" {{bindAttr disabled="view.computedDisabled"}} {{action decrementValue target="view"}}><span class="icon icon-caret-left"></span></button>
-  {{view Em.TextField valueBinding="view.content.value" disabledBinding="view.computedDisabled"}}
-  <button class="btn" {{bindAttr disabled="view.computedDisabled"}} {{action incrementValue target="view"}}><span class="icon icon-caret-right"></span></button>
+<div class="input-group">
+  <span class="input-group-btn">
+    <button class="btn btn-default" {{bindAttr disabled="view.computedDisabled"}} {{action decrementValue target="view"}}>
+      <span class="icon-caret-left"></span>
+    </button>
+  </span>
+  {{view Em.TextField valueBinding="view.content.value" disabledBinding="view.computedDisabled" class="form-control"}}
+  <span class="input-group-btn">
+    <button class="btn btn-default" {{bindAttr disabled="view.computedDisabled"}} {{action incrementValue target="view"}}>
+      <span class="icon-caret-right"></span>
+    </button>
+  </span>
 </div>
 {{#if view.content.label}}
   <span class="spinner-input-label">{{view.content.label}}</span>

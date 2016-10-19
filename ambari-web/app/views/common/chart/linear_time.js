@@ -309,7 +309,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           icon.on('mouseover', function () {
             $(this).closest("[rel='ZoomInTooltip']").trigger('mouseleave');
           });
-          App.tooltip(icon.children('.icon-save'), {
+          App.tooltip(icon.children('.glyphicon-save'), {
             title: Em.I18n.t('common.export')
           });
         }
@@ -430,7 +430,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     var typeClass;
     switch (type) {
       case 'error':
-        typeClass = 'alert-error';
+        typeClass = 'alert-danger';
         break;
       case 'success':
         typeClass = 'alert-success';
@@ -439,7 +439,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         typeClass = 'alert-info';
         break;
       default:
-        typeClass = '';
+        typeClass = 'alert-warning';
         break;
     }
     $(chartOverlayId + ', ' + chartOverlayY + ', ' + chartOverlayX + ', ' + chartOverlayLegend + ', ' + chartOverlayTimeline).html('');
@@ -970,11 +970,11 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         didInsertElement: function () {
           var popupBody = this;
           this._super();
-          App.tooltip(this.$('.corner-icon > .icon-save'), {
+          App.tooltip(this.$('.corner-icon > .glyphicon-save'), {
             title: Em.I18n.t('common.export')
           });
           this.$().closest('.modal').on('click', function (event) {
-            if (!($(event.target).is('.corner-icon, .corner-icon span, .icon-save, .export-graph-list-container, .export-graph-list-container *'))) {
+            if (!($(event.target).is('.corner-icon, .corner-icon span, .glyphicon-save, .export-graph-list-container, .export-graph-list-container *'))) {
               popupBody.set('isExportMenuHidden', true);
             }
           });

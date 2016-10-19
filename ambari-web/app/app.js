@@ -16,7 +16,12 @@
  * limitations under the License.
  */
 
+if (Ember.$.uuid === undefined) {
+  Ember.$.uuid = 0;
+}
+
 // Application bootstrapper
+require('utils/bootstrap_reopen');
 require('utils/ember_reopen');
 require('utils/ember_computed');
 var stringUtils = require('utils/string_utils');

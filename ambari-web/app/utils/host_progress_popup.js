@@ -156,11 +156,11 @@ App.HostPopup = Em.Object.create({
    * @type {object}
    */
   barColorMap: {
-    'FAILED': 'progress-danger',
-    'ABORTED': 'progress-warning',
-    'TIMEDOUT': 'progress-warning',
-    'IN_PROGRESS': 'progress-info',
-    'COMPLETED': 'progress-success'
+    'FAILED': 'progress-bar-danger',
+    'ABORTED': 'progress-bar-warning',
+    'TIMEDOUT': 'progress-bar-warning',
+    'IN_PROGRESS': 'progress-bar-info',
+    'COMPLETED': 'progress-bar-success'
   },
 
   /**
@@ -169,11 +169,11 @@ App.HostPopup = Em.Object.create({
    * @type {object}
    */
   statusesStyleMap: {
-    'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-danger', false],
-    'ABORTED': ['ABORTED', 'icon-minus', 'progress-warning', false],
-    'TIMEDOUT': ['TIMEDOUT', 'icon-time', 'progress-warning', false],
-    'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-info', true],
-    'COMPLETED': ['SUCCESS', 'icon-ok', 'progress-success', false]
+    'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-bar-danger', false],
+    'ABORTED': ['ABORTED', 'glyphicon glyphicon-minus', 'progress-bar-warning', false],
+    'TIMEDOUT': ['TIMEDOUT', 'glyphicon glyphicon-time', 'progress-bar-warning', false],
+    'IN_PROGRESS': ['IN_PROGRESS', 'glyphicon glyphicon-cogs', 'progress-bar-info', true],
+    'COMPLETED': ['SUCCESS', 'glyphicon glyphicon-ok', 'progress-bar-success', false]
   },
 
   /**
@@ -351,22 +351,22 @@ App.HostPopup = Em.Object.create({
         isCompleted = false;
       }
       if (taskStatus === 'FAILED') {
-        return ['FAILED', 'icon-exclamation-sign', 'progress-danger', false];
+        return ['FAILED', 'icon-exclamation-sign', 'progress-bar-danger', false];
       }
       if (taskStatus === 'ABORTED') {
-        return ['ABORTED', 'icon-minus', 'progress-warning', false];
+        return ['ABORTED', 'glyphicon glyphicon-minus', 'progress-bar-warning', false];
       }
       if (taskStatus === 'TIMEDOUT') {
-        return ['TIMEDOUT', 'icon-time', 'progress-warning', false];
+        return ['TIMEDOUT', 'glyphicon glyphicon-time', 'progress-bar-warning', false];
       }
       if (taskStatus === 'IN_PROGRESS') {
-        return ['IN_PROGRESS', 'icon-cogs', 'progress-info', true]
+        return ['IN_PROGRESS', 'glyphicon glyphicon-cogs', 'progress-bar-info', true]
       }
     }
     if (isCompleted) {
-      return ['SUCCESS', 'icon-ok', 'progress-success', false];
+      return ['SUCCESS', 'glyphicon glyphicon-ok', 'progress-bar-success', false];
     }
-    return ['PENDING', 'icon-cog', 'progress-info', true];
+    return ['PENDING', 'glyphicon glyphicon-cog', 'progress-bar-info', true];
   },
 
   /**
@@ -469,7 +469,7 @@ App.HostPopup = Em.Object.create({
    */
   createService: function (service) {
     var statuses = this.get('statusesStyleMap');
-    var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
+    var pendingStatus = ['PENDING', 'glyphicon glyphicon-cog', 'progress-bar-info', true];
     var status = statuses[service.status] || pendingStatus;
     return Em.Object.create({
       id: service.id,
@@ -500,7 +500,7 @@ App.HostPopup = Em.Object.create({
    */
   updateService: function (service, newData) {
     var statuses = this.get('statusesStyleMap');
-    var pendingStatus = ['PENDING', 'icon-cog', 'progress-info', true];
+    var pendingStatus = ['PENDING', 'glyphicon glyphicon-cog', 'progress-bar-info', true];
     var status = statuses[newData.status] || pendingStatus;
     return service.setProperties({
       progress: newData.progress,
@@ -558,15 +558,15 @@ App.HostPopup = Em.Object.create({
       duration: date.durationSummary(_task.Tasks.start_time, _task.Tasks.end_time),
       icon: function () {
         var statusIconMap = {
-          'pending': 'icon-cog',
-          'queued': 'icon-cog',
-          'in_progress': 'icon-cogs',
-          'completed': 'icon-ok',
+          'pending': 'glyphicon glyphicon-cog',
+          'queued': 'glyphicon glyphicon-cog',
+          'in_progress': 'glyphicon glyphicon-cogs',
+          'completed': 'glyphicon glyphicon-ok',
           'failed': 'icon-exclamation-sign',
-          'aborted': 'icon-minus',
-          'timedout': 'icon-time'
+          'aborted': 'glyphicon glyphicon-minus',
+          'timedout': 'glyphicon glyphicon-time'
         };
-        return statusIconMap[this.get('status')] || 'icon-cog';
+        return statusIconMap[this.get('status')] || 'glyphicon glyphicon-cog';
       }.property('status')
     });
   },
@@ -659,8 +659,8 @@ App.HostPopup = Em.Object.create({
         status: App.format.taskStatus("PENDING"),
         serviceName: _host.serviceName,
         isVisible: true,
-        icon: "icon-cog",
-        barColor: "progress-info",
+        icon: "glyphicon glyphicon-cog",
+        barColor: "progress-bar-info",
         barWidth: "width:0%;"
       });
 
@@ -856,7 +856,8 @@ App.HostPopup = Em.Object.create({
       /**
        * @type {String[]}
        */
-      classNames: ['sixty-percent-width-modal', 'host-progress-popup', 'full-height-modal'],
+      classNames: ['common-modal-wrapper', 'host-progress-popup', 'full-height-modal'],
+      modalDialogClasses: ['modal-lg'],
 
       /**
        * Auto-display BG-popup

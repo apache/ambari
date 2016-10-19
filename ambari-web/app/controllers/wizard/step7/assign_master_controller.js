@@ -111,7 +111,8 @@ App.AssignMasterOnStep7Controller = Em.Controller.extend(App.BlueprintMixin, App
     var configWidgetContext = this.get('configWidgetContext');
     var config = this.get('configWidgetContext.config');
     var popup = App.ModalPopup.show({
-      classNames: ['full-width-modal', 'add-service-wizard-modal'],
+      classNames: ['wizard-modal-wrapper', 'add-service-wizard-modal'],
+      modalDialogClasses: ['modal-xlg'],
       header: Em.I18n.t('assign.master.popup.header').format(masterToCreateDisplayName),
       bodyClass: App.AssignMasterOnStep7View.extend({
         controller: self

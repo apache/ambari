@@ -36,6 +36,8 @@ REMOVE_CMD = {
   False: ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase'],
 }
 
+REPO_UPDATE_CMD = ['/usr/bin/yum', 'clean','metadata']
+
 class YumProvider(PackageProvider):
   def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
     if is_upgrade or use_repos or not self._check_existence(name):
@@ -63,7 +65,10 @@ class YumProvider(PackageProvider):
 
   def is_repo_error_output(self, out):
     return "Failure when receiving data from the peer" in out or \
-           "No more mirrors to try" in out
+           "Nothing to do" in out
+
+  def get_repo_update_cmd(self):
+    return REPO_UPDATE_CMD
 
   def _check_existence(self, name):
     """

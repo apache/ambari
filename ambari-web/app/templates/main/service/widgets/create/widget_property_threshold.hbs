@@ -16,17 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid">
-  <div class="span3 badge-container"><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span>&nbsp;</div>
-  <div {{bindAttr class=":span2 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
+<div class="row">
+  <div class="col-md-3 badge-container"><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span>&nbsp;</div>
+  <div {{bindAttr class=":col-md-2 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.ok.tooltip"}}>
-    {{view Em.TextField valueBinding="view.property.smallValue" class ="span10"}}
+    {{view Em.TextField valueBinding="view.property.smallValue" class ="col-md-10"}}
 </div>
 </div>
-<div class="row-fluid">
-  <div class="span3 badge-container"><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span>&nbsp;</div>
-  <div {{bindAttr class=":span2 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
+<div class="row">
+  <div class="col-md-3 badge-container"><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span>&nbsp;</div>
+  <div {{bindAttr class=":col-md-2 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.warning.tooltip"}}>
-    {{view Em.TextField valueBinding="view.property.bigValue" class ="span10"}}
+    {{view Em.TextField valueBinding="view.property.bigValue" class ="col-md-10"}}
   </div>
 </div>

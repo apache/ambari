@@ -15,48 +15,51 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div class="panel panel-default">
+  <div class="panel-heading" {{action "onToggleBlock" category target="view"}}>
+    <h3 class="panel-title">
+      <i {{bindAttr class=":pull-left :panel-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+      <a class="panel-toggle category-header">
+        <span class="category-name">{{view.category.displayName}}</span>
+        {{#if view.category.errorCount}}
+          <span class="badge badge-important">{{view.category.errorCount}}</span>
+        {{/if}}
+      </a>
+    </h3>
+  </div>
 
-<div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
-  <i {{bindAttr class=":pull-left :accordion-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-  <a class="accordion-toggle category-header">
-    <span class="category-name">{{view.category.displayName}}</span>
-    {{#if view.category.errorCount}}
-      <span class="badge badge-important">{{view.category.errorCount}}</span>
-    {{/if}}
-  </a>
-</div>
-
-<div class="accordion-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
-  <div class="accordion-inner service-config-section">
+  <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
+  <div class="service-config-section">
     <form class="form-horizontal" autocomplete="off">
       {{#each view.categoryConfigs}}
         {{#unless widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs }}
-          <div {{bindAttr class=":entry-row isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
+          <div {{bindAttr class=":entry-row :form-group isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
             {{#if showLabel}}
               {{#unless rightSideLabel}}
-                <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+                <span {{bindAttr class="errorMessage:has-error: :form-group :control-label-span :col-md-3"}}>
                   <label class="control-label">
                     {{formatWordBreak displayName}}
                     {{#if isSecureConfig}}
-                      <a href="javascript:void(null);"><i class="icon-lock" rel="tooltip" data-toggle="tooltip"
+                      <a href="javascript:void(null);"><i class="glyphicon glyphicon-lock" rel="tooltip" data-toggle="tooltip"
                                                           title="security knob"></i></a>
                     {{/if}}
                   </label>
                 </span>
               {{else}}
-                <span class="control-group control-label-span"> </span>
+                <span class="control-group control-label-span col-md-3"> </span>
               {{/unless}}
             {{/if}}
-            <div {{bindAttr class="showLabel:controls"}}>
+            <div class="col-md-9">
               {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
               {{#if this.isOriginalSCP}}
-                <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
+                <div {{bindAttr class="errorMessage:has-error: warnMessage:has-warning: :form-group"}}>
                   {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
                   {{#if rightSideLabel}}
                     <span {{bindAttr class="isEditable::muted"}}>{{formatWordBreak displayName}}</span>
                   {{/if}}
                   {{#if hintMessage}}
-                    <a class="icon-question-sign icon-blue" href="#" data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}></a>
+                    <a class="icon-question-sign glyphicon glyphicon-blue" href="#"
+                       data-toggle="tooltip" {{bindAttr data-original-title="hintMessage"}}></a>
                   {{/if}}
                   {{#if this.isComparison}}
                     {{#if controller.selectedConfigGroup.isDefault}}
@@ -73,8 +76,14 @@
                   {{#if controller.canEdit}}
                     {{view App.ControlsView serviceConfigPropertyBinding="this"}}
                   {{/if}}
-                  <span class="help-inline">{{errorMessage}}</span>
-                  <span class="help-inline">{{warnMessage}}</span>
+                  {{#if errorMessage}}
+                    <span class="help-block validation-block">{{errorMessage}}</span>
+                  {{/if}}
+                  {{#if warnMessage}}
+                    <span class="has-warning">
+                      <span class="help-block validation-block">{{warnMessage}}</span>
+                    </span>
+                  {{/if}}
                 </div>
               {{/if}}
               {{#if this.isComparison}}
@@ -108,4 +117,5 @@
       {{/isAuthorized}}
     </form>
   </div>
+</div>
 </div>

@@ -19,8 +19,8 @@
 <div class="heatmap">
   {{#if isLoaded}}
     <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span2 legend-column background-text">
+      <div class="row">
+        <div class="col-md-2 legend-column background-text">
 
           {{view view.dropdownView}}
 
@@ -36,9 +36,9 @@
               {{/each}}
             </table>
             {{t common.maximum}}:
-            <div id="inputMaximum" class="control-group">
-              {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
-              {{controller.selectedMetric.units}}
+            <div id="inputMaximum" class="control-group maximum-input">
+              {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="form-control"}}
+              <span>{{controller.selectedMetric.units}}</span>
             </div>
           {{/if}}
         </div>

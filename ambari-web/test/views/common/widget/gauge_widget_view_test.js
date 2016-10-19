@@ -27,6 +27,7 @@ describe('App.GaugeWidgetView', function () {
     view = App.GaugeWidgetView.create({
       value: 0,
       content: {
+        id: 'randId',
         properties: {
           warning_threshold: 0,
           critical_threshold: 0

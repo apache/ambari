@@ -23,31 +23,33 @@
     </div>
   </div>
 
-  <div class="row-fluid" id= "min-height-limit">
+  <div class="row" id= "min-height-limit">
     {{#if view.configPropertyObj.isIE9}}
       {{#if view.configPropertyObj.isGreenRed}}
-        <div class="progress span9">
+        <div class="progress col-md-9">
           <div class="bar bar-success" style="width: 33%;"></div>
           <div class="bar bar-danger" style="width: 34%;"></div>
         </div>
       {{else}}
-        <div class="progress span9">
+        <div class="progress col-md-9">
            <div class="bar bar-danger" style="width: 33%;"></div>
            <div class="bar bar-success" style="width: 34%;"></div>
         </div>
       {{/if}}
     {{else}}
-      <div class="span9" id="slider-range"></div>
+      <div class="col-md-9" id="slider-range"></div>
     {{/if}}
   </div>
 
-  <div class="row-fluid">
-    <div id="slider-value1" class="value-on-slider span2" style="margin-left: 20px">0</div>
-      <div id="slider-value2" style="margin-left: 100px"{{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :span4"}}>
+  <div class="row">
+    <div id="slider-value1" class="value-on-slider col-md-2" style="margin-left: 20px">0</div>
+      <div id="slider-value2" style="margin-left: 100px"{{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh1Error:has-error"}}>
         {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1"}}
-        <span class="help-inline">{{view.configPropertyObj.errorMessage1}}</span>
+        {{#if view.configPropertyObj.errorMessage1}}
+            <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
+        {{/if}}
       </div>
-    <div id="slider-value3" style="margin-left: 150px" class="value-on-slider span2">{{view.configPropertyObj.maxValue}}</div>
+    <div id="slider-value3" style="margin-left: 150px" class="value-on-slider col-md-2">{{view.configPropertyObj.maxValue}}</div>
   </div>
 
 </form>

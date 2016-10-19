@@ -18,9 +18,11 @@
 
 {{#each option in view.options}}
   {{#unless option.hidden}}
-    <label {{bindAttr class="option.className :radio"}}>
-      {{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}{{/view}}
-      {{option.displayName}} &nbsp;
-    </label>
+    <div class="radio">
+      <label {{bindAttr class="option.className"}}>
+        {{#view App.ServiceConfigRadioButton nameBinding = "view.name" valueBinding = "option.displayName"}}{{/view}}
+        {{option.displayName}} &nbsp;
+      </label>
+    </div>
   {{/unless}}
 {{/each}}

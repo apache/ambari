@@ -27,12 +27,12 @@
             <tr>
                 <td>{{t admin.activateHawqStandby.wizard.step2.hawqMaster}}</td>
                 <td>{{controller.content.hawqHosts.hawqMaster}}</td>
-		        <td><span class="to-be-disabled-red"><i class="icon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></td>
+		        <td><span class="to-be-disabled-red"><i class="glyphicon glyphicon-minus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></td>
             </tr>
             <tr>
                 <td>{{t admin.activateHawqStandby.wizard.step2.hawqStandby}}</td>
                 <td>{{controller.content.hawqHosts.hawqStandby}}</td>
-		        <td><span class="to-be-installed-green"><i class="icon-arrow-up"></i>&nbsp;{{t admin.activateHawqStandby.wizard.step2.toBeActivated}}</span></td>
+		        <td><span class="to-be-installed-green"><i class="glyphicon glyphicon-arrow-up"></i>&nbsp;{{t admin.activateHawqStandby.wizard.step2.toBeActivated}}</span></td>
             </tr>
         </table>
     </div>
@@ -48,6 +48,6 @@
 {{/if}}
 
 <div class="btn-area">
-    <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-default" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{action submit target="controller"}} {{bindAttr disabled="controller.isSubmitDisabled"}}>{{t common.next}} &rarr;</a>
 </div>

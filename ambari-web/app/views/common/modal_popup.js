@@ -21,6 +21,7 @@ var App = require('app');
 App.ModalPopup = Ember.View.extend({
 
   viewName: 'modalPopup',
+  modalDialogClasses: [],
   templateName: require('templates/common/modal_popup'),
   header: '&nbsp;',
   body: '&nbsp;',
@@ -37,6 +38,13 @@ App.ModalPopup = Ember.View.extend({
   primaryClass: 'btn-success',
   secondaryClass: '',
   thirdClass: '',
+  modalDialogClassesStr: function () {
+    var modalDialogClasses = this.get('modalDialogClasses');
+    if (!Em.isArray(modalDialogClasses)) {
+      return '';
+    }
+    return modalDialogClasses.join(' ');
+  }.property('modalDialogClasses.[]'),
   onPrimary: function () {
     this.hide();
   },
@@ -54,6 +62,9 @@ App.ModalPopup = Ember.View.extend({
   },
 
   hide: function () {
+    if (!$.mocho) {
+      this.$('#modal').modal('hide');
+    }
     this.destroy();
   },
 
@@ -70,6 +81,11 @@ App.ModalPopup = Ember.View.extend({
       .on('escape-key-pressed', this.escapeKeyPressed.bind(this));
     this.fitZIndex();
     var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
+    if (!$.mocho) {
+      this.$('#modal').modal({
+        backdrop: false
+      });
+    }
     this.focusElement(firstInputElement);
     this.subscribeResize();
   },

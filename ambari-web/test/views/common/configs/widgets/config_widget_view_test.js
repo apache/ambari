@@ -497,7 +497,7 @@ describe('App.ConfigWidgetView', function () {
           }),
           isPropertyUndefined: false,
           e: {
-            configLabelClass: 'text-error',
+            configLabelClass: 'text-danger',
             issueIconClass: '',
             issueMessage: '123'
           }

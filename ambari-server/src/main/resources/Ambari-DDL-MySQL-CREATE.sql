@@ -508,7 +508,7 @@ CREATE TABLE requestschedulebatchrequest (
   CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id));
 
 CREATE TABLE blueprint (
-  blueprint_name VARCHAR(255) NOT NULL,
+  blueprint_name VARCHAR(100) NOT NULL,
   stack_id BIGINT NOT NULL,
   security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_descriptor_reference VARCHAR(255),
@@ -887,7 +887,7 @@ CREATE TABLE servicecomponent_version(
   user_name VARCHAR(255) NOT NULL,
   CONSTRAINT PK_sc_version PRIMARY KEY (id),
   CONSTRAINT FK_scv_component_id FOREIGN KEY (component_id) REFERENCES servicecomponentdesiredstate (id),
-  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (id)
+  CONSTRAINT FK_scv_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id)
 );
 
 CREATE TABLE ambari_operation_history(

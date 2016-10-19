@@ -31,14 +31,14 @@
     <h5>{{t common.expression}}:</h5>
     {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
     {{#if dataSet.isRemovable}}
-      <a {{action removeDataSet dataSet target="controller"}} class="remove-link"><i class="icon-trash"></i></a>
+      <a {{action removeDataSet dataSet target="controller"}} class="remove-link"><i class="glyphicon glyphicon-trash"></i></a>
     {{/if}}
   </fieldset>
 {{/each}}
 
 <div class="align-right">
   <a href="#" {{action addDataSet target="controller"}}>
-    <i class="icon-plus"></i>
+    <i class="glyphicon glyphicon-plus"></i>
     {{t widget.create.wizard.step2.addDataset}}
   </a>
 </div>

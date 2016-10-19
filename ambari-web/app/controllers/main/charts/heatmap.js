@@ -269,11 +269,11 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   rackClass: function () {
     var rackCount = this.get('racks.length');
     if (rackCount < 2) {
-      return "span12";
+      return "col-md-12";
     } else if (rackCount == 2) {
-      return "span6";
+      return "col-md-6";
     } else {
-      return "span4";
+      return "col-md-4";
     }
   }.property('racks.length')
 });

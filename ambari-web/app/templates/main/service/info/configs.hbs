@@ -21,14 +21,14 @@
     {{#if controller.content.isRestartRequired}}
       {{#isAuthorized "SERVICE.START_STOP"}}
         <div>
-          <div class="alert alert-warning clearfix">
-            <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
+          <div class="alert alert-warning clearfix restart-required">
+            <i class="glyphicon glyphicon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
                   href="#" {{action "showComponentsShouldBeRestarted" controller.content target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
             <a href="#" {{action "showHostsShouldBeRestarted" controller.content target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
             <span class="restart-components pull-right">&nbsp</span>
 
             <div class="btn-group pull-right">
-              <button type="button" class="btn btn-default dropdown-toggle btn-warning" data-toggle="dropdown">
+              <button type="button" class="btn dropdown-toggle btn-warning" data-toggle="dropdown">
                 {{t hosts.host.details.needToRestart.button}}
                 <span class="caret"></span>
               </button>

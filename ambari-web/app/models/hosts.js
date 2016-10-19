@@ -24,7 +24,7 @@ App.HostInfo = Ember.Object.extend({
   cpu: null,
   memory: null,
   message: 'Information',
-  barColor: 'progress-info',
+  barColor: 'progress-bar-info',
   isChecked: true,
   bootLog:null,
   bootStatus: 'PENDING',
@@ -40,22 +40,22 @@ App.HostInfo = Ember.Object.extend({
     REGISTERING: 'Registering'
   },
 
-  bootBarColor: Em.computed.getByKey('bootBarColorMap', 'bootStatus', 'progress-info'),
+  bootBarColor: Em.computed.getByKey('bootBarColorMap', 'bootStatus', 'progress-bar-info'),
 
   bootBarColorMap: {
-    REGISTERED: 'progress-success',
-    FAILED: 'progress-danger',
-    PENDING: 'progress-info',
-    RUNNING: 'progress-info',
-    DONE: 'progress-info',
-    REGISTERING: 'progress-info'
+    REGISTERED: 'progress-bar-success',
+    FAILED: 'progress-bar-danger',
+    PENDING: 'progress-bar-info',
+    RUNNING: 'progress-bar-info',
+    DONE: 'progress-bar-info',
+    REGISTERING: 'progress-bar-info'
   },
 
   bootStatusColor:Em.computed.getByKey('bootStatusColorMap', 'bootStatus', 'text-info'),
 
   bootStatusColorMap: {
     REGISTERED: 'text-success',
-    FAILED: 'text-error',
+    FAILED: 'text-danger',
     PENDING: 'text-info',
     RUNNING: 'text-info',
     DONE: 'text-info',

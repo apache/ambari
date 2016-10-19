@@ -19,16 +19,18 @@
 {{view.hostName}}
 <div class="host-elements">
   {{#if view.isObjectsList}}
-    <table>
-      {{#each view.items}}
-        <tr>
-          <td>{{name}}</td>
-          <td>{{status}}</td>
-        </tr>
-      {{/each}}
+    <table class="table table-hover">
+      <tbody>
+        {{#each view.items}}
+          <tr>
+            <td>{{name}}</td>
+            <td>{{status}}</td>
+          </tr>
+        {{/each}}
+      </tbody>
     </table>
   {{else}}
-    <ul class="unstyled">
+    <ul class="list-unstyled">
       {{#each item in view.items}}
         <li>{{item}}</li>
       {{/each}}

@@ -22,42 +22,57 @@
   <div class="text-warning">
     {{view.parentView.warningMessage}}
   </div>
-  <label class="radio">
-    {{view view.selectConfigGroupRadioButton}}
-    <span {{bindAttr class="view.parentView.hasExistedGroups::message"}}>{{view.parentView.selectExistingGroupLabel}}</span>
-  </label>
-  {{#if view.parentView.availableConfigGroups.length}}
-    <div class="select-create-config-group-div">
-      <span class="btn-group">
-        <button class="btn" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>{{view.parentView.selectedConfigGroup.name}}</button>
-        <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>
-          <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <!-- available config group menu links -->
-          {{#each configGroup in view.parentView.availableConfigGroups}}
-             <li>
-               <a href="#" {{action "doSelectConfigGroup" configGroup target="view.parentView"}}>
-                 {{configGroup.name}}
-               </a>
-             </li>
-          {{/each}}
-        </ul>
-      </span>
-      <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
+  <form>
+    <div class="form-group">
+      <div class="radio">
+        <label {{bindAttr class="view.parentView.hasExistedGroups::message"}}>
+          {{view view.selectConfigGroupRadioButton}}
+          {{view.parentView.selectExistingGroupLabel}}
+        </label>
+      </div>
     </div>
-  {{else}}
-    <div class="select-create-config-group-div">
-      <div class="alert alert-block">{{view.parentView.noGroups}}</div>
+    {{#if view.parentView.availableConfigGroups.length}}
+      <div class="select-create-config-group-div">
+        <span class="btn-group">
+          <button class="btn btn-default" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>{{view.parentView.selectedConfigGroup.name}}</button>
+          <button class="btn btn-default dropdown-toggle btn-icon" data-toggle="dropdown" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>
+            <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <!-- available config group menu links -->
+            {{#each configGroup in view.parentView.availableConfigGroups}}
+               <li>
+                 <a href="#" {{action "doSelectConfigGroup" configGroup target="view.parentView"}}>
+                   {{configGroup.name}}
+                 </a>
+               </li>
+            {{/each}}
+          </ul>
+        </span>
+        <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
+      </div>
+    {{else}}
+      <div class="select-create-config-group-div">
+        <div class="alert alert-block">{{view.parentView.noGroups}}</div>
+      </div>
+    {{/if}}
+    <div class="form-group">
+      <div class="radio">
+        <label>
+          {{view view.createConfigGroupRadioButton}}
+          {{view.parentView.createNewGroupLabel}}
+        </label>
+      </div>
     </div>
-  {{/if}}
-  <label class="radio">
-    {{view view.createConfigGroupRadioButton}}
-    {{view.parentView.createNewGroupLabel}}
-  </label>
-  <div class="select-create-config-group-div">
-    {{view Ember.TextField valueBinding="view.parentView.newConfigGroupName"
-      disabledBinding="view.parentView.optionSelectConfigGroup" maxlength="255" class="span5"}}
-    <div class="message">{{view.parentView.createNewGroupDescription}}</div>
-  </div>
+    <div class="select-create-config-group-div">
+      <div class="row">
+        <div class="col-md-5">
+          {{view Ember.TextField valueBinding="view.parentView.newConfigGroupName"
+            disabledBinding="view.parentView.optionSelectConfigGroup" maxlength="255" class="form-control"}}
+        </div>
+      </div>
+      <div class="clearfix"></div>
+      <div class="message">{{view.parentView.createNewGroupDescription}}</div>
+    </div>
+  </form>
 </div>

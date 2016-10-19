@@ -22,24 +22,20 @@
 <form class="form-horizontal">
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.principal}}</label>
-    <div class="controls">
-      {{view Ember.TextField valueBinding="view.parentView.principal" class="form-control"}}
-    </div>
+    {{view Ember.TextField valueBinding="view.parentView.principal" class="form-control"}}
   </div>
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.password}}</label>
-    <div class="controls">
-      {{view Ember.TextField type="password" valueBinding="view.parentView.password" class="form-control"}}
-    </div>
+    {{view Ember.TextField type="password" valueBinding="view.parentView.password" class="form-control"}}
   </div>
   <div class="control-group">
     <span class="control-label"></span>
-    <div class="controls ">
+    <div>
       <label>
         {{view Ember.Checkbox checkedBinding="view.parentView.storeCredentials" disabledBinding="view.parentView.checkboxDisabled" classNames="pull-left"}}
         <span {{bindAttr class=":mls view.parentView.checkboxDisabled:muted"}}>
           {{t admin.kerberos.credentials.store.label}}
-          <a class="icon-question-sign icon-blue" rel="tooltip" href="javascript:void(null);" data-toggle="tooltip" {{bindAttr data-original-title="view.parentView.hintMessage"}}></a>
+          <a class="glyphicon-question-sign glyphicon glyphicon-blue" rel="tooltip" href="javascript:void(null);" data-toggle="tooltip" {{bindAttr data-original-title="view.parentView.hintMessage"}}></a>
         </span>
       </label>
     </div>

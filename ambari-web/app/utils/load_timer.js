@@ -55,8 +55,8 @@ App.loadTimer = Em.Object.create({
    * @param {string} result
    */
   display: function(result) {
-    var alert = $("<div class='alert attach-to-bottom-right'>" +  result + "</div>");
-    var closeButton = $("<i class='icon-remove-circle'></i>").click(function () {
+    var alert = $("<div class='alert alert-warning attach-to-bottom-right'>" +  result + "</div>");
+    var closeButton = $("<i class='glyphicon glyphicon-remove-circle'></i>").click(function () {
       $(this).remove();
       $(alert).remove();
     });

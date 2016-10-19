@@ -20,11 +20,15 @@
 </div>
 {{#if view.parentView.additionalWarningMsg}}
   <br />
-  <div class='alert'>
+  <div class='alert alert-warning'>
     {{view.parentView.additionalWarningMsg}}
   </div>
 {{/if}}
 {{#if view.parentView.putInMaintenance}}
-  <label class="checkbox">{{view Ember.Checkbox checkedBinding="view.parentView.runMmOperation"}} {{view.parentView.turnOnMmMsg}}</label>
+  <div class="checkbox">
+    <label>
+      {{view Ember.Checkbox checkedBinding="view.parentView.runMmOperation"}}
+      &nbsp;{{view.parentView.turnOnMmMsg}}
+    </label>
+  </div>
 {{/if}}
-

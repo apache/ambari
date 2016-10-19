@@ -28,7 +28,7 @@ module.exports = function(config) {
       'karma-sinon',
       'karma-phantomjs-launcher',
       'karma-coverage',
-      'karma-ember-precompiler-brunch',
+      'karma-ember-precompile-brunch',
       'karma-commonjs-require'
     ],
 
@@ -47,7 +47,7 @@ module.exports = function(config) {
 
       'node_modules/karma-commonjs-require/node_modules/commonjs-require-definition/require.js',
       'vendor/scripts/console-helper.js',
-      'vendor/scripts/jquery-1.7.2.min.js',
+      'vendor/scripts/jquery-1.9.1.js',
       'vendor/scripts/handlebars-1.0.0.beta.6.js',
       'vendor/scripts/ember-latest.js',
       'vendor/scripts/ember-data-latest.js',
@@ -96,8 +96,8 @@ module.exports = function(config) {
       'app/assets/test/tests.js'
     ],
 
-    emberPrecompilerBrunchPreprocessor: {
-      jqueryPath: 'vendor/scripts/jquery-1.7.2.min.js',
+    emberPrecompileBrunchPreprocessor: {
+      jqueryPath: 'vendor/scripts/jquery-1.9.1.js',
       emberPath: 'vendor/scripts/ember-latest.js',
       handlebarsPath: 'vendor/scripts/handlebars-1.0.0.beta.6.js'
     },

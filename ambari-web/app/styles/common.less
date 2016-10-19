@@ -19,9 +19,13 @@
 /************************************************************************
 * Health status(service/host/host component health)icons class names
 ***********************************************************************/
+@health-status-red-icon:  glyphicon-warning-sign;
 @health-status-red-icon:  icon-warning-sign;
+@health-status-green-icon:  glyphicon-ok-sign;
 @health-status-green-icon:  icon-ok-sign;
+@health-status-yellow-icon:  glyphicon-question-sign;
 @health-status-yellow-icon:  icon-question-sign;
+@health-status-orange-icon:  glyphicon-minus-sign;
 @health-status-orange-icon:  icon-minus-sign;
 @maintenance-icon: icon-medkit;
 /************************************************************************
@@ -47,19 +51,19 @@
 @spinner-small-width: 30px;
 @spinner-small-height: 30px;
 
-(~".@{health-status-red-icon}") {
+.@{health-status-red-icon} {
   color: @health-status-red;
 }
-(~".@{health-status-green-icon}") {
+.@{health-status-green-icon} {
   color: @health-status-green;
 }
-(~".@{health-status-yellow-icon}") {
+.@{health-status-yellow-icon} {
   color: @health-status-yellow;
 }
-(~".@{health-status-orange-icon}") {
+.@{health-status-orange-icon} {
   color: @health-status-orange;
 }
-(~".@{maintenance-icon}") {
+.@{maintenance-icon} {
   color: @maintenance-black;
 }
 
@@ -313,10 +317,10 @@
     line-height: 1.5;
     border-radius: 3px;
   }
-  .icon-remove {
+  .glyphicon-remove {
     color: #000000;
   }
-  .icon-ok {
+  .glyphicon-ok {
     color: white;
   }
 }
@@ -377,13 +381,26 @@
 }
 
 .bootstrap-checkbox {
+  @bootstrap-checkbox-disabled-color: #777;
+
+  &.button-checkbox {
+    &.disabled {
+      button.btn-link {
+        color: @bootstrap-checkbox-disabled-color;
+
+        &:hover {
+          color: @bootstrap-checkbox-disabled-color;
+        }
+      }
+    }
+  }
   &>button.btn {
     &:focus {
       border-color: none;
       box-shadow: 0;
       outline: 0 none;
     }
-    &.btn-large {
+    &.btn-lg {
       padding-top: 6px;
     }
   }
@@ -406,59 +423,104 @@
   font-family: monospace;
   word-break: break-all;
   word-wrap: break-word;
-  white-space: pre;
   white-space: pre-wrap;
   background-color: #f5f5f5;
-  border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.15);
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
 }
 
-.tabs-left, .tabs-right {
+.clear {
+  clear: both;
+}
+
+.noDisplay {
+  display: none !important;
+}
+
+.display {
+  display: block !important;
+}
+
+.display-inline-block {
+  display: inline-block;
+}
+
+.popover {
+  small {
+    font-size: 1.3rem;
+  }
+}
+
+.form-group {
+  .help-block {
+    &.help-inline {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.alert {
+  & > ul, ol {
+    padding-left: inherit;
+  }
+}
+
+.nav-tabs-left, .nav-tabs-right {
   border-bottom: none;
   padding-top: 2px;
 }
-.tabs-left {
+.nav-tabs-left {
   border-right: 1px solid #ddd;
 }
-.tabs-right {
+.nav-tabs-right {
   border-left: 1px solid #ddd;
 }
-.tabs-left>li, .tabs-right>li {
+.nav-tabs-left>li, .nav-tabs-right>li {
   float: none;
   margin-bottom: 2px;
 }
-.tabs-left>li {
+.nav-tabs-left>li {
   margin-right: -1px;
 }
-.tabs-right>li {
+.nav-tabs-right>li {
   margin-left: -1px;
 }
-.tabs-left>li>a:hover,
-.tabs-left>li>a:focus {
+.nav-tabs-left>li>a:hover,
+.nav-tabs-left>li>a:focus {
   border-bottom-color: transparent;
 }
-.tabs-left>li.active>a,
-.tabs-left>li.active>a:hover,
-.tabs-left>li.active>a:focus {
+.nav-tabs-left>li.active>a,
+.nav-tabs-left>li.active>a:hover,
+.nav-tabs-left>li.active>a:focus {
   border-bottom-color: #ddd;
   border-right-color: transparent;
 }
 
-.tabs-right>li.active>a,
-.tabs-right>li.active>a:hover,
-.tabs-right>li.active>a:focus {
+.nav-tabs-right>li.active>a,
+.nav-tabs-right>li.active>a:hover,
+.nav-tabs-right>li.active>a:focus {
   border-bottom: 1px solid #ddd;
   border-left-color: transparent;
 }
-.tabs-left>li>a {
+.nav-tabs-left>li>a {
   border-radius: 4px 0 0 4px;
   margin-right: 0;
   display:block;
 }
-.tabs-right>li>a {
+.nav-tabs-right>li>a {
   border-radius: 0 4px 4px 0;
   margin-right: 0;
+}
+
+.checkbox {
+  &.checkbox-row {
+    margin: 0;
+  }
+}
+
+.dropdown-toggle.btn-icon {
+  padding-left: 8px;
+  padding-right: 8px;
 }

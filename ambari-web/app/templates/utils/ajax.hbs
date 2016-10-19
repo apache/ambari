@@ -16,9 +16,9 @@
 * limitations under the License.
 }}
 
-<span class="text-error">{{view.statusCode}}</span> <span>{{view.api}}</span>
+<span class="text-danger">{{view.statusCode}}</span> <span>{{view.api}}</span>
 {{#if view.showMessage}}
   <br />
   <br />
-  <pre><strong>{{t utils.ajax.errorMessage}}: </strong><span class="text-error">{{view.message}}</span></pre>
+  <pre><strong>{{t utils.ajax.errorMessage}}: </strong><span class="text-danger">{{view.message}}</span></pre>
 {{/if}}

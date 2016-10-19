@@ -115,7 +115,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
       type: 'ROLLING',
-      icon: "icon-dashboard",
+      icon: "glyphicon glyphicon-dashboard",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
       selected: false,
       allowed: true,
@@ -128,7 +128,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
       type: 'NON_ROLLING',
-      icon: "icon-bolt",
+      icon: "glyphicon glyphicon-bolt",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
       selected: false,
       allowed: true,
@@ -149,20 +149,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       template: 'admin.stackUpgrade.preCheck.warning.message',
       precheckResultsMessageClass: 'ORANGE',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-warning-sign'
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-warning-sign'
     },
     'BYPASS': {
       template: 'admin.stackUpgrade.preCheck.bypass.message',
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-remove',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-remove',
       bypassedFailures: true
     },
     'FAIL': {
       template: 'admin.stackUpgrade.preCheck.fail.message',
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: true,
-      precheckResultsMessageIconClass: 'icon-remove'
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-remove'
     }
   },
 
@@ -366,7 +366,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           id: upgradeId
         },
         success: 'loadUpgradeDataSuccessCallback'
-      }).then(deferred.resolve).complete(function () {
+      }).then(deferred.resolve).always(function () {
           self.set('isLoadUpgradeDataPending', false);
         });
     }
@@ -678,7 +678,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       error: errorCallback
     });
-  },  
+  },
 
   /**
    * error callback of <code>abortUpgrade()</code>
@@ -769,7 +769,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
          * @type {string}
          */
         barWidth: 'width: 100%;',
-        progressBarClass: 'progress progress-striped active log_popup',
+        progressBarClass: 'progress log_popup',
 
         /**
          * Popup-message
@@ -950,7 +950,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip')
           });
           Em.run.later(this, function () {
-            App.tooltip($(".thumbnail.check-failed"), {
+            App.tooltip($(".img-thumbnail.check-failed"), {
               placement: "bottom",
               title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
             });
@@ -1172,7 +1172,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsMessage: '',
       recheckResultsMessageClass: 'GREEN',
       isPrecheckFailed: false,
-      precheckResultsMessageIconClass: 'icon-ok',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-ok',
       bypassedFailures: false
     };
 
@@ -1210,12 +1210,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   addPrecheckMessageTooltip: function() {
     Em.run.later(this, function () {
       // add tooltip for the type with preCheck errors
-      App.tooltip($(".thumbnail.check-failed"), {
+      App.tooltip($(".img-thumbnail.check-failed"), {
         placement: "bottom",
         title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
       });
       // destroy the tooltip for the type wo preCheck errors
-      $(".thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
+      $(".img-thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
     }, 1000);
   },
 
@@ -1226,7 +1226,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title'),
       precheckResultsMessageClass: 'RED',
       isPrecheckFailed: true,
-      precheckResultsMessageIconClass: 'icon-warning-sign',
+      precheckResultsMessageIconClass: 'glyphicon glyphicon-warning-sign',
       action: 'rerunCheck'
     });
   },
@@ -1430,7 +1430,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       stackVersionNumber = App.get('currentStackVersion');
     return stackVersionNumber;
   },
-  
+
   /**
    * perform validation if <code>skip<code> is  false and run save if
    * validation successfull or run save without validation is <code>skip<code> is true
@@ -1447,7 +1447,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       } else {
         var repoVersion = self.prepareRepoForSaving(repo);
         var stackVersionNumber = self.getStackVersionNumber(repo);
-        
+
         App.ajax.send({
           name: 'admin.stack_versions.edit.repo',
           sender: this,
@@ -1464,7 +1464,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
     return deferred.promise();
   },
-  
+
   /**
    * send request for validation for each repository
    * @param {Em.Object} repo
@@ -1475,7 +1475,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var deferred = $.Deferred(),
       totalCalls = 0,
       invalidUrls = [];
-    
+
     if (skip) {
       deferred.resolve(invalidUrls);
     } else {
@@ -1903,10 +1903,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object|null} jsonData
    */
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
+    var versions = Em.getWithDefault(jsonData, 'items', []);
+    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
+    var rv = currentVersion || versions.filter(function(i) {
+      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
+       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    })[0];
     var map = this.get('serviceVersionsMap');
-    if (rv) {
-      rv.stack_services.forEach(function (item) {
+    var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
+    if (stackServices) {
+      stackServices.forEach(function (item) {
         map[item.name] = item.versions[0];
       });
     }

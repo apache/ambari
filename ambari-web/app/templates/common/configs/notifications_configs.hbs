@@ -16,71 +16,105 @@
 * limitations under the License.
 }}
 
-<div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
-  <i {{bindAttr class=":pull-left :accordion-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-  <a class="accordion-toggle">{{view.category.displayName}}</a>
-</div>
+<div class="panel panel-default">
+  <div class="panel-heading" {{action "onToggleBlock" category target="view"}}>
+    <h3 class="panel-title">
+      <i {{bindAttr class=":pull-left :panel-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+      <a class="panel-toggle">{{view.category.displayName}}</a>
+    </h3>
+  </div>
 
-<div class="accordion-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
-  <div class="accordion-inner service-config-section">
-    <form class="form-horizontal" autocomplete="off">
+  <div class="panel-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>
+    <div class="service-config-section">
+      <form class="form-horizontal" autocomplete="off">
 
-      <div class="entry-row">
-        {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="no"}} {{t installer.step7.misc.notification.configure.later}}
-      </div>
-
-      <div class="entry-row">
-        {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="yes"}} {{t installer.step7.misc.notification.configure}}
-      </div>
-
-      {{#each config in view.categoryConfigs}}
-        <div {{bindAttr class=":entry-row config.rowStyleClass config.isUserProperty:indent-1"}}>
-          <span {{bindAttr class="config.errorMessage:error: :control-group :control-label-span"}}>
-            <label class="control-label">
-              {{formatWordBreak config.displayName}}
+        <div class="entry-row row">
+          <div class="checkbox">
+            <label>
+                {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="no" type="radio"}}
+                {{t installer.step7.misc.notification.configure.later}}
             </label>
-          </span>
-
-          <div {{bindAttr class="config.showLabel:controls"}}>
-            <div {{bindAttr class="config.errorMessage:error: config.warnMessage:warning: :control-group"}}>
-              {{view config.viewClass serviceConfigBinding="config" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-
-              {{#if config.isRemovable}}
-                {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-                  {{#unless config.isComparison}}
-                    <a class="btn-small" href="#" data-toggle="tooltip"
-                      {{action "removeProperty" config target="view"}}
-                      {{translateAttr data-original-title="common.remove"}}>
-                      <i class="icon-minus-sign"></i>
-                    </a>
-                  {{/unless}}
-                {{/isAuthorized}}
-              {{/if}}
-
-              <span class="help-inline">{{config.errorMessage}}</span>
-              <span class="help-inline">{{config.warnMessage}}</span>
-            </div>
           </div>
         </div>
-      {{/each}}
 
-      <div class="entry-row indent-1">
-        {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="tls"}} {{t installer.step7.misc.notification.use_tls}}
-      </div>
+        <div class="entry-row row">
+          <div class="checkbox">
+            <label>
+                {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="yes" type="radio"}}
+                {{t installer.step7.misc.notification.configure}}
+            </label>
+          </div>
+        </div>
 
-      <div class="entry-row indent-1">
-        {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="ssl"}} {{t installer.step7.misc.notification.use_ssl}}
-      </div>
+          {{#each config in view.categoryConfigs}}
+            <div {{bindAttr class=":entry-row :row config.rowStyleClass config.isUserProperty:indent-1"}}>
+              <span {{bindAttr class="config.errorMessage:error: :form-group :control-label-span :col-md-3"}}>
+                <label class="control-label">
+                  {{formatWordBreak config.displayName}}
+                </label>
+              </span>
 
-      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
-        {{#if view.canEdit}}
-          {{#unless view.configsAreDisabled}}
-            <div class="entry-row indent-1">
-             <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+              <div class="col-md-9">
+                <div {{bindAttr class="config.errorMessage:error: config.warnMessage:warning: :form-group"}}>
+                  <div class="row">
+                    <div class="col-md-9">
+                        {{view config.viewClass serviceConfigBinding="config" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                    </div>
+                    <div class="col-md-3">
+                        {{#if config.isRemovable}}
+                            {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+                                {{#unless config.isComparison}}
+                                  <a class="btn-sm" href="#" data-toggle="tooltip"
+                                      {{action "removeProperty" config target="view"}}
+                                      {{translateAttr data-original-title="common.remove"}}>
+                                    <i class="icon-minus-sign"></i>
+                                  </a>
+                                {{/unless}}
+                            {{/isAuthorized}}
+                        {{/if}}
+                      {{#if config.errorMessage}}
+                        <span class="help-block validation-block">{{config.errorMessage}}</span>
+                      {{/if}}
+                      {{#if config.warnMessage}}
+                        <span class="help-block validation-block">{{config.warnMessage}}</span>
+                      {{/if}}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          {{/unless}}
-        {{/if}}
-      {{/isAuthorized}}
-    </form>
+          {{/each}}
+
+        <div class="entry-row row indent-1">
+          <div class="checkbox">
+            <label>
+                {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="tls"}}
+                {{t installer.step7.misc.notification.use_tls}}
+            </label>
+          </div>
+        </div>
+
+        <div class="entry-row row indent-1">
+          <div class="checkbox">
+            <label>
+                {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="ssl"}}
+                {{t installer.step7.misc.notification.use_ssl}}
+            </label>
+          </div>
+        </div>
+
+          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+              {{#if view.canEdit}}
+                  {{#unless view.configsAreDisabled}}
+                    <div class="entry-row indent-1">
+                      <a
+                        href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}
+                        ...</a>
+                    </div>
+                  {{/unless}}
+              {{/if}}
+          {{/isAuthorized}}
+      </form>
+    </div>
   </div>
 </div>

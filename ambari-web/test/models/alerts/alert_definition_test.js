@@ -166,13 +166,13 @@ describe('App.AlertDefinition', function () {
   });
 
   App.TestAliases.testAsComputedGetByKey(getModel(), 'typeIconClass', 'typeIcons', 'type', {map: {
-    METRIC: 'icon-bolt',
-    SCRIPT: 'icon-file-text',
-    WEB: 'icon-globe',
-    PORT: 'icon-signin',
-    AGGREGATE: 'icon-plus',
-    SERVER: 'icon-desktop',
-    RECOVERY: 'icon-desktop'
+    METRIC: 'glyphicon glyphicon-flash',
+    SCRIPT: 'glyphicon glyphicon-file',
+    WEB: 'glyphicon glyphicon-globe',
+    PORT: 'glyphicon glyphicon-log-in',
+    AGGREGATE: 'glyphicon glyphicon-plus',
+    SERVER: 'glyphicon glyphicon-oil',
+    RECOVERY: 'glyphicon glyphicon-oil'
   }});
 
   describe('REOPEN', function () {

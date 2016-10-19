@@ -758,10 +758,13 @@ App.format = {
  * @param {object} options
  */
 App.popover = function (self, options) {
+  var opts = $.extend(true, {
+    container: 'body'
+  }, options || {});
   if (!self) return;
-  self.popover(options);
+  self.popover(opts);
   self.on("remove", function () {
-    $(this).trigger('mouseleave').off().removeData('popover');
+    $(this).trigger('mouseleave').off().removeData('bs.popover');
   });
 };
 
@@ -774,11 +777,14 @@ App.popover = function (self, options) {
  * @param {object} options
  */
 App.tooltip = function (self, options) {
+  var opts = $.extend(true, {
+    container: 'body'
+  }, options || {});
   if (!self || !self.tooltip) return;
-  self.tooltip(options);
+  self.tooltip(opts);
   /* istanbul ignore next */
   self.on("remove", function () {
-    $(this).trigger('mouseleave').off().removeData('tooltip');
+    $(this).trigger('mouseleave').off().removeData('bs.tooltip');
   });
 };
 

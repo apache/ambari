@@ -2767,7 +2767,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         precheckResultsMessage: '',
         recheckResultsMessageClass: 'GREEN',
         isPrecheckFailed: false,
-        precheckResultsMessageIconClass: 'icon-ok',
+        precheckResultsMessageIconClass: 'glyphicon glyphicon-ok',
         bypassedFailures: false
       };
       controller.runPreUpgradeCheckOnlySuccess(data, {}, {type: 'ROLLING'});
@@ -2816,7 +2816,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "precheckResultsMessage": "1 Required pre",
         "precheckResultsMessageClass": "RED",
         "isPrecheckFailed": true,
-        "precheckResultsMessageIconClass": "icon-remove"
+        "precheckResultsMessageIconClass": "glyphicon glyphicon-remove"
       });
     });
   });
@@ -2854,7 +2854,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "precheckResultsTitle": Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title'),
         "precheckResultsMessageClass": "RED",
         "isPrecheckFailed": true,
-        "precheckResultsMessageIconClass": "icon-warning-sign",
+        "precheckResultsMessageIconClass": "glyphicon glyphicon-warning-sign",
         "action": "rerunCheck"
       }));
     });
@@ -3121,31 +3121,141 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#loadServiceVersionFromVersionDefinitionsSuccessCallback()", function () {
+    var cases;
+    beforeEach(function() {
+      this.appGetStub = sinon.stub(App, 'get');
+    });
 
-    it("serviceVersionsMap should be set", function() {
+    afterEach(function() {
+      App.get.restore();
       controller.set('serviceVersionsMap', {});
-      var data = {
-        items: [
-          {
-            repository_versions: [
-              {
-                RepositoryVersions: {
-                  stack_services: [
-                    {
-                      name: 'S1',
-                      versions: ['v1']
-                    }
-                  ]
+    });
+    cases = [
+      {
+        jsonData: {
+          items: [
+            {
+              ClusterStackVersions: {
+                state: 'CURRENT'
+              },
+              repository_versions: [
+                {
+                  RepositoryVersions: {
+                    stack_services: [
+                      { name: 'S1', versions: ['v1']}
+                    ]
+                  }
                 }
-              }
-            ]
-          }
-        ]
-      };
-      controller.loadServiceVersionFromVersionDefinitionsSuccessCallback(data);
-      expect(controller.get('serviceVersionsMap')).to.be.eql({
-        "S1": "v1"
-      });
+              ]
+            }
+          ]
+        },
+        currentStackData: {
+          currentStackVersionNumber: '2.2',
+          currentStackName: 'HDP'
+        },
+        m: 'should add stack services from stack version with state CURRENT',
+        e: { "S1": "v1"}
+      },
+      {
+        jsonData: {
+          items: [
+            {
+              ClusterStackVersions: {
+                version: '2.3',
+                stack: 'HDP',
+                state: 'INIT'
+              },
+              repository_versions: [
+                {
+                  RepositoryVersions: {
+                    stack_services: [
+                      { name: 'S3', versions: ['v3']}
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              ClusterStackVersions: {
+                version: '2.2',
+                stack: 'HDP',
+                state: 'INIT'
+              },
+              repository_versions: [
+                {
+                  RepositoryVersions: {
+                    stack_services: [
+                      { name: 'S2', versions: ['v2']}
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        currentStackData: {
+          currentStackVersionNumber: '2.2',
+          currentStackName: 'HDP'
+        },
+        m: 'should add stack services from stack version by current stack name and version number' +
+           'when CURRENT version not available',
+        e: { "S2": "v2"}
+      },
+      {
+        jsonData: {
+          items: [
+            {
+              ClusterStackVersions: {
+                version: '2.3',
+                stack: 'HDP',
+                state: 'CURRENT'
+              },
+              repository_versions: [
+                {
+                  RepositoryVersions: {
+                    stack_services: [
+                      { name: 'S3', versions: ['v3']}
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              ClusterStackVersions: {
+                version: '2.2',
+                stack: 'HDP',
+                state: 'INIT'
+              },
+              repository_versions: [
+                {
+                  RepositoryVersions: {
+                    stack_services: [
+                      { name: 'S2', versions: ['v2']}
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        currentStackData: {
+          currentStackVersionNumber: '2.2',
+          currentStackName: 'HDP'
+        },
+        m: 'should add stack services by state CURRENT even when there is stack version with ' +
+           'current stack name and version number',
+        e: { "S3": "v3"}
+      }
+    ];
+
+    cases.forEach(function(test) {
+      it(test.m, function() {
+        this.appGetStub.withArgs('currentStackName').returns(test.currentStackData.currentStackName)
+          .withArgs('currentStackVersionNumber').returns(test.currentStackData.currentStackVersionNumber);
+        controller.loadServiceVersionFromVersionDefinitionsSuccessCallback(test.jsonData);
+        expect(controller.get('serviceVersionsMap')).to.be.eql(test.e);
+      })
     });
   });
 

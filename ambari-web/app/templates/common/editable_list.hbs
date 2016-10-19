@@ -56,15 +56,15 @@
   {{#if view.editMode}}
     <div class="actions-panel">
       <button class="btn btn-default btn-xs" {{action onSecondary target="view"}}>
-        <span class="icon-remove"></span>
+        <span class="glyphicon glyphicon-remove"></span>
       </button>
       <button class="btn btn-primary btn-xs" {{action onPrimary target="view"}}>
-        <span class="icon-ok"></span>
+        <span class="glyphicon glyphicon-ok"></span>
       </button>
     </div>
   {{else}}
     <div class="pencil-box" {{action enableEditMode target="view"}}>
-      <span class="icon-pencil"></span>
+      <span class="glyphicon glyphicon-pencil"></span>
     </div>
   {{/if}}
 </div>

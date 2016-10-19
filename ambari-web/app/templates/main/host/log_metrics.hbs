@@ -16,9 +16,9 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid log-metrics-charts mtl">
+<div class="row log-metrics-charts mtl">
   {{#each item in view.logsData}}
-    <div class="span6 text-center mtl">
+    <div class="col-md-6 text-center mtl">
       {{view view.chartView contentBinding="item"}}
       <a href="#" {{action transitionByService item target="view"}}>{{item.service.displayName}}</a>
     </div>

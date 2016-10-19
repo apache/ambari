@@ -16,19 +16,21 @@
 * limitations under the License.
 }}
 
-<div>
-  <div class="span3 badge-container"><span {{bindAttr class="view.property.badgeCssClass :alert-threshold-badge :alert-state-single-host :label"}}>{{view.property.badge}}</span>&nbsp;</div>
-  {{#if view.property.showInputForValue}}
-    <div {{bindAttr class=":span3 view.property.valueMetric:input-append"}}>
-        {{view Em.TextField valueBinding="view.property.displayValue" disabledBinding="view.property.isDisabled" class ="span7"}}
-        {{#if view.property.valueMetric}}
-          <span class="add-on">{{view.property.valueMetric}}</span>
-        {{/if}}
-    </div>
-  {{/if}}
-  <div {{bindAttr class=":alert-text-input view.property.showInputForValue:span6:span9"}}>
-    {{#if view.property.showInputForText}}
-      {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled"}}
-    {{/if}}
-  </div>
+<div class="col-md-3">
+  <span {{bindAttr class="view.property.badgeCssClass :alert-label :label :alert-state-single-host"}}>{{view.property.badge}}</span>
 </div>
+{{#if view.property.showInputForValue}}
+  <div class="col-md-3">
+    <div {{bindAttr class="view.property.valueMetric:input-group"}}>
+      {{view Em.TextField valueBinding="view.property.displayValue" disabledBinding="view.property.isDisabled" class="form-control"}}
+      {{#if view.property.valueMetric}}
+        <span class="input-group-addon">{{view.property.valueMetric}}</span>
+      {{/if}}
+    </div>
+  </div>
+{{/if}}
+{{#if view.property.showInputForText}}
+  <div {{bindAttr class="view.property.showInputForValue:col-md-6:col-md-9"}}>
+    {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled" class="form-control"}}
+  </div>
+{{/if}}

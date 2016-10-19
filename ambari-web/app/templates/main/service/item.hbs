@@ -17,7 +17,7 @@
 }}
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
-  <div class="span3 quick-links-wrapper">
+  <div class="col-md-3 quick-links-wrapper">
     {{#view App.QuickViewLinks contentBinding="view.service"}}
       {{#if view.showQuickLinks}}
         <ul class="nav nav-pills move">
@@ -60,10 +60,10 @@
 <div class="service-button">
   {{#if view.isMaintenanceActive}}
     <div class="btn-group display-inline-block">
-      <a class="btn dropdown-toggle" id="service-actions-dropdown-btn" data-toggle="dropdown" href="#">
+      <button class="btn btn-default dropdown-toggle" id="service-actions-dropdown-btn" data-toggle="dropdown" href="#">
         {{t services.service.actions.serviceActions}}
         <span class="caret"></span>
-      </a>
+      </button>
       <ul class="pull-right dropdown-menu">
         <!-- dropdown menu links -->
 
@@ -73,14 +73,14 @@
           <li {{bindAttr class="controller.isStartDisabled:disabled"}}>
             <a href="javascript:void(null)" {{bindAttr class="controller.isStartDisabled:disabled" }}
               {{action "startService" target="controller"}}>
-              <i {{bindAttr class=":icon-play controller.isStartDisabled:disabled:enabled" }}></i>
+              <i {{bindAttr class=":glyphicon :glyphicon-play controller.isStartDisabled:disabled:enabled" }}></i>
               {{t services.service.start}}
             </a>
           </li>
           <li {{bindAttr class="controller.isStopDisabled:disabled"}}>
             <a href="javascript:void(null)" {{bindAttr class="controller.isStopDisabled:disabled" }}
               data-toggle="modal" {{action "stopService" target="controller"}}>
-              <i {{bindAttr class=":icon-stop controller.isStopDisabled:disabled:enabled" }}></i>
+              <i {{bindAttr class=":glyphicon :glyphicon-stop controller.isStopDisabled:disabled:enabled" }}></i>
               {{t services.service.stop}}
             </a>
           </li>

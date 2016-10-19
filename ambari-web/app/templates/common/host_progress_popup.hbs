@@ -29,10 +29,11 @@
       <div class="select-wrap">
         {{t common.show}}:
         {{view Ember.Select
-        contentBinding="view.categories"
-        optionValuePath="content.value"
-        optionLabelPath="content.label"
-        selectionBinding="view.serviceCategory"
+            contentBinding="view.categories"
+            optionValuePath="content.value"
+            optionLabelPath="content.label"
+            selectionBinding="view.serviceCategory"
+            class="form-control"
         }}
       </div>
     </div>
@@ -54,13 +55,13 @@
               </div>
               <div class="time-summary start-time-text">{{servicesInfo.startTime}}</div>
               <div class="time-summary duration-text">{{servicesInfo.duration}}</div>
-              <div class="progress-bar span2">
-                <div {{bindAttr class="servicesInfo.isInProgress:progress-striped servicesInfo.isInProgress:active servicesInfo.barColor :progress"}}>
-                  <div class="bar" {{bindAttr style="servicesInfo.barWidth"}}></div>
+              <div class="progress-wrapper col-md-2">
+                <div class="progress">
+                  <div {{bindAttr class="servicesInfo.isInProgress:active servicesInfo.isInProgress:progress-bar-striped servicesInfo.barColor :progress-bar" style="servicesInfo.barWidth"}}></div>
                 </div>
               </div>
               <div class="host-progress-num">{{servicesInfo.progress}}%</div>
-              <div class="show-details"><i class="icon-caret-right"></i></div>
+              <div class="show-details"><i class="glyphicon glyphicon-caret-right"></i></div>
             </div>
           </div>
         {{/each}}
@@ -79,7 +80,7 @@
     <div class="task-top-wrap">
       {{#if controller.isBackgroundOperations}}
         <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToServiceList}} >
-          <i class="icon-arrow-left"></i>&nbsp;{{t common.operations}}
+          <i class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.operations}}
         </a>
       {{/if}}
       <span class="task-detail-log-rolename">{{t common.hosts}}</span>
@@ -87,10 +88,11 @@
       <div class="select-wrap">
         {{t common.show}}:
         {{view Ember.Select
-        contentBinding="view.categories"
-        optionValuePath="content.value"
-        optionLabelPath="content.label"
-        selectionBinding="view.hostCategory"
+            contentBinding="view.categories"
+            optionValuePath="content.value"
+            optionLabelPath="content.label"
+            selectionBinding="view.hostCategory"
+            class="form-control"
         }}
       </div>
     </div>
@@ -124,13 +126,13 @@
                     {{hostInfo.displayName}}
                   </a>
                 </div>
-                <div class="progress-bar span2">
-                  <div {{bindAttr class="hostInfo.isInProgress:progress-striped :active hostInfo.barColor :progress"}}>
-                    <div class="bar" {{bindAttr style="hostInfo.barWidth"}}></div>
+                <div class="progress-wrapper col-md-2">
+                  <div class="progress">
+                    <div {{bindAttr class="hostInfo.isInProgress:progress-bar-striped :active hostInfo.barColor :progress-bar" style="hostInfo.barWidth"}}></div>
                   </div>
                 </div>
                 <div class="host-progress-num">{{hostInfo.progress}}%</div>
-                <div class="show-details"><i class="icon-caret-right"></i></div>
+                <div class="show-details"><i class="glyphicon glyphicon-caret-right"></i></div>
               </div>
             </div>
           {{/each}}
@@ -147,16 +149,17 @@
   <div {{bindAttr class="view.parentView.isTaskListHidden:hidden :task-list-main-warp"}}>
     <div class="task-top-wrap">
       <a class="task-detail-back-to-hosts" href="javascript:void(null)" {{action backToHostList}} ><i
-              class="icon-arrow-left"></i>&nbsp;{{t common.hosts}}</a>
+              class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.hosts}}</a>
 
       <div class="task-name-top task-detail-log-rolename">{{t common.tasks}}</div>
       <div class="select-wrap tasks-list-select">
         {{t common.show}}:
         {{view Ember.Select
-        contentBinding="view.categories"
-        optionValuePath="content.value"
-        optionLabelPath="content.label"
-        selectionBinding="view.taskCategory"
+            contentBinding="view.categories"
+            optionValuePath="content.value"
+            optionLabelPath="content.label"
+            selectionBinding="view.taskCategory"
+            class="form-control"
         }}
       </div>
     </div>
@@ -174,7 +177,7 @@
                     {{taskInfo.commandDetail}}
                   </a>
                 </div>
-                <div class="show-details"><i class="icon-caret-right"></i></div>
+                <div class="show-details"><i class="glyphicon glyphicon-caret-right"></i></div>
               </div>
             </div>
           {{/each}}
@@ -191,20 +194,20 @@
   <div {{bindAttr class="view.parentView.isLogWrapHidden:hidden :task-detail-info view.hostComponentLogsExists:task-detail-info-tabbed"}}>
     <div class="task-top-wrap">
       <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i
-                                                                                              class="icon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
+                                                                                              class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
 
       <div {{bindAttr class="view.hostComponentLogsExists:task-detail-log-nav-actions"}}>
         <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
 
         <div class="task-detail-ico-wrap">
           <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
-                                                                                                                                                    class="icon-copy"></i> {{t common.copy}}</a>
+                                                                                                                                                    class="glyphicon glyphicon-copy"></i> {{t common.copy}}</a>
           <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i
-                                                                                                                               class="icon-external-link"></i> {{t common.open}}</a>
+                                                                                                                               class="glyphicon glyphicon-external-link"></i> {{t common.open}}</a>
           {{#if App.supports.logSearch}}
             {{#if view.isLogSearchInstalled}}
               <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
-                <i class="icon-file"></i> {{t common.host}} {{t common.logs}}
+                <i class="glyphicon glyphicon-file"></i> {{t common.host}} {{t common.logs}}
               </a>
             {{/if}}
           {{/if}}
@@ -233,8 +236,8 @@
                   <h5>{{t services.hdfs.rebalance.title}}</h5>
 
                   <div class="progresspopup-rebalancehdfs">
-                    <div {{bindAttr class=":progress view.openedTask.isInProgress:progress-striped view.openedTask.barColor :active"}}>
-                      <div class="bar" {{bindAttr style="view.openedTask.completionProgressStyle"}}></div>
+                    <div class="progress-bar">
+                      <div {{bindAttr class=":progress view.openedTask.isInProgress:progress-bar-striped view.openedTask.barColor :active" style="view.openedTask.completionProgressStyle"}}></div>
                     </div>
                   </div>
                   <div class="clearfix">
@@ -262,7 +265,7 @@
                   <span class="text-bold muted">{{hostLog.fileName}}</span>
                   {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
                     <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}} target="_blank">
-                      <i class="icon-external-link"></i>
+                      <i class="glyphicon glyphicon-external-link"></i>
                       {{t popup.logTail.openInLogSearch}}</a>
                   {{/view}}
                 </p>
@@ -288,11 +291,6 @@
       <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
     </div>
     <div class="info">{{view.paginationInfo}}</div>
-    <div class="paging_two_button">
-      {{view view.paginationFirst}}
-      {{view view.paginationLeft}}
-      {{view view.paginationRight}}
-      {{view view.paginationLast}}
-    </div>
+    {{view view.pagination4Btns}}
   </div>
 {{/if}}

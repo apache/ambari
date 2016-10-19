@@ -23,14 +23,14 @@
     {{view view.timeRangeListView}}
     <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon"}}
         href="#" {{action toggleFormatsList target="view"}}>
-      {{t common.export}} <i class="icon-save"></i>
+      {{t common.export}} <i class="glyphicon glyphicon-save"></i>
     </a>
     {{view view.exportMetricsMenuView}}
   </div>
   {{#if view.isTimePagingEnable}}
     <div {{bindAttr class="view.leftArrowVisible:visibleArrow :arrow-left"}} {{action "switchTimeBack" target="view.parentView"}}></div>
   {{/if}}
-  <div {{bindAttr id="view.containerId"}} {{bindAttr class="view.isReady:show:hide view.containerClass :chart-container"}}>
+  <div {{bindAttr id="view.containerId"}} {{bindAttr class="view.isReady:shown:hidden view.containerClass :chart-container"}}>
     <div {{bindAttr id="view.yAxisId"}} {{bindAttr class="view.yAxisClass :chart-y-axis"}}></div>
     <div {{bindAttr id="view.xAxisId"}} {{bindAttr class="view.xAxisClass :chart-x-axis"}}></div>
     <div {{bindAttr id="view.legendId"}} {{bindAttr class="view.legendClass :chart-legend"}}></div>

@@ -17,11 +17,11 @@
 }}
 
 {{#if view.isConfigAvailable}}
-    <div class="row-fluid">
-        <div class="well span2 services-host-menu">
+    <div class="row host-configs">
+        <div class="well col-md-2 services-host-menu">
           {{view App.MainHostServiceMenuView}}
         </div>
-        <div class="span10">
+        <div class="col-md-10">
           {{outlet service_config_outlet}}
         </div>
     </div>

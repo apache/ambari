@@ -16,9 +16,9 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid version-in-dropdown" {{action doAction view.serviceVersion view.actionTypes.SWITCH target="view"}}>
-  <div class="span2">{{view.serviceVersion.versionText}}</div>
-  <div class="span6">{{view.serviceVersion.createdDate}}</div>
-  <div class="span3">{{view.serviceVersion.authorFormatted}}</div>
-  <div class="pull-right"><i class="icon-caret-right"></i></div>
+<div class="row version-in-dropdown" {{action doAction view.serviceVersion view.actionTypes.SWITCH target="view"}}>
+  <div class="col-md-2">{{view.serviceVersion.versionText}}</div>
+  <div class="col-md-6">{{view.serviceVersion.createdDate}}</div>
+  <div class="col-md-3">{{view.serviceVersion.authorFormatted}}</div>
+  <div class="pull-right"><i class="glyphicon glyphicon-caret-right"></i></div>
 </div>

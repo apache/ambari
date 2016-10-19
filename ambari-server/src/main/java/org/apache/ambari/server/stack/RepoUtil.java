@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.AmbariException;
@@ -152,7 +153,7 @@ public class RepoUtil {
         }
       }
     }
-    LOG.info("Found {} service repos: {}", serviceRepoIds.size(),Iterables.toString(serviceRepoIds));
+    LOG.debug("Found {} service repos: {}", serviceRepoIds.size(),Iterables.toString(serviceRepoIds));
     return serviceRepos;
   }
 

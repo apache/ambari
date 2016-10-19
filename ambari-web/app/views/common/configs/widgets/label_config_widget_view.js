@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -32,7 +31,7 @@ App.LabelView = App.ConfigWidgetView.extend({
    */
   configView: App.ServiceConfigLabelView.extend({
     isPopoverEnabled: 'false',
-    textFieldClassName: 'span12',
+    textFieldClassName: 'col-md-12',
     serviceConfigBinding: 'parentView.config'
   })
 });

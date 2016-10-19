@@ -17,17 +17,17 @@
 }}
 
 <div class="heatmap-widget">
-  <div class="span10 heatmap-content">
+  <div class="heatmap-content">
     <h4 id="heatmap-metric-loading">
 	        <span class="background-text" id="heatmap-metric-title">
 						{{view.content.widgetName}} &nbsp;
             {{#unless view.isLoaded}}
-              <i class='icon-spinner icon-spin icon-small'></i>
+              {{view App.SpinnerView}}
             {{/unless}}
 					</span>
     </h4>
 
-    <div class="row-fluid">
+    <div class="row">
       {{#each rack in view.racks}}
         <div {{bindAttr class="controller.rackClass"}}>
           {{view App.MainChartsHeatmapRackView rackBinding="rack" }}

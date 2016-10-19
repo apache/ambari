@@ -29,6 +29,7 @@ App.HostComponent = DS.Model.extend({
   host: DS.belongsTo('App.Host'),
   componentLogs: DS.belongsTo('App.HostComponentLog'),
   hostName: DS.attr('string'),
+  publicHostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
 
@@ -284,19 +285,19 @@ App.HostComponentActionMap = {
         action: 'restartAllHostComponents',
         context: ctx.get('serviceName'),
         label: Em.I18n.t('restart.service.all'),
-        cssClass: 'icon-repeat',
+        cssClass: 'glyphicon glyphicon-repeat',
         disabled: false
       },
       RUN_SMOKE_TEST: {
         action: 'runSmokeTest',
         label: Em.I18n.t('services.service.actions.run.smoke'),
-        cssClass: 'icon-thumbs-up-alt',
+        cssClass: 'glyphicon glyphicon-thumbs-up',
         disabled: ctx.get('controller.isSmokeTestDisabled')
       },
       REFRESH_CONFIGS: {
         action: 'refreshConfigs',
         label: Em.I18n.t('hosts.host.details.refreshConfigs'),
-        cssClass: 'icon-refresh',
+        cssClass: 'glyphicon glyphicon-refresh',
         disabled: false
       },
       REFRESHQUEUES: {
@@ -304,14 +305,14 @@ App.HostComponentActionMap = {
         customCommand: 'REFRESHQUEUES',
         context : Em.I18n.t('services.service.actions.run.yarnRefreshQueues.context'),
         label: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu'),
-        cssClass: 'icon-refresh',
+        cssClass: 'glyphicon glyphicon-refresh',
         disabled: false
       },
       ROLLING_RESTART: {
         action: 'rollingRestart',
         context: ctx.get('rollingRestartComponent'),
         label: Em.I18n.t('rollingrestart.dialog.title'),
-        cssClass: 'icon-time',
+        cssClass: 'glyphicon glyphicon-time',
         disabled: false
       },
       TOGGLE_PASSIVE: {
@@ -324,21 +325,21 @@ App.HostComponentActionMap = {
       TOGGLE_NN_HA: {
         action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
-        cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
+        cssClass: App.get('isHaEnabled') ? 'glyphicon glyphicon-arrow-down' : 'glyphicon glyphicon-arrow-up',
         isHidden: App.get('isHaEnabled'),
         disabled: App.get('isSingleNode') || !NN || NN.get('isNotInstalled')
       },
       TOGGLE_RM_HA: {
         action: 'enableRMHighAvailability',
         label: App.get('isRMHaEnabled') ? Em.I18n.t('admin.rm_highAvailability.button.disable') : Em.I18n.t('admin.rm_highAvailability.button.enable'),
-        cssClass: App.get('isRMHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
+        cssClass: App.get('isRMHaEnabled') ? 'glyphicon glyphicon-arrow-down' : 'glyphicon glyphicon-arrow-up',
         isHidden: App.get('isRMHaEnabled'),
         disabled: App.get('isSingleNode') || !RM || RM.get('isNotInstalled')
       },
       TOGGLE_RA_HA: {
         action: 'enableRAHighAvailability',
         label: Em.I18n.t('admin.ra_highAvailability.button.enable'),
-        cssClass: 'icon-arrow-up',
+        cssClass: 'glyphicon glyphicon-arrow-up',
         isHidden: App.get('isRAHaEnabled'),
         disabled: App.get('isSingleNode') || !RA || RA.get('isNotInstalled')
       },
@@ -347,14 +348,14 @@ App.HostComponentActionMap = {
         context: '',
         isHidden: !App.isAuthorized('SERVICE.MOVE'),
         label: Em.I18n.t('services.service.actions.reassign.master'),
-        cssClass: 'icon-share-alt'
+        cssClass: 'glyphicon glyphicon-share-alt'
       },
       STARTDEMOLDAP: {
         action: 'startLdapKnox',
         customCommand: 'STARTDEMOLDAP',
         context: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
         label: Em.I18n.t('services.service.actions.run.startLdapKnox.context'),
-        cssClass: 'icon-play-sign',
+        cssClass: 'glyphicon glyphicon-play-sign',
         disabled: false
       },
       STOPDEMOLDAP: {
@@ -362,7 +363,7 @@ App.HostComponentActionMap = {
         customCommand: 'STOPDEMOLDAP',
         context: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
         label: Em.I18n.t('services.service.actions.run.stopLdapKnox.context'),
-        cssClass: 'icon-stop',
+        cssClass: 'glyphicon glyphicon-stop',
         disabled: false
       },
       RESTART_LLAP: {
@@ -370,20 +371,20 @@ App.HostComponentActionMap = {
         customCommand: 'RESTART_LLAP',
         context: Em.I18n.t('services.service.actions.run.restartLLAP'),
         label: Em.I18n.t('services.service.actions.run.restartLLAP') + ' ∞',
-        cssClass: 'icon-refresh'
+        cssClass: 'glyphicon glyphicon-refresh'
       },
       REBALANCEHDFS: {
         action: 'rebalanceHdfsNodes',
         customCommand: 'REBALANCEHDFS',
         context: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.context'),
         label: Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes'),
-        cssClass: 'icon-refresh',
+        cssClass: 'glyphicon glyphicon-refresh',
         disabled: false
       },
       DOWNLOAD_CLIENT_CONFIGS: {
         action: ctx.get('controller.isSeveralClients') ? '' : 'downloadClientConfigs',
         label: Em.I18n.t('services.service.actions.downloadClientConfigs'),
-        cssClass: 'icon-download-alt',
+        cssClass: 'glyphicon glyphicon-download-alt',
         isHidden: !!ctx.get('controller.content.clientComponents') ? ctx.get('controller.content.clientComponents').rejectProperty('totalCount', 0).length == 0 : false,
         disabled: false,
         hasSubmenu: ctx.get('controller.isSeveralClients'),
@@ -393,35 +394,35 @@ App.HostComponentActionMap = {
         action: 'deleteService',
         context: ctx.get('serviceName'),
         label: Em.I18n.t('services.service.actions.deleteService'),
-        cssClass: 'icon-remove'
+        cssClass: 'glyphicon glyphicon-remove'
       },
       IMMEDIATE_STOP_HAWQ_SERVICE: {
         action: 'executeHawqCustomCommand',
         customCommand: 'IMMEDIATE_STOP_HAWQ_SERVICE',
         context: Em.I18n.t('services.service.actions.run.immediateStopHawqService.context'),
         label: Em.I18n.t('services.service.actions.run.immediateStopHawqService.label'),
-        cssClass: 'icon-stop',
+        cssClass: 'glyphicon glyphicon-stop',
         disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started
       },
       IMMEDIATE_STOP_HAWQ_SEGMENT: {
         customCommand: 'IMMEDIATE_STOP_HAWQ_SEGMENT',
         context: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.context'),
         label: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.label'),
-        cssClass: 'icon-stop'
+        cssClass: 'glyphicon glyphicon-stop'
       },
       RESYNC_HAWQ_STANDBY: {
         action: 'executeHawqCustomCommand',
         customCommand: 'RESYNC_HAWQ_STANDBY',
         context: Em.I18n.t('services.service.actions.run.resyncHawqStandby.context'),
         label: Em.I18n.t('services.service.actions.run.resyncHawqStandby.label'),
-        cssClass: 'icon-refresh',
+        cssClass: 'glyphicon glyphicon-refresh',
         isHidden : App.get('isSingleNode') || !HS ,
         disabled: !((!!HMComponent && HMComponent.get('startedCount') === 1) && (!!HSComponent && HSComponent.get('startedCount') === 1))
       },
       TOGGLE_ADD_HAWQ_STANDBY: {
         action: 'addHawqStandby',
         label: Em.I18n.t('admin.addHawqStandby.button.enable'),
-        cssClass: 'icon-plus',
+        cssClass: 'glyphicon glyphicon-plus',
         isHidden: App.get('isSingleNode') || HS,
         disabled: false
       },
@@ -429,7 +430,7 @@ App.HostComponentActionMap = {
         action: 'removeHawqStandby',
         context: Em.I18n.t('admin.removeHawqStandby.button.enable'),
         label: Em.I18n.t('admin.removeHawqStandby.button.enable'),
-        cssClass: 'icon-minus',
+        cssClass: 'glyphicon glyphicon-minus',
         isHidden: App.get('isSingleNode') || !HS,
         disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started,
         hideFromComponentView: true
@@ -438,7 +439,7 @@ App.HostComponentActionMap = {
         action: 'activateHawqStandby',
         label: Em.I18n.t('admin.activateHawqStandby.button.enable'),
         context: Em.I18n.t('admin.activateHawqStandby.button.enable'),
-        cssClass: 'icon-arrow-up',
+        cssClass: 'glyphicon glyphicon-arrow-up',
         isHidden: App.get('isSingleNode') || !HS,
         disabled: false,
         hideFromComponentView: true
@@ -448,7 +449,7 @@ App.HostComponentActionMap = {
         customCommand: 'HAWQ_CLEAR_CACHE',
         context: Em.I18n.t('services.service.actions.run.clearHawqCache.label'),
         label: Em.I18n.t('services.service.actions.run.clearHawqCache.label'),
-        cssClass: 'icon-refresh',
+        cssClass: 'glyphicon glyphicon-refresh',
         isHidden : false,
         disabled: !HM || HM.get('workStatus') != App.HostComponentStatus.started
       },
@@ -457,13 +458,13 @@ App.HostComponentActionMap = {
         customCommand: 'RUN_HAWQ_CHECK',
         context: Em.I18n.t('services.service.actions.run.runHawqCheck.label'),
         label: Em.I18n.t('services.service.actions.run.runHawqCheck.label'),
-        cssClass: 'icon-thumbs-up-alt',
+        cssClass: 'glyphicon glyphicon-thumbs-up',
         isHidden : false,
         disabled: false
       },
       MASTER_CUSTOM_COMMAND: {
         action: 'executeCustomCommand',
-        cssClass: 'icon-play-circle',
+        cssClass: 'glyphicon glyphicon-play-circle',
         isHidden: false,
         disabled: false
       }

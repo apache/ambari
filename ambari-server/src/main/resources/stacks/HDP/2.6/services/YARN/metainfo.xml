@@ -23,5 +23,9 @@
       <name>YARN</name>
       <version>2.7.1.2.5</version>
     </service>
+    <service>
+      <name>MAPREDUCE2</name>
+      <version>2.7.1.2.5</version>
+    </service>
   </services>
 </metainfo>
