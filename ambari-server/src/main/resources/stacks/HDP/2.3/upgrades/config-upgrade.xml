@@ -353,6 +353,11 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_protocol_compatibility">
+            <type>kafka-broker</type>
+            <set key="inter.broker.protocol.version" value="0.9.0.0" />
+            <set key="log.message.format.version" value="0.9.0.0" />
+          </definition>
         </changes>
       </component>
     </service>

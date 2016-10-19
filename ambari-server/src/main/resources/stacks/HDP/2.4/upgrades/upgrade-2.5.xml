@@ -503,6 +503,14 @@
           <message>-- If keytabs are managed manually, create the required ranger keytabs in the locations specified in ranger config and restart Ranger components.</message>
         </task>
       </execute-stage>
+      
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Kafka Property Removal">
+        <task xsi:type="manual">
+          <message>Kafka Brokers have been upgraded with version compatability.</message>
+          <message>Config property "inter.broker.protocol.version" should be removed at your convenience.</message>
+          <message>Config property "log.message.format.version" should be removed when all clients have been upgraded.</message>
+        </task>
+      </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Hive Server Port Change">
         <task xsi:type="manual">
@@ -617,6 +625,7 @@
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db" />
+          <task xsi:type="configure" id="hdp_2_5_0_0_add_protocol_compatibility" />
         </pre-upgrade>
 
         <upgrade>
