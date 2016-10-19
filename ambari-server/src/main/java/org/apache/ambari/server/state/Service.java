@@ -19,7 +19,6 @@
 package org.apache.ambari.server.state;
 
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.ServiceResponse;
@@ -73,12 +72,6 @@ public interface Service {
 
   void debugDump(StringBuilder sb);
 
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
-
   ServiceComponent addServiceComponent(String serviceComponentName)
       throws AmbariException;
 
@@ -97,12 +90,6 @@ public interface Service {
   boolean isClientOnlyService();
 
   void delete() throws AmbariException;
-
-  /**
-   * Get lock to control access to cluster structure
-   * @return cluster-global lock
-   */
-  ReadWriteLock getClusterGlobalLock();
 
   /**
    * Sets the maintenance state for the service

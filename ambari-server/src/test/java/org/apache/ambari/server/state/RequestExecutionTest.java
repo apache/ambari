@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.RequestScheduleResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -45,6 +43,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+
+import junit.framework.Assert;
 
 public class RequestExecutionTest {
   private Injector injector;
@@ -74,9 +74,6 @@ public class RequestExecutionTest {
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
     Assert.assertNotNull(clusters.getHost("h3"));
-    clusters.getHost("h1").persist();
-    clusters.getHost("h2").persist();
-    clusters.getHost("h3").persist();
   }
 
   @After
@@ -120,7 +117,7 @@ public class RequestExecutionTest {
     requestExecution.setDescription("Test Schedule");
 
     requestExecution.persist();
-
+    cluster.addRequestExecution(requestExecution);
     return requestExecution;
   }
 
@@ -270,8 +267,7 @@ public class RequestExecutionTest {
     Assert.assertNotNull(requestExecution);
 
     Long id = requestExecution.getId();
-
-    requestExecution.delete();
+    cluster.deleteRequestExecution(id);
 
     Assert.assertNull(requestScheduleDAO.findById(id));
     Assert.assertNull(cluster.getAllRequestExecutions().get(id));

@@ -115,7 +115,6 @@ public class ConcurrentServiceConfigVersionTest {
     String hostName = "c6401.ambari.apache.org";
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-    clusters.getHost(hostName).persist();
     clusters.mapHostToCluster(hostName, "c1");
 
     Service service = installService("HDFS");
@@ -213,7 +212,6 @@ public class ConcurrentServiceConfigVersionTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 
@@ -225,7 +223,6 @@ public class ConcurrentServiceConfigVersionTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;
@@ -241,7 +238,6 @@ public class ConcurrentServiceConfigVersionTest {
           componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;

@@ -73,7 +73,6 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.PersistedState;
@@ -117,7 +116,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
-        bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
+        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
         bind(StageFactory.class).to(StageFactoryImpl.class);

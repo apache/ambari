@@ -18,29 +18,31 @@
 
 package org.apache.ambari.server.controller.utilities.state;
 
-  import com.google.inject.Binder;
-  import com.google.inject.Guice;
-  import com.google.inject.Inject;
-  import com.google.inject.Injector;
-  import com.google.inject.Module;
-  import com.google.inject.persist.PersistService;
-  import com.google.inject.util.Modules;
-  import org.apache.ambari.server.actionmanager.ActionManager;
-  import org.apache.ambari.server.orm.GuiceJpaInitializer;
-  import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-  import org.apache.ambari.server.state.Cluster;
-  import org.apache.ambari.server.state.Clusters;
-  import org.apache.ambari.server.state.Service;
-  import org.apache.ambari.server.state.ServiceComponent;
-  import org.apache.ambari.server.state.ServiceComponentHost;
-  import org.apache.ambari.server.state.StackId;
-  import org.apache.ambari.server.state.State;
-  import org.apache.ambari.server.topology.TopologyManager;
-  import org.apache.ambari.server.utils.StageUtils;
-  import org.junit.After;
-  import org.junit.Before;
-  import org.junit.Test;
   import java.util.Map;
+
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 public abstract class GeneralServiceCalculatedStateTest {
 
@@ -76,7 +78,6 @@ public abstract class GeneralServiceCalculatedStateTest {
 
     service = cluster.addService(getServiceName());
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     createComponentsAndHosts();
 

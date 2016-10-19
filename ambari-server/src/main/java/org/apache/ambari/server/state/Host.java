@@ -43,11 +43,6 @@ public interface Host extends Comparable {
   Long getHostId();
 
   /**
-   * @param hostName the hostName to set
-   */
-  void setHostName(String hostName);
-
-  /**
    * @return the currentPingPort
    */
   Integer getCurrentPingPort();
@@ -337,12 +332,6 @@ public interface Host extends Comparable {
   void setStatus(String status);
 
   HostResponse convertToResponse();
-
-  boolean isPersisted();
-
-  void persist();
-
-  void refresh();
 
   void importHostInfo(HostInfo hostInfo);
 

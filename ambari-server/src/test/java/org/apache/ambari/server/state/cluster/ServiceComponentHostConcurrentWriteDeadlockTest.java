@@ -130,7 +130,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     String hostName = "c6401";
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
-    clusters.getHost(hostName).persist();
     clusters.mapHostToCluster(hostName, "c1");
 
     Service service = installService("HDFS");
@@ -242,7 +241,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     sch.setDesiredStackVersion(stackId);
     sch.setStackVersion(stackId);
 
-    sch.persist();
     return sch;
   }
 
@@ -254,7 +252,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;
@@ -270,7 +267,6 @@ public class ServiceComponentHostConcurrentWriteDeadlockTest {
           componentName);
       service.addServiceComponent(serviceComponent);
       serviceComponent.setDesiredState(State.INSTALLED);
-      serviceComponent.persist();
     }
 
     return serviceComponent;

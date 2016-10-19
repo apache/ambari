@@ -18,6 +18,31 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -57,31 +82,6 @@ import org.junit.Test;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isNull;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
 /**
  * ServiceResourceProvider tests.
  */
@@ -117,9 +117,8 @@ public class ServiceResourceProviderTest {
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory);
 
-    expect(serviceFactory.createNew(cluster, "Service100")).andReturn(service);
+    expect(cluster.addService("Service100")).andReturn(service);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -202,7 +201,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
@@ -321,7 +319,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
@@ -390,7 +387,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
@@ -458,7 +454,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
     expect(managementController.getHostComponents(EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
@@ -528,7 +523,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
     expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).
         andReturn(Collections.<ServiceComponentHostResponse>emptySet()).anyTimes();
 
@@ -612,7 +606,6 @@ public class ServiceResourceProviderTest {
     // set expectations
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(managementController.getServiceFactory()).andReturn(serviceFactory).anyTimes();
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
@@ -824,7 +817,7 @@ public class ServiceResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Service service = createNiceMock(Service.class);
-    
+
     String serviceName = "Service100";
 
     // set expectations
@@ -912,7 +905,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, service);
-  }  
+  }
 
   @Test
   public void testDeleteResourcesBadComponentState() throws Exception{

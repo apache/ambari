@@ -24,13 +24,12 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -38,7 +37,6 @@ import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.audit.AuditLogger;
-import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -57,7 +55,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.UnitOfWork;
-import static org.junit.Assert.assertNotNull;
+
+import junit.framework.Assert;
 
 public class TestActionManager {
 
@@ -79,7 +78,6 @@ public class TestActionManager {
     stageFactory = injector.getInstance(StageFactory.class);
 
     clusters.addHost(hostname);
-    clusters.getHost(hostname).persist();
     StackId stackId = new StackId("HDP-0.1");
     clusters.addCluster(clusterName, stackId);
     unitOfWork = injector.getInstance(UnitOfWork.class);

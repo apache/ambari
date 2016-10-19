@@ -59,7 +59,6 @@ import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -160,13 +159,12 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
-    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -230,9 +228,8 @@ public class HeartbeatProcessorTest {
   public void testRestartRequiredAfterInstallClient() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(HDFS_CLIENT).persist();
-    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -296,13 +293,12 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatCustomCommandWithConfigs() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
-    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -381,13 +377,12 @@ public class HeartbeatProcessorTest {
   public void testHeartbeatCustomStartStop() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
-    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -466,13 +461,12 @@ public class HeartbeatProcessorTest {
   public void testStatusHeartbeat() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(SECONDARY_NAMENODE).persist();
-    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    hdfs.getServiceComponent(SECONDARY_NAMENODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -544,7 +538,6 @@ public class HeartbeatProcessorTest {
   public void testCommandReport() throws AmbariException {
     injector.injectMembers(this);
     clusters.addHost(DummyHostname1);
-    clusters.getHost(DummyHostname1).persist();
 
     StackId dummyStackId = new StackId(DummyStackId);
     clusters.addCluster(DummyCluster, dummyStackId);
@@ -594,12 +587,11 @@ public class HeartbeatProcessorTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testCommandReportOnHeartbeatUpdatedState()
-      throws AmbariException, InvalidStateTransitionException {
+      throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -714,12 +706,11 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testUpgradeSpecificHandling() throws AmbariException, InvalidStateTransitionException {
+  public void testUpgradeSpecificHandling() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 
@@ -812,9 +803,8 @@ public class HeartbeatProcessorTest {
   public void testCommandStatusProcesses() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
     hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
 
     ActionQueue aq = new ActionQueue();
@@ -891,16 +881,15 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeCompleteReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeCompleteReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(HDFS_CLIENT).persist();
-    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
@@ -976,16 +965,15 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeFailReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeFailReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(HDFS_CLIENT).persist();
-    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
@@ -1097,16 +1085,15 @@ public class HeartbeatProcessorTest {
 
   @Test
   @SuppressWarnings("unchecked")
-  public void testComponentUpgradeInProgressReport() throws AmbariException, InvalidStateTransitionException {
+  public void testComponentUpgradeInProgressReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
-    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
-    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(HDFS_CLIENT).persist();
-    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(HDFS_CLIENT);
+    hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
 
     ServiceComponentHost serviceComponentHost1 = clusters.getCluster(DummyCluster).getService(HDFS).
         getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1);
@@ -1307,13 +1294,12 @@ public class HeartbeatProcessorTest {
   public void testComponentInProgressStatusSafeAfterStatusReport() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
-    hdfs.persist();
-    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.addServiceComponent(DATANODE);
     hdfs.getServiceComponent(DATANODE).
-        addServiceComponentHost(DummyHostname1).persist();
-    hdfs.addServiceComponent(NAMENODE).persist();
+        addServiceComponentHost(DummyHostname1);
+    hdfs.addServiceComponent(NAMENODE);
     hdfs.getServiceComponent(NAMENODE).
-        addServiceComponentHost(DummyHostname1).persist();
+        addServiceComponentHost(DummyHostname1);
 
     ActionQueue aq = new ActionQueue();
 

@@ -18,20 +18,27 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
-import org.apache.ambari.server.api.services.serializers.ResultSerializer;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.cluster.ClustersImpl;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
+import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.ResultSerializer;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.cluster.ClusterFactory;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
+import org.apache.ambari.server.state.host.HostFactory;
+import org.easymock.EasyMock;
 
 /**
  * Unit tests for ClusterService.
@@ -42,7 +49,17 @@ public class ClusterServiceTest extends BaseServiceTest {
   @Override
   public List<ServiceTestInvocation> getTestInvocations() throws Exception {
     List<ServiceTestInvocation> listInvocations = new ArrayList<ServiceTestInvocation>();
-    Clusters clusters = new TestClusters();
+
+    ClusterDAO clusterDAO = EasyMock.createNiceMock(ClusterDAO.class);
+    HostDAO hostDAO = EasyMock.createNiceMock(HostDAO.class);
+
+    EasyMock.expect(clusterDAO.findAll()).andReturn(new ArrayList<ClusterEntity>()).atLeastOnce();
+    EasyMock.expect(hostDAO.findAll()).andReturn(new ArrayList<HostEntity>()).atLeastOnce();
+
+    EasyMock.replay(clusterDAO, hostDAO);
+
+    Clusters clusters = new TestClusters(clusterDAO, EasyMock.createNiceMock(ClusterFactory.class),
+        hostDAO, EasyMock.createNiceMock(HostFactory.class));
 
     ClusterService clusterService;
     Method m;
@@ -161,6 +178,12 @@ public class ClusterServiceTest extends BaseServiceTest {
   }
 
   private class TestClusters extends ClustersImpl {
+    public TestClusters(ClusterDAO clusterDAO, ClusterFactory clusterFactory, HostDAO hostDAO,
+        HostFactory hostFactory) {
+
+      super(clusterDAO, clusterFactory, hostDAO, hostFactory);
+    }
+
     @Override
     public boolean checkPermission(String clusterName, boolean readOnly) {
       return true;

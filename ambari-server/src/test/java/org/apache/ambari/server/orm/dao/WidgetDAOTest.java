@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -33,9 +36,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * WidgetDAO unit tests.
  */
@@ -49,7 +49,7 @@ public class WidgetDAOTest {
 
 
   @Before
-  public void before() {
+  public void before() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     widgetDAO = injector.getInstance(WidgetDAO.class);
     widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);

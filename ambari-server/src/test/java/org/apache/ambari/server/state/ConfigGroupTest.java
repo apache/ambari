@@ -21,16 +21,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.google.inject.persist.jpa.AmbariJpaPersistModule;
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ConfigGroupDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
 import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
@@ -44,6 +39,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+
+import junit.framework.Assert;
 
 public class ConfigGroupTest {
 
@@ -75,8 +72,6 @@ public class ConfigGroupTest {
     clusters.addHost("h2");
     Assert.assertNotNull(clusters.getHost("h1"));
     Assert.assertNotNull(clusters.getHost("h2"));
-    clusters.getHost("h1").persist();
-    clusters.getHost("h2").persist();
   }
 
   @After
@@ -109,6 +104,7 @@ public class ConfigGroupTest {
       "HDFS", "New HDFS configs for h1", configs, hosts);
 
     configGroup.persist();
+    cluster.addConfigGroup(configGroup);
     return configGroup;
   }
 

@@ -1694,7 +1694,6 @@ public class ConfigureActionTest {
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6");
     host.setHostAttributes(hostAttributes);
-    host.persist();
 
     // Creating starting repo
     m_helper.getOrCreateRepositoryVersion(HDP_220_STACK, HDP_2_2_0_0);
@@ -1742,7 +1741,6 @@ public class ConfigureActionTest {
     } catch (ServiceNotFoundException e) {
       service = serviceFactory.createNew(cluster, serviceName);
       cluster.addService(service);
-      service.persist();
     }
 
     return service;

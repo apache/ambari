@@ -150,7 +150,6 @@ public class ServiceComponentHostTest {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
       host.setHostAttributes(hostAttributes);
-      host.persist();
     }
 
     clusterEntity.setHostEntities(hostEntities);
@@ -183,7 +182,6 @@ public class ServiceComponentHostTest {
           + ", serviceName=" + svc);
       s = serviceFactory.createNew(c, svc);
       c.addService(s);
-      s.persist();
     }
 
     ServiceComponent sc = null;
@@ -192,13 +190,10 @@ public class ServiceComponentHostTest {
     } catch (ServiceComponentNotFoundException e) {
       sc = serviceComponentFactory.createNew(s, svcComponent);
       s.addServiceComponent(sc);
-      sc.persist();
     }
 
     ServiceComponentHost impl = serviceComponentHostFactory.createNew(
         sc, hostName);
-
-    impl.persist();
 
     Assert.assertEquals(State.INIT, impl.getState());
     Assert.assertEquals(State.INIT, impl.getDesiredState());

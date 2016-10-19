@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.common.base.Objects;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.base.Objects;
 
 /**
  * Data structure that hangs off of the Host and points to what tags are
@@ -30,7 +31,7 @@ import java.util.Map;
  */
 
 public class HostConfig {
-  private final Map<Long, String> configGroupOverrides = new HashMap<Long, String>();
+  private final Map<Long, String> configGroupOverrides = new ConcurrentHashMap<Long, String>();
   private String defaultVersionTag;
 
   public HostConfig() {
@@ -67,8 +68,9 @@ public class HostConfig {
       sb.append(", overrides = [ ");
       int i = 0;
       for (Map.Entry<Long, String> entry : configGroupOverrides.entrySet()) {
-        if (i++ != 0)
+        if (i++ != 0) {
           sb.append(", ");
+        }
         sb.append(entry.getKey().toString() + " : " + entry.getValue());
       }
       sb.append("]");

@@ -24,6 +24,7 @@ import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyOs;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.DummyStackId;
 import static org.apache.ambari.server.agent.DummyHeartbeatConstants.HBASE;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 
@@ -135,7 +137,7 @@ public class HeartbeatTestHelper {
   }
 
   public Cluster getDummyCluster()
-      throws AmbariException {
+      throws Exception {
     Map<String, String> configProperties = new HashMap<String, String>() {{
       put(RecoveryConfigHelper.RECOVERY_ENABLED_KEY, "true");
       put(RecoveryConfigHelper.RECOVERY_TYPE_KEY, "AUTO_START");
@@ -154,7 +156,7 @@ public class HeartbeatTestHelper {
 
   public Cluster getDummyCluster(String clusterName, String desiredStackId,
                                  Map<String, String> configProperties, Set<String> hostNames)
-      throws AmbariException {
+      throws Exception {
     StackEntity stackEntity = stackDAO.find(HDP_22_STACK.getStackName(), HDP_22_STACK.getStackVersion());
     org.junit.Assert.assertNotNull(stackEntity);
 
@@ -176,6 +178,14 @@ public class HeartbeatTestHelper {
     clusterDAO.create(clusterEntity);
 
     StackId stackId = new StackId(desiredStackId);
+
+    // because this test method goes around the Clusters business object, we
+    // forcefully will refresh the internal state so that any tests which
+    // incorrect use Clusters after calling this won't be affected
+    Clusters clusters = injector.getInstance(Clusters.class);
+    Method method = ClustersImpl.class.getDeclaredMethod("loadClustersAndHosts");
+    method.setAccessible(true);
+    method.invoke(clusters);
 
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -203,12 +213,12 @@ public class HeartbeatTestHelper {
       clusters.addHost(hostName);
       Host host = clusters.getHost(hostName);
       host.setHostAttributes(hostAttributes);
-      host.persist();
 
       HostEntity hostEntity = hostDAO.findByName(hostName);
       Assert.assertNotNull(hostEntity);
       hostEntities.add(hostEntity);
     }
+
     clusterEntity.setHostEntities(hostEntities);
     clusters.mapHostsToCluster(hostNames, clusterName);
 

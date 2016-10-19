@@ -103,7 +103,6 @@ public class ServiceComponentTest {
 
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
     service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
   }
@@ -119,7 +118,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -142,7 +140,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -186,12 +183,10 @@ public class ServiceComponentTest {
     h.setIPv6(hostname + "ipv6");
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
-	hostAttributes.put("os_family", "redhat");
-	hostAttributes.put("os_release_version", "6.3");
-	h.setHostAttributes(hostAttributes);
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6.3");
+    h.setHostAttributes(hostAttributes);
 
-
-    h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }
 
@@ -201,7 +196,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -222,43 +216,23 @@ public class ServiceComponentTest {
     HostEntity hostEntity1 = hostDAO.findByName("h1");
     assertNotNull(hostEntity1);
 
-    ServiceComponentHost sch1 =
-        serviceComponentHostFactory.createNew(sc, "h1");
-    ServiceComponentHost sch2 =
-        serviceComponentHostFactory.createNew(sc, "h2");
-    ServiceComponentHost failSch =
-        serviceComponentHostFactory.createNew(sc, "h2");
-
-    Map<String, ServiceComponentHost> compHosts =
-        new HashMap<String, ServiceComponentHost>();
-    compHosts.put("h1", sch1);
-    compHosts.put("h2", sch2);
-    compHosts.put("h3", failSch);
+    ServiceComponentHost sch1 = sc.addServiceComponentHost("h1");
+    ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
 
     try {
-      sc.addServiceComponentHosts(compHosts);
+      sc.addServiceComponentHost("h2");
       fail("Expected error for dups");
     } catch (Exception e) {
       // Expected
     }
-    Assert.assertTrue(sc.getServiceComponentHosts().isEmpty());
-
-    compHosts.remove("h3");
-    sc.addServiceComponentHosts(compHosts);
 
     Assert.assertEquals(2, sc.getServiceComponentHosts().size());
-
-    sch1.persist();
-    sch2.persist();
 
     ServiceComponentHost schCheck = sc.getServiceComponentHost("h2");
     Assert.assertNotNull(schCheck);
     Assert.assertEquals("h2", schCheck.getHostName());
 
-    ServiceComponentHost sch3 =
-        serviceComponentHostFactory.createNew(sc, "h3");
-    sc.addServiceComponentHost(sch3);
-    sch3.persist();
+    sc.addServiceComponentHost("h3");
     Assert.assertNotNull(sc.getServiceComponentHost("h3"));
 
     sch1.setDesiredStackVersion(new StackId("HDP-1.2.0"));
@@ -302,7 +276,6 @@ public class ServiceComponentTest {
     ServiceComponent component = serviceComponentFactory.createNew(service,
         componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     addHostToCluster("h1", service.getCluster().getClusterName());
     ServiceComponentHost sch =
@@ -314,7 +287,6 @@ public class ServiceComponentTest {
     compHosts.put("h1", sch);
     component.addServiceComponentHosts(compHosts);
     Assert.assertEquals(1, component.getServiceComponentHosts().size());
-    sch.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -379,7 +351,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -430,7 +401,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -498,7 +468,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -565,7 +534,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
@@ -616,7 +584,6 @@ public class ServiceComponentTest {
     String componentName = "NAMENODE";
     ServiceComponent component = serviceComponentFactory.createNew(service, componentName);
     service.addServiceComponent(component);
-    component.persist();
 
     ServiceComponent sc = service.getServiceComponent(componentName);
     Assert.assertNotNull(sc);
