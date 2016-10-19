@@ -21,7 +21,7 @@ package org.apache.ambari.logsearch.model.common;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import java.util.HashMap;
+import java.util.TreeMap;
 
 @ApiModel
 public class LogFeederDataMap {
@@ -30,13 +30,13 @@ public class LogFeederDataMap {
   private String id;
 
   @ApiModelProperty
-  private HashMap<String, LogfeederFilterData> filter;
+  private TreeMap<String, LogfeederFilterData> filter;
 
-  public HashMap<String, LogfeederFilterData> getFilter() {
+  public TreeMap<String, LogfeederFilterData> getFilter() {
     return filter;
   }
 
-  public void setFilter(HashMap<String, LogfeederFilterData> filter) {
+  public void setFilter(TreeMap<String, LogfeederFilterData> filter) {
     this.filter = filter;
   }
 

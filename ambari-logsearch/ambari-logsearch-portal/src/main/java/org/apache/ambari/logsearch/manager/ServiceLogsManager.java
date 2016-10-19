@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Scanner;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -38,6 +39,8 @@ import com.google.common.collect.Lists;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+
+import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
@@ -68,6 +71,7 @@ import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
 import org.apache.ambari.logsearch.util.DownloadUtil;
+import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -566,5 +570,14 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
       return result;
     }
     throw new UnsupportedOperationException();
+  }
+  
+
+  public String getHadoopServiceConfigJSON() {
+    String hadoopServiceConfigJSON = HadoopServiceConfigHelper.getHadoopServiceConfigJSON();
+    if (hadoopServiceConfigJSON == null) {
+      throw RESTErrorUtil.createRESTException("Could not load HadoopServiceConfig.json", MessageEnums.ERROR_SYSTEM);
+    }
+    return hadoopServiceConfigJSON;
   }
 }

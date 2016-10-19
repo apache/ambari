@@ -19,22 +19,22 @@
 
 package org.apache.ambari.logsearch.dao;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Set;
+import java.util.TreeMap;
+
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogSearchContext;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
 import org.apache.ambari.logsearch.model.common.LogFeederDataMap;
+import org.apache.ambari.logsearch.model.common.LogfeederFilterData;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -43,15 +43,11 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.SolrInputDocument;
-import org.codehaus.jettison.json.JSONArray;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
-import com.google.gson.JsonParseException;
 
 import org.apache.ambari.logsearch.util.JSONUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.springframework.data.solr.core.SolrTemplate;
-import org.springframework.util.CollectionUtils;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.ID;
 import static org.apache.ambari.logsearch.solr.SolrConstants.UserConfigConstants.USER_NAME;
@@ -147,93 +143,48 @@ public class UserConfigSolrDao extends SolrDaoBase {
     return updateResoponse;
   }
 
-	@SuppressWarnings("unchecked")
   public LogFeederDataMap getUserFilter() throws SolrServerException, IOException {
-
     SolrQuery solrQuery = new SolrQuery();
     solrQuery.setQuery("*:*");
-    String fq = ROW_TYPE + ":" + LogSearchConstants.LOGFEEDER_FILTER_NAME;
-    solrQuery.setFilterQueries(fq);
+    solrQuery.setFilterQueries(ROW_TYPE + ":" + LogSearchConstants.LOGFEEDER_FILTER_NAME);
 
     QueryResponse response = process(solrQuery);
     SolrDocumentList documentList = response.getResults();
     LogFeederDataMap logfeederDataMap = null;
-    if (!CollectionUtils.isEmpty(documentList)) {
+    if (CollectionUtils.isNotEmpty(documentList)) {
       SolrDocument configDoc = documentList.get(0);
-      String configJson = JSONUtil.objToJson(configDoc);
-      HashMap<String, Object> configMap = JSONUtil.jsonToMapObject(configJson);
-      String json = (String) configMap.get(VALUES);
+      String json = (String) configDoc.get(VALUES);
       logfeederDataMap = (LogFeederDataMap) JSONUtil.jsonToObj(json, LogFeederDataMap.class);
       logfeederDataMap.setId("" + configDoc.get(ID));
-
     } else {
-      List<String> logfeederDefaultLevels = solrUserConfig.getLogLevels();
-      JSONArray levelJsonArray = new JSONArray(logfeederDefaultLevels);
-
-      String hadoopServiceString = getHadoopServiceConfigJSON();
-      String key = null;
-      JSONArray componentArray = null;
-      try {
-        JSONObject componentList = new JSONObject();
-        JSONObject jsonValue = new JSONObject();
-
-        JSONObject hadoopServiceJsonObject = new JSONObject(hadoopServiceString).getJSONObject("service");
-        Iterator<String> hadoopSerivceKeys = hadoopServiceJsonObject.keys();
-        while (hadoopSerivceKeys.hasNext()) {
-          key = hadoopSerivceKeys.next();
-          componentArray = hadoopServiceJsonObject.getJSONObject(key).getJSONArray("components");
-          for (int i = 0; i < componentArray.length(); i++) {
-            JSONObject compJsonObject = (JSONObject) componentArray.get(i);
-            String componentName = compJsonObject.getString("name");
-            JSONObject innerContent = new JSONObject();
-            innerContent.put("label", componentName);
-            innerContent.put("hosts", new JSONArray());
-            innerContent.put("defaultLevels", levelJsonArray);
-            componentList.put(componentName, innerContent);
-          }
-        }
-        jsonValue.put("filter", componentList);
-        logfeederDataMap = (LogFeederDataMap) JSONUtil.jsonToObj(jsonValue.toString(), LogFeederDataMap.class);
-        logfeederDataMap.setId(""+new Date().getTime());
-        saveUserFilter(logfeederDataMap);
-
-      } catch (JsonParseException | JSONException je) {
-        LOG.error("Error parsing JSON. key=" + key + ", componentArray=" + componentArray, je);
-        logfeederDataMap = new LogFeederDataMap();
-      }
+      logfeederDataMap = initUserFilter();
     }
+    return logfeederDataMap;
+  }
+
+  private LogFeederDataMap initUserFilter() throws SolrServerException, IOException {
+    LogFeederDataMap logfeederDataMap = new LogFeederDataMap();
+    
+    Set<String> logIds = HadoopServiceConfigHelper.getAllLogIds();
+    if (logIds != null) {
+      logfeederDataMap.setFilter(new TreeMap<String, LogfeederFilterData>());
+      logfeederDataMap.setId(Long.toString(System.currentTimeMillis()));
+      List<String> logfeederDefaultLevels = solrUserConfig.getLogLevels();
+      
+      for (String logId : logIds) {
+        LogfeederFilterData logfeederFilterData = new LogfeederFilterData();
+        logfeederFilterData.setLabel(logId);
+        logfeederFilterData.setDefaultLevels(logfeederDefaultLevels);
+        logfeederDataMap.getFilter().put(logId, logfeederFilterData);
+      }
+      saveUserFilter(logfeederDataMap);
+    }
+    
     return logfeederDataMap;
   }
 
   @Override
   public SolrSchemaFieldDao getSolrSchemaFieldDao() {
     return solrSchemaFieldDao;
-  }
-
-  private String getHadoopServiceConfigJSON() {
-    StringBuilder result = new StringBuilder("");
-
-    // Get file from resources folder
-    ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource("HadoopServiceConfig.json").getFile());
-
-    try (Scanner scanner = new Scanner(file)) {
-
-      while (scanner.hasNextLine()) {
-        String line = scanner.nextLine();
-        result.append(line).append("\n");
-      }
-
-      scanner.close();
-
-    } catch (IOException e) {
-      LOG.error("Unable to read HadoopServiceConfig.json", e);
-    }
-
-    String hadoopServiceConfig = result.toString();
-    if (JSONUtil.isJSONValid(hadoopServiceConfig)) {
-      return hadoopServiceConfig;
-    }
-    return null;
   }
 }
