@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
@@ -394,6 +395,7 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
         bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
         bind(UserDAO.class).toInstance(createMock(UserDAO.class));
         bind(WidgetLayoutDAO.class).toInstance(createMock(WidgetLayoutDAO.class));
+        bind(HostRoleCommandDAO.class).toInstance(createMock(HostRoleCommandDAO.class));
       }
     });
   }

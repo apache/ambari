@@ -3761,18 +3761,49 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             + cluster.getClusterName() + ", service=" + service.getName());
   }
 
-
+  /**
+   * Filters hosts to only select healthy ones that are heartbeating.
+   * <p/>
+   * The host's {@link HostState} is used to determine if a host is healthy.
+   *
+   * @return a List of healthy hosts, or an empty List if none exist.
+   * @throws AmbariException
+   * @see {@link HostState#HEALTHY}
+   */
   @Override
-  public String getHealthyHost(Set<String> hostList) throws AmbariException {
-    String hostName = null;
+  public List<String> selectHealthyHosts(Set<String> hostList) throws AmbariException {
+    List<String> healthyHosts = new ArrayList();
+
     for (String candidateHostName : hostList) {
-      hostName = candidateHostName;
-      Host candidateHost = clusters.getHost(hostName);
+      Host candidateHost = clusters.getHost(candidateHostName);
       if (candidateHost.getState() == HostState.HEALTHY) {
-        break;
+        healthyHosts.add(candidateHostName);
       }
     }
-    return hostName;
+
+    return healthyHosts;
+  }
+
+  /**
+   * Chooses a healthy host from the list of candidate hosts randomly. If there
+   * are no healthy hosts, then this method will return {@code null}.
+   * <p/>
+   * The host's {@link HostState} is used to determine if a host is healthy.
+   *
+   * @return a random healthy host, or {@code null}.
+   * @throws AmbariException
+   * @see {@link HostState#HEALTHY}
+   */
+  @Override
+  public String getHealthyHost(Set<String> hostList) throws AmbariException {
+    List<String> healthyHosts = selectHealthyHosts(hostList);
+
+    if (!healthyHosts.isEmpty()) {
+      Collections.shuffle(healthyHosts);
+      return healthyHosts.get(0);
+    }
+
+    return null;
   }
 
   @Override

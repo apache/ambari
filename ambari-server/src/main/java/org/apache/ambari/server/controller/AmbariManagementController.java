@@ -693,6 +693,17 @@ public interface AmbariManagementController {
   String getMysqljdbcUrl();
 
   /**
+   * Filters hosts to only select healthy ones that are heartbeating.
+   * <p/>
+   * The host's {@link HostState} is used to determine if a host is healthy.
+   *
+   * @return a List of healthy hosts, or an empty List if none exist.
+   * @throws AmbariException
+   * @see {@link HostState#HEALTHY}
+   */
+  List<String> selectHealthyHosts(Set<String> hostList) throws AmbariException;
+
+  /**
    * Chooses a healthy host from the list of candidate hosts randomly. If there
    * are no healthy hosts, then this method will return {@code null}.
    * <p/>

@@ -6126,22 +6126,15 @@ public class AmbariManagementControllerTest {
     }
     Assert.assertEquals("Expect only one service check.", 1, commandCount);
 
-    // When both are unhealthy then just pick one
+    // When both are unhealthy then it should raise an exception.
     clusters.getHost(host3).setState(HostState.WAITING_FOR_HOST_STATUS_UPDATES);
     clusters.getHost(host2).setState(HostState.INIT);
-    response = controller.createAction(actionRequest, requestProperties);
-    commands = actionDB.getRequestTasks(response.getRequestId());
-    commandCount = 0;
-    for(HostRoleCommand command : commands) {
-      if(command.getRoleCommand() == RoleCommand.SERVICE_CHECK &&
-          command.getRole() == Role.HDFS_SERVICE_CHECK) {
-        Assert.assertTrue(command.getHostName().equals(host3) ||
-            command.getHostName().equals(host2));
-        commandCount++;
-      }
+    try {
+      response = controller.createAction(actionRequest, requestProperties);
+      assertTrue("Exception should have been raised.", false);
+    } catch (AmbariException e) {
+      assertTrue(e.getMessage().contains("there were no healthy eligible hosts"));
     }
-    Assert.assertEquals("Expect only one service check.", 1, commandCount);
-    Assert.assertEquals("", response.getRequestContext());
   }
 
   @Test
@@ -9402,11 +9395,13 @@ public class AmbariManagementControllerTest {
       clusters.addHost(HOST1);
       Host host = clusters.getHost(HOST1);
       setOsFamily(host, "redhat", "6.3");
+      clusters.getHost(HOST1).setState(HostState.HEALTHY);
       host.persist();
 
       clusters.addHost(HOST2);
       host = clusters.getHost(HOST2);
       setOsFamily(host, "redhat", "6.3");
+      clusters.getHost(HOST1).setState(HostState.HEALTHY);
       host.persist();
 
       AmbariManagementController amc = injector.getInstance(AmbariManagementController.class);

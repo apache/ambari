@@ -37,6 +37,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
@@ -240,6 +241,7 @@ public class UserResourceProviderTest extends EasyMockSupport {
         bind(Users.class).toInstance(createMock(Users.class));
         bind(AmbariManagementController.class).to(AmbariManagementControllerImpl.class);
         bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+        bind(HostRoleCommandDAO.class).toInstance(createMock(HostRoleCommandDAO.class));
       }
     });
   }
