@@ -22,8 +22,13 @@ import org.apache.ambari.logsearch.model.response.CommonLogData;
 import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.*;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.KEY_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.STORED_TOKEN_DYNAMIC_FIELDS;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.WS_DYNAMIC_FIELDS;
 
 public class SolrCommonLogData implements CommonLogData {
 
@@ -77,6 +82,15 @@ public class SolrCommonLogData implements CommonLogData {
 
   @Field(ROUTER_FIELD)
   private Integer routerField;
+
+  @Field(STORED_TOKEN_DYNAMIC_FIELDS)
+  private Map<String, Object> stdDynamicFields;
+
+  @Field(KEY_DYNAMIC_FIELDS)
+  private Map<String, Object> keyDynamicFields;
+
+  @Field(WS_DYNAMIC_FIELDS)
+  private Map<String, Object> wsDynamicFields;
 
   @Override
   public String getId() {
@@ -246,5 +260,33 @@ public class SolrCommonLogData implements CommonLogData {
   @Override
   public void setType(String type) {
     this.type = type;
+  }
+
+  @Override
+  public Map<String, Object> getAllDynamicFields() {
+    Map<String, Object> allDynamicFields = new HashMap<>();
+    if (stdDynamicFields != null) {
+      allDynamicFields.putAll(stdDynamicFields);
+    }
+    if (keyDynamicFields != null) {
+      allDynamicFields.putAll(keyDynamicFields);
+    }
+    if (wsDynamicFields != null) {
+      allDynamicFields.putAll(wsDynamicFields);
+    }
+    
+    return allDynamicFields;
+  }
+
+  public void setStdDynamicFields(Map<String, Object> stdDynamicFields) {
+    this.stdDynamicFields = stdDynamicFields;
+  }
+
+  public void setKeyDynamicFields(Map<String, Object> keyDynamicFields) {
+    this.keyDynamicFields = keyDynamicFields;
+  }
+
+  public void setWsDynamicFields(Map<String, Object> wsDynamicFields) {
+    this.wsDynamicFields = wsDynamicFields;
   }
 }

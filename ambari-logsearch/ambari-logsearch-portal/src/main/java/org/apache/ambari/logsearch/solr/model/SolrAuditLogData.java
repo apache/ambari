@@ -23,7 +23,6 @@ import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.*;
 

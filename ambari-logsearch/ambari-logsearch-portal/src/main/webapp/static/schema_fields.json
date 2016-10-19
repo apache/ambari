@@ -65,7 +65,24 @@
     "text": "Text",
     "type": "Type",
     "ugi": "UGI",
-    "reqUser": "User"
+    "reqUser": "User",
+    
+    "ws_base_url": "Base URL",
+    "ws_command": "Command",
+    "ws_component": "Component",
+    "ws_details": "Details",
+    "ws_display_name": "Display Name",
+    "ws_os": "OS",
+    "ws_repo_id": "Repo Id",
+    "ws_repo_version": "Repo Version",
+    "ws_repositories": "Repositories",
+    "ws_result_status": "Result Status",
+    "ws_roles": "Roles",
+    "ws_stack_version": "Stack Version",
+    "ws_stack": "Stack",
+    "ws_status": "Status",
+    "ws_version_note": "Version Note",
+    "ws_version_number": "Version Number"
   },
   "auditLogExcludes": ["tags","tags_str", "seq_num"]
 }

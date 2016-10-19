@@ -135,7 +135,7 @@ public class UserDao {
       String encPassword = user.get(ENC_PASSWORD);
       String username = user.get(USER_NAME);
       String password = user.get(PASSWORD);
-      if (!StringUtils.isBlank(password)) {
+      if (StringUtils.isNotBlank(password)) {
         encPassword = CommonUtil.encryptPassword(username, password);
         user.put(PASSWORD, "");
         user.put(ENC_PASSWORD, encPassword);

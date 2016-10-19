@@ -41,7 +41,7 @@ public class LogSearchConstants {
   public static final String I_E_SEPRATOR = "\\|i\\:\\:e\\|";
 
   //SUFFIX
-  public static final String NGRAM_SUFFIX = "ngram_";
+  public static final String NGRAM_PREFIX = "ngram_";
 
   //Date Format for SOLR
   public static final String SOLR_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";

@@ -249,13 +249,13 @@ public class GraphDataGenerator {
           NodeData hostNode = new NodeData();
           String name = (pivotHost.getValue() == null ? "" : "" + pivotHost.getValue());
           String value = "" + pivotHost.getCount();
-          if (!StringUtils.isBlank(name)) {
+          if (StringUtils.isNotBlank(name)) {
             hostNode.setName(name);
           }
-          if (!StringUtils.isBlank(value)) {
+          if (StringUtils.isNotBlank(value)) {
             hostNode.setValue(value);
           }
-          if (!StringUtils.isBlank(firstPriority)) {
+          if (StringUtils.isNotBlank(firstPriority)) {
             hostNode.setType(firstPriority);
           }
 
@@ -263,7 +263,7 @@ public class GraphDataGenerator {
           hostNode.setRoot(true);
           PivotField hostPivot = null;
           for (PivotField searchHost : secondHirarchicalPivotFields) {
-            if (!StringUtils.isBlank(hostNode.getName())
+            if (StringUtils.isNotBlank(hostNode.getName())
               && hostNode.getName().equals(searchHost.getValue())) {
               hostPivot = searchHost;
               break;
@@ -291,7 +291,7 @@ public class GraphDataGenerator {
                 NodeData compNode = new NodeData();
                 String compName = (pivotComp.getValue() == null ? "" : "" + pivotComp.getValue());
                 compNode.setName(compName);
-                if (!StringUtils.isBlank(secondPriority)) {
+                if (StringUtils.isNotBlank(secondPriority)) {
                   compNode.setType(secondPriority);
                 }
                 compNode.setValue("" + pivotComp.getCount());

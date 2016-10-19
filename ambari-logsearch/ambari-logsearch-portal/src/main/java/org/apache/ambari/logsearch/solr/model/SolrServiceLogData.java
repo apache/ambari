@@ -22,7 +22,6 @@ import org.apache.ambari.logsearch.model.response.ServiceLogData;
 import org.apache.solr.client.solrj.beans.Field;
 
 import java.util.Date;
-import java.util.Map;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.*;
 
@@ -48,15 +47,6 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
 
   @Field(HOST)
   private String host;
-
-  @Field(STORED_TOKEN_DYNAMIC_FIELDS)
-  private Map<String, Object> stdDynamicFields;
-
-  @Field(KEY_DYNAMIC_FIELDS)
-  private Map<String, Object> keyDynamicFields;
-
-  @Field(WS_DYNAMIC_FIELDS)
-  private Map<String, Object> wsDynamicFields;
 
   @Override
   public String getPath() {
@@ -126,29 +116,5 @@ public class SolrServiceLogData extends SolrCommonLogData implements ServiceLogD
   @Override
   public void setLevel(String level) {
     this.level = level;
-  }
-
-  public Map<String, Object> getStdDynamicFields() {
-    return stdDynamicFields;
-  }
-
-  public void setStdDynamicFields(Map<String, Object> stdDynamicFields) {
-    this.stdDynamicFields = stdDynamicFields;
-  }
-
-  public Map<String, Object> getKeyDynamicFields() {
-    return keyDynamicFields;
-  }
-
-  public void setKeyDynamicFields(Map<String, Object> keyDynamicFields) {
-    this.keyDynamicFields = keyDynamicFields;
-  }
-
-  public Map<String, Object> getWsDynamicFields() {
-    return wsDynamicFields;
-  }
-
-  public void setWsDynamicFields(Map<String, Object> wsDynamicFields) {
-    this.wsDynamicFields = wsDynamicFields;
   }
 }

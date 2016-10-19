@@ -19,6 +19,7 @@
 
 package org.apache.ambari.logfeeder.filter;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -68,18 +69,26 @@ public class FilterKeyValue extends Filter {
     if (sourceField == null) {
       return;
     }
-    Object valueObj = jsonObj.get(sourceField);
-    if (valueObj != null) {
+    if (jsonObj.containsKey(sourceField)) {
+      String keyValueString = (String) jsonObj.get(sourceField);
+      Map<String, String> valueMap = new HashMap<>();
+      if (valueBorders != null) {
+        keyValueString = preProcessBorders(keyValueString, valueMap);
+      }
+      
       String splitPattern = Pattern.quote(fieldSplit);
-      String[] tokens = valueObj.toString().split(splitPattern);
+      String[] tokens = keyValueString.split(splitPattern);
       for (String nv : tokens) {
         String[] nameValue = getNameValue(nv);
         String name = nameValue != null && nameValue.length == 2 ? nameValue[0] : null;
         String value = nameValue != null && nameValue.length == 2 ? nameValue[1] : null;
         if (name != null && value != null) {
-            jsonObj.put(name, value);
-         } else {
-           logParseError("name=" + name + ", pair=" + nv + ", field=" + sourceField + ", field_value=" + valueObj);
+          if (valueMap.containsKey(value)) {
+            value = valueMap.get(value);
+          }
+          jsonObj.put(name, value);
+        } else {
+         logParseError("name=" + name + ", pair=" + nv + ", field=" + sourceField + ", field_value=" + keyValueString);
         }
       }
     }
@@ -87,19 +96,41 @@ public class FilterKeyValue extends Filter {
     statMetric.value++;
   }
 
-  private String[] getNameValue(String nv) {
-    if (valueBorders != null) {
-      if (nv.charAt(nv.length() - 1) == valueBorders.charAt(1)) {
-        String splitPattern = Pattern.quote("" + valueBorders.charAt(0));
-        return nv.substring(0, nv.length() - 1).split(splitPattern);
-      } else {
-        return null;
+  private String preProcessBorders(String keyValueString, Map<String, String> valueMap) {
+    char openBorder = valueBorders.charAt(0);
+    char closeBorder = valueBorders.charAt(1);
+    
+    StringBuilder processed = new StringBuilder();
+    int lastPos = 0;
+    int openBorderNum = 0;
+    int valueNum = 0;
+    for (int pos = 0; pos < keyValueString.length(); pos++) {
+      char c = keyValueString.charAt(pos);
+      if (c == openBorder) {
+        if (openBorderNum == 0 ) {
+          processed.append(keyValueString.substring(lastPos, pos));
+          lastPos = pos + 1;
+        }
+        openBorderNum++;
+      }
+      if (c == closeBorder) {
+        openBorderNum--;
+        if (openBorderNum == 0) {
+          String value = keyValueString.substring(lastPos, pos).trim();
+          String valueId = "$VALUE" + (++valueNum);
+          valueMap.put(valueId, value);
+          processed.append(valueSplit + valueId);
+          lastPos = pos + 1;
+        }
       }
     }
-    else {
-      String splitPattern = Pattern.quote(valueSplit);
-      return nv.split(splitPattern);
-    }
+    
+    return processed.toString();
+  }
+
+  private String[] getNameValue(String nv) {
+    String splitPattern = Pattern.quote(valueSplit);
+    return nv.split(splitPattern);
   }
 
   private void logParseError(String inputStr) {
