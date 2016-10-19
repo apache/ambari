@@ -38,6 +38,9 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
   protected static final String USERS_TABLE = "users";
   protected static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
   protected static final String BLUEPRINT_TABLE = "blueprint";
+  protected static final String HOST_GROUP_TABLE = "hostgroup";
+  protected static final String BLUEPRINT_CONFIGURATION = "blueprint_configuration";
+  protected static final String BLUEPRINT_SETTING = "blueprint_setting";
 
   protected static final String BLUEPRINT_NAME_COLUMN = "blueprint_name";
   protected static final String EXTENSION_NAME_COLUMN = "extension_name";
@@ -117,7 +120,24 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
       dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBAccessor.DBColumnInfo(ROLE_COLUMN, String.class, 100, null, true));
       dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBAccessor.DBColumnInfo(STATUS_COLUMN, String.class, 100, null, true));
 
+      dbAccessor.dropFKConstraint(HOST_GROUP_TABLE, "FK_hg_blueprint_name");
+
+      dbAccessor.dropFKConstraint(BLUEPRINT_CONFIGURATION, "FK_cfg_blueprint_name");
+
+      dbAccessor.dropFKConstraint(BLUEPRINT_SETTING, "FK_blueprint_setting_name");
+
       dbAccessor.alterColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(BLUEPRINT_NAME_COLUMN, String.class, 100, null, false));
+
+      String[] uniqueColumns = new String[] { BLUEPRINT_NAME_COLUMN };
+
+      dbAccessor.addFKConstraint(HOST_GROUP_TABLE, "FK_hg_blueprint_name",
+              uniqueColumns, BLUEPRINT_TABLE, uniqueColumns, false);
+
+      dbAccessor.addFKConstraint(BLUEPRINT_CONFIGURATION, "FK_cfg_blueprint_name",
+              uniqueColumns, BLUEPRINT_TABLE, uniqueColumns, false);
+
+      dbAccessor.addFKConstraint(BLUEPRINT_SETTING, "FK_blueprint_setting_name",
+              uniqueColumns, BLUEPRINT_TABLE, uniqueColumns, false);
     }
   }
 
