@@ -396,7 +396,6 @@ class TestHDP23StackAdvisor(TestCase):
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
           "hbase.coprocessor.master.classes": "",
           "hbase.coprocessor.regionserver.classes": "",
-          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
           'hbase.regionserver.wal.codec': 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec',
           "hbase.bucketcache.ioengine": "offheap",
