@@ -1373,11 +1373,11 @@ var urls = {
     'mock': ''
   },
   'cluster.load_detailed_repo_version': {
-    'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/repository_version&minimal_response=true',
+    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/repository_version,ClusterStackVersions/stack,ClusterStackVersions/version&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.load_current_repo_stack_services': {
-    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/state',
+    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/stack,ClusterStackVersions/version',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.save_provisioning_state': {

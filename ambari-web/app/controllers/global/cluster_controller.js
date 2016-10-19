@@ -468,14 +468,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   checkDetailedRepoVersionSuccessCallback: function (data) {
-    var items = data.items;
-    var version;
-    if (items && items.length) {
-      var repoVersions = items[0].repository_versions;
-      if (repoVersions && repoVersions.length) {
-        version = Em.get(repoVersions[0], 'RepositoryVersions.repository_version');
-      }
-    }
+    var rv = (Em.getWithDefault(data, 'items', []) || []).filter(function(i) {
+      return Em.getWithDefault(i || {}, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
+        Em.getWithDefault(i || {}, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
+    })[0];
+    var version = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.repository_version', false);
     App.set('isStormMetricsSupported', stringUtils.compareVersions(version, '2.2.2') > -1 || !version);
   },
   checkDetailedRepoVersionErrorCallback: function () {
