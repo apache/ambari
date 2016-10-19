@@ -178,7 +178,6 @@ public class BackgroundCustomCommandExecutionTest {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
-    clusters.getHost(hostname).persist();
     if (null != clusterName) {
       clusters.mapHostToCluster(hostname, clusterName);
     }

@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.state;
 
-import junit.framework.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -39,6 +38,8 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 public class ServiceTest {
 
@@ -119,7 +120,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -141,7 +141,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
 
@@ -185,17 +184,11 @@ public class ServiceTest {
 
     s.addServiceComponent(sc3);
 
-    sc1.persist();
-    sc2.persist();
-    sc3.persist();
-
     ServiceComponent sc4 = s.addServiceComponent("HDFS_CLIENT");
     Assert.assertNotNull(s.getServiceComponent(sc4.getName()));
     Assert.assertEquals(State.INIT,
         s.getServiceComponent("HDFS_CLIENT").getDesiredState());
     Assert.assertTrue(sc4.isClientComponent());
-    sc4.persist();
-
     Assert.assertEquals(4, s.getServiceComponents().size());
 
     Assert.assertNotNull(s.getServiceComponent(sc3.getName()));
@@ -267,7 +260,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -291,7 +283,6 @@ public class ServiceTest {
     String serviceName = "HDFS";
     Service s = serviceFactory.createNew(cluster, serviceName);
     cluster.addService(s);
-    s.persist();
 
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
@@ -339,8 +330,6 @@ public class ServiceTest {
     hostAttributes.put("os_release_version", "6.3");
     h.setHostAttributes(hostAttributes);
 
-
-    h.persist();
     clusters.mapHostToCluster(hostname, clusterName);
   }
 }

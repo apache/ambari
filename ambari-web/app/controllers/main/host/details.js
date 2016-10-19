@@ -22,7 +22,7 @@ var hostsManagement = require('utils/hosts');
 var stringUtils = require('utils/string_utils');
 require('utils/configs/add_component_config_initializer');
 
-App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.InstallNewVersion, {
+App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.InstallNewVersion, App.CheckHostMixin, {
 
   name: 'mainHostDetailsController',
 
@@ -31,6 +31,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {App.Host|null}
    */
   content: null,
+
+  /**
+   * Is check host procedure finished
+   * @type {bool}
+   */
+  checkHostFinished: null,
 
   /**
    * Does user come from hosts page
@@ -1911,6 +1917,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       case "setRackId":
         this.setRackIdForHost();
         break;
+      case "checkHost":
+        this.runHostCheckConfirmation();
+        break;
     }
   },
 
@@ -2127,6 +2136,119 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     return container;
   },
+
+  /**
+   * Run host check confirmation
+   * @method runHostCheckConfirmation
+   */
+  runHostCheckConfirmation: function () {
+    var self = this;
+    var popupInfo = Em.I18n.t('hosts.checkHost.popup').format(this.get('content.hostName'));
+
+    return App.showConfirmationPopup(function () {
+      self.runHostCheck();
+    }, popupInfo);
+  },
+
+  getDataForHostCheck: function () {
+    var hostName = this.get('content.hostName');
+    var jdk_location = App.router.get('clusterController.ambariProperties.jdk_location');
+    var RequestInfo = {
+      "action": "check_host",
+      "context": "Check host",
+      "parameters": {
+        "hosts" : hostName,
+        "check_execute_list": "last_agent_env_check,installed_packages,existing_repos,transparentHugePage",
+        "jdk_location" : jdk_location,
+        "threshold": "20"
+      }
+    };
+
+    return {
+      RequestInfo: RequestInfo,
+      resource_filters: {"hosts": hostName}
+    };
+  },
+
+  /**
+   * Callback for runHostCheckConfirmation
+   * @method runHostCheck
+   */
+  runHostCheck: function () {
+    var dataForCheckHostRequest = this.getDataForHostCheck();
+
+    this.set('stopChecking', false);
+    this.set('checkHostFinished', false);
+    this.setBootHostsProp();
+    this.showHostWarningsPopup();
+    this.requestToPerformHostCheck(dataForCheckHostRequest);
+  },
+
+  /**
+   * Shape controller's bootHosts property needed to host check
+   * @method setBootHostsProp
+   */
+  setBootHostsProp: function () {
+    var host = this.get('content');
+    var bootHosts = [];
+
+    host.name = host.get('hostName');
+    bootHosts.push(host);
+
+    this.set('bootHosts', bootHosts);
+  },
+
+  /**
+   * Open popup that contain hosts' warnings
+   * @return {App.ModalPopup}
+   * @method showHostWarningsPopup
+   */
+  showHostWarningsPopup: function () {
+    var self = this;
+
+    return App.ModalPopup.show({
+
+      header: Em.I18n.t('installer.step3.warnings.popup.header'),
+
+      secondary: Em.I18n.t('installer.step3.hostWarningsPopup.rerunChecks'),
+
+      primary: Em.I18n.t('common.close'),
+
+      autoHeight: false,
+
+      onPrimary: function () {
+        self.set('checksUpdateStatus', null);
+        this.hide();
+      },
+
+      onClose: function () {
+        self.set('checksUpdateStatus', null);
+        this.hide();
+      },
+
+      onSecondary: function () {
+        self.set('checkHostFinished', false);
+        self.rerunChecks();
+      },
+
+      didInsertElement: function () {
+        this._super();
+        this.fitHeight();
+      },
+
+      footerClass: App.WizardStep3HostWarningPopupFooter.reopen({
+        footerControllerBinding: 'App.router.mainHostDetailsController'
+      }),
+
+      bodyClass: App.WizardStep3HostWarningPopupBody.reopen({
+        bodyControllerBinding: 'App.router.mainHostDetailsController',
+        checkHostFinished: function () {
+          return this.get('bodyController.checkHostFinished');
+        }.property('bodyController.checkHostFinished'),
+      })
+    });
+  },
+
 
   /**
    * Deletion of hosts not supported for this version

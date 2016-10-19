@@ -86,6 +86,12 @@ App.MainHostDetailsView = Em.View.extend({
         label: this.t('hosts.host.details.deleteHost')
       });
     }
+    result.push({
+      action: 'checkHost',
+      liClass: '',
+      cssClass: 'glyphicon glyphicon-check',
+      label: this.t('host.host.details.checkHost')
+    });
     return result;
   }.property('controller.content', 'isActive', 'controller.content.isNotHeartBeating'),
 

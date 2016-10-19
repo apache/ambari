@@ -16,90 +16,93 @@
 * limitations under the License.
 }}
 
-
-<div id="host-warnings">
-  <div class="notice">
-    <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>.<br>{{t installer.step3.hostWarningsPopup.notice}}</span>
-  </div>
-  <div class="row">
-    <form class="form-horizontal">
-      <div class="from-group">
-        <div class="col-md-2">
-          <label class="control-label">
-            {{t common.hosts}}
-          </label>
-        </div>
-        <div class="col-md-5">
-          {{view view.hostSelectView classNames="form-control input-sm"}}
-        </div>
-        {{#if view.totalWarningsCount}}
-          <div class="col-md-3 col-md-offset-2">
-            <a href="javascript:void(null)" title="Show Details" {{action openWarningsInDialog target="view"}}
-               class="task-detail-open-dialog control-label display-inline-block">
-               <i class="icon-external-link"></i>&nbsp;
-               {{t installer.step3.hostWarningsPopup.report}}
-            </a>
-          </div>
-        {{/if}}
+{{#if view.checkHostFinished}}
+    <div id="host-warnings">
+      <div class="notice">
+        <span>{{t installer.step3.hostWarningsPopup.checks}} <b>{{view.warningsNotice}}</b>.<br>{{t installer.step3.hostWarningsPopup.notice}}</span>
       </div>
-    </form>
-  </div>
-  <div class="panel warnings-list" id="accordion2">
-    {{#each category in view.content}}
-      <div class="panel-group block">
-        <div class="panel panel-default">
-          <div class="panel-heading" {{action onToggleBlock category}}>
-            <i {{bindAttr class=":pull-left :panel-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-            {{#if category.warnings.length}}
-              <i class="pull-right panel-toggle icon-warning-sign"></i>
-            {{else}}
-              <i class="pull-right panel-toggle glyphicon glyphicon-ok"></i>
+      <div class="row">
+        <form class="form-horizontal">
+          <div class="from-group">
+            <div class="col-md-2">
+              <label class="control-label">
+                {{t common.hosts}}
+              </label>
+            </div>
+            <div class="col-md-5">
+              {{view view.hostSelectView classNames="form-control input-sm"}}
+            </div>
+            {{#if view.totalWarningsCount}}
+              <div class="col-md-3 col-md-offset-2">
+                <a href="javascript:void(null)" title="Show Details" {{action openWarningsInDialog target="view"}}
+                   class="task-detail-open-dialog control-label display-inline-block">
+                   <i class="icon-external-link"></i>&nbsp;
+                   {{t installer.step3.hostWarningsPopup.report}}
+                </a>
+              </div>
             {{/if}}
-            <a class="panel-toggle">
-              {{category.title}} ({{category.warnings.length}})
-            </a>
           </div>
-          <div id="{{unbound category.category}}" class="panel-body collapse in" style="display: none">
-            {{#if category.warnings.length}}
-              <table>
-                <thead>
-                <tr>
-                  <th colspan="2">{{{category.message}}}</th>
-                </tr>
-                <tr>
-                  <th colspan="2"><b>{{category.type}}</b></th>
-                </tr>
-                </thead>
-                <tbody>
-                  {{#each warning in category.warnings}}
-                  <tr>
-                    <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
-                    {{#if warning.version}}
-                      <td class="package-version">{{warning.version}}</td>
-                    {{/if}}
-                    {{#if warning.target}}
-                      <td class="package-version">{{warning.target}}</td>
-                    {{/if}}
-                    <td>{{category.action}}
-                      <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}}>
-                        {{warning.hosts.length}}
-                        {{#if warning.onSingleHost}}
-                          {{t installer.step3.hostWarningsPopup.host}}
-                        {{else}}
-                          {{t installer.step3.hostWarningsPopup.hosts}}
+        </form>
+      </div>
+      <div class="panel warnings-list" id="accordion2">
+        {{#each category in view.content}}
+          <div class="panel-group block">
+            <div class="panel panel-default">
+              <div class="panel-heading" {{action onToggleBlock category}}>
+                <i {{bindAttr class=":pull-left :panel-toggle category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
+                {{#if category.warnings.length}}
+                  <i class="pull-right panel-toggle icon-warning-sign"></i>
+                {{else}}
+                  <i class="pull-right panel-toggle glyphicon glyphicon-ok"></i>
+                {{/if}}
+                <a class="panel-toggle">
+                  {{category.title}} ({{category.warnings.length}})
+                </a>
+              </div>
+              <div id="{{unbound category.category}}" class="panel-body collapse in" style="display: none">
+                {{#if category.warnings.length}}
+                  <table>
+                    <thead>
+                    <tr>
+                      <th colspan="2">{{{category.message}}}</th>
+                    </tr>
+                    <tr>
+                      <th colspan="2"><b>{{category.type}}</b></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                      {{#each warning in category.warnings}}
+                      <tr>
+                        <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
+                        {{#if warning.version}}
+                          <td class="package-version">{{warning.version}}</td>
                         {{/if}}
-                      </a>
-                    </td>
-                  </tr>
-                  {{/each}}
-                </tbody>
-              </table>
-            {{else}}
-              {{category.emptyName}}
-            {{/if}}
+                        {{#if warning.target}}
+                          <td class="package-version">{{warning.target}}</td>
+                        {{/if}}
+                        <td>{{category.action}}
+                          <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}}>
+                            {{warning.hosts.length}}
+                            {{#if warning.onSingleHost}}
+                              {{t installer.step3.hostWarningsPopup.host}}
+                            {{else}}
+                              {{t installer.step3.hostWarningsPopup.hosts}}
+                            {{/if}}
+                          </a>
+                        </td>
+                      </tr>
+                      {{/each}}
+                    </tbody>
+                  </table>
+                {{else}}
+                  {{category.emptyName}}
+                {{/if}}
+              </div>
+            </div>
           </div>
-        </div>
+        {{/each}}
       </div>
-    {{/each}}
-  </div>
-</div>
+    </div>
+{{else}}
+    {{view App.SpinnerView}}
+{{/if}}

@@ -110,7 +110,6 @@ public class EventsTest {
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);
@@ -382,14 +381,12 @@ public class EventsTest {
   private void installHdfsService() throws Exception {
     String serviceName = "HDFS";
     Service service = m_serviceFactory.createNew(m_cluster, serviceName);
-    service.persist();
     service = m_cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
     ServiceComponent component = m_componentFactory.createNew(service, "DATANODE");
     service.addServiceComponent(component);
     component.setDesiredState(State.INSTALLED);
-    component.persist();
 
     ServiceComponentHost sch = m_schFactory.createNew(component, HOSTNAME);
 
@@ -398,7 +395,5 @@ public class EventsTest {
     sch.setState(State.INSTALLED);
     sch.setDesiredStackVersion(new StackId("HDP-2.0.6"));
     sch.setStackVersion(new StackId("HDP-2.0.6"));
-
-    sch.persist();
   }
 }

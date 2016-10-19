@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.UUID;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
@@ -37,8 +39,6 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import java.util.UUID;
 
 /**
  * RepositoryVersionDAO unit tests.
@@ -174,7 +174,7 @@ public class RepositoryVersionDAOTest {
   }
 
   @Test
-  public void testDeleteCascade() {
+  public void testDeleteCascade() throws Exception {
     long clusterId = helper.createCluster();
     ClusterEntity cluster = clusterDAO.findById(clusterId);
     createSingleRecord();

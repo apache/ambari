@@ -511,8 +511,6 @@ public class UpgradeHelperTest {
     Clusters clusters = injector.getInstance(Clusters.class);
     Host h4 = clusters.getHost("h4");
     h4.setState(HostState.HEARTBEAT_LOST);
-    h4.persist();
-
 
     List<ServiceComponentHost> schs = cluster.getServiceComponentHosts("h4");
     assertEquals(1, schs.size());
@@ -1227,7 +1225,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1444,7 +1441,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1524,7 +1520,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1590,7 +1585,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1657,7 +1651,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 
@@ -1776,7 +1769,6 @@ public class UpgradeHelperTest {
 
       host.setHostAttributes(hostAttributes);
 
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
     }
 

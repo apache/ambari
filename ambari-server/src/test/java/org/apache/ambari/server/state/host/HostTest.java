@@ -164,9 +164,11 @@ public class HostTest {
     HostRegistrationRequestEvent e =
         new HostRegistrationRequestEvent("foo", agentVersion, currentTime,
             info, agentEnv);
+
     if (!firstReg) {
-      Assert.assertTrue(host.isPersisted());
+      Assert.assertNotNull(host.getHostId());
     }
+
     host.handleEvent(e);
     Assert.assertEquals(currentTime, host.getLastRegistrationTime());
 
@@ -378,7 +380,6 @@ public class HostTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
 
-    host.persist();
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 
@@ -437,8 +438,6 @@ public class HostTest {
     hostAttributes.put("os_release_version", "6.3");
     host.setHostAttributes(hostAttributes);
 
-    host.persist();
-
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.INSTALLING);
@@ -456,5 +455,20 @@ public class HostTest {
     stateEntity = entity.getHostStateEntity();
     Assert.assertNotNull(stateEntity.getMaintenanceState());
     Assert.assertEquals(MaintenanceState.ON, host.getMaintenanceState(c1.getClusterId()));
+  }
+
+  @Test
+  public void testHostPersist() throws Exception {
+    clusters.addHost("foo");
+    Host host = clusters.getHost("foo");
+
+    String rackInfo = "rackInfo";
+    long lastRegistrationTime = System.currentTimeMillis();
+
+    host.setRackInfo(rackInfo);
+    host.setLastRegistrationTime(lastRegistrationTime);
+
+    Assert.assertEquals(rackInfo, host.getRackInfo());
+    Assert.assertEquals(lastRegistrationTime, host.getLastRegistrationTime());
   }
 }

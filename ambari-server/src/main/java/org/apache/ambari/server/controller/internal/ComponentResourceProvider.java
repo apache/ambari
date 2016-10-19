@@ -17,9 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -57,15 +64,9 @@ import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for component resources.
@@ -379,7 +380,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
 
       s.addServiceComponent(sc);
-      sc.persist();
     }
   }
 

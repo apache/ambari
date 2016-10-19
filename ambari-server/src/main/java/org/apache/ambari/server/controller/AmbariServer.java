@@ -25,17 +25,16 @@ import java.net.Authenticator;
 import java.net.BindException;
 import java.net.PasswordAuthentication;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
 import javax.crypto.BadPaddingException;
 import javax.servlet.DispatcherType;
 
-import com.google.common.base.Joiner;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
 import org.apache.ambari.server.StaticallyInject;
@@ -154,6 +153,7 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.google.common.base.Joiner;
 import com.google.common.util.concurrent.ServiceManager;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
@@ -164,9 +164,6 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.persist.Transactional;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 @Singleton
@@ -888,7 +885,7 @@ public class AmbariServer {
 
     BaseService.init(injector.getInstance(RequestAuditLogger.class));
 
-    RetryHelper.init(configs.getOperationsRetryAttempts());
+    RetryHelper.init(injector.getInstance(Clusters.class), configs.getOperationsRetryAttempts());
   }
 
   /**

@@ -17,15 +17,21 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
-import com.google.inject.util.Modules;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -74,20 +80,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
+import com.google.inject.util.Modules;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import junit.framework.Assert;
 
 /**
  * UpgradeSummaryResourceProvider tests.
@@ -170,14 +172,12 @@ public class UpgradeSummaryResourceProviderTest {
     hostAttributes.put("os_release_version", "6.4");
     host.setHostAttributes(hostAttributes);
     host.setState(HostState.HEALTHY);
-    host.persist();
 
     clusters.mapHostToCluster("h1", "c1");
 
     // add a single ZOOKEEPER server
     Service service = cluster.addService("ZOOKEEPER");
     service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-    service.persist();
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");

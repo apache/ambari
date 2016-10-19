@@ -19,15 +19,15 @@
 package org.apache.ambari.server.controller.utilities.state;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
 import org.junit.Assert;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class HiveServiceCalculatedStateTest extends GeneralServiceCalculatedStateTest{
   @Override
@@ -57,7 +57,6 @@ public class HiveServiceCalculatedStateTest extends GeneralServiceCalculatedStat
       hostAttributes.put("os_release_version", "6.3");
       host.setHostAttributes(hostAttributes);
       host.setState(HostState.HEALTHY);
-      host.persist();
       clusters.mapHostToCluster(hostName, clusterName);
 
       ServiceComponentHost sch = clientComponent.addServiceComponentHost(hostName);

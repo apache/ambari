@@ -37,6 +37,8 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 
+import com.google.common.base.Objects;
+
 @javax.persistence.IdClass(HostComponentDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "hostcomponentdesiredstate")
 @Entity
@@ -254,5 +256,14 @@ public class HostComponentDesiredStateEntity {
 
   public void setRestartRequired(boolean restartRequired) {
     this.restartRequired = (restartRequired == false ? 0 : 1);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("serviceName", serviceName).add("componentName",
+        componentName).add("hostId", hostId).add("desiredState", desiredState).toString();
   }
 }

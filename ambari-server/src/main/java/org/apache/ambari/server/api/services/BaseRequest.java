@@ -18,40 +18,39 @@
 
 package org.apache.ambari.server.api.services;
 
-import org.apache.ambari.server.api.handlers.RequestHandler;
-import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.api.predicate.PredicateCompiler;
-import org.apache.ambari.server.api.predicate.QueryLexer;
-import org.apache.ambari.server.api.query.render.Renderer;
-import org.apache.ambari.server.api.resources.ResourceInstance;
-import org.apache.ambari.server.controller.internal.SortRequestImpl;
-import org.apache.ambari.server.controller.internal.PageRequestImpl;
-import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
-import org.apache.ambari.server.controller.spi.SortRequest;
-import org.apache.ambari.server.controller.spi.PageRequest;
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.apache.ambari.server.controller.spi.SortRequestProperty;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.utils.RequestUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.ambari.server.api.handlers.RequestHandler;
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
+import org.apache.ambari.server.api.predicate.QueryLexer;
+import org.apache.ambari.server.api.query.render.Renderer;
+import org.apache.ambari.server.api.resources.ResourceInstance;
+import org.apache.ambari.server.controller.internal.PageRequestImpl;
+import org.apache.ambari.server.controller.internal.SortRequestImpl;
+import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.spi.SortRequestProperty;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.utils.RequestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Request implementation.
@@ -144,11 +143,13 @@ public abstract class BaseRequest implements Request {
       parseQueryPredicate();
       result = getRequestHandler().handleRequest(this);
     } catch (InvalidQueryException e) {
-      result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
-          "Unable to compile query predicate: " + e.getMessage()));
+      String message = "Unable to compile query predicate: " + e.getMessage();
+      LOG.error(message, e);
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, message));
     } catch (IllegalArgumentException e) {
-      result =  new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST,
-          "Invalid Request: " + e.getMessage()));
+      String message = "Invalid Request: " + e.getMessage();
+      LOG.error(message, e);
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, message));
     }
 
     if (! result.getStatus().isErrorState()) {
@@ -322,7 +323,7 @@ public abstract class BaseRequest implements Request {
     if (queryString != null) {
       try {
         Collection<String> ignoredProperties = null;
-        switch (this.getRequestType()) {
+        switch (getRequestType()) {
           case PUT:
             ignoredProperties = m_resource.getResourceDefinition().getUpdateDirectives();
             break;

@@ -18,11 +18,20 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -35,26 +44,13 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.verify;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class ClusterImplTest {
 
@@ -67,7 +63,7 @@ public class ClusterImplTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
   }
-  
+
   @Test
   public void testAddSessionAttributes() throws Exception {
     Map<String, Object> attributes = new HashMap<String, Object>();
@@ -211,40 +207,30 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
     Service hdfs = cluster.addService("HDFS");
-    hdfs.persist();
 
     ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
-    nameNode.persist();
-    nameNode.addServiceComponentHost(hostName1).persist();
+    nameNode.addServiceComponentHost(hostName1);
 
     ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
-    dataNode.persist();
-    dataNode.addServiceComponentHost(hostName1).persist();
-    dataNode.addServiceComponentHost(hostName2).persist();
+    dataNode.addServiceComponentHost(hostName1);
+    dataNode.addServiceComponentHost(hostName2);
 
     ServiceComponent hdfsClient = hdfs.addServiceComponent("HDFS_CLIENT");
-    hdfsClient.persist();
-    hdfsClient.addServiceComponentHost(hostName1).persist();
-    hdfsClient.addServiceComponentHost(hostName2).persist();
+    hdfsClient.addServiceComponentHost(hostName1);
+    hdfsClient.addServiceComponentHost(hostName2);
 
     Service tez = cluster.addService(serviceToDelete);
-    tez.persist();
 
     ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
-    tezClient.persist();
     ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
-    tezClientHost1.persist();
     ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
-    tezClientHost2.persist();
 
     // When
     cluster.deleteService(serviceToDelete);
@@ -279,11 +265,9 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 
@@ -320,11 +304,9 @@ public class ClusterImplTest {
 
     Host host1 = clusters.getHost(hostName1);
     host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host1.persist();
 
     Host host2 = clusters.getHost(hostName2);
     host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
-    host2.persist();
 
     clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
 

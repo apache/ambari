@@ -73,7 +73,7 @@ public class ClusterVersionDAOTest {
    * Helper function to transition the cluster through several cluster versions.
    * @param currStep Step to go to is a value from 1 - 7, inclusive.
    */
-  private void createRecordsUntilStep(int currStep) {
+  private void createRecordsUntilStep(int currStep) throws Exception {
     // Fresh install on A
     if (currStep >= 1 && lastStep <= 0) {
       clusterId = helper.createCluster();
@@ -147,7 +147,7 @@ public class ClusterVersionDAOTest {
   }
 
   @Test
-  public void testFindByStackAndVersion() {
+  public void testFindByStackAndVersion() throws Exception {
     createRecordsUntilStep(1);
     Assert.assertEquals(
         0,
@@ -161,14 +161,14 @@ public class ClusterVersionDAOTest {
   }
 
   @Test
-  public void testFindByCluster() {
+  public void testFindByCluster() throws Exception {
     createRecordsUntilStep(1);
     Assert.assertEquals(0, clusterVersionDAO.findByCluster("non existing").size());
     Assert.assertEquals(1, clusterVersionDAO.findByCluster(cluster.getClusterName()).size());
   }
 
   @Test
-  public void testFindByClusterAndStackAndVersion() {
+  public void testFindByClusterAndStackAndVersion() throws Exception {
     createRecordsUntilStep(1);
     Assert.assertNull(clusterVersionDAO.findByClusterAndStackAndVersion(
         cluster.getClusterName(), BAD_STACK, "non existing"));
@@ -181,7 +181,7 @@ public class ClusterVersionDAOTest {
    * At all times the cluster should have a cluster version whose state is {@link org.apache.ambari.server.state.RepositoryVersionState#CURRENT}
    */
   @Test
-  public void testFindByClusterAndStateCurrent() {
+  public void testFindByClusterAndStateCurrent() throws Exception {
     createRecordsUntilStep(1);
     Assert.assertNotNull(clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName()));
 
@@ -208,7 +208,7 @@ public class ClusterVersionDAOTest {
    * Test the state of certain cluster versions.
    */
   @Test
-  public void testFindByClusterAndState() {
+  public void testFindByClusterAndState() throws Exception {
     createRecordsUntilStep(1);
     Assert.assertEquals(1, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).size());
     Assert.assertEquals(0, clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.INSTALLED).size());
