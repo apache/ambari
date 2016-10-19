@@ -8,11 +8,12 @@
     "url": "https://git-wip-us.apache.org/repos/asf/ambari/repo?p=ambari.git;a=summary"
   },
   "dependencies": {
+    "brunch": "1.7.20",
     "javascript-brunch": ">= 1.0 < 1.5",
     "css-brunch": ">= 1.0 < 1.5",
     "uglify-js-brunch": ">= 1.0 < 1.5",
     "clean-css-brunch": ">= 1.0 < 1.5",
-    "ember-precompiler-brunch": ">= 1.0 < 1.5",
+    "ember-precompile-brunch": "^0.1.1",
     "ember-radio-button": "0.1.2",
     "less-brunch": ">= 1.0 < 1.5",
     "cssstyle": "0.2.3"
@@ -25,20 +26,20 @@
     "sinon":"=1.7.3",
     "sinon-chai":"~2.5.0",
     "express":"2.5.8",
-    "karma": "=0.11.14",
+    "karma": ">=0.11.14",
     "karma-mocha": "0.1.1",
     "karma-chai": "~0.1.0",
     "karma-sinon": "~1.0.2",
     "karma-phantomjs-launcher": "0.1.3",
     "karma-coverage": "~0.2.0",
     "karma-commonjs-require": "~0.0.1",
-    "karma-ember-precompiler-brunch": "~0.0.1"
+    "karma-ember-precompile-brunch": "^0.0.1"
   },
   "scripts": {
     "start": "brunch watch --server",
     "test": "mocha-phantomjs -R min public/test/test.html"
   },
   "engines": {
-    "node": "~0.6.10 || 0.8 || 0.9 || 0.10"
+    "node": "^4.0.0"
   }
 }

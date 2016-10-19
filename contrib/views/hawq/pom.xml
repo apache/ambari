@@ -85,7 +85,7 @@
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <configuration>
-          <nodeVersion>v0.10.44</nodeVersion>
+          <nodeVersion>v4.5.0</nodeVersion>
           <npmVersion>2.15.0</npmVersion>
           <workingDirectory>${ui.dir}</workingDirectory>
         </configuration>

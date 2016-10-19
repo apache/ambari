@@ -133,8 +133,8 @@
             <!-- optional: default phase is "generate-resources" -->
             <phase>initialize</phase>
             <configuration>
-                <nodeVersion>v0.10.26</nodeVersion>
-                <npmVersion>1.4.3</npmVersion>
+                <nodeVersion>v4.5.0</nodeVersion>
+                <npmVersion>2.15.0</npmVersion>
             </configuration>
           </execution>
           <execution>

@@ -121,28 +121,55 @@
               <commandlineArgs>${args.mkdir} public</commandlineArgs>
             </configuration>
           </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>0.0.16</version>
+        <configuration>
+          <nodeVersion>v4.5.0</nodeVersion>
+          <npmVersion>2.15.0</npmVersion>
+          <workingDirectory>${basedir}</workingDirectory>
+        </configuration>
+        <executions>
           <execution>
-            <id>compile-npm</id>
-            <phase>compile</phase>
+            <id>install node and npm</id>
+            <phase>generate-sources</phase>
             <goals>
-              <goal>exec</goal>
+              <goal>install-node-and-npm</goal>
             </goals>
-            <configuration>
-              <executable>${executable.npm}</executable>
-              <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.npm} install</commandlineArgs>
-            </configuration>
           </execution>
           <execution>
-            <id>compile-brunch</id>
-            <phase>compile</phase>
+            <id>npm install</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>install</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>Brunch build</id>
+            <phase>generate-resources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
             <configuration>
-              <executable>${executable.brunch}</executable>
               <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.brunch} build</commandlineArgs>
+              <executable>${basedir}/node/${node.executable}</executable>
+              <arguments>
+                <argument>node_modules/brunch/bin/brunch</argument>
+                <argument>build</argument>
+              </arguments>
             </configuration>
           </execution>
           <execution>
@@ -291,6 +318,7 @@
         <executable.brunch>cmd</executable.brunch>
         <executable.gzip>${basedir}\gzip-content.cmd</executable.gzip>
         <args.brunch>/C brunch</args.brunch>
+        <node.executable>node.exe</node.executable>
         <executable.mkdir>cmd</executable.mkdir>
         <args.mkdir>/C mkdir</args.mkdir>
         <executable.npm>cmd</executable.npm>
@@ -315,6 +343,7 @@
         <executable.brunch>brunch</executable.brunch>
         <executable.gzip>gzip</executable.gzip>
         <args.brunch></args.brunch>
+        <node.executable>node</node.executable>
         <executable.mkdir>mkdir</executable.mkdir>
         <args.mkdir></args.mkdir>
         <executable.npm>npm</executable.npm>
