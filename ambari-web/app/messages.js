@@ -2538,6 +2538,7 @@ Em.I18n.translations = {
   'hosts.host.details.setRackId':'Set Rack',
   'host.host.details.installClients': 'Install clients',
   'host.host.details.reinstallClients': 'Reinstall clients',
+  'host.host.details.checkHost': 'Check host',
 
   'host.host.componentFilter.master':'Master Components',
   'host.host.componentFilter.slave':'Slave Components',
@@ -2630,6 +2631,7 @@ Em.I18n.translations = {
   'hosts.add.exit.header':'Exit',
   'hosts.add.exit.body':'Do you really want to exit Add Host Wizard?',
   'hosts.assignRack':'Assign Rack',
+  'hosts.checkHost.popup':'Are you sure you want to <b>Check host</b> for {0}?',
   'hosts.passiveMode.popup':'Are you sure you want to <b>Turn {0} Maintenance Mode</b> for {1}?',
   'hosts.passiveMode.popup.version.mismatch': '{0} has components from a stack which is not current. Before bringing this host out of maintenance mode, it is recommended that you upgrade its components to {1}',
   'hosts.passiveMode.popup.version.mismatch.multiple': 'Some hosts have components from a stack which is not current. Before bringing these hosts out of maintenance mode, it is recommended that you upgrade their components to {0}',

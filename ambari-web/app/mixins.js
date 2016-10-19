@@ -34,6 +34,7 @@ require('mixins/main/dashboard/widgets/single_numeric_threshold');
 require('mixins/main/host/details/host_components/decommissionable');
 require('mixins/main/host/details/host_components/install_component');
 require('mixins/main/host/details/actions/install_new_version');
+require('mixins/main/host/details/actions/check_host');
 require('mixins/main/host/details/support_client_configs_download');
 require('mixins/main/service/groups_mapping');
 require('mixins/main/service/themes_mapping');
