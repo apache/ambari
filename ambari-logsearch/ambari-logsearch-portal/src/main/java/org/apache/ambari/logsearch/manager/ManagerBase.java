@@ -19,19 +19,13 @@
 
 package org.apache.ambari.logsearch.manager;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
-import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.model.response.LogData;
 import org.apache.ambari.logsearch.model.response.LogSearchResponse;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
-import org.apache.ambari.logsearch.util.JSONUtil;
-import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -46,35 +40,6 @@ public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE
 
   public ManagerBase() {
     super();
-  }
-
-  public String getHadoopServiceConfigJSON() {
-    StringBuilder result = new StringBuilder("");
-
-    // Get file from resources folder
-    ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource("HadoopServiceConfig.json").getFile());
-
-    try (Scanner scanner = new Scanner(file)) {
-
-      while (scanner.hasNextLine()) {
-        String line = scanner.nextLine();
-        result.append(line).append("\n");
-      }
-
-      scanner.close();
-
-    } catch (IOException e) {
-      logger.error("Unable to read HadoopServiceConfig.json", e);
-      throw RESTErrorUtil.createRESTException(e.getMessage(), MessageEnums.ERROR_SYSTEM);
-    }
-
-    String hadoopServiceConfig = result.toString();
-    if (JSONUtil.isJSONValid(hadoopServiceConfig)) {
-      return hadoopServiceConfig;
-    }
-    throw RESTErrorUtil.createRESTException("Improper JSON", MessageEnums.ERROR_SYSTEM);
-
   }
   
   protected SEARCH_RESPONSE getLastPage(SolrDaoBase solrDoaBase, SimpleQuery lastPageQuery, String event) {
