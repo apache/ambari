@@ -10,6 +10,7 @@ target
 /ambari-web/npm-debug.log
 /ambari-web/public/
 /ambari-web/node_modules/
+/ambari-web/node/
 *.pyc
 *.py~
 *.iml

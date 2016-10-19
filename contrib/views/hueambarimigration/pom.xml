@@ -170,8 +170,8 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.16</version>
         <configuration>
-          <nodeVersion>v0.12.2</nodeVersion>
-          <npmVersion>1.4.8</npmVersion>
+          <nodeVersion>v4.5.0</nodeVersion>
+          <npmVersion>2.15.0</npmVersion>
           <workingDirectory>${project.basedir}/src/main/resources/ui/hueambarimigration-view/</workingDirectory>
         </configuration>
         <executions>
