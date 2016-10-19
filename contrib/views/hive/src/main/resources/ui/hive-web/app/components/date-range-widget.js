@@ -81,13 +81,13 @@ export default Ember.Component.extend({
       }
     });
 
-    this.$(".fromDate").on('blur', () => {
+    this.$(".fromDate").on('blur', function() {
       if(moment(self.$(".fromDate").val(), 'MM/DD/YYYY', true).format() === 'Invalid date'){
         self.$(".fromDate").val('')
       }
     });
 
-    this.$(".toDate").on('blur', () => {
+    this.$(".toDate").on('blur', function() {
       if(moment(self.$(".toDate").val(), 'MM/DD/YYYY', true).format() === 'Invalid date'){
         self.$(".toDate").val('')
       }
