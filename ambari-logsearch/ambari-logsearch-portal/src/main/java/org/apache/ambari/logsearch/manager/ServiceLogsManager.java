@@ -118,7 +118,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     String keyword = request.getKeyWord();
     Boolean isLastPage = request.isLastPage();
     SimpleQuery solrQuery = conversionService.convert(request, SimpleQuery.class);
-    if (!StringUtils.isBlank(keyword)) {
+    if (StringUtils.isNotBlank(keyword)) {
       try {
         return (ServiceLogResponse) getPageByKeyword(request, event);
       } catch (SolrException | SolrServerException e) {
@@ -170,7 +170,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     SolrQuery solrQuery = new DefaultQueryParser().doConstructSolrQuery(facetQuery);
     String hostName = request.getHostName() == null ? "" : request.getHostName();
-    if (!StringUtils.isBlank(hostName)){
+    if (StringUtils.isNotBlank(hostName)){
       solrQuery.addFilterQuery(String.format("%s:*%s*", HOST, hostName));
     }
     QueryResponse response = serviceLogsSolrDao.process(solrQuery, "/service/logs/tree");
@@ -187,7 +187,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
 
     NodeListResponse list = new NodeListResponse();
     String componentName = request.getComponentName() == null ? "" : request.getComponentName();
-    if (!StringUtils.isBlank(componentName)){
+    if (StringUtils.isNotBlank(componentName)){
       solrQuery.addFilterQuery(COMPONENT + ":"
         + componentName);
       QueryResponse response = serviceLogsSolrDao.process(solrQuery, "/service/logs/hosts/components");

@@ -30,6 +30,7 @@ import org.apache.solr.common.cloud.Slice;
 import org.apache.solr.common.cloud.ZkStateReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.apache.ambari.logsearch.solr.SolrConstants.CommonLogConstants.ROUTER_FIELD;
 
 import javax.inject.Named;
 import java.io.IOException;
@@ -43,7 +44,6 @@ public class SolrCollectionDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrCollectionDao.class);
 
-  private static final String ROUTER_FIELD = "_router_field_";
   private static final int SETUP_RETRY_SECOND = 30;
 
   /**

@@ -28,11 +28,13 @@ import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.lucene.analysis.core.KeywordTokenizerFactory;
 import org.apache.lucene.analysis.path.PathHierarchyTokenizerFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
+import org.apache.lucene.analysis.util.TokenizerFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.schema.TrieDoubleField;
 import org.apache.solr.schema.TrieFloatField;
 import org.apache.solr.schema.TrieIntField;
 import org.apache.solr.schema.TrieLongField;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class SolrUtil {
@@ -116,18 +118,7 @@ public class SolrUtil {
     return search;
   }
 
-  public static String makeSolrSearchString(String search) {
-    String newString = search.trim();
-    String newSearch = newString.replaceAll("(?=[]\\[+&|!(){},:\"^~/=$@%?:.\\\\])", "\\\\");
-    newSearch = newSearch.replace("\n", "*");
-    newSearch = newSearch.replace("\t", "*");
-    newSearch = newSearch.replace("\r", "*");
-    newSearch = newSearch.replace("**", "*");
-    newSearch = newSearch.replace("***", "*");
-    return "*" + newSearch + "*";
-  }
-
-  public static String makeSolrSearchStringWithoutAsterisk(String search) {
+  private static String makeSolrSearchStringWithoutAsterisk(String search) {
     String newString = search.trim();
     String newSearch = newString.replaceAll("(?=[]\\[+&|!(){}^\"~=/$@%?:.\\\\])", "\\\\");
     newSearch = newSearch.replace("\n", "*");
@@ -161,28 +152,19 @@ public class SolrUtil {
   }
   
 
-  public static boolean isSolrFieldNumber(String fieldType, Map<String, String> schemaFieldsMap) {
+  private static boolean isSolrFieldNumber(String fieldType, Map<String, String> schemaFieldsMap) {
     if (StringUtils.isBlank(fieldType)) {
       return false;
     } else {
       HashMap<String, Object> typeInfoMap = getFieldTypeInfoMap(fieldType, schemaFieldsMap);
-      if (typeInfoMap == null || typeInfoMap.isEmpty()) {
+      if (MapUtils.isEmpty(typeInfoMap)) {
         return false;
       }
       String fieldTypeClassName = (String) typeInfoMap.get("class");
-      if (fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName())) {
-        return true;
-      }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())) {
-        return true;
-      }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName())) {
-        return true;
-      }
-      if (fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName())) {
-        return true;
-      }
-      return false;
+      return fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName()) ||
+             fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName()) ||
+             fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName()) ||
+             fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName());
     }
   }
 
@@ -237,7 +219,7 @@ public class SolrUtil {
     }
   }
   
-  public static HashMap<String, Object> getFieldTypeInfoMap(String fieldType, Map<String, String> schemaFieldsTypeMap) {
+  private static HashMap<String, Object> getFieldTypeInfoMap(String fieldType, Map<String, String> schemaFieldsTypeMap) {
     String fieldTypeMetaData = schemaFieldsTypeMap.get(fieldType);
     HashMap<String, Object> fieldTypeMap = JSONUtil.jsonToMapObject(fieldTypeMetaData);
     if (fieldTypeMap == null) {
@@ -273,7 +255,7 @@ public class SolrUtil {
     setFacetLimit(solrQuery, -1);
   }
 
-  public static void setFacetLimit(SolrQuery solrQuery, int limit) {
+  private static void setFacetLimit(SolrQuery solrQuery, int limit) {
     solrQuery.set("facet.limit", limit);
   }
 
@@ -286,22 +268,20 @@ public class SolrUtil {
     }
   }
 
-  private static boolean checkTokenizer(String fieldType, Class tokenizerFactoryClass, Map<String, String> schemaFieldsMap) {
+  @SuppressWarnings("unchecked")
+  private static boolean checkTokenizer(String fieldType, Class<? extends TokenizerFactory> tokenizerFactoryClass,
+      Map<String, String> schemaFieldsMap) {
     HashMap<String, Object> fieldTypeMap = SolrUtil.getFieldTypeInfoMap(fieldType ,schemaFieldsMap);
     HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap.get("analyzer");
-    if (analyzer != null) {
-      HashMap<String, Object> tokenizerMap = (HashMap<String, Object>) analyzer.get("tokenizer");
-      if (tokenizerMap != null) {
-        String tokenizerClass = (String) tokenizerMap.get("class");
-        if (!StringUtils.isEmpty(tokenizerClass)) {
-          tokenizerClass =tokenizerClass.replace("solr.", "");
-          if (tokenizerClass.equalsIgnoreCase(tokenizerFactoryClass
-            .getSimpleName())) {
-            return true;
-          }
-        }
+    HashMap<String, Object> tokenizerMap = (HashMap<String, Object>)MapUtils.getObject(analyzer, "tokenizer");
+    if (tokenizerMap != null) {
+      String tokenizerClass = (String) tokenizerMap.get("class");
+      if (StringUtils.isNotEmpty(tokenizerClass)) {
+        tokenizerClass = tokenizerClass.replace("solr.", "");
+        return tokenizerClass.equalsIgnoreCase(tokenizerFactoryClass.getSimpleName());
       }
     }
+    
     return false;
   }
   

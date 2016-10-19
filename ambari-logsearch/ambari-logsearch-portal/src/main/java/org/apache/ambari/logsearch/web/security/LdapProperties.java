@@ -63,7 +63,7 @@ public class LdapProperties {
     } else {
       List<String> list = new ArrayList<String>();
       list.add(protocol + primaryUrl);
-      if (!StringUtils.isEmpty(secondaryUrl)) {
+      if (StringUtils.isNotEmpty(secondaryUrl)) {
         list.add(protocol + secondaryUrl);
       }
       return list;

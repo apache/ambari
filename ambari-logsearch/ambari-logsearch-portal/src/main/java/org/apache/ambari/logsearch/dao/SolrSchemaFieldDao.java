@@ -25,11 +25,13 @@ import org.apache.ambari.logsearch.conf.SolrUserPropsConfig;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.request.LukeRequest;
+import org.apache.solr.client.solrj.request.schema.FieldTypeDefinition;
 import org.apache.solr.client.solrj.request.schema.SchemaRequest;
+import org.apache.solr.client.solrj.response.LukeResponse;
+import org.apache.solr.client.solrj.response.LukeResponse.FieldInfo;
 import org.apache.solr.client.solrj.response.schema.SchemaResponse;
 import org.apache.solr.common.SolrException;
-import org.apache.solr.common.util.NamedList;
-import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +39,17 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class SolrSchemaFieldDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrSchemaFieldDao.class);
 
   private static final int SETUP_RETRY_SECOND = 30;
-  private static final int SETUP_UPDATE_SECOND = 10 * 60; // 10 min
-
+  private static final int SETUP_UPDATE_SECOND = 1 * 60; // 1 min
+  
   private boolean populateFieldsThreadActive = false;
 
   private Map<String, String> schemaFieldNameMap = new HashMap<>();
@@ -93,73 +97,84 @@ public class SolrSchemaFieldDao {
    * Called from the thread. Don't call this directly
    */
   private boolean _populateSchemaFields(CloudSolrClient solrClient, SolrPropsConfig solrPropsConfig) {
-    SolrRequest<SchemaResponse> request = new SchemaRequest();
-    request.setMethod(SolrRequest.METHOD.GET);
-    request.setPath("/schema");
     String historyCollection = solrUserPropsConfig.getCollection();
     if (solrClient != null && !solrPropsConfig.getCollection().equals(historyCollection)) {
-      NamedList<Object> namedList = null;
+      LukeResponse lukeResponse = null;
+      SchemaResponse schemaResponse = null;
       try {
-        namedList = solrClient.request(request);
-        LOG.debug("populateSchemaFields() collection=" + solrPropsConfig.getCollection() + ", fields=" + namedList);
+        LukeRequest lukeRequest = new LukeRequest();
+        lukeRequest.setNumTerms(0);
+        lukeResponse = lukeRequest.process(solrClient);
+        
+        SolrRequest<SchemaResponse> schemaRequest = new SchemaRequest();
+        schemaRequest.setMethod(SolrRequest.METHOD.GET);
+        schemaRequest.setPath("/schema");
+        schemaResponse = schemaRequest.process(solrClient);
+        
+        LOG.debug("populateSchemaFields() collection=" + solrPropsConfig.getCollection() + ", luke=" + lukeResponse +
+            ", schema= " + schemaResponse);
       } catch (SolrException | SolrServerException | IOException e) {
         LOG.error("Error occured while popuplating field. collection=" + solrPropsConfig.getCollection(), e);
       }
 
-      if (namedList != null) {
-        extractSchemaFieldsName(namedList.toString(), schemaFieldNameMap, schemaFieldTypeMap);
+      if (lukeResponse != null && schemaResponse != null) {
+        extractSchemaFieldsName(lukeResponse, schemaResponse);
         return true;
       }
     }
     return false;
   }
 
-  public void extractSchemaFieldsName(String responseString,
-                                      final Map<String, String> schemaFieldsNameMap,
-                                      final Map<String, String> schemaFieldTypeMap) {
+  private void extractSchemaFieldsName(LukeResponse lukeResponse, SchemaResponse schemaResponse) {
     try {
-      JSONObject jsonObject = new JSONObject(responseString);
-      JSONObject schemajsonObject = jsonObject.getJSONObject("schema");
-      JSONArray jsonArrayList = schemajsonObject.getJSONArray("fields");
-      JSONArray fieldTypeJsonArray = schemajsonObject
-        .getJSONArray("fieldTypes");
-      if (jsonArrayList == null) {
-        return;
-      }
-      if (fieldTypeJsonArray == null) {
-        return;
-      }
+      HashMap<String, String> _schemaFieldNameMap = new HashMap<>();
       HashMap<String, String> _schemaFieldTypeMap = new HashMap<>();
-      HashMap<String, String> _schemaFieldsNameMap = new HashMap<String, String>();
-      for (int i = 0; i < fieldTypeJsonArray.length(); i++) {
-        JSONObject typeObject = fieldTypeJsonArray.getJSONObject(i);
-        String name = typeObject.getString("name");
-        String fieldTypeJson = typeObject.toString();
-        _schemaFieldTypeMap.put(name, fieldTypeJson);
-      }
-      for (int i = 0; i < jsonArrayList.length(); i++) {
-        JSONObject explrObject = jsonArrayList.getJSONObject(i);
-        String name = explrObject.getString("name");
-        String type = explrObject.getString("type");
+      
+      for (Entry<String, FieldInfo> e : lukeResponse.getFieldInfo().entrySet()) {
+        String name = e.getKey();
+        String type = e.getValue().getType();
         if (!name.contains("@") && !name.startsWith("_") && !name.contains("_md5") && !name.contains("_ms") &&
-          !name.contains(LogSearchConstants.NGRAM_SUFFIX) && !name.contains("tags") && !name.contains("_str")) {
-          _schemaFieldsNameMap.put(name, type);
+          !name.contains(LogSearchConstants.NGRAM_PREFIX) && !name.contains("tags") && !name.contains("_str")) {
+          _schemaFieldNameMap.put(name, type);
         }
       }
-      schemaFieldsNameMap.clear();
-      schemaFieldTypeMap.clear();
-      schemaFieldsNameMap.putAll(_schemaFieldsNameMap);
-      schemaFieldTypeMap.putAll(_schemaFieldTypeMap);
+      
+      List<FieldTypeDefinition> fieldTypes = schemaResponse.getSchemaRepresentation().getFieldTypes();
+      for (FieldTypeDefinition fieldType : fieldTypes) {
+        Map<String, Object> fieldAttributes = fieldType.getAttributes();
+        String name = (String) fieldAttributes.get("name");
+        String fieldTypeJson = new JSONObject(fieldAttributes).toString();
+        _schemaFieldTypeMap.put(name, fieldTypeJson);
+      }
+      
+      List<Map<String, Object>> fields = schemaResponse.getSchemaRepresentation().getFields();
+      for (Map<String, Object> field : fields) {
+        String name = (String) field.get("name");
+        String type = (String) field.get("type");
+        if (!name.contains("@") && !name.startsWith("_") && !name.contains("_md5") && !name.contains("_ms") &&
+          !name.contains(LogSearchConstants.NGRAM_PREFIX) && !name.contains("tags") && !name.contains("_str")) {
+          _schemaFieldNameMap.put(name, type);
+        }
+      }
+      
+      if (_schemaFieldNameMap.isEmpty() || _schemaFieldTypeMap.isEmpty()) {
+        return;
+      }
+      
+      synchronized (this) {
+        schemaFieldNameMap = _schemaFieldNameMap;
+        schemaFieldTypeMap = _schemaFieldTypeMap;
+      }
     } catch (Exception e) {
       LOG.error(e + "Credentials not specified in logsearch.properties " + MessageEnums.ERROR_SYSTEM);
     }
   }
 
-  public Map<String, String> getSchemaFieldTypeMap() {
-    return schemaFieldTypeMap;
+  public synchronized Map<String, String> getSchemaFieldNameMap() {
+    return schemaFieldNameMap;
   }
 
-  public Map<String, String> getSchemaFieldNameMap() {
-    return schemaFieldNameMap;
+  public synchronized Map<String, String> getSchemaFieldTypeMap() {
+    return schemaFieldTypeMap;
   }
 }

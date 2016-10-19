@@ -18,10 +18,12 @@
  */
 package org.apache.ambari.logsearch.model.response;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Date;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface CommonLogData extends LogData {
@@ -82,14 +84,14 @@ public interface CommonLogData extends LogData {
   void setEventCount(Long eventCount);
 
   @JsonProperty("event_md5")
-  public String getEventMd5();
+  String getEventMd5();
 
-  public void setEventMd5(String eventMd5);
+  void setEventMd5(String eventMd5);
 
   @JsonProperty("event_dur_ms")
-  public Long getEventDurationMs();
+  Long getEventDurationMs();
 
-  public void setEventDurationMs(Long eventDurationMs);
+  void setEventDurationMs(Long eventDurationMs);
 
   @JsonProperty("_ttl_")
   String getTtl();
@@ -110,4 +112,7 @@ public interface CommonLogData extends LogData {
   Integer getRouterField();
 
   void setRouterField(Integer routerField);
+  
+  @JsonAnyGetter
+  Map<String, Object> getAllDynamicFields();
 }

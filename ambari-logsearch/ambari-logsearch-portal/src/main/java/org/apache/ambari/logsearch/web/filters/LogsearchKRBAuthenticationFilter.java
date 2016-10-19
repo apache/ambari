@@ -148,7 +148,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
       HttpServletResponse response) throws IOException, ServletException {
     logger.debug("LogsearchKRBAuthenticationFilter private filter");
     String userName = getUsernameFromResponse(response);
-    if (!StringUtils.isEmpty(userName)) {
+    if (StringUtils.isNotEmpty(userName)) {
       Authentication existingAuth = SecurityContextHolder.getContext()
           .getAuthentication();
       if (existingAuth == null || !existingAuth.isAuthenticated()) {
@@ -199,7 +199,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
       KerberosName.setRules(PropertiesHelper.getProperty(NAME_RULES, "DEFAULT"));
       String userName = getUsernameFromRequest(httpRequest);
       if ((existingAuth == null || !existingAuth.isAuthenticated())
-          && (!StringUtils.isEmpty(userName))) {
+          && (StringUtils.isNotEmpty(userName))) {
         // --------------------------- To Create Logsearch Session--------------------------------------
         // if we get the userName from the token then log into logsearch using the same user
         final List<GrantedAuthority> grantedAuths = new ArrayList<>();
@@ -236,8 +236,8 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
       String keytab = PropertiesHelper.getProperty(KEYTAB);
       String principal = PropertiesHelper.getProperty(PRINCIPAL);
       String hostname = PropertiesHelper.getProperty(HOST_NAME);
-      if (!StringUtils.isEmpty(keytab) && !StringUtils.isEmpty(principal)
-          && !StringUtils.isEmpty(hostname)) {
+      if (StringUtils.isNotEmpty(keytab) && StringUtils.isNotEmpty(principal)
+          && StringUtils.isNotEmpty(hostname)) {
         spnegoEnable = true;
       }
     }
@@ -306,7 +306,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
         Iterator<String> iterator = cookiesCollection.iterator();
         while (iterator.hasNext()) {
           String cookie = iterator.next();
-          if (!StringUtils.isEmpty(cookie)) {
+          if (StringUtils.isNotEmpty(cookie)) {
             if (cookie.toLowerCase().startsWith(AUTH_COOKIE_NAME.toLowerCase())) {
               Matcher m = usernamePattern.matcher(cookie);
               if (m.find()) {
@@ -314,7 +314,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
               }
             }
           }
-          if (!StringUtils.isEmpty(userName)) {
+          if (StringUtils.isNotEmpty(userName)) {
             break;
           }
         }

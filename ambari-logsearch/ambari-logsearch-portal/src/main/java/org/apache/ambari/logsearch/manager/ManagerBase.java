@@ -32,6 +32,7 @@ import org.apache.ambari.logsearch.model.response.LogSearchResponse;
 import org.apache.ambari.logsearch.dao.SolrDaoBase;
 import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -110,7 +111,7 @@ public abstract class ManagerBase<LOG_DATA_TYPE extends LogData, SEARCH_RESPONSE
     SEARCH_RESPONSE logResponse = createLogSearchResponse();
     SolrDocumentList docList = response.getResults();
     List<LOG_DATA_TYPE> serviceLogDataList = convertToSolrBeans(response);
-    if (docList != null && !docList.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(docList)) {
       logResponse.setLogList(serviceLogDataList);
       logResponse.setStartIndex((int) docList.getStart());
       logResponse.setTotalCount(docList.getNumFound());

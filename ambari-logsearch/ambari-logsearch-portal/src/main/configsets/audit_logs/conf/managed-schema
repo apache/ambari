@@ -109,4 +109,9 @@
   <field name="message_md5" type="string" multiValued="false"/>
   <field name="type" type="key_lower_case" multiValued="false"/>
   
+  <dynamicField name='ngram_*' type="n_gram" multiValued="false" stored="true"/>
+  <dynamicField name='std_*' type="text_std_token_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name='key_*' type="key_lower_case" multiValued="false" stored="true"/>
+  <dynamicField name="ws_*" type="text_ws" multiValued="false" omitNorms="false" stored="true"/>
+  
 </schema>

@@ -137,10 +137,10 @@ public class UserConfigManager extends JsonManagerBase {
   }
 
   private boolean isValid(UserConfigData vHistory) {
-    return !StringUtils.isBlank(vHistory.getFiltername())
-        && !StringUtils.isBlank(vHistory.getRowType())
-        && !StringUtils.isBlank(vHistory.getUserName())
-        && !StringUtils.isBlank(vHistory.getValues());
+    return StringUtils.isNotBlank(vHistory.getFiltername())
+        && StringUtils.isNotBlank(vHistory.getRowType())
+        && StringUtils.isNotBlank(vHistory.getUserName())
+        && StringUtils.isNotBlank(vHistory.getValues());
   }
 
   public void deleteUserConfig(String id) {

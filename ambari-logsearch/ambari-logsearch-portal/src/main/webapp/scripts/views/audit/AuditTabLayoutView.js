@@ -312,7 +312,7 @@ define(['require',
           if (columns[name] === undefined && value != "_version_") {
             var columnObj = {
               name: Globals.invertedAuditLogMappings[value],
-              label:value,
+              label: value,
               cell: "String",
               sortType: 'toggle',
               editable: false
