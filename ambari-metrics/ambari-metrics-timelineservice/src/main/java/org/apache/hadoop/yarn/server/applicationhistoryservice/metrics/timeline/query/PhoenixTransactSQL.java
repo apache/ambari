@@ -26,10 +26,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -317,8 +314,18 @@ public class PhoenixTransactSQL {
     "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) " +
     "SELECT METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, %s AS SERVER_TIME, UNITS, " +
     "SUM(METRIC_SUM), SUM(METRIC_COUNT), MAX(METRIC_MAX), MIN(METRIC_MIN) " +
-    "FROM %s WHERE SERVER_TIME > %s AND SERVER_TIME <= %s " +
+    "FROM %s WHERE%s SERVER_TIME > %s AND SERVER_TIME <= %s " +
     "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, UNITS";
+
+  /**
+   * Downsample host metrics.
+   */
+  public static final String DOWNSAMPLE_HOST_METRIC_SQL_UPSERT_PREFIX = "UPSERT %s INTO %s (METRIC_NAME, HOSTNAME, " +
+    "APP_ID, INSTANCE_ID, SERVER_TIME, UNITS, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) ";
+
+  public static final String TOPN_DOWNSAMPLER_HOST_METRIC_SELECT_SQL = "SELECT METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, " +
+    "%s AS SERVER_TIME, UNITS, %s, 1, %s, %s FROM %s WHERE METRIC_NAME LIKE %s AND SERVER_TIME > %s AND SERVER_TIME <= %s " +
+    "GROUP BY METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, UNITS ORDER BY %s DESC LIMIT %s";
 
   /**
    * Aggregate app metrics using a GROUP BY clause to take advantage of
@@ -328,8 +335,18 @@ public class PhoenixTransactSQL {
     "INTO %s (METRIC_NAME, APP_ID, INSTANCE_ID, SERVER_TIME, UNITS, " +
     "METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) SELECT METRIC_NAME, APP_ID, " +
     "INSTANCE_ID, %s AS SERVER_TIME, UNITS, ROUND(AVG(METRIC_SUM),2), ROUND(AVG(%s)), " +
-    "MAX(METRIC_MAX), MIN(METRIC_MIN) FROM %s WHERE SERVER_TIME > %s AND " +
+    "MAX(METRIC_MAX), MIN(METRIC_MIN) FROM %s WHERE%s SERVER_TIME > %s AND " +
     "SERVER_TIME <= %s GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS";
+
+  /**
+   * Downsample cluster metrics.
+   */
+  public static final String DOWNSAMPLE_CLUSTER_METRIC_SQL_UPSERT_PREFIX = "UPSERT %s INTO %s (METRIC_NAME, APP_ID, " +
+    "INSTANCE_ID, SERVER_TIME, UNITS, METRIC_SUM, METRIC_COUNT, METRIC_MAX, METRIC_MIN) ";
+
+  public static final String TOPN_DOWNSAMPLER_CLUSTER_METRIC_SELECT_SQL = "SELECT METRIC_NAME, APP_ID, INSTANCE_ID," +
+    " %s AS SERVER_TIME, UNITS, %s, 1, %s, %s FROM %s WHERE METRIC_NAME LIKE %s AND SERVER_TIME > %s AND SERVER_TIME <= %s " +
+    "GROUP BY METRIC_NAME, APP_ID, INSTANCE_ID, UNITS ORDER BY %s DESC LIMIT %s";
 
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
 
