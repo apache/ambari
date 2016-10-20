@@ -32,6 +32,7 @@
 
     <check>org.apache.ambari.server.checks.AtlasPresenceCheck</check>
   </prerequisite-checks>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
@@ -86,7 +87,7 @@
         <component>ACCUMULO_MONITOR</component>
         <component>ACCUMULO_MASTER</component>
       </service>
-      
+
       <service name="STORM">
         <component>DRPC_SERVER</component>
         <component>STORM_UI_SERVER</component>
@@ -402,6 +403,15 @@
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
       </execute-stage>
+
+      <!-- SPARK -->
+      <execute-stage service="SPARK" component="SPARK_JOBHISTORYSERVER" title="Apply config changes for Spark JobHistoryServer">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark_jobhistoryserver"/>
+      </execute-stage>
+      <execute-stage service="SPARK" component="SPARK_CLIENT" title="Apply config changes for Spark">
+        <task xsi:type="configure" id="hdp_2_5_0_0_spark_client"/>
+      </execute-stage>
+
     </group>
 
     <!--
@@ -588,7 +598,7 @@
         <service>HBASE</service>
       </priority>
     </group>
-    
+
     <group xsi:type="restart" name="HIVE_MASTERS" title="Hive Masters">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -663,7 +673,7 @@
         <service>SPARK</service>
       </priority>
     </group>
-    
+
     <group xsi:type="restart" name="FALCON" title="Falcon">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -727,7 +737,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -757,7 +767,7 @@
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
