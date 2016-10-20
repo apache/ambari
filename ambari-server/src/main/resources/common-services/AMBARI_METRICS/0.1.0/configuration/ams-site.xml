@@ -681,4 +681,31 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.metric.patterns</name>
+    <value>dfs.NNTopUserOpCounts.windowMs=60000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=300000.op=__%.user=%,dfs.NNTopUserOpCounts.windowMs=1500000.op=__%.user=%</value>
+    <description>
+      Commas separated list of metric name regular expressions that are candidates for Top N downsampling.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.value</name>
+    <value>10</value>
+    <description>
+      Top N value for to be used for top N downsampling. Default is 10.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>timeline.metrics.downsampler.topn.function</name>
+    <value>max</value>
+    <description>
+      Top N function for to be used for top N downsampling (avg/max/sum)
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
