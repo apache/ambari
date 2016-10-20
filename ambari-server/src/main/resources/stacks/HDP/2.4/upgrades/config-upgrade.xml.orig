@@ -66,32 +66,6 @@
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_4_0_0_hive_server_restore_transport_mode_on_downgrade">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10000</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10001</value>
-            </condition>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db">
             <type>ranger-hive-audit</type>
             <transfer operation="delete" delete-key="xasecure.audit.destination.db" />
@@ -208,11 +182,6 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
-          <definition xsi:type="configure" id="hdp_2_5_0_0_add_protocol_compatibility">
-            <type>kafka-broker</type>
-            <set key="inter.broker.protocol.version" value="0.9.0.0" />
-            <set key="log.message.format.version" value="0.9.0.0" />
-          </definition>
         </changes>
       </component>
     </service>
@@ -257,6 +226,11 @@
             <transfer operation="delete" delete-key="xasecure.audit.credential.provider.file" />
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_add_protocol_compatibility">
+            <type>kafka-broker</type>
+            <set key="inter.broker.protocol.version" value="0.9.0.0" />
+            <set key="log.message.format.version" value="0.9.0.0" />
+          </definition>
         </changes>
       </component>
     </service>
@@ -282,7 +256,7 @@
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
 
-
+          
           <definition xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0">
             <type>storm-site</type>
             <replace key="_storm.thrift.nonsecure.transport" find="backtype.storm.security.auth.SimpleTransportPlugin"
@@ -309,23 +283,12 @@
                      replace-with="org.apache.storm.security.auth.KerberosPrincipalToLocal" />
             <set key="client.jartransformer.class" value="org.apache.storm.hack.StormShadeTransformer" />
           </definition>
-          
+
           <definition xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs">
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.impersonation.authorizer</key>
-              <value>org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer</value>
-            </condition>
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.impersonation.acl</key>
-              <value>"{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}"</value>
-            </condition>
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>storm-site</type>
-              <key>nimbus.admins</key>
-              <value>"['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']"</value>
-            </condition>
+            <type>storm-site</type>
+            <set key="nimbus.impersonation.authorizer" value="org.apache.storm.security.auth.authorizer.ImpersonationAuthorizer" if-type="cluster-env" if-key="security_enabled" if-value="true" />
+            <set key="nimbus.impersonation.acl" value="{ {{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}" if-type="cluster-env" if-key="security_enabled" if-value="true" />
+            <set key="nimbus.admins" value="['{{storm_bare_jaas_principal}}', '{{ambari_bare_jaas_principal}}']" if-type="cluster-env" if-key="security_enabled" if-value="true" />
           </definition>
 
           <!-- All of these configs are present in Atlas' application.properties file instead and then copied to the hook's atlas-application.properties file. -->
@@ -381,26 +344,6 @@
         </changes>
       </component>
     </service>
-
-    <service name="SPARK">
-      <component name="SPARK_JOBHISTORYSERVER">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_5_0_0_spark_jobhistoryserver">
-            <type>spark-defaults</type>
-            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-          </definition>
-        </changes>
-      </component>
-      <component name="SPARK_CLIENT">
-        <changes>
-          <definition xsi:type="configure" id="hdp_2_5_0_0_spark_client">
-            <type>spark-defaults</type>
-            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
-          </definition>
-        </changes>
-      </component>
-    </service>
-
   </services>
 
 </upgrade-config-changes>

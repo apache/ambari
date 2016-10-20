@@ -503,18 +503,12 @@
           <message>-- If keytabs are managed manually, create the required ranger keytabs in the locations specified in ranger config and restart Ranger components.</message>
         </task>
       </execute-stage>
-
+      
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Kafka Property Removal">
         <task xsi:type="manual">
           <message>Kafka Brokers have been upgraded with version compatability.</message>
           <message>Config property "inter.broker.protocol.version" should be removed at your convenience.</message>
           <message>Config property "log.message.format.version" should be removed when all clients have been upgraded.</message>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER" title="Hive Server Port Change">
-        <task xsi:type="manual">
-          <message>If there are users or applications using URLS that specify the Hive Server port number, they will now fail to connect. You can restore the port back to its original value after the upgrade has been finalized.</message>
         </task>
       </execute-stage>
 
@@ -653,7 +647,7 @@
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
-
+      
       <component name="NFS_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task" />
@@ -825,22 +819,9 @@
           <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_hive_audit_db" />
           <task xsi:type="server_action" summary="Update hive-env content" class="org.apache.ambari.server.serveraction.upgrades.HiveEnvClasspathAction"/>
 
-          <task xsi:type="manual">
-            <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10010 if Hive is using a binary transfer mode or 10011 if Hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
-          </task>
-
-          <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_set_transport_mode"/>
         </pre-upgrade>
 
-        <pre-downgrade>
-          <task xsi:type="manual">
-            <summary>HiveServer Port Availability</summary>
-            <message>Please note that the HiveServer port will now change to 10000 if Hive is using a binary transfer mode or 10001 if Hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
-          </task>
-
-          <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_restore_transport_mode_on_downgrade" />
-        </pre-downgrade>
+        <pre-downgrade/>
 
         <upgrade>
           <task xsi:type="restart-task" />
@@ -876,9 +857,6 @@
 
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_5_0_0_spark_jobhistoryserver"/>
-        </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
         <upgrade>
           <task xsi:type="restart-task" />
@@ -891,9 +869,6 @@
         </upgrade>
       </component>
       <component name="SPARK_CLIENT">
-        <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_5_0_0_spark_client"/>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

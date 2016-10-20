@@ -370,6 +370,7 @@
             <transfer operation="delete" delete-key="spark.yarn.services" />
             <transfer operation="delete" delete-key="spark.driver.extraJavaOptions" />
             <transfer operation="delete" delete-key="spark.yarn.am.extraJavaOptions" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
             <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
           </definition>
           <definition xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts">
@@ -384,6 +385,7 @@
             <type>spark-defaults</type>
             <transfer operation="delete" delete-key="spark.driver.extraJavaOptions" />
             <transfer operation="delete" delete-key="spark.yarn.am.extraJavaOptions" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
           </definition>
           <definition xsi:type="configure" id="hdp_2_4_0_0_spark_java_opts">
             <type>spark-javaopts-properties</type>
