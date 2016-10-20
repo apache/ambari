@@ -256,7 +256,7 @@
             <transfer operation="delete" delete-key="xasecure.audit.destination.db.batch.filespool.dir" />
           </definition>
 
-          
+
           <definition xsi:type="configure" id="hdp_2_5_0_0_upgrade_storm_1.0">
             <type>storm-site</type>
             <replace key="_storm.thrift.nonsecure.transport" find="backtype.storm.security.auth.SimpleTransportPlugin"
@@ -344,6 +344,26 @@
         </changes>
       </component>
     </service>
+
+    <service name="SPARK">
+      <component name="SPARK_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark_jobhistoryserver">
+            <type>spark-defaults</type>
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK_CLIENT">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_spark_client">
+            <type>spark-defaults</type>
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
   </services>
 
 </upgrade-config-changes>
