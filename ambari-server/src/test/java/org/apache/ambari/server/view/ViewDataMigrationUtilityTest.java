@@ -18,7 +18,6 @@
 package org.apache.ambari.server.view;
 
 import junit.framework.Assert;
-import org.apache.ambari.server.api.services.ViewDataMigrationService;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.view.migration.ViewDataMigrationContext;
@@ -34,8 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.easymock.EasyMock.*;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
 
 /**
  * ViewDataMigrationUtility Tests.

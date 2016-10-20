@@ -711,10 +711,7 @@ public class ViewRegistry {
               targetInstanceEntity.getName());
     List<PrivilegeEntity> targetInstancePrivileges = privilegeDAO.findByResourceId(targetInstanceEntity.getResource().getId());
     if (targetInstancePrivileges.size() > 0) {
-      LOG.warn("Old privileges will be removed for " + targetInstanceEntity.getName());
-      for (PrivilegeEntity privilegeEntity : targetInstancePrivileges) {
-        removePrivilegeEntity(privilegeEntity);
-      }
+      LOG.warn("Target instance {} already has privileges assigned, these will not be deleted. Manual clean up may be needed",targetInstanceEntity.getName());
     }
 
     List<PrivilegeEntity> sourceInstancePrivileges = privilegeDAO.findByResourceId(sourceInstanceEntity.getResource().getId());
@@ -723,9 +720,14 @@ public class ViewRegistry {
       targetPrivilege.setPrincipal(sourcePrivilege.getPrincipal());
       targetPrivilege.setResource(targetInstanceEntity.getResource());
       targetPrivilege.setPermission(sourcePrivilege.getPermission());
-      privilegeDAO.create(targetPrivilege);
+      try {
+        privilegeDAO.create(targetPrivilege);
+        targetPrivilege.getPrincipal().getPrivileges().add(sourcePrivilege);
+      } catch (Exception e){
+        LOG.warn("Could not migrate privilege {} ",targetPrivilege);
+        LOG.error("Caught exception",e);
+      }
 
-      targetPrivilege.getPrincipal().getPrivileges().add(sourcePrivilege);
     }
   }
 
