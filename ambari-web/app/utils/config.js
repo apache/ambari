@@ -1254,14 +1254,15 @@ App.config = Em.Object.create({
    */
   createMinifiedConfig: function (configProperty) {
     if (configProperty instanceof Ember.Object) {
-      return configProperty.getProperties('name', 'filename', 'serviceName', 'value', 'isFinal');
+      return configProperty.getProperties('name', 'filename', 'serviceName', 'value', 'isFinal', 'isRequiredByAgent');
     }
     return {
       name: configProperty.name,
       filename: configProperty.filename,
       serviceName: configProperty.serviceName,
       value: configProperty.value,
-      isFinal: configProperty.isFinal
+      isFinal: configProperty.isFinal,
+      isRequiredByAgent: configProperty.isRequiredByAgent
     }
   },
 
