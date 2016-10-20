@@ -243,13 +243,14 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   public void testSingleDispatch() throws Exception {
     MockSnmpDispatcher dispatcher = new MockSnmpDispatcher();
 
-    List<AlertNoticeEntity> notices = getSingleMockNotice(dispatcher.getType());
-    AlertNoticeEntity notice = notices.get(0);
+    List<AlertNoticeEntity> notices = getSnmpMockNotices();
+    AlertNoticeEntity notice1 = notices.get(0);
+    AlertNoticeEntity notice2 = notices.get(1);
 
-    EasyMock.expect(m_dao.findPendingNotices()).andReturn(getSnmpMockNotices()).once();
-    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
-    EasyMock.expect(m_dispatchFactory.getDispatcher("SNMP")).andReturn(
-        dispatcher).atLeastOnce();
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
+    EasyMock.expect(m_dao.merge(notice1)).andReturn(notice1).once();
+    EasyMock.expect(m_dao.merge(notice2)).andReturn(notice2).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher("SNMP")).andReturn(dispatcher).atLeastOnce();
 
     EasyMock.replay(m_dao, m_dispatchFactory);
 
