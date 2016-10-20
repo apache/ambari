@@ -259,18 +259,14 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
       int sbBaseLen = sb.length();
 
-      Collection<AbstractMetric> metrics = (Collection<AbstractMetric>) record.metrics();
-
       List<TimelineMetric> metricList = new ArrayList<TimelineMetric>();
       Map<String, String> metadata = null;
       if (skipAggregation) {
         metadata = Collections.singletonMap("skipAggregation", "true");
       }
-
-
       long startTime = record.timestamp();
 
-      for (AbstractMetric metric : metrics) {
+      for (AbstractMetric metric : record.metrics()) {
         sb.append(metric.name());
         String name = sb.toString();
         Number value = metric.value();
