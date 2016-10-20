@@ -52,6 +52,7 @@ import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -61,7 +62,6 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
 import junit.framework.Assert;
-import org.junit.experimental.categories.Category;
 
 /**
  * Tests that {@link AlertStateChangeEvent} instances cause
@@ -134,8 +134,9 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
         dispatchDao.findGroupsByDefinition(EasyMock.anyObject(AlertDefinitionEntity.class))).andReturn(
         groups).once();
 
-    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
-    EasyMock.expectLastCall().once();
+    EasyMock.expect(
+        dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
+            new ArrayList<AlertNoticeEntity>()).once();
 
     AlertDefinitionEntity definition = getMockAlertDefinition();
 
@@ -504,7 +505,9 @@ public class AlertStateChangedEventTest extends EasyMockSupport {
     EasyMock.expect(definition.getLabel()).andReturn("ambari-foo-alert").anyTimes();
     EasyMock.expect(definition.getDescription()).andReturn("Ambari Foo Alert").anyTimes();
 
-    dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject());
+    EasyMock.expect(
+        dispatchDao.createNotices((List<AlertNoticeEntity>) EasyMock.anyObject())).andReturn(
+            new ArrayList<AlertNoticeEntity>()).once();
 
     AlertCurrentEntity current = getMockedAlertCurrentEntity();
     AlertHistoryEntity history = createNiceMock(AlertHistoryEntity.class);
