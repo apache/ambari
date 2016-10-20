@@ -25,11 +25,6 @@
     <on-ambari-upgrade add="false"/>
   </property>
   <property>
-    <name>spark.yarn.max.executor.failures</name>
-    <deleted>true</deleted>
-    <on-ambari-upgrade add="false"/>
-  </property>
-  <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.history.FsHistoryProvider</value>
     <description>Name of history provider class</description>
