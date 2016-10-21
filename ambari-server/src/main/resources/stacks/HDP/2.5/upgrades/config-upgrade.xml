@@ -59,6 +59,20 @@
             <transfer operation="delete" delete-key="storm.topology.submission.notifier.plugin.class" if-key="storm.topology.submission.notifier.plugin.class"
                       if-type="storm-site" if-value=" "/>
           </definition>
+          <definition xsi:type="configure" id="increase_storm_zookeeper_timeouts"
+                      summary="Increase storm.zookeeper.session.timeout and storm.zookeeper.connection.timeout property">
+            <type>storm-site</type>
+            <set key="storm.zookeeper.session.timeout"
+                 value="30000"
+                 if-key="storm.zookeeper.session.timeout"
+                 if-type="storm-site"
+                 if-value="20000" />
+            <set key="storm.zookeeper.connection.timeout"
+                 value="30000"
+                 if-key="storm.zookeeper.connection.timeout"
+                 if-type="storm-site"
+                 if-value="15000" />
+          </definition>
         </changes>
       </component>
     </service>

@@ -394,6 +394,10 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
       </execute-stage>
 
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
+      </execute-stage>
+
       <!-- KAFKA -->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka Broker">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kafka_audit_db"/>

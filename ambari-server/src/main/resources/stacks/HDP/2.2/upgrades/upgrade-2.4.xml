@@ -927,6 +927,8 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
+
+          <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>

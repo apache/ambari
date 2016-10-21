@@ -682,6 +682,9 @@
           <task xsi:type="manual">
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
+
+          <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
+
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
