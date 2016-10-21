@@ -242,6 +242,10 @@
           <summary>Adjusting Oozie properties</summary>
         </task>
       </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
+      </execute-stage>
     </group>
 
     <!--

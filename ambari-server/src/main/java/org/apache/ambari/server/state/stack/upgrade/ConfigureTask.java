@@ -298,7 +298,7 @@ public class ConfigureTask extends ServerSideActionTask {
 
   /**
    * Sanity check for invalid attribute settings on if-key, if-value, if-key-state, if-site
-   * Regardless whether it's set, transfrer, or replace, the condition attributres are the same
+   * Regardless whether it's set, transfer, or replace, the condition attributes are the same
    * So the same logic can be used to determine if the operation is allowed or not.
    * */
   private boolean isValidConditionSettings(Cluster cluster, String configType, String targetPropertyKey,
