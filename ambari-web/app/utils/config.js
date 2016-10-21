@@ -1210,16 +1210,18 @@ App.config = Em.Object.create({
    * Merge values in "stored" to "base" if name matches, it's a value only merge.
    * @param base {Array} Em.Object
    * @param stored {Array} Object
+   * @returns {Object[]|Em.Object[]} base
    */
   mergeStoredValue: function(base, stored) {
     if (stored) {
       base.forEach(function (p) {
-        var sp = stored.filterProperty("filename", p.filename).findProperty("name", p.name);
+        var sp = stored.filterProperty('filename', p.filename).findProperty('name', p.name);
         if (sp) {
-          p.set("value", sp.value);
+          Em.set(p, 'value', Em.get(sp, 'value'));
         }
       });
     }
+    return base;
   },
 
 
@@ -1244,10 +1246,10 @@ App.config = Em.Object.create({
     }
     return false;
   },
-  
+
   /**
-   * creates config object with non static properties like 
-   * 'value', 'isFinal', 'errorMessage' and 
+   * creates config object with non static properties like
+   * 'value', 'isFinal', 'errorMessage' and
    * 'id', 'name', 'filename',
    * @param configProperty
    * @returns {Object}
