@@ -259,7 +259,10 @@ service_check_data = functions.get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 hadoop_user = "hadoop"
 
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 kinit_cmd = ""
+klist_path_local = functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
+klist_cmd = ""
 
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
@@ -283,6 +286,8 @@ if security_enabled:
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
+  kinit_cmd = '%s -kt %s %s' % (kinit_path_local, config['configurations']['ams-hbase-security-site']['ams.monitor.keytab'], config['configurations']['ams-hbase-security-site']['ams.monitor.principal'].replace('_HOST',_hostname_lowercase))
+  klist_cmd = '%s' % klist_path_local
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):
   hbase_log4j_props = config['configurations']['ams-hbase-log4j']['content']
@@ -305,7 +310,6 @@ hbase_staging_dir = default("/configurations/ams-hbase-site/hbase.bulkload.stagi
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 
 
