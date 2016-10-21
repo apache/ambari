@@ -32,6 +32,8 @@ import org.apache.ambari.server.audit.event.request.ViewPrivilegeChangeRequestAu
 import org.apache.ambari.server.controller.internal.ViewPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -85,7 +87,6 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
 
     Map<String, List<String>> users = getEntities(request, PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
     Map<String, List<String>> groups = getEntities(request, PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
-    Map<String, List<String>> roles = getEntities(request, PrincipalTypeEntity.ROLE_PRINCIPAL_TYPE_NAME);
 
     return ViewPrivilegeChangeRequestAuditEvent.builder()
       .withTimestamp(System.currentTimeMillis())
@@ -98,7 +99,6 @@ public class ViewPrivilegeEventCreator implements RequestAuditEventCreator {
       .withName(RequestAuditEventCreatorHelper.getProperty(request, ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID))
       .withUsers(users)
       .withGroups(groups)
-      .withRoles(roles)
       .build();
 
   }

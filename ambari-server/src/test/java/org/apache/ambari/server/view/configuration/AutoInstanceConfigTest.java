@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,8 +22,9 @@ import junit.framework.Assert;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -74,7 +75,7 @@ public class AutoInstanceConfigTest {
       "        </property>\n" +
       "        <stack-id>HDP-2.0</stack-id>\n" +
       "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
-      "        <roles><role>CLUSTER.OPERATOR </role><role> CLUSTER.USER</role></roles>\n" +
+      "        <permissions>ALL.CLUSTER.OPERATOR, ALL.CLUSTER.USER</permissions>\n" +
       "    </auto-instance>\n" +
       "</view>";
 
@@ -112,13 +113,13 @@ public class AutoInstanceConfigTest {
   @Test
   public void shouldParseClusterInheritedPermissions() throws Exception {
     AutoInstanceConfig config = getAutoInstanceConfigs(VIEW_XML);
-    Collection<String> roles = config.getRoles();
-    assertEquals(2, roles.size());
-    assertTrue(roles.contains("CLUSTER.OPERATOR"));
-    assertTrue(roles.contains("CLUSTER.USER"));
+    List<String> permissions = config.getPermissions();
+    assertEquals(2, permissions.size());
+    assertTrue(permissions.contains("ALL.CLUSTER.OPERATOR"));
+    assertTrue(permissions.contains("ALL.CLUSTER.USER"));
   }
 
-  private static AutoInstanceConfig getAutoInstanceConfigs(String xml) throws JAXBException {
+  public static AutoInstanceConfig getAutoInstanceConfigs(String xml) throws JAXBException {
     ViewConfig config = ViewConfigTest.getConfig(xml);
     return config.getAutoInstance();
   }

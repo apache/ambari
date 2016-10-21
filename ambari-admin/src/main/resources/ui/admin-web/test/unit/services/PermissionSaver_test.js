@@ -178,13 +178,11 @@ describe('PermissionSaver Service', function () {
           'PermissionInfo': {
             permission_name: 'VIEW.USER'
           },
-          'ROLE': {
-            'CLUSTER.ADMINISTRATOR': true,
-            'CLUSTER.OPERATOR': false,
-            'SERVICE.OPERATOR': false,
-            'SERVICE.ADMINISTRATOR': false,
-            'CLUSTER.USER': false
-          },
+          'ALL.CLUSTER.ADMINISTRATOR': true,
+          'ALL.CLUSTER.OPERATOR': false,
+          'ALL.SERVICE.OPERATOR': false,
+          'ALL.SERVICE.ADMINISTRATOR': false,
+          'ALL.CLUSTER.USER': false,
           'USER': ['u0', 'u1', 'g0'],
           'GROUP': ['g0', 'g1', 'u0']
         }
@@ -235,8 +233,8 @@ describe('PermissionSaver Service', function () {
         {
           PrivilegeInfo: {
             permission_name: 'VIEW.USER',
-            principal_name: 'CLUSTER.ADMINISTRATOR',
-            principal_type: 'ROLE'
+            principal_name: '*',
+            principal_type: 'ALL.CLUSTER.ADMINISTRATOR'
           }
         }
       ];

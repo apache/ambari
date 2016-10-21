@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -26,23 +28,26 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.GroupDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ClusterInheritedPermissionHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.UserType;
-import org.apache.ambari.server.security.authorization.Users;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,17 +59,17 @@ import java.util.Set;
  */
 public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
-  protected static final String PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID;
+  protected static final String PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID    = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID;
   protected static final String PRIVILEGE_PERMISSION_NAME_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID;
   protected static final String PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID;
-  protected static final String PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID = PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID = PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID;
-  protected static final String PRIVILEGE_VIEW_NAME_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_VIEW_VERSION_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID;
-  protected static final String PRIVILEGE_INSTANCE_NAME_PROPERTY_ID = ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_CLUSTER_NAME_PROPERTY_ID = ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
-  protected static final String PRIVILEGE_TYPE_PROPERTY_ID = AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID;
-  protected static final String PRIVILEGE_USER_NAME_PROPERTY_ID = "PrivilegeInfo/user_name";
+  protected static final String PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID  = PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID;
+  protected static final String PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID  = PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID;
+  protected static final String PRIVILEGE_VIEW_NAME_PROPERTY_ID       = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID;
+  protected static final String PRIVILEGE_VIEW_VERSION_PROPERTY_ID    = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID;
+  protected static final String PRIVILEGE_INSTANCE_NAME_PROPERTY_ID   = ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID;
+  protected static final String PRIVILEGE_CLUSTER_NAME_PROPERTY_ID    = ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID;
+  protected static final String PRIVILEGE_TYPE_PROPERTY_ID            = AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID;
+  protected static final String PRIVILEGE_USER_NAME_PROPERTY_ID       = "PrivilegeInfo/user_name";
 
   /**
    * Data access object used to obtain user entities.
@@ -87,9 +92,9 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   protected static ViewInstanceDAO viewInstanceDAO;
 
   /**
-   * Helper to obtain privilege data for requested users
+   * DAO used to obtain privilege entities.
    */
-  private static Users users;
+  protected static PrivilegeDAO privilegeDAO;
 
   /**
    * The property ids for a privilege resource.
@@ -115,15 +120,15 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * @param clusterDAO      the cluster data access object
    * @param groupDAO        the group data access object
    * @param viewInstanceDAO the view instance data access object
-   * @param users           the Users helper object
+   * @param privilegeDAO
    */
   public static void init(UserDAO userDAO, ClusterDAO clusterDAO, GroupDAO groupDAO,
-                          ViewInstanceDAO viewInstanceDAO, Users users) {
+                          ViewInstanceDAO viewInstanceDAO, PrivilegeDAO privilegeDAO) {
     UserPrivilegeResourceProvider.userDAO         = userDAO;
     UserPrivilegeResourceProvider.clusterDAO      = clusterDAO;
     UserPrivilegeResourceProvider.groupDAO        = groupDAO;
     UserPrivilegeResourceProvider.viewInstanceDAO = viewInstanceDAO;
-    UserPrivilegeResourceProvider.users           = users;
+    UserPrivilegeResourceProvider.privilegeDAO    = privilegeDAO;
   }
 
   @SuppressWarnings("serial")
@@ -194,7 +199,15 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
           throw new SystemException("User " + userName + " was not found");
         }
 
-        final Collection<PrivilegeEntity> privileges = users.getUserPrivileges(userEntity);
+        final Set<PrivilegeEntity> privileges = userEntity.getPrincipal().getPrivileges();
+
+        for (MemberEntity membership : userEntity.getMemberEntities()) {
+          privileges.addAll(membership.getGroup().getPrincipal().getPrivileges());
+        }
+
+        Set<PrivilegeEntity> allViewPrivilegesWithClusterPermission =
+          ClusterInheritedPermissionHelper.getViewPrivilegesWithClusterPermission(viewInstanceDAO, privilegeDAO, privileges);
+        privileges.addAll(allViewPrivilegesWithClusterPermission);
 
         for (PrivilegeEntity privilegeEntity : privileges) {
           resources.add(toResource(privilegeEntity, userName, requestedIds));

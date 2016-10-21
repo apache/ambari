@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -86,6 +86,7 @@ import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ClusterInheritedPermissionHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
@@ -121,6 +122,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
 
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -1794,7 +1796,7 @@ public class ViewRegistry {
     }
 
     List<String> services = autoInstanceConfig.getServices();
-    Collection<String> roles = autoInstanceConfig.getRoles();
+    List<String> permissions = autoInstanceConfig.getPermissions();
 
     Map<String, org.apache.ambari.server.state.Cluster> allClusters = clustersProvider.get().getClusters();
     for (org.apache.ambari.server.state.Cluster cluster : allClusters.values()) {
@@ -1812,7 +1814,7 @@ public class ViewRegistry {
             ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoInstanceConfig);
             viewInstanceEntity.setClusterHandle(clusterId);
             installViewInstance(viewInstanceEntity);
-            setViewInstanceRoleAccess(viewInstanceEntity, roles);
+            addClusterInheritedPermissions(viewInstanceEntity, permissions);
           }
         } catch (Exception e) {
           LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
@@ -1823,45 +1825,40 @@ public class ViewRegistry {
   }
 
   /**
-   * Set access to the a particular view instance based on a set of roles.
-   * <p>
-   * View access to the specified view instances will be granted to anyone directly or indirectly
-   * assigned to one of the roles in the suppled set of role names.
-   *
-   * @param viewInstanceEntity a view instance entity
-   * @param roles the set of roles to use to for granting access
+   * Validates principalTypes and creates privilege entities for each permission type for the view instance entity
+   * resource.
+   * @param viewInstanceEntity - view instance entity for which permission has to be set.
+   * @param principalTypes - list of cluster inherited principal types
    */
   @Transactional
-  protected void setViewInstanceRoleAccess(ViewInstanceEntity viewInstanceEntity, Collection<String> roles) {
-    if ((roles != null) && !roles.isEmpty()) {
-      PermissionEntity permissionViewUser = permissionDAO.findViewUsePermission();
+  private void addClusterInheritedPermissions(ViewInstanceEntity viewInstanceEntity, List<String> principalTypes) {
+    List<String> validPermissions = FluentIterable.from(principalTypes)
+      .filter(ClusterInheritedPermissionHelper.validPrincipalTypePredicate)
+      .toList();
 
-      if (permissionViewUser == null) {
-        LOG.error("Missing the {} role.  Access to view cannot be set.",
-            PermissionEntity.VIEW_USER_PERMISSION_NAME, viewInstanceEntity.getName());
-      } else {
-        for (String role : roles) {
-          PermissionEntity permissionRole = permissionDAO.findByName(role);
+    for(String permission: validPermissions) {
+      addClusterInheritedPermission(viewInstanceEntity, permission);
+    }
+  }
 
-          if (permissionRole == null) {
-            LOG.warn("Invalid role {} encountered while setting access to view {}, Ignoring.",
-                role, viewInstanceEntity.getName());
-          } else {
-            PrincipalEntity principalRole = permissionRole.getPrincipal();
+  private void addClusterInheritedPermission(ViewInstanceEntity viewInstanceEntity, String principalType) {
+    ResourceEntity resource = viewInstanceEntity.getResource();
+    List<PrincipalEntity> principals = principalDAO.findByPrincipalType(principalType);
+    if (principals.size() == 0) {
+      LOG.error("Failed to find principal for principal type '{}'", principalType);
+      return;
+    }
 
-            if (principalRole == null) {
-              LOG.warn("Missing principal ID for role {} encountered while setting access to view {}. Ignoring.",
-                  role, viewInstanceEntity.getName());
-            } else {
-              PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-              privilegeEntity.setPermission(permissionViewUser);
-              privilegeEntity.setPrincipal(principalRole);
-              privilegeEntity.setResource(viewInstanceEntity.getResource());
-              privilegeDAO.create(privilegeEntity);
-            }
-          }
-        }
-      }
+    PrincipalEntity principal = principals.get(0); // There will be only one principal associated with the principal type
+    PermissionEntity permission = permissionDAO.findViewUsePermission();
+
+    if (!privilegeDAO.exists(principal, resource, permission)) {
+      PrivilegeEntity privilege = new PrivilegeEntity();
+      privilege.setPrincipal(principal);
+      privilege.setResource(resource);
+      privilege.setPermission(permission);
+
+      privilegeDAO.create(privilege);
     }
   }
 

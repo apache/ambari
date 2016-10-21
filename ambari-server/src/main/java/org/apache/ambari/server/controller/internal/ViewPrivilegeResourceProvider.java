@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -191,10 +191,8 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   protected Resource toResource(PrivilegeEntity privilegeEntity,
                                 Map<Long, UserEntity> userEntities,
                                 Map<Long, GroupEntity> groupEntities,
-                                Map<Long, PermissionEntity> roleEntities,
-                                Map<Long, ViewInstanceEntity> resourceEntities,
-                                Set<String> requestedIds) {
-    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, requestedIds);
+                                Map<Long, ViewInstanceEntity> resourceEntities, Set<String> requestedIds) {
+    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
     if (resource != null) {
 
       ViewInstanceEntity viewInstanceEntity = resourceEntities.get(privilegeEntity.getResource().getId());

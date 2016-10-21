@@ -1,4 +1,4 @@
-/*
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -22,7 +22,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
@@ -149,10 +148,8 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
   protected Resource toResource(PrivilegeEntity privilegeEntity,
                                 Map<Long, UserEntity> userEntities,
                                 Map<Long, GroupEntity> groupEntities,
-                                Map<Long, PermissionEntity> roleEntities,
-                                Map<Long, Object> resourceEntities,
-                                Set<String> requestedIds) {
-    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, requestedIds);
+                                Map<Long, Object> resourceEntities, Set<String> requestedIds) {
+    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
     if (resource != null) {
       ResourceEntity resourceEntity = privilegeEntity.getResource();
       ResourceTypeEntity type = resourceEntity.getResourceType();
