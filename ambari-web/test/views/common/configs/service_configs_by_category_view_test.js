@@ -312,7 +312,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
           filteredCategoryConfigs: Em.K,
           collapseCategory: Em.K
         });
-        view.setCategoryConfigs();
+        view.setCategoryConfigsAll();
         view.setVisibleCategoryConfigs();
         expect(view.get('categoryConfigs').mapProperty('resultId')).to.deep.equal(result);
         view.destroy();

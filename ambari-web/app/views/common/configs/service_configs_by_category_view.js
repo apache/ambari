@@ -48,13 +48,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   serviceConfigs: null,
 
   /**
-   * Configs for current category filtered by <code>isVisible</code>
-   * and sorted by <code>displayType</code> and <code>index</code>
-   * @type {App.ServiceConfigProperty[]}
-   */
-  categoryConfigs: [],
-
-  /**
    * This is array of all the properties which apply
    * to this category, irrespective of visibility. This
    * is helpful in Oozie/Hive database configuration, where
@@ -64,9 +57,20 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   categoryConfigsAll: [],
 
+  /**
+   * Configs for current category filtered by <code>isVisible</code>
+   * and sorted by <code>displayType</code> and <code>index</code>
+   * @type {App.ServiceConfigProperty[]}
+   */
+  categoryConfigs: [],
+
   didInsertElement: function () {
     var self = this;
-    this.setCategoryConfigs();
+    // If `this.categoryConfigsAll` is a computed property then don't set it.
+    // some extended class like `App.NotificationsConfigsView` overrides `categoryConfigsAll` as computed property
+    if ($.isArray(this.categoryConfigsAll)) {
+      this.setCategoryConfigsAll();
+    }
     this.setVisibleCategoryConfigs();
     var isCollapsed = this.calcIsCollapsed();
     this.set('category.isCollapsed', isCollapsed);
@@ -94,7 +98,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     Em.run.once(this, 'addConfigToCategoryConfigs');
   }.observes('categoryConfigsAll.@each.isVisible'),
 
-  setCategoryConfigs: function () {
+  setCategoryConfigsAll: function () {
+    // reset `categoryConfigsAll` to empty array
+    this.set('categoryConfigsAll', []);
     var categoryConfigsAll = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
     if (categoryConfigsAll && categoryConfigsAll.length) {
       this.set('categoryConfigsAll',categoryConfigsAll);
