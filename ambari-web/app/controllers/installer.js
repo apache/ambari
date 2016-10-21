@@ -555,13 +555,6 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Load serviceConfigProperties to model
-   */
-  loadServiceConfigProperties: function () {
-    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-  /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
    */
@@ -1004,12 +997,18 @@ App.InstallerController = App.WizardController.extend({
       {
         type: 'async',
         callback: function () {
-          this.loadServiceConfigGroups();
-          this.loadServiceConfigProperties();
-          this.loadCurrentHostGroups();
-          this.loadRecommendationsConfigs();
-          this.loadComponentsFromConfigs();
-          return this.loadConfigThemes();
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadServiceConfigProperties().always(function() {
+            self.loadServiceConfigGroups();
+            self.loadCurrentHostGroups();
+            self.loadRecommendationsConfigs();
+            self.loadComponentsFromConfigs();
+            self.loadConfigThemes().then(function() {
+              dfd.resolve();
+            });
+          });
+          return dfd.promise();
         }
       }
     ]
@@ -1036,6 +1035,7 @@ App.InstallerController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('0');
     this.clearStorageData();
+    this.clearServiceConfigProperties();
     App.router.get('userSettingsController').postUserPref('show_bg', true);
   },
 

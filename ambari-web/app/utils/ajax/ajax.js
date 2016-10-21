@@ -2151,6 +2151,27 @@ var urls = {
     'mock': '/data/requests/host_check/1.json'
   },
 
+  'persist.get': {
+    'real': '/persist/{key}',
+    'mock': '',
+    'type': 'GET',
+    'format': function() {
+      return {
+        dataType: 'text'
+      }
+    }
+  },
+  'persist.put': {
+    'real': '/persist',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.keyValuePair)
+      }
+    }
+  },
+
   'wizard.step3.rerun_checks': {
     'real': '/hosts?fields=Hosts/last_agent_env',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',

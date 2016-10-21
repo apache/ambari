@@ -23,6 +23,7 @@ require('mixins/common/blueprint');
 require('mixins/common/kdc_credentials_controller_mixin');
 require('mixins/common/localStorage');
 require('mixins/common/infinite_scroll_mixin');
+require('mixins/common/persist_mixin');
 require('mixins/common/userPref');
 require('mixins/common/reload_popup');
 require('mixins/common/serverValidator');

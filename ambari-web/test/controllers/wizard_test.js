@@ -1052,14 +1052,18 @@ describe('App.WizardController', function () {
 
     beforeEach(function () {
       c.set('content', {});
+      sinon.stub(c, 'setDBProperty', Em.K);
       sinon.stub(c, 'setDBProperties', Em.K);
       sinon.stub(c, 'getDBProperty').withArgs('fileNamesToUpdate').returns([]);
+      sinon.stub(c, 'setPersistentProperty', Em.K);
       sinon.stub(App.config, 'shouldSupportFinal').returns(true);
     });
 
     afterEach(function () {
+      c.setDBProperty.restore();
       c.setDBProperties.restore();
       c.getDBProperty.restore();
+      c.setPersistentProperty.restore();
       App.config.shouldSupportFinal.restore();
     });
 

@@ -198,7 +198,6 @@ module.exports = App.WizardRoute.extend({
           addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
           addServiceController.get('content').set('serviceConfigProperties', null);
           addServiceController.setDBProperties({
-            serviceConfigProperties: null,
             groupsToDelete: null,
             recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
             recommendationsConfigs: null
@@ -206,7 +205,9 @@ module.exports = App.WizardRoute.extend({
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.get('wizardStep7Controller').clearAllRecommendations();
           addServiceController.setDBProperty('serviceConfigGroups', undefined);
-          router.transitionTo('step4');
+          addServiceController.clearServiceConfigProperties().always(function() {
+            router.transitionTo('step4');
+          });
         });
       });
     }
@@ -248,14 +249,15 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var addServiceController = router.get('addServiceController');
       var wizardStep7Controller = router.get('wizardStep7Controller');
-      addServiceController.saveServiceConfigProperties(wizardStep7Controller);
       addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
-      if (App.get('isKerberosEnabled')) {
-        addServiceController.clearCachedStepConfigValues(router.get('kerberosWizardStep4Controller'));
-        router.transitionTo('step5');
-        return;
-      }
-      router.transitionTo('step6');
+      addServiceController.saveServiceConfigProperties(wizardStep7Controller).always(function() {
+        if (App.get('isKerberosEnabled')) {
+          addServiceController.clearCachedStepConfigValues(router.get('kerberosWizardStep4Controller'));
+          router.transitionTo('step5');
+          return;
+        }
+        router.transitionTo('step6');
+      });
     }
   }),
 

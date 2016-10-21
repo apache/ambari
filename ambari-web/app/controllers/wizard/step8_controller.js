@@ -522,7 +522,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadHiveDbValue
    */
   loadDbValue: function (serviceName) {
-    var serviceConfigProperties = this.get('wizardController').getDBProperty('serviceConfigProperties');
+    var serviceConfigProperties = this.get('content.serviceConfigProperties');
     var dbFull = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_database');
       //db = serviceConfigProperties.findProperty('name', serviceName.toLowerCase() + '_ambari_database');
     //since db.value contains the intial default value of <service>_admin_database (MySQL) and not the actual db type selected,
