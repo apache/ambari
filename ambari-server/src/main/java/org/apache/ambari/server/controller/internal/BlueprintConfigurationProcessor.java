@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -2167,16 +2167,17 @@ public class BlueprintConfigurationProcessor {
       String[] keyValuePairs = origValue.split(",");
       boolean firstValue = true;
       for (String keyValuePair : keyValuePairs) {
+        keyValuePair = keyValuePair.trim();
         if (!firstValue) {
           updatedResult.append(",");
         } else {
           firstValue = false;
         }
 
-        String key = keyValuePair.split("=")[0];
+        String key = keyValuePair.split("=")[0].trim();
         if (mapOfKeysToUpdaters.containsKey(key)) {
           String result = mapOfKeysToUpdaters.get(key).updateForClusterCreate(
-              key, keyValuePair.split("=")[1], properties, topology);
+              key, keyValuePair.split("=")[1].trim(), properties, topology);
           // append the internal property result, escape out any commas in the internal property,
           // this is required due to the specific syntax of templeton.hive.properties
           updatedResult.append(key);
