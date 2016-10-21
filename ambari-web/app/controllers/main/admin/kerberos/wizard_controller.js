@@ -139,14 +139,6 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     this.set('content.kerberosOption', stepController.get('selectedItem'));
   },
 
-  /**
-   * Load serviceConfigProperties to model
-   */
-  loadServiceConfigProperties: function () {
-    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-
   loadKerberosDescriptorConfigs: function () {
     var kerberosDescriptorConfigs = this.getDBProperty('kerberosDescriptorConfigs');
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
@@ -287,15 +279,19 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     ],
     '2': [
       {
-        type: 'sync',
+        type: 'async',
         callback: function () {
           var self = this;
-          this.loadServiceConfigProperties();
-          if (!this.get('stackConfigsLoaded')) {
-            App.config.loadConfigsFromStack(['KERBEROS']).complete(function() {
-              self.set('stackConfigsLoaded', true);
-            }, this);
-          }
+          var dfd = $.Deferred();
+          this.loadServiceConfigProperties().always(function() {
+            if (!self.get('stackConfigsLoaded')) {
+              App.config.loadConfigsFromStack(['KERBEROS']).complete(function() {
+                self.set('stackConfigsLoaded', true);
+              }, self);
+            }
+            dfd.resolve();
+          });
+          return dfd.promise();
         }
       }
     ],

@@ -900,11 +900,9 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('wizardController', Em.Object.create({
         getDBProperty: Em.K
       }));
-      this.mock = sinon.stub(installerStep8Controller.get('wizardController'), 'getDBProperty');
     });
 
     afterEach(function() {
-      this.mock.restore();
     });
 
     var tests = [
@@ -928,10 +926,10 @@ describe('App.WizardStep8Controller', function () {
 
     tests.forEach(function(test) {
       it(test.it, function() {
-        this.mock.returns(test.serviceConfigProperties);
+        installerStep8Controller.set('content.serviceConfigProperties', test.serviceConfigProperties);
         var dbComponent = installerStep8Controller.loadDbValue(test.serviceName);
         expect(dbComponent).to.equal(test.result);
-      })
+      });
     });
   });
 

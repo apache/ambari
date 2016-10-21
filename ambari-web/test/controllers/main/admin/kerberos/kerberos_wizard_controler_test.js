@@ -193,22 +193,6 @@ describe('App.KerberosWizardController', function() {
     });
   });
 
-  describe("#loadServiceConfigProperties()", function () {
-
-    beforeEach(function() {
-      sinon.stub(controller, 'getDBProperty').returns([{}]);
-    });
-
-    afterEach(function() {
-      controller.getDBProperty.restore();
-    });
-
-    it("serviceConfigProperties should be set", function() {
-      controller.loadServiceConfigProperties();
-      expect(controller.get('content.serviceConfigProperties')).to.be.eql([{}]);
-    });
-  });
-
   describe("#loadKerberosDescriptorConfigs()", function () {
 
     beforeEach(function() {

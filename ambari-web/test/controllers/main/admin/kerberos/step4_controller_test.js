@@ -147,10 +147,10 @@ describe('App.KerberosWizardStep4Controller', function() {
     before(function() {
       var controller = App.KerberosWizardStep4Controller.create({
         wizardController: {
-          getDBProperty: function() {
-            return Em.A([
+          content: {
+            serviceConfigProperties: Em.A([
               Em.Object.create({ name: 'realm', value: 'realm_value' })
-            ]);
+            ])
           },
           loadCachedStepConfigValues: function() {
             return null;
