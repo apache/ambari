@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -58,7 +58,7 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.ambari.server.utils.CollectionPresentationUtils;
+import org.apache.commons.lang.StringUtils;
 import org.easymock.EasyMockRule;
 import org.easymock.Mock;
 import org.easymock.MockType;
@@ -86,7 +86,7 @@ public class BlueprintConfigurationProcessorTest {
   public EasyMockRule mocks = new EasyMockRule(this);
 
   @Mock(type = MockType.NICE)
-  private AmbariContext ambariConext;
+  private AmbariContext ambariContext;
 
   @Mock(type = MockType.NICE)
   private Blueprint bp;
@@ -197,7 +197,7 @@ public class BlueprintConfigurationProcessorTest {
 
   @After
   public void tearDown() {
-    reset(bp, serviceInfo, stack, ambariConext);
+    reset(bp, serviceInfo, stack, ambariContext);
   }
 
   @Test
@@ -2987,56 +2987,81 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
-  public void testHiveConfigClusterUpdateDefaultValueWithMetaStoreHA() throws Exception {
-    final String expectedHostGroupName = "host_group_1";
-    final String expectedHostNameOne = "c6401.ambari.apache.org";
-    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+  public void testHivePropertiesLocalhostReplacedComma() throws Exception {
+    testHiveMetastoreHA(",");
+  }
 
-    final String expectedPropertyValue =
-        "hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false";
+  @Test
+  public void testHivePropertiesLocalhostReplacedCommaSpace() throws Exception {
+    testHiveMetastoreHA(", ");
+  }
 
-    Map<String, Map<String, String>> configProperties =
-        new HashMap<String, Map<String, String>>();
+  @Test
+  public void testHivePropertiesLocalhostReplacedSpaceComma() throws Exception {
+    testHiveMetastoreHA(" ,");
+  }
 
-    Map<String, String> webHCatSiteProperties =
-        new HashMap<String, String>();
+  @Test
+  public void testHivePropertiesLocalhostReplacedSpaceCommaSpace() throws Exception {
+    testHiveMetastoreHA(" , ");
+  }
+
+  private void testHiveMetastoreHA(String separator) throws InvalidTopologyException, ConfigurationTopologyException {
+    final String[] parts = new String[] {
+      "hive.metastore.local=false",
+      "hive.metastore.uris=" + getThriftURI("localhost"),
+      "hive.metastore.sasl.enabled=false"
+    };
+    final String[] hostNames = new String[] { "c6401.ambari.apache.org", "example.com", "c6402.ambari.apache.org" };
+    final Set<String> expectedUris = new HashSet<>();
+    for (String hostName : hostNames) {
+      expectedUris.add(getThriftURI(hostName));
+    }
+
+    final String initialPropertyValue = StringUtils.join(parts, separator);
+
+    Map<String, Map<String, String>> configProperties = new HashMap<>();
+    Map<String, String> webHCatSiteProperties = new HashMap<>();
 
     configProperties.put("webhcat-site", webHCatSiteProperties);
 
     // setup properties that include host information
-    webHCatSiteProperties.put("templeton.hive.properties",
-        expectedPropertyValue);
+    String propertyKey = "templeton.hive.properties";
+    webHCatSiteProperties.put(propertyKey, initialPropertyValue);
 
-    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Map<String, Map<String, Map<String, String>>> attributes = Collections.emptyMap();
+    Configuration clusterConfig = new Configuration(configProperties, attributes);
 
-    Collection<String> hgComponents = new HashSet<String>();
-    hgComponents.add("HIVE_METASTORE");
-    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostNameOne));
-
-    Collection<String> hgComponents2 = new HashSet<String>();
-    hgComponents2.add("HIVE_METASTORE");
-    TestHostGroup group2 = new TestHostGroup("host_group_2", hgComponents2, Collections.singleton(expectedHostNameTwo));
-
-    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
-    hostGroups.add(group1);
-    hostGroups.add(group2);
+    Collection<TestHostGroup> hostGroups = new HashSet<>();
+    for (int i = 0; i < hostNames.length; ++i) {
+      Collection<String> components = new HashSet<>(Collections.singleton("HIVE_METASTORE"));
+      hostGroups.add(new TestHostGroup("host_group_" + i, components, Collections.singleton(hostNames[i])));
+    }
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
+    String updatedValue = webHCatSiteProperties.get(propertyKey);
 
     // verify that the host name for the metastore.uris property has been updated, and
-    // that both MetaStore Server URIs are included, using the required Hive Syntax
+    // that all MetaStore Server URIs are included, using the required Hive Syntax
     // Depends on hashing, string representation can be different
-    assertEquals("Unexpected config update for templeton.hive.properties",
-        "hive.metastore.local=false,hive.metastore.uris=", webHCatSiteProperties.get("templeton.hive.properties").substring(0, 47));
-    assertEquals("Unexpected config update for templeton.hive.properties",
-        ",hive.metastore.sasl.enabled=false", webHCatSiteProperties.get("templeton.hive.properties").substring(123));
-    List<String> parts = Arrays.asList(new String[]{"thrift://" + expectedHostNameOne + ":9933", "thrift://" +
-        expectedHostNameTwo + ":9933"});
-    assertTrue("Unexpected config update for templeton.hive.properties",
-        CollectionPresentationUtils.isStringPermutationOfCollection(webHCatSiteProperties.get("templeton.hive.properties"), parts, "\\,", 47, 34));
+    String prefix = parts[0] + ",";
+    assertTrue(updatedValue, updatedValue.startsWith(prefix));
 
+    String suffix = "," + parts[2];
+    assertTrue(updatedValue, updatedValue.endsWith(suffix));
+
+    String part1 = updatedValue.replace(prefix, "").replace(suffix, "");
+    String key = "hive.metastore.uris=";
+    assertTrue(part1, part1.startsWith(key));
+
+    Set<String> updatedUris = new HashSet<>(Arrays.asList(part1.replace(key, "").split("\\\\,")));
+    assertEquals(expectedUris, updatedUris);
+  }
+
+  private static String getThriftURI(String hostName) {
+    return "thrift://" + hostName + ":9933";
   }
 
   @Test
@@ -8038,7 +8063,7 @@ public class BlueprintConfigurationProcessorTest {
       throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo, ambariConext);
+    replay(stack, serviceInfo, ambariContext);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<String, HostGroupInfo>();
     Collection<String> allServices = new HashSet<String>();
@@ -8081,7 +8106,7 @@ public class BlueprintConfigurationProcessorTest {
     replay(bp);
 
     ClusterTopology topology = new ClusterTopologyImpl
-      (ambariConext, 1L, blueprint, configuration, hostGroupInfo);
+      (ambariContext, 1L, blueprint, configuration, hostGroupInfo);
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);
 
     return topology;
