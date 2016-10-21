@@ -1,3 +1,5 @@
+SERVER_INIT_TIMEOUT = 5
+SERVER_START_TIMEOUT = 30
 #!/usr/bin/env python
 
 '''
@@ -208,7 +210,8 @@ def wait_for_server_start(pidFile, scmStatus):
   sys.stdout.flush()
 
   pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
-  found_pids = wait_for_pid(pids, SERVER_INIT_TIMEOUT, SERVER_START_TIMEOUT, WEB_UI_INIT_TIME, properties)
+  found_pids = wait_for_pid(pids, SERVER_INIT_TIMEOUT, SERVER_START_TIMEOUT, WEB_UI_INIT_TIME,
+                            configDefaults.SERVER_OUT_FILE, configDefaults.DB_CHECK_LOG, properties)
 
   sys.stdout.write('\n')
   sys.stdout.flush()
@@ -318,20 +321,6 @@ def server_process_main(options, scmStatus=None):
   else:
     print "Ambari database consistency check started..."
     properties.process_pair(CHECK_DATABASE_SKIPPED_PROPERTY, "false")
-    command = CHECK_DATABASE_HELPER_CMD.format(java_exe, class_path)
-
-    (retcode, stdout, stderr) = run_os_command(command, env=environ)
-
-    if retcode > 0:
-      print str(stdout)
-      raise FatalException(1, 'Database check failed to complete. Please check ' + configDefaults.SERVER_LOG_FILE +
-                            ' and ' + configDefaults.DB_CHECK_LOG + ' for more information.')
-    else:
-      print str(stdout)
-      print "Ambari database consistency check finished"
-
-      if not stdout.startswith("No errors"):
-        sys.exit(1)
 
   update_properties(properties)
   param_list = generate_child_process_param_list(ambari_user, java_exe, class_path, debug_start, suspend_mode)

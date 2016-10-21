@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller;
 
 
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -31,9 +34,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
-
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
@@ -125,15 +125,15 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.app.Velocity;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
-import org.eclipse.jetty.server.NCSARequestLog;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -309,6 +309,8 @@ public class AmbariServer {
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
+
+    runDatabaseConsistencyCheck();
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =
@@ -653,6 +655,39 @@ public class AmbariServer {
       LOG.error("Could not bind to server port - instance may already be running. " +
           "Terminating this instance.", bindException);
       throw bindException;
+    }
+  }
+
+  /**
+   * this method executes database consistency check if skip option was not added
+   */
+  protected void runDatabaseConsistencyCheck() throws Exception {
+    if (System.getProperty("skipDatabaseConsistencyCheck") == null) {
+      System.out.println("Database consistency check started");
+      Logger DB_CHECK_LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
+      try{
+        DatabaseConsistencyCheckHelper.runAllDBChecks();
+      } catch(Throwable e) {
+        System.out.println("Database consistency check: failed");
+        if (e instanceof AmbariException) {
+          DB_CHECK_LOG.error("Exception occurred during database check:", e);
+          System.out.println("Exception occurred during database check: " + e.getMessage());
+          e.printStackTrace();
+          throw (AmbariException)e;
+        } else {
+          DB_CHECK_LOG.error("Unexpected error, database check failed", e);
+          System.out.println("Unexpected error, database check failed: " + e.getMessage());
+          e.printStackTrace();
+          throw new Exception("Unexpected error, database check failed", e);
+        }
+      } finally {
+        if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
+          System.out.println("Database consistency check: failed");
+          System.exit(1);
+        } else {
+          System.out.println("Database consistency check: successful");
+        }
+      }
     }
   }
 

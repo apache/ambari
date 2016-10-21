@@ -141,7 +141,8 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
       pass
 
 
-def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout, properties):
+def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout,
+                 server_out_file, db_check_log, properties):
   """
     Check pid for existence during timeout
   """
@@ -175,9 +176,17 @@ def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_tim
       #print str(e)
       pass
 
+  if 'Database consistency check: failed' in open(server_out_file).read():
+    print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+          "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+          "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+          db_check_log + "for more details on the consistency issues."
+  else:
+    print "\nDB consistency check: no errors were found."
+
   if not server_ui_port_occupied:
     raise FatalException(1, "Server not yet listening on http port " + str(ambari_server_ui_port) +
-                            " after " + str(occupy_port_timeout) + str(server_init_timeout) + " seconds. Exiting.")
+                            " after " + str(occupy_port_timeout + server_init_timeout) + " seconds. Exiting.")
 
   tstart = time.time()
   print "Waiting for 10 seconds, for server WEB UI initialization"
