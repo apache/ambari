@@ -36,7 +36,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
@@ -67,6 +66,7 @@ import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.jpa.JPAEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
+import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
@@ -201,11 +201,10 @@ public class ClusterImpl implements Cluster {
    */
   private final Map<Long, RequestExecution> requestExecutions = new ConcurrentHashMap<>();
 
-  private final ReadWriteLock clusterGlobalLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock clusterGlobalLock;
 
   // This is a lock for operations that do not need to be cluster global
-  private final ReentrantReadWriteLock hostTransitionStateLock = new ReentrantReadWriteLock();
-  private final Lock hostTransitionStateWriteLock = hostTransitionStateLock.writeLock();
+  private final Lock hostTransitionStateWriteLock;
 
   /**
    * The unique ID of the {@link @ClusterEntity}.
@@ -237,6 +236,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ConfigFactory configFactory;
+
+  @Inject
+  private LockFactory lockFactory;
 
   @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
@@ -316,6 +318,9 @@ public class ClusterImpl implements Cluster {
     clusterName = clusterEntity.getClusterName();
 
     injector.injectMembers(this);
+
+    clusterGlobalLock = lockFactory.newReadWriteLock("clusterGlobalLock");
+    hostTransitionStateWriteLock = lockFactory.newLock("hostTransitionStateLock");
 
     loadStackVersion();
     loadServices();
@@ -1945,6 +1950,7 @@ public class ClusterImpl implements Cluster {
       sb.append(' ');
     }
     sb.append(" ] }");
+    lockFactory.debugDump(sb);
   }
 
   @Override
