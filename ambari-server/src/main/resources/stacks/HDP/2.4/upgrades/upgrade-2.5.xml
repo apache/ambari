@@ -977,6 +977,7 @@
           </task>
           <task xsi:type="configure" id="hdp_2_5_0_0_add_storm_security_configs" />
           <task xsi:type="configure" id="hdp_2_4_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
+          <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
         </pre-upgrade>
 
         <pre-downgrade>
