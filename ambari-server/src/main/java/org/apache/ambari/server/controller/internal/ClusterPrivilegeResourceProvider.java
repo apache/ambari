@@ -147,10 +147,11 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   protected Resource toResource(PrivilegeEntity privilegeEntity,
                                 Map<Long, UserEntity> userEntities,
                                 Map<Long, GroupEntity> groupEntities,
+                                Map<Long, PermissionEntity> roleEntities,
                                 Map<Long, ClusterEntity> resourceEntities,
                                 Set<String> requestedIds) {
 
-    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, requestedIds);
+    Resource resource = super.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, requestedIds);
     if (resource != null) {
       ClusterEntity clusterEntity = resourceEntities.get(privilegeEntity.getResource().getId());
       setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);

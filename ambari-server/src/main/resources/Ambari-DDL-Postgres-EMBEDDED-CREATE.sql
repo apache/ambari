@@ -1264,11 +1264,6 @@ INSERT INTO ambari.adminresource (resource_id, resource_type_id) VALUES
 INSERT INTO ambari.adminprincipaltype (principal_type_id, principal_type_name) VALUES
   (1, 'USER'),
   (2, 'GROUP'),
-  (3, 'ALL.CLUSTER.ADMINISTRATOR'),
-  (4, 'ALL.CLUSTER.OPERATOR'),
-  (5, 'ALL.CLUSTER.USER'),
-  (6, 'ALL.SERVICE.ADMINISTRATOR'),
-  (7, 'ALL.SERVICE.OPERATOR'),
   (8, 'ROLE');
 
 INSERT INTO ambari.adminprincipal (principal_id, principal_type_id) VALUES

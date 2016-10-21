@@ -229,11 +229,11 @@ angular.module('ambariAdminConsole')
 
       'clusterPermissions': {
         'label': 'Local Cluster Permissions',
-        'allclusteradministrator': 'Cluster Administrator',
-        'allclusteroperator': 'Cluster Operator',
-        'allclusteruser': 'Cluster User',
-        'allserviceadministrator': 'Service Administrator',
-        'allserviceoperator': 'Service Operator',
+        'clusteradministrator': 'Cluster Administrator',
+        'clusteroperator': 'Cluster Operator',
+        'clusteruser': 'Cluster User',
+        'serviceadministrator': 'Service Administrator',
+        'serviceoperator': 'Service Operator',
         'infoMessage': 'Grant <strong>Use</strong> permission for the following <strong>{{cluster}}</strong> Roles:',
         'nonLocalClusterMessage': 'The ability to inherit view <strong>Use</strong> permission based on Cluster Roles is only available when using a Local Cluster configuration.'
       },

@@ -21,6 +21,8 @@ package org.apache.ambari.server.upgrade;
 import javax.persistence.EntityManager;
 import junit.framework.Assert;
 import static org.easymock.EasyMock.aryEq;
+
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -34,7 +36,13 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -44,12 +52,22 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.Before;
@@ -219,21 +237,131 @@ public class UpgradeCatalog242Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
-
+    Method convertRolePrincipals = UpgradeCatalog242.class.getDeclaredMethod("convertRolePrincipals");
 
     UpgradeCatalog242 upgradeCatalog242 = createMockBuilder(UpgradeCatalog242.class)
-            .addMockedMethod(addNewConfigurationsFromXml)
-            .createMock();
+        .addMockedMethod(addNewConfigurationsFromXml)
+        .addMockedMethod(convertRolePrincipals)
+        .createMock();
 
 
     upgradeCatalog242.addNewConfigurationsFromXml();
     expectLastCall().once();
 
+    upgradeCatalog242.convertRolePrincipals();
+    expectLastCall().once();
 
     replay(upgradeCatalog242);
 
     upgradeCatalog242.executeDMLUpdates();
 
     verify(upgradeCatalog242);
+  }
+
+  @Test
+  public void testConvertRolePrincipals() throws AmbariException, SQLException {
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    PrincipalEntity clusterAdministratorPrincipalEntity = easyMockSupport.createMock(PrincipalEntity.class);
+
+    PermissionEntity clusterAdministratorPermissionEntity = easyMockSupport.createMock(PermissionEntity.class);
+    expect(clusterAdministratorPermissionEntity.getPrincipal())
+        .andReturn(clusterAdministratorPrincipalEntity)
+        .once();
+
+    PrincipalTypeEntity allClusterAdministratorPrincipalTypeEntity = easyMockSupport.createMock(PrincipalTypeEntity.class);
+
+    PermissionDAO permissionDAO = easyMockSupport.createMock(PermissionDAO.class);
+    expect(permissionDAO.findByName("CLUSTER.ADMINISTRATOR"))
+        .andReturn(clusterAdministratorPermissionEntity)
+        .once();
+    expect(permissionDAO.findByName(anyString()))
+        .andReturn(null)
+        .anyTimes();
+
+    PrincipalTypeDAO principalTypeDAO = easyMockSupport.createMock(PrincipalTypeDAO.class);
+    expect(principalTypeDAO.findByName("ALL.CLUSTER.ADMINISTRATOR"))
+        .andReturn(allClusterAdministratorPrincipalTypeEntity)
+        .once();
+    expect(principalTypeDAO.findByName(anyString()))
+        .andReturn(null)
+        .anyTimes();
+    principalTypeDAO.remove(allClusterAdministratorPrincipalTypeEntity);
+    expectLastCall().once();
+
+    ResourceEntity allClusterAdministratorPrivilege1Resource = easyMockSupport.createMock(ResourceEntity.class);
+    expect(allClusterAdministratorPrivilege1Resource.getId()).andReturn(1L).once();
+
+    PrincipalEntity allClusterAdministratorPrivilege1Principal = easyMockSupport.createMock(PrincipalEntity.class);
+    expect(allClusterAdministratorPrivilege1Principal.getId()).andReturn(1L).once();
+
+    PermissionEntity allClusterAdministratorPrivilege1Permission = easyMockSupport.createMock(PermissionEntity.class);
+    expect(allClusterAdministratorPrivilege1Permission.getId()).andReturn(1).once();
+
+    PrivilegeEntity allClusterAdministratorPrivilege1  = easyMockSupport.createMock(PrivilegeEntity.class);
+    expect(allClusterAdministratorPrivilege1.getId()).andReturn(1).atLeastOnce();
+    expect(allClusterAdministratorPrivilege1.getResource()).andReturn(allClusterAdministratorPrivilege1Resource).once();
+    expect(allClusterAdministratorPrivilege1.getPrincipal()).andReturn(allClusterAdministratorPrivilege1Principal).once();
+    expect(allClusterAdministratorPrivilege1.getPermission()).andReturn(allClusterAdministratorPrivilege1Permission).once();
+    allClusterAdministratorPrivilege1.setPrincipal(clusterAdministratorPrincipalEntity);
+    expectLastCall().once();
+
+    ResourceEntity allClusterAdministratorPrivilege2Resource = easyMockSupport.createMock(ResourceEntity.class);
+    expect(allClusterAdministratorPrivilege2Resource.getId()).andReturn(2L).once();
+
+    PrincipalEntity allClusterAdministratorPrivilege2Principal = easyMockSupport.createMock(PrincipalEntity.class);
+    expect(allClusterAdministratorPrivilege2Principal.getId()).andReturn(2L).once();
+
+    PermissionEntity allClusterAdministratorPrivilege2Permission = easyMockSupport.createMock(PermissionEntity.class);
+    expect(allClusterAdministratorPrivilege2Permission.getId()).andReturn(2).once();
+
+    PrivilegeEntity allClusterAdministratorPrivilege2  = easyMockSupport.createMock(PrivilegeEntity.class);
+    expect(allClusterAdministratorPrivilege2.getId()).andReturn(2).atLeastOnce();
+    expect(allClusterAdministratorPrivilege2.getResource()).andReturn(allClusterAdministratorPrivilege2Resource).once();
+    expect(allClusterAdministratorPrivilege2.getPrincipal()).andReturn(allClusterAdministratorPrivilege2Principal).once();
+    expect(allClusterAdministratorPrivilege2.getPermission()).andReturn(allClusterAdministratorPrivilege2Permission).once();
+    allClusterAdministratorPrivilege2.setPrincipal(clusterAdministratorPrincipalEntity);
+    expectLastCall().once();
+
+    Set<PrivilegeEntity> allClusterAdministratorPrivileges = new HashSet<PrivilegeEntity>();
+    allClusterAdministratorPrivileges.add(allClusterAdministratorPrivilege1);
+    allClusterAdministratorPrivileges.add(allClusterAdministratorPrivilege2);
+
+    PrincipalEntity allClusterAdministratorPrincipalEntity = easyMockSupport.createMock(PrincipalEntity.class);
+    expect(allClusterAdministratorPrincipalEntity.getPrivileges())
+        .andReturn(allClusterAdministratorPrivileges)
+        .once();
+
+    List<PrincipalEntity> allClusterAdministratorPrincipals = new ArrayList<PrincipalEntity>();
+    allClusterAdministratorPrincipals.add(allClusterAdministratorPrincipalEntity);
+
+    PrincipalDAO principalDAO = easyMockSupport.createMock(PrincipalDAO.class);
+    expect(principalDAO.findByPrincipalType("ALL.CLUSTER.ADMINISTRATOR"))
+        .andReturn(allClusterAdministratorPrincipals)
+        .once();
+    principalDAO.remove(allClusterAdministratorPrincipalEntity);
+    expectLastCall().once();
+
+
+    PrivilegeDAO privilegeDAO = easyMockSupport.createMock(PrivilegeDAO.class);
+    expect(privilegeDAO.merge(allClusterAdministratorPrivilege1))
+        .andReturn(allClusterAdministratorPrivilege1)
+        .once();
+    expect(privilegeDAO.merge(allClusterAdministratorPrivilege2))
+        .andReturn(allClusterAdministratorPrivilege2)
+        .once();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(PrincipalTypeDAO.class)).andReturn(principalTypeDAO).atLeastOnce();
+    expect(injector.getInstance(PrincipalDAO.class)).andReturn(principalDAO).atLeastOnce();
+    expect(injector.getInstance(PermissionDAO.class)).andReturn(permissionDAO).atLeastOnce();
+    expect(injector.getInstance(PrivilegeDAO.class)).andReturn(privilegeDAO).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    UpgradeCatalog242 upgradeCatalog = new UpgradeCatalog242(injector);
+    injector.injectMembers(upgradeCatalog);
+    upgradeCatalog.convertRolePrincipals();
+    easyMockSupport.verifyAll();
   }
 }

@@ -18,11 +18,9 @@
 
 package org.apache.ambari.server.audit.event.request;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -47,9 +45,15 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
     /**
      * Roles for groups
-     * groupname -> list fo roles
+     * group name -> list of roles
      */
     private Map<String, List<String>> groups;
+
+    /**
+     * Roles for roles
+     * role name -> list of roles
+     */
+    private Map<String, List<String>> roles;
 
     public ClusterPrivilegeChangeRequestAuditEventBuilder() {
       super.withOperation("Role change");
@@ -72,9 +76,10 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       SortedSet<String> roleSet = new TreeSet<String>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
+      roleSet.addAll(roles.keySet());
 
       builder.append(", Roles(");
-      if (!users.isEmpty() || !groups.isEmpty()) {
+      if (!users.isEmpty() || !groups.isEmpty()|| !roles.isEmpty()) {
         builder.append(System.lineSeparator());
       }
 
@@ -87,6 +92,9 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
         }
         if (groups.get(role) != null && !groups.get(role).isEmpty()) {
           lines.add("  Groups: " + StringUtils.join(groups.get(role), ", "));
+        }
+        if (roles.get(role) != null && !roles.get(role).isEmpty()) {
+          lines.add("  Roles: " + StringUtils.join(roles.get(role), ", "));
         }
       }
 
@@ -102,6 +110,11 @@ public class ClusterPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
     public ClusterPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
       this.groups = groups;
+      return this;
+    }
+
+    public ClusterPrivilegeChangeRequestAuditEventBuilder withRoles(Map<String, List<String>> roles) {
+      this.roles = roles;
       return this;
     }
   }

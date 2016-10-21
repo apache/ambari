@@ -287,10 +287,10 @@
         <span translate="views.clusterPermissions.infoMessage" translate-values="{cluster: cluster.name}"></span>
       </div>
       <div class="col-sm-offset-2 col-sm-10">
-        <div class="checkbox col-sm-12" ng-repeat="key in clusterInheritedPermissionKeys">
+        <div class="checkbox col-sm-12" ng-repeat="key in permissionRoles">
           <div ng-init="i18nKey = 'views.clusterPermissions.' + key.split('.').join('').toLowerCase()">
             <label>
-              <input type="checkbox" ng-model="permissionsEdit['VIEW.USER'][key]"> {{i18nKey | translate}}
+              <input type="checkbox" ng-model="permissionsEdit['VIEW.USER']['ROLE'][key]"> {{i18nKey | translate}}
             </label>
           </div>
         </div>
