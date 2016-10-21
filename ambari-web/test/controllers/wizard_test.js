@@ -1052,14 +1052,18 @@ describe('App.WizardController', function () {
 
     beforeEach(function () {
       c.set('content', {});
+      sinon.stub(c, 'setDBProperty', Em.K);
       sinon.stub(c, 'setDBProperties', Em.K);
       sinon.stub(c, 'getDBProperty').withArgs('fileNamesToUpdate').returns([]);
+      sinon.stub(c, 'setPersistentProperty', Em.K);
       sinon.stub(App.config, 'shouldSupportFinal').returns(true);
     });
 
     afterEach(function () {
+      c.setDBProperty.restore();
       c.setDBProperties.restore();
       c.getDBProperty.restore();
+      c.setPersistentProperty.restore();
       App.config.shouldSupportFinal.restore();
     });
 
@@ -1100,7 +1104,7 @@ describe('App.WizardController', function () {
             value: 'value',
             serviceName: 'serviceName',
             isFinal: true,
-            filename: 'hdfs-site',
+            filename: 'hdfs-site'
           }),
           Em.Object.create({
             name: 'name2',
@@ -1119,7 +1123,16 @@ describe('App.WizardController', function () {
             value: 'value',
             serviceName: 'serviceName',
             isFinal: true,
-            filename: 'filename'
+            filename: 'filename',
+            defaultIsFinal: true,
+            supportsFinal: true,
+            displayType: 'string',
+            isRequiredByAgent: true,
+            hasInitialValue: true,
+            isRequired: true,
+            group: {name: 'group'},
+            showLabel: true,
+            category: 'some_category'
           })
         ]
       })
@@ -1128,7 +1141,7 @@ describe('App.WizardController', function () {
     it('should save configs from default config group to content.serviceConfigProperties', function () {
       c.saveServiceConfigProperties(stepController);
       var saved = c.get('content.serviceConfigProperties');
-      expect(saved.length).to.equal(3);
+      expect(saved.length).to.equal(2);
     });
 
     it('should not save admin_principal or admin_password to the localStorage', function () {
