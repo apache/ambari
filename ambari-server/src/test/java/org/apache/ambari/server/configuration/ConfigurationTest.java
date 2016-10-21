@@ -577,6 +577,18 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testServerLocksProfilingEnabled() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertFalse(configuration.isServerLocksProfilingEnabled());
+
+    ambariProperties.setProperty(Configuration.SERVER_LOCKS_PROFILING.getKey(), Boolean.TRUE.toString());
+
+    Assert.assertTrue(configuration.isServerLocksProfilingEnabled());
+  }
+
+  @Test
   public void testAlertCaching() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);
