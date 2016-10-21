@@ -19,6 +19,7 @@ package org.apache.ambari.server.checks;
 
 
 import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.easymock.EasyMock.expect;
 
 import java.sql.Connection;
@@ -27,7 +28,6 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.stack.StackManagerFactory;
@@ -35,7 +35,6 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
@@ -380,8 +379,8 @@ public class DatabaseConsistencyCheckHelperTest {
     easyMockSupport.verifyAll();
 
     Assert.assertTrue("Missing service config for OPENSOFT R should have triggered a warning.",
-        DatabaseConsistencyCheckHelper.isWarningAvailable());
-    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.isErrorAvailable());
+        DatabaseConsistencyCheckHelper.ifWarningsFound());
+    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.ifErrorsFound());
   }
 
 

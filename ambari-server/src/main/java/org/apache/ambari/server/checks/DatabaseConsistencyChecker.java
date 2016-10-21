@@ -97,37 +97,27 @@ public class DatabaseConsistencyChecker {
   public static void main(String[] args) throws Exception {
     DatabaseConsistencyChecker databaseConsistencyChecker = null;
     try {
-      LOG.info("******************************* Check database started *******************************");
 
       Injector injector = Guice.createInjector(new CheckHelperControllerModule(), new CheckHelperAuditModule());
       databaseConsistencyChecker = injector.getInstance(DatabaseConsistencyChecker.class);
 
       databaseConsistencyChecker.startPersistenceService();
 
-      DatabaseConsistencyCheckHelper.checkForNotMappedConfigsToCluster();
-
-      DatabaseConsistencyCheckHelper.checkForConfigsSelectedMoreThanOnce();
-
-      DatabaseConsistencyCheckHelper.checkForHostsWithoutState();
-
-      DatabaseConsistencyCheckHelper.checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
-
-      DatabaseConsistencyCheckHelper.checkServiceConfigs();
+      DatabaseConsistencyCheckHelper.runAllDBChecks();
 
       databaseConsistencyChecker.stopPersistenceService();
 
-      LOG.info("******************************* Check database completed *******************************");
     } catch (Throwable e) {
       if (e instanceof AmbariException) {
         LOG.error("Exception occurred during database check:", e);
         throw (AmbariException)e;
-      }else{
+      } else {
         LOG.error("Unexpected error, database check failed", e);
         throw new Exception("Unexpected error, database check failed", e);
       }
     } finally {
         DatabaseConsistencyCheckHelper.closeConnection();
-        if (DatabaseConsistencyCheckHelper.isErrorAvailable()) {
+        if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
           String ambariDBConsistencyCheckLog = "ambari-server-check-database.log";
           if (LOG instanceof Log4jLoggerAdapter) {
             org.apache.log4j.Logger dbConsistencyCheckHelperLogger = org.apache.log4j.Logger.getLogger(DatabaseConsistencyCheckHelper.class);

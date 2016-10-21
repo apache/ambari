@@ -60,31 +60,23 @@ public class DatabaseConsistencyCheckHelper {
   private static DBAccessor dbAccessor;
 
 
-  private static boolean errorAvailable = false;
-  private static boolean warningAvailable = false;
+  private static boolean errorsFound = false;
+  private static boolean warningsFound = false;
 
-  public static boolean isErrorAvailable() {
-    return errorAvailable;
+  public static boolean ifErrorsFound() {
+    return errorsFound;
   }
 
-  public static void setErrorAvailable(boolean errorAvailable) {
-    errorAvailable = errorAvailable;
-  }
-
-  public static boolean isWarningAvailable() {
-    return warningAvailable;
-  }
-
-  public static void setWarningAvailable(boolean warningAvailable) {
-    warningAvailable = warningAvailable;
+  public static boolean ifWarningsFound() {
+    return warningsFound;
   }
 
   public static void resetErrorWarningFlags() {
-    errorAvailable = false;
-    warningAvailable = false;
+    errorsFound = false;
+    warningsFound = false;
   }
 
-  protected static void setInjector(Injector injector) {
+  public static void setInjector(Injector injector) {
     DatabaseConsistencyCheckHelper.injector = injector;
     // Clean up: new injector means static fields should be reinitalized, though in real life it only occurs during testing
     closeConnection();
@@ -109,6 +101,16 @@ public class DatabaseConsistencyCheckHelper {
     } catch (SQLException e) {
       LOG.error("Exception occurred during connection close procedure: ", e);
     }
+  }
+
+  public static void runAllDBChecks() {
+    LOG.info("******************************* Check database started *******************************");
+    checkForNotMappedConfigsToCluster();
+    checkForConfigsSelectedMoreThanOnce();
+    checkForHostsWithoutState();
+    checkHostComponentStatesCountEqualsHostComponentsDesiredStates();
+    checkServiceConfigs();
+    LOG.info("******************************* Check database completed *******************************");
   }
 
   public static void checkDBVersionCompatible() throws AmbariException {
@@ -175,7 +177,7 @@ public class DatabaseConsistencyCheckHelper {
       }
       if (!nonSelectedConfigs.isEmpty()) {
         LOG.warn("You have config(s): {} that is(are) not mapped (in clusterconfigmapping table) to any cluster!", StringUtils.join(nonSelectedConfigs, ","));
-        warningAvailable = true;
+        warningsFound = true;
       }
     } catch (SQLException e) {
       LOG.error("Exception occurred during check for not mapped configs to cluster procedure: ", e);
@@ -233,7 +235,7 @@ public class DatabaseConsistencyCheckHelper {
         for (String clusterName : clusterConfigTypeMap.keySet()) {
           LOG.error("You have config(s), in cluster {}, that is(are) selected more than once in clusterconfigmapping table: {}",
                   clusterName ,StringUtils.join(clusterConfigTypeMap.get(clusterName), ","));
-          errorAvailable = true;
+          errorsFound = true;
         }
       }
 
@@ -288,7 +290,7 @@ public class DatabaseConsistencyCheckHelper {
 
         if (!hostsWithoutStatus.isEmpty()) {
           LOG.error("You have host(s) without state (in hoststate table): " + StringUtils.join(hostsWithoutStatus, ","));
-          errorAvailable = true;
+          errorsFound = true;
         }
       }
 
@@ -365,7 +367,7 @@ public class DatabaseConsistencyCheckHelper {
 
       if (hostComponentStateCount != hostComponentDesiredStateCount || hostComponentStateCount != mergedCount) {
         LOG.error("Your host component states (hostcomponentstate table) count not equals host component desired states (hostcomponentdesiredstate table) count!");
-        errorAvailable = true;
+        errorsFound = true;
       }
 
     } catch (SQLException e) {
@@ -455,7 +457,7 @@ public class DatabaseConsistencyCheckHelper {
 
         for (String clusterName : clusterServiceMap.keySet()) {
           LOG.warn("Service(s): {}, from cluster {} has no config(s) in serviceconfig table!", StringUtils.join(clusterServiceMap.get(clusterName), ","), clusterName);
-          warningAvailable = true;
+          warningsFound = true;
         }
 
       }
@@ -482,7 +484,7 @@ public class DatabaseConsistencyCheckHelper {
           Multimap<String, String> serviceVersion = clusterServiceVersionMap.get(clName);
           for (String servName : serviceVersion.keySet()) {
             LOG.error("In cluster {}, service config mapping is unavailable (in table serviceconfigmapping) for service {} with version(s) {}! ", clName, servName, StringUtils.join(serviceVersion.get(servName), ","));
-            errorAvailable = true;
+            errorsFound = true;
           }
         }
 
@@ -555,7 +557,7 @@ public class DatabaseConsistencyCheckHelper {
           } else {
             LOG.warn("Service {} is not available for stack {} in cluster {}",
                     serviceName, stackName + "-" + stackVersion, clusterName);
-            warningAvailable = true;
+            warningsFound = true;
           }
         }
 
@@ -573,7 +575,7 @@ public class DatabaseConsistencyCheckHelper {
                   if (!serviceConfigsFromStack.isEmpty()) {
                     LOG.error("Required config(s): {} is(are) not available for service {} with service config version {} in cluster {}",
                             StringUtils.join(serviceConfigsFromStack, ","), serviceName, Integer.toString(serviceVersion), clusterName);
-                    errorAvailable = true;
+                    errorsFound = true;
                   }
                 }
               }
@@ -610,7 +612,7 @@ public class DatabaseConsistencyCheckHelper {
         Multimap<String, String> serviceConfig = clusterServiceConfigType.get(clusterName);
         for (String serviceName : serviceConfig.keySet()) {
           LOG.error("You have non selected configs: {} for service {} from cluster {}!", StringUtils.join(serviceConfig.get(serviceName), ","), serviceName, clusterName);
-          errorAvailable = true;
+          errorsFound = true;
         }
       }
     } catch (SQLException e) {
