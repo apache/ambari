@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,16 +18,14 @@
 
 package org.apache.ambari.server.view.configuration;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.Lists;
-
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
-import java.util.Arrays;
+import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.List;
+import java.util.Set;
 
 /**
  * View auto instance configuration.
@@ -48,14 +46,25 @@ public class AutoInstanceConfig extends InstanceConfig {
    */
   @XmlElementWrapper
   @XmlElement(name="service")
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
   private List<String> services;
 
   /**
-   * Cluster Inherited permissions. Comma separated strings for multiple values
-   * Possible values: ALL.CLUSTER.ADMINISTRATOR, ALL.CLUSTER.OPERATOR, ALL.CLUSTER.USER,
-   * ALL.SERVICE.OPERATOR, ALL.SERVICE.ADMINISTRATOR
+   * A list of roles that should have access to this view.
+   * <p>
+   * Example values:
+   * <ul>
+   * <li>CLUSTER.ADMINISTRATOR</li>
+   * <li>CLUSTER.OPERATOR</li>
+   * <li>SERVICE.ADMINISTRATOR</li>
+   * <li>SERVICE.OPERATOR</li>
+   * <li>CLUSTER.USER</li>
+   * </ul>
    */
-  private String permissions;
+  @XmlElementWrapper
+  @XmlElement(name="role")
+  @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
+  private Set<String> roles;
 
   /**
    * Get the stack id used for auto instance creation.
@@ -76,17 +85,9 @@ public class AutoInstanceConfig extends InstanceConfig {
   }
 
   /**
-   * @return the list of configured cluster inherited permissions
+   * @return the set of roles that should have access to this view
    */
-  public List<String> getPermissions() {
-    if(permissions == null) {
-      return Lists.newArrayList();
-    }
-    return FluentIterable.from(Arrays.asList(permissions.split(","))).transform(new Function<String, String>() {
-      @Override
-      public String apply(String permission) {
-        return permission.trim();
-      }
-    }).toList();
+  public Set<String> getRoles() {
+    return roles;
   }
 }

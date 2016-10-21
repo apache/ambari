@@ -29,6 +29,8 @@ import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
@@ -44,6 +46,10 @@ import java.util.Collection;
     , pkColumnValue = "permission_id_seq"
     , initialValue = 100
 )
+@NamedQueries({
+    @NamedQuery(name = "PermissionEntity.findByName", query = "SELECT p FROM PermissionEntity p WHERE p.permissionName = :permissionName"),
+    @NamedQuery(name = "PermissionEntity.findByPrincipals", query = "SELECT p FROM PermissionEntity p WHERE p.principal IN :principalList")
+})
 public class PermissionEntity {
 
   /**

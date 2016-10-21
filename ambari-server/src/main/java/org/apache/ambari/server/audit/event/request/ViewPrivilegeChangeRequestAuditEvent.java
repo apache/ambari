@@ -18,11 +18,9 @@
 
 package org.apache.ambari.server.audit.event.request;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -48,6 +46,11 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
      * Groups with their roles
      */
     private Map<String, List<String>> groups;
+
+    /**
+     * Roles with their roles
+     */
+    private Map<String, List<String>> roles;
 
     /**
      * View name
@@ -94,9 +97,10 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
       SortedSet<String> roleSet = new TreeSet<String>();
       roleSet.addAll(users.keySet());
       roleSet.addAll(groups.keySet());
+      roleSet.addAll(roles.keySet());
 
       builder.append(", Permissions(");
-      if (!users.isEmpty() || !groups.isEmpty()) {
+      if (!users.isEmpty() || !groups.isEmpty() || !roles.isEmpty()) {
         builder.append(System.lineSeparator());
       }
 
@@ -109,6 +113,9 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
         }
         if (groups.get(role) != null && !groups.get(role).isEmpty()) {
           lines.add("  Groups: " + StringUtils.join(groups.get(role), ", "));
+        }
+        if (roles.get(role) != null && !roles.get(role).isEmpty()) {
+          lines.add("  Roles: " + StringUtils.join(roles.get(role), ", "));
         }
       }
 
@@ -139,6 +146,11 @@ public class ViewPrivilegeChangeRequestAuditEvent extends RequestAuditEvent {
 
     public ViewPrivilegeChangeRequestAuditEventBuilder withGroups(Map<String, List<String>> groups) {
       this.groups = groups;
+      return this;
+    }
+
+    public ViewPrivilegeChangeRequestAuditEventBuilder withRoles(Map<String, List<String>> roles) {
+      this.roles = roles;
       return this;
     }
   }

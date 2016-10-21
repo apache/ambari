@@ -38,7 +38,6 @@ import org.apache.ambari.server.orm.dao.ResourceDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -61,7 +60,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -251,9 +249,6 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
     UserDAO userDAO = injector.getInstance(UserDAO.class);
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
 
-    GroupDAO groupDAO = injector.getInstance(GroupDAO.class);
-    expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
-
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -305,9 +300,6 @@ public class ClusterPrivilegeResourceProviderTest extends EasyMockSupport {
 
     UserDAO userDAO = injector.getInstance(UserDAO.class);
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
-
-    GroupDAO groupDAO = injector.getInstance(GroupDAO.class);
-    expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
 
     replayAll();
 

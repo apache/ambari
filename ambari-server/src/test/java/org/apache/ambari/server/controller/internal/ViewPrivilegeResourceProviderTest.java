@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -30,7 +30,6 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
-import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
@@ -53,7 +52,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -146,7 +144,6 @@ public class ViewPrivilegeResourceProviderTest {
     expect(permissionDAO.findById(PermissionEntity.VIEW_USER_PERMISSION)).andReturn(permissionEntity);
 
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
-    expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
 
     replay(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, privilegeEntity, resourceEntity,
         userEntity, principalEntity, permissionEntity, principalTypeEntity);

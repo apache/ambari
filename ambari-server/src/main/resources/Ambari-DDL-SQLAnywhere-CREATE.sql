@@ -1116,16 +1116,6 @@ insert into adminprincipaltype (principal_type_id, principal_type_name)
   union all
   select 2, 'GROUP'
   union all
-  select 3, 'ALL.CLUSTER.ADMINISTRATOR'
-  union all
-  select 4, 'ALL.CLUSTER.OPERATOR'
-  union all
-  select 5, 'ALL.CLUSTER.USER'
-  union all
-  select 6, 'ALL.SERVICE.ADMINISTRATOR'
-  union all
-  select 7, 'ALL.SERVICE.OPERATOR'
-  union all
   select 8, 'ROLE';
 
 insert into adminprincipal (principal_id, principal_type_id)

@@ -23,7 +23,7 @@ angular.module('ambariAdminConsole')
     $scope.identity = angular.identity;
     $scope.isConfigurationEmpty = true;
     $scope.isSettingsEmpty = true;
-    $scope.clusterInheritedPermissionKeys = View.clusterInheritedPermissionKeys;
+    $scope.permissionRoles = View.permissionRoles;
     $scope.constants = {
       instance: $t('views.instance'),
       props: $t('views.properties'),
@@ -352,7 +352,7 @@ angular.module('ambariAdminConsole')
                 data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
               }
             });
-            $scope.clearClusterInheritedPermissions();
+            $scope.removeAllRolePermissions();
 
           }
 
@@ -417,9 +417,9 @@ angular.module('ambariAdminConsole')
         });
     };
 
-    $scope.clearClusterInheritedPermissions = function() {
-      angular.forEach(View.clusterInheritedPermissionKeys, function(key) {
-        $scope.permissionsEdit["VIEW.USER"][key] = false;
+    $scope.removeAllRolePermissions = function() {
+      angular.forEach(View.permissionRoles, function(key) {
+        $scope.permissionsEdit["VIEW.USER"]["ROLE"][key] = false;
       })
     };
 
@@ -510,11 +510,9 @@ angular.module('ambariAdminConsole')
     };
 
     function setAllViewRoles(value) {
-      var viewRoles = $scope.permissionsEdit["VIEW.USER"];
+      var viewRoles = $scope.permissionsEdit["VIEW.USER"]["ROLE"];
       for (var role in viewRoles) {
-        if ($scope.clusterInheritedPermissionKeys.indexOf(role) !== -1) {
-          viewRoles[role] = value;
-        }
+        $scope.permissionsEdit["VIEW.USER"]["ROLE"][role] = value;
       }
     }
   }]);

@@ -48,13 +48,13 @@ angular.module('ambariAdminConsole')
         }
       }));
 
-      angular.forEach(View.clusterInheritedPermissionKeys, function(key) {
-        if(permission[key] === true) {
+      angular.forEach(View.permissionRoles, function(key) {
+        if(permission.ROLE[key] === true) {
           arr.push({
             'PrivilegeInfo': {
               'permission_name': 'VIEW.USER',
-              'principal_name': '*',
-              'principal_type': key
+              'principal_name': key,
+              'principal_type': 'ROLE'
             }
           });
         }

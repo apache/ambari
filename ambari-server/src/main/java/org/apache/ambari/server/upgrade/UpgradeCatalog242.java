@@ -19,10 +19,23 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.PermissionDAO;
+import org.apache.ambari.server.orm.dao.PrincipalDAO;
+import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
+import org.apache.ambari.server.orm.dao.PrivilegeDAO;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
+import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +119,7 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+    convertRolePrincipals();
   }
 
   protected void updateTablesForMysql() throws SQLException {
@@ -141,4 +155,90 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
     }
   }
 
+  /**
+   * Convert the previously set inherited privileges to the more generic inherited privileges model
+   * based on role-based principals rather than specialized principal types.
+   */
+  protected void convertRolePrincipals() {
+    LOG.info("Converting pseudo principle types to role principals");
+
+    PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
+    PrivilegeDAO privilegeDAO = injector.getInstance(PrivilegeDAO.class);
+    PrincipalDAO principalDAO = injector.getInstance(PrincipalDAO.class);
+    PrincipalTypeDAO principalTypeDAO = injector.getInstance(PrincipalTypeDAO.class);
+
+    Map<String, String> principalTypeToRole = new HashMap<String, String>();
+    principalTypeToRole.put("ALL.CLUSTER.ADMINISTRATOR", "CLUSTER.ADMINISTRATOR");
+    principalTypeToRole.put("ALL.CLUSTER.OPERATOR", "CLUSTER.OPERATOR");
+    principalTypeToRole.put("ALL.CLUSTER.USER", "CLUSTER.USER");
+    principalTypeToRole.put("ALL.SERVICE.ADMINISTRATOR", "SERVICE.ADMINISTRATOR");
+    principalTypeToRole.put("ALL.SERVICE.OPERATOR", "SERVICE.OPERATOR");
+
+    // Handle a typo introduced in org.apache.ambari.server.upgrade.UpgradeCatalog240.updateClusterInheritedPermissionsConfig
+    principalTypeToRole.put("ALL.SERVICE.OPERATIOR", "SERVICE.OPERATOR");
+
+    for (Map.Entry<String, String> entry : principalTypeToRole.entrySet()) {
+      String principalTypeName = entry.getKey();
+      String roleName = entry.getValue();
+
+      PermissionEntity role = permissionDAO.findByName(roleName);
+      PrincipalEntity rolePrincipalEntity = (role == null) ? null : role.getPrincipal();
+
+      // Convert Privilege Records
+      PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findByName(principalTypeName);
+
+      if (principalTypeEntity != null) {
+        List<PrincipalEntity> principalEntities = principalDAO.findByPrincipalType(principalTypeName);
+
+        for (PrincipalEntity principalEntity : principalEntities) {
+          Set<PrivilegeEntity> privilegeEntities = principalEntity.getPrivileges();
+
+          for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+            if (rolePrincipalEntity == null) {
+              LOG.info("Removing privilege (id={}) since no role principle was found for {}:\n{}",
+                  privilegeEntity.getId(), roleName, formatPrivilegeEntityDetails(privilegeEntity));
+              // Remove this privilege
+              privilegeDAO.remove(privilegeEntity);
+            } else {
+              LOG.info("Updating privilege (id={}) to use role principle for {}:\n{}",
+                  privilegeEntity.getId(), roleName, formatPrivilegeEntityDetails(privilegeEntity));
+
+              // Set the principal to the updated principal value
+              privilegeEntity.setPrincipal(rolePrincipalEntity);
+              privilegeDAO.merge(privilegeEntity);
+            }
+          }
+
+          // Remove the obsolete principal
+          principalDAO.remove(principalEntity);
+        }
+
+        // Remove the obsolete principal type
+        principalTypeDAO.remove(principalTypeEntity);
+      }
+    }
+
+    LOG.info("Converting pseudo principle types to role principals - complete.");
+  }
+
+  private String formatPrivilegeEntityDetails(PrivilegeEntity privilegeEntity) {
+    if (privilegeEntity == null) {
+      return "";
+    } else {
+      ResourceEntity resource = privilegeEntity.getResource();
+      PrincipalEntity principal = privilegeEntity.getPrincipal();
+      PermissionEntity permission = privilegeEntity.getPermission();
+
+      return String.format("" +
+              "\tPrivilege ID: %d" +
+              "\n\tResource ID: %d" +
+              "\n\tPrincipal ID: %d" +
+              "\n\tPermission ID: %d",
+          privilegeEntity.getId(),
+          resource.getId(),
+          principal.getId(),
+          permission.getId()
+      );
+    }
+  }
 }

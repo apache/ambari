@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -60,6 +60,20 @@ public class PrincipalTypeDAO {
   }
 
   /**
+   * Find a principal type entity with the given name.
+   *
+   * @param name  principal type name
+   *
+   * @return  a matching principal type entity or null
+   */
+  @RequiresSession
+  public PrincipalTypeEntity findByName(String name) {
+    TypedQuery<PrincipalTypeEntity> query = entityManagerProvider.get().createNamedQuery("PrincipalTypeEntity.findByName", PrincipalTypeEntity.class);
+    query.setParameter("name", name);
+    return daoUtils.selectSingle(query);
+  }
+
+  /**
    * Find all principal types.
    *
    * @return all principal types or an empty List
@@ -86,6 +100,16 @@ public class PrincipalTypeDAO {
   }
 
   /**
+   * Remove the entity instance.
+   *
+   * @param entity entity to remove
+   */
+  @Transactional
+  public void remove(PrincipalTypeEntity entity) {
+    entityManagerProvider.get().remove(entity);
+  }
+
+  /**
    * Creates and returns principal type if it wasn't persisted yet.
    *
    * @param principalType id of principal type
@@ -103,6 +127,9 @@ public class PrincipalTypeDAO {
           break;
         case PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE:
           principalTypeEntity.setName(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
+          break;
+        case PrincipalTypeEntity.ROLE_PRINCIPAL_TYPE:
+          principalTypeEntity.setName(PrincipalTypeEntity.ROLE_PRINCIPAL_TYPE_NAME);
           break;
         default:
           throw new IllegalArgumentException("Unknown principal type ID=" + principalType);

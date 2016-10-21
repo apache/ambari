@@ -705,6 +705,96 @@ public class Users {
   }
 
   /**
+   * Gets the explicit and implicit privileges for the given user.
+   * <p>
+   * The explicit privileges are the privileges that have be explicitly set by assigning roles to
+   * a user.  For example the Cluster Operator role on a given cluster gives that the ability to
+   * start and stop services in that cluster, among other privileges for that particular cluster.
+   * <p>
+   * The implicit privileges are the privileges that have been given to the roles themselves which
+   * in turn are granted to the users that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all users who have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param userEntity the relevant user
+   * @return the collection of implicit and explicit privileges
+   */
+  public Collection<PrivilegeEntity> getUserPrivileges(UserEntity userEntity) {
+    if (userEntity == null) {
+      return Collections.emptyList();
+    }
+
+    // get all of the privileges for the user
+    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+
+    principalEntities.add(userEntity.getPrincipal());
+
+    List<MemberEntity> memberEntities = memberDAO.findAllMembersByUser(userEntity);
+
+    for (MemberEntity memberEntity : memberEntities) {
+      principalEntities.add(memberEntity.getGroup().getPrincipal());
+    }
+
+    List<PrivilegeEntity> explicitPrivilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
+    List<PrivilegeEntity> implicitPrivilegeEntities = getImplicitPrivileges(explicitPrivilegeEntities);
+    List<PrivilegeEntity> privilegeEntities;
+
+    if(implicitPrivilegeEntities.isEmpty()) {
+      privilegeEntities = explicitPrivilegeEntities;
+    }
+    else {
+      privilegeEntities = new LinkedList<PrivilegeEntity>();
+      privilegeEntities.addAll(explicitPrivilegeEntities);
+      privilegeEntities.addAll(implicitPrivilegeEntities);
+    }
+
+    return privilegeEntities;
+  }
+
+  /**
+   * Gets the explicit and implicit privileges for the given group.
+   * <p>
+   * The explicit privileges are the privileges that have be explicitly set by assigning roles to
+   * a group.  For example the Cluster Operator role on a given cluster gives that the ability to
+   * start and stop services in that cluster, among other privileges for that particular cluster.
+   * <p>
+   * The implicit privileges are the privileges that have been given to the roles themselves which
+   * in turn are granted to the groups that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all groups that have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param groupEntity the relevant group
+   * @return the collection of implicit and explicit privileges
+   */
+  public Collection<PrivilegeEntity> getGroupPrivileges(GroupEntity groupEntity) {
+    if (groupEntity == null) {
+      return Collections.emptyList();
+    }
+
+    // get all of the privileges for the group
+    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+
+    principalEntities.add(groupEntity.getPrincipal());
+
+    List<PrivilegeEntity> explicitPrivilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
+    List<PrivilegeEntity> implicitPrivilegeEntities = getImplicitPrivileges(explicitPrivilegeEntities);
+    List<PrivilegeEntity> privilegeEntities;
+
+    if(implicitPrivilegeEntities.isEmpty()) {
+      privilegeEntities = explicitPrivilegeEntities;
+    }
+    else {
+      privilegeEntities = new LinkedList<PrivilegeEntity>();
+      privilegeEntities.addAll(explicitPrivilegeEntities);
+      privilegeEntities.addAll(implicitPrivilegeEntities);
+    }
+
+    return privilegeEntities;
+  }
+
+  /**
    * Gets the explicit and implicit authorities for the given user.
    * <p>
    * The explicit authorities are the authorities that have be explicitly set by assigning roles to
@@ -727,50 +817,58 @@ public class Users {
       return Collections.emptyList();
     }
 
-    // get all of the privileges for the user
-    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
-
-    principalEntities.add(userEntity.getPrincipal());
-
-    List<MemberEntity> memberEntities = memberDAO.findAllMembersByUser(userEntity);
-
-    for (MemberEntity memberEntity : memberEntities) {
-      principalEntities.add(memberEntity.getGroup().getPrincipal());
-    }
-
-    List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
-
-    // A list of principals representing roles/permissions. This collection of roles will be used to
-    // find additional authorizations inherited by the authenticated user based on the assigned roles.
-    // For example a File View instance may be set to be accessible to all authenticated user with
-    // the Cluster User role.
-    List<PrincipalEntity> rolePrincipals = new ArrayList<PrincipalEntity>();
+    Collection<PrivilegeEntity> privilegeEntities = getUserPrivileges(userEntity);
 
     Set<AmbariGrantedAuthority> authorities = new HashSet<>(privilegeEntities.size());
 
     for (PrivilegeEntity privilegeEntity : privilegeEntities) {
-      // Add the principal representing the role associated with this PrivilegeEntity to the collection
-      // of roles for the authenticated user.
-      PrincipalEntity rolePrincipal = privilegeEntity.getPermission().getPrincipal();
-      if(rolePrincipal != null) {
-        rolePrincipals.add(rolePrincipal);
-      }
-
       authorities.add(new AmbariGrantedAuthority(privilegeEntity));
-    }
-
-    // If the collections of assigned roles is not empty find the inherited authorizations that are
-    // give to the roles and add them to the collection of (Granted) authorities for the user.
-    if(!rolePrincipals.isEmpty()) {
-      // For each "role" see if any privileges have been granted...
-      List<PrivilegeEntity> rolePrivilegeEntities = privilegeDAO.findAllByPrincipal(rolePrincipals);
-
-      for (PrivilegeEntity privilegeEntity : rolePrivilegeEntities) {
-        authorities.add(new AmbariGrantedAuthority(privilegeEntity));
-      }
     }
 
     return authorities;
   }
 
+  /**
+   * Gets the implicit privileges based on the set of roles found in a collection of privileges.
+   * <p>
+   * The implicit privileges are the privileges that have been given to the roles themselves which
+   * in turn are granted to the groups that have been assigned those roles. For example if the
+   * Cluster User role for a given cluster has been given View User access on a specified File View
+   * instance, then all groups that have the Cluster User role for that cluster will implicitly be
+   * granted View User access on that File View instance.
+   *
+   * @param privilegeEntities the relevant privileges
+   * @return the collection explicit privileges
+   */
+  private List<PrivilegeEntity> getImplicitPrivileges(List<PrivilegeEntity> privilegeEntities) {
+
+    if ((privilegeEntities == null) || privilegeEntities.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<PrivilegeEntity> implicitPrivileges = new LinkedList<PrivilegeEntity>();
+
+    // A list of principals representing roles/permissions. This collection of roles will be used to
+    // find additional inherited privileges based on the assigned roles.
+    // For example a File View instance may be set to be accessible to all authenticated user with
+    // the Cluster User role.
+    List<PrincipalEntity> rolePrincipals = new ArrayList<PrincipalEntity>();
+
+    for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+      // Add the principal representing the role associated with this PrivilegeEntity to the collection
+      // of roles.
+      PrincipalEntity rolePrincipal = privilegeEntity.getPermission().getPrincipal();
+      if (rolePrincipal != null) {
+        rolePrincipals.add(rolePrincipal);
+      }
+    }
+
+    // If the collections of assigned roles is not empty find the inherited priviliges.
+    if (!rolePrincipals.isEmpty()) {
+      // For each "role" see if any privileges have been granted...
+      implicitPrivileges.addAll(privilegeDAO.findAllByPrincipal(rolePrincipals));
+    }
+
+    return implicitPrivileges;
+  }
 }
