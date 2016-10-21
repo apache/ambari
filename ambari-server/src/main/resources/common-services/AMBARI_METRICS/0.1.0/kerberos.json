@@ -9,6 +9,32 @@
       ],
       "components": [
         {
+          "name": "METRICS_MONITOR",
+          "identities": [
+            {
+              "name": "ams_monitor",
+              "principal": {
+                "value": "amsmon/_HOST@${realm}",
+                "type": "service",
+                "configuration": "ams-hbase-security-site/ams.monitor.principal",
+                "local_username": "${ams-env/ambari_metrics_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/ams-monitor.keytab",
+                "owner": {
+                  "name": "${ams-env/ambari_metrics_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "ams-hbase-security-site/ams.monitor.keytab"
+              }
+            }
+          ]
+        },
+        {
           "name": "METRICS_COLLECTOR",
           "identities": [
             {

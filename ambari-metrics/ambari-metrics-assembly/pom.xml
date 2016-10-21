@@ -535,6 +535,7 @@
                     <require>${python.ver}</require>
                     <require>gcc</require>
                     <require>${python.devel}</require>
+                    <require>python-kerberos</require>
                   </requires>
                   <preremoveScriptlet>
                     <scriptFile>src/main/package/rpm/preremove.sh</scriptFile>
