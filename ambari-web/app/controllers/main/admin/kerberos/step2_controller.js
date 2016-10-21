@@ -97,7 +97,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
     var stored = this.get('content.serviceConfigProperties');
 
-    this.set('configs', stored || this.getKerberosConfigs());
+    this.set('configs', stored ? App.config.mergeStoredValue(this.getKerberosConfigs(), stored) : this.getKerberosConfigs());
 
     this.filterConfigs(this.get('configs'));
     if (!this.get('wizardController.skipClientInstall')) {
