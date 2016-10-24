@@ -59,35 +59,47 @@ def webhcat_service(action='start', upgrade_type=None):
       raise
   elif action == 'stop':
     try:
+      # try stopping WebHCat using its own script
       graceful_stop(cmd, environ)
     except Fail:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       Logger.info(traceback.format_exc())
 
+    # run this as WebHcat since the Execute conditions of not_of and only_if can't
     pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
+
+    # the PID must exist AND'd with the process must be alive
+    # the return code here is going to be 0 IFF both conditions are met correctly
     process_id_exists_command = format("ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
+
+    # kill command to run
     daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
-    wait_time = 10
+
+    # check to ensure that it has stopped by looking for the running PID and then killing
+    # it forcefully if it exists - the behavior of not-if/only-if is as follows:
+    #   not_if return code IS 0
+    #   only_if return code is NOT 0
     Execute(daemon_hard_kill_cmd,
-            not_if = format("! ({process_id_exists_command}) || ( sleep {wait_time} && ! ({process_id_exists_command}) )"),
-            ignore_failures = True
-    )
+      only_if = process_id_exists_command,
+      ignore_failures = True)
 
     try:
       # check if stopped the process, else fail the task
-      Execute(format("! ({process_id_exists_command})"),
-              tries=20,
-              try_sleep=3,
-      )
+      Execute(format("! ({process_id_exists_command})"))
     except:
       show_logs(params.hcat_log_dir, params.webhcat_user)
       raise
 
-    File(params.webhcat_pid_file,
-         action="delete",
-    )
+    File(params.webhcat_pid_file, action="delete")
 
 def graceful_stop(cmd, environ):
+  """
+  Attemps to stop WebHCat using its own shell script. On some versions this may not correctly
+  stop the daemon.
+  :param cmd: the command to run to stop the daemon
+  :param environ: the environment variables to execute the command with
+  :return:
+  """
   import params
   daemon_cmd = format('{cmd} stop')
 
