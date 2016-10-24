@@ -390,13 +390,14 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       var obj = {
         hostName: _hostName,
         hasMaster: hasMaster,
-        checkboxes: headers.map(function (header) {
-          return{
+        checkboxes: headers.map(function (header, index) {
+          return {
             component: header.name,
             title: header.label,
             checked: false,
             isInstalled: false,
-            isDisabled: header.get('isDisabled')
+            isDisabled: header.get('isDisabled'),
+            uId: _hostName + '-checkbox-' + index
           };
         })
       };

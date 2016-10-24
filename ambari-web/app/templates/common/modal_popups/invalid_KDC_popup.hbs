@@ -32,7 +32,7 @@
     <span class="control-label"></span>
     <div>
       <label>
-        {{view Ember.Checkbox checkedBinding="view.parentView.storeCredentials" disabledBinding="view.parentView.checkboxDisabled" classNames="pull-left"}}
+        {{view App.CheckboxView checkedBinding="view.parentView.storeCredentials" disabledBinding="view.parentView.checkboxDisabled" classNames="pull-left"}}
         <span {{bindAttr class=":mls view.parentView.checkboxDisabled:muted"}}>
           {{t admin.kerberos.credentials.store.label}}
           <a class="glyphicon-question-sign glyphicon glyphicon-blue" rel="tooltip" href="javascript:void(null);" data-toggle="tooltip" {{bindAttr data-original-title="view.parentView.hintMessage"}}></a>

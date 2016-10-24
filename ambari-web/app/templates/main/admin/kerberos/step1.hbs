@@ -30,11 +30,13 @@
   <div id="kerberos-step1-options-body">
     {{t admin.kerberos.wizard.step1.body.text}}
     {{#each option in options}}
-      <div class="checkbox">
-        <label class="kerberos-step1-option-radiobutton">
-          {{view Ember.RadioButton name="option.displayName" selectionBinding="selectedItem" valueBinding="option.value"}}  {{option.displayName}}
-        </label>
-      </div>
+      {{view App.RadioButtonView
+        classNames="radio"
+        name="option.displayName"
+        labelClassNames="kerberos-step1-option-radiobutton"
+        labelBinding="option.displayName"
+        selectionBinding="selectedItem"
+        valueBinding="option.value"}}
     {{/each}}
     <br/>
   </div>
@@ -42,9 +44,12 @@
     <h5>{{selectedOption.displayName}}:</h5>
     <b>{{t admin.kerberos.wizard.step1.prerequisites.label}}</b> <br/> <br/>
     {{#each condition in selectedOption.preConditions}}
-      <div class="checkbox">
-        <label class="kerberos-step1-prerequiste-checkboxes"> {{view Ember.Checkbox  checkedBinding="condition.checked"}} {{condition.displayText}} </label>
-      </div>
+      {{view App.CheckboxView
+        classNames="checkbox"
+        checkedBinding="condition.checked"
+        labelClassNames="kerberos-step1-prerequiste-checkboxes"
+        labelBinding="condition.displayText"
+      }}
     {{/each}}
   </div>
 

@@ -87,7 +87,7 @@
         <thead>
         <tr>
           <th width="10%">
-            {{view Ember.Checkbox checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
+            {{view App.CheckboxView checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
           </th>
           <th width="35%">{{t common.alertDefinition}}</th>
           <th width="25%">{{t common.service}}</th>
@@ -102,7 +102,7 @@
               {{#each entry in view.pageContent}}
                 <tr {{bindAttr class="entry.filtered::hidden"}}>
                   <td width="10%">
-                    {{view Ember.Checkbox checkedBinding="entry.selected"}}
+                    {{view App.CheckboxView checkedBinding="entry.selected"}}
                   </td>
                   <td width="35%">
                     {{entry.label}}

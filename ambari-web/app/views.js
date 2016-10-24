@@ -21,6 +21,7 @@
 
 require('views/application');
 require('views/common/clock_view');
+require('views/common/checkbox_view');
 require('views/common/log_search_ui_link_view');
 require('views/common/log_file_search_view');
 require('views/common/log_tail_view');
@@ -47,6 +48,7 @@ require('views/common/modal_popups/config_validation/config_validation_failed_po
 require('views/common/modal_popups/config_validation/config_validation_popup');
 require('views/common/editable_list');
 require('views/common/host_progress_popup_body_view');
+require('views/common/radio_button_view');
 require('views/common/rolling_restart_view');
 require('views/common/select_custom_date_view');
 require('views/common/metric');

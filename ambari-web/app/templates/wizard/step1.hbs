@@ -70,16 +70,16 @@
   {{! left tabs end }}
 
   {{! Public Repository radio }}
-  <label {{bindAttr class=":radio :big-radio :public-radio"}}>
-    {{view view.usePublicRepoRadioButton}} {{t installer.step1.selectUseRepoOptions.public}}
+  <div {{bindAttr class=":radio :big-radio :public-radio"}}>
+    {{view view.usePublicRepoRadioButton classNames="display-inline-block"}}
     {{#if networkIssuesExist}}
-      <a id="public-disabled-link" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
+      <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
     {{/if}}
-  </label>
+  </div>
   {{! Public Repository radio END }}
 
   {{!--Local repo loaded info below--}}
-  <label class="radio big-radio">{{view view.useLocalRepoRadioButton}} {{t installer.step1.selectUseRepoOptions.local}}</label>
+  {{view view.useLocalRepoRadioButton classNames="radio big-radio"}}
 
   {{#if App.router.nextBtnClickInProgress}}
     {{view App.SpinnerView}}
@@ -171,25 +171,32 @@
 
           {{! Skip Repository Base URL validation }}
           <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled :checkbox"}}>
-            <label>
-              {{view Ember.Checkbox checkedBinding="skipValidationChecked" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
-              <span {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled"}}>{{t installer.step1.advancedRepo.skipValidation.message}}</span>
-              <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
-                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
-              </i>
-            </label>
+              {{#view App.CheckboxView
+                labelTranslate="installer.step1.advancedRepo.skipValidation.message"
+                labelClassNamesBinding="controller.selectedStack.useRedhatSatellite:disabled"
+                checkedBinding="skipValidationChecked"
+                disabledBinding="controller.selectedStack.useRedhatSatellite"
+              }}
+                <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
+                data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+                </i>
+              {{/view}}
+            <div class="clearfix"></div>
           </div>
           {{! Skip Repository Base URL validation END }}
 
           {{! Use RedHat Satellite/Spacewalk }}
           <div id="use-redhat" class="checkbox">
-            <label>
-              {{view view.redhatCheckBoxView}}
-              <span {{bindAttr class=":redhat-label controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>{{t installer.step1.advancedRepo.useRedhatSatellite.message}}</span>
+            {{#view view.redhatCheckBoxView
+              classNames="use-redhat-checkbox"
+            }}
+              <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>
+                {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
+              </label>
               <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
-                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
+              data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
               </i>
-            </label>
+            {{/view}}
           </div>
           {{! Use RedHat Satellite/Spacewalk END }}
       </div>

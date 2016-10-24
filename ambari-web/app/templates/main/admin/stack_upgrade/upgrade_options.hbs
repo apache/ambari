@@ -55,12 +55,17 @@
   <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
     <i class="glyphicon glyphicon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
     <div>
-      <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
-          {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</label>
+        {{view App.CheckboxView
+          labelClassNames="tolerance-option"
+          labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2"
+          checkedBinding="view.parentView.skipSCFailures"}}
     </div>
     <div>
-      <label class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
-          {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</label>
+      {{view App.CheckboxView
+        labelClassNames="tolerance-option"
+        labelTranslate="admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1"
+        checkedBinding="view.parentView.skipComponentFailures"
+      }}
     </div>
   </div>
   <div class="alert alert-warning">{{t admin.stackVersions.version.upgrade.alertsWarning}}</div>

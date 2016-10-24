@@ -19,7 +19,7 @@
 <p>{{{deleteComponentMsg}}}</p>
 {{#if lastComponent}}
   <div class="alert alert-danger row">
-    <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
+    <div class='tinyspan tinyoffset'>{{view App.CheckboxView checkedBinding="isChecked"}}</div>
     <div class='col-md-10'>{{{lastComponentError}}}</div>
   </div>
 {{/if}}

@@ -369,8 +369,10 @@ h2.table-title {
 .table tfoot {
   color: #999;
 }
-.table input[type="checkbox"] {
-  margin-top: 0;
+.table input[type="checkbox"] + label {
+  position: relative;
+  top: 4px;
+  margin-bottom: 0;
 }
 .table tfoot > tr:first-of-type > td {
   border-top-width: 2px;
@@ -378,9 +380,6 @@ h2.table-title {
 .table tfoot .pagination-block .pagination-block-item {
   float: left;
   padding: 0 5px;
-}
-.table.table-hover {
-  border-collapse: separate;
 }
 .table.table-hover .action {
   visibility: hidden;
@@ -390,61 +389,250 @@ h2.table-title {
 .table.table-hover .action:hover {
   text-decoration: none;
 }
-.table.table-hover > tbody > tr:first-of-type > td {
-  border-top-color: transparent;
-}
-.table.table-hover > tbody > tr:hover > td {
-  border-top-color: #A7DFF2;
+.table.table-hover > tbody > tr {
+  border-width: 0 1px 1px;
+  border-style: solid;
+  border-color: #EEE transparent;
 }
 .table.table-hover > tbody > tr > td {
-  border-width: 1px 0 1px;
-  border-style: solid;
-  border-color: #DDD transparent transparent;
-  line-height: 1;
-}
-.table.table-hover > tbody > tr > td:first-of-type {
-  border-left-width: 1px;
-}
-.table.table-hover > tbody > tr > td:last-of-type {
-  border-right-width: 1px;
+  border-width: 0;
 }
 .table.table-hover > tbody > tr.active {
+  border-color: #EEE;
   background-color: #EEE;
 }
 .table.table-hover > tbody > tr.active > td {
   background-color: #EEE;
-  border-color: transparent transparent;
-}
-.table.table-hover > tbody > tr.active > td:first-of-type {
-  border-left-color: transparent;
-}
-.table.table-hover > tbody > tr.active > td:last-of-type {
-  border-right-color: transparent;
-}
-.table.table-hover > tbody > tr.active + tr > td {
-  border-top-color: transparent;
-}
-.table.table-hover > tbody > tr.active + tr:hover > td {
-  border-top-color: #A7DFF2;
 }
 .table.table-hover > tbody > tr:hover {
+  border-color: #A7DFF2;
   background-color: #E7F6FC;
 }
 .table.table-hover > tbody > tr:hover > td {
+  border-top: 1px solid #A7DFF2;
   background-color: #E7F6FC;
-  border-color: #A7DFF2 transparent;
-}
-.table.table-hover > tbody > tr:hover > td:first-of-type {
-  border-left-color: #A7DFF2;
-}
-.table.table-hover > tbody > tr:hover > td:last-of-type {
-  border-right-color: #A7DFF2;
-}
-.table.table-hover > tbody > tr:hover + tr > td {
-  border-top-color: transparent;
 }
 .table.table-hover > tbody > tr:hover > td .action {
   visibility: visible;
+}
+.wizard .wizard-header h3 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  font-size: 20px;
+  color: #333;
+  margin: 20px 30px;
+}
+.wizard .wizard-body {
+  background-color: #ebecf1;
+  margin: 0;
+}
+.wizard .wizard-body .wizard-content {
+  padding-top: 50px;
+}
+.wizard .wizard-body .wizard-content .step-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-weight: bold;
+  font-size: 16px;
+  color: #666;
+}
+.wizard .wizard-body .wizard-content .step-description {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 12px;
+  color: #999;
+}
+.wizard .wizard-body .wizard-nav {
+  padding-top: 40px;
+  background-color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav li {
+  padding: 10px 0;
+}
+.wizard .wizard-body .wizard-nav .nav li a {
+  height: 68px;
+  display: table-cell;
+  vertical-align: middle;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-marker {
+  position: absolute;
+  top: 19px;
+  line-height: 15.5px;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1EB475;
+  border-radius: 50%;
+  font-size: 12px;
+  font-style: inherit;
+  color: #1EB475;
+  background-color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 16px;
+  color: #bbbbbb;
+  margin-left: 30px;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-description {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 12px;
+  color: #999;
+  margin-left: 30px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker {
+  background-color: #1EB475;
+  color: white;
+  font-size: 10px;
+  padding-left: 3px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker .step-index {
+  display: none;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker:after {
+  font-family: "Glyphicons Halflings";
+  content: "\e013";
+  position: relative;
+  top: 1px;
+  left: -1px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed:after {
+  width: 2px;
+  height: 100%;
+  position: absolute;
+  background-color: #1EB475;
+  content: "";
+  top: 49px;
+  left: 24px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed:last-child:after {
+  content: none;
+}
+.wizard .wizard-body .wizard-nav .nav li.active .step-name {
+  font-weight: bold;
+}
+.wizard .wizard-body .wizard-nav .nav li.disabled .step-marker {
+  color: #bbbbbb;
+  border-color: #bbbbbb;
+}
+.wizard .wizard-body .wizard-nav .nav li.disabled.completed .step-marker {
+  background-color: #bbbbbb;
+  color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a,
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a:focus,
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a:hover,
+.wizard .wizard-body .wizard-nav .nav > li > a:focus,
+.wizard .wizard-body .wizard-nav .nav > li > a:hover {
+  background-color: inherit;
+}
+.wizard .wizard-footer {
+  padding: 20px 30px;
+}
+.wizard .wizard-footer button {
+  margin: 0 15px;
+}
+.checkbox-disabled-style {
+  background-color: #b2b8c1;
+  border-color: #b2b8c1;
+}
+input[type="checkbox"]:not(:checked),
+input[type="radio"]:not(:checked),
+input[type="checkbox"]:checked,
+input[type="radio"]:checked {
+  display: none;
+}
+input[type="checkbox"]:not(:checked) + label,
+input[type="radio"]:not(:checked) + label,
+input[type="checkbox"]:checked + label,
+input[type="radio"]:checked + label {
+  position: relative;
+  padding-left: 20px;
+}
+input[type="checkbox"]:not(:checked) + label:hover:before,
+input[type="radio"]:not(:checked) + label:hover:before,
+input[type="checkbox"]:checked + label:hover:before,
+input[type="radio"]:checked + label:hover:before {
+  border-color: #1491C1;
+  background-color: #1491C1;
+}
+input[type="checkbox"]:checked + label:before,
+input[type="radio"]:checked + label:before {
+  background-color: #1491C1;
+  border-color: #1491C1;
+}
+input[type="checkbox"][disabled] + label:before,
+input[type="radio"][disabled] + label:before,
+input[type="checkbox"].disabled + label:before,
+input[type="radio"].disabled + label:before,
+input[type="checkbox"][disabled] + label:hover:before,
+input[type="radio"][disabled] + label:hover:before,
+input[type="checkbox"].disabled + label:hover:before,
+input[type="radio"].disabled + label:hover:before {
+  background-color: #b2b8c1;
+  border-color: #b2b8c1;
+}
+input[type="checkbox"] + label:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ddd;
+}
+input[type="checkbox"]:checked + label:after {
+  content: '\2714';
+  color: #FFF;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 9px;
+}
+input[type="radio"] + label:before,
+input.radio + label:before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #ddd;
+}
+input[type="radio"]:checked + label:after,
+input.radio:checked + label:after {
+  content: '';
+  background-color: #FFF;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 6px;
 }
 .wizard .wizard-header h3 {
   font-family: 'Roboto', sans-serif;

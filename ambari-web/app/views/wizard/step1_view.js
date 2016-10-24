@@ -92,18 +92,15 @@ App.WizardStep1View = Em.View.extend({
   },
 
   /**
-   * Checkbox for use Public repo
+   * Radio button for use Public repo
    *
-   * @type {Ember.Checkbox}
+   * @type {App.RadioButtonView}
    */
-  usePublicRepoRadioButton: Em.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: [ 'type', 'checked' ],
-    classNames: [''],
+  usePublicRepoRadioButton: App.RadioButtonView.extend({
+    labelTranslate: 'installer.step1.selectUseRepoOptions.public',
     checked: Em.computed.alias('controller.selectedStack.usePublicRepo'),
-    type: 'radio',
 
-    click: function () {
+    change: function () {
       this.get('controller').usePublicRepo();
     }
   }),
@@ -111,16 +108,13 @@ App.WizardStep1View = Em.View.extend({
   /**
    * Checkbox for use Public repo
    *
-   * @type {Ember.Checkbox}
+   * @type {App.RadioButtonView}
    */
-  useLocalRepoRadioButton: Em.Checkbox.extend({
-    tagName: 'input',
-    attributeBindings: [ 'type', 'checked' ],
-    classNames: [''],
+  useLocalRepoRadioButton: App.RadioButtonView.extend({
+    labelTranslate: 'installer.step1.selectUseRepoOptions.local',
     checked: Em.computed.alias('controller.selectedStack.useLocalRepo'),
-    type: 'radio',
 
-    click: function () {
+    change: function () {
       this.get('controller').useLocalRepo();
     }
   }),
@@ -217,12 +211,12 @@ App.WizardStep1View = Em.View.extend({
   /**
    * @type {Em.Checkbox}
    */
-  redhatCheckBoxView: Em.Checkbox.extend({
-    attributeBindings: [ 'type', 'checked' ],
+  redhatCheckBoxView: App.CheckboxView.extend({
     checkedBinding: 'controller.selectedStack.useRedhatSatellite',
     disabledBinding: 'controller.selectedStack.usePublicRepo',
     click: function () {
       // click triggered before value is toggled, so if-statement is inverted
+      if (this.get('disabled')) return;
       if (!this.get('controller.selectedStack.useRedhatSatellite')) {
         App.ModalPopup.show({
           header: Em.I18n.t('common.important'),

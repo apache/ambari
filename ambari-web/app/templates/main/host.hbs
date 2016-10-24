@@ -29,7 +29,11 @@
   <table class="table advanced-header-table table-hover" id="hosts-table">
     <thead>
     {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
-        <th class="first"><div class="ember-view view-wrapper">{{view Ember.Checkbox class="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}</div></th>
+        <th class="first">
+          <div class="ember-view view-wrapper">
+            {{view App.CheckboxView classNames="host-select-all" checkedBinding="view.parentView.selectAllHosts"}}
+          </div>
+        </th>
         <th> </th>
         {{view view.parentView.nameSort}}
         <th> </th>
@@ -51,7 +55,7 @@
       {{#each host in view.pageContent}}
         {{#view view.HostView contentBinding="host"}}
 
-          <td class="first">{{view Ember.Checkbox checkedBinding="host.selected"}}</td>
+          <td class="first">{{view App.CheckboxView checkedBinding="host.selected"}}</td>
 
           <td class="health">
             <span rel="HealthTooltip" {{bindAttr class="host.healthClass host.healthIconClass"}} {{bindAttr data-original-title="host.healthToolTip" }}></span>

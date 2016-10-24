@@ -38,12 +38,12 @@
     <div class="row">
       <div class="col-md-2 title">{{t widget.create.wizard.step3.sharing}}</div>
       <div class="col-md-10">
-        <div class="checkbox">
-          <label>
-            {{view Ember.Checkbox disabledBinding="controller.isSharedCheckboxDisabled" checkedBinding="controller.isSharedChecked"}} &nbsp;
-            {{t widget.create.wizard.step3.sharing.msg}}
-          </label>
-        </div>
+        {{view App.CheckboxView
+          classNames="checkbox"
+          disabledBinding="controller.isSharedCheckboxDisabled"
+          checkedBinding="controller.isSharedChecked"
+          labelTranslate="widget.create.wizard.step3.sharing.msg"
+        }}
       </div>
     </div>
 

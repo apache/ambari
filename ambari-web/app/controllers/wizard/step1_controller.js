@@ -371,14 +371,13 @@ App.WizardStep1Controller = Em.Controller.extend({
           classNames: ['clearfix'],
 
           /**
-           * Checkbox for Use local Repo > Upload VDF file
+           * Radio button for Use local Repo > Upload VDF file
            *
-           * @type {Ember.Checkbox}
+           * @type {App.RadioButtonView}
            */
-          uploadFileRadioButton: Em.Checkbox.extend({
-            attributeBindings: ['type', 'checked'],
-            checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected'),
-            type: 'radio'
+          uploadFileRadioButton: App.RadioButtonView.extend({
+            labelTranslate: 'installer.step1.useLocalRepo.uploadFile',
+            checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')
           }),
 
           /**
@@ -456,14 +455,13 @@ App.WizardStep1Controller = Em.Controller.extend({
           }),
 
           /**
-           * Checkbox for Use local Repo > Enter Url of VDF file
+           * Radio button for Use local Repo > Enter Url of VDF file
            *
-           * @type {Ember.Checkbox}
+           * @type {App.RadioButtonView}
            */
-          enterUrlRadioButton: Em.Checkbox.extend({
-            attributeBindings: [ 'type', 'checked' ],
+          enterUrlRadioButton: App.RadioButtonView.extend({
+            labelTranslate: 'installer.step1.useLocalRepo.enterUrl',
             checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected'),
-            type: 'radio'
           }),
 
           click: function () {

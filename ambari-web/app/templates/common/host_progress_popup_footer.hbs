@@ -18,10 +18,7 @@
 
 {{#isAuthorized "AMBARI.MANAGE_SETTINGS"}}
   <div class="checkbox pull-left checkbox-row">
-    <label id="footer-checkbox">
-      {{view Ember.Checkbox checkedBinding="view.parentView.isNotShowBgChecked"}}
-      &nbsp;{{t app.settings.notShowBgOperations}}
-    </label>
+    {{view App.CheckboxView classNames="footer-checkbox" checkedBinding="view.parentView.isNotShowBgChecked" labelTranslate="app.settings.notShowBgOperations"}}
   </div>
 {{/isAuthorized}}
 {{#if view.parentView.primary}}

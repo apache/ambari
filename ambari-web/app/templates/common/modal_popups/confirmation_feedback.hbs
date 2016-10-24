@@ -25,10 +25,9 @@
   </div>
 {{/if}}
 {{#if view.parentView.putInMaintenance}}
-  <div class="checkbox">
-    <label>
-      {{view Ember.Checkbox checkedBinding="view.parentView.runMmOperation"}}
-      &nbsp;{{view.parentView.turnOnMmMsg}}
-    </label>
-  </div>
+  {{view App.CheckboxView
+    classNames="checkbox"
+    labelBinding="view.parentView.turnOnMmMsg"
+    checkedBinding="view.parentView.runMmOperation"
+  }}
 {{/if}}

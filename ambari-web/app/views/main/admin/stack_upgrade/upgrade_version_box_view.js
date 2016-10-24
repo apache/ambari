@@ -305,7 +305,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
    * @param App.RepositoryVersion
    * */
   getStackVersionNumber: function(repository){
-    var stackVersion = null; 
+    var stackVersion = null;
     var systems = repository.get('operatingSystems');
 
     systems.forEach(function (os) {
@@ -316,7 +316,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       });
     });
 
-    return stackVersion; 
+    return stackVersion;
   },
 
   /**
@@ -360,10 +360,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
       serverValidationFailed: false,
       bodyClass: Ember.View.extend({
         content: repo,
-        skipCheckBox: Ember.Checkbox.extend({
-          classNames: ["align-checkbox"],
+        skipCheckBox: App.CheckboxView.extend({
+          repoBinding: 'parentView.content',
+          checkboxClassNames: ["align-checkbox"],
           change: function() {
-            this.get('parentView.content.operatingSystems').forEach(function(os) {
+            this.get('parentView.repo').forEach(function(os) {
               os.get('repositories').forEach(function(repo) {
                 repo.set('skipValidation', this.get('checked'));
               }, this);

@@ -38,12 +38,10 @@
     <div class="form-group">
       <label class="control-label col-md-2" for="inputGroups">{{controller.inputFields.groups.label}}</label>
       <div class="col-md-10">
-        <div>
-          {{view Ember.RadioButton name="allGroups" selectionBinding="controller.inputFields.allGroups.value" value="all"}} {{t common.all}}
-        </div>
-        <div>
-          {{view Ember.RadioButton name="allGroups" selectionBinding="controller.inputFields.allGroups.value" value="custom"}} {{t common.custom}}
-        </div>
+          {{view App.RadioButtonView name="allGroups" selectionBinding="controller.inputFields.allGroups.value"
+           classNames="radio" labelTranslate="common.all" value="all"}}
+          {{view App.RadioButtonView name="allGroups" selectionBinding="controller.inputFields.allGroups.value"
+           classNames="radio" labelTranslate="common.custom" value="custom"}}
         <div>
           {{view view.groupsSelectView multiple="true" id="inputGroups" class="form-control"
             disabledBinding="controller.inputFields.allGroups.isAll"
@@ -151,13 +149,15 @@
         {{/if}}
       </div>
 
-      <div class="form-group">
-        <label class="control-label col-md-2" for="inputUseAuthentication">{{controller.inputFields.SMTPUseAuthentication.label}}</label>
-
+      {{#view App.CheckboxView classNames="form-group"
+        isCustomTemplate="true"
+        checkedBinding="controller.inputFields.SMTPUseAuthentication.value"}}
+        <label class="control-label col-md-2 inputUseAuthentication" {{bindAttr for="view.checkboxId"}}>{{controller.inputFields.SMTPUseAuthentication.label}}</label>
         <div class="col-md-10">
-          {{view Em.Checkbox checkedBinding="controller.inputFields.SMTPUseAuthentication.value" id="inputUseAuthentication"}}
+          {{view view.checkboxView customCheckboxId="inputUseAuthentication" labelAlign="left"}}
+          {{view view.labelView}}
         </div>
-      </div>
+      {{/view}}
 
       <div {{bindAttr class=":form-group controller.inputFields.SMTPUsername.errorMsg:has-error"}}>
         <label class="control-label col-md-2">{{controller.inputFields.SMTPUsername.label}}</label>

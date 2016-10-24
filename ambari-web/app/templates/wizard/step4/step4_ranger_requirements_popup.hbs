@@ -18,8 +18,8 @@
 
 {{t installer.step4.rangerRequirements.popup.body.requirements}}
 <div class="checkbox">
-  <label>
-    {{view Em.Checkbox checkedBinding="isChecked"}}
-    {{t installer.step4.rangerRequirements.popup.body.confirmation}}
-  </label>
+  {{!-- <label> --}}
+    {{view App.CheckboxView checkedBinding="isChecked" labelTranslate="installer.step4.rangerRequirements.popup.body.confirmation"}}
+    {{!-- t installer.step4.rangerRequirements.popup.body.confirmation --}}
+  {{!-- </label> --}}
 </div>

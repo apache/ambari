@@ -27,38 +27,22 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/checkbox_config_widget'),
   classNames: ['widget-config', 'checkbox-widget'],
 
+  configViewId: null,
   didInsertElement: function () {
     var self = this;
     this.initPopover();
     this._super(arguments);
-    Em.run.next(function () {
-      if (self.$())
-      self.$('input[type="checkbox"]:eq(0)').checkbox({
-        defaultState: self.get('config.value'),
-        buttonStyle: 'btn-link',
-        checkedClass: 'glyphicon glyphicon-check',
-        uncheckedClass: 'glyphicon glyphicon-unchecked'
-      });
-    });
   },
 
   configView: App.ServiceConfigCheckbox.extend({
+    containerClassName: '',
     serviceConfigBinding: 'parentView.config',
+    checkboxIdBinding: 'parentView.configViewId',
     // @TODO maybe find use case of this method for widget
     focusIn: Em.K,
     toggleValue: function() {
       this._super();
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     }.observes('checked')
-  }),
-
-  /**
-   * Manually reset bootstrap-checkbox
-   * @method restoreValue
-   */
-  restoreValue: function () {
-    this.$('input[type="checkbox"]:eq(0)').checkbox('click');
-    this._super();
-  }
-
+  })
 });

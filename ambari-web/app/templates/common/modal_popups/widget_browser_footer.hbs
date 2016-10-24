@@ -19,10 +19,7 @@
 <div class="modal-footer">
   {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
     <div class="checkbox pull-left">
-      <label id="footer-checkbox">
-        {{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isShowMineOnly"}} &nbsp;
-        {{t dashboard.widgets.browser.footer.checkbox}}
-      </label>
+      {{view App.CheckboxView classNames="footer-checkbox" checkedBinding="view.parentView.isShowMineOnly" labelTranslate="dashboard.widgets.browser.footer.checkbox"}}
     </div>
     <div class="clearfix"></div>
   {{/isAuthorized}}

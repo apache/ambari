@@ -29,21 +29,18 @@
       <form class="form-horizontal" autocomplete="off">
 
         <div class="entry-row row">
-          <div class="checkbox">
-            <label>
-                {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="no" type="radio"}}
-                {{t installer.step7.misc.notification.configure.later}}
-            </label>
-          </div>
+          {{view App.RadioButtonView name="createNotification"
+            classNames="radio"
+            labelTranslate="installer.step7.misc.notification.configure.later"
+            selectionBinding="view.createNotification"
+            value="no"}}
         </div>
 
         <div class="entry-row row">
-          <div class="checkbox">
-            <label>
-                {{view Ember.RadioButton name="createNotification" selectionBinding="view.createNotification" value="yes" type="radio"}}
-                {{t installer.step7.misc.notification.configure}}
-            </label>
-          </div>
+          {{view App.RadioButtonView name="createNotification"
+            classNames="radio"
+            labelTranslate="installer.step7.misc.notification.configure"
+            selectionBinding="view.createNotification" value="yes"}}
         </div>
 
           {{#each config in view.categoryConfigs}}
@@ -86,21 +83,22 @@
           {{/each}}
 
         <div class="entry-row row indent-1">
-          <div class="checkbox">
-            <label>
-                {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="tls"}}
-                {{t installer.step7.misc.notification.use_tls}}
-            </label>
-          </div>
+          {{view App.RadioButtonView
+            classNames="checkbox"
+            labelTranslate="installer.step7.misc.notification.use_tls"
+            name="tlsOrSsl"
+            disabledBinding="view.configsAreDisabled"
+            selectionBinding="view.tlsOrSsl"
+            value="tls"}}
         </div>
 
         <div class="entry-row row indent-1">
-          <div class="checkbox">
-            <label>
-                {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="ssl"}}
-                {{t installer.step7.misc.notification.use_ssl}}
-            </label>
-          </div>
+          {{view App.RadioButtonView
+            classNames="checkbox"
+            labelTranslate="installer.step7.misc.notification.use_ssl"
+            name="tlsOrSsl" disabledBinding="view.configsAreDisabled"
+            selectionBinding="view.tlsOrSsl"
+            value="ssl"}}
         </div>
 
           {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}

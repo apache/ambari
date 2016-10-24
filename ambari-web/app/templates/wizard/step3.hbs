@@ -60,7 +60,7 @@
         <thead>
         <tr>
           <th class="tinyspan">
-            {{view Ember.Checkbox checkedBinding="view.pageChecked"}}
+            {{view App.CheckboxView checkedBinding="view.pageChecked"}}
           </th>
           <th class="col-md-5">{{t common.host}}</th>
           <!-- retrieved from local storage initially -->
@@ -77,7 +77,7 @@
             {{#each host in view.pageContent}}
               {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
               <td class="step3-table-checkbox">
-                {{view Ember.Checkbox checkedBinding="host.isChecked"}}
+                {{view App.CheckboxView checkedBinding="host.isChecked"}}
               </td>
               <td class="host">
                 <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>

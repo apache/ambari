@@ -93,7 +93,7 @@
           <thead>
             <tr>
               <th width="10%">
-                {{view Ember.Checkbox checkedBinding="view.allHostsSelected" disabledBinding="view.isDisabled"}}
+                {{view App.CheckboxView checkedBinding="view.allHostsSelected" disabledBinding="view.isDisabled"}}
               </th>
               <th width="45%">{{t common.host}}</th>
               <th width="45%">{{view.filterColumn.name}}</th>
@@ -106,7 +106,7 @@
               {{#each entry in view.pageContent}}
                 <tr {{bindAttr class="entry.filtered::hidden"}}>
                   <td width="10%">
-                    {{view Ember.Checkbox checkedBinding="entry.selected"}}
+                    {{view App.CheckboxView checkedBinding="entry.selected"}}
                   </td>
                   <td width="45%">
                     {{entry.host.hostName}}

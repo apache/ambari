@@ -26,7 +26,7 @@
     <thead>
     <tr>
       <th class="col-md-3" id="service-name">
-          {{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isAllChecked"}}{{t common.service}}
+        {{view App.CheckboxView disabledBinding="isInstalled" checkedBinding="isAllChecked" labelTranslate="common.service"}}
       </th>
       <th id="service-version">{{t common.version}}</th>
       <th id="service-description">{{t common.description}}</th>
@@ -38,12 +38,11 @@
         <tr {{bindAttr class="isSelected:active isSelected:service-selected"}}>
           <td>
             <div class="checkbox">
-              <label>
-                {{view Ember.Checkbox classBinding="serviceName"
-                  disabledBinding="isInstalled"
-                  checkedBinding="isSelected"}}
-                  {{displayNameOnSelectServicePage}}
-              </label>
+              {{view App.CheckboxView checkboxClassNamesBinding="serviceName"
+                disabledBinding="isInstalled"
+                checkedBinding="isSelected"
+                labelBinding="displayNameOnSelectServicePage"
+              }}
             </div>
           </td>
           <td>{{serviceVersionDisplay}}</td>
