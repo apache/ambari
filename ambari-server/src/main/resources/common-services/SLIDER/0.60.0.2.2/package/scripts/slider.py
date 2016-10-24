@@ -65,14 +65,17 @@ def slider():
        content=InlineTemplate(params.slider_env_sh_template)
   )
 
-  Directory(params.storm_slider_conf_dir,
-            create_parents = True
-  )
+  # check to see if the current/storm_slider_client symlink is broken if it is then the storm slider client is not installed
+  storm_slider_client_dir = os.path.join(params.storm_slider_conf_dir, "..")
+  if (os.path.exists(storm_slider_client_dir) or not os.path.islink(storm_slider_client_dir)):
+    Directory(params.storm_slider_conf_dir,
+         create_parents = True
+    )
 
-  File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),
-       mode=0755,
-       content=Template('storm-slider-env.sh.j2')
-  )
+    File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),
+         mode=0755,
+         content=Template('storm-slider-env.sh.j2')
+    )
 
   if (params.log4j_props != None):
     File(format("{params.slider_conf_dir}/log4j.properties"),
