@@ -1131,11 +1131,6 @@ BEGIN TRANSACTION
   insert into adminprincipal (principal_id, principal_type_id)
   values
     (1, 1),
-    (2, 3),
-    (3, 4),
-    (4, 5),
-    (5, 6),
-    (6, 7),
     (7, 8),
     (8, 8),
     (9, 8),

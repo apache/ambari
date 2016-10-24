@@ -1110,16 +1110,6 @@ insert into adminprincipaltype (principal_type_id, principal_type_name)
 insert into adminprincipal (principal_id, principal_type_id)
   select 1, 1 from dual
   union all
-  select 2, 3 from dual
-  union all
-  select 3, 4 from dual
-  union all
-  select 4, 5 from dual
-  union all
-  select 5, 6 from dual
-  union all
-  select 6, 7 from dual
-  union all
   select 7, 8 from dual
   union all
   select 8, 8 from dual
