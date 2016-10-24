@@ -446,6 +446,139 @@ h2.table-title {
 .table.table-hover > tbody > tr:hover > td .action {
   visibility: visible;
 }
+.wizard .wizard-header h3 {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  font-size: 20px;
+  color: #333;
+  margin: 20px 30px;
+}
+.wizard .wizard-body {
+  background-color: #ebecf1;
+  margin: 0;
+}
+.wizard .wizard-body .wizard-content {
+  padding-top: 50px;
+}
+.wizard .wizard-body .wizard-content .step-title {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-weight: bold;
+  font-size: 16px;
+  color: #666;
+}
+.wizard .wizard-body .wizard-content .step-description {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 12px;
+  color: #999;
+}
+.wizard .wizard-body .wizard-nav {
+  padding-top: 40px;
+  background-color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav li {
+  padding: 10px 0;
+}
+.wizard .wizard-body .wizard-nav .nav li a {
+  height: 68px;
+  display: table-cell;
+  vertical-align: middle;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-marker {
+  position: absolute;
+  top: 19px;
+  line-height: 15.5px;
+  text-align: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1EB475;
+  border-radius: 50%;
+  font-size: 12px;
+  font-style: inherit;
+  color: #1EB475;
+  background-color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-name {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 16px;
+  color: #bbbbbb;
+  margin-left: 30px;
+}
+.wizard .wizard-body .wizard-nav .nav li .step-description {
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  color: #333;
+  font-size: 12px;
+  color: #999;
+  margin-left: 30px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker {
+  background-color: #1EB475;
+  color: white;
+  font-size: 10px;
+  padding-left: 3px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker .step-index {
+  display: none;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed .step-marker:after {
+  font-family: "Glyphicons Halflings";
+  content: "\e013";
+  position: relative;
+  top: 1px;
+  left: -1px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed:after {
+  width: 2px;
+  height: 100%;
+  position: absolute;
+  background-color: #1EB475;
+  content: "";
+  top: 49px;
+  left: 24px;
+}
+.wizard .wizard-body .wizard-nav .nav li.completed:last-child:after {
+  content: none;
+}
+.wizard .wizard-body .wizard-nav .nav li.active .step-name {
+  font-weight: bold;
+}
+.wizard .wizard-body .wizard-nav .nav li.disabled .step-marker {
+  color: #bbbbbb;
+  border-color: #bbbbbb;
+}
+.wizard .wizard-body .wizard-nav .nav li.disabled.completed .step-marker {
+  background-color: #bbbbbb;
+  color: #323544;
+}
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a,
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a:focus,
+.wizard .wizard-body .wizard-nav .nav-pills > li.active > a:hover,
+.wizard .wizard-body .wizard-nav .nav > li > a:focus,
+.wizard .wizard-body .wizard-nav .nav > li > a:hover {
+  background-color: inherit;
+}
+.wizard .wizard-footer {
+  padding: 20px 30px;
+}
+.wizard .wizard-footer button {
+  margin: 0 15px;
+}
 h1,
 h2,
 h3,

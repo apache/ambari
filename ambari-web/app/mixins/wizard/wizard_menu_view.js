@@ -67,6 +67,50 @@ App.WizardMenuMixin = Em.Mixin.create({
 
   isStep10Disabled: function () {
     return this.isStepDisabled(10);
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep0Completed: function () {
+    return this.get('controller.currentStep') > 0;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep1Completed: function () {
+    return this.get('controller.currentStep') > 1;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep2Completed: function () {
+    return this.get('controller.currentStep') > 2;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep3Completed: function () {
+    return this.get('controller.currentStep') > 3;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep4Completed: function () {
+    return this.get('controller.currentStep') > 4;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep5Completed: function () {
+    return this.get('controller.currentStep') > 5;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep6Completed: function () {
+    return this.get('controller.currentStep') > 6;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep7Completed: function () {
+    return this.get('controller.currentStep') > 7;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep8Completed: function () {
+    return this.get('controller.currentStep') > 8;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep9Completed: function () {
+    return this.get('controller.currentStep') > 9;
+  }.property('controller.isStepDisabled.@each.value').cacheable(),
+
+  isStep10Completed: function () {
+    return this.get('controller.currentStep') > 10;
   }.property('controller.isStepDisabled.@each.value').cacheable()
 
 });
