@@ -479,6 +479,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
       name: '',
       value: '',
+      propertyType: [],
+      content: ['PASSWORD', 'USER', 'GROUP', 'TEXT', 'ADDITIONAL_USER_PROPERTY', 'NOT_MANAGED_HDFS_PATH', 'VALUE_FROM_PROPERTY_FILE'],
       isKeyError: false,
       showFilterLink: false,
       errorMessage: '',
@@ -558,6 +560,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           if (!serviceConfigObj.isKeyError) {
             propertyObj.name = serviceConfigObj.get('name');
             propertyObj.value = serviceConfigObj.get('value');
+            propertyObj.propertyType = serviceConfigObj.get('propertyType');
             self.createProperty(propertyObj);
             this.hide();
           }
