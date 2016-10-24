@@ -97,7 +97,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.4.0";
+    return "2.4.2";
   }
 
   /**

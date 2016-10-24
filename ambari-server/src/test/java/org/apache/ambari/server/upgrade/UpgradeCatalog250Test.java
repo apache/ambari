@@ -95,7 +95,6 @@ public class UpgradeCatalog250Test {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
-
   }
 
   @After
