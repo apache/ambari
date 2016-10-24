@@ -756,6 +756,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     enableHighAvailability: require('routes/high_availability_routes'),
 
+    manageJournalNode: require('routes/manage_journalnode_routes'),
+
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
     enableRAHighAvailability: require('routes/ra_high_availability_routes'),

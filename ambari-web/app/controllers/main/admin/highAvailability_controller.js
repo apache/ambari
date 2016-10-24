@@ -115,6 +115,11 @@ App.MainAdminHighAvailabilityController = App.WizardController.extend({
     App.router.transitionTo('main.services.enableRAHighAvailability');
     return true;
   },
+  
+  manageJournalNode: function() {
+    App.router.transitionTo('main.services.manageJournalNode');
+    return true;
+  },
 
   /**
    * join or wrap message depending on whether it is array or string

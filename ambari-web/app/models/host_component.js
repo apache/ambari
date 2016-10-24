@@ -322,6 +322,13 @@ App.HostComponentActionMap = {
         cssClass: 'icon-medkit',
         disabled: false
       },
+      MANAGE_JN: {
+        action: 'manageJournalNode',
+        label: Em.I18n.t('admin.manageJournalNode.label'),
+        cssClass: 'icon-cog',
+        isHidden: !App.get('supports.manageJournalNode') || !App.get('isHaEnabled')
+        || (App.router.get('mainHostController.totalCount') == 3 && App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length') == 3)
+      },
       TOGGLE_NN_HA: {
         action: App.get('isHaEnabled') ? 'disableHighAvailability' : 'enableHighAvailability',
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),

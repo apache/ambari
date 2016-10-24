@@ -160,6 +160,12 @@ App.MainServiceItemView = Em.View.extend({
           disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
+      // add "Manage JournalNode" when NNHA is enabled and there is more hosts than JNs
+      var JNCount = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').get('length');
+      if (App.get('supports.manageJournalNode') && service.get('serviceName') == 'HDFS' && service.get('serviceTypes').contains('HA_MODE')
+          && (App.router.get('mainHostController.totalCount') > JNCount || JNCount > 3)) {
+        options.push(actionMap.MANAGE_JN);
+      }
       if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
         switch (service.get('serviceName')) {
           case 'HDFS':

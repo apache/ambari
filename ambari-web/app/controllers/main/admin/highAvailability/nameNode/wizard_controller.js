@@ -186,10 +186,6 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.tasksRequestIds', requestIds);
   },
 
-  loadHdfsUserFromServer: function () {
-    return App.get('router.configurationController').loadFromServer([{'siteName': 'hadoop-env'}]);
-  },
-
   loadMap: {
     '1': [
       {

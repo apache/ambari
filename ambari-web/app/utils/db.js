@@ -361,6 +361,10 @@ App.db.setKerberosWizardConfigTag = function (tag) {
   App.db.set('KerberosWizard', tag.name, tag.value);
 };
 
+App.db.setManageJournalNodeWizardConfigTag = function (tag) {
+  App.db.set('ManageJournalNodeWizard', tag.name, tag.value);
+};
+
 /**
  * Get user model from db
  * @return {*}
@@ -512,6 +516,10 @@ App.db.getReassignMasterWizardRequestIds = function () {
 
 App.db.getReassignMasterWizardComponentDir = function () {
   return App.db.get('ReassignMaster', 'componentDir');
+};
+
+App.db.getManageJournalNodeWizardConfigTag = function (tag) {
+  return App.db.get('ManageJournalNodeWizard', tag);
 };
 
 App.db.getConfigs = function () {

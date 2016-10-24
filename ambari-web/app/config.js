@@ -87,7 +87,8 @@ App.supports = {
   enableIpa: false,
   addingNewRepository: false,
   kerberosStackAdvisor: true,
-  logCountVizualization: false
+  logCountVizualization: false,
+  manageJournalNode: false
 };
 
 if (App.enableExperimental) {
