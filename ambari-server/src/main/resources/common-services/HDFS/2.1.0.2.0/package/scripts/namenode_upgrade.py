@@ -114,7 +114,7 @@ def prepare_upgrade_backup_namenode_dir():
   i = 0
   failed_paths = []
   nn_name_dirs = params.dfs_name_dir.split(',')
-  backup_destination_root_dir = "/tmp/upgrades/{0}".format(params.stack_version_unformatted)
+  backup_destination_root_dir = "{0}/{1}".format(params.namenode_backup_dir, params.stack_version_unformatted)
   if len(nn_name_dirs) > 0:
     Logger.info("Backup the NameNode name directory's CURRENT folder.")
   for nn_dir in nn_name_dirs:

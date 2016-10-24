@@ -222,6 +222,12 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>namenode_backup_dir</name>
+    <description>Local directory for storing backup copy of NameNode images during upgrade</description>
+    <value>/tmp/upgrades</value>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>hdfs_user_keytab</name>
     <description>HDFS keytab path</description>
     <on-ambari-upgrade add="true"/>
