@@ -90,6 +90,7 @@ dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.add
 secure_dn_ports_are_in_use = False
 
 hdfs_tmp_dir = config['configurations']['hadoop-env']['hdfs_tmp_dir']
+namenode_backup_dir = default("/configurations/hadoop-env/namenode_backup_dir", "/tmp/upgrades")
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
