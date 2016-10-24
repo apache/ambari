@@ -1430,6 +1430,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.set("content.recommendations", this.getDBProperty('recommendations'));
   },
 
+  loadHdfsUserFromServer: function () {
+    return App.get('router.configurationController').loadFromServer([{'siteName': 'hadoop-env'}]);
+  },
+
   /**
    * reset stored wizard data and reload App
    * @param {App.WizardController} controller - wizard controller

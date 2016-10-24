@@ -1051,6 +1051,11 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     highAvailabilityController.enableHighAvailability();
   },
 
+  manageJournalNode: function() {
+    var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
+    highAvailabilityController.manageJournalNode();
+  },
+
   disableHighAvailability: function() {
     var highAvailabilityController = App.router.get('mainAdminHighAvailabilityController');
     highAvailabilityController.disableHighAvailability();
