@@ -15,6 +15,25 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div id="uploadProgressModal" class="modal fade" role="dialog" data-backdrop="static">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">{{t "hive.ui.uploadProgress"}}</h4>
+      </div>
+      <div class="modal-body">
+        <p>
+        <ul>
+          {{t "hive.ui.uploading"}}
+        </ul>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <div id="index-content">
   <div class="main-content">
@@ -45,6 +64,11 @@
           <button type="button" {{bind-attr class=":btn :btn-sm :btn-default canExecute::disabled"}} {{action "explainQuery"}}>
             {{t "buttons.explain"}}
           </button>
+
+          <label for="upload">
+            <span {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadQuery"}}</span>
+            {{upload-query filesUploaded="filesUploaded"}}
+          </label>
 
           <button type="button" class="btn btn-sm btn-default save-query-as" {{action "saveQuery"}}>{{t "buttons.saveAs"}}</button>
 
