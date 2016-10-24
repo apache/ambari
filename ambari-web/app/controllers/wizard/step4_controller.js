@@ -60,7 +60,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Drop errorStack content on selected state changes.
-   **/
+   */
   clearErrors: function() {
     if (!this.get('errorStack').someProperty('isAccepted', false)) {
       this.set('errorStack', []);
@@ -123,8 +123,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       else {
         //Spark is selected, remove the Spark error from errorObject array
         var sparkError = this.get('errorStack').filterProperty('id',"sparkWarning");
-        if(sparkError)
-        {
+        if(sparkError) {
            this.get('errorStack').removeObject(sparkError[0]);
         }
       }
@@ -165,7 +164,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *
    * @return {Boolean}
    * @method validate
-   **/
+   */
   validate: function () {
     var result;
     var self = this;
@@ -181,6 +180,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     if (this.get('wizardController.name') === 'installerController') {
       this.serviceValidation(callback, 'AMBARI_METRICS', 'ambariMetricsCheck');
       this.serviceValidation(callback, 'SMARTSENSE', 'smartSenseCheck');
+    }
+    var atlasService = this.findProperty('serviceName', 'ATLAS');
+    var ambariInfraService = this.findProperty('serviceName', 'AMBARI_INFRA');
+    if (atlasService && atlasService.get('isSelected') && ambariInfraService && !ambariInfraService.get('isSelected')) {
+      this.serviceValidation(callback, 'AMBARI_INFRA', 'ambariInfraCheck');
     }
     this.rangerValidation(callback);
     this.sparkValidation(callback);
@@ -228,7 +232,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @param {Object} errorObject - look to #createError
    * @return {Boolean}
    * @method addValidationError
-   **/
+   */
   addValidationError: function (errorObject) {
     if (!this.get('errorStack').someProperty('id', errorObject.id)) {
       this.get('errorStack').push(this.createError(errorObject));
@@ -242,7 +246,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *
    * @param {Object} errorObject
    * @method showError
-   **/
+   */
   showError: function (errorObject) {
     return errorObject.callback.apply(errorObject.callbackContext, errorObject.callbackParams.concat(errorObject.id));
   },
@@ -255,7 +259,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *  @param {function} callback
    *  @param {string} id
    *  @method onPrimaryPopupCallback
-   **/
+   */
   onPrimaryPopupCallback: function(callback, id) {
     var firstError = this.get('errorStack').findProperty('isShown', false);
     if (firstError) {
@@ -280,7 +284,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @param {Object} opt
    * @return {Object}
    * @method createError
-   **/
+   */
   createError: function(opt) {
     var options = {
       // {String} error identifier
@@ -363,32 +367,29 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @method serviceDependencyValidation
    */
   serviceDependencyValidation: function(callback) {
-    var selectedServices = this.filterProperty('isSelected',true);
+    var selectedServices = this.filterProperty('isSelected', true);
     var missingDependencies = [];
     var missingDependenciesDisplayName = [];
-    selectedServices.forEach(function(service){
+    selectedServices.forEach(function(service) {
       var requiredServices = service.get('requiredServices');
       if (!!requiredServices && requiredServices.length) {
         requiredServices.forEach(function(_requiredService){
           var requiredService = this.findProperty('serviceName', _requiredService);
           if (requiredService) {
-            if(requiredService.get('isSelected') === false)
-            {
-               if(missingDependencies.indexOf(_requiredService) == -1 ) {
+            if(requiredService.get('isSelected') === false) {
+               if(missingDependencies.indexOf(_requiredService) === -1) {
                  missingDependencies.push(_requiredService);
                  missingDependenciesDisplayName.push(requiredService.get('displayNameOnSelectServicePage'));
                }
             }
-            else
-            { 
-               //required service is selected, remove the service error from errorObject array 
+            else {
+               //required service is selected, remove the service error from errorObject array
                var serviceName = requiredService.get('serviceName');
                var serviceError = this.get('errorStack').filterProperty('id',"serviceCheck_"+serviceName);
-               if(serviceError)
-               {
+               if(serviceError) {
                   this.get('errorStack').removeObject(serviceError[0]);
                }
-            } 
+            }
           }
         },this);
       }
@@ -397,8 +398,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     //create a copy of the errorStack, reset it
     //and add the dependencies in the correct order
     var errorStackCopy = this.get('errorStack');
-    this.set('errorStack', []);    
-      
+    this.set('errorStack', []);
+
     if (missingDependencies.length > 0) {
       for(var i = 0; i < missingDependencies.length; i++) {
         this.addValidationError({
@@ -406,9 +407,9 @@ App.WizardStep4Controller = Em.ArrayController.extend({
           callback: this.needToAddServicePopup,
           callbackParams: [{serviceName: missingDependencies[i], selected: true}, 'serviceCheck', missingDependenciesDisplayName[i], callback]
         });
-      }      
+      }
     }
-    
+
     //iterate through the errorStackCopy array and add to errorStack array, the error objects that have no matching entry in the errorStack 
     //and that are not related to serviceChecks since serviceCheck errors have already been added when iterating through the missing dependencies list
     //Only add Ranger, Ambari Metrics, Spark and file system service validation errors if they exist in the errorStackCopy array
@@ -419,7 +420,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         //not serviceCheck error
         if(!errorStackCopy[ctr].id.startsWith('serviceCheck_')) {
           this.get('errorStack').push(this.createError(errorStackCopy[ctr]));
-        }        
+        }
       }
       ctr++;
     }
@@ -429,7 +430,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Select co hosted services which not showed on UI.
    *
    * @method setGroupedServices
-   **/
+   */
   setGroupedServices: function() {
     this.forEach(function(service){
       var coSelectedServices = service.get('coSelectedServices');
@@ -444,7 +445,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
 
   /**
    * Select/deselect services
-   * @param services array of objects
+   * @param {object[]|object} services array of objects
    *  <code>
    *    [
    *      {
@@ -463,15 +464,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
 
   needToAddServicePopup: function (services, i18nSuffix, serviceName, callback, id) {
-    if (!(services instanceof Array)) {
-      services = [services];
-    }
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.header').format(serviceName),
       body: Em.I18n.t('installer.step4.' + i18nSuffix + '.popup.body').format(serviceName),
       onPrimary: function () {
-        services.forEach(function (service) {
+        Em.makeArray(services).forEach(function (service) {
           self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
         });
         self.onPrimaryPopupCallback(callback, id);

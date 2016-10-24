@@ -25,7 +25,7 @@ describe('App.WizardStep4Controller', function () {
 
   var services = [
     'HDFS', 'GANGLIA', 'OOZIE', 'HIVE', 'HBASE', 'PIG', 'SCOOP', 'ZOOKEEPER', 'SMARTSENSE',
-    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER'
+    'YARN', 'MAPREDUCE2', 'FALCON', 'TEZ', 'STORM', 'AMBARI_METRICS', 'RANGER', 'SPARK', 'SLIDER', 'ATLAS', 'AMBARI_INFRA'
   ];
 
   var controller = App.WizardStep4Controller.create();
@@ -318,6 +318,10 @@ describe('App.WizardStep4Controller', function () {
         {
           services: ['SMARTSENSE'],
           errorsExpected: ['ambariMetricsCheck']
+        },
+        {
+          services: ['ATLAS', 'AMBARI_METRICS', 'SMARTSENSE'],
+          errorsExpected: ['ambariInfraCheck']
         }
       ],
       controllerNames = ['installerController', 'addServiceController'],
