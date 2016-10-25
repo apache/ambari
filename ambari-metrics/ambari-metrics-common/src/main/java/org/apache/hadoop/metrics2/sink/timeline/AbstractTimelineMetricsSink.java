@@ -25,8 +25,6 @@ import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.security.authentication.client.AuthenticationException;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorHAHelper;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorUnavailableException;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricSinkWriteShardHostnameHashingStrategy;
@@ -36,7 +34,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
-import org.apache.hadoop.security.authentication.client.AuthenticatedURL;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -198,11 +195,9 @@ public abstract class AbstractTimelineMetricsSink {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Ignoring %s AMS connection exceptions", NUMBER_OF_SKIPPED_COLLECTOR_EXCEPTIONS));
         }
+        return false;
       }
-    } catch (AuthenticationException e) {
-      LOG.error("AuthenticationException while posting metrics to metrics collector", e);
     }
-    return false;
   }
 
   protected boolean emitMetrics(TimelineMetrics metrics) {
@@ -263,42 +258,16 @@ public abstract class AbstractTimelineMetricsSink {
     return sb.toString();
   }
 
-  /**
-   * Uses UGI to find and renew (if needed) kerberos ticket and opens authenticated connection
-   *
-   * @param spec - requested URL
-   * @return HttpURLConnection - opened authenticated connection
-   * @throws IOException
-   * @throws AuthenticationException
-   */
-  public HttpURLConnection getAuthenticatedConnection(String spec, UserGroupInformation userGroupInformation) throws IOException, AuthenticationException {
-    //renew ticked if needed
-    if (userGroupInformation != null) {
-      userGroupInformation.checkTGTAndReloginFromKeytab();
-    }
-    //open authenticated connection
-    AuthenticatedURL.Token token = new AuthenticatedURL.Token();
-    URL url = new URL(spec);
-    return new AuthenticatedURL().openConnection(url, token);
-  }
-
   // Get a connection
-  protected HttpURLConnection getConnection(String spec) throws IOException, AuthenticationException {
-    UserGroupInformation userGroupInformation = UserGroupInformation.getLoginUser();
-
-    if (UserGroupInformation.isSecurityEnabled() && userGroupInformation != null &&
-            userGroupInformation.getAuthenticationMethod() == UserGroupInformation.AuthenticationMethod.KERBEROS) {
-      return getAuthenticatedConnection(spec, userGroupInformation);
-    } else {
-      return (HttpURLConnection) new URL(spec).openConnection();
-    }
+  protected HttpURLConnection getConnection(String spec) throws IOException {
+    return (HttpURLConnection) new URL(spec).openConnection();
   }
 
   // Get an ssl connection
   protected HttpsURLConnection getSSLConnection(String spec)
-          throws IOException, IllegalStateException, AuthenticationException {
+    throws IOException, IllegalStateException {
 
-    HttpsURLConnection connection = (HttpsURLConnection) getConnection(spec);
+    HttpsURLConnection connection = (HttpsURLConnection) (new URL(spec).openConnection());
 
     connection.setSSLSocketFactory(sslSocketFactory);
 
@@ -480,8 +449,6 @@ public abstract class AbstractTimelineMetricsSink {
       String warnMsg = "Unable to connect to collector to find live nodes.";
       LOG.warn(warnMsg);
       throw new MetricCollectorUnavailableException(warnMsg);
-    } catch (AuthenticationException e) {
-      LOG.error("AuthenticationException while posting metrics to metrics collector", e);
     }
     return collectors;
   }

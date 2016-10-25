@@ -157,11 +157,6 @@ public class MetricCollectorHATest {
     }
 
     @Override
-    protected HttpURLConnection getConnection(String spec) throws IOException {
-      return (HttpURLConnection) new URL(spec).openConnection();
-    }
-
-    @Override
     protected String getCollectorProtocol() {
       return "http";
     }
