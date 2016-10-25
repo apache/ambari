@@ -18,6 +18,7 @@
 package org.apache.ambari.server.configuration;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -653,6 +654,16 @@ public class Configuration {
       examples = { "/var/lib/ambari-server/resources/common-services" })
   public static final ConfigurationProperty<String> COMMON_SERVICES_DIR_PATH = new ConfigurationProperty<>(
       "common.services.path", null);
+
+  /**
+   * Determines whether an existing local users will be updated as LDAP users.
+   */
+  @Markdown(
+      description = "Determines how to handle username collision while updating from LDAP.",
+      examples = { "skip", "convert" }
+  )
+  public static final ConfigurationProperty<String> LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR = new ConfigurationProperty<>(
+      "ldap.sync.username.collision.behavior", "convert");
 
   /**
    * The location on the Ambari Server where stack extensions exist.
@@ -2542,6 +2553,16 @@ public class Configuration {
   }
 
   /**
+   * Ldap username collision handling behavior.
+   * CONVERT - convert existing local users to LDAP users.
+   * SKIP - skip existing local users.
+   */
+  public enum LdapUsernameCollisionHandlingBehavior {
+    CONVERT,
+    SKIP
+  }
+
+  /**
    * The {@link DatabaseType} enum represents the database being used.
    */
   public enum DatabaseType {
@@ -4366,6 +4387,18 @@ public class Configuration {
    */
   public boolean isKerberosJaasConfigurationCheckEnabled() {
     return Boolean.parseBoolean(getProperty(KERBEROS_CHECK_JAAS_CONFIGURATION));
+  }
+
+  /**
+   * Determines whether an existing local users will be skipped on updated during LDAP sync.
+   *
+   * @return true if ambari need to skip existing user during LDAP sync.
+   */
+  public LdapUsernameCollisionHandlingBehavior getLdapSyncCollisionHandlingBehavior() {
+    if (getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR).toLowerCase().equals("skip")) {
+      return LdapUsernameCollisionHandlingBehavior.SKIP;
+    }
+    return LdapUsernameCollisionHandlingBehavior.CONVERT;
   }
 
   /**

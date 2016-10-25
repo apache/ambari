@@ -61,6 +61,7 @@ REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-
 REGEX_HOSTNAME = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 REGEX_HOSTNAME_PORT = "^(.*:[0-9]{1,5}$)"
 REGEX_TRUE_FALSE = "^(true|false)?$"
+REGEX_SKIP_CONVERT = "^(skip|convert)?$"
 REGEX_REFERRAL = "^(follow|ignore)?$"
 REGEX_ANYTHING = ".*"
 
@@ -600,7 +601,8 @@ def init_ldap_properties_list_reqd(properties, options):
     LdapPropTemplate(properties, options.ldap_dn, "authentication.ldap.dnAttribute", "Distinguished name attribute* {0}: ", REGEX_ANYTHING, False, "dn"),
     LdapPropTemplate(properties, options.ldap_base_dn, "authentication.ldap.baseDn", "Base DN* {0}: ", REGEX_ANYTHING, False),
     LdapPropTemplate(properties, options.ldap_referral, "authentication.ldap.referral", "Referral method [follow/ignore] {0}: ", REGEX_REFERRAL, True),
-    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false")
+    LdapPropTemplate(properties, options.ldap_bind_anonym, "authentication.ldap.bindAnonymously", "Bind anonymously* [true/false] {0}: ", REGEX_TRUE_FALSE, False, "false"),
+    LdapPropTemplate(properties, options.ldap_sync_username_collisions_behavior, "ldap.sync.username.collision.behavior", "Handling behavior for username collisions [convert/skip] for LDAP sync* {0}: ", REGEX_SKIP_CONVERT, False, "convert"),
   ]
   return ldap_properties
 

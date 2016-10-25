@@ -7120,6 +7120,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.usernameAttribute": "user",
         "authentication.ldap.baseDn": "uid",
         "authentication.ldap.bindAnonymously": "true",
+        "ldap.sync.username.collision.behavior": "skip",
         "authentication.ldap.referral": "follow",
         "client.security": "ldap",
         "ambari.ldap.isConfigured": "true"
@@ -7143,6 +7144,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.referral": "follow",
         "authentication.ldap.bindAnonymously": "true",
+        "ldap.sync.username.collision.behavior": "skip",
         "client.security": "ldap",
         "ambari.ldap.isConfigured": "true"
       }
@@ -7180,6 +7182,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.baseDn": "base",
         "authentication.ldap.referral": "follow",
         "authentication.ldap.bindAnonymously": "true",
+        "ldap.sync.username.collision.behavior": "skip",
         "client.security": "ldap",
         "ambari.ldap.isConfigured": "true"
       }
@@ -7211,7 +7214,7 @@ class TestAmbariServer(TestCase):
                }
 
     get_ambari_properties_method.return_value = configs
-    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true']
+    raw_input_mock.side_effect = ['a:3', 'b:b', 'hody', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip']
     set_silent(False)
     get_YN_input_method.return_value = True
 
@@ -7225,10 +7228,10 @@ class TestAmbariServer(TestCase):
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
     self.assertTrue(get_YN_input_method.called)
-    self.assertEquals(14, raw_input_mock.call_count)
+    self.assertEquals(15, raw_input_mock.call_count)
 
     raw_input_mock.reset_mock()
-    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true']
+    raw_input_mock.side_effect = ['a:3', '', 'b:2', 'false', 'user', 'uid', 'group', 'cn', 'member', 'dn', 'base', 'follow', 'true', 'skip']
 
     setup_ldap(options)
 
@@ -7238,7 +7241,7 @@ class TestAmbariServer(TestCase):
     sorted_y = sorted(update_properties_method.call_args[0][1].iteritems(),
                       key=operator.itemgetter(0))
     self.assertEquals(sorted_x, sorted_y)
-    self.assertEquals(13, raw_input_mock.call_count)
+    self.assertEquals(14, raw_input_mock.call_count)
 
     sys.stdout = sys.__stdout__
     pass
@@ -7255,6 +7258,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.usernameAttribute": "test",
         "authentication.ldap.baseDn": "test",
         "authentication.ldap.bindAnonymously": "false",
+        "ldap.sync.username.collision.behavior": "skip",
         "authentication.ldap.managerDn": "test",
         "authentication.ldap.referral": "test",
         "client.security": "ldap",
@@ -7275,6 +7279,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.usernameAttribute": "test",
         "authentication.ldap.baseDn": "test",
         "authentication.ldap.bindAnonymously": "false",
+        "ldap.sync.username.collision.behavior": "skip",
         "authentication.ldap.managerDn": "test",
         "authentication.ldap.groupObjectClass": "test",
         "authentication.ldap.groupMembershipAttr": "test",
@@ -7347,6 +7352,8 @@ class TestAmbariServer(TestCase):
     def valid_input_side_effect(*args, **kwargs):
       if 'Bind anonymously' in args[0]:
         return 'false'
+      if 'username collisions' in args[0]:
+        return 'skip'
       if args[1] == "true" or args[1] == "false":
         return args[1]
       else:
@@ -7417,6 +7424,7 @@ class TestAmbariServer(TestCase):
         "authentication.ldap.baseDn": "test",
         "authentication.ldap.dnAttribute": "test",
         "authentication.ldap.bindAnonymously": "false",
+        "ldap.sync.username.collision.behavior": "skip",
         "authentication.ldap.managerDn": "test",
         "client.security": "ldap",
         "ssl.trustStore.type": "test",
@@ -8606,6 +8614,7 @@ class TestAmbariServer(TestCase):
     options.ldap_referral = None
     options.ldap_bind_anonym = None
     options.ldap_sync_admin_name = None
+    options.ldap_sync_username_collisions_behavior = None
     options.ldap_sync_admin_password = None
     options.custom_trust_store = None
     options.trust_store_type = None

@@ -468,6 +468,7 @@ def init_parser_options(parser):
   parser.add_option('--ldap-bind-anonym', default=None, help="Bind anonymously [true/false] for LDAP", dest="ldap_bind_anonym")
   parser.add_option('--ldap-sync-admin-name', default=None, help="Username for LDAP sync", dest="ldap_sync_admin_name")
   parser.add_option('--ldap-sync-admin-password', default=None, help="Password for LDAP sync", dest="ldap_sync_admin_password")
+  parser.add_option('--ldap-sync-username-collisions-behavior', default=None, help="Handling behavior for username collisions [convert/skip] for LDAP sync", dest="ldap_sync_username_collisions_behavior")
 
   parser.add_option('--truststore-type', default=None, help="Type of TrustStore (jks|jceks|pkcs12)", dest="trust_store_type")
   parser.add_option('--truststore-path', default=None, help="Path of TrustStore", dest="trust_store_path")

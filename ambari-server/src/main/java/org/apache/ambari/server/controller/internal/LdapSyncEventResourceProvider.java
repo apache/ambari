@@ -85,6 +85,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
   public static final String USERS_CREATED_PROPERTY_ID       = "Event/summary/users/created";
   public static final String USERS_UPDATED_PROPERTY_ID       = "Event/summary/users/updated";
   public static final String USERS_REMOVED_PROPERTY_ID       = "Event/summary/users/removed";
+  public static final String USERS_SKIPPED_PROPERTY_ID       = "Event/summary/users/skipped";
   public static final String GROUPS_CREATED_PROPERTY_ID      = "Event/summary/groups/created";
   public static final String GROUPS_UPDATED_PROPERTY_ID      = "Event/summary/groups/updated";
   public static final String GROUPS_REMOVED_PROPERTY_ID      = "Event/summary/groups/removed";
@@ -114,6 +115,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
     propertyIds.add(USERS_CREATED_PROPERTY_ID);
     propertyIds.add(USERS_UPDATED_PROPERTY_ID);
     propertyIds.add(USERS_REMOVED_PROPERTY_ID);
+    propertyIds.add(USERS_SKIPPED_PROPERTY_ID);
     propertyIds.add(GROUPS_CREATED_PROPERTY_ID);
     propertyIds.add(GROUPS_UPDATED_PROPERTY_ID);
     propertyIds.add(GROUPS_REMOVED_PROPERTY_ID);
@@ -272,6 +274,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
     setResourceProperty(resource, USERS_CREATED_PROPERTY_ID, eventEntity.getUsersCreated(), requestedIds);
     setResourceProperty(resource, USERS_UPDATED_PROPERTY_ID, eventEntity.getUsersUpdated(), requestedIds);
     setResourceProperty(resource, USERS_REMOVED_PROPERTY_ID, eventEntity.getUsersRemoved(), requestedIds);
+    setResourceProperty(resource, USERS_SKIPPED_PROPERTY_ID, eventEntity.getUsersSkipped(), requestedIds);
     setResourceProperty(resource, GROUPS_CREATED_PROPERTY_ID, eventEntity.getGroupsCreated(), requestedIds);
     setResourceProperty(resource, GROUPS_UPDATED_PROPERTY_ID, eventEntity.getGroupsUpdated(), requestedIds);
     setResourceProperty(resource, GROUPS_REMOVED_PROPERTY_ID, eventEntity.getGroupsRemoved(), requestedIds);
@@ -523,6 +526,7 @@ public class LdapSyncEventResourceProvider extends AbstractControllerResourcePro
     event.setUsersCreated(syncInfo.getUsersToBeCreated().size());
     event.setUsersUpdated(syncInfo.getUsersToBecomeLdap().size());
     event.setUsersRemoved(syncInfo.getUsersToBeRemoved().size());
+    event.setUsersSkipped(syncInfo.getUsersSkipped().size());
     event.setGroupsCreated(syncInfo.getGroupsToBeCreated().size());
     event.setGroupsUpdated(syncInfo.getGroupsToBecomeLdap().size());
     event.setGroupsRemoved(syncInfo.getGroupsToBeRemoved().size());
