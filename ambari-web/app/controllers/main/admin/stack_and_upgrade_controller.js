@@ -653,7 +653,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       },
       error: errorCallback
     });
-  },  
+  },
 
   /**
    * error callback of <code>abortUpgrade()</code>
@@ -1405,7 +1405,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       stackVersionNumber = App.get('currentStackVersion');
     return stackVersionNumber;
   },
-  
+
   /**
    * perform validation if <code>skip<code> is  false and run save if
    * validation successfull or run save without validation is <code>skip<code> is true
@@ -1422,7 +1422,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       } else {
         var repoVersion = self.prepareRepoForSaving(repo);
         var stackVersionNumber = self.getStackVersionNumber(repo);
-        
+
         App.ajax.send({
           name: 'admin.stack_versions.edit.repo',
           sender: this,
@@ -1439,7 +1439,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     });
     return deferred.promise();
   },
-  
+
   /**
    * send request for validation for each repository
    * @param {Em.Object} repo
@@ -1450,7 +1450,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var deferred = $.Deferred(),
       totalCalls = 0,
       invalidUrls = [];
-    
+
     if (skip) {
       deferred.resolve(invalidUrls);
     } else {
@@ -1868,10 +1868,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object|null} jsonData
    */
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var rv = jsonData.items[0].repository_versions[0].RepositoryVersions;
+    var versions = Em.getWithDefault(jsonData, 'items', []);
+    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
+    var rv = currentVersion || versions.filter(function(i) {
+      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
+       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    })[0];
     var map = this.get('serviceVersionsMap');
-    if (rv) {
-      rv.stack_services.forEach(function (item) {
+    var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
+    if (stackServices) {
+      stackServices.forEach(function (item) {
         map[item.name] = item.versions[0];
       });
     }
