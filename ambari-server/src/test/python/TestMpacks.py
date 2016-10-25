@@ -48,8 +48,8 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 serverConfiguration.search_file = _search_file
 
 from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
-  purge_stacks_and_mpacks, STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, \
-  MPACKS_RESOURCE_NAME
+  purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, \
+  STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
@@ -63,7 +63,8 @@ def get_configs():
     serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
     serverConfiguration.EXTENSION_PATH_PROPERTY : "/var/lib/ambari-server/resources/extensions",
     serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory,
-    serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp"
+    serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp",
+    serverConfiguration.JDBC_DATABASE_PROPERTY: "postgres"
   }
   return configs
 
@@ -92,6 +93,57 @@ class TestMpacks(TestCase):
       install_mpack(options)
     except FatalException as e:
       self.assertEquals("Management pack could not be downloaded!", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
+  @patch("ambari_server.setupMpacks.get_YN_input")
+  @patch("ambari_server.setupMpacks.run_mpack_install_checker")
+  def test_validate_purge(self, run_mpack_install_checker_mock, get_YN_input_mock):
+    options = self._create_empty_options_mock()
+    options.purge = True
+    purge_list = options.purge_list.split(',')
+    mpack_staging_dir = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
+    mpack_dir = os.path.join(mpack_staging_dir, "mystack-ambari-mpack-1.0.0.0")
+    mpack_metadata = read_mpack_metadata(mpack_dir)
+    replay_mode = False
+    run_mpack_install_checker_mock.return_value = (0, "No errors found", "")
+    get_YN_input_mock.return_value = True
+
+    fail = False
+    try:
+      validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode)
+    except FatalException as e:
+      # Unexpected failure
+      fail = True
+    self.assertFalse(fail)
+
+    get_YN_input_mock.return_value = False
+    fail = False
+    try:
+      validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode)
+    except FatalException as e:
+      # Expected failure
+      fail = True
+    self.assertTrue(fail)
+
+    get_YN_input_mock.return_value = True
+    fail = False
+    run_mpack_install_checker_mock.return_value = (1, "", "Mpack installation checker failed!")
+    try:
+      validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode)
+    except FatalException as e:
+      # Expected failure
+      fail = True
+    self.assertTrue(fail)
+
+    fail = False
+    mpack_dir = os.path.join(mpack_staging_dir, "myservice-ambari-mpack-1.0.0.0")
+    mpack_metadata = read_mpack_metadata(mpack_dir)
+    run_mpack_install_checker_mock.return_value = (0, "No errors found", "")
+    try:
+      validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode)
+    except FatalException as e:
+      # Expected failure
       fail = True
     self.assertTrue(fail)
 
@@ -188,7 +240,8 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.expand_mpack")
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.run_os_command")
-  def test_install_stack_mpack(self, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
+  @patch("ambari_server.setupMpacks.validate_purge")
+  def test_install_stack_mpack(self, validate_purge_mock, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                      add_replay_log_mock, get_ambari_properties_mock, get_ambari_version_mock,
                                      create_symlink_mock, os_mkdir_mock, shutil_move_mock, os_path_exists_mock):
     options = self._create_empty_options_mock()

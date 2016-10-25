@@ -24,17 +24,27 @@ import json
 import ast
 import logging
 
+from ambari_server.serverClassPath import ServerClassPath
+
 from ambari_commons.exceptions import FatalException
 from ambari_commons.inet_utils import download_file
-from ambari_commons.logging_utils import print_info_msg, print_error_msg
+from ambari_commons.logging_utils import print_info_msg, print_error_msg, print_warning_msg
 from ambari_commons.os_utils import copy_file, run_os_command
 from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_version, get_stack_location, \
-  get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location
+  get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location, \
+  get_java_exe_path, read_ambari_user, parse_properties_file, JDBC_DATABASE_PROPERTY
+from ambari_server.setupSecurity import ensure_can_start_under_current_user, generate_env
+from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+from ambari_server.userInput import get_YN_input
+from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
 from resource_management.core import sudo
 from resource_management.libraries.functions.tar_archive import extract_archive, get_archive_root_dir
 from resource_management.libraries.functions.version import compare_versions
-from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+
+
+MPACK_INSTALL_CHECKER_CMD = "{0} -cp {1} " + \
+                            "org.apache.ambari.server.checks.MpackInstallChecker --mpack-stacks {2}"
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +67,11 @@ SERVICE_DEFINITIONS_ARTIFACT_NAME = "service-definitions"
 EXTENSION_DEFINITIONS_ARTIFACT_NAME = "extension-definitions"
 STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME = "stack-addon-service-definitions"
 
+RESOURCE_FRIENDLY_NAMES = {
+  STACK_DEFINITIONS_RESOURCE_NAME : "stack definitions",
+  SERVICE_DEFINITIONS_RESOURCE_NAME: "service definitions",
+  MPACKS_RESOURCE_NAME: "management packs"
+}
 
 class _named_dict(dict):
   """
@@ -235,6 +250,85 @@ def remove_symlinks(stack_location, service_definitions_location, staged_mpack_d
         if os.path.islink(dir) and staged_mpack_dir in os.path.realpath(dir):
           print_info_msg("Removing symlink {0}".format(dir))
           sudo.unlink(dir)
+
+def run_mpack_install_checker(options, mpack_stacks):
+  """
+  Run MpackInstallChecker to validate that there is no cluster deployed with a stack that is not included in the management pack
+  :param options: Options passed
+  :param mpack_stacks: List of stacks included in the management pack
+  :return: Output of MpackInstallChecker
+  """
+  properties = get_ambari_properties()
+  database_type = properties[JDBC_DATABASE_PROPERTY]
+  jdk_path = get_java_exe_path()
+
+  if not jdk_path or not database_type:
+    # Ambari Server has not been setup, so no cluster would be present
+    return (0, "", "")
+
+  parse_properties_file(options)
+  options.database_index = LINUX_DBMS_KEYS_LIST.index(properties[JDBC_DATABASE_PROPERTY])
+  ensure_jdbc_driver_is_installed(options, properties)
+
+  serverClassPath = ServerClassPath(properties, options)
+  class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
+
+  command = MPACK_INSTALL_CHECKER_CMD.format(jdk_path, class_path, ",".join(mpack_stacks))
+
+  ambari_user = read_ambari_user()
+  current_user = ensure_can_start_under_current_user(ambari_user)
+  environ = generate_env(options, ambari_user, current_user)
+
+  return run_os_command(command, env=environ)
+
+
+def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=False):
+  """
+  Validate purge options
+  :param purge_list: List of resources to purge
+  :param mpack_metadata: Management pack metadata
+  :param replay_mode: Flag to indicate if purging in replay mode
+  """
+  # Get ambari mpacks config properties
+  stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
+
+  if not purge_list:
+    return
+
+  if STACK_DEFINITIONS_RESOURCE_NAME in purge_list:
+    mpack_stacks = []
+    for artifact in mpack_metadata.artifacts:
+      if artifact.type == STACK_DEFINITIONS_ARTIFACT_NAME:
+        artifact_source_dir = os.path.join(mpack_dir, artifact.source_dir)
+        for file in sorted(os.listdir(artifact_source_dir)):
+          if os.path.isdir(os.path.join(artifact_source_dir, file)):
+            stack_name = file
+            mpack_stacks.append(stack_name)
+    if not mpack_stacks:
+      # Don't purge stacks accidentally when installing add-on mpacks
+      err = "The management pack you are attempting to install does not contain {0}. Since this management pack " \
+            "does not contain a stack, the --purge option with --purge-list={1} would cause your existing Ambari " \
+            "installation to be unusable. Due to that we cannot install this management pack.".format(
+          RESOURCE_FRIENDLY_NAMES[STACK_DEFINITIONS_ARTIFACT_NAME], purge_list)
+      print_error_msg(err)
+      raise FatalException(1, err)
+    else:
+      # Valid that there are no clusters deployed with a stack that is not included in the management pack
+      (retcode, stdout, stderr) = run_mpack_install_checker(options, mpack_stacks)
+      if retcode > 0:
+        print_error_msg(stderr)
+        raise FatalException(1, stderr)
+
+  if not replay_mode:
+    purge_resources = set((v) for k, v in RESOURCE_FRIENDLY_NAMES.iteritems() if k in purge_list)
+    warn_msg = "CAUTION: You have specified the --purge option with --purge-list={0}. " \
+               "This will replace all existing {1} currently installed.\n" \
+               "Are you absolutely sure you want to perform the purge [yes/no]? (no)".format(
+        purge_list, ", ".join(purge_resources))
+    okToPurge = get_YN_input(warn_msg, False)
+    if not okToPurge:
+      err = "Management pack installation cancelled by user"
+      raise FatalException(1, err)
 
 def purge_stacks_and_mpacks(purge_list, replay_mode=False):
   """
@@ -464,7 +558,7 @@ def uninstall_mpack(mpack_name, mpack_version):
 def validate_mpack_prerequisites(mpack_metadata):
   """
   Validate management pack prerequisites
-  :param mpack_name: Management pack metadata
+  :param mpack_metadata: Management pack metadata
   """
   # Get ambari config properties
   properties = get_ambari_properties()
@@ -547,7 +641,9 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
 
   # Purge previously installed stacks and management packs
   if options.purge and options.purge_list:
-    purge_stacks_and_mpacks(options.purge_list.split(","), replay_mode)
+    purge_resources = options.purge_list.split(",")
+    validate_purge(options, purge_resources, tmp_root_dir, mpack_metadata, replay_mode)
+    purge_stacks_and_mpacks(purge_resources, replay_mode)
 
   # Get ambari mpack properties
   stack_location, extension_location, service_definitions_location, mpacks_staging_location = get_mpack_properties()
