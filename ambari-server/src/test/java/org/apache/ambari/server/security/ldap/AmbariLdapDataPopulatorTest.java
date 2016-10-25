@@ -961,6 +961,64 @@ public class AmbariLdapDataPopulatorTest {
   }
 
   @Test
+  public void testSynchronizeAllLdapSkipLocal() throws Exception {
+
+    User user1 = createNiceMock(User.class);
+    User user2 = createNiceMock(User.class);
+    User user3 = createNiceMock(User.class);
+    expect(user1.getUserName()).andReturn("local1").anyTimes();
+    expect(user2.getUserName()).andReturn("local2").anyTimes();
+    expect(user3.getUserName()).andReturn("ldap1").anyTimes();
+    expect(user1.isLdapUser()).andReturn(false).anyTimes();
+    expect(user2.isLdapUser()).andReturn(false).anyTimes();
+    expect(user3.isLdapUser()).andReturn(true).anyTimes();
+
+    List<User> userList = Arrays.asList(user1, user2, user3);
+
+    Configuration configuration = createNiceMock(Configuration.class);
+    expect(configuration.getLdapSyncCollisionHandlingBehavior()).andReturn(Configuration.LdapUsernameCollisionHandlingBehavior.SKIP).anyTimes();
+    Users users = createNiceMock(Users.class);
+    LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
+    LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
+    expect(users.getAllUsers()).andReturn(userList);
+
+    replay(ldapTemplate, ldapServerProperties, users, configuration);
+    replay(user1, user3, user2);
+
+    AmbariLdapDataPopulatorTestInstance populator = createMockBuilder(AmbariLdapDataPopulatorTestInstance.class)
+        .addMockedMethod("getExternalLdapUserInfo")
+        .withConstructor(configuration, users)
+        .createNiceMock();
+
+    LdapUserDto externalUser1 = createNiceMock(LdapUserDto.class);
+    LdapUserDto externalUser2 = createNiceMock(LdapUserDto.class);
+    LdapUserDto externalUser3 = createNiceMock(LdapUserDto.class);
+    expect(externalUser1.getUserName()).andReturn("local1").anyTimes();
+    expect(externalUser2.getUserName()).andReturn("local2").anyTimes();
+    expect(externalUser3.getUserName()).andReturn("ldap1").anyTimes();
+    replay(externalUser1, externalUser2, externalUser3);
+
+    expect(populator.getExternalLdapUserInfo()).andReturn(
+        createSet(externalUser1, externalUser2, externalUser3));
+    replay(populator);
+
+    populator.setLdapTemplate(ldapTemplate);
+    populator.setLdapServerProperties(ldapServerProperties);
+
+    LdapBatchDto result = populator.synchronizeAllLdapUsers(new LdapBatchDto());
+    assertEquals(2, result.getUsersSkipped().size());
+    assertTrue(result.getUsersSkipped().contains("local1"));
+    assertTrue(result.getUsersSkipped().contains("local2"));
+    assertTrue(result.getUsersToBeCreated().isEmpty());
+    assertTrue(result.getGroupsToBeRemoved().isEmpty());
+    assertTrue(result.getGroupsToBeCreated().isEmpty());
+    assertTrue(result.getGroupsToBecomeLdap().isEmpty());
+    assertTrue(result.getMembershipToAdd().isEmpty());
+    assertTrue(result.getMembershipToRemove().isEmpty());
+    verify(populator.loadLdapTemplate(), populator);
+  }
+
+  @Test
   public void testSynchronizeAllLdapUsers_add() throws Exception {
 
     User user1 = createNiceMock(User.class);
