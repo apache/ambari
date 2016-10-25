@@ -19,6 +19,11 @@
 window.App = require('app');
 
 App.ApplicationAdapter = DS.RESTAdapter.extend({
+  init: function() {
+    Ember.$.ajaxSetup({
+      cache: false
+    })
+  },
   namespace: App.getNamespaceUrl(),
   headers: {
    'X-Requested-By': 'ambari'
