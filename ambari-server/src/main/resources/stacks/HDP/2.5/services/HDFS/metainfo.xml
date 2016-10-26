@@ -21,6 +21,12 @@
     <service>
       <name>HDFS</name>
       <version>2.7.1.2.5</version>
+      <components>
+        <component>
+          <name>ZKFC</name>
+          <versionAdvertised>true</versionAdvertised>
+        </component>
+      </components>
     </service>
   </services>
 </metainfo>
