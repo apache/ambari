@@ -17,10 +17,9 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import com.google.gson.Gson;
-import org.apache.ambari.server.AmbariException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -28,9 +27,11 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
 
 /**
  * The {@link ConfigUpgradeChangeDefinition} represents a configuration change. This change can be
@@ -123,9 +124,6 @@ public class ConfigUpgradeChangeDefinition {
   @XmlElement(name = "set")
   private List<ConfigurationKeyValue> keyValuePairs;
 
-  @XmlElement(name = "condition")
-  private List<Condition> conditions;
-
   @XmlElement(name = "transfer")
   private List<Transfer> transfers;
 
@@ -144,13 +142,6 @@ public class ConfigUpgradeChangeDefinition {
    */
   public List<ConfigurationKeyValue> getKeyValuePairs() {
     return keyValuePairs;
-  }
-
-  /**
-   * @return the list of conditions
-   */
-  public List<Condition> getConditions() {
-    return conditions;
   }
 
   /**
@@ -263,56 +254,6 @@ public class ConfigUpgradeChangeDefinition {
               ", ifValue='" + ifValue + '\'' +
               ", ifKeyState='" + ifKeyState + '\'' +
               '}';
-    }
-  }
-
-  /**
-   * A conditional element that will only perform the configuration if the
-   * condition is met.
-   */
-  @XmlAccessorType(XmlAccessType.FIELD)
-  @XmlType(name = "condition")
-  public static class Condition {
-    @XmlAttribute(name = "type")
-    private String conditionConfigType;
-
-    @XmlAttribute(name = "key")
-    private String conditionKey;
-
-    @XmlAttribute(name = "value")
-    private String conditionValue;
-
-    @XmlElement(name = "type")
-    private String configType;
-
-    @XmlElement(name = "key")
-    private String key;
-
-    @XmlElement(name = "value")
-    private String value;
-
-    public String getConditionConfigType() {
-      return conditionConfigType;
-    }
-
-    public String getConditionKey() {
-      return conditionKey;
-    }
-
-    public String getConditionValue() {
-      return conditionValue;
-    }
-
-    public String getConfigType() {
-      return configType;
-    }
-
-    public String getKey() {
-      return key;
-    }
-
-    public String getValue() {
-      return value;
     }
   }
 
