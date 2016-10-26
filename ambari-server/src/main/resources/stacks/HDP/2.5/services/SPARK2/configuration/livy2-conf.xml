@@ -20,7 +20,7 @@
 -->
 <configuration supports_final="true">
     <property>
-        <name>livy2.environment</name>
+        <name>livy.environment</name>
         <value>production</value>
         <description>
             Specifies Livy's environment. May either be "production" or "development". In "development"
@@ -30,7 +30,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>livy2.server.port</name>
+        <name>livy.server.port</name>
         <value>8999</value>
         <description>
             What port to start the server on. Defaults to 8998.
@@ -38,7 +38,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>livy2.server.session.timeout</name>
+        <name>livy.server.session.timeout</name>
         <value>3600000</value>
         <description>
             Time in milliseconds on how long Livy will wait before timing out an idle session.
@@ -47,7 +47,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>livy2.impersonation.enabled</name>
+        <name>livy.impersonation.enabled</name>
         <value>true</value>
         <description>
             If livy should use proxy users when submitting a job.
@@ -55,7 +55,7 @@
         <on-ambari-upgrade add="true"/>
     </property>
     <property>
-        <name>livy2.server.csrf_protection.enabled</name>
+        <name>livy.server.csrf_protection.enabled</name>
         <value>true</value>
         <description>
             Whether to enable csrf protection for livy's rest api.
