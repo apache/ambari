@@ -16,8 +16,7 @@
    limitations under the License.
 -->
 
-<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
   <services>
     <service name="HBASE">
       <component name="HBASE_MASTER">
@@ -100,16 +99,12 @@
           <!-- Add these configs if the cluster is Kerberized.
           Will only be written to the local file system if Atlas is present. -->
           <definition xsi:type="configure" id="hdp_2_5_0_0_add_sqoop_atlas_security_configs">
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>sqoop-atlas-application.properties</type>
-              <key>atlas.jaas.KafkaClient.option.useTicketCache</key>
-              <value>true</value>
-            </condition>
-            <condition type="cluster-env" key="security_enabled" value="true">
-              <type>sqoop-atlas-application.properties</type>
-              <key>atlas.jaas.KafkaClient.option.renewTicket</key>
-              <value>true</value>
-            </condition>
+            <type>sqoop-atlas-application.properties</type>
+            <set key="atlas.jaas.KafkaClient.option.useTicketCache" value="true" 
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
+
+            <set key="atlas.jaas.KafkaClient.option.renewTicket" value="true" 
+              if-type="cluster-env" if-key="security_enabled" if-value="true"/>
           </definition>
         </changes>
       </component>
@@ -228,11 +223,9 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_5_0_0_set_external_solrCloud_flag">
-            <condition type="ranger-env" key="is_solrCloud_enabled" value="true">
-              <type>ranger-env</type>
-              <key>is_external_solrCloud_enabled</key>
-              <value>true</value>
-            </condition>
+            <type>ranger-env</type>            
+            <set key="is_external_solrCloud_enabled" value="true" 
+              if-type="ranger-env" if-key="is_solrCloud_enabled" if-value="true"/>
           </definition>
 
         </changes>
@@ -490,5 +483,4 @@
       </component>
     </service>
   </services>
-
 </upgrade-config-changes>
