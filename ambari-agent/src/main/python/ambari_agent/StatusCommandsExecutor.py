@@ -22,7 +22,8 @@ import signal
 import threading
 import logging
 import multiprocessing
-from PythonReflectiveExecutor import PythonReflectiveExecutor
+from ambari_agent.PythonReflectiveExecutor import PythonReflectiveExecutor
+from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -43,8 +44,10 @@ class StatusCommandsExecutor(multiprocessing.Process):
 
   def run(self):
     try:
+      bind_debug_signal_handlers()
       while True:
         command = self.actionQueue.statusCommandQueue.get(True) # blocks until status status command appears
+        logger.info("Running status command for {0}".format(command['componentName'])) # TODO: change to logger.debug once fixed
         
         timeout_timer = threading.Timer( self.status_command_timeout, self.respawn, [command])
         timeout_timer.start()
@@ -52,6 +55,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
         self.process_status_command(command)
 
         timeout_timer.cancel()
+        logger.info("Completed status command for {0}".format(command['componentName']))  # TODO: change to logger.debug once fixed
     except:
       logger.exception("StatusCommandsExecutor process failed with exception:")
       raise
@@ -67,8 +71,10 @@ class StatusCommandsExecutor(multiprocessing.Process):
 
   def respawn(self, command):
     try:
-      # Force context to reset to normal. By context we mean sys.path, imports, etc. They are set by specific status command, and are not relevant to ambari-agent.
-      PythonReflectiveExecutor.last_context.revert()
+      if hasattr(PythonReflectiveExecutor, "last_context"):
+        # Force context to reset to normal. By context we mean sys.path, imports, etc. They are set by specific status command, and are not relevant to ambari-agent.
+        PythonReflectiveExecutor.last_context.revert()
+
       logger.warn("Command {0} for {1} is running for more than {2} seconds. Terminating it due to timeout.".format(command['commandType'], command['componentName'], self.status_command_timeout))
 
       self.hasTimeoutedEvent.set()
