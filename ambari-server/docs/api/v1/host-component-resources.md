@@ -45,7 +45,7 @@ limitations under the License.
   </tr>
   <tr>
     <td>HostRoles/component_name</td>
-    <td>The name of the parenbt component</td>  
+    <td>The name of the parent component</td>  
   </tr>
   <tr>
     <td>HostRoles/state</td>
