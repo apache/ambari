@@ -59,6 +59,12 @@ public interface ServiceComponent {
 
   void setDesiredVersion(String version);
 
+  /**
+   * Refresh Component info due to current stack
+   * @throws AmbariException
+   */
+  void updateComponentInfo() throws AmbariException;
+
   Map<String, ServiceComponentHost> getServiceComponentHosts();
 
   ServiceComponentHost getServiceComponentHost(String hostname)
