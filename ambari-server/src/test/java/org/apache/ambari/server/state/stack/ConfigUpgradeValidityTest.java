@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.state.stack;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider.ConfigurationPackBuilder;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.stack.ModuleFileUnmarshaller;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
@@ -39,9 +36,6 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.Task.Type;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,8 +51,7 @@ import junit.framework.Assert;
 
 /**
  * Tests that for every upgrade pack found, that all referenced configuration
- * IDs exist in the {@code config-upgrade.xml} which will be used/created. Also
- * ensures that every XML file is valid against its XSD.
+ * IDs exist in the {@code config-upgrade.xml} which will be used/created.
  */
 @Category({ category.StackUpgradeTest.class})
 public class ConfigUpgradeValidityTest {
@@ -172,65 +165,6 @@ public class ConfigUpgradeValidityTest {
 
     // make sure we actually checked a bunch of configs :)
     Assert.assertTrue(validatedConfigCount > 100);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void testValidateConfigUpgradePacks() throws Exception {
-    IOFileFilter filter = new IOFileFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return false;
-      }
-
-      @Override
-      public boolean accept(File file) {
-        // file has the folder named 'upgrades', ends with '.xml' and is NOT
-        // 'config-upgrade.xml'
-        if (file.getAbsolutePath().contains("upgrades")
-            && file.getAbsolutePath().endsWith("config-upgrade.xml")) {
-          return true;
-        }
-
-        return false;
-      }
-    };
-
-    List<File> files = new ArrayList<>();
-
-    files.addAll(FileUtils.listFiles(new File("src/main/resources/stacks"), filter,
-        FileFilterUtils.directoryFileFilter()));
-
-    files.addAll(FileUtils.listFiles(new File("src/test/resources/stacks"), filter,
-        FileFilterUtils.directoryFileFilter()));
-
-    files.addAll(FileUtils.listFiles(new File("src/test/resources/stacks_with_upgrade_cycle"),
-        filter, FileFilterUtils.directoryFileFilter()));
-
-    ModuleFileUnmarshaller unmarshaller = new ModuleFileUnmarshaller();
-
-    int filesTestedCount = 0;
-    for (File file : files) {
-      String fileContent = FileUtils.readFileToString(file, "UTF-8");
-
-      // these things must be in upgrade packs for them to work anyway
-      if (fileContent.contains("<upgrade-config-changes")
-          && fileContent.contains("xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"")) {
-        if (!fileContent.contains("xsi:noNamespaceSchemaLocation=\"upgrade-config.xsd\"")) {
-          String msg = String.format(
-              "File %s appears to be a config upgrade pack, but does not define 'upgrade-config.xsd' as its schema",
-              file.getAbsolutePath());
-          Assert.fail(msg);
-        } else {
-          filesTestedCount++;
-          unmarshaller.unmarshal(ConfigUpgradePack.class, file, true);
-        }
-      }
-    }
-
-    Assert.assertTrue(
-        "This test didn't appear to do any work which could indicate that it failed to find files to validate",
-        filesTestedCount > 5);
   }
 
   /**

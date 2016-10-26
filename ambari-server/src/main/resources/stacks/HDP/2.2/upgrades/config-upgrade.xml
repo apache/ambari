@@ -16,7 +16,8 @@
    limitations under the License.
 -->
 
-<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
   <services>
     <service name="HDFS">
       <component name="NAMENODE">
@@ -53,12 +54,11 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_hdfs_adjust_ranger_plugin">
-            <type>hdfs-site</type>
-            <set key="dfs.namenode.inode.attributes.provider.class"
-             value="org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer"
-             if-type="ranger-hdfs-plugin-properties"
-             if-key="ranger-hdfs-plugin-enabled"             
-             if-value="Yes"/>
+            <condition type="ranger-hdfs-plugin-properties" key="ranger-hdfs-plugin-enabled" value="Yes">
+              <type>hdfs-site</type>
+              <key>dfs.namenode.inode.attributes.provider.class</key>
+              <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_hdfs_transition_ranger_hdfs_policy"
@@ -446,9 +446,16 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties">
-            <type>tez-site</type>
-            <set key="tez.counters.max" value="10000" if-type="tez-site" if-key="tez.counters.max" if-value="2000"/>
-            <set key="tez.counters.max.groups" value="3000" if-type="tez-site" if-key="tez.counters.max.groups" if-value="1000"/>
+            <condition type="tez-site" key="tez.counters.max" value="2000">
+              <type>tez-site</type>
+              <key>tez.counters.max</key>
+              <value>10000</value>
+            </condition>
+            <condition type="tez-site" key="tez.counters.max.groups" value="1000">
+              <type>tez-site</type>
+              <key>tez.counters.max.groups</key>
+              <value>3000</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties">
@@ -486,8 +493,11 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment">
-            <type>storm-site</type>
-            <set key="nimbus.monitor.freq.secs" value="120" if-type="storm-site" if-key="nimbus.monitor.freq.secs" if-value="10"/>
+            <condition type="storm-site" key="nimbus.monitor.freq.secs" value="10">
+              <type>storm-site</type>
+              <key>nimbus.monitor.freq.secs</key>
+              <value>120</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"
@@ -689,13 +699,19 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit">
-            <type>ranger-env</type>
-            <set key="xasecure.audit.destination.hdfs" value="false" if-type="ranger-env" if-key="xasecure.audit.destination.hdfs" if-value="false"/>
+            <condition type="ranger-env" key="xasecure.audit.destination.hdfs" value="false">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.hdfs</key>
+              <value>false</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit">
-            <type>ranger-env</type>
-            <set key="xasecure.audit.destination.db" value="true" if-type="ranger-env" if-key="xasecure.audit.destination.db" if-value="true"/>
+            <condition type="ranger-env" key="xasecure.audit.destination.db" value="true">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.db</key>
+              <value>true</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync" summary="Updating Ranger Usersync">
@@ -737,14 +753,17 @@
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source">
-            <type>ranger-ugsync-site</type>
-            <set key="ranger.usersync.source.impl.class" 
-              value="org.apache.ranger.unixusersync.process.UnixUserGroupBuilder" 
-              if-type="usersync-properties" if-key="SYNC_SOURCE" if-value="unix"/>
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="unix">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+            </condition>
 
-            <set key="ranger.usersync.source.impl.class" 
-              value="org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder" 
-              if-type="usersync-properties" if-key="SYNC_SOURCE" if-value="ldap"/>
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="ldap">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">
@@ -774,18 +793,25 @@
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory">
-            <type>hbase-site</type>
-            <set key="hbase.region.server.rpc.scheduler.factory.class" 
-              value="org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory" 
-              if-type="hbase-env" if-key="phoenix_sql_enabled" if-value="true"/>          
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.region.server.rpc.scheduler.factory.class</key>
+              <value>org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory
+              </value>
+            </condition>
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_rpc_controller_factory">
-            <type>hbase-site</type>
-            <set key="hbase.rpc.controllerfactory.class" 
-              value="org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory" 
-              if-type="hbase-env" if-key="phoenix_sql_enabled" if-value="true"/>          
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_rpc_controller_factory">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.rpc.controllerfactory.class</key>
+              <value>
+                org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory
+              </value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure"
@@ -797,11 +823,15 @@
                       default-value="0.4"/>
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec">
-            <type>hbase-site</type>
-            <set key="hbase.regionserver.wal.codec" 
-              value="org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec" 
-              if-type="hbase-env" if-key="phoenix_sql_enabled" if-value="true"/>
+          <definition xsi:type="configure"
+                      id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec">
+            <condition type="hbase-env" key="phoenix_sql_enabled" value="true">
+              <type>hbase-site</type>
+              <key>hbase.regionserver.wal.codec</key>
+              <value>
+                org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec
+              </value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure"
@@ -977,7 +1007,8 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations" summary="Updating oozie-site to remove redundant configurations">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations">
+            <summary>Updating oozie-site to remove redundant configurations</summary>
             <type>oozie-site</type>
             <transfer operation="delete" delete-key="*" preserve-edits="true">
               <keep-key>oozie.base.url</keep-key>
@@ -1096,4 +1127,5 @@
       </component>
     </service>
   </services>
+
 </upgrade-config-changes>

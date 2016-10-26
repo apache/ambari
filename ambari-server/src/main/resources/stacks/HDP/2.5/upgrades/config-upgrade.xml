@@ -16,7 +16,8 @@
    limitations under the License.
 -->
 
-<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
   <services>
     <service name="STORM">
       <component name="NIMBUS">
@@ -45,4 +46,5 @@
       </component>
     </service>
   </services>
+
 </upgrade-config-changes>
