@@ -107,6 +107,20 @@ under the License.
         </plugins>
     </profile>
     <profile>
+        <name>HiveORC</name>
+        <description>This profile is suitable only for Hive tables stored in ORC files
+            and serialized with either the ColumnarSerDe or the LazyBinaryColumnarSerDe.
+            It is much faster than the general purpose Hive profile.
+            DELIMITER parameter is mandatory.
+        </description>
+        <plugins>
+            <fragmenter>org.apache.hawq.pxf.plugins.hive.HiveInputFormatFragmenter</fragmenter>
+            <accessor>org.apache.hawq.pxf.plugins.hive.HiveORCAccessor</accessor>
+            <resolver>org.apache.hawq.pxf.plugins.hive.HiveORCSerdeResolver</resolver>
+            <metadata>org.apache.hawq.pxf.plugins.hive.HiveMetadataFetcher</metadata>
+        </plugins>
+    </profile>
+    <profile>
         <name>HdfsTextSimple</name>
         <description>This profile is suitable for using when reading delimited single line records from plain text files
             on HDFS
