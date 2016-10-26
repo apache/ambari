@@ -17,6 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -30,6 +33,7 @@ import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
@@ -48,6 +52,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Resource provider for user privilege resources.
@@ -142,6 +148,87 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
     keyPropertyIds.put(Resource.Type.UserPrivilege, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
   }
 
+  private ThreadLocal<LoadingCache<Long, ClusterEntity>> clusterCache =
+      new ThreadLocal<LoadingCache<Long, ClusterEntity>>(){
+    @Override
+    protected LoadingCache<Long, ClusterEntity> initialValue() {
+      CacheLoader<Long, ClusterEntity> loader = new CacheLoader<Long, ClusterEntity>() {
+        @Override
+        public ClusterEntity load(Long key) throws Exception {
+          return clusterDAO.findByResourceId(key);
+        }
+      };
+      return CacheBuilder.newBuilder().expireAfterWrite(20, TimeUnit.SECONDS).build(loader);
+    }
+  };
+
+  private ThreadLocal<LoadingCache<Long, ViewInstanceEntity>> viewInstanceCache =
+      new ThreadLocal<LoadingCache<Long, ViewInstanceEntity>>(){
+    @Override
+    protected LoadingCache<Long, ViewInstanceEntity> initialValue() {
+      CacheLoader<Long, ViewInstanceEntity> loader = new CacheLoader<Long, ViewInstanceEntity>() {
+        @Override
+        public ViewInstanceEntity load(Long key) throws Exception {
+          return viewInstanceDAO.findByResourceId(key);
+        }
+      };
+      return CacheBuilder.newBuilder().expireAfterWrite(20, TimeUnit.SECONDS).build(loader);
+    }
+  };
+
+  private ThreadLocal<LoadingCache<String, UserEntity>> usersCache =
+      new ThreadLocal<LoadingCache<String, UserEntity>>(){
+        @Override
+        protected LoadingCache<String, UserEntity> initialValue() {
+          CacheLoader<String, UserEntity> loader = new CacheLoader<String, UserEntity>() {
+            @Override
+            public UserEntity load(String key) throws Exception {
+              //fallback mechanism, mostly for unit tests
+              UserEntity userEntity = userDAO.findLocalUserByName(key);
+              if (userEntity == null) {
+                userEntity = userDAO.findLdapUserByName(key);
+              }
+              if (userEntity == null) {
+                userEntity = userDAO.findUserByNameAndType(key, UserType.JWT);
+              }
+              return userEntity;
+            }
+          };
+
+          return CacheBuilder.newBuilder()
+              .expireAfterWrite(20, TimeUnit.SECONDS)
+              .build(loader);
+        }
+      };
+
+  private ThreadLocal<LoadingCache<PrincipalEntity, GroupEntity>> groupsCache =
+      new ThreadLocal<LoadingCache<PrincipalEntity, GroupEntity>>(){
+        @Override
+        protected LoadingCache<PrincipalEntity, GroupEntity> initialValue() {
+          CacheLoader<PrincipalEntity, GroupEntity> loader = new CacheLoader<PrincipalEntity, GroupEntity>() {
+            @Override
+            public GroupEntity load(PrincipalEntity key) throws Exception {
+              return groupDAO.findGroupByPrincipal(key);
+            }
+          };
+
+          return CacheBuilder.newBuilder()
+              .expireAfterWrite(20, TimeUnit.SECONDS)
+              .build(loader);
+        }
+      };
+
+  private GroupEntity getCachedGroupByPrincipal(PrincipalEntity principalEntity) {
+    GroupEntity entity = groupsCache.get().getIfPresent(principalEntity);
+    if (entity == null) {
+      for (GroupEntity groupEntity : groupDAO.findAll()) {
+        groupsCache.get().put(groupEntity.getPrincipal(), groupEntity);
+      }
+      entity = groupsCache.get().getUnchecked(principalEntity);
+    }
+    return entity;
+  }
+
 
   /**
    * Constructor.
@@ -183,13 +270,24 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
       }
 
       if (userName != null) {
-        UserEntity userEntity = userDAO.findLocalUserByName(userName);
+
+        UserEntity userEntity = usersCache.get().getIfPresent(userName);
         if (userEntity == null) {
-          userEntity = userDAO.findLdapUserByName(userName);
+          //temporary tradeoff, add ~200ms for single user call, but start saving time for 100+ subsequent calls
+          //usual case for management page is to populate subresources for all users
+          Map<String, UserEntity> userNames = new TreeMap<>();
+          for (UserEntity entity : userDAO.findAll()) {
+            UserEntity existing = userNames.get(entity.getUserName());
+            if (existing == null ||
+                entity.getUserType() == UserType.LOCAL ||
+                existing.getUserType() == UserType.JWT) {
+              userNames.put(entity.getUserName(), entity);
+            }
+          }
+          usersCache.get().putAll(userNames);
+          userEntity = usersCache.get().getUnchecked(userName);
         }
-        if (userEntity == null) {
-          userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
-        }
+
         if (userEntity == null) {
           throw new SystemException("User " + userName + " was not found");
         }
@@ -213,7 +311,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    * @param requestedIds    the relevant request ids
    * @return a resource
    */
-  protected Resource toResource(PrivilegeEntity privilegeEntity, Object userName, Set<String> requestedIds) {
+  protected Resource toResource(PrivilegeEntity privilegeEntity, Object userName, Set<String> requestedIds){
     final ResourceImpl resource = new ResourceImpl(Resource.Type.UserPrivilege);
 
     setResourceProperty(resource, PRIVILEGE_USER_NAME_PROPERTY_ID, userName, requestedIds);
@@ -227,7 +325,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
       final UserEntity user = userDAO.findUserByPrincipal(privilegeEntity.getPrincipal());
       setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, user.getUserName(), requestedIds);
     } else if (principalTypeName.equals(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME)) {
-      final GroupEntity groupEntity = groupDAO.findGroupByPrincipal(privilegeEntity.getPrincipal());
+      final GroupEntity groupEntity = getCachedGroupByPrincipal(privilegeEntity.getPrincipal());
       setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, groupEntity.getGroupName(), requestedIds);
     }
 
@@ -239,11 +337,11 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
           // there is nothing special to add for this case
           break;
         case CLUSTER:
-          final ClusterEntity clusterEntity = clusterDAO.findByResourceId(privilegeEntity.getResource().getId());
+          final ClusterEntity clusterEntity = clusterCache.get().getUnchecked(privilegeEntity.getResource().getId());
           setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
           break;
         case VIEW:
-          final ViewInstanceEntity viewInstanceEntity = viewInstanceDAO.findByResourceId(privilegeEntity.getResource().getId());
+          final ViewInstanceEntity viewInstanceEntity = viewInstanceCache.get().getUnchecked(privilegeEntity.getResource().getId());
           final ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
 
           setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
