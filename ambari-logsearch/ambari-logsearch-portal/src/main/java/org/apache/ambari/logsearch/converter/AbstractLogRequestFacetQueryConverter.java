@@ -48,6 +48,7 @@ public abstract class AbstractLogRequestFacetQueryConverter<SOURCE extends BaseL
     FacetOptions facetOptions = new FacetOptions();
     facetOptions.setFacetMinCount(1);
     facetOptions.setFacetSort(getFacetSort());
+    facetOptions.setFacetLimit(-1);
     appendFacetOptions(facetOptions, request);
     addIncludeFieldValues(facetQuery, StringEscapeUtils.unescapeXml(request.getIncludeQuery()));
     addExcludeFieldValues(facetQuery, StringEscapeUtils.unescapeXml(request.getExcludeQuery()));

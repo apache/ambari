@@ -168,7 +168,7 @@ define(['require',
                 require(['views/filter/CreateLogfeederFilterView'],function(CreateLogfeederFilter){
                     var view = new CreateLogfeederFilter({});
                     var options = {
-                        title: "Log Feeder Log Levels",
+                        title: "Log Feeder Log Levels Filter",
                         content: view,
                         viewType: 'Filter',
                         resizable: false,

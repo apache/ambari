@@ -81,9 +81,4 @@ public class BaseServiceLogRequestQueryConverter extends AbstractServiceLogReque
   public LogType getLogType() {
     return LogType.SERVICE;
   }
-
-  @Override
-  public void addComponentFilters(BaseServiceLogRequest request, SimpleQuery query) {
-
-  }
 }

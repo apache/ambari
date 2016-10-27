@@ -173,7 +173,6 @@ class TestLogSearch(RMFTestCase):
                        stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 

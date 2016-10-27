@@ -51,6 +51,7 @@ public abstract class SolrDaoBase {
 
   public QueryResponse process(SolrQuery solrQuery, String event) {
     SolrUtil.removeDoubleOrTripleEscapeFromFilters(solrQuery);
+    LOG.info("Solr query will be processed: " + solrQuery);
     if (getSolrClient() != null) {
       event = event == null ? solrQuery.get("event") : event;
       solrQuery.remove("event");

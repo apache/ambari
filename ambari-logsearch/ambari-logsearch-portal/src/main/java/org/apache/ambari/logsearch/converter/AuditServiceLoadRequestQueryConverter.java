@@ -48,5 +48,6 @@ public class AuditServiceLoadRequestQueryConverter extends AbstractLogRequestFac
   @Override
   public void appendFacetOptions(FacetOptions facetOptions, AuditServiceLoadRequest request) {
     facetOptions.addFacetOnField(AUDIT_COMPONENT);
+    facetOptions.setFacetLimit(10);
   }
 }

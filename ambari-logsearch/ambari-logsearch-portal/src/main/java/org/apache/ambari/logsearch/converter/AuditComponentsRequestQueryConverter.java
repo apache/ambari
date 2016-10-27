@@ -18,45 +18,36 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.query.FacetOptions;
-import org.springframework.data.solr.core.query.SimpleFacetQuery;
 
 import javax.inject.Named;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.AuditLogConstants.AUDIT_EVTTIME;
 
 @Named
-public class AuditComponentsRequestQueryConverter extends AbstractSearchRequestQueryConverter<AuditComponentRequest, SimpleFacetQuery> {
+public class AuditComponentsRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<AuditComponentRequest> {
 
   @Override
-  public SimpleFacetQuery extendSolrQuery(AuditComponentRequest request, SimpleFacetQuery query) {
-    FacetOptions facetOptions = new FacetOptions(); // TODO: check that date filtering is needed or not
-    facetOptions.addFacetOnField(AUDIT_COMPONENT);
-    facetOptions.setFacetSort(FacetOptions.FacetSort.INDEX);
-    facetOptions.setFacetLimit(-1);
-    query.setFacetOptions(facetOptions);
-    return query;
+  public FacetOptions.FacetSort getFacetSort() {
+    return FacetOptions.FacetSort.INDEX;
   }
 
   @Override
-  public Sort sort(AuditComponentRequest request) {
-    Sort.Direction direction = StringUtils.equals(request.getSortType(), LogSearchConstants.DESCENDING_ORDER)
-      ? Sort.Direction.DESC : Sort.Direction.ASC;
-    return new Sort(new Sort.Order(direction, AUDIT_COMPONENT));
-  }
-
-  @Override
-  public SimpleFacetQuery createQuery() {
-    return new SimpleFacetQuery();
+  public String getDateTimeField() {
+    return AUDIT_EVTTIME;
   }
 
   @Override
   public LogType getLogType() {
     return LogType.AUDIT;
+  }
+
+  @Override
+  public void appendFacetOptions(FacetOptions facetOptions, AuditComponentRequest request) {
+    facetOptions.addFacetOnField(AUDIT_COMPONENT);
+    facetOptions.setFacetLimit(-1);
   }
 }

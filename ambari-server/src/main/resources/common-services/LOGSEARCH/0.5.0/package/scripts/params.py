@@ -19,6 +19,7 @@ limitations under the License.
 
 """
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from logsearch_config_aggregator import get_logfeeder_metadata, get_logsearch_metadata, get_logsearch_meta_configs
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.is_empty import is_empty
@@ -65,6 +66,11 @@ zookeeper_hosts_list.sort()
 zookeeper_hosts = ",".join(zookeeper_hosts_list)
 cluster_name = str(config['clusterName'])
 availableServices = config['availableServices']
+
+configurations = config['configurations'] # need reference inside logfeeder jinja templates
+logserch_meta_configs = get_logsearch_meta_configs(configurations)
+logsearch_metadata = get_logsearch_metadata(logserch_meta_configs)
+logfeeder_metadata = get_logfeeder_metadata(logserch_meta_configs)
 
 # for now just pick first collector
 if 'metrics_collector_hosts' in config['clusterHostInfo']:
@@ -139,41 +145,13 @@ logsearch_app_log4j_content = config['configurations']['logsearch-log4j']['conte
 # Log dirs
 ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
-knox_log_dir = '/var/log/knox'
 hst_log_dir = '/var/log/hst'
 hst_activity_log_dir = '/var/log/smartsense-activity'
 
-metrics_collector_log_dir = default('/configurations/ams-env/metrics_collector_log_dir', '/var/log/ambari-metrics-collector')
-metrics_monitor_log_dir = default('/configurations/ams-env/metrics_monitor_log_dir', '/var/log/ambari-metrics-monitor')
-metrics_grafana_log_dir = default('/configurations/ams-grafana-env/metrics_grafana_log_dir', '/var/log/ambari-metrics-grafana')
-
-atlas_log_dir = default('/configurations/atlas-env/metadata_log_dir', '/var/log/atlas')
-accumulo_log_dir = default('/configurations/accumulo-env/accumulo_log_dir', '/var/log/accumulo')
-falcon_log_dir = default('/configurations/falcon-env/falcon_log_dir', '/var/log/falcon')
-flume_log_dir = default('/configurations/flume-env/flume_log_dir', '/var/log/flume')
-hbase_log_dir = default('/configurations/hbase-env/hbase_log_dir', '/var/log/hbase')
-hdfs_log_dir_prefix = default('/configurations/hadoop-env/hdfs_log_dir_prefix', '/var/log/hadoop')
-hive_log_dir = default('/configurations/hive-env/hive_log_dir', '/var/log/hive')
-hcat_log_dir = default('configurations/hive-env/hcat_log_dir', '/var/log/webhcat')
-infra_solr_log_dir = default('configurations/infra-solr-env/infra_solr_log_dir', '/var/log/ambari-infra-solr')
-kafka_log_dir = default('/configurations/kafka-env/kafka_log_dir', '/var/log/kafka')
-nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
-oozie_log_dir = default('/configurations/oozie-env/oozie_log_dir', '/var/log/oozie')
-ranger_usersync_log_dir = default('/configurations/ranger-env/ranger_usersync_log_dir', '/var/log/ranger/usersync')
-ranger_admin_log_dir = default('/configurations/ranger-env/ranger_admin_log_dir', '/var/log/ranger/admin')
-ranger_kms_log_dir = default('/configurations/kms-env/kms_log_dir', '/var/log/ranger/kms')
-storm_log_dir = default('/configurations/storm-env/storm_log_dir', '/var/log/storm')
-yarn_log_dir_prefix = default('/configurations/yarn-env/yarn_log_dir_prefix', '/var/log/hadoop')
-mapred_log_dir_prefix = default('/configurations/mapred-env/mapred_log_dir_prefix', '/var/log/hadoop')
-zeppelin_log_dir = default('/configurations/zeppelin-env/zeppelin_log_dir', '/var/log/zeppelin')
-zk_log_dir = default('/configurations/zookeeper-env/zk_log_dir', '/var/log/zookeeper')
-spark_log_dir = default('/configurations/spark-env/spark_log_dir', '/var/log/spark')
-livy_log_dir = default('/configurations/livy-env/livy_log_dir', '/var/log/livy')
-spark2_log_dir = default('/configurations/spark2-env/spark_log_dir', '/var/log/spark2')
-
-hdfs_user = default('configurations/hadoop-env/hdfs_user', 'hdfs')
-mapred_user =  default('configurations/mapred-env/mapred_user', 'mapred')
-yarn_user =  default('configurations/yarn-env/yarn_user', 'yarn')
+# System logs
+logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']
+logfeeder_secure_log_content = config['configurations']['logfeeder-system_log-env']['logfeeder_secure_log_content']
+logfeeder_system_log_enabled = default('/configurations/logfeeder-system_log-env/logfeeder_system_log_enabled', False)
 
 # Logsearch auth configs
 
@@ -272,14 +250,17 @@ logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfe
 logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
 
-logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'infra',
-                                'kafka', 'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm', 'yarn',
-                                'zeppelin', 'zookeeper']
+logfeeder_default_services = ['ambari', 'logsearch']
+logfeeder_default_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_default_services]
+logfeeder_custom_config_file_names = ['input.config-%s.json' % (tag.replace('-logsearch-conf', ''))
+                                      for tag, content in logfeeder_metadata.iteritems() if any(logfeeder_metadata)]
 
-logfeeder_config_file_names = \
-  ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_supported_services]
+if logfeeder_system_log_enabled:
+  default_config_files = ','.join(logfeeder_default_config_file_names + logfeeder_custom_config_file_names
+                                  + ['input.config-system_messages.json', 'input.config-secure_log.json'])
+else:
+  default_config_files = ','.join(logfeeder_default_config_file_names + logfeeder_custom_config_file_names)
 
-default_config_files = ','.join(logfeeder_config_file_names)
 
 logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
 if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
@@ -291,8 +272,6 @@ if config['configurations']['logfeeder-grok']['custom_grok_patterns'].strip():
     '########################\n' +\
     '\n' + \
     config['configurations']['logfeeder-grok']['custom_grok_patterns']
-
-logfeeder_properties = dict(config['configurations']['logfeeder-properties'])
 
 # logfeeder properties
 
