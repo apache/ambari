@@ -178,6 +178,7 @@ class HostInfo():
     max_percent_usage = ('', 0)
 
     partition_count = 0
+    devices = set()
     for part in psutil.disk_partitions(all=False):
       if os.name == 'nt':
         if 'cdrom' in part.opts or part.fstype == '':
@@ -187,8 +188,15 @@ class HostInfo():
           continue
         pass
       pass
-      usage = psutil.disk_usage(part.mountpoint)
+      try:
+        usage = psutil.disk_usage(part.mountpoint)
+      except Exception, e:
+        logger.error('Failed to read disk_usage for a mountpoint : ' + str(e))
+        continue
 
+      if part.device in devices: # Skip devices already seen.
+        continue
+      devices.add(part.device)
       combined_disk_total += usage.total if hasattr(usage, 'total') else 0
       combined_disk_used += usage.used if hasattr(usage, 'used') else 0
       combined_disk_free += usage.free if hasattr(usage, 'free') else 0

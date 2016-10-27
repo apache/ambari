@@ -74,7 +74,7 @@ App.MainHostComboSearchBoxController = Em.Controller.extend({
   createComboParamURL: function(pHash, expressions) {
     var self = this;
     var result = '';
-    for (key in pHash) {
+    for (var key in pHash) {
       var v = pHash[key];
       if (Em.isArray(v)) {
         var ex = '(';

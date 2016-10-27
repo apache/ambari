@@ -385,6 +385,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
     final UserDAO userDAO = createNiceMock(UserDAO.class);
     expect(userDAO.findLocalUserByName("jdoe")).andReturn(userEntity).anyTimes();
     expect(userDAO.findUserByPrincipal(anyObject(PrincipalEntity.class))).andReturn(userEntity).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
 
     final PrivilegeDAO privilegeDAO = createMock(PrivilegeDAO.class);
     final MemberDAO memberDAO = createMock(MemberDAO.class);
@@ -465,6 +466,7 @@ public class UserPrivilegeResourceProviderTest extends AbstractPrivilegeResource
         andReturn(Collections.<MemberEntity>emptyList())
         .atLeastOnce();
     expect(userDAO.findLocalUserByName(requestedUsername)).andReturn(userEntity).anyTimes();
+    expect(userDAO.findAll()).andReturn(Collections.<UserEntity>emptyList()).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity>emptySet()).anyTimes();
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();

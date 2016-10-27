@@ -60,10 +60,10 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final Service service;
   private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
   private final String componentName;
-  private final String displayName;
-  private final boolean isClientComponent;
-  private final boolean isMasterComponent;
-  private final boolean isVersionAdvertised;
+  private String displayName;
+  private boolean isClientComponent;
+  private boolean isMasterComponent;
+  private boolean isVersionAdvertised;
 
   private final ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO;
 
@@ -72,6 +72,8 @@ public class ServiceComponentImpl implements ServiceComponent {
   private final ServiceComponentHostFactory serviceComponentHostFactory;
 
   private final AmbariEventPublisher eventPublisher;
+
+  private AmbariMetaInfo ambariMetaInfo;
 
   private final ConcurrentMap<String, ServiceComponentHost> hostComponents = new ConcurrentHashMap<String, ServiceComponentHost>();
 
@@ -93,6 +95,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       StackDAO stackDAO, AmbariEventPublisher eventPublisher)
       throws AmbariException {
 
+    this.ambariMetaInfo = ambariMetaInfo;
     this.service = service;
     this.componentName = componentName;
     this.serviceComponentDesiredStateDAO = serviceComponentDesiredStateDAO;
@@ -113,6 +116,14 @@ public class ServiceComponentImpl implements ServiceComponent {
     desiredStateEntity.setRecoveryEnabled(false);
     desiredStateEntity.setDesiredStack(stackEntity);
 
+    updateComponentInfo();
+
+    persistEntities(desiredStateEntity);
+    desiredStateEntityId = desiredStateEntity.getId();
+  }
+
+  public void updateComponentInfo() throws AmbariException {
+    StackId stackId = service.getDesiredStackVersion();
     try {
       ComponentInfo compInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
           stackId.getStackVersion(), service.getName(), componentName);
@@ -128,9 +139,6 @@ public class ServiceComponentImpl implements ServiceComponent {
           + ", componentName=" + componentName
           + ", stackInfo=" + stackId.getStackId());
     }
-
-    persistEntities(desiredStateEntity);
-    desiredStateEntityId = desiredStateEntity.getId();
   }
 
   @AssistedInject
@@ -149,27 +157,12 @@ public class ServiceComponentImpl implements ServiceComponent {
     this.serviceComponentHostFactory = serviceComponentHostFactory;
     this.stackDAO = stackDAO;
     this.eventPublisher = eventPublisher;
+    this.ambariMetaInfo = ambariMetaInfo;
 
     desiredStateEntityId = serviceComponentDesiredStateEntity.getId();
     componentName = serviceComponentDesiredStateEntity.getComponentName();
 
-    StackId stackId = service.getDesiredStackVersion();
-    try {
-      ComponentInfo compInfo = ambariMetaInfo.getComponent(
-        stackId.getStackName(), stackId.getStackVersion(), service.getName(),
-        componentName);
-      isClientComponent = compInfo.isClient();
-      isMasterComponent = compInfo.isMaster();
-      isVersionAdvertised = compInfo.isVersionAdvertised();
-      displayName = compInfo.getDisplayName();
-    } catch (ObjectNotFoundException e) {
-      throw new AmbariException("Trying to create a ServiceComponent"
-        + " not recognized in stack info"
-        + ", clusterName=" + service.getCluster().getClusterName()
-        + ", serviceName=" + service.getName()
-        + ", componentName=" + componentName
-        + ", stackInfo=" + stackId.getStackId());
-    }
+    updateComponentInfo();
 
     for (HostComponentStateEntity hostComponentStateEntity : serviceComponentDesiredStateEntity.getHostComponentStateEntities()) {
       HostComponentDesiredStateEntityPK pk = new HostComponentDesiredStateEntityPK();

@@ -22,11 +22,13 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.HostComponentVersionAdvertisedEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.State;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -65,6 +68,9 @@ public class StackVersionListener {
 
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+
+  @Inject
+  Provider<AmbariMetaInfo> ambariMetaInfo;
 
   /**
    * Constructor.
@@ -110,8 +116,14 @@ public class StackVersionListener {
 
     // Update host component version value if needed
     try {
+      AmbariMetaInfo metaInfo = ambariMetaInfo.get();
+      ComponentInfo componentInfo = metaInfo.getComponent(cluster.getDesiredStackVersion().getStackName(),
+      cluster.getDesiredStackVersion().getStackVersion(), sch.getServiceName(), sch.getServiceComponentName());
       ServiceComponent sc = cluster.getService(sch.getServiceName()).getServiceComponent(sch.getServiceComponentName());
-      if(!sc.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
+      if (componentInfo.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
+          && !UNKNOWN_VERSION.equalsIgnoreCase(newVersion)) {
+        processComponentAdvertisedVersion(cluster, sch, newVersion, sc);
+      } else if(!sc.isVersionAdvertised() && StringUtils.isNotBlank(newVersion)
           && !UNKNOWN_VERSION.equalsIgnoreCase(newVersion)) {
         LOG.error("ServiceComponent {0} doesn't advertise version, " +
                 "however ServiceHostComponent {} on host {} advertised version as {}. Skipping version update",
@@ -119,17 +131,8 @@ public class StackVersionListener {
       } else {
         if (UNKNOWN_VERSION.equals(sc.getDesiredVersion())) {
           processUnknownDesiredVersion(cluster, sc, sch, newVersion);
-        } else if (StringUtils.isNotBlank(newVersion)) {
-          String previousVersion = sch.getVersion();
-          if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
-            // value may be "UNKNOWN" when upgrading from older Ambari versions
-            // or if host component reports it's version for the first time
-            sch.setUpgradeState(UpgradeState.NONE);
-            sch.setVersion(newVersion);
-            bootstrapVersion(cluster, sch);
-          } else if (!StringUtils.equals(previousVersion, newVersion)) { //
-            processComponentVersionChange(cluster, sc, sch, newVersion);
-          }
+        } else {
+          processComponentAdvertisedVersion(cluster, sch, newVersion, sc);
         }
       }
     } catch (Exception e) {
@@ -138,6 +141,32 @@ public class StackVersionListener {
           sch.getServiceComponentName(), sch.getHostName(), e.getMessage());
     } finally {
       m_stackVersionLock.unlock();
+    }
+  }
+
+  /**
+   * Update host component version
+   * or
+   * Bootstrap cluster/repo version when version is reported for the first time
+   * @param cluster target cluster
+   * @param sch target host component
+   * @param newVersion advertised version
+   * @param sc target service component
+   * @throws AmbariException
+   */
+  private void processComponentAdvertisedVersion(Cluster cluster, ServiceComponentHost sch, String newVersion, ServiceComponent sc) throws AmbariException {
+    if (StringUtils.isBlank(newVersion)) {
+      return;
+    }
+    String previousVersion = sch.getVersion();
+    if (previousVersion == null || UNKNOWN_VERSION.equalsIgnoreCase(previousVersion)) {
+      // value may be "UNKNOWN" when upgrading from older Ambari versions
+      // or if host component reports it's version for the first time
+      sch.setUpgradeState(UpgradeState.NONE);
+      sch.setVersion(newVersion);
+      bootstrapVersion(cluster, sch);
+    } else if (!StringUtils.equals(previousVersion, newVersion)) {
+      processComponentVersionChange(cluster, sc, sch, newVersion);
     }
   }
 

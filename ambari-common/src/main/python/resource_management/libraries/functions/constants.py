@@ -101,3 +101,4 @@ class StackFeature:
   SPARK_JAVA_OPTS_SUPPORT = "spark_java_opts_support"
   ATLAS_HBASE_SETUP = "atlas_hbase_setup"
   RANGER_HIVE_PLUGIN_JDBC_URL = "ranger_hive_plugin_jdbc_url"
+  ZKFC_VERSION_ADVERTISED = "zkfc_version_advertised"
