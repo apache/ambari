@@ -174,8 +174,8 @@ define(['require',
 			require(['views/tabs/ComparisonLayoutView'], function(ComparisonLayoutView){
 				var tabName = "";
 				_.each(view.componetList,function(object){
-					if(object.host && object.component){
-						tabName += (object.host + object.component).replace(/\./g,"_");
+					if(object.host_name && object.component_name){
+						tabName += (object.host_name + object.component_name).replace(/\./g,"_");
 					}
 				});
 				if(_.isUndefined(that[tabName])){
@@ -511,10 +511,10 @@ define(['require',
 			        var component = dataValue.component || dataValue.node;
 			        var spanLength = this.$('.compare .panel-body span.hasNode');
 			        if (spanLength.length != 0 && spanLength.length >= 1) {
-			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.componetList.push({ 'host_name': host, 'component_name': component, id: clickedId });
 			            this.$('.compare .panel-body .hostCompList').append('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
 			        } else {
-			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.componetList.push({ 'host_name': host, 'component_name': component, id: clickedId });
 			            this.$('.compare .panel-body .hostCompList').html('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
 			        }
 			    }

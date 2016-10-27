@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
@@ -61,10 +62,24 @@ def setup_logfeeder():
        encoding="utf-8"
        )
 
-  for file_name in params.logfeeder_config_file_names:
+  for file_name in params.logfeeder_default_config_file_names:
     File(format("{logsearch_logfeeder_conf}/" + file_name),
          content=Template(file_name + ".j2")
          )
+
+  for service, pattern_content in params.logfeeder_metadata.iteritems():
+    File(format("{logsearch_logfeeder_conf}/input.config-" + service.replace('-logsearch-conf', '') + ".json"),
+      content=InlineTemplate(pattern_content, extra_imports=[default])
+    )
+
+  if params.logfeeder_system_log_enabled:
+    File(format("{logsearch_logfeeder_conf}/input.config-system_messages.json"),
+         content=params.logfeeder_system_messages_content
+         )
+    File(format("{logsearch_logfeeder_conf}/input.config-secure_log.json"),
+         content=params.logfeeder_secure_log_content
+         )
+
 
   if params.security_enabled:
     File(format("{logfeeder_jaas_file}"),

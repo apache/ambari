@@ -61,7 +61,7 @@ define(['require',
                     if (that.componetList) {
                         var $parent = that.ui.comparisonTab;
                         _.each(that.componetList, function(object,i) {
-                            var id = (object.host + '_' + object.component).replace(/\./g, "_");
+                            var id = (object.host_name + '_' + object.component_name).replace(/\./g, "_");
                             if(i % 2 == 0 && i > 0){
                                 var $div = $("<div class='row comparisonTab'></div>");
                                 that.ui.comparisonTab.parent().append($div);
@@ -76,8 +76,8 @@ define(['require',
                             region.show(new ComparisonView({
                                 globalVent: that.globalVent,
                                 params: _.extend({},that.params, {
-                                    'host': object.host,
-                                    'component': object.component
+                                    'host_name': object.host_name,
+                                    'component_name': object.component_name
                                 }),
                                 datePickerPosition:(((i+1) % 2 == 0)?("left"):("right"))
                             }));

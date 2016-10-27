@@ -21,5 +21,5 @@ package org.apache.ambari.logsearch.model.request.impl;
 import org.apache.ambari.logsearch.common.Marker;
 
 @Marker
-public class AuditComponentRequest extends CommonSearchRequest {
+public class AuditComponentRequest extends BaseLogRequest {
 }

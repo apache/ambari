@@ -62,7 +62,7 @@ class TestLogFeeder(RMFTestCase):
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
                               properties={'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
-                                          'logfeeder.config.files': 'global.config.json,output.config.json,input.config-accumulo.json,input.config-ambari.json,input.config-ams.json,input.config-atlas.json,input.config-falcon.json,input.config-flume.json,input.config-hbase.json,input.config-hdfs.json,input.config-hive.json,input.config-hst.json,input.config-infra.json,input.config-kafka.json,input.config-knox.json,input.config-logsearch.json,input.config-nifi.json,input.config-oozie.json,input.config-ranger.json,input.config-spark.json,input.config-spark2.json,input.config-storm.json,input.config-yarn.json,input.config-zeppelin.json,input.config-zookeeper.json',
+                                          'logfeeder.config.files': 'global.config.json,output.config.json,input.config-ambari.json,input.config-logsearch.json,input.config-zookeeper.json',
                                           'logfeeder.metrics.collector.hosts': '',
                                           'logfeeder.solr.core.config.name': 'history',
                                           'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
@@ -80,9 +80,7 @@ class TestLogFeeder(RMFTestCase):
                               encoding='utf-8'
                               )
 
-    logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst',
-                                    'infra', 'kafka', 'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm',
-                                    'yarn', 'zeppelin', 'zookeeper']
+    logfeeder_supported_services = ['ambari','logsearch']
 
     logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + \
                                   ['input.config-%s.json' % (tag) for tag in logfeeder_supported_services]
@@ -91,6 +89,9 @@ class TestLogFeeder(RMFTestCase):
       self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
                                 content=Template(file_name + ".j2")
                                 )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-zookeeper.json',
+                              content=InlineTemplate("pattern content")
+                              )
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",
