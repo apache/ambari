@@ -36,51 +36,7 @@
           <input class="form-control btn btn-danger" type="button" {{action "deletePrepare" index}} value="-">
         </div>
       </div>
-      {{#if (eq prep.type "mkdir")}}
-      <div class="form-group bottom-margin-zero">
-        <label class="control-label col-xs-2">Path</label>
-        <div class="col-xs-7">
-          <div class="input-group">
-            {{input type="text" class="form-control" value=prep.settings.path placeholder="path of the directory"}}
-            <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
-            </span>
-          </div>
-        </div>
-      </div>
-      {{#unless prep.settings.path}}
-      <div class="form-group bottom-margin-zero">
-        <label class="text-danger control-label col-xs-2">
-        </label>
-        <label class="text-danger control-label col-xs-4 rightAlign">
-          Path is mandatory
-        </label>
-      </div>
-      {{/unless}}
-      {{/if}}
-      {{#if (eq prep.type "delete")}}
-      <div class="form-group bottom-margin-zero">
-        <label class="control-label col-xs-2">Path</label>
-        <div class="col-xs-7">
-          <div class="input-group">
-            {{input type="text" class="form-control" value=prep.settings.path placeholder="path of the directory"}}
-            <span class="input-group-btn">
-              <button class="btn btn-primary" type="button" {{action "openFileBrowserForListItem" index "path"}}>Browse</button>
-            </span>
-          </div>
-        </div>
-      </div>
-      {{#unless prep.settings.path}}
-      <div class="form-group bottom-margin-zero">
-        <label class="text-danger control-label col-xs-2">
-        </label>
-        <label class="text-danger control-label col-xs-4 rightAlign">
-          Path is mandatory
-        </label>
-      </div>
-      {{/unless}}
-      {{/if}}
-      {{#if (eq prep.type "touchz")}}
+      {{#if (or (eq prep.type "delete") (eq prep.type "mkdir") (eq prep.type "touchz"))}}
       <div class="form-group bottom-margin-zero">
         <label class="control-label col-xs-2">Path</label>
         <div class="col-xs-7">

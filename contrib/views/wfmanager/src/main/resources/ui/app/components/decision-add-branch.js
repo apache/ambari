@@ -17,9 +17,27 @@
 
 import Ember from 'ember';
 import {FindNodeMixin} from '../domain/findnode-mixin';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, FindNodeMixin,{
+const Validations = buildValidations({
+  'condition': validator('presence', {
+    presence : true,
+    disabled(model) {
+      return !model.get('canValidate');
+    },
+    'message' : 'Required',
+    dependentKeys : ['canValidate']
+  }),
+  'targetNode': validator('presence', {
+    presence : true,
+    disabled(model) {
+      return !model.get('canValidate');
+    },
+    'message' : 'Required',
+    dependentKeys : ['canValidate']
+  }),
+});
+export default Ember.Component.extend(Validations, FindNodeMixin,{
   isInsertAction: false,
   condition:"",
   targetNode:"",
@@ -27,13 +45,22 @@ export default Ember.Component.extend(EmberValidations, FindNodeMixin,{
   initialize : function(){
     var self=this;
 
-    this.on("showBranchOptions",function(){
+    this.on("showBranchOptions",function(node){
       if (self.$("#selector-content").is(":visible")){
         self.$("#selector-content").hide();
       }else{
+        if (node) {
+          self.set("node", node);
+        }
         self.set("isInsertAction",false);
         this.set("newNodeType",null);
-        this.set('descendantNodes',this.getDesendantNodes(this.get('node')));
+        var commonTarget=this.findCommonTargetNode(this.workflow.startNode,this.get('node'));
+        var descendantNodes=this.getDesendantNodes(this.get('node'));
+        if (commonTarget){
+          descendantNodes.removeObject(commonTarget);
+          descendantNodes.unshiftObject(commonTarget);
+        }
+        this.set('descendantNodes',descendantNodes);
         self.$("#selector-content").show();
       }
     });
@@ -41,20 +68,6 @@ export default Ember.Component.extend(EmberValidations, FindNodeMixin,{
   setup : function(){
     this.sendAction('registerAddBranchAction',this);
   }.on('didInsertElement'),
-  validations : {
-    'condition': {
-      presence: {
-        'if' : 'canValidate',
-        'message' : 'Required',
-      }
-    },
-    'targetNode': {
-      presence: {
-        'if' : 'canValidate',
-        'message' : 'Required',
-      }
-    }
-  },
   actions:{
     addNewNode(type){
       this.set("newNodeType",type);
@@ -65,20 +78,21 @@ export default Ember.Component.extend(EmberValidations, FindNodeMixin,{
     },
     save(){
       this.set('canValidate', true);
-      this.validate().then(function(){
-        this.sendAction("addDecisionBranch",{
-          sourceNode: this.get("node"),
-          condition:this.get("condition"),
-          targetNode:this.get("targetNode"),
-          newNodeType:this.get("newNodeType")
-        });
-        this.$("#selector-content").hide();
-        this.set('canValidate', false);
-        this.set('condition',"");
-        this.set('targetNode',"");
-        this.$('#target-node-select').prop('selectedIndex', 0);
-      }.bind(this)).catch(function(e){
-      }.bind(this));
+      if(this.get('validations.isInvalid')){
+        this.set('showErrorMessage', true);
+        return;
+      }
+      this.sendAction("addDecisionBranch",{
+        sourceNode: this.get("node"),
+        condition:this.get("condition"),
+        targetNode:this.get("targetNode"),
+        newNodeType:this.get("newNodeType")
+      });
+      this.$("#selector-content").hide();
+      this.set('canValidate', false);
+      this.set('condition',"");
+      this.set('targetNode',"");
+      this.$('#target-node-select').prop('selectedIndex', 0);
     },
     cancel(){
       this.$("#selector-content").hide();

@@ -31,7 +31,7 @@ type="button" data-html="true">
             <label for="inputPassword" class="control-label col-xs-4">Condition<span class="requiredField">&nbsp;*</span></label>
             <div class="col-xs-7">
               {{input type="text" class="form-control" value=condition}}
-              {{field-error error=errors.condition}}
+              {{field-error model=this field='condition' showErrorMessage=showErrorMessage}}
             </div>
           </div>
           <div class="form-group">
@@ -46,7 +46,7 @@ type="button" data-html="true">
                 <option value={{node.id}} selected={{eq node.name currentNode.errorNode.name}}>{{node.name}}</option>
                 {{/each}}
               </select>
-              {{field-error error=errors.targetNode}}
+              {{field-error model=this field='targetNode' showErrorMessage=showErrorMessage}}
             </div>
           </div>
         </form>

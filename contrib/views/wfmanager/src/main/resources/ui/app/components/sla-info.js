@@ -15,12 +15,92 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
+import { v1, v4 } from "ember-uuid";
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'nominalTime': {
+    validators: [
+      validator('presence', {
+        presence : true,
+        disabled(model, attribute) {
+          return !model.get('slaEnabled');
+        },
+        dependentKeys : ['slaEnabled']
+      }),
+      validator('date', {
+        disabled(model, attribute) {
+          return !model.get('slaEnabled');
+        },
+        format: 'MM/DD/YYYY hh:mm A',
+        dependentKeys : ['slaEnabled']
+      }),
+    ]
+  },
+  'slaInfo.shouldEnd.time': {
+    validators: [
+      validator('presence', {
+        presence : true,
+        disabled(model, attribute) {
+          return !model.get('slaEnabled');
+        },
+        dependentKeys : ['slaEnabled']
+      }),
+      validator('number', {
+        disabled(model) {
+          return !model.get('slaEnabled');
+        },
+        allowString : true,
+        allowBlank : true,
+        integer : true,
+        dependentKeys : ['slaEnabled']
+      }),
+    ]
+  },
+  'slaInfo.shouldStart.time': validator('number', {
+    disabled(model) {
+      return !model.get('slaEnabled');
+    },
+    allowString : true,
+    allowBlank : true,
+    integer : true,
+    dependentKeys : ['slaEnabled']
+  }),
+  'slaInfo.maxDuration.time': validator('number', {
+    disabled(model) {
+      return !model.get('slaEnabled');
+    },
+    allowString : true,
+    allowBlank : true,
+    integer : true,
+    dependentKeys : ['slaEnabled']
+  }),
+  'slaInfo.shouldStart.unit':validator('presence', {
+    presence : true,
+    disabled(model) {
+      return !model.get('slaEnabled') || !model.get('slaInfo.shouldStart.time');
+    },
+    dependentKeys : ['slaEnabled', 'slaInfo.shouldStart.time']
+  }),
+  'slaInfo.shouldEnd.unit':validator('presence', {
+    presence : true,
+    disabled(model) {
+      return !model.get('slaEnabled') || !model.get('slaInfo.shouldEnd.time');
+    },
+    dependentKeys : ['slaEnabled', 'slaInfo.shouldEnd.time']
+  }),
+  'slaInfo.maxDuration.unit':validator('presence', {
+    presence : true,
+    disabled(model) {
+      return !model.get('slaEnabled') || !model.get('slaInfo.maxDuration.time');
+    },
+    dependentKeys : ['slaEnabled', 'slaInfo.maxDuration.time']
+  })
+});
+
+export default Ember.Component.extend(Validations, {
   alertEvents: Ember.A([]),
   timeUnitOptions : Ember.A([]),
-  nominalTime : '',
   initialize : function(){
     this.set('alertEvents', Ember.A([]));
     this.get('alertEvents').pushObject({eventType:'start_miss', alertEnabled:false, displayName :'Start Miss'});
@@ -53,6 +133,7 @@ export default Ember.Component.extend(EmberValidations, {
       }
     }
     Ember.addObserver(this, 'nominalTime', this, this.nominalTimeObserver);
+    this.set('collapseId', v1());
   }.on('init'),
   alertEventsObserver : function(){
     var alerts = this.get('alertEvents').filterBy('alertEnabled',true).mapBy('eventType');
@@ -64,7 +145,7 @@ export default Ember.Component.extend(EmberValidations, {
     Ember.removeObserver(this, 'nominalTime', this, this.nominalTimeObserver);
   }.on('willDestroyElement'),
   elementsInserted : function() {
-    this.$('#nominalTime').datetimepicker({
+    this.$('input[name="nominalTime"]').datetimepicker({
       useCurrent: false,
       showClose : true,
       defaultDate : this.get('slaInfo.nominalTime')
@@ -77,65 +158,6 @@ export default Ember.Component.extend(EmberValidations, {
   nominalTimeObserver : function(){
     var date = new Date(this.get('nominalTime'));
     this.set('slaInfo.nominalTime',moment(date).format("YYYY-MM-DDTHH:mm")+'Z');
-  },
-  shouldEnd : Ember.computed.alias('slaInfo.shouldEnd'),
-  shouldStart : Ember.computed.alias('slaInfo.shouldStart'),
-  maxDuration : Ember.computed.alias('slaInfo.maxDuration'),
-  validations : {
-    'nominalTime': {
-      presence: {
-        'if': 'slaEnabled',
-        'message' : 'Required',
-      }
-    },
-    'shouldEnd.time': {
-      presence: {
-        'if': 'slaEnabled',
-        'message' : 'Required',
-      },
-      numericality: {
-        'if': 'slaEnabled',
-        onlyInteger: true,
-        greaterThan: 0,
-        'message' : 'Number Only'
-      }
-    },
-    'shouldStart.time': {
-      numericality: {
-        'if': 'slaEnabled',
-        allowBlank :true,
-        onlyInteger: true,
-        greaterThan: 0,
-        message : 'Number Only'
-      }
-    },
-    'maxDuration.time': {
-      numericality: {
-        'if': 'slaEnabled',
-        allowBlank :true,
-        onlyInteger: true,
-        greaterThan: 0,
-        message : 'Number Only'
-      }
-    },
-    'shouldStart.unit': {
-      presence: {
-        'if': 'shouldStart.time',
-        'message' : 'Required',
-      }
-    },
-    'shouldEnd.unit': {
-      presence: {
-        'if': 'slaEnabled',
-        'message' : 'Required',
-      }
-    },
-    'maxDuration.unit': {
-      presence: {
-        'if': 'maxDuration.time',
-        'message' : 'Required',
-      }
-    }
   },
   slaObserver : function(){
     if(this.get('slaEnabled')){

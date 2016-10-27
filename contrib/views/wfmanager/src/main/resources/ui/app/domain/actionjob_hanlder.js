@@ -44,6 +44,7 @@ var ActionJobHandler=Ember.Object.extend(MappingMixin,{
     }
     this.handleMapping(nodeDomain,actionObj,this.mapping,nodeName);
   },
+  /* jshint unused:vars */
   validate(nodeDomain){
     //overwrite in implmentations and return array of errors object.
   },

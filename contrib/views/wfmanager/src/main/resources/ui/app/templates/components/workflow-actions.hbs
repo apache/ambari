@@ -19,6 +19,7 @@
   <span data-toggle="popover" title="Click on an Action to Insert"></span>
   <div id="actions">
     <div class="_actions_popup">
+      <div class="clearfix"></div>
       <h4>Control Flow Nodes</h4>
       <ul class="actions_list_left control_flow">
           <li {{action 'addAction' 'fork'}} data-name="fork" data-type="fork" class="dr_action_fork _fork enabled"> <i class="fa fa-sitemap"></i> Fork </li>
@@ -26,6 +27,10 @@
       </ul>
       <div class="clearfix"></div>
       <h4>Action Nodes</h4>
+      {{#if clipboardHasContents}}
+        <div><span class="paste-action">Paste from clipboard</span><span class="btn paste-action-btn" {{action 'pasteNode'}}><i class="fa fa-paste"></i></span></div>
+      {{/if}}
+      <div class="clearfix"></div>
       <ul class="actions_list_left actionNodes">
           <li {{action 'addAction' 'hive'}} class="dr_action enabled" data-name="Hive" data-type="hive"> <i class="fa fa-server"></i> Hive </li>
           <li {{action 'addAction' 'hive2'}} class="dr_action enabled" data-name="Hive" data-type="hive2"> <i class="fa fa-server"></i> Hive2</li>

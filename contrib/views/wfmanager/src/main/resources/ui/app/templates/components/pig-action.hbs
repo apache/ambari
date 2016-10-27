@@ -26,7 +26,7 @@
           <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
         </span>
       </div>
-      {{#field-error error=errors.actionModel.script}}{{/field-error}}
+        {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     {{#jobxml-config jobXml=actionModel.jobXml openFileBrowser="openFileBrowser" register="register"}}{{/jobxml-config}}

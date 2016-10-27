@@ -16,9 +16,30 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel.script': validator('presence', {
+    presence : true,
+    disabled(model, attribute) {
+      return !model.get('isScript');
+    },
+    dependentKeys : ['isScript']
+  }),
+  'actionModel.query': validator('presence', {
+    presence : true,
+    disabled(model, attribute) {
+      return model.get('isScript');
+    },
+    dependentKeys : ['isScript']
+  }),
+  'actionModel.jdbc-url': validator('presence', {
+    presence : true
+  })
+
+});
+
+export default Ember.Component.extend(Validations,{
   hiveOptionObserver : Ember.observer('isScript',function(){
     if(this.get('isScript')){
       this.set("actionModel.query", undefined);
@@ -68,25 +89,6 @@ export default Ember.Component.extend(EmberValidations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.script': {
-      presence: {
-        'if':'isScript',
-        'message' : 'You need to provide a value for Script'
-      }
-    },
-    'actionModel.query': {
-      presence: {
-        unless :'isScript',
-        'message' : 'You need to provide a value for Query'
-      }
-    },
-    'actionModel.jdbc-url': {
-      presence: {
-        'message' : 'You need to provide a value for jdbc url'
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

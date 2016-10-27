@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 <div class="panel panel-default">
-  <div class="panel-heading" id="sla-accordion" data-toggle="collapse" data-parent="#sla-accordion" data-target="#slaCollapse">
+  <div class="panel-heading" id="sla-accordion" data-toggle="collapse" data-parent="#sla-accordion" data-target="#{{collapseId}}">
       SLA <span class="grayed">({{if slaEnabled "Enabled" "Disabled"}})</span>
       <i class="indicator glyphicon glyphicon-chevron-down pull-right"></i>
     </div>
-    <div id="slaCollapse" class="panel-collapse collapse panel-body">
+    <div id="{{collapseId}}" class="panel-collapse collapse panel-body">
       <div class="form-group">
       <label class="control-label col-xs-2">Enabled</label>
       <span class="col-xs-2 paddingtop7">{{input type="checkbox" checked=slaEnabled}}</span>
@@ -28,14 +28,15 @@
       <div class="form-group">
         <label class="control-label col-xs-2 padding10">Nominal Time<span class="requiredField">&nbsp;*</span></label>
         <div class="col-xs-3 padding10">
-          {{input type="text" id="nominalTime" title="Date in UTC Format" class="form-control" value=nominalTime placeholder="Nominal Time"}}
+          {{input type="text" name="nominalTime" title="Date in UTC Format" class="form-control" value=nominalTime placeholder="Nominal Time"}}
+          {{field-error model=this field='nominalTime' showErrorMessage=showErrorMessage}}
         </div>
-        {{field-error error=errors.nominalTime}}
       </div>
       <div class="form-group">
         <label class="control-label col-xs-2">Should Start</label>
         <div class="col-xs-3">
           {{input class="form-control" type="text" value=slaInfo.shouldStart.time placeholder="Should Start"}}
+          {{field-error model=this field='slaInfo.shouldStart.time' showErrorMessage=showErrorMessage}}
         </div>
         <div class="col-xs-2">
           <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.shouldStart.unit) value="target.value"}}>
@@ -43,14 +44,14 @@
               <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.shouldStart.unit}}>{{timeUnit.displayName}}</option>
             {{/each}}
           </select>
-          {{field-error error=errors.shouldStart.unit}}
+          {{field-error model=this field='slaInfo.shouldStart.unit' showErrorMessage=showErrorMessage}}
         </div>
       </div>
       <div class="form-group">
         <label class="control-label col-xs-2">Should End<span class="requiredField">&nbsp;*</span></label>
         <div class="col-xs-3">
           {{input class="form-control" type="text" value=slaInfo.shouldEnd.time placeholder="Should End"}}
-          {{field-error error=errors.shouldEnd.time}}
+          {{field-error model=this field='slaInfo.shouldEnd.time' showErrorMessage=showErrorMessage}}
         </div>
         <div class="col-xs-2">
           <select class="form-control" name="time-unit" title="Time Unit" onchange={{action (mut slaInfo.shouldEnd.unit) value="target.value"}}>
@@ -58,7 +59,7 @@
               <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.shouldEnd.unit}}>{{timeUnit.displayName}}</option>
             {{/each}}
           </select>
-          {{field-error error=errors.shouldEnd.unit}}
+          {{field-error model=this field='slaInfo.shouldEnd.unit' showErrorMessage=showErrorMessage}}
         </div>
       </div>
       <div class="form-group">
@@ -72,7 +73,7 @@
               <option value={{timeUnit.value}} selected={{eq timeUnit.value slaInfo.maxDuration.unit}}>{{timeUnit.displayName}}</option>
             {{/each}}
           </select>
-          {{field-error error=errors.maxDuration.unit}}
+          {{field-error model=this field='slaInfo.maxDuration.unit' showErrorMessage=showErrorMessage}}
         </div>
       </div>
       <div class="form-group">

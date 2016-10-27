@@ -107,6 +107,16 @@ module.exports = function(defaults) {
 
     //vkBeautify
     app.import('bower_components/vkBeautify/vkbeautify.js')
+	
+	//cytoscape
+	app.import('bower_components/cytoscape/dist/cytoscape.js');
+	
+	//cytoscape-dagre
+	app.import('bower_components/cytoscape-dagre/cytoscape-dagre.js');
+
+	//cytoscape-panzoom
+	app.import('bower_components/cytoscape-panzoom/cytoscape-panzoom.js');
+	app.import('bower_components/cytoscape-panzoom/cytoscape.js-panzoom.css');	
 
     return app.toTree();
 };

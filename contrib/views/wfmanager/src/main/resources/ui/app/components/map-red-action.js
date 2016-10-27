@@ -16,9 +16,8 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+export default Ember.Component.extend({
   hasStaticProps : true,
   fileBrowser : Ember.inject.service('file-browser'),
   staticProps : Ember.A([]),
@@ -65,9 +64,6 @@ export default Ember.Component.extend(EmberValidations, {
     }.bind(this));
     this.sendAction('register','mapRedAction', this);
   }.on('didInsertElement'),
-  validations : {
-
-  },
   observeError :function(){
     if(this.$('#collapseOne label.text-danger').length > 0 && !this.$('#collapseOne').hasClass("in")){
       this.$('#collapseOne').collapse('show');
