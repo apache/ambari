@@ -24,9 +24,9 @@ require('views/common/quick_view_link_view');
  * This view helps to get and format correct link to LogSearch UI with query params.
  * Used mostly for navigation to concrete log file.
  *
- * @augments App.QuickViewLinks
+ * @augments App.QuickLinksView
  */
-App.LogSearchUILinkView = App.QuickViewLinks.extend({
+App.LogSearchUILinkView = App.QuickLinksView.extend({
   content: function() {
     return App.Service.find().findProperty('serviceName', 'LOGSEARCH');
   }.property(),

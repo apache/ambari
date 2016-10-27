@@ -55,6 +55,8 @@ Em.I18n.translations = {
   'app.settings.no.privileges': 'This user does not have any privileges.',
   'app.settings.clusterRole': 'Cluster Role',
   'app.settings.viewPermissions': 'View Permissions',
+  'app.goToView': 'Go To View',
+  'app.debugHiveQuery': 'Debug Hive Query',
 
   'app.aboutAmbari.getInvolved': 'Get involved!',
   'app.aboutAmbari.version': 'Version',
