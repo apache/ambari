@@ -16,19 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="dropdown">
-  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></button>
-  <ul class="dropdown-menu pull-left">
-    {{#each action in controller}}
-      <li>
-        <a href="#" {{action actionHandler action target="controller"}}>
-          <span {{bindAttr class="action.icon"}}></span>
-          {{action.title}}
-        </a>
-      </li>
-      {{#if action.showDivider}}
-        <li class="divider"></li>
-      {{/if}}
-    {{/each}}
-  </ul>
-</div>
+<button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">{{t common.actions}} <span class="caret"></span></button>
+<ul class="dropdown-menu pull-left">
+  {{#each action in controller}}
+    <li>
+      <a href="#" {{action actionHandler action target="controller"}}>
+        <span {{bindAttr class="action.icon"}}></span>
+        {{action.title}}
+      </a>
+    </li>
+    {{#if action.showDivider}}
+      <li class="divider"></li>
+    {{/if}}
+  {{/each}}
+</ul>

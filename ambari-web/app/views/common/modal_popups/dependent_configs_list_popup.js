@@ -37,7 +37,7 @@ App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/dependent_configs_list'),
       toggleAllId: '',
-      toggleAll: Em.Checkbox.extend({
+      toggleAll: App.CheckboxView.extend({
         didInsertElement: function () {
           this.set('parentView.toggleAllId', this.get('elementId'));
           this.updateCheckbox();

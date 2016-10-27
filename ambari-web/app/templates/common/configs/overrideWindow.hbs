@@ -92,11 +92,11 @@
         <table class="table table-hover">
           <thead>
             <tr>
+              <th width="45%">{{t common.host}}</th>
+              <th width="45%">{{view.filterColumn.name}}</th>
               <th width="10%">
                 {{view App.CheckboxView checkedBinding="view.allHostsSelected" disabledBinding="view.isDisabled"}}
               </th>
-              <th width="45%">{{t common.host}}</th>
-              <th width="45%">{{view.filterColumn.name}}</th>
             </tr>
           </thead>
          </table>
@@ -105,14 +105,14 @@
             <tbody>
               {{#each entry in view.pageContent}}
                 <tr {{bindAttr class="entry.filtered::hidden"}}>
-                  <td width="10%">
-                    {{view App.CheckboxView checkedBinding="entry.selected"}}
-                  </td>
                   <td width="45%">
                     {{entry.host.hostName}}
                   </td>
                   <td>
                     {{entry.filterColumnValue}}
+                  </td>
+                  <td width="10%">
+                    {{view App.CheckboxView checkedBinding="entry.selected"}}
                   </td>
                 </tr>
               {{/each}}

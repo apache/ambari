@@ -55,13 +55,10 @@
       </div>
     </div>
 
-    <div class="pre-scrollable" style="max-height: 440px;">
+    <div class="pre-scrollable col-sm-12" style="max-height: 440px;">
       <table id="confirm-hosts-table" class="table table-hover">
         <thead>
         <tr>
-          <th class="tinyspan">
-            {{view App.CheckboxView checkedBinding="view.pageChecked"}}
-          </th>
           <th class="col-md-5">{{t common.host}}</th>
           <!-- retrieved from local storage initially -->
           <th class="col-md-2">{{t common.progress}}</th>
@@ -70,15 +67,15 @@
           <th class="col-md-2">{{t common.action}}</th>
           <!-- trash icon -->
           <!-- retry icon -->
+          <th class="tinyspan">
+            {{view App.CheckboxView checkedBinding="view.pageChecked"}}
+          </th>
         </tr>
         </thead>
         <tbody>
           {{#if view.pageContent}}
             {{#each host in view.pageContent}}
               {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
-              <td class="step3-table-checkbox">
-                {{view App.CheckboxView checkedBinding="host.isChecked"}}
-              </td>
               <td class="host">
                 <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
               </td>
@@ -96,6 +93,9 @@
                 <a class="btn btn-xs" {{action remove target="view"}}{{bindAttr disabled="isBackDisabled"}}><i class="glyphicon glyphicon-trash"></i>
                   {{t common.remove}}</a>
               </td>
+              <td class="step3-table-checkbox">
+                {{view App.CheckboxView checkedBinding="host.isChecked"}}
+              </td>
               {{/view}}
             {{/each}}
           {{else}}
@@ -108,7 +108,7 @@
         </tbody>
       </table>
     </div>
-    <div id="hosts">
+    <div id="hosts col-sm-12">
       <div class="page-bar">
         <div class="selected-hosts-info pull-left">
           {{#if view.selectedHostsCount}}

@@ -23,7 +23,6 @@
   <table class="table table-hover">
     <thead>
     <tr>
-      <th class="check-box-col">{{view view.toggleAll}}<label {{bindAttr for="view.toggleAllId"}}></label></th>
       <th>{{t common.property}}</th>
       <th>{{t common.service}}</th>
       <th>{{t common.configGroup}}</th>
@@ -36,12 +35,12 @@
             {{t popup.dependent.configs.table.recommendedValue}}
           </div>
       </th>
+      <th class="check-box-col">{{view view.toggleAll}}<label {{bindAttr for="view.toggleAllId"}}></label></th>
     </tr>
     </thead>
     <tbody>
     {{#each recommendation in view.parentView.recommendations}}
       <tr>
-        <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
         <td class="config-dependency-name">{{recommendation.propertyName}}</td>
         <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
         <td class="config-dependency-group">
@@ -56,6 +55,7 @@
             {{view App.ConfigDiffView configBinding="recommendation"}}
           </div>
         </td>
+        <td class="check-box-col">{{view App.CheckboxView checkedBinding="recommendation.saveRecommended"}}</td>
       </tr>
     {{/each}}
     </tbody>

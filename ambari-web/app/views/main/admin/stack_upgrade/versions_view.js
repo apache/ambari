@@ -180,10 +180,11 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * @return {App.ModalPopup}
    */
   goToVersions: function () {
+    var self = this;
     return App.showConfirmationPopup(function () {
       App.ajax.send({
         name: 'ambari.service.load_server_version',
-        sender: this
+        sender: self
       }).then(function(data) {
         var components = Em.get(data,'components');
         if (Em.isArray(components)) {
