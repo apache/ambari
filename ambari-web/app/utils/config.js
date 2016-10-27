@@ -1228,6 +1228,26 @@ App.config = Em.Object.create({
     siteConfigs[propertyName] = value;
     return value;
   },
+  
+  /**
+   * creates config object with non static properties like 
+   * 'value', 'isFinal', 'errorMessage' and 
+   * 'id', 'name', 'filename',
+   * @param configProperty
+   * @returns {Object}
+   */
+  createMinifiedConfig: function (configProperty) {
+    if (configProperty instanceof Ember.Object) {
+      return configProperty.getProperties('name', 'filename', 'serviceName', 'value', 'isFinal');
+    }
+    return {
+      name: configProperty.name,
+      filename: configProperty.filename,
+      serviceName: configProperty.serviceName,
+      value: configProperty.value,
+      isFinal: configProperty.isFinal
+    }
+  },
 
   /**
    * Load cluster-env configs mapped to array

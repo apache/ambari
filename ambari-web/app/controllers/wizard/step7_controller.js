@@ -471,11 +471,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var self = this;
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
-    var storedConfigs = this.get('content.serviceConfigProperties');
-    var configs = storedConfigs && storedConfigs.length ? storedConfigs : App.configsCollection.getAll();
+    var configs = this.getInitialConfigs(this.get('content.serviceConfigProperties'));
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
-    if (this.get('wizardController.name') === 'addServiceController' && !storedConfigs) {
+    if (this.get('wizardController.name') === 'addServiceController' && !this.get('content.serviceConfigProperties.length')) {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
         configs = self.setInstalledServiceConfigs(configs, loadedConfigs, self.get('installedServiceNames'));
         self.applyServicesConfigs(configs);
@@ -483,6 +482,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     } else {
       this.applyServicesConfigs(configs);
     }
+  },
+
+  /**
+   * If configs are saved in store returns stored configs merged with stack
+   * otherwise return stack configs
+   * @returns {Object[]}
+   */
+  getInitialConfigs: function(storedConfigs) {
+    if (storedConfigs && storedConfigs.length) {
+      var mergedConfigs = [];
+      storedConfigs.forEach(function (c) {
+        mergedConfigs.push($.extend({}, App.configsCollection.getConfigByName(c.name, c.filename), c));
+      });
+      return mergedConfigs;
+    }
+    return App.configsCollection.getAll();
   },
 
   /**
