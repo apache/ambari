@@ -615,6 +615,10 @@ limitations under the License.
         <type>zoo.cfg</type>
         <name>clientPort</name>
       </property>
+      <property>
+        <type>hive-interactive-env</type>
+        <name>enable_hive_interactive</name>
+      </property>
     </depends-on>
     <on-ambari-upgrade add="true"/>
   </property>
