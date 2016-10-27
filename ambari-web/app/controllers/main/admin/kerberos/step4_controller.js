@@ -439,7 +439,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var self = this;
     var configs, servicesConfigurations;
     if (this.get('isWithinAddService')) {
-      configs = this.get('wizardController').getDBProperty('serviceConfigProperties');
+      configs = this.get('content.serviceConfigProperties');
       servicesConfigurations = configs.reduce(function(configTags, property) {
         var fileName = App.config.getConfigTagFromFileName(property.filename),
             configType;
