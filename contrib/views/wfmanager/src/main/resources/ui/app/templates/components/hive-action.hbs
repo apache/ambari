@@ -36,7 +36,7 @@
             <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
           </span>
         </div>
-        {{#field-error error=errors.actionModel.script}}{{/field-error}}
+        {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
   {{else}}
@@ -46,7 +46,7 @@
       <div class="input-group">
         {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
       </div>
-      {{#field-error error=errors.actionModel.query}}{{/field-error}}
+      {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
     </div>
   </div>
   {{/if}}
@@ -96,4 +96,4 @@
       </div>
     </div>
   </div>
-  {{#sla-info slaInfo=actionModel.slaInfo register="register" slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}
+  {{#sla-info slaInfo=actionModel.slaInfo slaEnabled=actionModel.slaEnabled register="register"}}{{/sla-info}}

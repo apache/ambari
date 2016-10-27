@@ -57,7 +57,7 @@ export default Ember.Component.extend({
     },
     createFolder(){
       var self=this;
-      var $elem=this.$("#selectedPath");
+      var $elem=this.$('input[name="selectedPath"]');
       //$elem.val($elem.val()+"/");
       var folderHint="<enter folder here>";
       this.set("selectedPath",this.get("selectedPath")+"/"+folderHint);
@@ -98,7 +98,8 @@ export default Ember.Component.extend({
       this.showNotification({
         "type": "error",
         "message": "Upload Failed",
-        "details":textStatus
+        "details":textStatus,
+        "errorThrown":errorThrown
       });
     },
     uploadProgress(e){

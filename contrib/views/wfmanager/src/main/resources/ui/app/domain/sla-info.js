@@ -17,43 +17,43 @@
 import Ember from 'ember';
 var SlaInfo = Ember.Object.extend(Ember.Copyable,{
   copy (){
-    var slaInfo = {}
+    var slaInfo = {};
     for (let key in this) {
       slaInfo[key] = Ember.copy(this[key]) ;
     }
     return slaInfo;
   },
   init (){
-    this.nominalTime='';
+    this.nominalTime=undefined;
     this.shouldStart = {
-      time : '',
-      unit : ''
+      time : undefined,
+      unit : undefined
     };
     this.shouldEnd = {
-      time : '',
-      unit : ''
+      time : undefined,
+      unit : undefined
     };
     this.maxDuration = {
-      time : '',
-      unit : ''
+      time : undefined,
+      unit : undefined
     };
-    this.alertEvents = '';
-    this.alertContacts = '';
+    this.alertEvents = undefined;
+    this.alertContacts = undefined;
   },
-  nominalTime:'',
+  nominalTime:undefined,
   shouldStart : {
-    time : '',
-    unit : ''
+    time : undefined,
+    unit : undefined
   },
   shouldEnd : {
-    time : '',
-    unit : ''
+    time : undefined,
+    unit : undefined
   },
   maxDuration : {
-    time : '',
-    unit : ''
+    time : undefined,
+    unit : undefined
   },
-  alertEvents : '',
-  alertContacts : ''
+  alertEvents : undefined,
+  alertContacts : undefined
 });
 export {SlaInfo};

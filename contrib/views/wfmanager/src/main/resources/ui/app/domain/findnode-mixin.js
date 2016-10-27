@@ -18,22 +18,65 @@
 import Ember from 'ember';
 var FindNodeMixin= Ember.Mixin.create({
   findNodeById(startNode,id){
-
-    return this.findNodeByIdInternal(startNode,id);
+    return this._findNodeById(startNode,id);
   },
-  findNodeByIdInternal(node,id){
+  findTransition(startNode,sourceId,targetId){
+    return this._findTransition(startNode,sourceId,targetId);
+  },
+  _findTransition(node,sourceId,targetId){
+    if (!node.transitions){
+      return null;
+    }
+    var res;
+    for (var i = 0; i < node.transitions.length; i++) {
+      var tran= node.transitions[i];
+      if (node.id===sourceId && tran.getTargetNode(false).id===targetId){
+        res=tran;
+      }else{
+        res=this._findTransition(tran.getTargetNode(false),sourceId,targetId);
+      }
+      if (res){
+        break;
+      }
+    }
+    return res;
+  },
+  findTransitionTo(startNode,nodeid){
+    return this._findTransitionTo(startNode,nodeid);
+  },
+  _findTransitionTo(node,nodeid){
+    if (!node.transitions){
+      return null;
+    }
+    var res;
+    for (var i = 0; i < node.transitions.length; i++) {
+      var tran= node.transitions[i];
+      if (tran.getTargetNode(false).id===nodeid){
+        res=tran;
+      }else{
+        res=this._findTransitionTo(tran.getTargetNode(false),nodeid);
+      }
+      if (res){
+        break;
+      }
+    }
+    return res;
+  },
+  _findNodeById(node,id){
     var self=this;
     if (node.get("id")===id){
       return node;
     }else{
       if (node.transitions){
+        var res;
         for (var i = 0; i < node.transitions.length; i++) {
           var transition=node.transitions[i];
-          var result=self.findNodeByIdInternal(transition.getTargetNode(true),id);
-          if (result){
-            return result;
+          res= self._findNodeById(transition.getTargetNode(false),id);
+          if (res){
+            break;
           }
         }
+        return res;
       }else{
         return null;
       }
@@ -63,7 +106,7 @@ var FindNodeMixin= Ember.Mixin.create({
     for(var i =0; i< nxtPath.length; i++){
       currNode = nxtPath[i];
       do {
-        if(this.insertUniqueNodes(currNode, nodes) && currNode){
+        if(this._insertUniqueNodes(currNode, nodes) && currNode){
           nodes.push(currNode);
         }
         var nodesList = currNode.getTargets();
@@ -74,7 +117,7 @@ var FindNodeMixin= Ember.Mixin.create({
               if(tmp.length){
                 nodes = nodes.concat(tmp);
               }
-            } else if(this.insertUniqueNodes(nodesList[j], nodes) && nodesList[j]){
+            } else if(this._insertUniqueNodes(nodesList[j], nodes) && nodesList[j]){
               nodes.push(nodesList[j]);
               currNode = nodesList[j];
             } else {
@@ -91,7 +134,7 @@ var FindNodeMixin= Ember.Mixin.create({
     }
     return nodes;
   },
-  insertUniqueNodes(currNode, nodes){
+  _insertUniqueNodes(currNode, nodes){
     if(nodes.indexOf(currNode) > -1){
     } else {
       if (!( currNode.isKillNode() || currNode.isPlaceholder() || currNode.isJoinNode() || currNode.isDecisionEnd())){
@@ -99,5 +142,57 @@ var FindNodeMixin= Ember.Mixin.create({
       }
     }
   },
+  _findCommonTargetNodeId(node){
+    var nodeIds = {}, targ, decPath = node.getTargets(), tempId = 0;
+    for(var i =0; i< decPath.length; i++){
+      var currNode = decPath[i];
+      do {
+        if(nodeIds.hasOwnProperty(currNode.get("id"))){
+          nodeIds[currNode.get("id")] = nodeIds[currNode.get("id")] + 1;
+        } else {
+          nodeIds[currNode.get("id")] = 1;
+        }
+        if(currNode.get("id") === "node-end"){
+          break;
+        }
+        currNode = currNode.getTargets()[0];
+      } while(currNode && currNode.get("id"));
+    }
+    for(var j in nodeIds){
+      if(tempId < nodeIds[j]){
+        targ = j;
+        tempId = nodeIds[j];
+      }
+    }
+    return targ;
+  },
+  _findCommonTargetNode(node){
+    var nodeIds = {}, targ, decPath = node.getTargets(), tempId = 0;
+    for(var i =0; i< decPath.length; i++){
+      var currNode = decPath[i];
+      do {
+        if(nodeIds.hasOwnProperty(currNode.get("id"))){
+          nodeIds[currNode.get("id")] = nodeIds[currNode.get("id")] + 1;
+        } else {
+          nodeIds[currNode.get("id")] = 1;
+        }
+        if(currNode.get("id") === "node-end"){
+          break;
+        }
+        currNode = currNode.getTargets()[0];
+      } while(currNode && currNode.get("id"));
+    }
+    for(var j in nodeIds){
+      if(tempId < nodeIds[j]){
+        targ = j;
+        tempId = nodeIds[j];
+      }
+    }
+    return targ;
+  },
+  findCommonTargetNode(startNode,node){
+    var commonTargetId=this._findCommonTargetNodeId(node);
+    return this.findNodeById(startNode,commonTargetId);
+  }
 });
 export{FindNodeMixin};

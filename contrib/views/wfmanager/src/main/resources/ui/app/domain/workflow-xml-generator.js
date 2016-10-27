@@ -18,7 +18,6 @@
 import Ember from 'ember';
 import {WorkflowXmlMapper} from '../domain/workflow_xml_mapper';
 import {NodeVisitor} from '../domain/node-visitor';
-import Constants from '../utils/constants';
 var WorkflowGenerator= Ember.Object.extend({
   workflowMapper:null,
   x2js : new X2JS({useDoubleQuotes:true}),

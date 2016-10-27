@@ -21,6 +21,6 @@
   </label>
   <div class="{{inputWidthClass}}">
     {{input type="text" class="form-control" value=property.value placeholder="value"}}
-    {{field-error error=errors.property.value}}
+    {{field-error model=this field='property.value' showErrorMessage=showErrorMessage}}
   </div>
 </div>

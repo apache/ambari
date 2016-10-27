@@ -16,9 +16,17 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'actionModel.host': validator('presence', {
+    presence : true
+  }),
+  'actionModel.command': validator('presence', {
+    presence : true
+  })
+});
+export default Ember.Component.extend(Validations, {
   fileBrowser : Ember.inject.service('file-browser'),
   javaOptsObserver : Ember.observer('isSingle',function(){
     if(this.get('isSingle')){
@@ -54,18 +62,6 @@ export default Ember.Component.extend(EmberValidations, {
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.host': {
-      presence: {
-        'message' : 'You need to provide a value for host',
-      }
-    },
-    'actionModel.command': {
-      presence: {
-        'message' : 'You need to provide a value for command',
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){
