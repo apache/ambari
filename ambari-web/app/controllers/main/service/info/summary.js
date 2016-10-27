@@ -850,6 +850,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         }
       })
     });
+  },
+
+  goToView: function(event) {
+    App.router.route('main' + event.context.href);
   }
 
 });

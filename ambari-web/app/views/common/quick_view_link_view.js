@@ -26,7 +26,7 @@ var App = require('app');
  * @property {?string} status
  */
 
-App.QuickViewLinks = Em.View.extend({
+App.QuickLinksView = Em.View.extend({
 
   /**
    * @type {boolean}

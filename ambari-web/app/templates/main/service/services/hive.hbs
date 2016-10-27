@@ -36,3 +36,11 @@
    </tr>
   {{/if}}
 {{/each}}
+{{#each link in view.viewLinks}}
+    <tr>
+        <td class="summary-label">{{link.label}}</td>
+        <td class="summary-value" >
+            <a href="#" target="_blank" {{action goToView link target="controller"}}>{{t app.goToView}}</a>
+        </td>
+    </tr>
+{{/each}}
