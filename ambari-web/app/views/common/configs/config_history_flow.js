@@ -326,8 +326,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
    * add a second version-info-bar for the chosen version
    */
   compare: function (event) {
-    this.set('controller.compareServiceVersion', this.get('hoveredServiceVersion'));
     var serviceConfigVersion = this.get('hoveredServiceVersion') || event.context;
+    this.set('controller.compareServiceVersion', serviceConfigVersion);
     this.set('compareServiceVersion', serviceConfigVersion);
 
     var controller = this.get('controller');
