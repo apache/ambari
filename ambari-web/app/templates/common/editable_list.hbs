@@ -33,7 +33,7 @@
       {{/each}}
       {{#if view.editMode}}
         <li class="item add-item-input">
-          {{view Ember.TextField valueBinding="view.input" placeholder="New" classBinding="input-area"}}
+          {{view Ember.TextField valueBinding="view.input" placeholder="New" classBinding="form-control"}}
           {{#if view.typeahead}}
             <div class="typeahead-box">
               <ul>

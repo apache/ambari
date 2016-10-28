@@ -23,7 +23,7 @@
     <div class="row">
       <div class="col-md-2 title">{{t widget.create.wizard.step3.widgetName}}<i class="glyphicon glyphicon-asterisk"></i></div>
       <div {{bindAttr class=":col-md-10 isNameInvalid:error"}}>
-        {{view Ember.TextField valueBinding="widgetName"}}
+        {{view Ember.TextField valueBinding="widgetName" class="form-control"}}
         {{#if isNameInvalid}}
           <div>{{widgetNameErrorMessage}}</div>
         {{/if}}

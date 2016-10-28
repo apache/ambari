@@ -25,7 +25,7 @@
       <p>{{view.description}}</p>
       <div>
         <strong>{{view.label}}&nbsp;&nbsp;</strong>
-        {{view Em.TextField class="prompt-input" valueBinding="view.parentView.inputValue"}}
+        {{view Em.TextField class="prompt-input form-control" valueBinding="view.parentView.inputValue"}}
         {{#if view.parentView.isChanged}}
           <a href="#" data-toggle="tooltip" class="btn-sm"
             {{action "doRestoreDefaultValue" this target="view.parentView"}}

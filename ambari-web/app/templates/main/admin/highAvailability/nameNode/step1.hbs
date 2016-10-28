@@ -32,7 +32,7 @@
     <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
 
     <div>
-      {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm"}}
+      {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm form-control"}}
       <span {{bindAttr class=":help-block :validation-block :col-sm-9 :pull-right view.showInputError::hidden"}}>
         {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
       </span>

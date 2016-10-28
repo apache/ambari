@@ -27,7 +27,7 @@
 {{/if}}
 {{#each dataSet in dataSets}}
   <fieldset>
-    <h5>{{view Ember.TextField valueBinding="dataSet.label"}}</h5>
+    <h5>{{view Ember.TextField valueBinding="dataSet.label" class="form-control"}}</h5>
     <h5>{{t common.expression}}:</h5>
     {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
     {{#if dataSet.isRemovable}}
