@@ -18,7 +18,6 @@
 import Ember from 'ember';
 var Transition = Ember.Object.extend({
   id:null,
-  sourceNode:null,
   targetNode:null,
   type:null,
   condition:null,
@@ -35,9 +34,7 @@ var Transition = Ember.Object.extend({
   isDefaultCasePath(){
     return this.condition==="default";
   },
-  getSourceNode(){
-    return this.get("sourceNode");
-  },
+
   getTargetNode(skipPlaceholder){
     var currNode=this.targetNode;
     if (skipPlaceholder===false){

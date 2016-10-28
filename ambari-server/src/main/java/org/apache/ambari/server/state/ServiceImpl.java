@@ -318,6 +318,101 @@ public class ServiceImpl implements Service {
     return cluster;
   }
 
+  /**
+   * Get a true or false value specifying whether
+   * credential store is supported by this service.
+   *
+   * @return true or false
+   */
+  @Override
+  public boolean isCredentialStoreSupported() {
+    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
+
+    if (desiredStateEntity != null) {
+      return desiredStateEntity.isCredentialStoreSupported();
+    } else {
+      LOG.warn("Trying to fetch a member from an entity object that may " +
+              "have been previously deleted, serviceName = " + getName());
+    }
+    return false;
+  }
+
+
+  /**
+   * Set a true or false value specifying whether this
+   * service supports credential store.
+   *
+   * @param credentialStoreSupported - true or false
+   */
+  @Override
+  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting CredentialStoreEnabled of Service" + ", clusterName="
+              + cluster.getClusterName() + ", clusterId="
+              + cluster.getClusterId() + ", serviceName=" + getName()
+              + ", oldCredentialStoreSupported=" + isCredentialStoreSupported()
+              + ", newCredentialStoreSupported=" + credentialStoreSupported);
+    }
+
+    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
+
+    if (desiredStateEntity != null) {
+      desiredStateEntity.setCredentialStoreSupported(credentialStoreSupported);
+      serviceDesiredStateDAO.merge(desiredStateEntity);
+
+    } else {
+      LOG.warn("Setting a member on an entity object that may have been "
+              + "previously deleted, serviceName = " + getName());
+    }
+  }
+
+  /**
+   * Get a true or false value specifying whether
+   * credential store use is enabled for this service.
+   *
+   * @return true or false
+   */
+  @Override
+  public boolean isCredentialStoreEnabled() {
+    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
+
+    if (desiredStateEntity != null) {
+      return desiredStateEntity.isCredentialStoreEnabled();
+    } else {
+      LOG.warn("Trying to fetch a member from an entity object that may " +
+              "have been previously deleted, serviceName = " + getName());
+    }
+    return false;
+  }
+
+
+  /**
+   * Set a true or false value specifying whether this
+   * service is to be enabled for credential store use.
+   *
+   * @param credentialStoreEnabled - true or false
+   */
+  @Override
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Setting CredentialStoreEnabled of Service" + ", clusterName="
+              + cluster.getClusterName() + ", clusterId="
+              + cluster.getClusterId() + ", serviceName=" + getName()
+              + ", oldCredentialStoreEnabled=" + isCredentialStoreEnabled()
+              + ", newCredentialStoreEnabled=" + credentialStoreEnabled);
+    }
+
+    ServiceDesiredStateEntity desiredStateEntity = getServiceDesiredStateEntity();
+
+    if (desiredStateEntity != null) {
+      desiredStateEntity.setCredentialStoreEnabled(credentialStoreEnabled);
+      desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
+    } else {
+      LOG.warn("Setting a member on an entity object that may have been "
+              + "previously deleted, serviceName = " + getName());
+    }
+  }
+
   @Override
   public void debugDump(StringBuilder sb) {
     sb.append("Service={ serviceName=" + getName() + ", clusterName=" + cluster.getClusterName()

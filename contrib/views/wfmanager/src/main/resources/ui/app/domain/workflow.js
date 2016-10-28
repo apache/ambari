@@ -21,8 +21,7 @@ import {FindNodeMixin} from '../domain/findnode-mixin';
 import {NodeFactory} from '../domain/node-factory';
 import SchemaVersions from '../domain/schema-versions';
 import {NodeVisitor} from '../domain/node-visitor';
-import {idGen} from '../domain/id-gen';
-import {SlaInfo} from '../domain/sla-info'
+import {SlaInfo} from '../domain/sla-info';
 var Workflow= Ember.Object.extend(FindNodeMixin,{
   name:"",
   startNode:null,
@@ -60,52 +59,13 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     //TODO idGen.reset();
     this.initialize();
   },
-  findCommonTargetNodeId(node){
-    var nodeIds = {}, targ, decPath = node.getTargets(), tempId = 0;
-    for(var i =0; i< decPath.length; i++){
-      var currNode = decPath[i];
-      do {
-        if(nodeIds.hasOwnProperty(currNode.get("id"))){
-          nodeIds[currNode.get("id")] = nodeIds[currNode.get("id")] + 1;
-        } else {
-          nodeIds[currNode.get("id")] = 1;
-        }
-        if(currNode.get("id") === "node-end"){
-          break;
-        }
-        currNode = currNode.getTargets()[0];
-      } while(currNode && currNode.get("id"));
-    }
-    for(var j in nodeIds){
-      if(tempId < nodeIds[j]){
-        targ = j;
-        tempId = nodeIds[j];
-      }
-    }
-    return targ;
-  },
+
   findJoinNode(node){
-    var commonTargetId=null;
-    var commonTarget=null;
-    if (node.isDecisionNode()){
-      if (Constants.globalSetting.useJoinNodeForDecision){
-        var target=this.findNodeById(node,"decision_end_"+node.get("id"));
-        if (!target){
-          commonTargetId=this.findCommonTargetNodeId(node);
-          commonTarget=this.findNodeById(this.startNode,commonTargetId);
-          return commonTarget;
-        }else{
-          return target;
-        }
-      }else{
-        commonTargetId=this.findCommonTargetNodeId(node);
-        commonTarget=this.findNodeById(this.startNode,commonTargetId);
-        return commonTarget;
-      }
+    if (node.isDecisionNode() || node.isForkNode()){
+      return this.findCommonTargetNode(this.startNode,node);
     }else if (node.isForkNode()) {
-      commonTargetId=this.findCommonTargetNodeId(node);
-      commonTarget=this.findNodeById(this.startNode,commonTargetId);
-      return commonTarget;
+      //TODO find join node by id if it is efficient later..
+      return this.findCommonTargetNode(this.startNode,node);
     }else{
       return null;
     }
@@ -136,7 +96,7 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     }else{
     }
   },
-  generatedNode(target,type){
+  generatedNode(target,type,settings){
     var generatedNode=null;
     if ("decision" === type){
       generatedNode=this.nodeFactory.generateDecisionNode(target);
@@ -144,32 +104,38 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
       generatedNode=this.nodeFactory.generateForkNode(target);
     }else  if ("kill" === type){
       generatedNode = this.nodeFactory.createKillNode(settings.name);
-      source.deleteCurrentKillNode();
+      //source.deleteCurrentKillNode();//TODO how to get source...
     }else{
       generatedNode = this.nodeFactory.createActionNode(type);
       generatedNode.addTransitionTo(target);
     }
     return generatedNode;
   },
-  addKillNode(node,settings){
-    var generatedNode=this.generatedNode(null,"kill");
+
+  addKillNode(source,settings){
+    var generatedNode=this.generatedNode(null,"kill",settings);
     return source.addTransitionTo(generatedNode,"error");
   },
   addNode(transition,type,settings) {
-    var source=transition.sourceNode;
     var target=transition.targetNode;
     var computedTarget=target;
     if (target && target.isPlaceholder()){
       computedTarget=target.getTargets()[0];
     }
-    var generatedNode=this.generatedNode(computedTarget,type);
-    transition.targetNode=generatedNode;
+    var generatedNode=this.generatedNode(computedTarget,type,settings);
+    var sourceNode=this.findNodeById(this.startNode,transition.sourceNodeId);
+    if (sourceNode.isPlaceholder()){
+      var orignalTransition=this.findTransitionTo(this.startNode,sourceNode.id);
+      orignalTransition.targetNode=generatedNode;
+    }else{
+      transition.targetNode=generatedNode;
+    }
     return generatedNode;
   },
   deleteKillNode(node){
     let killNodes = this.get("killNodes");
     var killNodeReferenced=false;
-    this.nodeVisitor.process(this.startNode,function(n,ctx){
+    this.nodeVisitor.process(this.startNode,function(n){
       if (n.errorNode && n.errorNode.name===node.name){
         killNodeReferenced=true;
       }
@@ -195,35 +161,37 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     var target=node.getDefaultTransitionTarget();
     if (node.isForkNode()|| node.isDecisionNode()){
       target=this.findJoinNode(node);
+      if (!target){//A bug will give target as null if the decision has single path.
+        target=node.getDefaultTransitionTarget();
+      }
       if (target.isJoinNode()){
         target=target.getDefaultTransitionTarget();
       }
     }
     var transitionslist=this.findTransistionsToNode(node);
     transitionslist.forEach(function(tran){
-      if (tran.getSourceNode().isDecisionNode()){
-        var joinNode=self.findJoinNode(tran.getSourceNode());
+      var sourceNode=self.findNodeById(self.startNode,tran.sourceNodeId);
+      var joinNode;
+      if (sourceNode.isDecisionNode()){
+        joinNode=self.findJoinNode(sourceNode);
         if (joinNode===target){
           if (tran.isDefaultCasePath()){
-            var placeholderNode=self.nodeFactory.createPlaceholderNode(target);
-            tran.targetNode=placeholderNode;
-          }else   if (tran.getSourceNode().getOkTransitionCount()>2){
-            tran.getSourceNode().removeTransition(tran);
+            tran.targetNode=self.nodeFactory.createPlaceholderNode(target);
+          }else   if (sourceNode.getOkTransitionCount()>2){
+            sourceNode.removeTransition(tran);
           }else{
-            var placeholderNode=self.nodeFactory.createPlaceholderNode(target);
-            tran.targetNode=placeholderNode;
+            tran.targetNode=self.nodeFactory.createPlaceholderNode(target);
           }
         }else{
           tran.targetNode=target;
         }
-      }else if (tran.getSourceNode().isForkNode()){
-        var joinNode=self.findJoinNode(tran.getSourceNode());
+      }else if (sourceNode.isForkNode()){
+        joinNode=self.findJoinNode(sourceNode);
         if (joinNode===target){
-          if (tran.getSourceNode().getOkTransitionCount()>2){
-            tran.getSourceNode().removeTransition(tran);
+          if (sourceNode.getOkTransitionCount()>2){
+            sourceNode.removeTransition(tran);
           }else{
-            var placeholderNode=self.nodeFactory.createPlaceholderNode(target);
-            tran.targetNode=placeholderNode;
+            tran.targetNode=self.nodeFactory.createPlaceholderNode(target);
           }
         }else{
           tran.targetNode=target;
@@ -234,13 +202,15 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     });
   },
   deleteTransition(transition){
-    var src=transition.getSourceNode();
+    var src=this.findNodeById(this.startNode,transition.sourceNodeId);
     src.removeTransition(transition);
   },
   deleteEmptyTransitions(transitionslist){
+    var self=this;
     transitionslist.forEach(function(tran){
-      if (tran.getSourceNode().isForkNode()&& tran.getTargetNode().isJoinNode()){
-        tran.getSourceNode().removeTransition(tran);
+      var sourceNode=this.findNodeById(self.startNode,tran.sourceNodeId);
+      if (sourceNode.isForkNode()&& tran.getTargetNode().isJoinNode()){
+        sourceNode.removeTransition(tran);
       }
     });
   },
@@ -261,6 +231,4 @@ var Workflow= Ember.Object.extend(FindNodeMixin,{
     }
   }
 });
-
-
 export {Workflow};

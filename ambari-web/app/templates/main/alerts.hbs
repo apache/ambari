@@ -16,20 +16,19 @@
 * limitations under the License.
 }}
 
-{{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
-  <div id="alert-actions-button" class="pull-left">
-    {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
-  </div>
-{{/isAuthorized}}
-
-<div id="alert-groups-filter" class="pull-left advanced-header-table groups-filter">
-{{#if App.router.clusterController.isAlertsLoaded}}
-  {{view view.alertGroupFilterView}}
-{{/if}}
-</div>
-
 <div id="alerts">
-  <div class="box-header row">
+  <div class="row">
+    <h2 class="table-title col-sm-1">{{t menu.item.alerts}}</h2>
+    <div class="table-controls row col-sm-11 pull-right">
+      <div class="col-sm-12">
+        {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
+          {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
+        {{/isAuthorized}}
+        {{#if App.router.clusterController.isAlertsLoaded}}
+          {{view view.alertGroupFilterView}}
+        {{/if}}
+      </div>
+    </div>
   </div>
   <table class="table advanced-header-table table-hover alerts-table" id="alert-definitions-table">
     <thead>

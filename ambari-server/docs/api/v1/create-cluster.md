@@ -69,7 +69,7 @@ Create a cluster named ‘c1’ with the property ‘Clusters/version’ = ‘HD
 
     {
       "Clusters": {
-        "version" : "HDP-1.2.0”
+        "version" : "HDP-1.2.0"
       }
     }
 

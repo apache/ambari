@@ -100,7 +100,7 @@ var Node = Ember.Object.extend(FindNodeMixin,{
     }
   },
   addTransitionTo(target,condition){
-    var transition = Transition.create({targetNode:target,sourceNode:this,condition:condition});
+    var transition = Transition.create({targetNode:target,sourceNodeId:this.id,condition:condition});
     this.addTransition(transition);
     return transition;
   },
@@ -120,7 +120,6 @@ var Node = Ember.Object.extend(FindNodeMixin,{
   },
 
   removeTransition(transition){
-    var transitions=this.get("transitions");
     if (transition && this.transitions.indexOf(transition) > -1) {
       this.transitions.splice(this.transitions.indexOf(transition), 1);
     }

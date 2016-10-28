@@ -18,6 +18,8 @@
 
 App.MainAlertDefinitionActionsView = Em.View.extend({
 
+  classNames: ['btn-group', 'pull-right'],
+
   templateName: require('templates/main/alerts/alert_definitions_actions')
 
 });

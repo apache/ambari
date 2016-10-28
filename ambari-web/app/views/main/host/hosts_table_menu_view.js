@@ -24,6 +24,8 @@ var O = Em.Object;
  */
 App.HostTableMenuView = Em.View.extend({
 
+  classNames: ['btn-group', 'pull-right', 'bulk-menu'],
+
   templateName: require('templates/main/host/bulk_operation_menu'),
 
   controllerBinding: 'App.router.bulkOperationsController',

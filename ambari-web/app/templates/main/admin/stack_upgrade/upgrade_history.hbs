@@ -21,26 +21,31 @@
     {{view App.SpinnerView}}
   </div>
   <div {{bindAttr class="view.isReady::hidden"}}>
-	  <div class="btn-group display-inline-block">
-	    <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
-	      <span class="filters-label">{{t common.filter}}: </span>
-	        <span>
-	          {{view.selectedCategory.label}}
-	          <span class="caret"></span>
-	        </span>
-	    </a>
-	    <ul class="dropdown-menu">
-	      {{#each category in view.categories}}
-	        <li>
-	          <a {{action selectCategory category target="view"}} href="#">
-	            {{category.label}}
-	          </a>
-	        </li>
-	      {{/each}}
-	    </ul>
-	  </div>
-	  <br/>
-	  <br/>
+    <div class="row">
+      <h2 class="table-title col-sm-3">{{t common.upgrade.history}}</h2>
+      <div class="table-controls row col-sm-9 pull-right">
+        <div class="col-sm-12">
+          <div class="btn-group pull-right">
+            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+              <span class="filters-label">{{t common.filter}}: </span>
+              <span>
+                {{view.selectedCategory.label}}
+                <span class="caret"></span>
+              </span>
+            </a>
+            <ul class="dropdown-menu">
+              {{#each category in view.categories}}
+                <li>
+                  <a {{action selectCategory category target="view"}} href="#">
+                    {{category.label}}
+                  </a>
+                </li>
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
 	  <table class="table advanced-header-table table-hover" id="upgrade-summary-table">
 	    <thead>
 	      <th>{{t common.direction}}</th>

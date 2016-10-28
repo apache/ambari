@@ -27,7 +27,7 @@
             <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.appPath"}}>Browse</button>
           </span>
         </div>
-        {{#field-error error=errors.actionModel.appPath}}{{/field-error}}
+        {{field-error model=this field='actionModel.appPath' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     <div class="form-group">

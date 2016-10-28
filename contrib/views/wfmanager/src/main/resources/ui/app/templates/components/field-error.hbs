@@ -16,6 +16,9 @@
 * limitations under the License.
 }}
 {{yield}}
+{{#if (or (and showErrorMessage (v-get model field 'isInvalid')) (and (v-get model field 'isInvalid')(v-get model field 'isDirty')))}}
+  <label class="control-label text-danger"> {{v-get model field 'message'}}</label>
+{{/if}}
 {{#if errorMessage}}
   <label class="control-label text-danger">{{errorMessage}}</label>
 {{/if}}

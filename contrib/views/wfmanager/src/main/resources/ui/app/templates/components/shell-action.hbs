@@ -27,7 +27,7 @@
           <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.exec"}}>Browse</button>
         </span>
       </div>
-      {{#field-error error=errors.actionModel.exec}}{{/field-error}}
+      {{field-error model=this field='actionModel.exec' showErrorMessage=showErrorMessage}}
     </div>
   </div>
 
@@ -63,7 +63,7 @@
             <div class="col-xs-7">
               {{input type="text" class="form-control" name="job-tracker" value=actionModel.jobTracker placeholder="Resource Manager"}}
             </div>
-            {{field-error error=errors.actionModel.jobTracker}}
+            {{field-error model=this field='actionModel.jobTracker' showErrorMessage=showErrorMessage}}
           </div>
           <div class="form-group">
             <label for="inputPassword" class="control-label col-xs-2">Name node</label>

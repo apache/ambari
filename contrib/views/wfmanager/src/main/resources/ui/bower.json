@@ -22,6 +22,9 @@
     "abdmob/x2js": "~1.2.0",
     "bootstrap-treeview": "~1.2.0",
     "datatables": "~1.10.11",
-    "vkBeautify": "https://github.com/vkiryukhin/vkBeautify.git"
+    "vkBeautify": "https://github.com/vkiryukhin/vkBeautify.git",
+    "cytoscape": "^2.7.7",
+    "cytoscape-dagre": "^1.3.0",
+    "cytoscape-panzoom": "^2.4.0"
   }
 }

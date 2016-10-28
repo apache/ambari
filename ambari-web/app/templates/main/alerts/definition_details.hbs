@@ -192,94 +192,89 @@
   {{! Right column end }}
 
   {{! List of alerts }}
-  <div class="definition-details-block row">
-  <span class="background-text">
-    <strong>{{t alerts.definition.details.instances}}</strong>
-  </span>
-    <hr>
-    <div>
-
-      {{#if App.router.mainAlertInstancesController.isLoaded}}
-
-        <table class="table advanced-header-table table-hover alerts-table" id="alert-instances-table">
-          <thead>
-          {{#view view.sortView contentBinding="view.filteredContent"}}
-            {{view view.parentView.serviceSort class="first service-sorting"}}
-            {{view view.parentView.hostNameSort class="host-sorting"}}
-            {{view view.parentView.stateSort class="state-sorting"}}
-            <th>{{t alerts.definition.details.24-hour}}</th>
-            <th>{{t alerts.table.header.check.response}}</th>
-          {{/view}}
-          <tr class="filter-row">
-            <th class="first">{{view view.serviceFilterView}}</th>
-            <th>{{view view.hostNameFilterView}}</th>
-            <th>{{view view.stateFilterView }}</th>
-            <th>{{!}}</th>
-            <th>{{!}}</th>
-          </tr>
-          </thead>
-          <tbody>
-          {{#if view.pageContent}}
-            {{#each instance in view.pageContent}}
-              {{#view view.instanceTableRow}}
-                <td class="first">
-                  {{#if instance.serviceDisplayName}}
-                    {{#if instance.service.isLoaded}}
-                      <a {{action goToService instance.service target="view"}}
-                        href="#">{{instance.serviceDisplayName}}</a>
-                    {{else}}
-                      {{instance.serviceDisplayName}}
-                    {{/if}}
-                  {{/if}}
-                </td>
-                <td>
-                  {{#if instance.hostName}}
-                    <a {{action goToHostAlerts instance.host target="view"}} href="#">
-                      {{instance.hostName}}
-                    </a>
-                  {{/if}}
-                </td>
-                <td>
-                  {{view App.AlertInstanceStateView instanceBinding="instance"}}
-                </td>
-                <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
-                <td>
-                  <a href="#" class="alert-text" {{action openFullResponse instance target="view"}} {{bindAttr data-original-title="instance.text"}}>
-                    {{instance.text}}
-                  </a>
-                </td>
-              {{/view}}
-            {{/each}}
-          {{else}}
-            <tr>
-              <td class="first" colspan="5">
-                {{t alerts.definition.details.noAlerts}}
-              </td>
-            </tr>
-          {{/if}}
-          </tbody>
-        </table>
-
-        <div class="page-bar">
-          <div class="filtered-info col-md-4">
-            {{#if view.showFilteredContent}}
-              <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-                href="#">{{t tableView.filters.clearAllFilters}}</a></label>
-            {{/if}}
-          </div>
-          <div class="items-on-page">
-            <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-          </div>
-          <div class="info">{{view.paginationInfo}}</div>
-          {{view view.pagination2Btns}}
-        </div>
-
-      {{else}}
-        {{view App.SpinnerView}}
-      {{/if}}
-
+    <div class="row">
+      <h2 class="table-title col-sm-1">{{t alerts.definition.details.instances}}</h2>
     </div>
-  </div>
+
+    {{#if App.router.mainAlertInstancesController.isLoaded}}
+
+      <table class="table advanced-header-table table-hover alerts-table" id="alert-instances-table">
+        <thead>
+        {{#view view.sortView contentBinding="view.filteredContent"}}
+          {{view view.parentView.serviceSort class="first service-sorting"}}
+          {{view view.parentView.hostNameSort class="host-sorting"}}
+          {{view view.parentView.stateSort class="state-sorting"}}
+          <th>{{t alerts.definition.details.24-hour}}</th>
+          <th>{{t alerts.table.header.check.response}}</th>
+        {{/view}}
+        <tr class="filter-row">
+          <th class="first">{{view view.serviceFilterView}}</th>
+          <th>{{view view.hostNameFilterView}}</th>
+          <th>{{view view.stateFilterView }}</th>
+          <th>{{!}}</th>
+          <th>{{!}}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#if view.pageContent}}
+          {{#each instance in view.pageContent}}
+            {{#view view.instanceTableRow}}
+              <td class="first">
+                {{#if instance.serviceDisplayName}}
+                  {{#if instance.service.isLoaded}}
+                    <a {{action goToService instance.service target="view"}}
+                      href="#">{{instance.serviceDisplayName}}</a>
+                  {{else}}
+                    {{instance.serviceDisplayName}}
+                  {{/if}}
+                {{/if}}
+              </td>
+              <td>
+                {{#if instance.hostName}}
+                  <a {{action goToHostAlerts instance.host target="view"}} href="#">
+                    {{instance.hostName}}
+                  </a>
+                {{/if}}
+              </td>
+              <td>
+                {{view App.AlertInstanceStateView instanceBinding="instance"}}
+              </td>
+              <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
+              <td>
+                <a href="#" class="alert-text" {{action openFullResponse instance target="view"}} {{bindAttr data-original-title="instance.text"}}>
+                  {{instance.text}}
+                </a>
+              </td>
+            {{/view}}
+          {{/each}}
+        {{else}}
+          <tr>
+            <td class="first" colspan="5">
+              {{t alerts.definition.details.noAlerts}}
+            </td>
+          </tr>
+        {{/if}}
+        </tbody>
+      </table>
+
+      <div class="page-bar">
+        <div class="filtered-info col-md-4">
+          {{#if view.showFilteredContent}}
+            <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
+              href="#">{{t tableView.filters.clearAllFilters}}</a></label>
+          {{/if}}
+        </div>
+        <div class="items-on-page">
+          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+        </div>
+        <div class="info">{{view.paginationInfo}}</div>
+        {{view view.pagination2Btns}}
+      </div>
+
+    {{else}}
+      {{view App.SpinnerView}}
+    {{/if}}
+
   {{! List of alerts end }}
 
   </div>

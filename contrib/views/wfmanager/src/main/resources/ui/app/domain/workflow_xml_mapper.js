@@ -18,6 +18,7 @@
 import Ember from 'ember';
 import * as nodeHandler from '../domain/node-handler';
 import {SLAMapper} from "../domain/mapping-utils";
+import {ActionTypeResolver} from "../domain/action-type-resolver";
 
 import {MappingMixin,ConfigurationMapper} from "../domain/mapping-utils";
 var WorkflowXmlMapper= Ember.Object.extend({
@@ -27,7 +28,7 @@ var WorkflowXmlMapper= Ember.Object.extend({
   slaMapper: SLAMapper.create({}),
   schemaVersions:null,
   init: function() {
-    this.actionTypeResolver=nodeHandler.ActionTypeResolver.create({schemaVersions:this.schemaVersions});
+    this.actionTypeResolver=ActionTypeResolver.create({schemaVersions:this.schemaVersions});
     this.set("globalConfigHandler",GlobalConfigHandler.create({}));
     this.set("slaMapper",SLAMapper.create({}));
     this.nodeHandlerMap=new Map();
@@ -106,7 +107,7 @@ var WorkflowXmlMapper= Ember.Object.extend({
     if (!parameters|| !parameters.property){
       return;
     }
-    workflow.parameters={"configuration":{property:[]}}
+    workflow.parameters={"configuration":{property:[]}};
     parameters.property.forEach(function(prop){
       workflow.parameters.configuration.property.push({"name":prop.name,"value":prop.value});
     });

@@ -18,7 +18,7 @@
 <div class="form-group">
   <label class="control-label col-xs-2">Error To<span class="requiredField">&nbsp;*</span></label>
   <div class=" col-xs-7">
-    <select onchange={{action "onSelectChange" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
+    <select onchange={{action "errorToHandler" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
       <optgroup label="Kill Nodes"></optgroup>
       {{#each killNodes as |node index|}}
       <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
@@ -28,13 +28,24 @@
       <option value={{node.name}} selected={{eq node.name transition.errorNode.name}}>{{node.name}}</option>
       {{/each}}
     </select>
-    {{field-error error=errors.errorNode.name}}
+    {{#if (eq transition.errorNode.type 'kill')}}
+      <span class="kill-message">{{transition.errorNode.killMessage}}</span>
+    {{/if}}
   </div>
 </div>
-<div class="form-group margin0">
-  <label class="control-label col-xs-2">Ok To</label>
-  <div class=" col-xs-7 paddingClass">
-    {{okToNode.name}}
+<div class="form-group">
+  <label class="control-label col-xs-2">Ok To<span class="requiredField">&nbsp;*</span></label>
+  <div class=" col-xs-7">
+    <select onchange={{action "okToHandler" value="target.value"}} name="select-node" class="form-control" data-show-icon="true">
+      {{#each currentNode.validOkToNodes as |node index|}}
+        <option value={{node.name}} selected={{eq node.name transition.okToNode.name}}>{{node.name}}</option>
+      {{/each}}
+    </select>
+    {{#if showWarning}}
+      <span class="ok-to-warning">
+        Changing Ok To transition may result in deletion of intermediate nodes. <span class="undo" {{action 'undoChangeOkTo'}}><u>Undo</u></span>
+      </span>
+    {{/if}}
   </div>
 </div>
 

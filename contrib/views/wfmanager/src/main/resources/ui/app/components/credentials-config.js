@@ -15,29 +15,39 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'credential.name': validator('presence', {
+    presence : true,
+    message : 'Required'
+  }),
+  'credential.type': validator('presence', {
+    presence : true,
+    message : 'Required'
+  })
+});
+
+export default Ember.Component.extend(Validations, {
   childComponents : new Map(),
   initialize : function(){
+    if(this.get('mode') === 'create'){
+      this.set("credential", {});
+      this.set("credential.property", Ember.A([]));
+    }
+    this.initializeCredentialDetails();
     if(this.get('mode') === 'edit'){
       this.sendAction('register', this, this);
     }
     this.get('childComponents').clear();
     this.set('credentialType',Ember.A([]));
-    this.get('credentialType').pushObject({value:'',displayName:'Select'});
+    this.get('credentialType').pushObject({value:undefined,displayName:'Select'});
     this.get('credentialType').pushObject({value:'hcat',displayName:'HCat'});
     this.get('credentialType').pushObject({value:'hive2',displayName:'Hive2'});
     this.get('credentialType').pushObject({value:'hbase',displayName:'HBase'});
 
     Ember.addObserver(this, 'credential.type', this, this.credentialTypeObserver);
 
-    this.initializeCredentialDetails();
-
-    if(this.get('mode') === 'create'){
-      this.set("credential", {});
-      this.set("credential.property", Ember.A([]));
-    }
     if(this.get('credential.type') && this.get('credential.property')){
       this.set('staticProps', Ember.copy(this.get('credentialDetails').findBy('name',this.get('credential.type')).staticProps));
       var configProperties = this.get('credential.property');
@@ -50,37 +60,35 @@ export default Ember.Component.extend(EmberValidations, {
       });
     }
   }.on('init'),
-  rendered : function(){
-    if(this.get('mode') === 'create'){
-      this.$('.collapse').collapse('show');
-    }else if(this.get('mode') === 'edit'){
-      this.$('.collapse').collapse('hide');
+  bindStaticPropsOnEdit : function(){
+    if(this.get('mode') === 'edit'){
+      this.processStaticProps();
     }
-  }.on('didInsertElement'),
+  }.on('willDestroyElement'),
   initializeCredentialDetails : function(){
     this.set('credentialDetails', Ember.A([]));
     this.get('credentialDetails').pushObject({
       name:'hcat',
       staticProps:
-      [{name:'hcat.metastore.principal',displayName:'Hcat Metastore principal', value:'', belongsTo:'credential.property'},
-      {name:'hcat.metastore.uri',displayName:'Hcat Metastore uri', value:'', belongsTo:'credential.property'}]
+      [{name:'hcat.metastore.principal',displayName:'Hcat Metastore principal', value:undefined, belongsTo:'credential.property'},
+      {name:'hcat.metastore.uri',displayName:'Hcat Metastore uri', value:undefined, belongsTo:'credential.property'}]
     });
     this.get('credentialDetails').pushObject({
       name:'hive2',
       staticProps:
-      [{name:'hive2.jdbc.url',displayName:'Hive2 Jdbc Url', value:'', belongsTo:'credential.property'},
-      {name:'hive2.server.principal',displayName:'Hive2 Server principal', value:'', belongsTo:'credential.property'}]
+      [{name:'hive2.jdbc.url',displayName:'Hive2 Jdbc Url', value:undefined, belongsTo:'credential.property'},
+      {name:'hive2.server.principal',displayName:'Hive2 Server principal', value:undefined, belongsTo:'credential.property'}]
     });
     this.get('credentialDetails').pushObject({
       name:'hbase',
       staticProps:
-      [{name:'hadoop.security.authentication',displayName:'Hadoop security auth', value:'', belongsTo:'credential.property'},
-      {name:'hbase.security.authentication',displayName:'Hbase security auth', value:'', belongsTo:'credential.property'},
-      {name:'hbase.master.kerberos.principal',displayName:'Hbase Master kerberos principal', value:'', belongsTo:'credential.property'},
-      {name:'hbase.regionserver.kerberos.principal',displayName:'Hbase regionserver kerberos principal', value:'', belongsTo:'credential.property'},
-      {name:'hbase.zookeeper.quorum',displayName:'Hbase zookeeper quorum', value:'', belongsTo:'credential.property'},
-      {name:'hadoop.rpc.protection',displayName:'Hadoop Rpc protection', value:'', belongsTo:'credential.property'},
-      {name:'hbase.rpc.protection',displayName:'Hbase Rpc protection', value:'', belongsTo:'credential.property'}]
+      [{name:'hadoop.security.authentication',displayName:'Hadoop security auth', value:undefined, belongsTo:'credential.property'},
+      {name:'hbase.security.authentication',displayName:'Hbase security auth', value:undefined, belongsTo:'credential.property'},
+      {name:'hbase.master.kerberos.principal',displayName:'Hbase Master kerberos principal', value:undefined, belongsTo:'credential.property'},
+      {name:'hbase.regionserver.kerberos.principal',displayName:'Hbase regionserver kerberos principal', value:undefined, belongsTo:'credential.property'},
+      {name:'hbase.zookeeper.quorum',displayName:'Hbase zookeeper quorum', value:undefined, belongsTo:'credential.property'},
+      {name:'hadoop.rpc.protection',displayName:'Hadoop Rpc protection', value:undefined, belongsTo:'credential.property'},
+      {name:'hbase.rpc.protection',displayName:'Hbase Rpc protection', value:undefined, belongsTo:'credential.property'}]
     });
   },
   credentialTypeObserver : function(){
@@ -97,93 +105,56 @@ export default Ember.Component.extend(EmberValidations, {
       }
     });
   },
-  resetForm : function(){
-    this.set('credential', {});
-    this.set('credential.property',Ember.A([]));
-    this.get('staticProps').clear();
-    this.initializeCredentialDetails();
+  processStaticProps() {
+    var staticProps = this.get('staticProps');
+    var index = 0;
+    if(!staticProps){
+      return;
+    }
+    staticProps.forEach((property)=>{
+      var existingStaticProp = this.get('credential.property').findBy('name',property.name);
+      if (existingStaticProp) {
+        Ember.set(existingStaticProp,'value',property.value);
+        index++;
+      } else {
+        var propObj = {name : property.name, value:property.value, static:true};
+        this.get('credential.property').insertAt(index++, propObj);
+      }
+    }.bind(this));
   },
   validateChildrenComponents(){
-    var validationPromises = [];
-    var deferred = Ember.RSVP.defer();
-    if(this.get('childComponents').size === 0){
-      deferred.resolve(true);
-    }else{
-      this.get('childComponents').forEach((childComponent)=>{
-        if(!childComponent.validations){
-          return;
-        }
-        var validationDeferred = Ember.RSVP.defer();
-        childComponent.validate().then(()=>{
-          validationDeferred.resolve();
-        }).catch((e)=>{
-          validationDeferred.reject(e);
-        });
-        validationPromises.push(validationDeferred.promise);
-      });
-      Ember.RSVP.Promise.all(validationPromises).then(function(){
-        deferred.resolve(true);
-      }).catch(function(e){
-        deferred.reject(e);
-      });
-    }
-    return deferred;
-  },
-  validations : {
-    'credential.name': {
-      presence: {
-        'message' : 'Required',
+    var isChildComponentsValid = true;
+    this.get('childComponents').forEach((context)=>{
+      if(context.get('validations') && context.get('validations.isInvalid')){
+        isChildComponentsValid =  false;
+        context.set('showErrorMessage', true);
       }
-    },
-    'credential.type': {
-      presence: {
-        'message' : 'Required',
-      }
-    }
+    }.bind(this));
+    return isChildComponentsValid;
   },
   actions : {
     register(component, context){
-      if(this.get('mode') === 'edit'){
-        this.sendAction('register', component, context);
-      }
       this.get('childComponents').set(component, context);
     },
     add(){
-      var isFormValid = this.validateChildrenComponents();
-      isFormValid.promise.then(function(){
-        this.validate().then(function(){
-          var staticProps = this.get('staticProps');
-          var index = 0;
-          staticProps.forEach((property)=>{
-            var existingStaticProp = this.get('credential.property').findBy('name',property.name);
-            if (existingStaticProp) {
-              Ember.set(existingStaticProp,'value',property.value);
-              index++;
-            } else {
-              var propObj = {name : property.name, value:property.value, static:true};
-              this.get('credential.property').insertAt(index++, propObj);
-            }
-          });
-          this.processMultivaluedComponents();
-          this.sendAction('add',this.get('credential'));
-          this.resetForm();
-        }.bind(this)).catch(function(e){
-        }.bind(this));
-      }.bind(this)).catch(function (e) {
-      });
-
-    },
-    delete(name){
-      this.sendAction('delete',name);
-    },
-    togglePanel (){
-      this.$('.collapse').collapse('toggle');
-      if(this.$('.collapse').hasClass('in')){
-        this.set('isOpen', true);
-      }else{
-        this.set('isOpen', false);
+      var isChildComponentsValid = this.validateChildrenComponents();
+      if(this.get('validations.isInvalid') || !isChildComponentsValid) {
+        this.set('showErrorMessage', true);
+        return;
       }
+      this.processStaticProps();
+      this.processMultivaluedComponents();
+      if(this.get('mode') === 'create'){
+        this.sendAction('add',this.get('credential'));
+      }else{
+        this.sendAction('update');
+      }
+    },
+    cancel (){
+      this.sendAction('cancel');
+    },
+    unregister(component, context){
+      this.get('childComponents').delete(component);
     }
   }
-
 });

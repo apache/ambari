@@ -47,7 +47,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
       bind_debug_signal_handlers()
       while True:
         command = self.actionQueue.statusCommandQueue.get(True) # blocks until status status command appears
-        logger.info("Running status command for {0}".format(command['componentName'])) # TODO: change to logger.debug once fixed
+        logger.debug("Running status command for {0}".format(command['componentName']))
         
         timeout_timer = threading.Timer( self.status_command_timeout, self.respawn, [command])
         timeout_timer.start()
@@ -55,7 +55,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
         self.process_status_command(command)
 
         timeout_timer.cancel()
-        logger.info("Completed status command for {0}".format(command['componentName']))  # TODO: change to logger.debug once fixed
+        logger.debug("Completed status command for {0}".format(command['componentName']))
     except:
       logger.exception("StatusCommandsExecutor process failed with exception:")
       raise
@@ -84,3 +84,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
 
   def kill(self):
     os.kill(self.pid, signal.SIGKILL)
+
+    # prevent queue from ending up with non-freed semaphores, locks during put. Which would result in dead-lock in process executing get.
+    self.actionQueue.statusCommandResultQueue.close()
+    self.actionQueue.statusCommandResultQueue.join_thread()

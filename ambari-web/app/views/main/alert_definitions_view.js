@@ -348,21 +348,20 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   alertGroupFilterView: filters.createSelectView({
     column: 7,
     fieldType: 'filter-input-width',
+    classNames: ['btn-group', 'pull-right', 'groups-filter'],
     template: Ember.Handlebars.compile(
-      '<div class="btn-group display-inline-block">' +
-        '<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">' +
-          '<span class="filters-label">{{t common.groups}}:  </span>' +
-          '<span>{{view.selected.label}}&nbsp;<span class="caret"></span></span>' +
-        '</button>' +
-          '<ul class="dropdown-menu alert-groups-dropdown">' +
-            '{{#each category in view.content}}' +
-              '<li {{bindAttr class=":category-item category.selected:active"}}>' +
-                '<a {{action selectCategory category target="view"}} href="#">' +
-                   '<span {{bindAttr class="category.class"}}></span>{{category.label}}</a>' +
-              '</li>'+
-            '{{/each}}' +
-          '</ul>'+
-      '</div>'
+      '<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">' +
+        '<span class="filters-label">{{t common.groups}}:  </span>' +
+        '<span>{{view.selected.label}}&nbsp;<span class="caret"></span></span>' +
+      '</button>' +
+      '<ul class="dropdown-menu alert-groups-dropdown">' +
+        '{{#each category in view.content}}' +
+          '<li {{bindAttr class=":category-item category.selected:active"}}>' +
+            '<a {{action selectCategory category target="view"}} href="#">' +
+               '<span {{bindAttr class="category.class"}}></span>{{category.label}}</a>' +
+          '</li>'+
+        '{{/each}}' +
+      '</ul>'
     ),
     content: [],
 

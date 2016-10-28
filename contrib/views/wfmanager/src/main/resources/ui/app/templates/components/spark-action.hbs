@@ -22,7 +22,7 @@
       <label for="inputPassword" class="control-label col-xs-2">Name<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" name="spark-name" value=actionModel.sparkName placeholder="Spark Name"}}
-        {{#field-error error=errors.actionModel.sparkName}}{{/field-error}}
+        {{field-error model=this field='actionModel.sparkName' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     <div class="form-group">
@@ -35,7 +35,7 @@
             <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.jar"}}>Browse</button>
           </span>
         </div>
-        {{#field-error error=errors.actionModel.jar}}{{/field-error}}
+        {{field-error model=this field='actionModel.jar' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     {{#if isJar}}
@@ -63,7 +63,7 @@
           <input type=text placeholder="Custom" disabled={{disableCustomMaster}} value={{customMaster}} onchange={{action (mut actionModel.master) value="target.value"}}>
         </div>
       </div>
-      {{#field-error error=errors.actionModel.master}}{{/field-error}}
+      {{field-error model=this field='actionModel.master' showErrorMessage=showErrorMessage}}
     </div>
     <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Spark Options</label>

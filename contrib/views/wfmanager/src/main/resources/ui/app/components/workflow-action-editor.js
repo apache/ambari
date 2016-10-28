@@ -16,11 +16,10 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 import Constants from '../utils/constants';
 import {SlaInfo} from '../domain/sla-info';
 
-export default Ember.Component.extend(EmberValidations, Ember.Evented,{
+export default Ember.Component.extend( Ember.Evented,{
   actionIcons : {
     "hive": "server",
     "hive2": "server",
@@ -111,30 +110,14 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
     }
   }.on('didUpdate'),
   validateChildrenComponents(){
-    var validationPromises = [];
-    var deferred = Ember.RSVP.defer();
-    if(this.get('childComponents').size === 0){
-      deferred.resolve(true);
-    }else{
-      this.get('childComponents').forEach((childComponent)=>{
-        if(!childComponent.validations){
-          return;
-        }
-        var validationDeferred = Ember.RSVP.defer();
-        childComponent.validate().then(()=>{
-          validationDeferred.resolve();
-        }).catch((e)=>{
-          validationDeferred.reject(e);
-        });
-        validationPromises.push(validationDeferred.promise);
-      });
-      Ember.RSVP.Promise.all(validationPromises).then(function(){
-        deferred.resolve(true);
-      }).catch(function(e){
-        deferred.reject(e);
-      });
-    }
-    return deferred;
+    var isChildComponentsValid = true;
+    this.get('childComponents').forEach((context)=>{
+      if(context.get('validations') && context.get('validations.isInvalid')){
+        isChildComponentsValid =  false;
+        context.set('showErrorMessage', true);
+      }
+    }.bind(this));
+    return isChildComponentsValid;
   },
   processMultivaluedComponents(){
     this.get('childComponents').forEach((childComponent)=>{
@@ -157,19 +140,16 @@ export default Ember.Component.extend(EmberValidations, Ember.Evented,{
       this.sendAction('close');
     },
     save () {
-      var isFormValid = this.validateChildrenComponents();
-      isFormValid.promise.then(function(){
-        this.validate().then(function(){
-          this.processMultivaluedComponents();
-          this.processStaticProps();
-          this.$('#action_properties_dialog').modal('hide');
-          this.sendAction('addKillNode', this.get('transition.errorNode'));
-          this.set('saveClicked', true);
-        }.bind(this)).catch(function(e){
-        }.bind(this));
-      }.bind(this)).catch(function (e) {
-      });
-
+      var isChildComponentsValid = this.validateChildrenComponents();
+      if(this.get('validations.isInvalid') || !isChildComponentsValid) {
+        this.set('showErrorMessage', true);
+        return;
+      }
+      this.processMultivaluedComponents();
+      this.processStaticProps();
+      this.$('#action_properties_dialog').modal('hide');
+      this.sendAction('setNodeTransitions', this.get('transition'));
+      this.set('saveClicked', true);
     },
     openFileBrowser(model, context){
       if(!context){

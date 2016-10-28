@@ -1672,11 +1672,11 @@ a:focus {
   -moz-border-radius: 0;
 }
 .submenu-left {
-  &> .dropdown-menu-wrap {
+  > .dropdown-menu-wrap {
     position: relative;
     width: 100%;
     left: -100%;
-    &> .dropdown-menu {
+    > .dropdown-menu {
       position: absolute;
       top: 0;
       right: -10px;
@@ -1684,8 +1684,10 @@ a:focus {
     }
   }
   &:hover {
-    .dropdown-menu {
-      display: inline-block;
+    > .dropdown-menu-wrap {
+      > .dropdown-menu {
+        display: inline-block;
+      }
     }
   }
 }
@@ -3353,9 +3355,6 @@ table.graphs {
       margin-bottom: 10px;
       margin-top: -5px;
     }
-    .hosts-actions {
-      margin-right: 10px;
-    }
     .health-status-bar {
       font-size: 0.9em;
       margin-left: 0;
@@ -3406,8 +3405,8 @@ table.graphs {
     .col0,.col1,
     td:first-child,
     th:first-child,
-    td:first-child + td,
-    th:first-child + th{
+    td:last-child,
+    th:last-child {
       padding-left: 4px!important;
       padding-right: 1px!important;
       padding-right: 10px\9!important;
@@ -3418,58 +3417,58 @@ table.graphs {
       }
     }
     .col2,
-    td:first-child + td + td,
-    th:first-child + th + th{
+    td:first-child + td,
+    th:first-child + th{
       width: 20%;
       padding-right: 1px;
     }
     .col3, .col4,
+    td:first-child + td + td,
+    th:first-child + th + th,
     td:first-child + td + td + td,
-    th:first-child + th + th + th,
-    td:first-child + td + td + td + td,
-    th:first-child + th + th + th + th{
+    th:first-child + th + th + th{
       padding-left: 1px!important;
       padding-right: 1px!important;
       width: 1.5%;
       width: 13px\9!important;
     }
     .col5,
-    td:first-child + td + td + td + td + td,
-    th:first-child + th + th + th + th + th {
+    td:first-child + td + td + td + td,
+    th:first-child + th + th + th + th {
       width: 10%!important;
     }
     .col6,
-    td:first-child + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th {
+    td:first-child + td + td + td + td + td,
+    th:first-child + th + th + th + th + th {
       width: 13%!important;
     }
     .col7,
-    td:first-child + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th{
       width: 5%!important;
     }
 
     .col8,
-    td:first-child + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th{
+    td:first-child + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th{
       width: 6%!important;
     }
 
     .col9,
+    td:first-child + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th{
+      width: 9%!important;
+    }
+
+    .col10,
     td:first-child + td + td + td + td + td + td + td + td + td,
     th:first-child + th + th + th + th + th + th + th + th + th{
       width: 9%!important;
     }
 
-    .col10,
-    td:first-child + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th + th{
-      width: 9%!important;
-    }
-
     .col11,
-    td:first-child + td + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th + th +th{
+    td:first-child + td + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th +th{
       width: 11%!important;
       a {
         word-wrap: break-word;
@@ -3477,8 +3476,8 @@ table.graphs {
     }
 
     .col12,
-    td:first-child + td + td + td + td + td + td + td + td + td + td + td + td,
-    th:first-child + th + th + th + th + th + th + th + th + th + th + th +th{
+    td:first-child + td + td + td + td + td + td + td + td + td + td + td,
+    th:first-child + th + th + th + th + th + th + th + th + th + th +th{
       width: 11%!important;
     }
 
@@ -3802,10 +3801,6 @@ table.graphs {
   .box-header .host-title {
     margin: 0;
     padding-left: 17px;
-  }
-
-  .box-header .button-section {
-    margin-bottom: 5px;
   }
 
   hr {
@@ -4966,8 +4961,8 @@ ul.list-inline li {
   #hosts {
     .table {
       .col2,
-      td:first-child + td + td,
-      th:first-child + th + th {
+      td:first-child + td,
+      th:first-child + th {
         width: 15%!important;
 
         .filter-input-width{
@@ -4976,45 +4971,45 @@ ul.list-inline li {
       }
 
       .col4,
-      td:first-child + td + td + td + td,
-      th:first-child + th + th + th + th{
+      td:first-child + td + td + td,
+      th:first-child + th + th + th{
         width: 1.4%;
       }
 
       .col5,
-      td:first-child + td + td + td + td + td,
-      th:first-child + th + th + th + th + th {
+      td:first-child + td + td + td + td,
+      th:first-child + th + th + th + th {
         width: 11.7%!important;
       }
 
       .col6,
+      td:first-child + td + td + td + td + td,
+      th:first-child + th + th + th + th + th{
+        width: 9%!important;
+      }
+
+      .col7,
       td:first-child + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th{
         width: 9%!important;
       }
 
-      .col7,
+      .col8,
       td:first-child + td + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th + th{
         width: 9%!important;
       }
-
-      .col8,
+      .col9,
       td:first-child + td + td + td + td + td + td + td + td,
       th:first-child + th + th + th + th + th + th + th + th{
         width: 9%!important;
       }
-      .col9,
-      td:first-child + td + td + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th + th + th{
-        width: 9%!important;
-      }
       .col11,
       .col12,
+      td:first-child + td + td + td + td + td + td + td + td + td + td,
+      th:first-child + th + th + th + th + th + th + th + th + th +th,
       td:first-child + td + td + td + td + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th + th + th + th +th,
-      td:first-child + td + td + td + td + td + td + td + td + td + td + td + td,
-      th:first-child + th + th + th + th + th + th + th + th + th + th + th +th{
+      th:first-child + th + th + th + th + th + th + th + th + th + th +th{
         width: 11.2%!important;
       }
       td.name .trim_hostname{

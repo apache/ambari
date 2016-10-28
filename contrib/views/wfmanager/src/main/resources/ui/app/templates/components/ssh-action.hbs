@@ -22,14 +22,14 @@
       <label for="inputEmail" class="control-label col-xs-2">Host<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" name="host" value=actionModel.host placeholder="localhost"}}
-        {{field-error error=errors.actionModel.host}}
+        {{field-error model=this field='actionModel.host' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     <div class="form-group">
       <label for="inputEmail" class="control-label col-xs-2">Command<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" name="command" value=actionModel.command placeholder="command"}}
-        {{field-error error=errors.actionModel.command}}
+        {{field-error model=this field='actionModel.command' showErrorMessage=showErrorMessage}}
       </div>
     </div>
 

@@ -142,7 +142,7 @@ Start the HDFS service (update the state of the HDFS service to be ‘STARTED’
 
     {
       "ServiceInfo": {
-        "state" : "STARTED”
+        "state" : "STARTED"
       }
     }
 
@@ -836,7 +836,7 @@ Operator functions behave like relational operators and provide additional funct
 	PUT /api/v1/clusters/c1/services?ServiceInfo/state=INSTALLED 
     {
       "ServiceInfo": {
-        "state" : "STARTED”
+        "state" : "STARTED"
       }
     }
 
@@ -892,7 +892,7 @@ RequestInfo allows the user to specify additional properties in the body of a re
 ###query
 
 
-The query property allows the user to specify yhe query string as part of the request body.  This is sometimes required in the case of a very long query string that causes the request to exceed the limits of the URL.
+The query property allows the user to specify the query string as part of the request body.  This is sometimes required in the case of a very long query string that causes the request to exceed the limits of the URL.
 
 **Example – Specifying the query string in the request body**
 

@@ -7701,6 +7701,69 @@ class TestHDP25StackAdvisor(TestCase):
     res = self.stackAdvisor.validateSpark2Defaults(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
+
+  def test_recommendOozieConfigurations_noFalconServer(self):
+    configurations = {}
+    clusterData = {
+      "components" : []
+    }
+    expected = {
+      "oozie-site": {"properties":{}},
+      "oozie-env": {"properties":{}}
+    }
+
+    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, {"configurations":{}}, None)
+    self.assertEquals(configurations, expected)
+
+
+  def test_recommendOozieConfigurations_withFalconServer(self):
+    configurations = {
+      "falcon-env" : {
+        "properties" : {
+          "falcon_user" : "falcon"
+        }
+      }
+    }
+
+    services = {
+      "services": [
+        {
+          "StackServices": {
+            "service_name": "FALCON"
+          }, "components": []
+        },
+      ],
+      "configurations": configurations,
+      "forced-configurations": []
+    }
+
+    clusterData = {
+      "components" : ["FALCON_SERVER"]
+    }
+    expected = {
+      "oozie-site": {
+        "properties": {
+          "oozie.services.ext": "org.apache.oozie.service.JMSAccessorService," +
+                                "org.apache.oozie.service.PartitionDependencyManagerService," +
+                                "org.apache.oozie.service.HCatAccessorService",
+          "oozie.service.ProxyUserService.proxyuser.falcon.groups" : "*",
+          "oozie.service.ProxyUserService.proxyuser.falcon.hosts" : "*"
+        }
+      },
+      "falcon-env" : {
+        "properties" : {
+          "falcon_user" : "falcon"
+        }
+      },
+      "oozie-env": {
+        "properties": {'oozie_admin_users': 'oozie, oozie-admin,falcon'}
+      }
+    }
+
+    self.stackAdvisor.recommendOozieConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+
 """
 Given a comma-separated string, split the items, sort them, and re-join the elements
 back into a comma-separated string
