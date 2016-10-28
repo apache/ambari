@@ -184,7 +184,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<RepositoryVersionDAO> s_repoVersionDAO;
 
-
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type information
    * @param clusterName The name of the cluster
@@ -272,6 +271,13 @@ public class UpgradeHelper {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
+        continue;
+      }
+
+      // if there is a condition on the group, evaluate it and skip scheduling
+      // of this group if the condition has not been satisfied
+      if (null != group.condition && !group.condition.isSatisfied(context)) {
+        LOG.info("Skipping {} while building upgrade orchestration due to {}", group, group.condition );
         continue;
       }
 

@@ -43,7 +43,10 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Objects;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -55,6 +58,10 @@ import com.google.gson.JsonPrimitive;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name="cluster")
 public class ClusterGrouping extends Grouping {
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(ClusterGrouping.class);
 
   /**
    * Stages against a Service and Component, or the Server, that doesn't need a Processing Component.
@@ -104,6 +111,21 @@ public class ClusterGrouping extends Grouping {
     @XmlElement(name="scope")
     public UpgradeScope scope = UpgradeScope.ANY;
 
+    /**
+     * A condition element with can prevent this stage from being scheduled in
+     * the upgrade.
+     */
+    @XmlElement(name = "condition")
+    public Condition condition;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("id", id).add("title",
+          title).omitNullValues().toString();
+    }
   }
 
   public class ClusterBuilder extends StageWrapperBuilder {
@@ -141,6 +163,15 @@ public class ClusterGrouping extends Grouping {
         for (ExecuteStage execution : executionStages) {
           if (null != execution.intendedDirection
               && execution.intendedDirection != upgradeContext.getDirection()) {
+            continue;
+          }
+
+          // if there is a condition on the group, evaluate it and skip scheduling
+          // of this group if the condition has not been satisfied
+          if (null != execution.condition && !execution.condition.isSatisfied(upgradeContext)) {
+            LOG.info("Skipping {} while building upgrade orchestration due to {}", execution,
+                execution.condition);
+
             continue;
           }
 
@@ -187,9 +218,7 @@ public class ClusterGrouping extends Grouping {
 
     Set<String> realHosts = Collections.emptySet();
 
-    if (null != service && !service.isEmpty() &&
-        null != component && !component.isEmpty()) {
-
+    if (StringUtils.isNotEmpty(service) && StringUtils.isNotEmpty(component)) {
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
       if (null == hosts || hosts.hosts.isEmpty()) {
@@ -317,6 +346,7 @@ public class ClusterGrouping extends Grouping {
    * Attempts to merge the given cluster groupings.  This merges the execute stages
    * in an order specific manner.
    */
+  @Override
   public void merge(Iterator<Grouping> iterator) throws AmbariException {
     if (executionStages == null) {
       executionStages = new ArrayList<ExecuteStage>();

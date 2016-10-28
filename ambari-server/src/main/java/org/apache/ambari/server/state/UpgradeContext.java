@@ -116,8 +116,7 @@ public class UpgradeContext {
    *          the type of upgrade, either rolling or non_rolling
    */
   public UpgradeContext(MasterHostResolver resolver, StackId sourceStackId,
-      StackId targetStackId, String version,
-      Direction direction, UpgradeType type) {
+      StackId targetStackId, String version, Direction direction, UpgradeType type) {
     m_version = version;
     m_originalStackId = sourceStackId;
 
