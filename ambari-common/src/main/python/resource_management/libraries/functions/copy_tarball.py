@@ -72,7 +72,7 @@ def get_sysprep_skip_copy_tarballs_hdfs():
   # By default, copy the tarballs to HDFS. If the cluster is sysprepped, then set based on the config.
   sysprep_skip_copy_tarballs_hdfs = False
   if host_sys_prepped:
-    sysprep_skip_copy_tarballs_hdfs = default("/cluster-env/sysprep_skip_copy_tarballs_hdfs", False)
+    sysprep_skip_copy_tarballs_hdfs = default("/configurations/cluster-env/sysprep_skip_copy_tarballs_hdfs", False)
   return sysprep_skip_copy_tarballs_hdfs
 
 def get_tarball_paths(name, use_upgrading_version_during_upgrade=True, custom_source_file=None, custom_dest_file=None):
