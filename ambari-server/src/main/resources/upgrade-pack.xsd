@@ -310,7 +310,7 @@
   
   <xs:complexType name="upgrade-path-type">
     <xs:sequence>
-      <xs:element name="intermediate-stack">
+      <xs:element name="intermediate-stack" minOccurs="1" maxOccurs="unbounded">
         <xs:complexType>
           <xs:sequence />
           <xs:attribute name="version" />
