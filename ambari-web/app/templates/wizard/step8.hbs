@@ -15,68 +15,74 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="deploy-review">
-  <h2>{{t installer.step8.header}}</h2>
-
-  <div class="alert alert-info">
+<div id="deploy-review" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step8.header}}</h4>
+  <p class="step-description">
     {{t installer.step8.body}}
     {{#if controller.isManualKerberos}}
       <br/><br/>
       {{t installer.step8.kerberors.warning}}
     {{/if}}
-  </div>
+  </p>
 
-  <div id="step8-content" class="well pre-scrollable">
-    <div id="step8-info">
-      {{#each item in controller.clusterInfo}}
-        <p>
-          <b>{{item.display_name}}</b> : {{item.config_value}}
-        </p>
-      {{/each}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="step8-content" class="well pre-scrollable">
+        <div id="step8-info">
+          {{#each item in controller.clusterInfo}}
+            <p>
+              <b>{{item.display_name}}</b> : {{item.config_value}}
+            </p>
+          {{/each}}
 
-      <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
+          <p><b>{{controller.clusterInfo.repoInfo.display_name}}</b>:</p>
 
-      {{#if controller.clusterInfo.useRedhatSatellite}}
-        <div>
-          <ul>
-            <li>
-              <p>{{t installer.step1.advancedRepo.useRedhatSatellite.message}}</p>
-            </li>
-          </ul>
+          {{#if controller.clusterInfo.useRedhatSatellite}}
+            <div>
+              <ul>
+                <li>
+                  <p>{{t installer.step1.advancedRepo.useRedhatSatellite.message}}</p>
+                </li>
+              </ul>
+            </div>
+          {{else}}
+            <div>
+              <ul>
+                {{#each item in controller.clusterInfo.repoInfo}}
+                  <li>
+                    <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
+                  </li>
+                {{/each}}
+              </ul>
+            </div>
+          {{/if}}
+
+          <div>
+            {{#if controller.services.length}}
+              <p><b>{{t menu.item.services}}:</b></p>
+              <ul>
+                {{#each controller.services}}
+                  <li>
+                    <em><b>{{display_name}}</b></em>
+                    <ul>
+                      {{#each component in this.service_components}}
+                        <li>
+                          <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
+                        </li>
+                      {{/each}}
+                    </ul>
+                  </li>
+                {{/each}}
+              </ul>
+            {{/if}}
+          </div>
         </div>
-      {{else}}
-        <div>
-          <ul>
-            {{#each item in controller.clusterInfo.repoInfo}}
-              <li>
-                <p><span class="text text-info">{{item.os_type}} ({{item.repo_id}}): <br/></span>{{item.base_url}}</p>
-              </li>
-            {{/each}}
-          </ul>
-        </div>
-      {{/if}}
-
-      <div>
-        {{#if controller.services.length}}
-          <p><b>{{t menu.item.services}}:</b></p>
-          <ul>
-            {{#each controller.services}}
-              <li>
-                <em><b>{{display_name}}</b></em>
-                <ul>
-                  {{#each component in this.service_components}}
-                    <li>
-                      <span class="text text-info">{{component.display_name }} : </span>{{component.component_value}}
-                    </li>
-                  {{/each}}
-                </ul>
-              </li>
-            {{/each}}
-          </ul>
-        {{/if}}
       </div>
     </div>
   </div>
+</div>
+
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
       &larr; {{t common.back}}

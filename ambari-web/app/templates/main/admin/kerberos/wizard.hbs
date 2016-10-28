@@ -30,8 +30,6 @@
         <li {{bindAttr class="isStep8:active view.isStep8Disabled:disabled view.isStep8Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep8 target="controller"}}><i class="step-marker"><span class="step-index">8</span></i><p class="step-name">{{t admin.kerberos.wizard.step8.header}}</p></a></li>
       </ul>
     </div>
-    <div class="wizard-content col-md-9">
-      {{outlet}}
-    </div>
+    {{outlet}}
   </div>
 </div>

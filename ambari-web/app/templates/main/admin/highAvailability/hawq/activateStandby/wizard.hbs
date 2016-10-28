@@ -25,12 +25,10 @@
         <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled view.isStep3Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}><i class="step-marker"><span class="step-index">3</span></i><p class="step-name">{{t admin.activateHawqStandby.wizard.step3.header}}</p></a></li>
       </ul>
     </div>
-    <div class="wizard-content col-md-9">
       {{#if view.isLoaded}}
         {{outlet}}
       {{else}}
         {{view App.SpinnerView}}
       {{/if}}
-    </div>
   </div>
 </div>

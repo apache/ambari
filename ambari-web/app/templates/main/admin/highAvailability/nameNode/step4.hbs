@@ -15,16 +15,18 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="ha-step4">
-  <h2>{{t admin.highAvailability.wizard.step4.bodyHeader}}</h2>
+<div id="ha-step4" class="wizard-content col-md-9">
+ <h4 class="step-title">{{t admin.highAvailability.wizard.step4.bodyHeader}}</h4>
   {{#unless controller.isNameNodeStarted}}
-    <div class="alert alert-danger">
+    <p class="step-description">
       {{t admin.highAvailability.wizard.step4.error.nameNode}}
-    </div>
+    </p>
   {{/unless}}
   <div class="alert alert-info">
     {{{view.step4BodyText}}}
   </div>
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <a  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
     <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>

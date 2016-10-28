@@ -17,18 +17,22 @@
 }}
 
 <div id="kerberos-wizard-step2">
-  <div id="serviceConfig">
-    <h2>{{t admin.kerberos.wizard.step2.header}}</h2>
-
-    <div class="alert alert-info">
+  <div id="serviceConfig" class="wizard-content col-md-9">
+    <h4 class="step-title">{{t admin.kerberos.wizard.step2.header}}</h4>
+    <p class="step-description">
       {{t admin.kerberos.wizard.step2.info.body}}
+    </p>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        {{#if isConfigsLoaded}}
+          {{view App.ServicesConfigView}}
+        {{else}}
+          {{view App.SpinnerView}}
+        {{/if}}
+      </div>
     </div>
-    {{#if isConfigsLoaded}}
-      {{view App.ServicesConfigView}}
-    {{else}}
-      {{view App.SpinnerView}}
-    {{/if}}
-
+  </div>
+  <div class="wizard-footer col-md-12">
     <div class="btn-area">
       <a id="back-kerberos-step2" class="btn btn-default" {{bindAttr disabled="isBackBtnDisabled"}} {{action back}}>&larr; {{t common.back}}</a>
       <a id="submit-kerberos-step2" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}

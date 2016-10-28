@@ -16,15 +16,16 @@
 * limitations under the License.
 }}
 <div id="kerberos-wizard-step4">
-  <div id="serviceConfig">
-    <h2>{{t admin.kerberos.wizard.step4.header}}</h2>
-
-    <p class="alert alert-info">
-      {{t admin.kerberos.wizard.step4.info.body}}
-    </p>
-
-    {{view App.ServicesConfigView}}
-
+  <div id="serviceConfig" class="wizard-content col-md-9">
+    <h4 class="step-title">{{t admin.kerberos.wizard.step4.header}}</h4>
+    <p class="step-description">{{t admin.kerberos.wizard.step4.info.body}}</p>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        {{view App.ServicesConfigView}}
+      </div>
+    </div>
+  </div>
+  <div class="wizard-footer col-md-12">
     <div class="btn-area">
       <button id="back-kerberos-step4" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
       <button id="submit-kerberos-step4" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}

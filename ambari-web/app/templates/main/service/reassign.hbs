@@ -30,12 +30,10 @@
         {{/if}}
       </ul>
     </div>
-    <div class="wizard-content col-md-9">
-      {{#if view.isLoaded}}
-        {{outlet}}
-      {{else}}
-        {{view App.SpinnerView}}
-      {{/if}}
-    </div>
+  {{#if view.isLoaded}}
+    {{outlet}}
+  {{else}}
+    {{view App.SpinnerView}}
+  {{/if}}
   </div>
 </div>

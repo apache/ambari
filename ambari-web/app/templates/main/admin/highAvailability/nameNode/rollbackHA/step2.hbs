@@ -15,11 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div>
-  <h2>{{t admin.rollbackHighAvailability.wizard.step2.header}}</h2>
+<div class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.rollbackHighAvailability.wizard.step2.header}}</h4>
   <div class="alert alert-info">
       {{{view.step2BodyText}}}
   </div>
+</div>
+<div class="wizard-footer col-md-12">
    <div class="btn-area">
       <a  {{bindAttr class=":btn :btn-success :pull-right"}} {{action next}}>{{t common.next}} &rarr;</a>
       <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>

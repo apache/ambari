@@ -27,8 +27,6 @@
         <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled view.isStep4Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}><i class="step-marker"><span class="step-index">4</span></i><p class="step-name">{{t admin.ra_highAvailability.wizard.step4.header}}</p></a></li>
       </ul>
     </div>
-    <div class="wizard-content col-md-9">
-      {{outlet}}
-    </div>
+    {{outlet}}
   </div>
 </div>

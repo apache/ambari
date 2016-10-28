@@ -31,8 +31,6 @@
         <li {{bindAttr class="isStep9:active view.isStep9Disabled:disabled view.isStep9Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep9 target="controller"}}><i class="step-marker"><span class="step-index">9</span></i><p class="step-name">{{t admin.highAvailability.wizard.step9.header}}</p></a></li>
       </ul>
     </div>
-    <div class="wizard-content col-md-9">
-      {{outlet}}
-    </div>
+    {{outlet}}
   </div>
 </div>

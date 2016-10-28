@@ -16,29 +16,33 @@
 * limitations under the License.
 }}
 
-<h2>{{t widget.create.wizard.step2.header}}</h2>
-<div class="alert alert-info">
+<h4 class="step-title">{{t widget.create.wizard.step2.header}}</h4>
+<p class="step-description">
   {{t widget.create.wizard.step2.body.text}}
-</div>
-{{#if isAnyExpressionInvalid}}
-  <div class="alert alert-error">
-    Expression is not complete or is invalid!
-  </div>
-{{/if}}
-{{#each dataSet in dataSets}}
-  <fieldset>
-    <h5>{{view Ember.TextField valueBinding="dataSet.label" class="form-control"}}</h5>
-    <h5>{{t common.expression}}:</h5>
-    {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
-    {{#if dataSet.isRemovable}}
-      <a {{action removeDataSet dataSet target="controller"}} class="remove-link"><i class="glyphicon glyphicon-trash"></i></a>
+</p>
+<div class="panel panel-default">
+  <div class="panel-body">
+    {{#if isAnyExpressionInvalid}}
+      <div class="alert alert-error">
+        Expression is not complete or is invalid!
+      </div>
     {{/if}}
-  </fieldset>
-{{/each}}
+    {{#each dataSet in dataSets}}
+      <fieldset>
+        <h5>{{view Ember.TextField valueBinding="dataSet.label" class="form-control"}}</h5>
+        <h5>{{t common.expression}}:</h5>
+        {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
+        {{#if dataSet.isRemovable}}
+          <a {{action removeDataSet dataSet target="controller"}} class="remove-link"><i class="glyphicon glyphicon-trash"></i></a>
+        {{/if}}
+      </fieldset>
+    {{/each}}
 
-<div class="align-right">
-  <a href="#" {{action addDataSet target="controller"}}>
-    <i class="glyphicon glyphicon-plus"></i>
-    {{t widget.create.wizard.step2.addDataset}}
-  </a>
+    <div class="align-right">
+      <a href="#" {{action addDataSet target="controller"}}>
+        <i class="glyphicon glyphicon-plus"></i>
+        {{t widget.create.wizard.step2.addDataset}}
+      </a>
+    </div>
+  </div>
 </div>

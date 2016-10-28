@@ -16,120 +16,121 @@
 * limitations under the License.
 }}
 
-<div id="deploy">
+<div id="deploy" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step9.header}}</h4>
+  <p class="step-description">{{t installer.step9.body}}</p>
 
-  <h2>{{t installer.step9.header}}</h2>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="overallProgress">
+        <div class="row">
+          <div class="col-md-10">
+            <div class="progress">
+              <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}}>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-2">{{view.progressMessage}}</div>
+        </div>
+      </div>
 
-  <p class="alert alert-info">{{t installer.step9.body}}</p>
-
-  <div id="overallProgress">
-    <div class="row">
-      <div class="col-md-10">
-        <div class="progress">
-          <div {{bindAttr class="view.isStepCompleted::progress-bar-striped view.isStepCompleted::active view.barColor :progress-bar"}} {{bindAttr style="view.barWidth"}}>
+      <div class="box">
+        <div class="box-header">
+          <div class="pull-left">
+            {{#if controller.showRetry}}
+              <a class="btn btn-primary" href="#" {{action retry}}>
+                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
+                {{t common.retry}}
+              </a>
+            {{/if}}
+          </div>
+          <!-- filter by host level -->
+          <div id="host-filter" class="pull-right">
+            <ul class="clearfix">
+              <li class="first">{{t common.show}}:</li>
+              {{#each category in view.categories}}
+                <li {{bindAttr class=":filter-status category.itemClass"}}>
+                  <a {{action selectCategory category target="view"}} href="#">
+                    {{category.label}}
+                  </a>
+                </li>
+                {{#unless category.last}}
+                  <li class="divider">|</li>
+                {{/unless}}
+              {{/each}}
+            </ul>
+          </div>
+        </div>
+        <div class="pre-scrollable col-sm-12">
+          <table id="deploy-status-by-host" class="table table-hover">
+            <thead>
+            <tr>
+              <th class="host">
+                {{t common.host}}
+              </th>
+              <th class="status">{{t common.status}}</th>
+              <!--  given by the parsing function that parses data from bootstrap call -->
+              <th class="message">{{t common.message}}</th>
+              <!-- retrieved from local storage initially -->
+            </tr>
+            </thead>
+            <tbody>
+              {{#if view.pageContent}}
+                {{#each host in view.pageContent}}
+                  {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
+                  <td class="host">
+                    <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
+                  </td>
+                  <td>
+                    <div class="progress-wrapper pull-left">
+                      <div class="progress">
+                        <div {{bindAttr class="view.isHostCompleted::active view.isHostCompleted::progress-bar-striped view.barColor :progress-bar" style="view.barWidth"}}></div>
+                      </div>
+                    </div>
+                    <div class="progress-percentage pull-left">{{host.progress}}%</div>
+                  </td>
+                  <td class="host-message">
+                    <a {{bindAttr class="view.isFailed:text-danger view.isSuccess:text-success view.isWarning:text-warning"}}
+                        href="javascript:void(null)"
+                        data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
+                  </td>
+                  {{/view}}
+                {{/each}}
+              {{else}}
+              <tr>
+                <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
+              </tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+        <div id="hosts">
+          <div class="page-bar">
+            <div class="selected-hosts-info pull-left">
+              {{view.filteredHostsInfo}}
+              -
+              <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
+            </div>
+            <div class="items-on-page">
+              <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
+            </div>
+            <div class="info">{{view.paginationInfo}}</div>
+            {{view view.pagination4Btns}}
           </div>
         </div>
       </div>
-      <div class="col-md-2">{{view.progressMessage}}</div>
-    </div>
-  </div>
-
-  <div class="box">
-    <div class="box-header">
-      <div class="pull-left">
-        {{#if controller.showRetry}}
-          <a class="btn btn-primary" href="#" {{action retry}}>
-            <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
-            {{t common.retry}}
-          </a>
-        {{/if}}
-      </div>
-      <!-- filter by host level -->
-      <div id="host-filter" class="pull-right">
-        <ul class="clearfix">
-          <li class="first">{{t common.show}}:</li>
-          {{#each category in view.categories}}
-            <li {{bindAttr class=":filter-status category.itemClass"}}>
-              <a {{action selectCategory category target="view"}} href="#">
-                {{category.label}}
-              </a>
-            </li>
-            {{#unless category.last}}
-              <li class="divider">|</li>
-            {{/unless}}
-          {{/each}}
-        </ul>
-      </div>
-    </div>
-    <div class="pre-scrollable col-sm-12">
-      <table id="deploy-status-by-host" class="table table-hover">
-        <thead>
-        <tr>
-          <th class="host">
-            {{t common.host}}
-          </th>
-          <th class="status">{{t common.status}}</th>
-          <!--  given by the parsing function that parses data from bootstrap call -->
-          <th class="message">{{t common.message}}</th>
-          <!-- retrieved from local storage initially -->
-        </tr>
-        </thead>
-
-        <tbody>
-          {{#if view.pageContent}}
-            {{#each host in view.pageContent}}
-              {{#view App.HostStatusView objBinding="host" controllerBinding="controller"}}
-              <td class="host">
-                <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
-              </td>
-              <td>
-                <div class="progress-wrapper pull-left">
-                  <div class="progress">
-                    <div {{bindAttr class="view.isHostCompleted::active view.isHostCompleted::progress-bar-striped view.barColor :progress-bar" style="view.barWidth"}}></div>
-                  </div>
-                </div>
-                <div class="progress-percentage pull-left">{{host.progress}}%</div>
-              </td>
-              <td class="host-message">
-                <a {{bindAttr class="view.isFailed:text-danger view.isSuccess:text-success view.isWarning:text-warning"}}
-                    href="javascript:void(null)"
-                    data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>
-              </td>
-              {{/view}}
-            {{/each}}
-          {{else}}
-          <tr>
-            <td colspan="3"><p>{{t installer.step3.hosts.noHosts}}</p></td>
-          </tr>
+      {{#if view.resultMsg}}
+        <p {{bindAttr class="view.resultMsgColor :alert :alert-warning"}}>{{view.resultMsg}}
+          {{#if view.isHostHeartbeatLost}}
+            <a href="javascript:void(null)"
+               data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
           {{/if}}
-        </tbody>
-      </table>
-    </div>
-    <div id="hosts">
-      <div class="page-bar">
-        <div class="selected-hosts-info pull-left">
-          {{view.filteredHostsInfo}}
-          -
-          <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
-        </div>
-        <div class="items-on-page">
-          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-        <div class="info">{{view.paginationInfo}}</div>
-        {{view view.pagination4Btns}}
-      </div>
+        </p>
+      {{/if}}
     </div>
   </div>
-
-  <div>
-    {{#if view.resultMsg}}
-      <p {{bindAttr class="view.resultMsgColor :alert :alert-warning"}}>{{view.resultMsg}}
-        {{#if view.isHostHeartbeatLost}}
-          <a href="javascript:void(null)"
-             data-toggle="modal" {{action hostWithInstallFailed target="view"}}>{{t common.showDetails}}</a>
-        {{/if}}
-      </p>
-    {{/if}}
+</div>
+<div class="wizard-footer col-md-12">
     <div class="btn-area">
       <button class="btn btn-success pull-right" {{bindAttr disabled="isNextButtonDisabled"}} {{action submit target="controller"}}>
         {{#if App.router.nextBtnClickInProgress}}
@@ -138,6 +139,4 @@
         {{t common.next}} &rarr;
       </button>
     </div>
-  </div>
-
 </div>

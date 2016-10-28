@@ -28,8 +28,6 @@
                 <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled view.isStep6Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep6 target="controller"}}><i class="step-marker"><span class="step-index">6</span></i><p class="step-name">{{t admin.manageJournalNode.wizard.step6.header}}</p></a></li>
             </ul>
         </div>
-        <div class="wizard-content col-md-9">
-            {{outlet}}
-        </div>
+        {{outlet}}
     </div>
 </div>
