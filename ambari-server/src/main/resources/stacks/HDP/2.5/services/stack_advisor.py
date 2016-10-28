@@ -42,6 +42,10 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
       Logger.info("No oozie configurations available")
       return
 
+    if not "FALCON_SERVER" in clusterData["components"] :
+      Logger.info("Falcon is not part of the installation")
+      return
+
     falconUser = 'falcon'
 
     if "falcon-env" in services["configurations"] :
