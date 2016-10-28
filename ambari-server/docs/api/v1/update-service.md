@@ -70,7 +70,7 @@ Start the HDFS service (update the state of the HDFS service to be ‘STARTED’
     PUT /clusters/c1/services/HDFS
     {
       "ServiceInfo": {
-        "state" : "STARTED”
+        "state" : "STARTED"
       }
     }
 
@@ -91,7 +91,7 @@ Stop the HDFS service (update the state of the HDFS service to be ‘INSTALLED�
     PUT /clusters/c1/services/HDFS/
     {
       "ServiceInfo": {
-        "state" : "INSTALLED”
+        "state" : "INSTALLED"
       }
     }
 

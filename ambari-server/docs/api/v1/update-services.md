@@ -71,7 +71,7 @@ Update the state of all ‘INSTALLED’ services to be ‘STARTED’ for the clu
 
     {
       "ServiceInfo": {
-        "state" : "STARTED”
+        "state" : "STARTED"
       }
     }
 
