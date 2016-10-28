@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
+import org.apache.ambari.server.state.stack.upgrade.SecurityCondition;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -73,6 +74,7 @@ import org.junit.Test;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Binder;
@@ -87,8 +89,8 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
-  private static final StackId HDP_21 = new StackId("HPD-2.1.1");
-  private static final StackId HDP_22 = new StackId("HPD-2.2.0");
+  private static final StackId HDP_21 = new StackId("HDP-2.1.1");
+  private static final StackId HDP_22 = new StackId("HDP-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
 
@@ -650,7 +652,7 @@ public class UpgradeHelperTest {
     Cluster cluster = makeCluster();
 
     UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
-                                                HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -1807,7 +1809,9 @@ public class UpgradeHelperTest {
     };
 
     MasterHostResolver resolver = new MasterHostResolver(m_configHelper, c);
-    UpgradeContext context = new UpgradeContext(resolver, stackId, stackId2, "2.2.0", Direction.UPGRADE, UpgradeType.NON_ROLLING);
+    UpgradeContext context = new UpgradeContext(resolver, stackId, stackId2, "2.2.0",
+        Direction.UPGRADE, UpgradeType.NON_ROLLING);
+
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertEquals(1, groups.size());
@@ -1815,10 +1819,61 @@ public class UpgradeHelperTest {
     sch1.setVersion("2.1.1");
     sch2.setVersion("2.1.1");
     resolver = new MasterHostResolver(m_configHelper, c, "2.1.1");
-    context = new UpgradeContext(resolver, stackId2, stackId, "2.1.1", Direction.DOWNGRADE, UpgradeType.NON_ROLLING);
+    context = new UpgradeContext(resolver, stackId2, stackId, "2.1.1", Direction.DOWNGRADE,
+        UpgradeType.NON_ROLLING);
+
     groups = m_upgradeHelper.createSequence(upgradePack, context);
 
     assertTrue(groups.isEmpty());
+  }
+
+  /**
+   * Tests that the {@link SecurityCondition} element correctly restricts the groups in
+   * an upgrade.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpgradeConditions() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    assertTrue(upgrades.containsKey("upgrade_test_conditions"));
+    UpgradePack upgrade = upgrades.get("upgrade_test_conditions");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_22,
+        HDP_22, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    // initially, no conditions should be met
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(0, groups.size());
+
+    // set the configuration property and try again
+    Map<String, String> fooConfigs = new HashMap<String, String>();
+    fooConfigs.put("foo-property", "foo-value");
+    ConfigurationRequest configurationRequest = new ConfigurationRequest();
+    configurationRequest.setClusterName(cluster.getClusterName());
+    configurationRequest.setType("foo-site");
+    configurationRequest.setVersionTag("version1");
+    configurationRequest.setProperties(fooConfigs);
+
+    final ClusterRequest clusterRequest = new ClusterRequest(cluster.getClusterId(),
+        cluster.getClusterName(), cluster.getDesiredStackVersion().getStackVersion(), null);
+
+    clusterRequest.setDesiredConfig(Collections.singletonList(configurationRequest));
+    m_managementController.updateClusters(Sets.newHashSet(clusterRequest), null);
+
+    // the config condition should now be set
+    groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(1, groups.size());
+    assertEquals("ZOOKEEPER_CONFIG_CONDITION_TEST", groups.get(0).name);
+
+    // now change the cluster security so the other conditions come back too
+    cluster.setSecurityType(SecurityType.KERBEROS);
+
+    groups = m_upgradeHelper.createSequence(upgrade, context);
+    assertEquals(3, groups.size());
   }
 
   /**

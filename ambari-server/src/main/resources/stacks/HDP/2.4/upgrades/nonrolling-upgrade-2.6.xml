@@ -250,7 +250,7 @@
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
+      <execute-stage title="Update Target Stack">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -326,6 +326,7 @@
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
+        <condition xsi:type="security" type="kerberos"/>
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKerberosConfigCalculation">
           <summary>Calculating Ranger Properties</summary>
         </task>
@@ -424,7 +425,8 @@
     the new stack-level Kerberos descriptor.
     -->
     <group xsi:type="cluster" name="UPDATE_KERBEROS_DESCRIPTORS" title="Update Kerberos Descriptors">
-      <execute-stage title="Update the user-specified Kerberos descriptor" service="" component="">
+      <condition xsi:type="security" type="kerberos"/>
+      <execute-stage title="Update the user-specified Kerberos descriptor">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpgradeUserKerberosDescriptor"/>
       </execute-stage>
     </group>
@@ -800,7 +802,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>

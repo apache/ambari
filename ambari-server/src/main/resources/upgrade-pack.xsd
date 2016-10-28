@@ -55,6 +55,40 @@
     </xs:restriction>
   </xs:simpleType>
   
+  <xs:simpleType name="security-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="none" />
+      <xs:enumeration value="kerberos" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="config-condition-comparison-type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="equals" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="abstract-condition-type" abstract="true"/>
+    
+  <xs:complexType name="config">
+    <xs:complexContent>
+      <xs:extension base="abstract-condition-type">  
+        <xs:attribute name="type" type="xs:Name" use="required"/>
+        <xs:attribute name="property" type="xs:Name" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
+        <xs:attribute name="comparison" type="config-condition-comparison-type" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="security">
+    <xs:complexContent>
+      <xs:extension base="abstract-condition-type">  
+        <xs:attribute name="type" type="security-type" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
   <xs:complexType name="prerequisite-check-type">
     <xs:sequence>
       <xs:element name="check" minOccurs="0" maxOccurs="unbounded" />
@@ -81,6 +115,7 @@
   
   <xs:complexType name="abstract-group-type" abstract="true">
     <xs:sequence>
+      <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
       <xs:element name="scope" type="scope-type" minOccurs="0" />
       <xs:element name="direction" type="direction-type" minOccurs="0" />
       <xs:element name="service-check" minOccurs="0" type="xs:boolean" />
@@ -101,9 +136,9 @@
       <xs:element name="service" minOccurs="0" maxOccurs="unbounded">
         <xs:complexType>
           <xs:sequence>
-            <xs:element name="component" minOccurs="1" maxOccurs="unbounded" />
+            <xs:element name="component" minOccurs="1" maxOccurs="unbounded" type="xs:NMTOKEN"/>
           </xs:sequence>
-          <xs:attribute name="name" />
+          <xs:attribute name="name" type="xs:NMTOKEN" />
         </xs:complexType>
       </xs:element>
     </xs:sequence>
@@ -116,6 +151,17 @@
       <xs:extension base="abstract-group-type">
         <xs:sequence>
           <xs:element name="execute-stage" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>              
+              <xs:sequence minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="condition" type="abstract-condition-type" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="direction" type="direction-type" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="scope" type="scope-type" minOccurs="0" maxOccurs="1"/>                
+                <xs:element name="task" type="abstract-task-type" minOccurs="1" maxOccurs="1"/>
+              </xs:sequence>              
+              <xs:attribute name="title" type="xs:string" />
+              <xs:attribute name="service" type="xs:NMTOKEN" />
+              <xs:attribute name="component" type="xs:NMTOKEN" />
+            </xs:complexType>
           </xs:element>
         </xs:sequence>
       </xs:extension>
@@ -298,11 +344,11 @@
                 Want to use <xs:assert> to make sure that a pre-downgrade is available i
                 pre-upgrade is set.  It appears as though that is not yet available to jaxb.
                  -->
-                <xs:attribute name="name" />
+                <xs:attribute name="name" type="xs:NMTOKEN" />
               </xs:complexType>
             </xs:element>
           </xs:sequence>
-          <xs:attribute name="name" />
+          <xs:attribute name="name" type="xs:NMTOKEN"/>
         </xs:complexType>
       </xs:element>
     </xs:sequence>

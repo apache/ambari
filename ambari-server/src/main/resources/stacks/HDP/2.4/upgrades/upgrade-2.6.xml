@@ -191,7 +191,8 @@
     the new stack-level Kerberos descriptor.
     -->
     <group xsi:type="cluster" name="UPDATE_KERBEROS_DESCRIPTORS" title="Update Kerberos Descriptors">
-      <execute-stage title="Update the user-specified Kerberos descriptor" service="" component="">
+      <condition xsi:type="security" type="kerberos"/>
+      <execute-stage title="Update the user-specified Kerberos descriptor">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpgradeUserKerberosDescriptor"/>
       </execute-stage>
     </group>
@@ -499,6 +500,7 @@
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Ranger Kerberos Keytab Check">
+        <condition xsi:type="security" type="kerberos"/>
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.KerberosKeytabsAction">
           <summary>Ranger Kerberos Keytab Check</summary>
           <message>Please follow below steps to complete upgrade in kerberos environment</message>
@@ -522,7 +524,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction" />
       </execute-stage>
 
