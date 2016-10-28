@@ -206,6 +206,10 @@ class ActionQueue(threading.Thread):
         self.process_status_command_result(result)
       except Queue.Empty:
         pass
+      except IOError:
+        # on race condition in multiprocessing.Queue if get/put and thread kill are executed at the same time.
+        # During queue.close IOError will be thrown (this prevents from permanently dead-locked get).
+        pass
 
   def createCommandHandle(self, command):
     if command.has_key('__handle'):
