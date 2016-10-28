@@ -127,7 +127,7 @@ set HDFS_AUDIT_LOGGER=INFO,NullAppender
 )
 
 set HADOOP_NAMENODE_OPTS=-Dhadoop.security.logger=%HADOOP_SECURITY_LOGGER% -Dhdfs.audit.logger=%HDFS_AUDIT_LOGGER% %HADOOP_NAMENODE_OPTS%
-set HADOOP_DATANODE_OPTS=-Dhadoop.security.logger=ERROR,RFAS %HADOOP_DATANODE_OPTS%
+set HADOOP_DATANODE_OPTS=-XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -XX:ConcGCThreads=4 -XX:+UseConcMarkSweepGC -Dhadoop.security.logger=ERROR,RFAS %HADOOP_DATANODE_OPTS%
 set HADOOP_SECONDARYNAMENODE_OPTS=-Dhadoop.security.logger=%HADOOP_SECURITY_LOGGER% -Dhdfs.audit.logger=%HDFS_AUDIT_LOGGER% %HADOOP_SECONDARYNAMENODE_OPTS%
 
 @rem The following applies to multiple commands (fs, dfs, fsck, distcp etc)
