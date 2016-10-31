@@ -20,9 +20,8 @@ package org.apache.ambari.server.upgrade;
 
 import javax.persistence.EntityManager;
 import junit.framework.Assert;
-import static org.easymock.EasyMock.aryEq;
-
 import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -146,6 +145,7 @@ public class UpgradeCatalog242Test {
 
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.HOST_GROUP_TABLE), eq("FK_hg_blueprint_name"));
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_CONFIGURATION), eq("FK_cfg_blueprint_name"));
+    dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_CONFIGURATION), eq("FK_blueprint_configuration_blueprint_name"));
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_SETTING), eq("FK_blueprint_setting_name"));
 
     dbAccessor.alterColumn(eq(UpgradeCatalog242.BLUEPRINT_TABLE), capture(blueprintBlueprintNameColumnChangeSize));
