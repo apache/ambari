@@ -63,6 +63,12 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
         properties: {
           'hawq_dfs_url': 'localhost:8020/hawq_data'
         }
+      },
+      {
+        type: 'ranger-env',
+        properties: {
+          'xasecure.audit.destination.hdfs.dir': 'hdfs://c6401.ambari.apache.org/ranger/audit'
+        }
       }
     ]
   };
@@ -208,6 +214,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     var masterComponentHosts = [
       {component: 'NAMENODE', isInstalled: true, hostName: 'h1'},
       {component: 'NAMENODE', isInstalled: false, hostName: 'h2'},
+      {component: 'RANGER_ADMIN', isInstalled: true, hostName: 'h1'},
       {component: 'JOURNALNODE', hostName: 'h1'},
       {component: 'JOURNALNODE', hostName: 'h2'},
       {component: 'JOURNALNODE', hostName: 'h3'},
@@ -226,7 +233,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       var get = sinon.stub(App, 'get');
       get.withArgs('isHadoopWindowsStack').returns(true);
       sinon.stub(App.Service, 'find', function () {
-        return [{serviceName: 'HDFS'}, {serviceName: 'HBASE'}, {serviceName: 'AMBARI_METRICS'}, {serviceName: 'ACCUMULO'}, {serviceName: 'HAWQ'}]
+        return [{serviceName: 'HDFS'}, {serviceName: 'HBASE'}, {serviceName: 'AMBARI_METRICS'}, {serviceName: 'ACCUMULO'}, {serviceName: 'HAWQ'}, {serviceName: 'RANGER'}]
       });
     });
 
@@ -365,6 +372,13 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           filename: 'hawq-site'
         },
         value: nameServiceId + '/hawq_data'
+      },
+      {
+        config: {
+          name: 'xasecure.audit.destination.hdfs.dir',
+          filename: 'ranger-env'
+        },
+        value: 'hdfs://' + nameServiceId + '/ranger/audit'
       }
     ]).forEach(function (test) {
       describe(test.config.name, function () {
@@ -385,7 +399,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           it('name is ' + test.name, function () {
             expect(configs[0].name).to.equal(test.name);
           });
-          it('displayNamr is' + test.name, function () {
+          it('displayName is' + test.name, function () {
             expect(configs[0].displayName).to.equal(test.name);
           });
         }
@@ -413,6 +427,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       'ams-hbase-site': {tag: 'v6'},
       'hawq-site': {tag: 'v7'},
       'hdfs-client': {tag: 'v8'},
+      'ranger-env': {tag: 'v9'}
     }}};
 
     beforeEach(function () {
@@ -421,7 +436,8 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           Em.Object.create({serviceName: 'HBASE'}),
           Em.Object.create({serviceName: 'ACCUMULO'}),
           Em.Object.create({serviceName: 'AMBARI_METRICS'}),
-          Em.Object.create({serviceName: 'HAWQ'})
+          Em.Object.create({serviceName: 'HAWQ'}),
+          Em.Object.create({serviceName: 'RANGER'})
         ];
       });
       controller.onLoadConfigsTags(data);
@@ -433,7 +449,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     });
 
     it('urlParams are valid', function () {
-      expect(this.args[0].data.urlParams).to.be.equal('(type=hdfs-site&tag=v1)|(type=core-site&tag=v2)|(type=zoo.cfg&tag=v3)|(type=hbase-site&tag=v4)|(type=accumulo-site&tag=v5)|(type=ams-hbase-site&tag=v6)|(type=hawq-site&tag=v7)|(type=hdfs-client&tag=v8)');
+      expect(this.args[0].data.urlParams).to.be.equal('(type=hdfs-site&tag=v1)|(type=core-site&tag=v2)|(type=zoo.cfg&tag=v3)|(type=hbase-site&tag=v4)|(type=accumulo-site&tag=v5)|(type=ams-hbase-site&tag=v6)|(type=hawq-site&tag=v7)|(type=hdfs-client&tag=v8)|(type=ranger-env&tag=v9)');
     });
 
   });

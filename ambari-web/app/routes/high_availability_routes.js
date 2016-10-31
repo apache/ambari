@@ -178,6 +178,9 @@ module.exports = App.WizardRoute.extend({
       if (App.Service.find().someProperty('serviceName', 'HBASE')) {
         controller.saveConfigTag(stepController.get("hbaseSiteTag"));
       }
+      if (App.Service.find().someProperty('serviceName', 'RANGER')) {
+        controller.saveConfigTag(stepController.get("rangerEnvTag"));
+      }
       App.set('router.nextBtnClickInProgress', false);
       router.transitionTo('step4');
     },
