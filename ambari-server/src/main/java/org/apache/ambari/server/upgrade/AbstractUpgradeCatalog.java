@@ -17,11 +17,6 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -47,8 +42,11 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -58,10 +56,10 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.RoleAuthorizationDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -97,8 +95,10 @@ import org.xml.sax.InputSource;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
@@ -378,13 +378,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   }
 
   public void addNewConfigurationsFromXml() throws AmbariException {
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-
-    Clusters clusters = controller.getClusters();
+    Clusters clusters = injector.getInstance(Clusters.class);
     if (clusters == null) {
       return;
     }
+
+    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
     Map<String, Cluster> clusterMap = clusters.getClusters();
 
     if (clusterMap != null && !clusterMap.isEmpty()) {
@@ -496,10 +495,8 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
                                                                 Set<String> toRemove,
                                                                 boolean updateIfExists,
                                                                 boolean createNewConfigType) throws AmbariException {
+    Clusters clusters = injector.getInstance(Clusters.class);
     ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
-
-    Clusters clusters = controller.getClusters();
     if (clusters == null) {
       return;
     }
