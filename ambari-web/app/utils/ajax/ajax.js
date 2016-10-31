@@ -207,6 +207,17 @@ var urls = {
     }
   },
 
+  'common.service.multiConfigurations': {
+    'real':'/clusters/{clusterName}',
+    'mock':'',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.configs)
+      }
+    }
+  },
+
   'common.across.services.configurations': {
     'type': 'PUT',
     'real':'/clusters/{clusterName}',
