@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.4.2.
@@ -159,7 +160,8 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
    * Convert the previously set inherited privileges to the more generic inherited privileges model
    * based on role-based principals rather than specialized principal types.
    */
-  protected void convertRolePrincipals() {
+  @Transactional
+  void convertRolePrincipals() {
     LOG.info("Converting pseudo principle types to role principals");
 
     PermissionDAO permissionDAO = injector.getInstance(PermissionDAO.class);
