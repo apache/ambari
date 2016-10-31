@@ -102,6 +102,37 @@ public interface Service {
    */
   MaintenanceState getMaintenanceState();
 
+  /**
+   * Get a true or false value specifying
+   * whether credential store is supported by this service.
+   * @return true or false
+   */
+  boolean isCredentialStoreSupported();
+
+  /**
+   * Set a true or false value specifying if this
+   * service supports credential store.
+   *
+   * @param credentialStoreSupported - true or false
+   */
+  void setCredentialStoreSupported(boolean credentialStoreSupported);
+
+  /**
+   * Get a true or false value specifying whether
+   * credential store use is enabled for this service.
+   *
+   * @return true or false
+   */
+  boolean isCredentialStoreEnabled();
+
+  /**
+   * Set a true or false value specifying whether this
+   * service is to be enabled for credential store use.
+   *
+   * @param credentialStoreEnabled - true or false
+   */
+  void setCredentialStoreEnabled(boolean credentialStoreEnabled);
+
   enum Type {
     HDFS,
     GLUSTERFS,
