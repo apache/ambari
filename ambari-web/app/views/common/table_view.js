@@ -366,6 +366,7 @@ App.TableView = Em.View.extend(App.UserPref, {
         type: type
       };
       this.get('filterConditions').push(filterCondition);
+      this.propertyDidChange('showFilteredContent');
     }
 
     this.saveAllFilterConditions();
