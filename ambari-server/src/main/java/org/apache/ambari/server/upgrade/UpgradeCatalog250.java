@@ -58,6 +58,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   public static final String COMPONENT_VERSION_FK_COMPONENT = "FK_scv_component_id";
   public static final String COMPONENT_VERSION_FK_REPO_VERSION = "FK_scv_repo_version_id";
 
+  protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
+  protected static final String CREDENTIAL_STORE_SUPPORTED_COL = "credential_store_supported";
+  protected static final String CREDENTIAL_STORE_ENABLED_COL = "credential_store_enabled";
+
   /**
    * Logger.
    */
@@ -110,7 +114,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("stage",
       new DBAccessor.DBColumnInfo("command_execution_type", String.class, 32, CommandExecutionType.STAGE.toString(),
         false));
-
+    updateServiceDesiredStateTable();
   }
 
   /**
@@ -213,6 +217,21 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "repo_version", "repo_version_id", false);
 
     addSequence("servicecomponent_version_id_seq", 0L, false);
+  }
+
+  /**
+   * Alter servicedesiredstate table.
+   * @throws SQLException
+   */
+  private void updateServiceDesiredStateTable() throws SQLException {
+    // ALTER TABLE servicedesiredstate ADD COLUMN
+    // credential_store_supported SMALLINT DEFAULT 0 NOT NULL
+    // credential_store_enabled SMALLINT DEFAULT 0 NOT NULL
+    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
+            new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
+
+    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
+            new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
   }
 }
 
