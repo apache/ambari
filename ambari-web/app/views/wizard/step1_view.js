@@ -27,6 +27,10 @@ App.WizardStep1View = Em.View.extend({
     $("[rel=skip-validation-tooltip]").tooltip({ placement: 'right'});
     $("[rel=use-redhat-tooltip]").tooltip({ placement: 'right'});
     $('.add-os-button,.redhat-label').tooltip();
+    this.$().on('mouseover', '.version-contents-body .table-hover > tbody > tr', function () {
+      App.tooltip($(this).find('.action .icon'), {placement: 'bottom'});
+      App.tooltip($(this).find('.icon-undo'), {placement: 'bottom'});
+    });
     if (this.get('controller.selectedStack.showAvailable')) {
       // first time load
       if (this.get('controller.selectedStack.useRedhatSatellite')) {

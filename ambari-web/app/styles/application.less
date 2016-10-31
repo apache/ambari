@@ -5846,6 +5846,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       .configs-table {
         table-layout: fixed;
         font-size: 0.9em;
+        margin-bottom: 0;
         td {
           word-wrap: break-word;
           &.no-value {
@@ -5858,9 +5859,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         td:first-child + td + td, td:first-child + td + td + td, td:first-child + td + td + td + td, th:first-child + th + th, th:first-child + th + th + th, th:first-child + th + th + th + th {
           width: 25%;
         }
-      }
-      .configs-table-header {
-        padding-right: 15px;
       }
       .configurations-changes-header {
         display: inline-block;
@@ -6034,43 +6032,13 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
     .border-bottom {
       border-bottom: 1px solid #ebebeb;
     }
-    .repo-table-title {
-      padding-left: 5px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #ebebeb;
-      label {
-        font-weight: bold;
-        margin-top: 5px;
-      }
-    }
-    .os-type-label {
-      margin-top: 27px;
-      padding-left: 10px;
-      label {
-        font-weight: bold;
-      }
-    }
-    .repo-name-label {
-      text-align: left;
-      padding-top: 10px;
-    }
-    .repo-name-url {
-      padding-top: 8px;
-      .repo-name-url-inner {
-        margin-bottom: 8px;
-      }
+    .repos-inner-table {
+      margin-bottom: 0;
+      background-color: transparent;
     }
     .repo-url input {
       width: 90%;
       height: 24px;
-    }
-    .add-os-button {
-      button.disabled {
-        cursor: not-allowed;
-      }
-      .dropdown-menu a {
-        cursor: pointer;
-      }
     }
     #skip-validation {
       margin-top: 13px;

@@ -97,76 +97,82 @@
           {{/if}}
 
           {{! OSes and Repositories }}
-          <div class="clearfix repo-table-title row">
-            <div class="col-md-2"><label>{{t common.os}}</label></div>
-            <div class="col-md-9">
-              <div class="col-md-3"><label>{{t common.name}}</label></div>
-              <div class="col-md-1"></div>
-              <div class="col-md-8"><label>{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</label></div>
-            </div>
-            <div class="col-md-1">
-              {{! Add OS }}
-              <div class="add-os-button btn-group pull-right">
-                <button
-                  type="button" {{bindAttr data-original-title="view.addOsButtonTooltip"  class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
-                  data-toggle="dropdown">
-                  <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  {{#each operatingSystem in selectedStack.operatingSystems}}
-                    {{#unless operatingSystem.isSelected}}
-                      <li><a {{action "addOS" operatingSystem target="controller"}}>{{operatingSystem.osType}}</a></li>
-                    {{/unless}}
-                  {{/each}}
-                </ul>
+          <div class="row">
+            <div class="table-controls row col-sm-12 pull-right">
+              <div class="col-sm-12">
+                {{! Add OS }}
+                <div class="btn-group pull-right">
+                  <button
+                    type="button" {{bindAttr data-original-title="view.addOsButtonTooltip" class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
+                    data-toggle="dropdown">
+                    <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    {{#each operatingSystem in selectedStack.operatingSystems}}
+                      {{#unless operatingSystem.isSelected}}
+                        <li><a {{action "addOS" operatingSystem target="controller"}}>{{operatingSystem.osType}}</a></li>
+                      {{/unless}}
+                    {{/each}}
+                  </ul>
+                </div>
+                {{! Add OS END}}
               </div>
-              {{! Add OS END}}
             </div>
           </div>
-
-          {{#each operatingSystem in selectedStack.operatingSystems}}
-            {{#if operatingSystem.isSelected}}
-              <div {{bindAttr class=":clearfix :row :border-bottom operatingSystem.osType"}}>
-                <div class="col-md-2 os-type-label">
-                  <label>{{operatingSystem.osType}}</label>
-                </div>
-                <div class="col-md-9 repo-name-url">
-                  {{#each repository in operatingSystem.repositories}}
-                    <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
-                      <div class="col-md-3">
-                        <label class="repo-name-label control-label">{{repository.repoId}}</label>
-                      </div>
-                      <div class="validation-td col-md-1">
-                        {{#if repository.validation}}
-                          {{view view.popoverView repositoryBinding="repository"}}
-                        {{/if}}
-                      </div>
-                      <div {{bindAttr class=":col-md-8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                        {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
-                          {{#if controller.selectedStack.usePublicRepo}}
-                            {{#if repository.undo}}
-                              <i class="icon-undo" data-toggle="tooltip"
-                                {{action "doRestoreDefaultValue" repository target="controller"}}
-                                {{translateAttr title="common.undo"}}>
-                              </i>
-                            {{/if}}
-                          {{else}}
-                            {{#if repository.notEmpty}}
-                              <i class="icon-undo" data-toggle="tooltip"
-                                {{action "doRestoreToEmpty" repository target="controller"}}
-                                {{translateAttr title="common.undo"}}>
-                              </i>
-                            {{/if}}
-                          {{/if}}
-                      </div>
-                    </div>
-                  {{/each}}
-                </div>
-                <div {{bindAttr class=":col-md-1 :remove-icon controller.selectedStack.useRedhatSatellite:disabled"}} {{action "removeOS" operatingSystem target="controller"}}>
-                  <i class="glyphicon glyphicon-minus"></i>{{t common.remove}}</div>
-              </div>
-            {{/if}}
-          {{/each}}
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="col-sm-2">{{t common.os}}</th>
+                <th class="col-sm-3">{{t common.name}}</th>
+                <th class="col-sm-6">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
+                <th class="col-sm-1"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each operatingSystem in selectedStack.operatingSystems}}
+                {{#if operatingSystem.isSelected}}
+                  <tr>
+                    <td class="col-sm-2">{{operatingSystem.osType}}</td>
+                    <td class="col-sm-9" colspan="2">
+                      <table class="table table-condensed no-borders repos-inner-table">
+                        <tbody>
+                          {{#each repository in operatingSystem.repositories}}
+                            <tr>
+                              <td class="col-sm-3">{{repository.repoId}}</td>
+                              <td class="col-sm-1">
+                                {{view view.popoverView repositoryBinding="repository"}}
+                              </td>
+                              <td class="col-sm-8">
+                                <div {{bindAttr class=":repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
+                                  {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
+                                  {{#if controller.selectedStack.usePublicRepo}}
+                                    <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
+                                      {{action "doRestoreDefaultValue" repository target="controller"}}
+                                      {{translateAttr title="common.undo"}}>
+                                    </i>
+                                  {{else}}
+                                    <i {{bindAttr class="repository.notEmpty::invisible :icon-undo"}}
+                                      {{action "doRestoreToEmpty" repository target="controller"}}
+                                      {{translateAttr title="common.undo"}}>
+                                    </i>
+                                  {{/if}}
+                                </div>
+                              </td>
+                            </tr>
+                        {{/each}}
+                        </tbody>
+                      </table>
+                    </td>
+                    <td class="col-sm-1">
+                      <a class="action" href="#" {{action "removeOS" operatingSystem target="controller"}}>
+                        <span class="icon icon-minus" {{translateAttr title="common.remove"}}></span>
+                      </a>
+                    </td>
+                  </tr>
+                {{/if}}
+              {{/each}}
+            </tbody>
+          </table>
           {{! OSes and Repositories END }}
 
           {{! Skip Repository Base URL validation }}
