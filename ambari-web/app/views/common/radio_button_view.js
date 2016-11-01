@@ -46,6 +46,7 @@ App.RadioButtonView = App.CheckboxView.extend({
   checkboxView: Ember.RadioButton.extend({
     selectionBinding: 'parentView.selection',
     valueBinding: 'parentView.value',
+    disabledBinding: 'parentView.disabled',
     checked: Em.computed.alias('parentView.checked'),
     didInsertElement: function() {
       this.set('parentView.checkboxId', this.get('elementId'));

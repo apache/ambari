@@ -274,9 +274,9 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * Just a small checkbox-wrapper with modified click-handler
    * Should call <code>parentView.toggleOption</code>
    * User may click on the checkbox or on the link which wraps it, but action in both cases should be the same (<code>toggleOption</code>)
-   * @type {Em.Checkbox}
+   * @type {App.CheckboxView}
    */
-  checkBoxWithoutAction: Em.Checkbox.extend({
+  checkBoxWithoutAction: App.CheckboxView.extend({
     init: function() {
       this._super();
       this.off('change', this, this._updateElementValue);

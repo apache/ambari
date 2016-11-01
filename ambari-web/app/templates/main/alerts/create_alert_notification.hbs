@@ -205,7 +205,7 @@
         <label class="control-label col-md-2" for="inputSMTPSTARTTLS">{{controller.inputFields.SMTPSTARTTLS.label}}</label>
 
         <div class="col-md-10">
-          {{view Em.Checkbox disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS"}}
+          {{view App.CheckboxView disabledBinding="controller.inputFields.SMTPUseAuthentication.invertedValue" checkedBinding="controller.inputFields.SMTPSTARTTLS.value" id="inputSMTPSTARTTLS"}}
         </div>
       </div>
     {{else}}

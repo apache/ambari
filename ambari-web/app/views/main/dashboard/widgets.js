@@ -232,7 +232,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     hiddenWidgetsBinding: 'parentView.hiddenWidgets',
     visibleWidgetsBinding: 'parentView.visibleWidgets',
     valueBinding: '',
-    widgetCheckbox: Em.Checkbox.extend({
+    widgetCheckbox: App.CheckboxView.extend({
       didInsertElement: function () {
         $('.checkbox').click(function (event) {
           event.stopPropagation();

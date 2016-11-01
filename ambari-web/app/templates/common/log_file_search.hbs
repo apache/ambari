@@ -44,7 +44,7 @@
       {{#each level in view.levelsContext}}
         <div class="display-inline-block level-checkbox">
           <label>
-            {{view Em.Checkbox checkedBinding="level.checked"}}
+            {{view App.CheckboxView checkedBinding="level.checked"}}
             {{level.displayName}} ({{level.counter}})
           </label>
         </div>

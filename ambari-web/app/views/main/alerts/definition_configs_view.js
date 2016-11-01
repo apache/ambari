@@ -80,9 +80,7 @@ App.AlertConfigThresholdView = Em.View.extend({
   classNames: ['row']
 });
 
-App.AlertConfigRadioButtonView = Em.Checkbox.extend({
-  attributeBindings: ['type', 'name', 'value', 'checked', 'disabled'],
-  type: 'radio',
+App.AlertConfigRadioButtonView = App.RadioButtonView.extend({
   nameBinding: 'property.group',
   checkedBinding: 'property.value',
 

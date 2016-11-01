@@ -101,8 +101,7 @@
               <p class="manual-steps-content">{{message}}</p>
             {{/each}}
             <label class="message">
-              {{view Em.Checkbox checkedBinding="view.isManualDone"}}
-              {{t admin.stackUpgrade.dialog.manualDone}}
+              {{view App.CheckboxView checkedBinding="view.isManualDone" labelTranslate="admin.stackUpgrade.dialog.manualDone"}}
             </label>
             <div class="button-row">
               {{#if view.isDowngradeAvailable}}
@@ -143,8 +142,7 @@
             {{/if}}
 
             <label class="message">
-              {{view Em.Checkbox checkedBinding="view.isManualDone"}}
-              {{t admin.stackUpgrade.dialog.manualDone}}
+              {{view App.CheckboxView checkedBinding="view.isManualDone" labelTranslate="admin.stackUpgrade.dialog.manualDone"}}
             </label>
             <div class="button-row">
               {{#if view.isDowngradeAvailable}}
@@ -181,8 +179,7 @@
             </div>
             {{#unless view.isHoldingState}}
               <label class="message">
-                {{view Em.Checkbox checkedBinding="view.isManualDone"}}
-                {{t admin.stackUpgrade.dialog.manualDone}}
+                {{view App.CheckboxView checkedBinding="view.isManualDone" labelTranslate="admin.stackUpgrade.dialog.manualDone"}}
               </label>
             {{/unless}}
             <div class="button-row">
@@ -245,8 +242,7 @@
             {{/if}}
 
             <label class="message">
-              {{view Em.Checkbox checkedBinding="view.isManualDone"}}
-              {{t admin.stackUpgrade.dialog.manualDone}}
+              {{view App.CheckboxView checkedBinding="view.isManualDone" labelTranslate="admin.stackUpgrade.dialog.manualDone"}}
             </label>
             <div class="button-row">
               {{#if view.isDowngradeAvailable}}

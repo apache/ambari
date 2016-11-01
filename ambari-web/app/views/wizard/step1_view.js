@@ -213,7 +213,7 @@ App.WizardStep1View = Em.View.extend({
   }),
 
   /**
-   * @type {Em.Checkbox}
+   * @type {App.CheckboxView}
    */
   redhatCheckBoxView: App.CheckboxView.extend({
     checkedBinding: 'controller.selectedStack.useRedhatSatellite',
