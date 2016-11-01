@@ -103,12 +103,14 @@ def save_pid(pid, pidfile):
   try:
     pfile = open(pidfile, "w")
     pfile.write("%s\n" % pid)
-  except IOError:
+  except IOError as e:
+    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
-    except:
+    except Exception as e:
+      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
@@ -130,12 +132,14 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
           os.kill(int(item["pid"]), signal.SIGKILL)
         except:
           pass
-  except IOError:
+  except IOError as e:
+    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
-    except:
+    except Exception as e:
+      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
