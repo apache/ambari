@@ -410,11 +410,11 @@ App.UpdateController = Em.Controller.extend({
         return !param.isComponentRelatedFilter;
       });
 
-      queryParams.push({
+      queryParams = [{
         key: 'Hosts/host_name',
         value: hostNames,
         type: 'MULTIPLE'
-      });
+      }];
       params.callback(skipCall, queryParams);
     }
   },

@@ -22,7 +22,22 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep7Controller",
 
-  commands: ['startZooKeeperServers', 'startNameNode'],
+  commands: ['startRanger', 'startZooKeeperServers', 'startNameNode'],
+
+  initializeTasks: function () {
+    this._super();
+
+    if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'startRanger').get('id'), 1);
+    }
+  },
+
+  startRanger: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'RANGER_ADMIN').mapProperty('hostName');
+    if(hostNames.length) {
+      this.updateComponent('RANGER_ADMIN', hostNames, "RANGER", "Start");
+    }
+  },
 
   startZooKeeperServers: function () {
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');

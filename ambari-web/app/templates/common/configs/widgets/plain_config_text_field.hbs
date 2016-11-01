@@ -17,6 +17,6 @@
 }}
 
 <div class="input-group">
-  {{view App.ConfigTextField valueBinding="view.value" classBinding=":col-md-9 view.unit:form-control" placeholderBinding="view.placeholder" disabledBinding="view.disabled"}}
+  {{view App.ConfigTextField valueBinding="view.value" class="col-md-9 form-control" placeholderBinding="view.placeholder" disabledBinding="view.disabled"}}
   <div {{bindAttr class=":input-group-addon view.unit::hidden"}}>{{view.displayUnit}}</div>
 </div>

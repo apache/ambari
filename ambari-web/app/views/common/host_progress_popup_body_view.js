@@ -962,7 +962,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     $(".task-detail-log-clipboard")
       .html(isLogComponentActive ? this.get('clipBoardContent') : "stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
       .css('display', 'block')
-      .width(logElementRect.width)
+      .css('width', logElementRect.width)
       .height(isLogComponentActive ? logElement[0].scrollHeight : logElementRect.height)
       .select();
 

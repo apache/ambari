@@ -16,11 +16,12 @@
 * limitations under the License.
 }}
 
-
-<h2>{{t admin.manageJournalNode.wizard.step3.header}}</h2>
-
-<div id="manage-journal-node-step2-content" class="well pre-scrollable">
-    <div id="step8-info">
+<div class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.manageJournalNode.wizard.step3.header}}</h4>
+  <div class="panel panel-default">
+    <div class="panel-body">
+    <div id="manage-journal-node-step2-content" class="well pre-scrollable">
+      <div id="step8-info">
         <table id="manage-journal-node-step2-review-table">
             <tr>
                 <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
@@ -41,23 +42,27 @@
                 </td>
             </tr>
         </table>
+      </div>
     </div>
+      <div id="serviceConfig">
+        {{#if controller.isLoaded}}
+            {{{t admin.manageJournalNode.wizard.step3.confirm.config.body}}}
+            {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
+        {{else}}
+            {{view App.SpinnerView}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
 </div>
 
-
-<div id="serviceConfig">
-    {{#if controller.isLoaded}}
-        {{{t admin.manageJournalNode.wizard.step3.confirm.config.body}}}
-        {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
-    {{else}}
-        {{view App.SpinnerView}}
-    {{/if}}
-</div>
-
-<div class="btn-area">
+<div class="wizard-footer col-md-12">
+  <div class="btn-area">
     <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{bindAttr disabled="controller.isNextDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
     {{#if App.router.nextBtnClickInProgress}}
         {{view App.SpinnerView tagName="span" classNames="pull-right"}}
     {{/if}}
+  </div>
 </div>
+

@@ -422,7 +422,8 @@ describe('validator', function () {
         { value: '[a1', expected: false },
         { value: 'a{1}', expected: true },
         { value: 'a{1,2}', expected: true },
-        { value: 'a{1,2}{', expected: false }
+        { value: 'a{1,2}{', expected: false },
+        { value: 'a(1)', expected: true }
       ];
     tests.forEach(function(test) {
       it(message.format(test.value, test.expected ? 'valid' : 'not valid'), function() {

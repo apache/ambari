@@ -238,7 +238,7 @@
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
+      <execute-stage title="Update Target Stack">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -606,7 +606,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>

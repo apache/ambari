@@ -557,6 +557,16 @@ public class AmbariCustomCommandExecutionHelper {
       candidateHosts = serviceHostComponents.keySet();
     }
 
+    // check if all hostnames are valid.
+    for(String candidateHostName: candidateHosts) {
+      ServiceComponentHost serviceComponentHost = serviceHostComponents.get(candidateHostName);
+
+      if (serviceComponentHost == null) {
+        throw new AmbariException("Provided hostname = "
+            + candidateHostName + " is either not a valid cluster host or does not satisfy the filter condition.");
+      }
+    }
+
     // Filter out hosts that are in maintenance mode - they should never be included in service checks
     Set<String> hostsInMaintenanceMode = new HashSet<String>();
     if (actionExecutionContext.isMaintenanceModeHostExcluded()) {

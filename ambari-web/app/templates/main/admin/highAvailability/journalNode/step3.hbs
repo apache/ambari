@@ -15,18 +15,21 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="manage-journal-node-step3">
-    <h2>{{t admin.manageJournalNode.wizard.step3.header}}</h2>
-    {{#unless controller.isNameNodeStarted}}
-        <div class="alert alert-error">
-            {{t admin.highAvailability.wizard.step4.error.nameNode}}
-        </div>
-    {{/unless}}
-    <div class="alert alert-info">
-        {{{view.step3BodyText}}}
-    </div>
-    <div class="btn-area">
-        <a  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
-        <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>
-    </div>
+<div id="manage-journal-node-step3" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.manageJournalNode.wizard.step3.header}}</h4>
+  {{#unless controller.isNameNodeStarted}}
+    <p class="step-description">
+        {{t admin.highAvailability.wizard.step4.error.nameNode}}
+    </p>
+  {{/unless}}
+  <p class="step-description">
+    {{{view.step3BodyText}}}
+  </p>
+</div>
+
+<div class="wizard-footer col-md-12">
+  <div class="btn-area">
+    <a  {{bindAttr class="controller.isNextEnabled::disabled :btn :btn-success :pull-right"}} {{action done target="controller"}}>{{t common.next}} &rarr;</a>
+    <span class="pull-right btn-extra-info">{{view.nnCheckPointText}}</span>
+  </div>
 </div>

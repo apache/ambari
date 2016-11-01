@@ -16,49 +16,51 @@
 * limitations under the License.
 }}
 
-<div class="step3">
-  <h2>{{t widget.create.wizard.step3.header}}</h2>
+<div class="step3 wizard-content col-md-9">
+  <h4 class="step-title">{{t widget.create.wizard.step3.header}}</h4>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <form>
+        <div class="row">
+          <div class="col-md-2 title">{{t widget.create.wizard.step3.widgetName}}<i class="glyphicon glyphicon-asterisk"></i></div>
+          <div {{bindAttr class=":col-md-10 isNameInvalid:error"}}>
+            {{view Ember.TextField valueBinding="widgetName" class="form-control"}}
+            {{#if isNameInvalid}}
+              <div>{{widgetNameErrorMessage}}</div>
+            {{/if}}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-2 title">{{t common.author}}</div>
+          <div class="col-md-10">{{widgetAuthor}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-2 title">{{t widget.create.wizard.step3.sharing}}</div>
+          <div class="col-md-10">
+            {{view App.CheckboxView
+              classNames="checkbox"
+              disabledBinding="controller.isSharedCheckboxDisabled"
+              checkedBinding="controller.isSharedChecked"
+              labelTranslate="widget.create.wizard.step3.sharing.msg"
+            }}
+          </div>
+        </div>
 
-  <form>
-    <div class="row">
-      <div class="col-md-2 title">{{t widget.create.wizard.step3.widgetName}}<i class="glyphicon glyphicon-asterisk"></i></div>
-      <div {{bindAttr class=":col-md-10 isNameInvalid:error"}}>
-        {{view Ember.TextField valueBinding="widgetName"}}
-        {{#if isNameInvalid}}
-          <div>{{widgetNameErrorMessage}}</div>
-        {{/if}}
-      </div>
+        <div class="row">
+          <div class="col-md-2 title">{{t common.description}}</div>
+          <div {{bindAttr class=":col-md-10 isDescriptionInvalid:error"}}>
+            {{view Ember.TextArea valueBinding="widgetDescription" class="description-text-area"}}
+            {{#if isDescriptionInvalid}}
+              <div>{{descriptionErrorMessage}}</div>
+            {{/if}}
+          </div>
+        </div>
+
+      </form>
     </div>
-
-    <div class="row">
-      <div class="col-md-2 title">{{t common.author}}</div>
-      <div class="col-md-10">{{widgetAuthor}}</div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-2 title">{{t widget.create.wizard.step3.sharing}}</div>
-      <div class="col-md-10">
-        {{view App.CheckboxView
-          classNames="checkbox"
-          disabledBinding="controller.isSharedCheckboxDisabled"
-          checkedBinding="controller.isSharedChecked"
-          labelTranslate="widget.create.wizard.step3.sharing.msg"
-        }}
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col-md-2 title">{{t common.description}}</div>
-      <div {{bindAttr class=":col-md-10 isDescriptionInvalid:error"}}>
-        {{view Ember.TextArea valueBinding="widgetDescription" class="description-text-area"}}
-        {{#if isDescriptionInvalid}}
-          <div>{{descriptionErrorMessage}}</div>
-        {{/if}}
-      </div>
-    </div>
-
-  </form>
-
+  </div>
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <button id="add-widget-step3-back" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
     <button id="add-widget-step3-save" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "complete" target="controller"}}>{{t common.save}}</button>

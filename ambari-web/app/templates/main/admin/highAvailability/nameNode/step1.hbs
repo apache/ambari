@@ -15,10 +15,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="ha-step1">
-  <h2>{{t admin.highAvailability.wizard.step1.header}}</h2>
-
-  <div class="alert alert-info">
+<div id="ha-step1" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.highAvailability.wizard.step1.header}}</h4>
+  <p class="step-description">
     {{t admin.highAvailability.wizard.step1.body}}
     <div class="alert alert-warning">
       {{t admin.highAvailability.wizard.step1.alert}}
@@ -26,18 +25,22 @@
         {{{t admin.highAvailability.wizard.step1.hawq.alert}}}
       {{/if}}
     </div>
-  </div>
-
-  <div {{bindAttr class=":form-group view.showInputError:error view.showInputError:has-error :form-horizontal :nameserviceid-input"}}>
-    <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
-
-    <div>
-      {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm"}}
-      <span {{bindAttr class=":help-block :validation-block :col-sm-9 :pull-right view.showInputError::hidden"}}>
-        {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
-      </span>
+  </p>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div {{bindAttr class=":form-group view.showInputError:error view.showInputError:has-error :form-horizontal :nameserviceid-input"}}>
+        <label class="control-label">{{t admin.highAvailability.wizard.step1.nameserviceid}}:</label>
+        <div>
+          {{view Ember.TextField valueBinding="content.nameServiceId" classNames="input-sm form-control"}}
+          <span {{bindAttr class=":help-block :validation-block :col-sm-9 :pull-right view.showInputError::hidden"}}>
+            {{t admin.highAvailability.wizard.step1.nameserviceid.error}}
+          </span>
+        </div>
+      </div>
     </div>
   </div>
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action next target="controller"}}>{{t common.next}} &rarr;</a>
   </div>

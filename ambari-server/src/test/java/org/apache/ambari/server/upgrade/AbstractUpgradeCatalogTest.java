@@ -17,7 +17,26 @@
  */
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Injector;
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -34,25 +53,7 @@ import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import com.google.inject.Injector;
 
 public class AbstractUpgradeCatalogTest {
   private static final String CONFIG_TYPE = "hdfs-site.xml";
@@ -80,7 +81,7 @@ public class AbstractUpgradeCatalogTest {
 
     expect(injector.getInstance(ConfigHelper.class)).andReturn(configHelper).anyTimes();
     expect(injector.getInstance(AmbariManagementController.class)).andReturn(amc).anyTimes();
-    expect(amc.getClusters()).andReturn(clusters).anyTimes();
+    expect(injector.getInstance(Clusters.class)).andReturn(clusters).anyTimes();
 
     HashMap<String, Cluster> clusterMap = new HashMap<>();
     clusterMap.put(CLUSTER_NAME, cluster);

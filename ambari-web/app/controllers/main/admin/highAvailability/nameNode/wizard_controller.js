@@ -117,7 +117,13 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     _content.get('configs').forEach(function (_configProperties) {
       var siteObj = data.items.findProperty('type', _configProperties.get('filename'));
       if (siteObj) {
-        siteObj.properties[_configProperties.get('name')] = _configProperties.get('value');
+        if (_configProperties.get('name') == 'xasecure.audit.destination.hdfs.dir') {
+          if('xasecure.audit.destination.hdfs.dir' in siteObj.properties) {
+            siteObj.properties[_configProperties.get('name')] = _configProperties.get('value');
+          }
+        } else {
+          siteObj.properties[_configProperties.get('name')] = _configProperties.get('value');
+        }
       }
     }, this);
     this.setDBProperty('serviceConfigProperties', data);

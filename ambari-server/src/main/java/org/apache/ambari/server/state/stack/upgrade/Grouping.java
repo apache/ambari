@@ -39,6 +39,8 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.base.Objects;
+
 /**
  *
  */
@@ -82,6 +84,13 @@ public class Grouping {
 
   @XmlElement(name="scope")
   public UpgradeScope scope = UpgradeScope.ANY;
+
+  /**
+   * A condition element with can prevent this entire group from being scheduled
+   * in the upgrade.
+   */
+  @XmlElement(name = "condition")
+  public Condition condition;
 
   /**
    * Gets the default builder.
@@ -380,5 +389,13 @@ public class Grouping {
         addSkippedServices(skippedServices, servicesToAdd);
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("name", name).toString();
   }
 }

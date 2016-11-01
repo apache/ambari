@@ -16,43 +16,46 @@
 * limitations under the License.
 }}
 
-<div id="kerberos-wizard-step1">
-  <h2>{{t admin.kerberos.wizard.step1.header}}</h2>
-
-  <p class="alert alert-info">
+<div id="kerberos-wizard-step1" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.kerberos.wizard.step1.header}}</h4>
+  <p class="step-description">
     {{t admin.kerberos.wizard.step1.info.body}}
   </p>
-
   <div class="alert alert-warning">
     {{t admin.kerberos.wizard.step1.alert.body}}
   </div>
 
-  <div id="kerberos-step1-options-body">
-    {{t admin.kerberos.wizard.step1.body.text}}
-    {{#each option in options}}
-      {{view App.RadioButtonView
-        classNames="radio"
-        name="option.displayName"
-        labelClassNames="kerberos-step1-option-radiobutton"
-        labelBinding="option.displayName"
-        selectionBinding="selectedItem"
-        valueBinding="option.value"}}
-    {{/each}}
-    <br/>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="kerberos-step1-options-body">
+        {{t admin.kerberos.wizard.step1.body.text}}
+        {{#each option in options}}
+          {{view App.RadioButtonView
+            classNames="radio"
+            name="option.displayName"
+            labelClassNames="kerberos-step1-option-radiobutton"
+            labelBinding="option.displayName"
+            selectionBinding="selectedItem"
+            valueBinding="option.value"}}
+        {{/each}}
+        <br/>
+      </div>
+      <div class="alert alert-info" id="kerberos-step1-prerequisites-body">
+        <h5>{{selectedOption.displayName}}:</h5>
+        <b>{{t admin.kerberos.wizard.step1.prerequisites.label}}</b> <br/> <br/>
+        {{#each condition in selectedOption.preConditions}}
+          {{view App.CheckboxView
+            classNames="checkbox"
+            checkedBinding="condition.checked"
+            labelClassNames="kerberos-step1-prerequiste-checkboxes"
+            labelBinding="condition.displayText"
+          }}
+        {{/each}}
+      </div>
+    </div>
   </div>
-  <div class="alert alert-info" id="kerberos-step1-prerequisites-body">
-    <h5>{{selectedOption.displayName}}:</h5>
-    <b>{{t admin.kerberos.wizard.step1.prerequisites.label}}</b> <br/> <br/>
-    {{#each condition in selectedOption.preConditions}}
-      {{view App.CheckboxView
-        classNames="checkbox"
-        checkedBinding="condition.checked"
-        labelClassNames="kerberos-step1-prerequiste-checkboxes"
-        labelBinding="condition.displayText"
-      }}
-    {{/each}}
-  </div>
-
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <a id="submit-kerberos-step1" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</a>
   </div>

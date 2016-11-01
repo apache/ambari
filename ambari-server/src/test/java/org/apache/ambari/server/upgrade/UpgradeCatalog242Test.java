@@ -146,6 +146,7 @@ public class UpgradeCatalog242Test {
 
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.HOST_GROUP_TABLE), eq("FK_hg_blueprint_name"));
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_CONFIGURATION), eq("FK_cfg_blueprint_name"));
+    dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_CONFIGURATION), eq("FK_blueprint_configuration_blueprint_name"));
     dbAccessor.dropFKConstraint(eq(UpgradeCatalog242.BLUEPRINT_SETTING), eq("FK_blueprint_setting_name"));
 
     dbAccessor.alterColumn(eq(UpgradeCatalog242.BLUEPRINT_TABLE), capture(blueprintBlueprintNameColumnChangeSize));

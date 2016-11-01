@@ -44,7 +44,7 @@
   <div class="row">
     <div id="slider-value1" class="value-on-slider col-md-2" style="margin-left: 20px">0</div>
       <div id="slider-value2" style="margin-left: 100px"{{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh1Error:has-error"}}>
-        {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1"}}
+        {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1" class="form-control"}}
         {{#if view.configPropertyObj.errorMessage1}}
             <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
         {{/if}}

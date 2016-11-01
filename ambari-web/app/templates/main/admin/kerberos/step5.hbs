@@ -16,38 +16,42 @@
 * limitations under the License.
 }}
 <div id="kerberos-wizard-step5">
-  <div id="confirm-configuration">
-    <h2>{{t admin.kerberos.wizard.step5.header}}</h2>
-
-    <div class="alert alert-info">
-      <p>
+  <div id="confirm-configuration" class="wizard-content col-md-9">
+    <h4 class="step-title">{{t admin.kerberos.wizard.step5.header}}</h4>
+    <div>
+      <p class="step-description">
         {{t admin.kerberos.wizard.step5.info.body}}
       </p>
       {{#unless App.router.kerberosWizardController.skipClientInstall}}
-        <p>
+        <p class="step-description">
           {{t admin.kerberos.wizard.step5.moreInfoNonManual.body}}
         </p>
       {{/unless}}
       {{#if App.router.kerberosWizardController.skipClientInstall}}
-        <p>
+        <p class="step-description">
           {{t admin.kerberos.wizard.step5.moreInfoManual.body}}
         </p>
       {{/if}}
     </div>
 
-    <div class="well pre-scrollable">
-      {{#each confirmProperties}}
-        {{#if value}}
-          <p><strong>{{label}}</strong>: {{value}}</p>
-        {{/if}}
-      {{/each}}
-    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="well pre-scrollable">
+          {{#each confirmProperties}}
+            {{#if value}}
+              <p><strong>{{label}}</strong>: {{value}}</p>
+            {{/if}}
+          {{/each}}
+        </div>
 
-    <div class="additional btn-area clearfix">
-      <button class="btn btn-primary pull-right mls" {{action downloadCSV}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
-      <button class="btn btn-default pull-right" {{action exitWizard}}>{{t admin.kerberos.wizard.step5.exitWizard}}</button>
+        <div class="additional btn-area clearfix">
+          <button class="btn btn-primary pull-right mls" {{action downloadCSV}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
+          <button class="btn btn-default pull-right" {{action exitWizard}}>{{t admin.kerberos.wizard.step5.exitWizard}}</button>
+        </div>
+      </div>
     </div>
-
+  </div>
+  <div class="wizard-footer col-md-12">
     <div class="btn-area">
       <button id="back-kerberos-step5" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>
       <button id="submit-kerberos-step5" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}

@@ -38,9 +38,8 @@
           <li {{bindAttr class="isStep10:active view.isStep10Disabled:disabled view.isStep10Completed:completed"}}><a href="javascript:void(null);" {{action gotoStep10 target="controller"}}><i class="step-marker"><span class="step-index">10</span></i><p class="step-name">{{t installer.step10.header}}</p></a></li>
         </ul>
       </div>
-      <div class="wizard-content col-md-9">
-        {{outlet}}
-      </div>
+        {{! outlet includes body and footer }}
+      {{outlet}}
     </div>
   </div>
 {{/if}}

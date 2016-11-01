@@ -105,7 +105,7 @@ App.MainDashboardServiceHealthView = Em.View.extend({
 
   didInsertElement: function () {
     this.updateToolTip();
-    App.tooltip($("[rel='HealthTooltip']"));
+    App.tooltip($("[rel='HealthTooltip']"), {html: true});
     this.doBlink(); // check for blink availability
   }
 });

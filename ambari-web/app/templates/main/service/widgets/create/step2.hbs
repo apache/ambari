@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="step2">
+<div class="step2 wizard-content col-md-9">
 
   {{#if view.templateType.isNumber}}
     {{template "templates/main/service/widgets/create/step2_number"}}
@@ -29,23 +29,24 @@
   {{#if view.templateType.isTemplate}}
     {{template "templates/main/service/widgets/create/step2_template"}}
   {{/if}}
-
-  <div>
-    <form class="form-horizontal">
-      {{#each property in widgetPropertiesViews}}
-        <div {{bindAttr class=":form-group :col-md-12 property.name property.isValid::error"}}>
-          <label class="control-label">{{property.label}}
-            {{#if property.isRequired }}
-              <i class="glyphicon glyphicon-asterisk"></i>
-            {{/if}}
-          </label>
-          {{view property.viewClass propertyBinding="property"}}
-        </div>
-      {{/each}}
-    </form>
+  <div class="panel panel-default">
+    <div class="panel-body">
+        <form class="form-horizontal">
+          {{#each property in widgetPropertiesViews}}
+            <div {{bindAttr class=":form-group :col-md-12 property.name property.isValid::error"}}>
+              <label class="control-label">{{property.label}}
+                {{#if property.isRequired }}
+                  <i class="glyphicon glyphicon-asterisk"></i>
+                {{/if}}
+              </label>
+              {{view property.viewClass propertyBinding="property"}}
+            </div>
+          {{/each}}
+        </form>
+    </div>
   </div>
-
-
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     {{#unless isEditWidget}}
       <button id="add-widget-step2-back" class="btn btn-default" {{action back}}>&larr; {{t common.back}}</button>

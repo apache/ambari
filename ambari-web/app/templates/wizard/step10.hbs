@@ -15,39 +15,46 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="deploy-summary">
-  <h2>{{t installer.step10.header}}</h2>
+<div id="deploy-summary" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step10.header}}</h4>
   {{#if view.serviceRestartText}}
-    <div id="step10-alert-message" class="alert alert-danger">
+    <div id="step10-alert-message" class="step-description">
       {{{view.serviceRestartText}}}
     </div>
   {{/if}}
-  <div class="alert alert-info">
+  <p class="step-description">
     {{t installer.step10.body}}
+  </p>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="step10-content" class="well pre-scrollable">
+        <ul>
+          {{#each item in clusterInfo}}
+            <li>
+              <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
+              <ul>
+                {{#each status in item.status}}
+                  <li>
+                    <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
+                    <ul>
+                      {{#each statement in status.statements}}
+                        <li>
+                          <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
+                        </li>
+                      {{/each}}
+                    </ul>
+                  </li>
+                {{/each}}
+              </ul>
+            </li>
+          {{/each}}
+        </ul>
+      </div>
+    </div>
   </div>
-  <div id="step10-content" class="well pre-scrollable">
-    <ul>
-      {{#each item in clusterInfo}}
-        <li>
-          <span {{bindAttr class="item.color"}}>{{item.displayStatement}}</span>
-          <ul>
-            {{#each status in item.status}}
-              <li>
-                <span {{bindAttr class="status.color"}}>{{status.displayStatement}}</span>
-                <ul>
-                  {{#each statement in status.statements}}
-                    <li>
-                      <span {{bindAttr class="status.color"}}>{{statement.displayStatement}}</span>
-                    </li>
-                  {{/each}}
-                </ul>
-              </li>
-            {{/each}}
-          </ul>
-        </li>
-      {{/each}}
-    </ul>
-  </div>
+</div>
+
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action complete}}>
       {{#if App.router.nextBtnClickInProgress}}

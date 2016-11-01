@@ -16,36 +16,40 @@
 * limitations under the License.
 }}
 
-<h2>{{t widget.create.wizard.step2.header}}</h2>
+<h4 class="step-title">{{t widget.create.wizard.step2.header}}</h4>
 
-<div class="alert alert-info">
+<p class="step-description">
   {{t widget.create.wizard.step2.body.template}}
-</div>
+</p>
 
-<div {{bindAttr class=":template isTemplateInvalid:error"}}>
-  <h5>{{t widget.create.wizard.step2.template.header}}</h5>
-  {{view Ember.TextArea valueBinding="templateValue" placeholderBinding="view.templatePlaceholder"}}
-    {{#if isTemplateInvalid}}
-      <div>{{t widget.create.wizard.step2.body.template.invalid.msg}}</div>
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div {{bindAttr class=":template isTemplateInvalid:error"}}>
+      <h5>{{t widget.create.wizard.step2.template.header}}</h5>
+      {{view Ember.TextArea valueBinding="templateValue" placeholderBinding="view.templatePlaceholder"}}
+        {{#if isTemplateInvalid}}
+          <div>{{t widget.create.wizard.step2.body.template.invalid.msg}}</div>
+        {{/if}}
+    </div>
+
+    <div class="alert alert-info">
+      {{t widget.create.wizard.step2.body.text}}
+    </div>
+    {{#if isAnyExpressionInvalid}}
+      <div class="alert alert-error">
+        Expression is not complete or is invalid!
+      </div>
     {{/if}}
-</div>
+    {{#each expression in expressions}}
+      <h5>{{EXPRESSION_PREFIX}}{{expression.id}}</h5>
+      {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
+    {{/each}}
 
-<div class="alert alert-info">
-  {{t widget.create.wizard.step2.body.text}}
-</div>
-{{#if isAnyExpressionInvalid}}
-  <div class="alert alert-error">
-    Expression is not complete or is invalid!
+    <div class="align-right">
+      <a href="#" {{action addExpression target="controller"}}>
+        <i class="glyphicon glyphicon-plus"></i>
+        {{t widget.create.wizard.step2.addExpression}}
+      </a>
+    </div>
   </div>
-{{/if}}
-{{#each expression in expressions}}
-  <h5>{{EXPRESSION_PREFIX}}{{expression.id}}</h5>
-  {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
-{{/each}}
-
-<div class="align-right">
-  <a href="#" {{action addExpression target="controller"}}>
-    <i class="glyphicon glyphicon-plus"></i>
-    {{t widget.create.wizard.step2.addExpression}}
-  </a>
 </div>

@@ -18,16 +18,23 @@
 
 package org.apache.ambari.server.state;
 
+import javax.xml.bind.annotation.XmlEnum;
+import javax.xml.bind.annotation.XmlEnumValue;
+
 /**
  * SecurityType enumerates the different security types Ambari supports.
  */
+@XmlEnum
 public enum SecurityType {
   /**
    * No security.
    */
+  @XmlEnumValue("none")
   NONE,
+
   /**
    * Kerberos security.
    */
+  @XmlEnumValue("kerberos")
   KERBEROS
 }

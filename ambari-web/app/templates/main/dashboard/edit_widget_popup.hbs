@@ -45,13 +45,13 @@
     <div class="row">
         <div id="slider-value1" class="value-on-slider col-md-2">0</div>
         <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh1Error:has-error"}}>
-          {{view Ember.TextField valueBinding="view.configPropertyObj.thresh1"}}
+          {{view Ember.TextField class="form-control" valueBinding="view.configPropertyObj.thresh1"}}
           {{#if view.configPropertyObj.errorMessage1}}
             <span class="help-block validation-block">{{view.configPropertyObj.errorMessage1}}</span>
           {{/if}}
         </div>
         <div id="slider-value3" {{bindAttr class="view.configPropertyObj.isThresh2Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh2Error:has-error"}}>
-          {{view Ember.TextField valueBinding="view.configPropertyObj.thresh2"}}
+          {{view Ember.TextField class="form-control" valueBinding="view.configPropertyObj.thresh2"}}
           {{#if view.configPropertyObj.errorMessage1}}
             <span class="help-block validation-block">{{view.configPropertyObj.errorMessage2}}</span>
           {{/if}}

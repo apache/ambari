@@ -67,12 +67,6 @@ public class ServiceDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private SecurityState securityState = SecurityState.UNSECURED;
 
-  @Column(name = "credential_store_supported", nullable = false, insertable = true, updatable = true)
-  private Short credentialStoreSupported = 0;
-
-  @Column(name = "credential_store_enabled", nullable = false, insertable = true, updatable = true)
-  private Short credentialStoreEnabled = 0;
-
   @OneToOne
   @javax.persistence.JoinColumns(
       {
@@ -135,22 +129,6 @@ public class ServiceDesiredStateEntity {
 
   public void setSecurityState(SecurityState securityState) {
     this.securityState = securityState;
-  }
-
-  public boolean isCredentialStoreSupported() {
-    return credentialStoreSupported != 0;
-  }
-
-  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
-    this.credentialStoreSupported = (short)((credentialStoreSupported == false) ? 0 : 1);
-  }
-
-  public boolean isCredentialStoreEnabled() {
-    return credentialStoreEnabled != 0;
-  }
-
-  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
-    this.credentialStoreEnabled = (short)((credentialStoreEnabled == false) ? 0 : 1);
   }
 
   @Override

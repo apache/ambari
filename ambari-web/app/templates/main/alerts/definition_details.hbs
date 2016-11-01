@@ -26,7 +26,7 @@
       <div class="definition-name row">
         {{#if controller.editing.label.isEditing}}
           <div {{bindAttr class="controller.editing.label.isError:error :col-md-5 :name-text-field :form-group"}}>
-            {{view Em.TextField valueBinding="controller.editing.label.value" maxlength="255"}}
+            {{view Em.TextField valueBinding="controller.editing.label.value" maxlength="255" class="form-control"}}
           </div>
           <div class="edit-buttons">
             <button {{action cancelEdit controller.editing.label target="controller"}}

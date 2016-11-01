@@ -15,9 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="ha-step8">
-  <h2>{{t admin.highAvailability.wizard.step8.bodyHeader}}</h2>
+<div id="ha-step8" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t admin.highAvailability.wizard.step8.bodyHeader}}</h4>
   {{{view.step8BodyText}}}
+</div>
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     <a class="btn btn-success pull-right" {{action done target="controller"}}>{{t common.next}} &rarr;</a>
     <span class="pull-right btn-extra-info">{{!t admin.highAvailability.wizard.step8.metaNoInit}}</span>
