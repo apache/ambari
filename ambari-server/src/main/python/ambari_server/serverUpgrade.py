@@ -544,7 +544,7 @@ def restore_custom_services():
         continue
 
       # process dirs only
-      if os.path.isdir(backup_service):
+      if os.path.isdir(backup_service) and not os.path.islink(backup_service):
         service_name = os.path.basename(backup_service)
         if not service_name in managed_services:
           shutil.copytree(backup_service, os.path.join(current_base_service_dir,service_name))
