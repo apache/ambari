@@ -373,6 +373,11 @@ describe('filters.getFilterByType', function () {
         result: true
       },
       {
+        condition: 'lo (1)',
+        value: 'hello (1)',
+        result: true
+      },
+      {
         condition: 'lol',
         value: 'hello',
         result: false

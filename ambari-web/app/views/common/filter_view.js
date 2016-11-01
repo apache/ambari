@@ -594,7 +594,8 @@ module.exports = {
       default:
         return function (origin, compareValue) {
           if (validator.isValidMatchesRegexp(compareValue)) {
-            var regex = new RegExp(compareValue, "i");
+            var escapedCompareValue = compareValue.replace("(", "\\(").replace(")", "\\)").trim();
+            var regex = new RegExp(escapedCompareValue, "i");
             return regex.test(origin);
           }
           return false;
