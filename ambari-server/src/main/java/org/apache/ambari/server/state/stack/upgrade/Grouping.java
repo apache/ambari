@@ -44,7 +44,9 @@ import com.google.common.base.Objects;
 /**
  *
  */
-@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class, UpdateStackGrouping.class, ServiceCheckGrouping.class, RestartGrouping.class, StartGrouping.class, StopGrouping.class })
+@XmlSeeAlso(value = { ColocatedGrouping.class, ClusterGrouping.class,
+    UpdateStackGrouping.class, ServiceCheckGrouping.class, RestartGrouping.class,
+    StartGrouping.class, StopGrouping.class, HostOrderGrouping.class })
 public class Grouping {
 
   @XmlAttribute(name="name")

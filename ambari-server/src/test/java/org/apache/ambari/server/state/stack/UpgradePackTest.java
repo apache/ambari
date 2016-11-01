@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.HostOrderGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ParallelScheduler;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
@@ -570,6 +571,21 @@ public class UpgradePackTest {
     Map<String, Map<String, ProcessingComponent>> tasks = upgradePack.getTasks();
     assertTrue(tasks.containsKey("HBASE"));
   }
+
+
+  @Test
+  public void testPackWithHostGroup() {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    UpgradePack upgradePack = upgrades.get("upgrade_test_host_ordered");
+
+    assertNotNull(upgradePack);
+    assertEquals(upgradePack.getType(), UpgradeType.HOST_ORDERED);
+    assertEquals(3, upgradePack.getAllGroups().size());
+
+    assertEquals(HostOrderGrouping.class, upgradePack.getAllGroups().get(0).getClass());
+    assertEquals(Grouping.class, upgradePack.getAllGroups().get(1).getClass());
+  }
+
 
   private int indexOf(Map<String, ?> map, String keyToFind) {
     int result = -1;

@@ -28,6 +28,7 @@
     <xs:restriction base="xs:string">
       <xs:enumeration value="ROLLING" />
       <xs:enumeration value="NON_ROLLING" />
+      <xs:enumeration value="HOST_ORDERED" />
     </xs:restriction>
   </xs:simpleType>
   
@@ -226,6 +227,14 @@
   </xs:complexType>
 
   <xs:complexType name="restart">
+    <xs:complexContent>
+      <xs:extension base="abstract-group-type">
+        <xs:sequence />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="host-order">
     <xs:complexContent>
       <xs:extension base="abstract-group-type">
         <xs:sequence />
