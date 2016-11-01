@@ -22,7 +22,7 @@ var testHelpers = require('test/helpers');
 
 describe('App.QuickViewLinks', function () {
 
-  var quickViewLinks = App.QuickViewLinks.create({
+  var quickViewLinks = App.QuickLinksView.create({
     content: Em.Object.create()
   });
 
