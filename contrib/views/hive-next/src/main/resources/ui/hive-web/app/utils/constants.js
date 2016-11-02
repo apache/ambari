@@ -63,6 +63,7 @@ export default Ember.Object.create({
     jobs: 'jobs',
     savedQuery: 'saved-query',
     database: 'database',
+    ldap:'ldap',
     databases: 'databases',
     openQueries: 'open-queries',
     visualExplain: 'visual-explain',
