@@ -95,10 +95,12 @@ class TestMain(unittest.TestCase):
     setLevel_mock.assert_called_with(logging.DEBUG)
 
 
+  @patch("os.path.exists")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(main.logger, "setLevel")
   @patch("logging.basicConfig")
-  def test_update_log_level(self, basicConfig_mock, setLevel_mock):
+  def test_update_log_level(self, basicConfig_mock, setLevel_mock, os_path_exists_mock):
+    os_path_exists_mock.return_value = False
     config = AmbariConfig().getConfig()
 
     # Testing with default setup (config file does not contain loglevel entry)

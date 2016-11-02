@@ -52,7 +52,8 @@ class TestHardware(TestCase):
   def test_build(self, get_os_version_mock, get_os_type_mock):
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    hardware = Hardware()
+    config = None
+    hardware = Hardware(config)
     result = hardware.get()
     osdisks = hardware.osdisks()
     for dev_item in result['mounts']:
@@ -196,7 +197,8 @@ class TestHardware(TestCase):
     hostname_mock.return_value = 'ambari'
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
 
     self.assertEquals(result['hostname'], "ambari")
     self.assertEquals(result['domain'], "apache.org")
@@ -211,7 +213,8 @@ class TestHardware(TestCase):
     facter_setDataUpTimeOutput_mock.return_value = "262813.00 123.45"
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
 
     self.assertEquals(result['uptime_seconds'], '262813')
     self.assertEquals(result['uptime_hours'], '73')
@@ -236,7 +239,8 @@ SwapFree:        1598676 kB
 
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
 
     self.assertEquals(result['memorysize'], 1832392)
     self.assertEquals(result['memorytotal'], 1832392)
@@ -261,7 +265,8 @@ SwapFree:        1598676 kB
 
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
 
     self.assertTrue(inet_ntoa_mock.called)
     self.assertTrue(get_ip_address_by_ifname_mock.called)
@@ -287,7 +292,8 @@ SwapFree:        1598676 kB
 
     get_os_type_mock.return_value = "suse"
     get_os_version_mock.return_value = "11"
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
 
     self.assertTrue(get_ip_address_by_ifname_mock.called)
     self.assertEquals(result['netmask'], None)
@@ -301,22 +307,23 @@ SwapFree:        1598676 kB
     get_os_version_mock.return_value = "11"
     get_os_family_mock.return_value = "redhat"
 
-    result = Facter().facterInfo()
+    config = None
+    result = Facter(config).facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'redhat')
 
     get_os_family_mock.return_value = "ubuntu"
-    result = Facter().facterInfo()
+    result = Facter(config).facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'ubuntu')
 
     get_os_family_mock.return_value = "suse"
-    result = Facter().facterInfo()
+    result = Facter(config).facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'suse')
 
     get_os_family_mock.return_value = "My_new_family"
-    result = Facter().facterInfo()
+    result = Facter(config).facterInfo()
     self.assertEquals(result['operatingsystem'], 'some_type_of_os')
     self.assertEquals(result['osfamily'], 'My_new_family')
 
@@ -352,8 +359,7 @@ SwapFree:        1598676 kB
     json_data.items.return_value = [('key', 'value')]
     json_data.__getitem__.return_value = 'value'
 
-    facter = Facter()
-    facter.config = config
+    facter = Facter(config)
     result = facter.getSystemResourceOverrides()
 
     isdir.assert_called_with('/etc/custom_resource_overrides')

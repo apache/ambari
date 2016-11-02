@@ -188,7 +188,7 @@ class AmbariConfig:
 
   @staticmethod
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-  def getConfigFile():
+  def getConfigFile(home_dir=""):
     if 'AMBARI_AGENT_CONF_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
     else:
@@ -196,32 +196,56 @@ class AmbariConfig:
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def getConfigFile():
+  def getConfigFile(home_dir=""):
+    """
+    Get the configuration file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Configuration file path.
+    """
     if 'AMBARI_AGENT_CONF_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
     else:
-      return os.path.join(os.sep, "etc", "ambari-agent", "conf", "ambari-agent.ini")
+      # home_dir may be an empty string
+      return os.path.join(os.sep, home_dir, "etc", "ambari-agent", "conf", "ambari-agent.ini")
 
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getLogFile():
+  def getLogFile(home_dir=""):
+    """
+    Get the log file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Log file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.log")
-    
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-agent.log")
+
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getAlertsLogFile():
+  def getAlertsLogFile(home_dir=""):
+    """
+    Get the alerts log file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Alerts log file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.log")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-alerts.log")
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-alerts.log")
 
+  # TODO AMBARI-18733, change usages of this function to provide the home_dir.
   @staticmethod
-  def getOutFile():
+  def getOutFile(home_dir=""):
+    """
+    Get the out file path.
+    :param home_dir: In production, will be "". When running multiple Agents per host, each agent will have a unique path.
+    :return: Out file path.
+    """
     if 'AMBARI_AGENT_LOG_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_LOG_DIR'], "ambari-agent.out")
     else:
-      return os.path.join(os.sep, "var", "log", "ambari-agent", "ambari-agent.out")
+      return os.path.join(os.sep, home_dir, "var", "log", "ambari-agent", "ambari-agent.out")
 
   def has_option(self, section, option):
     return self.config.has_option(section, option)
