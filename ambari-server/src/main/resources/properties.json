@@ -17,6 +17,8 @@
         "ServiceInfo/cluster_name",
         "ServiceInfo/state",
         "ServiceInfo/maintenance_state",
+        "ServiceInfo/credential_store_supported",
+        "ServiceInfo/credential_store_enabled",
         "Services/description",
         "Services/display_name",
         "Services/attributes",
@@ -217,6 +219,8 @@
         "StackServices/service_check_supported",
         "StackServices/custom_commands",
         "StackServices/required_services",
+        "StackServices/credential_store_supported",
+        "StackServices/credential_store_enabled",
         "StackServices/properties",
         "_"
     ],
