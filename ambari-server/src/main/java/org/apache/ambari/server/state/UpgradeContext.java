@@ -28,6 +28,7 @@ import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeScope;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -37,6 +38,34 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
  */
 public class UpgradeContext {
 
+  /**
+   * The cluster that the upgrade is for.
+   */
+  final private Cluster m_cluster;
+
+  /**
+   * The direction of the upgrade.
+   */
+  final private Direction m_direction;
+
+  /**
+   * The type of upgrade.
+   */
+  final private UpgradeType m_type;
+
+  /**
+   * The request parameters from the REST API for creating this upgrade.
+   */
+  final private Map<String, Object> m_upgradeRequestMap;
+
+  /**
+   * The upgrade pack for this upgrade.
+   */
+  private UpgradePack m_upgradePack;
+
+  /**
+   * The version being upgrade to or downgraded to.
+   */
   private String m_version;
 
   /**
@@ -61,14 +90,12 @@ public class UpgradeContext {
    */
   private StackId m_targetStackId;
 
-  private Direction m_direction;
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
   private List<ServiceComponentHost> m_unhealthy = new ArrayList<ServiceComponentHost>();
   private Map<String, String> m_serviceNames = new HashMap<String, String>();
   private Map<String, String> m_componentNames = new HashMap<String, String>();
   private String m_downgradeFromVersion = null;
-  private UpgradeType m_type = null;
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -96,8 +123,28 @@ public class UpgradeContext {
   /**
    * Constructor.
    *
-   * @param resolver
-   *          the resolver that also references the required cluster
+   * @param cluster
+   *          the cluster that the upgrade is for
+   * @param type
+   *          the type of upgrade, either rolling or non_rolling
+   * @param direction
+   *          the direction for the upgrade
+   * @param upgradeRequestMap
+   *          the original map of paramters used to create the upgrade
+   */
+  public UpgradeContext(Cluster cluster, UpgradeType type, Direction direction,
+      Map<String, Object> upgradeRequestMap) {
+    m_cluster = cluster;
+    m_type = type;
+    m_direction = direction;
+    m_upgradeRequestMap = upgradeRequestMap;
+  }
+
+  /**
+   * Sets the source and target stack IDs. This will also set the effective
+   * stack ID based on the already-set {@link UpgradeType} and
+   * {@link Direction}.
+   *
    * @param sourceStackId
    *          the original "current" stack of the cluster before the upgrade
    *          started. This is the same regardless of whether the current
@@ -108,24 +155,18 @@ public class UpgradeContext {
    *          same regardless of whether the current direction is
    *          {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE} (not
    *          {@code null}).
-   * @param version
-   *          the target version to upgrade to
-   * @param direction
-   *          the direction for the upgrade
-   * @param type
-   *          the type of upgrade, either rolling or non_rolling
+   *
+   * @see #getEffectiveStackId()
    */
-  public UpgradeContext(MasterHostResolver resolver, StackId sourceStackId,
-      StackId targetStackId, String version, Direction direction, UpgradeType type) {
-    m_version = version;
+  public void setSourceAndTargetStacks(StackId sourceStackId, StackId targetStackId) {
     m_originalStackId = sourceStackId;
 
-    switch (type) {
+    switch (m_type) {
       case ROLLING:
         m_effectiveStackId = targetStackId;
         break;
       case NON_ROLLING:
-        m_effectiveStackId = (direction.isUpgrade())? sourceStackId : targetStackId;
+        m_effectiveStackId = (m_direction.isUpgrade()) ? sourceStackId : targetStackId;
         break;
       default:
         m_effectiveStackId = targetStackId;
@@ -133,16 +174,45 @@ public class UpgradeContext {
     }
 
     m_targetStackId = targetStackId;
-    m_direction = direction;
-    m_resolver = resolver;
-    m_type = type;
   }
 
   /**
-   * @return the cluster from the {@link MasterHostResolver}
+   * Gets the original mapping of key/value pairs from the request which created
+   * the upgrade.
+   *
+   * @return the original mapping of key/value pairs from the request which
+   *         created the upgrade.
+   */
+  public Map<String, Object> getUpgradeRequest() {
+    return m_upgradeRequestMap;
+  }
+
+  /**
+   * Gets the upgrade pack for this upgrade.
+   *
+   * @return the upgrade pack
+   */
+  public UpgradePack getUpgradePack() {
+    return m_upgradePack;
+  }
+
+  /**
+   * Sets the upgrade pack for this upgrade
+   *
+   * @param upgradePack
+   *          the upgrade pack to set
+   */
+  public void setUpgradePack(UpgradePack upgradePack) {
+    m_upgradePack = upgradePack;
+  }
+
+  /**
+   * Gets the cluster that the upgrade is for.
+   *
+   * @return the cluster (never {@code null}).
    */
   public Cluster getCluster() {
-    return m_resolver.getCluster();
+    return m_cluster;
   }
 
   /**
@@ -150,6 +220,14 @@ public class UpgradeContext {
    */
   public String getVersion() {
     return m_version;
+  }
+
+  /**
+   * @param version
+   *          the target version to upgrade to
+   */
+  public void setVersion(String version) {
+    m_version = version;
   }
 
   /**
@@ -164,6 +242,16 @@ public class UpgradeContext {
    */
   public UpgradeType getType() {
     return m_type;
+  }
+
+  /**
+   * Sets the host resolver.
+   *
+   * @param resolver
+   *          the resolver that also references the required cluster
+   */
+  public void setResolver(MasterHostResolver resolver) {
+    m_resolver = resolver;
   }
 
   /**
