@@ -22,8 +22,8 @@ var App = require('app');
 App.ManageJournalNodeWizardStep3View = App.HighAvailabilityWizardStep4View.extend({
   templateName: require('templates/main/admin/highAvailability/journalNode/step3'),
   step3BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true);
-    return Em.I18n.t('admin.manageJournalNode.wizard.step3.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
+    var nN = this.get('controller.content.activeNN');
+    return Em.I18n.t('admin.manageJournalNode.wizard.step3.body').format(this.get('controller.content.hdfsUser'), nN.host_name);
   }.property('controller.content.masterComponentHosts'),
 
 });

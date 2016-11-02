@@ -23,7 +23,7 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
 
   name: 'manageJournalNodeWizardController',
 
-  totalSteps: 5,
+  totalSteps: 8,
 
   /**
    * Used for hiding back button in wizard
@@ -77,6 +77,11 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
                 self.loadServicesFromServer();
                 self.loadMasterComponentHosts().done(function () {
                   self.load('hdfsUser');
+                  if (!self.getDBProperty('activeNN')) {
+                    self.saveNNs();
+                  } else {
+                    self.loadNNs();
+                  }
                   dfd.resolve();
                 });
               });
@@ -97,9 +102,7 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
-          // TODO load nameservice id
-          this.set('content.nameServiceId', 'ns1');
-          this.setDBProperty('nameServiceId', 'ns1');
+          this.loadNameServiceId();
           this.loadServiceConfigProperties();
         }
       }
@@ -113,20 +116,26 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
           this.loadRequestIds();
         }
       }
-    ],
-    '6': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.loadTasksStatuses();
-          this.loadTasksRequestIds();
-          this.loadRequestIds();
-        }
-      }
     ]
-
   },
 
+  getJournalNodesToAdd: function () {
+    return this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE')
+      .filterProperty('isInstalled', false).mapProperty('hostName');
+  },
+
+  getJournalNodesToDelete: function () {
+    var existingHosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
+    var currentJNs = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE');
+    var removed = existingHosts.filter(function(host) {
+      return currentJNs.filterProperty('hostName', host).length == 0;
+    });
+    return removed;
+  },
+
+  isDeleteOnly: function () {
+    return this.getJournalNodesToAdd().length == 0 && this.getJournalNodesToDelete().length > 0;
+  },
 
   /**
    * Save config properties
@@ -156,6 +165,23 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
   },
 
 
+  saveNNs: function(activeNN, standByNN) {
+    var activeNN = App.HostComponent.find().findProperty('displayNameAdvanced', 'Active NameNode');
+    var standByNN = App.HostComponent.find().findProperty('displayNameAdvanced', 'Standby NameNode');
+    this.set('content.activeNN', activeNN);
+    this.set('content.standByNN', standByNN);
+    this.setDBProperty('activeNN', activeNN);
+    this.setDBProperty('standByNN', standByNN);
+  },
+
+  loadNNs: function() {
+    var activeNN = this.getDBProperty('activeNN');
+    var standByNN = this.getDBProperty('standByNN');
+    this.set('content.activeNN', activeNN);
+    this.set('content.standByNN', standByNN);
+  },
+
+
   saveConfigTag: function(tag){
     App.db.setManageJournalNodeWizardConfigTag(tag);
     this.set('content.'+[tag.name], tag.value);
@@ -165,6 +191,16 @@ App.ManageJournalNodeWizardController = App.WizardController.extend({
   loadConfigTag: function(tag){
     var tagVal = App.db.getManageJournalNodeWizardConfigTag(tag);
     this.set('content.'+tag, tagVal);
+  },
+
+  saveNameServiceId: function(nameServiceId){
+    this.setDBProperty('nameServiceId', nameServiceId);
+    this.set('content.nameServiceId', nameServiceId);
+  },
+
+  loadNameServiceId: function(){
+    var nameServiceId = this.getDBProperty('nameServiceId');
+    this.set('content.nameServiceId', nameServiceId);
   },
 
   /**
