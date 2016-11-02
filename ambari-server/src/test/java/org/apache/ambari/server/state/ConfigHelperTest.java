@@ -845,6 +845,8 @@ public class ConfigHelperTest {
           bind(ClusterController.class).toInstance(clusterController);
           bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
           bind(HostRoleCommandDAO.class).toInstance(createNiceMock(HostRoleCommandDAO.class));
+
+          bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
         }
       });
 

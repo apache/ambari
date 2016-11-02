@@ -832,7 +832,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     }
   }
 
-  @Transactional
   protected DeleteStatusMetaData deleteHosts(Set<HostRequest> requests, boolean dryRun)
       throws AmbariException {
 

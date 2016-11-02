@@ -295,11 +295,17 @@ public class ConfigGroupImpl implements ConfigGroup {
         String hostName = hosts.get(hostId).getHostName();
         LOG.info("Removing host from config group, hostid = " + hostId + ", hostname = " + hostName);
         hosts.remove(hostId);
-        try {
-          ConfigGroupHostMappingEntityPK hostMappingEntityPK = new
+        ConfigGroupHostMappingEntityPK hostMappingEntityPK = new
             ConfigGroupHostMappingEntityPK();
-          hostMappingEntityPK.setHostId(hostId);
-          hostMappingEntityPK.setConfigGroupId(configGroupEntity.getGroupId());
+        hostMappingEntityPK.setHostId(hostId);
+        hostMappingEntityPK.setConfigGroupId(configGroupEntity.getGroupId());
+
+        ConfigGroupHostMappingEntity mappingEntity = configGroupHostMappingDAO.findByPK(hostMappingEntityPK);
+        if (mappingEntity == null) {
+          // tolerate missing mapping as it could be removed with HostEntity
+          return;
+        }
+        try {
           configGroupHostMappingDAO.removeByPK(hostMappingEntityPK);
         } catch (Exception e) {
           LOG.error("Failed to delete config group host mapping"

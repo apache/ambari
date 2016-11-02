@@ -289,6 +289,7 @@ public class ConfigGroupHostMappingDAO {
 
   @Transactional
   public void removeAllByHost(Long hostId) {
+    populateCache();
     TypedQuery<String> query = entityManagerProvider.get().createQuery
       ("DELETE FROM ConfigGroupHostMappingEntity confighosts WHERE " +
         "confighosts.hostId = ?1", String.class);
@@ -297,8 +298,10 @@ public class ConfigGroupHostMappingDAO {
     
     
     Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(hostId);
-    
-    setByHost.clear();
+
+    if (setByHost != null) {
+      setByHost.clear();
+    }
   }
   
   private ConfigGroupHostMapping buildConfigGroupHostMapping(

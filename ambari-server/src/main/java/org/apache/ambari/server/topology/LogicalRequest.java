@@ -344,7 +344,7 @@ public class LogicalRequest extends Request {
 
         Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
         while (hostRequestIterator.hasNext()) {
-          if (hostRequestIterator.next().getHostName().equals(hostName)) {
+          if (StringUtils.equals(hostRequestIterator.next().getHostName(), hostName)) {
             hostRequestIterator.remove();
             break;
           }
@@ -353,7 +353,7 @@ public class LogicalRequest extends Request {
         //todo: synchronization
         Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
         while (allHostRequesIterator.hasNext()) {
-          if (allHostRequesIterator.next().getHostName().equals(hostName)) {
+          if (StringUtils.equals(allHostRequesIterator.next().getHostName(), hostName)) {
             allHostRequesIterator.remove();
             break;
           }

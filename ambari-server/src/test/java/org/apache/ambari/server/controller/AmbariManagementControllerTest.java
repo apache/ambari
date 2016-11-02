@@ -9025,6 +9025,7 @@ public class AmbariManagementControllerTest {
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
     } catch (Exception e) {
+      LOG.error("Fail to remove host", e);
       fail("Did not expect an error deleting the host from the cluster. Error: " + e.getMessage());
     }
     // Verify host is no longer part of the cluster
