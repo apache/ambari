@@ -232,7 +232,7 @@
         <version>1.7</version>
         <executions>
           <execution>
-            <id>gzip ambari-web images and fontawesome fonts</id>
+            <id>gzip ambari-web images</id>
             <phase>prepare-package</phase>
             <goals>
               <goal>run</goal>
@@ -244,14 +244,6 @@
                   <fileset dir="${basedir}/public/img/">
                     <patternset>
                       <include name="**/*.png"/>
-                    </patternset>
-                  </fileset>
-                </apply>
-                <apply executable="${executable.gzip}">
-                  <arg value="-f"/>
-                  <fileset dir="${basedir}/public/font/">
-                    <patternset>
-                      <include name="**/*"/>
                     </patternset>
                   </fileset>
                 </apply>
