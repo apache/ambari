@@ -44,10 +44,17 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "RANGER": self.recommendRangerConfigurations,
       "LOGSEARCH" : self.recommendLogsearchConfigurations,
       "SPARK": self.recommendSparkConfigurations,
+      "KAFKA": self.recommendKafkaConfigurations,
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
 
+  def recommendKafkaConfigurations(self, configurations, clusterData, services, hosts):
+    kafka_mounts = [
+      ("log.dirs", "KAFKA_BROKER", "/kafka-logs", "multi")
+    ]
+
+    self.updateMountProperties("kafka-broker", kafka_mounts, configurations, services, hosts)
 
   def recommendSparkConfigurations(self, configurations, clusterData, services, hosts):
     """
