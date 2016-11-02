@@ -1,0 +1,14 @@
+{
+  "stack_features": [
+    {
+      "name": "rolling_upgrade",
+      "description": "Rolling upgrade support",
+      "min_version": "1.0.0.0"
+    },
+    {
+      "name": "config_versioning",
+      "description": "Configurable versions support",
+      "min_version": "1.0.0.0"
+    }
+  ]
+}
