@@ -18,17 +18,17 @@
 
 <div class="capshed-advanced-container">
   {{!-- QUEUE MAPPING --}}
-  {{#if isOperator}}
     <div class="hidden-sm hidden-xs">
       {{queue-mapping mappings=scheduler.queue_mappings
         mappingsOverrideEnable=scheduler.queue_mappings_override_enable
         queues=queues
         isQueueMappingsDirty=isQueueMappingsDirty
         scheduler=scheduler
-        rollbackProp="rollbackProp"}}
+        rollbackProp="rollbackProp"
+        isOperator=isOperator}}
     </div>
-  {{/if}}
 </div>
+{{#if isOperator}}
 <div class="row">
   <div class="btn btn-group-sm col-sm-offset-2">
     {{#if isQueueMappignsNeedSaveOrRefresh}}
@@ -41,6 +41,7 @@
     <button type="button" class="btn btn-default" name="viewCapSchedXml" {{action "viewCapSchedConfigXml"}}>View XML</button>
   </div>
 </div>
+{{/if}}
 
 {{confirm-discard-changes isDialogOpen=isConfirmDialogOpen action="rollbackQueueMappingProps"}}
 

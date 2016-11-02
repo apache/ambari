@@ -31,7 +31,7 @@
     </div>
     <div class="col-md-4 col-sm-4">
       <div class="form-group input-group label-capacity-input">
-        {{capacity-input class='input-sm' value=label.capacity maxVal=100 disabled=isAccessDisabled}}
+        {{decimal-capacity-input class='input-sm' value=label.capacity maxVal=100 disabled=isAccessDisabled}}
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">
@@ -47,7 +47,7 @@
     </div>
     <div class="col-md-4 col-sm-4">
       <div {{bind-attr class=":form-group :input-group :label-capacity-input isInvalidLabelMaxCapacity:has-error"}}>
-        {{max-capacity-input class='input-sm' value=label.maximum_capacity maxVal=100 disabled=isAccessDisabled}}
+        {{decimal-maxcapacity-input class='input-sm' value=label.maximum_capacity maxVal=100 disabled=isAccessDisabled}}
         <span class="input-group-addon">%</span>
       </div>
       <div class="form-group label-capacity-slider">

@@ -31,6 +31,7 @@
         <div class="row">
           <label>User to Queue Mappings (Precedence is from top to botttom)</label>
         </div>
+        {{#if isOperator}}
         <div class="row">
           <ul id="qMappingList" class="list-group">
             {{#each qm in queueMappings}}
@@ -176,6 +177,17 @@
             {{/if}}
           </div>
         </div>
+        {{else}}
+        <div class="row">
+          <ul id="qMappingList" class="list-group">
+            {{#each qm in queueMappings}}
+              <li class="list-group-item">{{queueMappingParser qm}}</li>
+            {{else}}
+              <span>No queue mappings defined</span>
+            {{/each}}
+          </ul>
+        </div>
+        {{/if}}
       </div>
     </div>
   </div>
