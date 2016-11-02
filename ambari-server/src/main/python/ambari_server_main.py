@@ -212,8 +212,11 @@ def wait_for_server_start(pidFile, scmStatus):
     "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
     "or perform a cluster upgrade until you correct the database consistency issues. See " + \
           configDefaults.DB_CHECK_LOG + "for more details on the consistency issues."
+  elif 'Database consistency check: warning' in open(configDefaults.SERVER_OUT_FILE).read():
+    print "DB configs consistency check found warnings. See " + \
+          configDefaults.DB_CHECK_LOG + " for more details."
   else:
-    print "DB consistency check: no errors were found."
+    print "DB configs consistency check: no errors and warnings were found."
 
 
   if found_pids <= 0:

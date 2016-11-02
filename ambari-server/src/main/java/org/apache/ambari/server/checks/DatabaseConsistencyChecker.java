@@ -117,7 +117,7 @@ public class DatabaseConsistencyChecker {
       }
     } finally {
         DatabaseConsistencyCheckHelper.closeConnection();
-        if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
+        if (DatabaseConsistencyCheckHelper.ifErrorsFound() || DatabaseConsistencyCheckHelper.ifWarningsFound()) {
           String ambariDBConsistencyCheckLog = "ambari-server-check-database.log";
           if (LOG instanceof Log4jLoggerAdapter) {
             org.apache.log4j.Logger dbConsistencyCheckHelperLogger = org.apache.log4j.Logger.getLogger(DatabaseConsistencyCheckHelper.class);
@@ -131,12 +131,18 @@ public class DatabaseConsistencyChecker {
             }
           }
           ambariDBConsistencyCheckLog = ambariDBConsistencyCheckLog.replace("//", "/");
-          System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
+
+          if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
+            System.out.print(String.format("DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " +
                   "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " +
                   "or perform a cluster upgrade until you correct the database consistency issues. See \"%s\" " +
                   "for more details on the consistency issues.", ambariDBConsistencyCheckLog));
+          } else {
+            System.out.print(String.format("DB configs consistency check found warnings. See \"%s\" " +
+                    "for more details.", ambariDBConsistencyCheckLog));
+          }
         } else {
-          System.out.print("No errors were found.");
+          System.out.print("No errors and warnings were found.");
         }
 
     }
