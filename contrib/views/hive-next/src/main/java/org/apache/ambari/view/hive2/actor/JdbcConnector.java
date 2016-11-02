@@ -349,7 +349,9 @@ public class JdbcConnector extends HiveActor {
 
     Optional<HiveConnection> connectionOptional = connectable.getConnection();
     if (!connectionOptional.isPresent()) {
-      notifyConnectFailure(new SQLException("Hive connection is not created"));
+      SQLException sqlException = connectable.isUnauthorized() ? new SQLException("Hive Connection not Authorized", "AUTHFAIL")
+              : new SQLException("Hive connection is not created");
+      notifyConnectFailure(sqlException);
       return false;
     }
     return true;

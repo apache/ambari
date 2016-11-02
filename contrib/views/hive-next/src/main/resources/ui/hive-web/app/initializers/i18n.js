@@ -71,6 +71,7 @@ TRANSLATIONS = {
       },
       query: {
         execution: 'Query has been submitted.',
+        rerun: "Password updated, please execute the query again",
         save: 'The query has been saved.',
         update: 'The query has been updated.'
       }

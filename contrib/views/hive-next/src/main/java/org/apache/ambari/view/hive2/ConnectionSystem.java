@@ -23,7 +23,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Inbox;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
-import com.google.common.collect.Multimap;
+import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive2.actor.DeathWatch;
 import org.apache.ambari.view.hive2.actor.OperationController;
@@ -31,6 +31,7 @@ import org.apache.ambari.view.hive2.internal.ConnectionSupplier;
 import org.apache.ambari.view.hive2.internal.DataStorageSupplier;
 import org.apache.ambari.view.hive2.internal.HdfsApiSupplier;
 import org.apache.ambari.view.hive2.internal.SafeViewContext;
+import org.apache.parquet.Strings;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,9 @@ public class ConnectionSystem {
   private static volatile ConnectionSystem instance = null;
   private static final Object lock = new Object();
   private static Map<String, Map<String, ActorRef>> operationControllerMap = new ConcurrentHashMap<>();
+
+  // credentials map stores usernames and passwords
+  private static Map<String, String> credentialsMap = new ConcurrentHashMap<>();
 
   private ConnectionSystem() {
     this.actorSystem = ActorSystem.create(ACTOR_SYSTEM_NAME);
@@ -96,6 +100,18 @@ public class ConnectionSystem {
       }
     }
     return ref;
+  }
+
+  public synchronized void persistCredentials(String user,String password){
+    if(!Strings.isNullOrEmpty(password)){
+      credentialsMap.put(user,password);
+    }
+  }
+
+
+  public synchronized Optional<String> getPassword(ViewContext viewContext){
+    String pass = credentialsMap.get(viewContext.getUsername());
+    return Optional.fromNullable(pass);
   }
 
   public void removeOperationControllerFromCache(String viewInstanceName) {

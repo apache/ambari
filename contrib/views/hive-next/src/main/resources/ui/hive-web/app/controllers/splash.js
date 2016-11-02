@@ -22,9 +22,36 @@ import constants from 'hive/utils/constants';
 export default Ember.Controller.extend({
 
   databaseService: Ember.inject.service(constants.namingConventions.database),
+  ldapService: Ember.inject.service(constants.namingConventions.ldap),
   isExpanded: false,
   errors: "",
   stackTrace: "",
+  requestLdapPassword:function(callback) {
+    var ldap = this.get('ldapService');
+    ldap.requestLdapPassword(this,callback);
+  },
+
+checkConnection: function() {
+    var model = this.get('model');
+    var url = this.container.lookup('adapter:application').buildURL() + '/resources/connection/';
+    var finalurl =  url + 'connect' ;
+    var self = this;
+
+    return Ember.$.getJSON( finalurl )
+        .then(
+            function(data) {
+              console.log("fulfil");
+              model.set('ldapSuccess',true);
+            },
+            function(reason) {
+              console.log("fail");
+              if(reason.status === 401){
+                model.set('ldapSuccess',false);
+              }
+            }
+        );
+
+  },
   startTests: function() {
 
     var model = this.get('model');
@@ -64,9 +91,11 @@ export default Ember.Controller.extend({
       model.set('percent', percent + 25);
     };
 
-    var promises = ['hdfs', 'hiveserver', 'ats', 'userhome'].map(function(name) {
 
-      var finalurl = ((name == 'hiveserver') ? self.get('databaseService.baseUrl') : (url + name + 'Status')) || '' ;
+
+    var promises = ['hdfs', 'ats', 'userhome'].map(function(name) {
+
+      var finalurl =  url + name + 'Status' ;
 
       return Ember.$.getJSON( finalurl )
         .then(
@@ -74,7 +103,7 @@ export default Ember.Controller.extend({
             processResponse(name, data);
           },
           function(reason) {
-            processResponse(name, reason.responseJSON);
+              processResponse(name, reason.responseJSON);
           }
         );
     });
