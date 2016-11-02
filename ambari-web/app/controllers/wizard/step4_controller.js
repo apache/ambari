@@ -34,7 +34,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   isAllChecked: function(key, value) {
     if (arguments.length > 1) {
-      this.filterProperty('isInstalled', false).setEach('isSelected', value);
+      this.filterProperty('isDisabled', false).setEach('isSelected', value);
       return value;
     }
     return this.filterProperty('isInstalled', false).
