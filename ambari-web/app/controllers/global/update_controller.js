@@ -366,7 +366,7 @@ App.UpdateController = Em.Controller.extend({
     var preLoadKeys = this.get('hostsPreLoadKeys');
 
     if (this.get('queryParams.Hosts').length > 0 && this.get('queryParams.Hosts').filter(function (param) {
-      return param.isComponentRelatedFilter;
+      return preLoadKeys.contains(param.key);
     }, this).length > 0) {
       this.getHostByHostComponents(callback);
       return true;
@@ -407,7 +407,7 @@ App.UpdateController = Em.Controller.extend({
       params.callback(skipCall);
     } else {
       queryParams = queryParams.filter(function (param) {
-        return !param.isComponentRelatedFilter;
+        return !preLoadKeys.contains(param.key);
       });
 
       queryParams = [{
