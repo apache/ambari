@@ -56,4 +56,10 @@ public interface Connectable  {
      */
     void disconnect() throws ConnectionException;
 
+    /**
+     * True when the connection is unauthorized
+     * @return
+     */
+    boolean isUnauthorized();
+
 }

@@ -20,7 +20,6 @@ package org.apache.ambari.view.hive2.client;
 
 import com.google.common.base.Optional;
 import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
 import org.apache.ambari.view.hive2.actor.message.job.Failure;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 

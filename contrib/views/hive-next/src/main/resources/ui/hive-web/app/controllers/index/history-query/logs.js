@@ -23,6 +23,7 @@ import utils from 'hive/utils/functions';
 export default Ember.ObjectController.extend({
   fileService: Ember.inject.service(constants.namingConventions.file),
   notifyService: Ember.inject.service(constants.namingConventions.notify),
+  ldapService: Ember.inject.service(constants.namingConventions.ldap),
 
   needs: [ constants.namingConventions.queryTabs,
            constants.namingConventions.index,
@@ -32,12 +33,27 @@ export default Ember.ObjectController.extend({
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
 
+  requestLdapPassword:function(callback) {
+    var ldap = this.get('ldapService');
+    ldap.requestLdapPassword(this,callback);
+  },
+
   reloadJobLogs: function (job) {
     var self = this;
     var handleError = function (error) {
       job.set('isRunning', false);
-
-      self.get('notifyService').error(error);
+      // Check if error is 401
+      // show LDAP login and fail job
+      // show message to rerun job
+      if(error.status === 401){
+        self.requestLdapPassword(function(){
+          var err = {
+            message: Ember.I18n.t('alerts.success.query.rerun')
+          };
+          self.get('notifyService').error(err);
+        });
+      } else
+        self.get('notifyService').error(error);
     };
 
     job.reload().then(function () {
@@ -81,6 +97,8 @@ export default Ember.ObjectController.extend({
       handleError(err);
     });
   },
+
+
 
   isJobRunning: function (job) {
     return utils.insensitiveCompare(job.get('status'),
