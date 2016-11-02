@@ -22,6 +22,7 @@ App.CapschedController = Ember.Controller.extend({
   queues: null,
   precision: 2,
   selectedQueue: null,
+  allQueueLabels: null,
   allNodeLabels: Ember.computed.alias('store.nodeLabels.content'),
 
   actions: {
@@ -52,7 +53,7 @@ App.CapschedController = Ember.Controller.extend({
     allQueues.forEach(function(queue) {
       var absCap = this.getAbsoluteCapacityForQueue(queue);
       queue.set('absolute_capacity', absCap);
-    }.bind(this));
+    }, this);
   }.observes('queues', 'queues.[]', 'queues.@each.capacity').on('init'),
 
   getAbsoluteCapacityForQueue: function(queue) {
@@ -63,8 +64,40 @@ App.CapschedController = Ember.Controller.extend({
       queue = allQueues.findBy('id', queue.get('parentPath').toLowerCase()) || null;
     }
     var effectCapPercent = effectCapRatio * 100,
-    absoluteCap = parseFloat(parseFloat(effectCapPercent).toFixed(this.get('precision')));;
-    return absoluteCap;
+    absoluteCap = parseFloat(effectCapPercent).toFixed(this.get('precision'));
+    return parseFloat(absoluteCap);
+  },
+
+  labelsWatcher: function() {
+    var allQueues = this.get('queues') || [];
+    allQueues.forEach(function(queue) {
+      var qLabels = queue.get('labels');
+      if (!Ember.isEmpty(qLabels)) {
+        qLabels.forEach(function(label) {
+          var absCap = this.getAbsoluteCapacityForLabel(label, queue);
+          label.set('absolute_capacity', absCap);
+        }, this);
+      }
+    }, this);
+  }.observes('queues.@each.labels', 'queues.@each.labels.[]', 'allQueueLabels.@each.capacity').on('init'),
+
+  getAbsoluteCapacityForLabel: function(label, queue) {
+    var allQueues = this.get('queues'),
+    allQueueLabels = this.get('allQueueLabels') || [],
+    labelName = label.get('name'),
+    effectCapRatio = 1;
+    while (queue !== null) {
+      if (queue.get('labels').findBy('name', labelName)) {
+        var qlabel = queue.get('labels').findBy('id', [queue.get('id'), labelName].join('.'));
+        effectCapRatio *= qlabel.get('capacity') / 100;
+        queue = allQueues.findBy('id', queue.get('parentPath').toLowerCase()) || null;
+      } else {
+        return 0;
+      }
+    }
+    var effectCapPercent = effectCapRatio * 100,
+    absoluteCap = parseFloat(effectCapPercent).toFixed(this.get('precision'));
+    return parseFloat(absoluteCap);
   },
 
   alertMessage: null,

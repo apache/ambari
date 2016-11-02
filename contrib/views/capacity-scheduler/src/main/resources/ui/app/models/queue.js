@@ -43,7 +43,8 @@ App.Label = DS.Model.extend({
     this.set('maximum_capacity', maxCap);
   },
   isDirtyLabelCapacity: false,
-  isDirtyLabelMaxCapacity: false
+  isDirtyLabelMaxCapacity: false,
+  absolute_capacity: 0
 });
 
 App.Scheduler = DS.Model.extend({

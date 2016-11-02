@@ -35,6 +35,7 @@
    selectedLeafQueueNameForGroups: null,
    isQueueMappingsDirty: false,
    scheduler: null,
+   isOperator: false,
 
    actions: {
      showMappingOptions: function(){
