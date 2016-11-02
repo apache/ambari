@@ -477,9 +477,13 @@ describe('App.WizardStep3View', function () {
         })
       });
       sinon.spy(v.get('controller'), 'loadStep');
+      sinon.stub(v, '$').returns({
+        on: Em.K
+      });
     });
     afterEach(function() {
       v.get('controller').loadStep.restore();
+      v.$.restore();
     });
     it('should call loadStep', function() {
       v.didInsertElement();
