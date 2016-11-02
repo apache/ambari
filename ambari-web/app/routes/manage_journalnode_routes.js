@@ -115,8 +115,13 @@ module.exports = App.WizardRoute.extend({
       var stepController = router.get('manageJournalNodeWizardStep2Controller');
       controller.saveServiceConfigProperties(stepController);
       controller.saveConfigTag(stepController.get("hdfsSiteTag"));
+      controller.saveNameServiceId(stepController.get('content.nameServiceId'));
       App.set('router.nextBtnClickInProgress', false);
-      router.transitionTo('step3');
+      if (controller.isDeleteOnly()) {
+        router.transitionTo('step4');
+      } else {
+        router.transitionTo('step3');
+      }
     },
     back: Em.Router.transitionTo('step1')
   }),
@@ -161,7 +166,11 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var controller = router.get('manageJournalNodeWizardController');
       controller.clearTasksData();
-      router.transitionTo('step5');
+      if (controller.isDeleteOnly()) {
+        router.transitionTo('step8');
+      } else {
+        router.transitionTo('step5');
+      }
     }
   }),
 
@@ -194,6 +203,48 @@ module.exports = App.WizardRoute.extend({
         controller.setLowerStepsDisable(6);
         controller.loadAllPriorSteps().done(function () {
           controller.connectOutlet('manageJournalNodeWizardStep6', controller.get('content'));
+        });
+      })
+    },
+    unroutePath: function () {
+      return false;
+    },
+    next: function (router) {
+      var controller = router.get('manageJournalNodeWizardController');
+      controller.clearTasksData();
+      router.transitionTo('step7');
+    }
+  }),
+
+  step7: Em.Route.extend({
+    route: '/step7',
+    connectOutlets: function (router) {
+      var controller = router.get('manageJournalNodeWizardController');
+      controller.dataLoading().done(function () {
+        controller.setCurrentStep('7');
+        controller.setLowerStepsDisable(7);
+        controller.loadAllPriorSteps().done(function () {
+          controller.connectOutlet('manageJournalNodeWizardStep7', controller.get('content'));
+        });
+      })
+    },
+    unroutePath: function () {
+      return false;
+    },
+    next: function (router) {
+      router.transitionTo('step8');
+    }
+  }),
+
+  step8: Em.Route.extend({
+    route: '/step8',
+    connectOutlets: function (router) {
+      var controller = router.get('manageJournalNodeWizardController');
+      controller.dataLoading().done(function () {
+        controller.setCurrentStep('8');
+        controller.setLowerStepsDisable(8);
+        controller.loadAllPriorSteps().done(function () {
+          controller.connectOutlet('manageJournalNodeWizardStep8', controller.get('content'));
         });
       })
     },

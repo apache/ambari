@@ -22,24 +22,47 @@
 <div id="manage-journal-node-step2-content" class="well pre-scrollable">
     <div id="step8-info">
         <table id="manage-journal-node-step2-review-table">
+            {{#if view.journalNodesToAdd.length}}
             <tr>
                 <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
                 <td>
                     <ul>
-                        {{#each item in view.journalNodes}}
-                            <li>{{item.hostName}}</li>
+                        {{#each item in view.journalNodesToAdd}}
+                            <li>{{item}}</li>
                         {{/each}}
                     </ul>
                 </td>
                 <td>
                     <ul>
-                        {{#each item in view.journalNodes}}
-                            <li><span class="to-be-installed-green"><i
-                                    class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
+                        {{#each item in view.journalNodesToAdd}}
+                            <li><span class="to-be-installed-green"><i class="icon-plus"></i>
+                                &nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></li>
                         {{/each}}
                     </ul>
                 </td>
             </tr>
+            {{/if}}
+
+            {{#if view.journalNodesToDelete.length}}
+            <tr>
+                <td>{{t admin.highAvailability.wizard.step3.journalNode}}</td>
+                <td>
+                    <ul>
+                        {{#each item in view.journalNodesToDelete}}
+                            <li>{{item}}</li>
+                        {{/each}}
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        {{#each item in view.journalNodesToDelete}}
+                            <li><span class="to-be-disabled-red"><i class="icon-minus"></i>
+                                &nbsp;{{t admin.highAvailability.wizard.step3.toBeDeleted}}</span></li>
+                        {{/each}}
+                    </ul>
+                </td>
+            </tr>
+            {{/if}}
         </table>
     </div>
 </div>

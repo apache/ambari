@@ -182,6 +182,8 @@ require('views/main/admin/highAvailability/journalNode/step3_view');
 require('views/main/admin/highAvailability/journalNode/step4_view');
 require('views/main/admin/highAvailability/journalNode/step5_view');
 require('views/main/admin/highAvailability/journalNode/step6_view');
+require('views/main/admin/highAvailability/journalNode/step7_view');
+require('views/main/admin/highAvailability/journalNode/step8_view');
 require('views/main/admin/highAvailability/resourceManager/wizard_view');
 require('views/main/admin/highAvailability/resourceManager/step1_view');
 require('views/main/admin/highAvailability/resourceManager/step2_view');

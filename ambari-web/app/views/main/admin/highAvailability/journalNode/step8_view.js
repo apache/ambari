@@ -16,22 +16,14 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
 
-App.ManageJournalNodeWizardStep6Controller = App.ManageJournalNodeProgressPageController.extend({
-  name: 'manageJournalNodeWizardStep6Controller',
-  clusterDeployState: 'JOURNALNODE_MANAGEMENT',
-  tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
+App.ManageJournalNodeWizardStep8View = App.ManageJournalNodeProgressPageView.extend({
 
-  commands: ['startZooKeeperServers', 'startActiveNameNode'],
+  templateName: require('templates/main/admin/highAvailability/journalNode/step8'),
 
-  startZooKeeperServers: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    this.updateComponent('ZOOKEEPER_SERVER', hostNames, "ZOOKEEPER", "Start");
-  },
+  submitButtonText: Em.I18n.t('common.done'),
 
-  startActiveNameNode: function () {
-    var activeNN = this.get('content.activeNN');
-    this.updateComponent('NAMENODE', activeNN.host_name, "HDFS", "Start");
-  }
+  noticeCompleted: Em.I18n.t('admin.manageJournalNode.wizard.step8.notice.completed')
 });

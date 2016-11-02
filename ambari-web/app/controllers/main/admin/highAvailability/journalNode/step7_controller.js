@@ -18,20 +18,13 @@
 
 var App = require('app');
 
-App.ManageJournalNodeWizardStep6Controller = App.ManageJournalNodeProgressPageController.extend({
-  name: 'manageJournalNodeWizardStep6Controller',
-  clusterDeployState: 'JOURNALNODE_MANAGEMENT',
-  tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
+App.ManageJournalNodeWizardStep7Controller = Em.Controller.extend({
 
-  commands: ['startZooKeeperServers', 'startActiveNameNode'],
+  name:"manageJournalNodeWizardStep7Controller",
 
-  startZooKeeperServers: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    this.updateComponent('ZOOKEEPER_SERVER', hostNames, "ZOOKEEPER", "Start");
-  },
-
-  startActiveNameNode: function () {
-    var activeNN = this.get('content.activeNN');
-    this.updateComponent('NAMENODE', activeNN.host_name, "HDFS", "Start");
+  done: function () {
+    App.router.send("next");
   }
+
 });
+
