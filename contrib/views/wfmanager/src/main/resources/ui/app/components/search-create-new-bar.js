@@ -115,7 +115,8 @@ export default Ember.Component.extend(Ember.Evented,{
           typeaheadjs: {
             name: 'source',
             source: substringMatcher(source),
-            highlight : true
+            highlight : true,
+            limit : 10
           }
       });
       this.get('tags').forEach(function(value){
