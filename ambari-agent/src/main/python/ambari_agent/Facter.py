@@ -53,10 +53,18 @@ def run_os_command(cmd):
 
 
 class Facter(object):
-  def __init__(self):
-    self.config = self.resolve_ambari_config()
-  
+  def __init__(self, config):
+    """
+    Initialize the configs, which can be provided if using multiple Agents per host.
+    :param config: Agent configs. None if will use the default location.
+    """
+    self.config = config if config is not None else self.resolve_ambari_config()
+
   def resolve_ambari_config(self):
+    """
+    Resolve the default Ambari Agent configs.
+    :return: The default configs.
+    """
     try:
       config = AmbariConfig()
       if os.path.exists(AmbariConfig.getConfigFile()):
@@ -370,8 +378,8 @@ class FacterLinux(Facter):
   GET_UPTIME_CMD = "cat /proc/uptime"
   GET_MEMINFO_CMD = "cat /proc/meminfo"
 
-  def __init__(self):
-    super(FacterLinux,self).__init__()
+  def __init__(self, config):
+    super(FacterLinux,self).__init__(config)
     self.DATA_IFCONFIG_SHORT_OUTPUT = FacterLinux.setDataIfConfigShortOutput()
     self.DATA_UPTIME_OUTPUT = FacterLinux.setDataUpTimeOutput()
     self.DATA_MEMINFO_OUTPUT = FacterLinux.setMemInfoOutput()
@@ -547,7 +555,8 @@ class FacterLinux(Facter):
 
 
 def main(argv=None):
-  print Facter().facterInfo()
+  config = None
+  print Facter(config).facterInfo()
 
 
 if __name__ == '__main__':

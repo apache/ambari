@@ -72,7 +72,12 @@ alerts_logger = logging.getLogger('ambari_alerts')
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
 agentPid = os.getpid()
+
+# Global variables to be set later.
+home_dir = ""
+
 config = AmbariConfig.AmbariConfig()
+# TODO AMBARI-18733, remove this global variable and calculate it based on home_dir once it is set.
 configFile = config.getConfigFile()
 two_way_ssl_property = config.TWO_WAY_SSL_PROPERTY
 
@@ -110,7 +115,8 @@ def add_syslog_handler(logger):
 def update_log_level(config):
   # Setting loglevel based on config file
   global logger
-  log_cfg_file = os.path.join(os.path.dirname(AmbariConfig.AmbariConfig.getConfigFile()), "logging.conf")
+  global home_dir
+  log_cfg_file = os.path.join(os.path.dirname(AmbariConfig.AmbariConfig.getConfigFile(home_dir)), "logging.conf")
   if os.path.exists(log_cfg_file):
     logging.config.fileConfig(log_cfg_file)
     # create logger
@@ -132,11 +138,15 @@ def update_log_level(config):
       logger.info("Default loglevel=DEBUG")
 
 
-#  ToDo: move that function inside AmbariConfig
+# TODO AMBARI-18733, move inside AmbariConfig
 def resolve_ambari_config():
+  """
+  Load the configurations.
+  In production, home_dir will be "". When running multiple Agents per host, each agent will have a unique path.
+  """
   global config
-  configPath = os.path.abspath(AmbariConfig.AmbariConfig.getConfigFile())
-
+  global home_dir
+  configPath = os.path.abspath(AmbariConfig.AmbariConfig.getConfigFile(home_dir))
   try:
     if os.path.exists(configPath):
       config.read(configPath)
@@ -254,9 +264,11 @@ def stop_agent():
     sys.exit(0)
 
 def reset_agent(options):
+  global home_dir
   try:
     # update agent config file
     agent_config = ConfigParser.ConfigParser()
+    # TODO AMBARI-18733, calculate configFile based on home_dir
     agent_config.read(configFile)
     server_host = agent_config.get('server', 'hostname')
     new_host = options[2]
@@ -302,13 +314,17 @@ def run_threads(server_hostname, heartbeat_stop_callback):
 # we need this for windows os, where no sigterm available
 def main(heartbeat_stop_callback=None):
   global config
+  global home_dir
+
   parser = OptionParser()
   parser.add_option("-v", "--verbose", dest="verbose", action="store_true", help="verbose log output", default=False)
   parser.add_option("-e", "--expected-hostname", dest="expected_hostname", action="store",
                     help="expected hostname of current host. If hostname differs, agent will fail", default=None)
+  parser.add_option("--home", dest="home_dir", action="store", help="Home directory", default="")
   (options, args) = parser.parse_args()
 
   expected_hostname = options.expected_hostname
+  home_dir = options.home_dir
 
   logging_level = logging.DEBUG if options.verbose else logging.INFO
 
@@ -317,6 +333,10 @@ def main(heartbeat_stop_callback=None):
   is_logger_setup = True
   setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
   Logger.initialize_logger('resource_management', logging_level=logging_level)
+
+  if home_dir != "":
+    # When running multiple Ambari Agents on this host for simulation, each one will use a unique home directory.
+    Logger.info("Agent is using Home Dir: %s" % str(home_dir))
 
   # use the host's locale for numeric formatting
   try:
