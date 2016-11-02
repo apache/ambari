@@ -100,8 +100,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "HBASE": self.recommendHbaseConfigurations,
       "STORM": self.recommendStormConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
-      "RANGER": self.recommendRangerConfigurations
+      "RANGER": self.recommendRangerConfigurations,
+      "ZOOKEEPER": self.recommendZookeeperConfigurations,
+      "OOZIE": self.recommendOozieConfigurations
     }
+
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
+    oozie_mount_properties = [
+      ("oozie_data_dir", "OOZIE_SERVER", "/hadoop/oozie/data", "single"),
+    ]
+    self.updateMountProperties("oozie-env", oozie_mount_properties, configurations, services, hosts)
+
+  def recommendZookeeperConfigurations(self, configurations, clusterData, services, hosts):
+    zk_mount_properties = [
+      ("dataDir", "ZOOKEEPER_SERVER", "/hadoop/zookeeper", "single"),
+    ]
+    self.updateMountProperties("zoo.cfg", zk_mount_properties, configurations, services, hosts)
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
@@ -114,6 +128,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
+
+    yarn_mount_properties = [
+      ("yarn.nodemanager.local-dirs", "NODEMANAGER", "/hadoop/yarn/local", "multi"),
+      ("yarn.nodemanager.log-dirs", "NODEMANAGER", "/hadoop/yarn/log", "multi"),
+      ("yarn.timeline-service.leveldb-timeline-store.path", "APP_TIMELINE_SERVER", "/hadoop/yarn/timeline", "single"),
+      ("yarn.timeline-service.leveldb-state-store.path", "APP_TIMELINE_SERVER", "/hadoop/yarn/timeline", "single")
+    ]
+
+    self.updateMountProperties("yarn-site", yarn_mount_properties, configurations, services, hosts)
 
     sc_queue_name = self.recommendYarnQueue(services, "yarn-env", "service_check.queue.name")
     if sc_queue_name is not None:
@@ -145,6 +168,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+
+    mapred_mounts = [
+      ("mapred.local.dir", ["TASKTRACKER", "NODEMANAGER"], "/hadoop/mapred", "multi")
+    ]
+
+    self.updateMountProperties("mapred-site", mapred_mounts, configurations, services, hosts)
+
     mr_queue = self.recommendYarnQueue(services, "mapred-site", "mapreduce.job.queuename")
     if mr_queue is not None:
       putMapredProperty("mapreduce.job.queuename", mr_queue)
@@ -322,12 +352,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       if len(namenodes.split(',')) > 1:
         putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
 
-    #Initialize default 'dfs.datanode.data.dir' if needed
-    if (not hdfsSiteProperties) or ('dfs.datanode.data.dir' not in hdfsSiteProperties):
-      dataDirs = '/hadoop/hdfs/data'
-      putHDFSSiteProperty('dfs.datanode.data.dir', dataDirs)
-    else:
-      dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
+    hdfs_mount_properties = [
+      ("dfs.datanode.data.dir", "DATANODE", "/hadoop/hdfs/data", "multi"),
+      ("dfs.name.dir", "NAMENODE", "/hadoop/hdfs/namenode", "multi"),
+      ("dfs.namenode.name.dir", "DATANODE", "/hadoop/hdfs/namenode", "multi"),
+      ("dfs.data.dir", "DATANODE", "/hadoop/hdfs/data", "multi"),
+      ("fs.checkpoint.dir", "SECONDARY_NAMENODE", "/hadoop/hdfs/namesecondary", "single"),
+      ("dfs.namenode.checkpoint.dir", "SECONDARY_NAMENODE", "/hadoop/hdfs/namesecondary", "single")
+    ]
+
+    self.updateMountProperties("hdfs-site", hdfs_mount_properties, configurations, services, hosts)
+
+    dataDirs = hdfsSiteProperties['dfs.datanode.data.dir'].split(",")
 
     # dfs.datanode.du.reserved should be set to 10-15% of volume size
     # For each host selects maximum size of the volume. Then gets minimum for all hosts.

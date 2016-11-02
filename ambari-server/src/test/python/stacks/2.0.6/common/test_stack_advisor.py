@@ -1195,8 +1195,13 @@ class TestHDP206StackAdvisor(TestCase):
                   {'properties':
                      {'falcon_user': 'falcon'}},
                 'hdfs-site':
-                  {'properties': 
-                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                  {'properties':
+                     {'dfs.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'fs.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+                      'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
                       'dfs.datanode.du.reserved': '10240000000'}},
                 'hive-env':
                   {'properties':
@@ -1329,7 +1334,12 @@ class TestHDP206StackAdvisor(TestCase):
                      {'falcon_user': 'falcon'}},
                 'hdfs-site':
                   {'properties':
-                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                     {'dfs.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'fs.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+                      'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
                       'dfs.datanode.du.reserved': '10240000000'}},
                 'hive-env':
                   {'properties':
@@ -1463,8 +1473,13 @@ class TestHDP206StackAdvisor(TestCase):
                      {'hive_user': 'hive',
                       'webhcat_user': 'webhcat'}},
                 'hdfs-site':
-                  {'properties': 
-                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                  {'properties':
+                     {'dfs.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'fs.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+                      'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.name.dir': '/hadoop/hdfs/namenode',
+                      'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
                       'dfs.datanode.du.reserved': '10240000000'}},
                 'hadoop-env':
                   {'properties':
@@ -1484,10 +1499,15 @@ class TestHDP206StackAdvisor(TestCase):
 
     expected["hdfs-site"] = {
       'properties': {
-        'dfs.datanode.data.dir': '/hadoop/hdfs/data',
         'dfs.datanode.du.reserved': '10240000000',
         'dfs.internal.nameservices': 'mycluster',
-        'dfs.ha.namenodes.mycluster': 'nn1,nn2'
+        'dfs.ha.namenodes.mycluster': 'nn1,nn2',
+        'dfs.data.dir': '/hadoop/hdfs/data',
+        'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+        'fs.checkpoint.dir': '/hadoop/hdfs/namesecondary',
+        'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+        'dfs.name.dir': '/hadoop/hdfs/namenode',
+        'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
       },
       'property_attributes': {
         'dfs.namenode.rpc-address': {
