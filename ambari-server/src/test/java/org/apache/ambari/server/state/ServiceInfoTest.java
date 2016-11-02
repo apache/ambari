@@ -141,6 +141,230 @@ public class ServiceInfoTest {
     assertTrue(defaultSi.isSelectionEmpty());
   }
 
+  /**
+   * Tests the presence and absence of the credential-store block.
+   * @throws Exception
+     */
+  @Test
+  public void testCredentialStoreFields() throws Exception {
+    /*
+     * <credential-store> supported and enabled.
+     */
+    String serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "          <enabled>true</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    ServiceInfo service = serviceInfoMap.get("RANGER");
+    assertTrue(service.isCredentialStoreSupported());
+    assertTrue(service.isCredentialStoreEnabled());
+
+    /*
+     * <credential-store> supported but not enabled.
+     */
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>HIVE</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "          <enabled>false</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HIVE");
+    assertTrue(service.isCredentialStoreSupported());
+    assertFalse(service.isCredentialStoreEnabled());
+
+    /*
+     * <credential-store> is missing
+     */
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>AMBARI_METRICS</name>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("AMBARI_METRICS");
+    assertFalse(service.isCredentialStoreSupported());
+    assertFalse(service.isCredentialStoreEnabled());
+
+    /*
+     * <credential-store><enabled> is missing. Invalid
+     * scenario. So both values should be false.
+     */
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>HBASE</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    service = serviceInfoMap.get("HBASE");
+    assertTrue(service.isCredentialStoreSupported());
+    assertFalse(service.isCredentialStoreEnabled());
+  }
+
+  @Test
+  public void testCredentialStoreInfoValidity() throws Exception
+  {
+    // Valid: Supported->True, Enabled->False
+    String serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "          <enabled>false</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+    ServiceInfo serviceInfo = serviceInfoMap.get("RANGER");
+    assertTrue(serviceInfo.isValid());
+
+    // Valid: Supported->True, Enabled->True
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "          <enabled>true</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertTrue(serviceInfo.isValid());
+
+    // Valid: Supported->False, Enabled->False
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>false</supported>\n" +
+            "          <enabled>false</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertTrue(serviceInfo.isValid());
+
+    // Valid: credential-store not specified
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertTrue(serviceInfo.isValid());
+
+    // Specified but invalid
+    // Invalid: Supported->False, Enabled->True
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>false</supported>\n" +
+            "          <enabled>true</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertFalse("Credential store is enabled for a service that does not support it", serviceInfo.isValid());
+
+    // Invalid: Supported->Unspecified, Enabled->Unspecified
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertFalse("Credential store details not specified", serviceInfo.isValid());
+
+    // Invalid: Supported->Specified, Enabled->Unspecified
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <supported>true</supported>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertFalse("Credential store enabled not specified", serviceInfo.isValid());
+
+    // Invalid: Supported->Unspecified, Enabled->Specified
+    serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>RANGER</name>\n" +
+            "      <credential-store>\n" +
+            "          <enabled>true</enabled>\n" +
+            "      </credential-store>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    serviceInfoMap = getServiceInfo(serviceInfoXml);
+    serviceInfo = serviceInfoMap.get("RANGER");
+    assertFalse("Credential store supported not specified", serviceInfo.isValid());
+  }
+
   @Test
   public void testSetRestartRequiredAfterRackChange() throws Exception {
     ServiceInfo serviceInfo = new ServiceInfo();

@@ -58,6 +58,18 @@ public class StackServiceResponse {
   private File kerberosDescriptorFile;
 
   /**
+   * Indicates if the stack definition says this service supports
+   * credential store. If not specified, this will be false.
+   */
+  private boolean credentialStoreSupported;
+
+  /**
+   * Indicates if the stack definition says this service is enabled
+   * for credential store use. If not specified, this will be false.
+   */
+  private boolean credentialStoreEnabled;
+
+  /**
    * Constructor.
    *
    * @param service
@@ -90,6 +102,10 @@ public class StackServiceResponse {
     kerberosDescriptorFile = service.getKerberosDescriptorFile();
 
     serviceProperties = service.getServiceProperties();
+
+    credentialStoreSupported = service.isCredentialStoreSupported();
+
+    credentialStoreEnabled = service.isCredentialStoreEnabled();
   }
 
   public ServiceInfo.Selection getSelection() {
@@ -230,4 +246,39 @@ public class StackServiceResponse {
     return serviceProperties;
   }
 
+  /**
+   * Get whether credential store is supported by the service
+   *
+   * @return true or false.
+   */
+  public boolean isCredentialStoreSupported() {
+    return credentialStoreSupported;
+  }
+
+  /**
+   * Set credential store supported value
+   *
+   * @param credentialStoreSupported
+   */
+  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
+    this.credentialStoreSupported = credentialStoreSupported;
+  }
+
+  /**
+   * Get whether credential store use is enabled
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreEnabled() {
+    return credentialStoreEnabled;
+  }
+
+  /**
+   * Set credential store enabled value.
+   *
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    this.credentialStoreEnabled = credentialStoreEnabled;
+  }
 }

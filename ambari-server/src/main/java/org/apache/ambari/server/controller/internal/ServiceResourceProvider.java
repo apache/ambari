@@ -69,6 +69,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.commons.lang.StringUtils;
@@ -91,6 +92,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   public static final String SERVICE_SERVICE_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("ServiceInfo", "service_name");
   public static final String SERVICE_SERVICE_STATE_PROPERTY_ID   = PropertyHelper.getPropertyId("ServiceInfo", "state");
   public static final String SERVICE_MAINTENANCE_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("ServiceInfo", "maintenance_state");
+  public static final String SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID =
+    PropertyHelper.getPropertyId("ServiceInfo", "credential_store_supported");
+  public static final String SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID =
+    PropertyHelper.getPropertyId("ServiceInfo", "credential_store_enabled");
 
   public static final String SERVICE_ATTRIBUTES_PROPERTY_ID = PropertyHelper.getPropertyId("Services", "attributes");
 
@@ -197,6 +202,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
           requestedIds);
       setResourceProperty(resource, SERVICE_MAINTENANCE_STATE_PROPERTY_ID,
           response.getMaintenanceState(), requestedIds);
+      setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_SUPPORTED_PROPERTY_ID,
+          String.valueOf(response.isCredentialStoreSupported()), requestedIds);
+      setResourceProperty(resource, SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID,
+          String.valueOf(response.isCredentialStoreEnabled()), requestedIds);
 
       Map<String, Object> serviceSpecificProperties = getServiceSpecificProperties(
           response.getClusterName(), response.getServiceName(), requestedIds);
@@ -322,7 +331,8 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     ServiceRequest svcRequest = new ServiceRequest(
         (String) properties.get(SERVICE_CLUSTER_NAME_PROPERTY_ID),
         (String) properties.get(SERVICE_SERVICE_NAME_PROPERTY_ID),
-        (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID));
+        (String) properties.get(SERVICE_SERVICE_STATE_PROPERTY_ID),
+        (String) properties.get(SERVICE_CREDENTIAL_STORE_ENABLED_PROPERTY_ID));
 
     Object o = properties.get(SERVICE_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
@@ -349,6 +359,33 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       // Already checked that service does not exist
       Service s = cluster.addService(request.getServiceName());
+
+      /**
+       * Get the credential_store_supported field only from the stack definition.
+       * Not possible to update the value through a request.
+       */
+      StackId stackId = cluster.getDesiredStackVersion();
+      AmbariMetaInfo ambariMetaInfo = getManagementController().getAmbariMetaInfo();
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+          stackId.getStackVersion(), request.getServiceName());
+      s.setCredentialStoreSupported(serviceInfo.isCredentialStoreSupported());
+      LOG.info("Service: {}, credential_store_supported from stack definition:{}", request.getServiceName(),
+          serviceInfo.isCredentialStoreSupported());
+
+      /**
+       * If request does not have credential_store_enabled field,
+       * then get the default from the stack definition.
+       */
+      if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
+        boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
+        s.setCredentialStoreEnabled(credentialStoreEnabled);
+        LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceName(),
+            credentialStoreEnabled);
+      } else {
+        s.setCredentialStoreEnabled(serviceInfo.isCredentialStoreEnabled());
+        LOG.info("Service: {}, credential_store_enabled from stack definition:{}", s.getName(),
+            serviceInfo.isCredentialStoreEnabled());
+      }
 
       // Initialize service widgets
       getManagementController().initializeWidgetsAndLayouts(cluster, s);
@@ -447,6 +484,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     Set<String> clusterNames = new HashSet<String>();
     Map<String, Set<String>> serviceNames = new HashMap<String, Set<String>>();
     Set<State> seenNewStates = new HashSet<State>();
+    Map<Service, Boolean> serviceCredentialStoreEnabledMap = new HashMap<>();
 
     // Determine operation level
     Resource.Type reqOpLvl;
@@ -530,6 +568,25 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         }
       }
 
+      /**
+       * Get the credential_store_supported field only from the stack definition during creation.
+       * Not possible to update the value of credential_store_supported through a request.
+       */
+
+      /**
+       * Gather the credential_store_enabled field per service.
+       */
+      if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
+        boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
+        if (!s.isCredentialStoreSupported() && credentialStoreEnabled) {
+          throw new IllegalArgumentException("Invalid arguments, cannot enable credential store " +
+              "as it is not supported by the service. Service=" + s.getName());
+        }
+        serviceCredentialStoreEnabledMap.put(s, credentialStoreEnabled);
+        LOG.info("Service: {}, credential_store_enabled from request: {}", request.getServiceName(),
+            credentialStoreEnabled);
+      }
+
       if (newState == null) {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Nothing to do for new updateService request"
@@ -601,6 +658,13 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       // TODO should we handle this scenario
       throw new IllegalArgumentException("Cannot handle different desired state"
           + " changes for a set of services at the same time");
+    }
+
+    // update the credential store enabled information
+    for (Map.Entry<Service, Boolean> serviceCredential : serviceCredentialStoreEnabledMap.entrySet()) {
+      Service service = serviceCredential.getKey();
+      Boolean credentialStoreEnabled = serviceCredential.getValue();
+      service.setCredentialStoreEnabled(credentialStoreEnabled);
     }
 
     Cluster cluster = clusters.getCluster(clusterNames.iterator().next());
@@ -943,6 +1007,18 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
               stackId.getStackVersion(), request.getServiceName())) {
         throw new IllegalArgumentException("Unsupported or invalid service in stack, clusterName=" + clusterName
                 + ", serviceName=" + serviceName + ", stackInfo=" + stackId.getStackId());
+      }
+
+      // validate the credential store input provided
+      ServiceInfo serviceInfo = ambariMetaInfo.getService(stackId.getStackName(),
+          stackId.getStackVersion(), request.getServiceName());
+
+      if (StringUtils.isNotEmpty(request.getCredentialStoreEnabled())) {
+        boolean credentialStoreEnabled = Boolean.parseBoolean(request.getCredentialStoreEnabled());
+        if (!serviceInfo.isCredentialStoreSupported() && credentialStoreEnabled) {
+          throw new IllegalArgumentException("Invalid arguments, cannot enable credential store " +
+              "as it is not supported by the service. Service=" + request.getServiceName());
+        }
       }
     }
     // ensure only a single cluster update
