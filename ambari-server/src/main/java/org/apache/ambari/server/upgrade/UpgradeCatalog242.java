@@ -19,6 +19,8 @@
 package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,7 +125,22 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+    createRoleAuthorizations();
     convertRolePrincipals();
+  }
+
+  /**
+   * Create new role authorizations: CLUSTER.RUN_CUSTOM_COMMAND and AMBARI.RUN_CUSTOM_COMMAND
+   *
+   * @throws SQLException
+   */
+  @Transactional
+  protected void createRoleAuthorizations() throws SQLException {
+    addRoleAuthorization("CLUSTER.RUN_CUSTOM_COMMAND", "Perform custom cluster-level actions",
+        Arrays.asList("AMBARI.ADMINISTRATOR:AMBARI", "CLUSTER.ADMINISTRATOR:CLUSTER"));
+
+    addRoleAuthorization("AMBARI.RUN_CUSTOM_COMMAND", "Perform custom administrative actions",
+        Collections.singletonList("AMBARI.ADMINISTRATOR:AMBARI"));
   }
 
   protected void updateTablesForMysql() throws SQLException {
