@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var dateUtils = require('utils/date/date');
 var fileUtils = require('utils/file_utils');
 
 App.showLogTailPopup = function(content) {
@@ -54,7 +53,7 @@ App.showLogTailPopup = function(content) {
       openInNewTab: function() {
         var newWindow = window.open();
         var newDocument = newWindow.document;
-        newDocument.write($('.log-tail-content.pre-styled').html());
+        newDocument.write('<pre>' + this.logsToString() + '</pre>');
         newDocument.close();
       },
 
@@ -101,8 +100,7 @@ App.showLogTailPopup = function(content) {
           this._super();
           var newSize = $(window).height() - this.get('resizeDelta') - window.innerHeight*0.08;
           this.get('parentView').$().find('.copy-textarea').css({
-            height: newSize + 'px',
-            width: '100%'
+            height: newSize + 'px'
           });
         },
 
