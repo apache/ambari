@@ -74,14 +74,14 @@
       </execute-stage>
 
     </group>
-    
+     
     <!--
     In a HOST_ORDERED upgrade, this placeholder group is expanded by the number of hosts passed
     when creating the upgrade.  For starters, this will include "stop" commands, a manual
     verification task, and the "start" commands as indicated by the processing element.
     If we get to the point where we need additional flexibility, it will get added at that time.
     -->
-    <group xsi:type="host-order" name="HOST_ORDER" />
+    <group xsi:type="host-order" name="HOST_ORDER" title="Upgrade All Hosts"/>
          
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
@@ -441,12 +441,6 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="all" sequential="true">
-            <summary>Shut down all Oozie servers</summary>
-            <script>scripts/oozie_server.py</script>
-            <function>stop</function>
-          </task>
-
           <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.OozieConfigCalculation">
             <summary>Adjusting Oozie properties</summary>
           </task>

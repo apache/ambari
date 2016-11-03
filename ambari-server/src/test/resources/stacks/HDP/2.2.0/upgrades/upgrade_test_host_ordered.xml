@@ -35,7 +35,7 @@
   </prerequisite-checks>
   <order>
 
-    <group xsi:type="host-order" name="HOST_GROUP" />
+    <group xsi:type="host-order" name="HOST_GROUP" title="Host Group" />
 
     <group name="ZOOKEEPER" title="Zookeeper">
       <skippable>true</skippable>
