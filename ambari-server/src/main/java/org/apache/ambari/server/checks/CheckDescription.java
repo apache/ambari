@@ -292,10 +292,10 @@ public class CheckDescription {
 
   public static CheckDescription SERVICES_HIVE_ROLLING_WARNING = new CheckDescription("SERVICES_HIVE_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
-    "Hive Server Downtime",
+    "HiveServer2 Downtime",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "Hive does not currently support rolling upgrades. Hive will be upgraded, however existing queries which have been submitted will fail and need to be resubmitted after Hive has been upgraded.").build());
+          "HiveServer2 does not currently support rolling upgrades. HiveServer2 will be upgraded, however existing queries which have not completed will fail and need to be resubmitted after HiveServer2 has been upgraded.").build());
   
   public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
