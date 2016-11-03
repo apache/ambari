@@ -33,7 +33,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     stack_name: 'stack_name',
     stack_version: 'stack_version',
     selection: 'selection',
-    is_disabled: 'is_disabled',
+    is_mandatory: 'is_mandatory',
     is_selected: 'is_selected',
     is_installed: 'is_installed',
     is_installable: 'is_installable',
@@ -120,8 +120,8 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       if (stackService.selection === "TECH_PREVIEW") {
         stackService.is_selected = false;
       }
-      if(stackService.selection === "MANDATORY" || stackService.is_installed) {
-        stackService.is_disabled = true;
+      if(stackService.selection === "MANDATORY") {
+        stackService.is_mandatory = true;
       }
       result.push(this.parseIt(stackService, this.get('config')));
     }, this);
