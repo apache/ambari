@@ -80,8 +80,6 @@ import static java.util.Arrays.asList;
 })
 @StaticallyInject
 public class RepositoryVersionEntity {
-
-  private static final List<String> STACK_PREFIXES = asList(StackId.HDP_STACK, StackId.HDPWIN_STACK);
   private static Logger LOG = LoggerFactory.getLogger(RepositoryVersionEntity.class);
 
   @Inject
@@ -158,10 +156,9 @@ public class RepositoryVersionEntity {
   @PreUpdate
   @PrePersist
   public void removePrefixFromVersion() {
-    for (String stackPrefix : STACK_PREFIXES) {
-      if (version.startsWith(stackPrefix + "-")) {
-        version = version.substring(stackPrefix.length() + 1);
-      }
+    String stackName = stack.getStackName();
+    if (version.startsWith(stackName)) {
+      version = version.substring(stackName.length() + 1);
     }
   }
   /**
@@ -394,38 +391,30 @@ public class RepositoryVersionEntity {
 
   /**
    * Determine if the version belongs to the stack.
-   * Right now, this is only applicable for the HDP stack.
    * @param stackId Stack, such as HDP-2.3
    * @param version Version number, such as 2.3.0.0, or 2.3.0.0-1234
    * @return Return true if the version starts with the digits of the stack.
    */
   public static boolean isVersionInStack(StackId stackId, String version) {
     if (null != version && !StringUtils.isBlank(version)) {
-      for (String stackPrefix : STACK_PREFIXES) {
-        if (version.startsWith(stackPrefix + "-")) {
-          version = version.substring(stackPrefix.length() + 1);
-        }
+      String stackName = stackId.getStackName();
+      if (version.startsWith(stackName + "-")) {
+        version = version.substring(stackName.length() + 1);
       }
-      // HDP Stack
-      if (stackId.getStackName().equalsIgnoreCase(StackId.HDP_STACK) ||
-          stackId.getStackName().equalsIgnoreCase(StackId.HDPWIN_STACK)) {
 
-        String leading = stackId.getStackVersion();  // E.g, 2.3
-        // In some cases during unit tests, the leading can contain 3 digits, so only the major number (first two parts) are needed.
-        String[] leadingParts = leading.split("\\.");
-        if (null != leadingParts && leadingParts.length > 2) {
-          leading = leadingParts[0] + "." + leadingParts[1];
-        }
-        return version.startsWith(leading);
+      String leading = stackId.getStackVersion();  // E.g, 2.3
+      // In some cases during unit tests, the leading can contain 3 digits, so only the major number (first two parts) are needed.
+      String[] leadingParts = leading.split("\\.");
+      if (null != leadingParts && leadingParts.length > 2) {
+        leading = leadingParts[0] + "." + leadingParts[1];
       }
-      // For other stacks, don't make the check.
-      return true;
+      return version.startsWith(leading);
     }
     return false;
   }
 
   /**
-   * @param parent
+   * @param entity parent entity
    */
   public void setParent(RepositoryVersionEntity entity) {
     parent = entity;
