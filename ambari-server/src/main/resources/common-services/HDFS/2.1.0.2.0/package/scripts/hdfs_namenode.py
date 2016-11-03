@@ -510,7 +510,7 @@ def is_namenode_bootstrapped(params):
   return marked
 
 
-@retry(times=5, sleep_time=5, backoff_factor=2, err_class=Fail)
+@retry(times=125, sleep_time=5, backoff_factor=2, err_class=Fail)
 def is_this_namenode_active():
   """
   Gets whether the current NameNode is Active. This function will wait until the NameNode is
