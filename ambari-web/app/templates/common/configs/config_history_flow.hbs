@@ -31,7 +31,7 @@
   <div class="version-info-bar-wrapper row">
     {{#isAuthorized "SERVICE.COMPARE_CONFIGS"}}
       <div {{bindAttr class="view.showCompareVersionBar::hidden :version-info-bar :col-md-12"}}>
-        <div class="version-info-bar">
+        <div>
           <div class="col-md-1 remove-compare-bar" {{action removeCompareVersionBar target="view"}} data-toggle="arrow-tooltip" {{translateAttr data-original-title="services.service.config.configHistory.dismissIcon.tooltip"}}>
             <i class="glyphicon-remove-circle glyphicon glyphicon-large"></i>
           </div>
