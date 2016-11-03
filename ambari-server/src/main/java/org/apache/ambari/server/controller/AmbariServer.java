@@ -684,6 +684,8 @@ public class AmbariServer {
         if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
           System.out.println("Database consistency check: failed");
           System.exit(1);
+        } else if (DatabaseConsistencyCheckHelper.ifWarningsFound()) {
+          System.out.println("Database consistency check: warning");
         } else {
           System.out.println("Database consistency check: successful");
         }

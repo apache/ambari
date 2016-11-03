@@ -243,6 +243,7 @@ with Environment() as env:
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   
   def createHdfsResources():
+    print "Creating hdfs directories..."
     params.HdfsResource(format('{hdfs_path_prefix}/atshistory'), user='hdfs', change_permissions_for_parents=True, owner='yarn', group='hadoop', type='directory', action= ['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/user/hcat'), owner='hcat', type='directory', action=['create_on_execute'], mode=0755)
     params.HdfsResource(format('{hdfs_path_prefix}/hive/warehouse'), owner='hive', type='directory', action=['create_on_execute'], mode=0777)
@@ -261,8 +262,23 @@ with Environment() as env:
     params.HdfsResource(format('{hdfs_path_prefix}/amshbase/staging'), owner='ams', type='directory', action=['create_on_execute'], mode=0711)
     params.HdfsResource(format('{hdfs_path_prefix}/user/ams/hbase'), owner='ams', type='directory', action=['create_on_execute'], mode=0775)
     params.HdfsResource(format('{hdfs_path_prefix}/hdp'), owner='hdfs', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/spark'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/livy'), owner='livy', group='hadoop', type='directory', action=['create_on_execute'], mode=0775)
     params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/hdp/spark2-events'), owner='spark', group='hadoop', type='directory', action=['create_on_execute'], mode=0777)
+    params.HdfsResource(format('{hdfs_path_prefix}/hbase'), owner='hbase', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/apps/hbase/staging'), owner='hbase', type='directory', action=['create_on_execute'], mode=0711)
+    params.HdfsResource(format('{hdfs_path_prefix}/user/hbase'), owner='hbase', type='directory', action=['create_on_execute'], mode=0755)
+    params.HdfsResource(format('{hdfs_path_prefix}/apps/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
+    params.HdfsResource(format('{hdfs_path_prefix}/user/zeppelin/test'), owner='zeppelin', group='hadoop', type='directory', action=['create_on_execute'])
 
+  def copy_zeppelin_dependencies_to_hdfs(file_pattern):
+    spark_deps_full_path = glob.glob(file_pattern)
+    if spark_deps_full_path and os.path.exists(spark_deps_full_path[0]):
+      copy_tarballs_to_hdfs(spark_deps_full_path[0], hdfs_path_prefix+'/apps/zeppelin/', 'hadoop-mapreduce-historyserver', params.hdfs_user, 'zeppelin', 'zeppelin')
+    else:
+      Logger.info('zeppelin-spark-dependencies not found at %s.' % file_pattern)
 
   def putCreatedHdfsResourcesToIgnore(env):
     if not 'hdfs_files' in env.config:
@@ -397,8 +413,9 @@ with Environment() as env:
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/pig/pig.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/hadoop-mapreduce/hadoop-streaming.jar"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
   copy_tarballs_to_hdfs(format("/usr/hdp/{stack_version}/sqoop/sqoop.tar.gz"), hdfs_path_prefix+"/hdp/apps/{{ stack_version_formatted }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  print "Creating hdfs directories..."
+  
   createHdfsResources()
+  copy_zeppelin_dependencies_to_hdfs(format("/usr/hdp/{stack_version}/zeppelin/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar"))
   putSQLDriverToOozieShared()
   putCreatedHdfsResourcesToIgnore(env)
 

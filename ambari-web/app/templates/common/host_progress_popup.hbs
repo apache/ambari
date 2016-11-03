@@ -203,7 +203,7 @@
           <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
                                                                                                                                                     class="glyphicon glyphicon-copy"></i> {{t common.copy}}</a>
           <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i
-                                                                                                                               class="glyphicon glyphicon-external-link"></i> {{t common.open}}</a>
+                                                                                                                               class="glyphicon icon-external-link"></i> {{t common.open}}</a>
           {{#if App.supports.logSearch}}
             {{#if view.isLogSearchInstalled}}
               <a {{action navigateToHostLogs target="view"}} {{bindAttr class="view.isLogsLinkVisible::hidden"}} href="#">
@@ -229,7 +229,11 @@
       <div class="task-detail-log-info">
         <div class="content-area">
           <div class="tab-content">
-            <div class="task-detail-log-clipboard-wrap"></div>
+            <div class="task-detail-log-clipboard-wrap">
+              {{#if view.isClipBoardActive}}
+                {{view App.NotScrollableTextArea class="task-detail-log-clipboard" valueBinding="view.textAreaValue"}}
+              {{/if}}
+            </div>
             <div id="task-log-tab" class="tab-pane active">
               <div {{bindAttr class=":task-detail-log-maintext view.isClipBoardActive:hidden"}}>
                 {{#if view.openedTask.isRebalanceHDFSTask }}
@@ -265,7 +269,7 @@
                   <span class="text-bold muted">{{hostLog.fileName}}</span>
                   {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
                     <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}} target="_blank">
-                      <i class="glyphicon glyphicon-external-link"></i>
+                      <i class="icon-external-link"></i>
                       {{t popup.logTail.openInLogSearch}}</a>
                   {{/view}}
                 </p>

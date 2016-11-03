@@ -2670,15 +2670,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#getSupportedUpgradeTypes()", function () {
 
-    it("App.ajax.send should be called", function() {
+    beforeEach(function() {
       controller.getSupportedUpgradeTypes({});
+    });
+
+    it("App.ajax.send should be called", function() {
       var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.get_supported_upgradeTypes');
       expect(args[0]).to.be.eql({
         name: "admin.upgrade.get_supported_upgradeTypes",
         sender: controller,
         data: {},
-        success: "getSupportedUpgradeTypesSuccess"
+        success: "getSupportedUpgradeTypesSuccess",
+        error: "getSupportedUpgradeTypesError"
       });
+    });
+
+    it("getSupportedUpgradeError should be empty", function() {
+      expect(controller.get('getSupportedUpgradeError')).to.be.empty;
+    });
+
+    it("isUpgradeTypesLoaded should be false", function() {
+      expect(controller.get('isUpgradeTypesLoaded')).to.be.false;
     });
   });
 
@@ -2729,6 +2741,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         controller.getSupportedUpgradeTypesSuccess(test.data);
         expect(controller.get('upgradeMethods')[0].get('allowed')).to.be.equal(test.expected);
       });
+    });
+  });
+
+  describe("#getSupportedUpgradeTypesError", function () {
+
+    it("correct responseText", function() {
+      controller.getSupportedUpgradeTypesError({responseText: JSON.stringify({
+        message: 'error'
+      })});
+      expect(controller.get('getSupportedUpgradeError')).to.be.equal('error');
+    });
+
+    it("invalid responseText", function() {
+      controller.getSupportedUpgradeTypesError({
+        responseText: '',
+        statusText: 'statusError'
+      });
+      expect(controller.get('getSupportedUpgradeError')).to.be.equal('statusError');
     });
   });
 

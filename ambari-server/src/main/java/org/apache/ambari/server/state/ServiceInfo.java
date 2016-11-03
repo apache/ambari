@@ -118,6 +118,12 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private volatile Map<String, PropertyInfo> requiredProperties;
 
+  /**
+   * Credential store information
+   */
+  @XmlElements(@XmlElement(name = "credential-store"))
+  private CredentialStoreInfo credentialStoreInfo;
+
   public Boolean isRestartRequiredAfterChange() {
     return restartRequiredAfterChange;
   }
@@ -155,8 +161,6 @@ public class ServiceInfo implements Validable{
   @XmlElementWrapper(name = "properties")
   @XmlElement(name="property")
   private List<ServicePropertyInfo> servicePropertyList = Lists.newArrayList();
-
-
 
   @XmlTransient
   private Map<String, String> servicePropertyMap = ImmutableMap.copyOf(ensureMandatoryServiceProperties(Maps.<String, String>newHashMap()));
@@ -437,6 +441,60 @@ public String getVersion() {
 
   public void setAdvisorName(String advisorName) {
     this.advisorName = advisorName;
+  }
+
+  /**
+   * Indicates if this service supports credential store.
+   * False, it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreSupported() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isSupported() != null) {
+        return credentialStoreInfo.isSupported();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service supports credential store.
+   * @param credentialStoreSupported
+   */
+  public void setCredentialStoreSupported(boolean credentialStoreSupported) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setSupported(credentialStoreSupported);
+  }
+
+  /**
+   * Indicates if this service is enabled for credential store use.
+   * False if it was not specified.
+   *
+   * @return true or false
+   */
+  public boolean isCredentialStoreEnabled() {
+    if (credentialStoreInfo != null) {
+      if (credentialStoreInfo.isEnabled() != null) {
+        return credentialStoreInfo.isEnabled();
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Set a value indicating if this service is enabled for credential store use.
+   * @param credentialStoreEnabled
+   */
+  public void setCredentialStoreEnabled(boolean credentialStoreEnabled) {
+    if (credentialStoreInfo == null) {
+      credentialStoreInfo = new CredentialStoreInfo();
+    }
+    credentialStoreInfo.setEnabled(credentialStoreEnabled);
   }
 
   @Override
@@ -994,6 +1052,29 @@ public String getVersion() {
       if (primaryLogs > 1) {
         setValid(false);
         addError("More than one primary log exists for the component " + component.getName());
+      }
+    }
+
+    // validate credential store information
+    if (credentialStoreInfo != null) {
+      // if both are specified, supported must be true if enabled is false or true.
+      if (credentialStoreInfo.isSupported() != null && credentialStoreInfo.isEnabled() != null) {
+        if (!credentialStoreInfo.isSupported() && credentialStoreInfo.isEnabled()) {
+          setValid(false);
+          addError("Credential store cannot be enabled for service " + getName() + " as it does not support it.");
+        }
+      }
+
+      // Must be specified
+      if (credentialStoreInfo.isSupported() == null) {
+        setValid(false);
+        addError("Credential store supported is not specified for service " + getName());
+      }
+
+      // Must be specified
+      if (credentialStoreInfo.isEnabled() == null) {
+        setValid(false);
+        addError("Credential store enabled is not specified for service " + getName());
       }
     }
   }

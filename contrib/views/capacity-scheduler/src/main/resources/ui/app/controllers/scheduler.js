@@ -61,6 +61,21 @@ App.CapschedSchedulerController = Ember.Controller.extend({
     }
   },
 
+  initEvents: function() {
+    this.get('eventBus').subscribe('beforeSavingConfigs', function() {
+      this.set("tempRefreshNeed", this.get('isRefreshOrRestartNeeded') || false);
+    }.bind(this));
+
+    this.get('eventBus').subscribe('afterConfigsSaved', function(refresh) {
+      this.set('isRefreshOrRestartNeeded', refresh !== undefined? refresh:this.get('tempRefreshNeed'));
+    }.bind(this));
+  }.on('init'),
+
+  teardownEvents: function() {
+    this.get('eventBus').unsubscribe('beforeSavingConfigs');
+    this.get('eventBus').unsubscribe('afterConfigsSaved');
+  }.on('willDestroy'),
+
   isOperator: cmp.alias('controllers.capsched.isOperator'),
 
   saveMode: '',

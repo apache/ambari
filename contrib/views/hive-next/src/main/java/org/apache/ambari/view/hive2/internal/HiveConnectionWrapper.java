@@ -34,11 +34,13 @@ import java.sql.SQLException;
 public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnection> {
 
   private static String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
+  public static final String SUFFIX = "validating the login";
   private final String jdbcUrl;
   private final String username;
   private final String password;
 
   private HiveConnection connection = null;
+  private boolean authFailed;
 
   public HiveConnectionWrapper(String jdbcUrl, String username, String password) {
     this.jdbcUrl = jdbcUrl;
@@ -60,6 +62,8 @@ public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnectio
       connection = (HiveConnection)conn;
 
     } catch (SQLException e) {
+      if(isLoginError(e))
+        this.authFailed = true;
       throw new ConnectionException(e, "Cannot open a hive connection with connect string " + jdbcUrl);
     }
 
@@ -80,6 +84,20 @@ public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnectio
         throw new ConnectionException(e, "Cannot close the hive connection with connect string " + jdbcUrl);
       }
     }
+  }
+
+  private boolean isLoginError(SQLException ce) {
+    return ce.getCause().getMessage().toLowerCase().endsWith(SUFFIX);
+  }
+
+  /**
+   * True when the connection is unauthorized
+   *
+   * @return
+   */
+  @Override
+  public boolean isUnauthorized() {
+    return authFailed;
   }
 
   public Optional<HiveConnection> getConnection() {

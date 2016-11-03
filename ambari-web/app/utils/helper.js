@@ -759,7 +759,8 @@ App.format = {
  */
 App.popover = function (self, options) {
   var opts = $.extend(true, {
-    container: 'body'
+    container: 'body',
+    html: true
   }, options || {});
   if (!self) return;
   self.popover(opts);

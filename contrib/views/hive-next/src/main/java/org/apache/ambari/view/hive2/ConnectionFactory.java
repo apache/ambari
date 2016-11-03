@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive2;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import org.apache.ambari.view.ViewContext;
@@ -41,16 +42,25 @@ public class ConnectionFactory {
 
   private static final String HIVE_JDBC_URL_KEY = "hive.jdbc.url";
   private static final String HIVE_SESSION_PARAMS = "hive.session.params";
+  private static final String HIVE_LDAP_CONFIG = "hive.ldap.configured";
 
   private static final String BINARY_PORT_KEY = "hive.server2.thrift.port";
+  private static final String HIVE_AUTH_MODE = "hive.server2.authentication";
   private static final String HTTP_PORT_KEY = "hive.server2.thrift.http.port";
   private static final String HIVE_TRANSPORT_MODE_KEY = "hive.server2.transport.mode";
   private static final String HTTP_PATH_KEY = "hive.server2.thrift.http.path";
   private static final String HS2_PROXY_USER = "hive.server2.proxy.user";
   private static final String USE_HIVE_INTERACTIVE_MODE = "use.hive.interactive.mode";
 
+  public static boolean isLdapEnabled(ViewContext context){
+    if (context.getCluster() == null) {
+      return context.getProperties().get(HIVE_LDAP_CONFIG).equalsIgnoreCase("true");
+    }
+    return context.getCluster().getConfigurationValue(HIVE_SITE,HIVE_AUTH_MODE).equalsIgnoreCase("ldap");
+  }
 
-  public static ConnectionConfig create(ViewContext context) {
+  public static ConnectionConfig create(ViewContext context)  {
+
     String jdbcUrl;
     if (context.getCluster() == null) {
       jdbcUrl = getConnectFromCustom(context);
@@ -63,8 +73,15 @@ public class ConnectionFactory {
     }
 
     String userName = context.getUsername();
+    if(isLdapEnabled(context)){
+      Optional<String> opPassword = ConnectionSystem.getInstance().getPassword(context);
+      if(opPassword.isPresent()){
+        return new ConnectionConfig(userName, opPassword.get(), jdbcUrl);
+      }
+    }
     return new ConnectionConfig(userName, "", jdbcUrl);
   }
+
 
   private static String getFromHiveConfiguration(ViewContext context) {
     boolean useLLAP = Boolean.valueOf(context.getProperties().get(USE_HIVE_INTERACTIVE_MODE));

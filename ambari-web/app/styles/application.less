@@ -134,6 +134,10 @@ table.diff {
   line-height: 30px;
 }
 
+.spinner-text {
+  line-height: @spinner-default-height;
+}
+
 .heatmap-select-metric-btn, .heatmap-select-metric-btn:focus {
   font-size: 13px;
   padding: 10px;
@@ -1194,7 +1198,7 @@ h1 {
       margin-left: 0;
     }
   }
-  #ha-step1, #ha-step4, #ha-step8 {
+  #ha-step1, #ha-step4, #ha-step8, #mjn-step7 {
     .alert.alert-warn {
       margin-top: 10px;
       margin-bottom: 10px;
@@ -1204,7 +1208,7 @@ h1 {
     }
   }
 
-  #ha-step4 li, #ha-step6 li, #ha-step8 li {
+  #ha-step4 li, #ha-step6 li, #ha-step8 li, #mjn-step7 li {
     margin-top: 8px;
   }
 
@@ -2000,15 +2004,19 @@ a:focus {
 
 .task-detail-info {
   .task-detail-log-info {
-    max-height: 340px;
+    max-height: 500px;
     overflow: auto;
     width: 100%;
   }
   .task-detail-log-clipboard {
-    display: none;
+    width: 100%;
     resize: none;
     overflow: hidden;
     box-sizing: border-box;
+    line-height: 14px;
+    font-size: 11px;
+    font-family: monospace;
+    word-break: normal;
   }
 
   .task-top-wrap {

@@ -23,14 +23,34 @@ App.ManageJournalNodeWizardStep4Controller = App.ManageJournalNodeProgressPageCo
   clusterDeployState: 'JOURNALNODE_MANAGEMENT',
   tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
 
-  commands: ['stopServices', 'installJournalNodes', 'startJournalNodes', 'reconfigureHDFS'],
+  commands: ['stopStandbyNameNode', 'stopServices', 'installJournalNodes', 'deleteJournalNodes', 'startJournalNodes', 'reconfigureHDFS'],
 
   hdfsSiteTag : "",
 
+  stopStandbyNameNode: function() {
+    // save who's active and who's standby at this point in time
+    var sbNN = this.get('content.standByNN');
+    this.updateComponent('NAMENODE', sbNN.host_name, 'HDFS',  'INSTALLED');
+  },
+
   installJournalNodes: function () {
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE')
-      .filterProperty('isInstalled', false).mapProperty('hostName');
-    this.createInstallComponentTask('JOURNALNODE', hostNames, "HDFS");
+    var hostNames = App.router.get('manageJournalNodeWizardController').getJournalNodesToAdd();
+    if (hostNames && hostNames.length > 0) {
+      this.createInstallComponentTask('JOURNALNODE', hostNames, "HDFS");
+    } else {
+      this.onTaskCompleted();
+    }
+  },
+
+  deleteJournalNodes: function () {
+    var hosts = App.router.get('manageJournalNodeWizardController').getJournalNodesToDelete();
+    if (hosts && hosts.length > 0) {
+      hosts.forEach(function(host) {
+        this.deleteComponent('JOURNALNODE', host);
+      }, this);
+    } else {
+      this.onTaskCompleted();
+    }
   },
 
   startJournalNodes: function () {

@@ -23,7 +23,7 @@
       <displayName>Log Search</displayName>
       <comment>Log aggregation, analysis, and visualization for Ambari managed services. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>0.5.0</version>
-
+      <selection>TECH_PREVIEW</selection>
       <components>
 
         <component>

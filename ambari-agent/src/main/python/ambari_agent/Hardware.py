@@ -42,11 +42,12 @@ class Hardware:
   IGNORE_ROOT_MOUNTS = ["proc", "dev", "sys"]
   IGNORE_DEVICES = ["proc", "tmpfs", "cgroup", "mqueue", "shm"]
 
-  def __init__(self):
+  def __init__(self, config):
     self.hardware = {
       'mounts': Hardware.osdisks()
     }
-    self.hardware.update(Facter().facterInfo())
+    self.config = config
+    self.hardware.update(Facter(self.config).facterInfo())
 
   @classmethod
   def _parse_df_line(cls, line):
@@ -169,7 +170,8 @@ def main():
   from resource_management.core.logger import Logger
   Logger.initialize_logger()
 
-  print Hardware().get()
+  config = None
+  print Hardware(config).get()
 
 if __name__ == '__main__':
   main()

@@ -72,6 +72,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
@@ -114,22 +115,27 @@ public class ServiceResourceProviderTest {
     StackId stackId = createNiceMock(StackId.class);
     ServiceFactory serviceFactory = createNiceMock(ServiceFactory.class);
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
 
     expect(cluster.addService("Service100")).andReturn(service);
 
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
 
     expect(cluster.getService("Service100")).andReturn(null);
-    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId).anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
 
+    expect(stackId.getStackName()).andReturn("HDP").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
+
     expect(ambariMetaInfo.isValidService( (String) anyObject(), (String) anyObject(), (String) anyObject())).andReturn(true);
+    expect(ambariMetaInfo.getService((String)anyObject(), (String)anyObject(), (String)anyObject())).andReturn(serviceInfo).anyTimes();
 
     // replay
-    replay(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory);
+    replay(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -154,7 +160,7 @@ public class ServiceResourceProviderTest {
     provider.createResources(request);
 
     // verify
-    verify(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory);
+    verify(managementController, clusters, cluster, service, ambariMetaInfo, stackId, serviceFactory, serviceInfo);
   }
 
   @Test
@@ -599,6 +605,8 @@ public class ServiceResourceProviderTest {
     RequestStageContainer requestStages = createNiceMock(RequestStageContainer.class);
     RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
     RoleCommandOrder rco = createNiceMock(RoleCommandOrder.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -614,6 +622,15 @@ public class ServiceResourceProviderTest {
 
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     expect(service0.getServiceComponents()).andReturn(Collections.<String, ServiceComponent>emptyMap()).anyTimes();
+
+    expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
+    expect(stackId.getStackName()).andReturn("HDP").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
+    expect(service0.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(service0.getName()).andReturn("Service102").anyTimes();
+    expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
+    expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
+    expect(ambariMetaInfo.getService("HDP", "2.5", "Service102")).andReturn(serviceInfo).anyTimes();
 
     Capture<Map<String, String>> requestPropertiesCapture = newCapture();
     Capture<Map<State, List<Service>>> changedServicesCapture = newCapture();
@@ -639,7 +656,7 @@ public class ServiceResourceProviderTest {
 
     // replay
     replay(managementController, clusters, cluster, rco, maintenanceStateHelper,
-        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
+        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -660,7 +677,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController, clusters, cluster, maintenanceStateHelper,
-        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse);
+        service0, serviceFactory, ambariMetaInfo, requestStages, requestStatusResponse, stackId, serviceInfo);
   }
 
   @Test
@@ -696,6 +713,9 @@ public class ServiceResourceProviderTest {
       .class);
     RoleCommandOrder rco = createNiceMock(RoleCommandOrder.class);
 
+    StackId stackId = createNiceMock(StackId.class);
+    ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
+
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
 
@@ -715,6 +735,15 @@ public class ServiceResourceProviderTest {
 
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
     expect(cluster.getService("Service102")).andReturn(service0).anyTimes();
+
+    expect(stackId.getStackId()).andReturn("HDP-2.5").anyTimes();
+    expect(stackId.getStackName()).andReturn("HDP").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("2.5").anyTimes();
+    expect(service0.getDesiredStackVersion()).andReturn(stackId).anyTimes();
+    expect(service0.getName()).andReturn("Service102").anyTimes();
+    expect(serviceInfo.isCredentialStoreSupported()).andReturn(true).anyTimes();
+    expect(serviceInfo.isCredentialStoreEnabled()).andReturn(false).anyTimes();
+    expect(ambariMetaInfo.getService("HDP", "2.5", "Service102")).andReturn(serviceInfo).anyTimes();
 
     expect(service0.convertToResponse()).andReturn(serviceResponse0).anyTimes();
     expect(service0.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
@@ -759,7 +788,7 @@ public class ServiceResourceProviderTest {
 
     // replay
     replay(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco, maintenanceStateHelper);
+        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, rco, maintenanceStateHelper, stackId, serviceInfo);
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -794,7 +823,7 @@ public class ServiceResourceProviderTest {
 
     // verify
     verify(managementController1, response1, managementController2, requestStages1, requestStages2, response2,
-        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, maintenanceStateHelper);
+        clusters, cluster, service0, serviceResponse0, ambariMetaInfo, maintenanceStateHelper, stackId, serviceInfo);
   }
 
   @Test

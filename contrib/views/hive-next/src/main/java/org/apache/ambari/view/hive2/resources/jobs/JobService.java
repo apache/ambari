@@ -23,6 +23,7 @@ import com.beust.jcommander.internal.Lists;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive2.BaseService;
+import org.apache.ambari.view.hive2.ConnectionFactory;
 import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.apache.ambari.view.hive2.actor.message.job.Failure;
 import org.apache.ambari.view.hive2.backgroundjobs.BackgroundJobController;
@@ -75,6 +76,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -137,8 +139,15 @@ public class JobService extends BaseService {
         ConnectionSystem system = ConnectionSystem.getInstance();
         final AsyncJobRunner asyncJobRunner = new AsyncJobRunnerImpl(context, system.getOperationController(context), system.getActorSystem());
         Optional<Failure> error = asyncJobRunner.getError(jobId, context.getUsername());
+
         if(error.isPresent()){
-          throw new Exception(error.get().getError());
+          Throwable th = error.get().getError();
+          if(th instanceof SQLException){
+            SQLException sqlException = (SQLException) th;
+            if(sqlException.getSQLState().equals("AUTHFAIL") && ConnectionFactory.isLdapEnabled(context))
+              return Response.status(401).build();
+          }
+          throw new Exception(th);
         }
       }
 
@@ -543,27 +552,7 @@ public class JobService extends BaseService {
     }
   }
 
-  /**
-   * Set password and connect to Hive
-   */
-  @POST
-  @Path("auth")
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Response setupPassword(AuthRequest request) {
-    try {
-      /*HiveAuthCredentials authCredentials = new HiveAuthCredentials();
-      authCredentials.setPassword(request.password);
-      new UserLocalHiveAuthCredentials().set(authCredentials, context);*/
 
-      //connectionLocal.remove(context);  // force reconnect on next get
-      //connectionLocal.get(context);
-      return Response.ok().status(200).build();
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
 
   /**
    * Remove connection credentials

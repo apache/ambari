@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import Queue
-import multiprocessing
 
 import logging
 import traceback
@@ -75,8 +74,7 @@ class ActionQueue(threading.Thread):
   def __init__(self, config, controller):
     super(ActionQueue, self).__init__()
     self.commandQueue = Queue.Queue()
-    self.statusCommandQueue = multiprocessing.Queue()
-    self.statusCommandResultQueue = multiprocessing.Queue() # this queue is filled by StatuCommandsExecutor.
+    self.statusCommandQueue = Queue.Queue()
     self.backgroundCommandQueue = Queue.Queue()
     self.commandStatuses = CommandStatusDict(callback_action =
       self.status_update_callback)
@@ -97,9 +95,8 @@ class ActionQueue(threading.Thread):
     return self._stop.isSet()
 
   def put_status(self, commands):
-    #Clear all status commands. Was supposed that we got all set of statuses, we don't need to keep old ones
-    while not self.statusCommandQueue.empty():
-      self.statusCommandQueue.get()
+    #Was supposed that we got all set of statuses, we don't need to keep old ones
+    self.statusCommandQueue.queue.clear()
 
     for command in commands:
       logger.info("Adding " + command['commandType'] + " for component " + \
@@ -155,7 +152,7 @@ class ActionQueue(threading.Thread):
     try:
       while not self.stopped():
         self.processBackgroundQueueSafeEmpty();
-        self.processStatusCommandResultQueueSafeEmpty();
+        self.processStatusCommandQueueSafeEmpty();
         try:
           if self.parallel_execution == 0:
             command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
@@ -199,17 +196,14 @@ class ActionQueue(threading.Thread):
       except Queue.Empty:
         pass
 
-  def processStatusCommandResultQueueSafeEmpty(self):
-    while not self.statusCommandResultQueue.empty():
+  def processStatusCommandQueueSafeEmpty(self):
+    while not self.statusCommandQueue.empty():
       try:
-        result = self.statusCommandResultQueue.get(False)
-        self.process_status_command_result(result)
+        command = self.statusCommandQueue.get(False)
+        self.process_command(command)
       except Queue.Empty:
         pass
-      except IOError:
-        # on race condition in multiprocessing.Queue if get/put and thread kill are executed at the same time.
-        # During queue.close IOError will be thrown (this prevents from permanently dead-locked get).
-        pass
+
 
   def createCommandHandle(self, command):
     if command.has_key('__handle'):
@@ -230,6 +224,8 @@ class ActionQueue(threading.Thread):
         finally:
           if self.controller.recovery_manager.enabled():
             self.controller.recovery_manager.stop_execution_command()
+      elif commandType == self.STATUS_COMMAND:
+        self.execute_status_command(command)
       else:
         logger.error("Unrecognized command " + pprint.pformat(command))
     except Exception:
@@ -491,12 +487,11 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(handle.command, roleResult)
 
-  def process_status_command_result(self, result):
+  def execute_status_command(self, command):
     '''
     Executes commands of type STATUS_COMMAND
     '''
     try:
-      command, component_status_result, component_security_status_result = result
       cluster = command['clusterName']
       service = command['serviceName']
       component = command['componentName']
@@ -510,6 +505,11 @@ class ActionQueue(threading.Thread):
                               globalConfig, self.config, self.configTags)
 
       component_extra = None
+
+      # For custom services, responsibility to determine service status is
+      # delegated to python scripts
+      component_status_result = self.customServiceOrchestrator.requestComponentStatus(command)
+      component_security_status_result = self.customServiceOrchestrator.requestComponentSecurityState(command)
 
       if component_status_result['exitcode'] == 0:
         component_status = LiveStatus.LIVE_STATUS

@@ -492,22 +492,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * If configs are saved in store returns stored configs merged with stack
-   * otherwise return stack configs
-   * @returns {Object[]}
-   */
-  getInitialConfigs: function(storedConfigs) {
-    if (storedConfigs && storedConfigs.length) {
-      var mergedConfigs = [];
-      storedConfigs.forEach(function (c) {
-        mergedConfigs.push($.extend({}, App.configsCollection.getConfigByName(c.name, c.filename), c));
-      });
-      return mergedConfigs;
-    }
-    return App.configsCollection.getAll();
-  },
-
-  /**
    * Update hawq configuration depending on the state of the cluster
    * @param {Array} configs
    */

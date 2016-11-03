@@ -185,8 +185,11 @@ def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_tim
           "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
           "or perform a cluster upgrade until you correct the database consistency issues. See " + \
           db_check_log + "for more details on the consistency issues."
+  elif 'Database consistency check: warning' in open(server_out_file).read():
+    print "\nDB configs consistency check found warnings. See " + db_check_log + " for more details."
   else:
-    print "\nDB consistency check: no errors were found."
+    print "\nDB configs consistency check: no errors and warnings were found."
+
 
   if not server_ui_port_occupied:
     raise FatalException(1, "Server not yet listening on http port " + str(ambari_server_ui_port) +

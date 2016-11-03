@@ -26,21 +26,21 @@
         {{t common.copy}}
       </a>
       <a href="#" {{action openInNewTab target="view"}}>
-        <i class="glyphicon glyphicon-external-link"></i>
+        <i class="icon-external-link"></i>
         {{t common.open}}
       </a>
       <a class="open-in-log-search" {{bindAttr href="view.logSearchUrl"}} target="_blank">
-        <i class="glyphicon glyphicon-external-link"></i>
+        <i class="icon-external-link"></i>
         {{t popup.logTail.openInLogSearch}}
       </a>
     </div>
   </div>
   <div class="clearfix"></div>
 </div>
-<div class="modal-content">
-  <div {{bindAttr class="view.isCopyActive::hidden"}}>
-    <div class="clipboard-wrap">
-      {{view Em.TextArea valueBinding="view.copyContent" classNames="copy-textarea"}}
+<div>
+  <div {{bindAttr class=":task-detail-info view.isCopyActive::hidden"}}>
+    <div class="clipboard-wrap task-detail-log-info">
+      {{view App.NotScrollableTextArea class="task-detail-log-clipboard copy-textarea" valueBinding="view.copyContent"}}
     </div>
   </div>
   <div {{bindAttr class="view.isCopyActive:hidden"}}>

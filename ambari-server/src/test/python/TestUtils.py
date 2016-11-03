@@ -144,8 +144,8 @@ class TestUtils(TestCase):
                                     "cmd": ""
                                     },
                                    ], 5, 40, 10, '', '', get_properties_mock)
-    self.assertEqual(".\nServer started listening on 8080\n\nDB consistency check: no errors were found.\nWaiting for 10 seconds,"
-                     " for server WEB UI initialization\n........", out.getvalue())
+    self.assertEqual(".\nServer started listening on 8080\n\nDB configs consistency check: no errors and warnings were "
+                     "found.\nWaiting for 10 seconds, for server WEB UI initialization\n........", out.getvalue())
     sys.stdout = sys.__stdout__
 
     self.assertEquals(2, live_pids)

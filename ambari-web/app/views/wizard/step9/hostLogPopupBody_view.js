@@ -192,10 +192,10 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    * @method openTaskLogInDialog
    */
   openTaskLogInDialog: function () {
-    var newwindow = window.open();
-    var newdocument = newwindow.document;
-    newdocument.write($(".task-detail-log-info").html());
-    newdocument.close();
+    var newWindow = window.open();
+    var newDocument = newWindow.document;
+    newDocument.write('<pre>' + this.get('formattedLogsForOpenedTask') + '<pre>');
+    newDocument.close();
   },
 
   /**
@@ -204,7 +204,16 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    */
   openedTask: function () {
     return this.get('tasks').findProperty('id', this.get('parentView.c.currentOpenTaskId'))
-  }.property('parentView.c.currentOpenTaskId', 'tasks.@each'),
+  }.property('parentView.c.currentOpenTaskId', 'tasks.[]'),
+
+  /**
+   * @type {string}
+   */
+  formattedLogsForOpenedTask: function () {
+    var stderr = this.get('openedTask.stderr');
+    var stdout = this.get('openedTask.stdout');
+    return 'stderr: \n' + stderr + '\n stdout:\n' + stdout;
+  }.property('openedTask.stderr', 'openedTask.stdout'),
 
   /**
    * Click-handler for toggle task's log view (textarea to box and back)
@@ -234,7 +243,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    * @method textTrigger
    */
   textTrigger: function () {
-    if ($(".task-detail-log-clipboard").length > 0) {
+    if (this.get('showClipBoard')) {
       this.destroyClipBoard();
     }
     else {
@@ -243,20 +252,17 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
   },
 
   /**
+   * @type {boolean}
+   */
+  showClipBoard: false,
+
+  /**
    * Create clipboard with task's log
    * @method createClipBoard
    */
   createClipBoard: function () {
-    var log = $(".task-detail-log-maintext"),
-      logRect = log[0].getBoundingClientRect();
-    $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
-    $(".task-detail-log-clipboard")
-      .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
-      .css("display", "block")
-      .width(logRect.width)
-      .height(logRect.height)
-      .select();
-    log.css("display", "none")
+    this.set('showClipBoard', true);
+    $('.task-detail-log-maintext').css('display', 'none');
   },
 
   /**
@@ -264,7 +270,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    * @method destroyClipBoard
    */
   destroyClipBoard: function () {
-    $(".task-detail-log-clipboard").remove();
-    $(".task-detail-log-maintext").css("display", "block");
+    this.set('showClipBoard', false);
+    $('.task-detail-log-maintext').css('display', 'block');
   }
 });

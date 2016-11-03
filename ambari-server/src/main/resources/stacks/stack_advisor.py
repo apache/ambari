@@ -972,6 +972,18 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
     return siteConfig.get("properties")
 
+  def getServicesSiteProperties(self, services, siteName):
+    if not services:
+      return None
+
+    configurations = services.get("configurations")
+    if not configurations:
+      return None
+    siteConfig = configurations.get(siteName)
+    if siteConfig is None:
+      return None
+    return siteConfig.get("properties")
+
   def putProperty(self, config, configType, services=None):
     userConfigs = {}
     changedConfigs = []
@@ -1040,13 +1052,26 @@ class DefaultStackAdvisor(StackAdvisor):
       config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
     return appendPropertyAttribute
 
-
-  """
-  Returns the hosts which are running the given component.
-  """
   def getHosts(self, componentsList, componentName):
+    """
+    Returns the hosts which are running the given component.
+    """
     hostNamesList = [component["hostnames"] for component in componentsList if component["component_name"] == componentName]
     return hostNamesList[0] if len(hostNamesList) > 0 else []
+
+  def getMountPoints(self, hosts):
+    """
+    Return list of mounts available on the hosts
+
+    :type hosts dict
+    """
+    mount_points = []
+
+    for item in hosts["items"]:
+      if "disk_info" in item["Hosts"]:
+        mount_points.append(item["Hosts"]["disk_info"])
+
+    return mount_points
 
   def isSecurityEnabled(self, services):
     """
@@ -1084,3 +1109,170 @@ class DefaultStackAdvisor(StackAdvisor):
 
   def getServiceNames(self, services):
     return [service["StackServices"]["service_name"] for service in services["services"]]
+
+  def filterHostMounts(self, hosts, services):
+    """
+    Filter mounts on the host using agent_mounts_ignore_list, by excluding and record with mount-point
+     mentioned in agent_mounts_ignore_list.
+
+    This function updates hosts dictionary
+
+    Example:
+
+      agent_mounts_ignore_list : "/run/secrets"
+
+      Hosts record :
+
+       "disk_info" : [
+          {
+              ...
+            "mountpoint" : "/"
+          },
+          {
+              ...
+            "mountpoint" : "/run/secrets"
+          }
+        ]
+
+      Result would be :
+
+        "disk_info" : [
+          {
+              ...
+            "mountpoint" : "/"
+          }
+        ]
+
+    :type hosts dict
+    :type services dict
+    """
+    if not services:
+      return hosts
+
+    cluster_env = self.getServicesSiteProperties(services, "cluster-env")
+    ignore_list = []
+
+    if not cluster_env or "items" not in hosts:
+      return hosts
+
+    if "agent_mounts_ignore_list" in cluster_env and cluster_env["agent_mounts_ignore_list"].strip():
+      ignore_list = [x.strip() for x in cluster_env["agent_mounts_ignore_list"].strip().split(",")]
+
+    for host in hosts["items"]:
+      if "Hosts" not in host and "disk_info" not in host["Hosts"]:
+        continue
+
+      host = host["Hosts"]
+      host["disk_info"] = [disk for disk in host["disk_info"] if disk["mountpoint"] not in ignore_list]
+
+    return hosts
+
+  def __getSameHostMounts(self, hosts):
+    """
+    Return list of the mounts which are same and present on all hosts
+
+    :type hosts dict
+    :rtype list
+    """
+    if not hosts:
+      return None
+
+    hostMounts = self.getMountPoints(hosts)
+    mounts = []
+    for m in hostMounts:
+      host_mounts = set([item["mountpoint"] for item in m])
+      mounts = host_mounts if not mounts else mounts & host_mounts
+
+    return sorted(mounts)
+
+  def getMountPathVariations(self, initial_value, component_name, services, hosts):
+    """
+    Recommends best fitted mount by prefixing path with it.
+
+    :return return list of paths with properly selected paths. If no recommendation possible,
+     would be returned empty list
+
+    :type initial_value str
+    :type component_name str
+    :type services dict
+    :type hosts dict
+    :rtype list
+    """
+    available_mounts = []
+
+    if not initial_value:
+      return available_mounts
+
+    mounts = self.__getSameHostMounts(hosts)
+    sep = "/"
+
+    if not mounts:
+      return available_mounts
+
+    for mount in mounts:
+      new_mount = initial_value if mount == "/" else os.path.join(mount + sep, initial_value.lstrip(sep))
+      if new_mount not in available_mounts:
+        available_mounts.append(new_mount)
+
+    # no list transformations after filling the list, because this will cause item order change
+    return available_mounts
+
+  def getMountPathVariation(self, initial_value, component_name, services, hosts):
+    """
+    Recommends best fitted mount by prefixing path with it.
+
+    :return return list of paths with properly selected paths. If no recommendation possible,
+     would be returned empty list
+
+    :type initial_value str
+        :type component_name str
+    :type services dict
+    :type hosts dict
+    :rtype str
+    """
+    try:
+      return [self.getMountPathVariations(initial_value, component_name, services, hosts)[0]]
+    except IndexError:
+      return []
+
+  def updateMountProperties(self, siteConfig, propertyDefinitions, configurations,  services, hosts):
+    """
+    Update properties according to recommendations for available mount-points
+
+    propertyDefinitions is an array of set : property name, component name, initial value, recommendation type
+
+     Where,
+
+       property name - name of the property
+       component name, name of the component to which belongs this property
+       initial value - initial path
+       recommendation type - could be "multi" or "single". This describes recommendation strategy, to use only one disk
+        or use all available space on the host
+
+    :type propertyDefinitions list
+    :type siteConfig str
+    :type configurations dict
+    :type services dict
+    :type hosts dict
+    """
+
+    props = self.getServicesSiteProperties(services, siteConfig)
+    put_f = self.putProperty(configurations, siteConfig, services)
+
+    for prop_item in propertyDefinitions:
+      name, component, default_value, rc_type = prop_item
+      recommendation = None
+
+      if props is None or name not in props:
+        if rc_type == "multi":
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
+        else:
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
+      elif props and name in props and props[name] == default_value:
+        if rc_type == "multi":
+          recommendation = self.getMountPathVariations(default_value, component, services, hosts)
+        else:
+          recommendation = self.getMountPathVariation(default_value, component, services, hosts)
+
+      if recommendation:
+        put_f(name, ",".join(recommendation))

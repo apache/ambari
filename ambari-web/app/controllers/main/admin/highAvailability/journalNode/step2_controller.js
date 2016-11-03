@@ -80,6 +80,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
 
   onLoadConfigs: function (data) {
     this.set('serverConfigData',data);
+    this.set('content.nameServiceId', data.items[0].properties['dfs.nameservices']);
     this.tweakServiceConfigs(this.get('moveJNConfig.configs'));
     this.renderServiceConfigs(this.get('moveJNConfig'));
     this.set('isLoaded', true);
@@ -119,24 +120,6 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
       config.isOverridable = false;
     });
 
-    return configs;
-  },
-
-  /**
-   * Find and remove config properties in <code>serverConfigData</code>
-   * @param configsToRemove - map of config sites and properties to remove
-   * @param configs - configuration object
-   * @returns {Object}
-   */
-  removeConfigs:function (configsToRemove, configs) {
-    Em.keys(configsToRemove).forEach(function(site){
-      var siteConfigs = configs.items.findProperty('type', site);
-      if (siteConfigs) {
-        configsToRemove[site].forEach(function (property) {
-          delete siteConfigs.properties[property];
-        });
-      }
-    });
     return configs;
   },
 

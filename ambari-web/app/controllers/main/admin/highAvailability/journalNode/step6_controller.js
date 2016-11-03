@@ -23,5 +23,15 @@ App.ManageJournalNodeWizardStep6Controller = App.ManageJournalNodeProgressPageCo
   clusterDeployState: 'JOURNALNODE_MANAGEMENT',
   tasksMessagesPrefix: 'admin.manageJournalNode.wizard.step',
 
-  commands: ['startServices']
+  commands: ['startZooKeeperServers', 'startActiveNameNode'],
+
+  startZooKeeperServers: function () {
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+    this.updateComponent('ZOOKEEPER_SERVER', hostNames, "ZOOKEEPER", "Start");
+  },
+
+  startActiveNameNode: function () {
+    var activeNN = this.get('content.activeNN');
+    this.updateComponent('NAMENODE', activeNN.host_name, "HDFS", "Start");
+  }
 });

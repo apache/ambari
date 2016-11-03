@@ -66,7 +66,7 @@
           <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
           <div class="task-detail-ico-wrap">
             <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="glyphicon glyphicon-copy"></i> {{t common.copy}}</a>
-            <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="glyphicon glyphicon-external-link"></i> {{t common.open}}</a>
+            <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="glyphicon icon-external-link"></i> {{t common.open}}</a>
           </div>
           <span class="task-detail-log-rolename">
             {{view.openedTask.commandDetail}}
@@ -77,7 +77,11 @@
       {{#if view.isTaskLoaded}}
           <div class="task-detail-log-info">
               <div class="content-area">
-                  <div class="task-detail-log-clipboard-wrap"></div>
+                  <div class="task-detail-log-clipboard-wrap">
+                    {{#if view.showClipBoard}}
+                      {{view App.NotScrollableTextArea class="task-detail-log-clipboard" valueBinding="view.formattedLogsForOpenedTask"}}
+                    {{/if}}
+                  </div>
                   <div class="task-detail-log-maintext">
                       <h5>stderr: &nbsp; <span class="muted">{{view.openedTask.errorLog}} </span></h5>
                       <pre class="stderr">{{view.openedTask.stderr}}</pre>

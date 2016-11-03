@@ -307,7 +307,8 @@ public class ServiceImpl implements Service {
   @Override
   public ServiceResponse convertToResponse() {
     ServiceResponse r = new ServiceResponse(cluster.getClusterId(), cluster.getClusterName(),
-        getName(), getDesiredStackVersion().getStackId(), getDesiredState().toString());
+        getName(), getDesiredStackVersion().getStackId(), getDesiredState().toString(),
+        isCredentialStoreSupported(), isCredentialStoreEnabled());
 
     r.setMaintenanceState(getMaintenanceState().name());
     return r;
@@ -358,7 +359,7 @@ public class ServiceImpl implements Service {
 
     if (desiredStateEntity != null) {
       desiredStateEntity.setCredentialStoreSupported(credentialStoreSupported);
-      serviceDesiredStateDAO.merge(desiredStateEntity);
+      desiredStateEntity = serviceDesiredStateDAO.merge(desiredStateEntity);
 
     } else {
       LOG.warn("Setting a member on an entity object that may have been "

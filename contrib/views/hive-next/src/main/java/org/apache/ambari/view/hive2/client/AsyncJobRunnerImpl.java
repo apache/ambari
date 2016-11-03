@@ -31,17 +31,18 @@ import org.apache.ambari.view.hive2.actor.message.FetchResult;
 import org.apache.ambari.view.hive2.actor.message.ResetCursor;
 import org.apache.ambari.view.hive2.actor.message.ResultNotReady;
 import org.apache.ambari.view.hive2.actor.message.SQLStatementJob;
-import org.apache.ambari.view.hive2.actor.message.job.AsyncExecutionFailed;
 import org.apache.ambari.view.hive2.actor.message.job.CancelJob;
 import org.apache.ambari.view.hive2.actor.message.job.Failure;
+import org.apache.ambari.view.hive2.actor.message.job.FetchFailed;
+import org.apache.ambari.view.hive2.internal.ConnectionException;
 import org.apache.ambari.view.hive2.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive2.utils.ResultFetchFormattedException;
 import org.apache.ambari.view.hive2.utils.ResultNotReadyFormattedException;
-import org.apache.ambari.view.hive2.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.concurrent.duration.Duration;
 
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 public class AsyncJobRunnerImpl implements AsyncJobRunner {
@@ -126,8 +127,16 @@ public class AsyncJobRunnerImpl implements AsyncJobRunner {
     Inbox inbox = Inbox.create(system);
     inbox.send(controller, new FetchError(jobId, username));
     Object receive = inbox.receive(Duration.create(1, TimeUnit.MINUTES));
+    if(receive instanceof FetchFailed){
+      FetchFailed fetchFailed = (FetchFailed) receive;
+      return Optional.of(new Failure(fetchFailed.getMessage(), getExceptionForRetry()));
+    }
     Optional<Failure> result = (Optional<Failure>) receive;
     return result;
+  }
+
+  private ConnectionException getExceptionForRetry() {
+    return new ConnectionException(new SQLException("Cannot connect"),"Connection attempt failed, Please retry");
   }
 
 

@@ -28,9 +28,8 @@ App.ManageJournalNodeWizardStep5View = Em.View.extend({
   },
 
   step5BodyText: function () {
-    var nN = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true);
-    var addNN = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false);
-    return Em.I18n.t('admin.manageJournalNode.wizard.step5.body').format(this.get('controller.content.hdfsUser'), nN.hostName, addNN);
+    var activeNN = this.get('controller.content.activeNN');
+    return Em.I18n.t('admin.manageJournalNode.wizard.step5.body').format(this.get('controller.content.hdfsUser'), activeNN.host_name);
   }.property('controller.content.masterComponentHosts'),
 
   jnCheckPointText: function () {
