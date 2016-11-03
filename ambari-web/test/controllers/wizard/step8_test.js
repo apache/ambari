@@ -637,17 +637,13 @@ describe('App.WizardStep8Controller', function () {
   describe('#loadRepoInfo', function() {
 
     beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP');
-      sinon.stub(App.StackVersion, 'find', function() {
-        return [
-          Em.Object.create({state: 'CURRENT', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
-        ];
-      });
+      var stubForGet = sinon.stub(App, 'get');
+      stubForGet.withArgs('currentStackName').returns('HDP');
+      stubForGet.withArgs('currentStackVersionNumber').returns('2.3.0.0-2208');
     });
 
     afterEach(function () {
       App.get.restore();
-      App.StackVersion.find.restore();
     });
     it('should use current StackVersion', function() {
       installerStep8Controller.loadRepoInfo();
