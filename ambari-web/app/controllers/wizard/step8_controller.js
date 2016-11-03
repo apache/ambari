@@ -329,7 +329,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadRepoInfo: function () {
 
-    var currentRepoVersion = App.StackVersion.find().findProperty('state', 'CURRENT').get('repositoryVersion.repositoryVersion');
+    var currentRepoVersion = App.get('currentStackVersionNumber');
     var stackName = App.get('currentStackName');
 
     return App.ajax.send({
