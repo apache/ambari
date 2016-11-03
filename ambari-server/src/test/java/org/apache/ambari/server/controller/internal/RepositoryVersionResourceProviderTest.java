@@ -609,17 +609,31 @@ public class RepositoryVersionResourceProviderTest {
   public void testVersionInStack(){
     StackId sid = new StackId("HDP-2.3");
     StackId sid2 = new StackId("HDP-2.3.NEW");
+    StackId sid3 = new StackId("HDF-2.3");
+
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3"));
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid3, "2.3"));
 
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.1"));
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.1"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid3, "2.3.1"));
 
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "2.3.2.0-2300"));
     Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "2.3.2.1-3562"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid3, "2.3.2.1-3562"));
+
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid, "HDP-2.3.2.0-2300"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid2, "HDP-2.3.2.1-3562"));
+    Assert.assertEquals(true, RepositoryVersionEntity.isVersionInStack(sid3, "HDF-2.3.2.1-3562"));
 
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "2.4.2.0-2300"));
     Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "2.1"));
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid3, "2.1"));
+
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid, "HDP-2.4.2.0-2300"));
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid2, "HDP-2.1"));
+    Assert.assertEquals(false, RepositoryVersionEntity.isVersionInStack(sid3, "HDF-2.1"));
   }
 
 

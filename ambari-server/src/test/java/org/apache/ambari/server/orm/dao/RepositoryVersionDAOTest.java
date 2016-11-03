@@ -48,6 +48,7 @@ public class RepositoryVersionDAOTest {
   private static Injector injector;
 
   private static final StackId HDP_206 = new StackId("HDP", "2.0.6");
+  private static final StackId OTHER_10 = new StackId("OTHER", "1.0");
   private static final StackId BAD_STACK = new StackId("BADSTACK", "1.0");
 
   private RepositoryVersionDAO repositoryVersionDAO;
@@ -196,6 +197,40 @@ public class RepositoryVersionDAOTest {
     }
     //
 
+  }
+
+  @Test
+  public void testRemovePrefixFromVersion() {
+
+    StackEntity hdp206StackEntity = stackDAO.find(HDP_206.getStackName(),
+        HDP_206.getStackVersion());
+    Assert.assertNotNull(hdp206StackEntity);
+
+    final RepositoryVersionEntity hdp206RepoEntity = new RepositoryVersionEntity();
+    hdp206RepoEntity.setDisplayName("HDP-2.0.6.0-1234");
+    hdp206RepoEntity.setOperatingSystems("repositories");
+    hdp206RepoEntity.setStack(hdp206StackEntity);
+    hdp206RepoEntity.setVersion("HDP-2.0.6.0-1234");
+    repositoryVersionDAO.create(hdp206RepoEntity);
+    Assert.assertEquals("Failed to remove HDP stack prefix from version", "2.0.6.0-1234", hdp206RepoEntity.getVersion());
+    Assert.assertNotNull(repositoryVersionDAO.findByDisplayName("HDP-2.0.6.0-1234"));
+    Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion(HDP_206,
+        "2.0.6.0-1234"));
+
+    StackEntity other10StackEntity = stackDAO.find(OTHER_10.getStackName(),
+        OTHER_10.getStackVersion());
+    Assert.assertNotNull(other10StackEntity);
+
+    final RepositoryVersionEntity other10RepoEntity = new RepositoryVersionEntity();
+    other10RepoEntity.setDisplayName("OTHER-1.0.1.0-1234");
+    other10RepoEntity.setOperatingSystems("repositories");
+    other10RepoEntity.setStack(other10StackEntity);
+    other10RepoEntity.setVersion("OTHER-1.0.1.0-1234");
+    repositoryVersionDAO.create(other10RepoEntity);
+    Assert.assertEquals("Failed to remove OTHER stack prefix from version", "1.0.1.0-1234", other10RepoEntity.getVersion());
+    Assert.assertNotNull(repositoryVersionDAO.findByDisplayName("OTHER-1.0.1.0-1234"));
+    Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion(OTHER_10,
+        "1.0.1.0-1234"));
   }
 
   @After
