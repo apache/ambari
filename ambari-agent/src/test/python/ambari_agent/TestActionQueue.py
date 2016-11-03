@@ -310,7 +310,9 @@ class TestActionQueue(TestCase):
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("logging.RootLogger.exception")
   @patch.object(ActionQueue, "execute_command")
-  def test_process_command(self, execute_command_mock, log_exc_mock):
+  @patch.object(ActionQueue, "execute_status_command")
+  def test_process_command(self, execute_status_command_mock,
+                           execute_command_mock, log_exc_mock):
     dummy_controller = MagicMock()
     config = AmbariConfig()
     config.set('agent', 'tolerate_download_failures', "true")
@@ -327,19 +329,29 @@ class TestActionQueue(TestCase):
     # Try wrong command
     actionQueue.process_command(wrong_command)
     self.assertFalse(execute_command_mock.called)
+    self.assertFalse(execute_status_command_mock.called)
     self.assertFalse(log_exc_mock.called)
 
     execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
     log_exc_mock.reset_mock()
     # Try normal execution
     actionQueue.process_command(execution_command)
     self.assertTrue(execute_command_mock.called)
+    self.assertFalse(execute_status_command_mock.called)
     self.assertFalse(log_exc_mock.called)
 
     execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
     log_exc_mock.reset_mock()
 
+    actionQueue.process_command(status_command)
+    self.assertFalse(execute_command_mock.called)
+    self.assertTrue(execute_status_command_mock.called)
+    self.assertFalse(log_exc_mock.called)
+
     execute_command_mock.reset_mock()
+    execute_status_command_mock.reset_mock()
     log_exc_mock.reset_mock()
 
     # Try exception to check proper logging
@@ -351,6 +363,7 @@ class TestActionQueue(TestCase):
 
     log_exc_mock.reset_mock()
 
+    execute_status_command_mock.side_effect = side_effect
     actionQueue.process_command(execution_command)
     self.assertTrue(log_exc_mock.called)
 
@@ -822,11 +835,14 @@ class TestActionQueue(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(CustomServiceOrchestrator, "requestComponentSecurityState")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   @patch.object(CustomServiceOrchestrator, "__init__")
   def test_execute_status_command(self, CustomServiceOrchestrator_mock,
-                                  build_mock, execute_command_mock,
+                                  build_mock, execute_command_mock, requestComponentSecurityState_mock,
+                                  requestComponentStatus_mock,
                                   status_update_callback):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
@@ -836,25 +852,33 @@ class TestActionQueue(TestCase):
 
     dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
 
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {'exitcode': 0 }
 
-    actionQueue.process_status_command_result(result)
+    requestComponentSecurityState_mock.reset_mock()
+    requestComponentSecurityState_mock.return_value = 'UNKNOWN'
+
+    actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
     expected = {'dummy report': '',
                 'securityState' : 'UNKNOWN'}
 
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
+    self.assertTrue(requestComponentStatus_mock.called)
 
   @patch.object(RecoveryManager, "command_exists")
   @patch.object(RecoveryManager, "requires_recovery")
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(CustomServiceOrchestrator, "requestComponentSecurityState")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_process_status_command_result_recovery(self, CustomServiceOrchestrator_mock,
-                                  build_mock, execute_command_mock,
+  def test_execute_status_command_recovery(self, CustomServiceOrchestrator_mock,
+                                  build_mock, execute_command_mock, requestComponentSecurityState_mock,
+                                  requestComponentStatus_mock,
                                   status_update_callback, requires_recovery_mock,
                                   command_exists_mock):
     CustomServiceOrchestrator_mock.return_value = None
@@ -867,9 +891,13 @@ class TestActionQueue(TestCase):
 
     dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp(), True, False)
 
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {'exitcode': 0 }
 
-    actionQueue.process_status_command_result(result)
+    requestComponentSecurityState_mock.reset_mock()
+    requestComponentSecurityState_mock.return_value = 'UNKNOWN'
+
+    actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
     expected = {'dummy report': '',
                 'securityState' : 'UNKNOWN',
@@ -877,13 +905,17 @@ class TestActionQueue(TestCase):
 
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
+    self.assertTrue(requestComponentStatus_mock.called)
 
     requires_recovery_mock.return_value = True
     command_exists_mock.return_value = True
-    
-    result = (self.status_command, {'exitcode': 0 }, 'UNKNOWN')
+    requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {'exitcode': 0 }
 
-    actionQueue.process_status_command_result(result)
+    requestComponentSecurityState_mock.reset_mock()
+    requestComponentSecurityState_mock.return_value = 'UNKNOWN'
+
+    actionQueue.execute_status_command(self.status_command)
     report = actionQueue.result()
     expected = {'dummy report': '',
                 'securityState' : 'UNKNOWN',
@@ -891,33 +923,39 @@ class TestActionQueue(TestCase):
 
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertEqual(report['componentStatus'][0], expected)
+    self.assertTrue(requestComponentStatus_mock.called)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(ActionQueue, "status_update_callback")
+  @patch.object(CustomServiceOrchestrator, "requestComponentStatus")
+  @patch.object(CustomServiceOrchestrator, "requestComponentSecurityState")
   @patch.object(ActionQueue, "execute_command")
   @patch.object(LiveStatus, "build")
   @patch.object(CustomServiceOrchestrator, "__init__")
-  def test_process_status_command_result_with_alerts(self, CustomServiceOrchestrator_mock,
+  def test_execute_status_command_with_alerts(self, CustomServiceOrchestrator_mock,
+                                              requestComponentSecurityState_mock,
                                   build_mock, execute_command_mock,
+                                  requestComponentStatus_mock,
                                   status_update_callback):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(AmbariConfig(), dummy_controller)
-    command_return_value = {
+
+
+    requestComponentStatus_mock.reset_mock()
+    requestComponentStatus_mock.return_value = {
       'exitcode': 0,
       'stdout': 'out',
       'stderr': 'err',
       'structuredOut': {'alerts': [ {'name': 'flume_alert'} ] }
     }
-    
-    result = (self.status_command_for_alerts, command_return_value, command_return_value)
-    
     build_mock.return_value = {'somestatusresult': 'aresult'}
 
-    actionQueue.process_status_command_result(result)
+    actionQueue.execute_status_command(self.status_command_for_alerts)
 
     report = actionQueue.result()
 
+    self.assertTrue(requestComponentStatus_mock.called)
     self.assertEqual(len(report['componentStatus']), 1)
     self.assertTrue(report['componentStatus'][0].has_key('alerts'))
 
@@ -1177,7 +1215,7 @@ class TestActionQueue(TestCase):
     execute_command = copy.deepcopy(self.background_command)
     actionQueue.put([execute_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.processStatusCommandQueueSafeEmpty();
     
     #assert that python execturor start
     self.assertTrue(runCommand_mock.called)
@@ -1221,7 +1259,7 @@ class TestActionQueue(TestCase):
                                                                  None, command_complete_w)
     actionQueue.put([self.background_command])
     actionQueue.processBackgroundQueueSafeEmpty();
-    actionQueue.processStatusCommandResultQueueSafeEmpty();
+    actionQueue.processStatusCommandQueueSafeEmpty();
     
     with lock:
       complete_done.wait(0.1)
