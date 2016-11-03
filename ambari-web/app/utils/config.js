@@ -1227,26 +1227,6 @@ App.config = Em.Object.create({
   },
 
   /**
-   * creates config object with non static properties like
-   * 'value', 'isFinal', 'errorMessage' and
-   * 'id', 'name', 'filename',
-   * @param configProperty
-   * @returns {Object}
-   */
-  createMinifiedConfig: function (configProperty) {
-    if (configProperty instanceof Ember.Object) {
-      return configProperty.getProperties('name', 'filename', 'serviceName', 'value', 'isFinal');
-    }
-    return {
-      name: configProperty.name,
-      filename: configProperty.filename,
-      serviceName: configProperty.serviceName,
-      value: configProperty.value,
-      isFinal: configProperty.isFinal
-    }
-  },
-
-  /**
    * Update config property value based on its current value and list of zookeeper server hosts.
    * Used to prevent sort order issues.
    * <code>siteConfigs</code> object formatted according server's persist format e.g.
