@@ -250,9 +250,13 @@ public class CompatibleRepositoryVersionResourceProviderTest {
   public void testVersionInStack() {
     assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3"), "2.3.0.0"));
     assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDPWIN", "2.3"), "2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3.GlusterFS"), "2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDF", "2.1"), "2.1.0.0"));
 
     assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3"), "HDP-2.3.0.0"));
     assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDPWIN", "2.3"), "HDPWIN-2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDP", "2.3.GlusterFS"), "HDP-2.3.0.0"));
+    assertTrue(RepositoryVersionEntity.isVersionInStack(new StackId("HDF", "2.1"), "HDF-2.1.0.0"));
   }
 
   @Test
