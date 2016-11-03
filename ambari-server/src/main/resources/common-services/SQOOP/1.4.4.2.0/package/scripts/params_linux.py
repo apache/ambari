@@ -70,7 +70,7 @@ zoo_conf_dir = "/etc/zookeeper"
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   sqoop_conf_dir = format("{stack_root}/current/sqoop-client/conf")
   sqoop_lib = format("{stack_root}/current/sqoop-client/lib")
-  hadoop_home = format("{stack_root}/current/hbase-client")
+  hadoop_home = format("{stack_root}/current/hadoop-client")
   hbase_home = format("{stack_root}/current/hbase-client")
   hive_home = format("{stack_root}/current/hive-client")
   sqoop_bin_dir = format("{stack_root}/current/sqoop-client/bin/")
