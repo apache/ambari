@@ -57,10 +57,11 @@ def spark_service(name, upgrade_type=None, action=None):
 
     if name == 'jobhistoryserver' and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
       # create & copy spark2-hdp-yarn-archive.tar.gz to hdfs
-      source_dir=params.spark_home+"/jars"
-      tmp_archive_file=get_tarball_paths("spark2")[1]
-      make_tarfile(tmp_archive_file, source_dir)
-      copy_to_hdfs("spark2", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
+      if not params.sysprep_skip_copy_tarballs_hdfs:
+          source_dir=params.spark_home+"/jars"
+          tmp_archive_file=get_tarball_paths("spark2")[1]
+          make_tarfile(tmp_archive_file, source_dir)
+          copy_to_hdfs("spark2", params.user_group, params.hdfs_user, skip=params.sysprep_skip_copy_tarballs_hdfs)
       # create spark history directory
       params.HdfsResource(params.spark_history_dir,
                           type="directory",
