@@ -27,6 +27,7 @@ import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryActio
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Defines how to build stages for an Upgrade or Downgrade.
@@ -128,7 +129,7 @@ public abstract class StageWrapperBuilder {
   protected List<StageWrapper> afterBuild(UpgradeContext upgradeContext,
       List<StageWrapper> stageWrappers) {
 
-    if (stageWrappers.isEmpty()) {
+    if (CollectionUtils.isEmpty(stageWrappers)) {
       return stageWrappers;
     }
 

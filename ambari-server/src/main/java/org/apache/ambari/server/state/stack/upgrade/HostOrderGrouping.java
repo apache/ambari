@@ -33,9 +33,23 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 public class HostOrderGrouping extends Grouping {
 
   /**
+   * Contains the ordered actions to schedule for this grouping.
+   */
+  private List<HostOrderItem> m_hostOrderItems;
+
+  /**
    * Constructor
    */
   public HostOrderGrouping() {
+  }
+
+  /**
+   * Sets the {@link HostOrderItem}s on this grouping.
+   *
+   * @param hostOrderItems
+   */
+  public void setHostOrderItems(List<HostOrderItem> hostOrderItems) {
+    m_hostOrderItems = hostOrderItems;
   }
 
   @Override
@@ -54,12 +68,18 @@ public class HostOrderGrouping extends Grouping {
       super(grouping);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
         boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<StageWrapper> build(UpgradeContext upgradeContext,
         List<StageWrapper> stageWrappers) {
