@@ -47,6 +47,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.ResultSet;
+import java.util.HashMap;
 
 import static org.easymock.EasyMock.*;
 
@@ -85,7 +86,8 @@ public class JobExecutionTest {
     ActorRef operationControl = actorSystem.actorOf(
             Props.create(OperationController.class, actorSystem, deathwatch, viewContext, connectionSupplier, dataStorageSupplier, hdfsApiSupplier), "operationController-test");
     expect(hdfsApiSupplier.get(viewContext)).andReturn(Optional.of(hdfsApi));
-    expect(connect.getConnectable()).andReturn(connectionWrapper);
+    expect(viewContext.getProperties()).andReturn(new HashMap<String, String>()).anyTimes();
+    expect(connect.getConnectable(anyObject(AuthParams.class))).andReturn(connectionWrapper);
     expect(connectionWrapper.isOpen()).andReturn(false);
     expect(connectionWrapper.getConnection()).andReturn(Optional.of(hiveConnection)).anyTimes();
     expect(dataStorageSupplier.get(viewContext)).andReturn(storage);
@@ -100,7 +102,7 @@ public class JobExecutionTest {
     connectionWrapper.connect();
     jobImpl.setStatus(Job.JOB_STATE_FINISHED);
     storage.store(JobImpl.class, jobImpl);
-    replay(connect, hdfsApiSupplier, dataStorageSupplier, connectionWrapper,
+    replay(viewContext, connect, hdfsApiSupplier, dataStorageSupplier, connectionWrapper,
             storage, jobImpl, connectionSupplier, delegate, statement, resultSet);
 
     operationControl.tell(executeJob, ActorRef.noSender());
