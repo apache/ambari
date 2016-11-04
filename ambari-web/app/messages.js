@@ -413,6 +413,18 @@ Em.I18n.translations = {
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
 
   'question.sure':'Are you sure?',
+  'question.sure.restart':'Are you sure you want to restart {0}?',
+  'question.sure.start':'Are you sure you want to start {0}?',
+  'question.sure.stop':'Are you sure you want to stop {0}?',
+  'question.sure.move':'Are you sure you want to move {0}?',
+  'question.sure.refresh':'Are you sure you want to restart all clients on {0}?',
+  'question.sure.maintenance':'Are you sure you want to turn on maintenance mode for {0}?',
+  'question.sure.upgrade':'Are you sure you want to upgrade {0}?',
+  'question.sure.decommission':'Are you sure you want to decommission {0}?',
+  'question.sure.recommission':'Are you sure you want to recommission {0}?',
+  'question.sure.startAll':'Are you sure you want to start all the components?',
+  'question.sure.stopAll':'Are you sure you want to stop all the components?',
+  'question.sure.restartAll':'Are you sure you want to restart all the components?',
 
   'popup.highlight':'click to highlight',
   'popup.confirmation.commonHeader':'Confirmation',
