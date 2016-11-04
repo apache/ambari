@@ -497,6 +497,24 @@ public String getVersion() {
     credentialStoreInfo.setEnabled(credentialStoreEnabled);
   }
 
+  /**
+   * Get the credential store information object.
+   *
+   * @return
+   */
+  public CredentialStoreInfo getCredentialStoreInfo() {
+    return credentialStoreInfo;
+  }
+
+  /**
+   * Set a new value for the credential store information.
+   *
+   * @param credentialStoreInfo
+   */
+  public void setCredentialStoreInfo(CredentialStoreInfo credentialStoreInfo) {
+    this.credentialStoreInfo = credentialStoreInfo;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

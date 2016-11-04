@@ -259,6 +259,14 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       serviceInfo.setChecksFolder(parent.getChecksFolder());
     }
 
+    /**
+     * If current stack version does not specify the credential store information
+     * for the service, then use parent definition.
+     */
+    if (serviceInfo.getCredentialStoreInfo() == null) {
+      serviceInfo.setCredentialStoreInfo(parent.getCredentialStoreInfo());
+    }
+
     if (serviceInfo.isSelectionEmpty()) {
       serviceInfo.setSelection(parent.getSelection());
     }
