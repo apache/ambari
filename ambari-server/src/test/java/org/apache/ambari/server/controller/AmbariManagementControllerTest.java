@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -49,11 +54,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
-import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
@@ -173,8 +173,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import junit.framework.Assert;
 
 public class AmbariManagementControllerTest {
 
@@ -9700,6 +9698,7 @@ public class AmbariManagementControllerTest {
     clusters.addHost(HOST1);
     Host host = clusters.getHost(HOST1);
     setOsFamily(host, "redhat", "5.9");
+    clusters.getHost(HOST1).setState(HostState.HEALTHY);
 
     ClusterRequest clusterRequest = new ClusterRequest(null, CLUSTER_NAME, STACK_ID, null);
     amc.createCluster(clusterRequest);
