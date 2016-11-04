@@ -95,6 +95,7 @@ require('views/common/configs/widgets/comparison/config_widget_comparison_view')
 require('views/common/configs/service_config_layout_tab_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
+require('views/common/pagination_view');
 require('views/common/table_view');
 require('views/common/progress_bar_view');
 require('views/common/controls_view');

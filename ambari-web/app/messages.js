@@ -2995,6 +2995,7 @@ Em.I18n.translations = {
   'tableView.filters.all': 'All',
   'tableView.filters.filtered': 'Filtered',
   'tableView.filters.clearFilters': 'Clear filters',
+  'tableView.filters.itemsPerPage': 'Items per page:',
   'tableView.filters.paginationInfo': '{0} - {1} of {2}',
   'tableView.filters.clearAllFilters': 'clear filters',
   'tableView.filters.showAll': 'Show All',

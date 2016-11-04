@@ -57,13 +57,7 @@
     </div>
 
     {{#if view.isPaginate}}
-      <div class="page-bar pull-right no-borders mtm">
-        <div class="items-on-page">
-          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-        <div class="info">{{view.paginationInfo}}</div>
-        {{view view.pagination4Btns}}
-      </div>
+      {{view App.PaginationView}}
     {{/if}}
   {{else}}
     {{view App.SpinnerView}}

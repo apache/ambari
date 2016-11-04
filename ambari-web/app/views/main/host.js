@@ -131,24 +131,22 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * Select View with list of "rows-per-page" options
    * @type {Ember.View}
    */
-  rowsPerPageSelectView: Em.Select.extend({
-    classNames: ['form-control'],
-    content: ['10', '25', '50', '100'],
-    attributeBindings: ['disabled'],
+  rowsPerPageSelectView: Em.Select.extend(App.PaginationSelectMixin, {
+
     disabled: true,
 
     disableView: function () {
       Em.run.next(this, function(){
-        this.set('disabled', !this.get('parentView.filteringComplete'));
+        this.set('disabled', !this.get('parentView.dataView.filteringComplete'));
       });
-    }.observes('parentView.filteringComplete'),
+    }.observes('parentView.dataView.filteringComplete'),
 
     change: function () {
-      this.get('parentView').saveDisplayLength();
+      this.get('parentView.dataView').saveDisplayLength();
       var self = this;
-      if (this.get('parentView.startIndex') !== 1 && this.get('parentView.startIndex') !== 0) {
+      if (this.get('parentView.dataView.startIndex') !== 1 && this.get('parentView.dataView.startIndex') !== 0) {
         Ember.run.next(function () {
-          self.set('parentView.startIndex', 1);
+          self.set('parentView.dataView.startIndex', 1);
         });
       }
     }

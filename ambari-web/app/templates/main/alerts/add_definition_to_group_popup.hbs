@@ -124,17 +124,18 @@
           </tbody>
         </table>
       </div>
+      {{#if view.isPaginate}}
+        <table class="table table-hover">
+          <tfoot>
+            <tr>
+              <td>
+                {{view App.PaginationView}}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      {{/if}}
     </div>
   </form>
-
-  {{#if view.isPaginate}}
-    <div class="page-bar pull-right no-borders">
-      <div class="items-on-page">
-        <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-      </div>
-      <div class="info">{{view.paginationInfo}}</div>
-      {{view view.pagination4Btns}}
-    </div>
-  {{/if}}
 
 {{/if}}

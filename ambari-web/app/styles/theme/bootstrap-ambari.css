@@ -377,10 +377,6 @@ h2.table-title {
 .table tfoot > tr:first-of-type > td {
   border-top-width: 2px;
 }
-.table tfoot .pagination-block .pagination-block-item {
-  float: left;
-  padding: 0 5px;
-}
 .table.table-hover .action {
   visibility: hidden;
   padding: 0;
@@ -420,6 +416,20 @@ h2.table-title {
 }
 .table.table-hover > tbody > tr:first-of-type:hover > td {
   border-color: #A7DFF2;
+}
+.pagination-block .pagination-block-item {
+  float: left;
+  padding: 0 5px;
+}
+.pagination-block .pagination-block-item a,
+.pagination-block .pagination-block-item a:visited,
+.pagination-block .pagination-block-item a:focus {
+  text-decoration: none;
+}
+.pagination-block .pagination-block-item select {
+  border: none;
+  background-color: transparent;
+  color: #1491C1;
 }
 .wizard {
   border: 2px solid #ebecf1;
