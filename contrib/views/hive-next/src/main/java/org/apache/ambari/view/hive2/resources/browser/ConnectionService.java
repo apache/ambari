@@ -19,8 +19,8 @@
 package org.apache.ambari.view.hive2.resources.browser;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.Maps;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive2.AuthParams;
 import org.apache.ambari.view.hive2.ConnectionFactory;
 import org.apache.ambari.view.hive2.ConnectionSystem;
 import org.apache.ambari.view.hive2.client.ConnectionConfig;
@@ -97,7 +97,7 @@ public class ConnectionService {
 
     private Response attemptHiveConnection(String pass) {
         ConnectionConfig connectionConfig = ConnectionFactory.create(context);
-        HiveConnectionWrapper hiveConnectionWrapper = new HiveConnectionWrapper(connectionConfig.getJdbcUrl(), connectionConfig.getUsername(), pass);
+        HiveConnectionWrapper hiveConnectionWrapper = new HiveConnectionWrapper(connectionConfig.getJdbcUrl(), connectionConfig.getUsername(), pass,new AuthParams(context));
         try {
           hiveConnectionWrapper.connect();
         } catch (ConnectionException e) {

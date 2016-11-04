@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive2.actor.message;
 
 import com.google.common.base.Optional;
+import org.apache.ambari.view.hive2.AuthParams;
 import org.apache.ambari.view.hive2.internal.Connectable;
 import org.apache.ambari.view.hive2.internal.HiveConnectionWrapper;
 
@@ -50,8 +51,8 @@ public class Connect {
     this(HiveJob.Type.SYNC, null, username, password, jdbcUrl);
   }
 
-  public Connectable getConnectable(){
-    return new HiveConnectionWrapper(getJdbcUrl(),username,password);
+  public Connectable getConnectable(AuthParams authParams){
+    return new HiveConnectionWrapper(getJdbcUrl(),username,password, authParams);
   }
 
   public String getUsername() {
