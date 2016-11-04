@@ -27,11 +27,6 @@ App.UpdateController = Em.Controller.extend({
   timeIntervalId: null,
   clusterName: Em.computed.alias('App.router.clusterController.clusterName'),
 
-  /**
-   * keys which should be preloaded in order to filter hosts by host-components
-   */
-  hostsPreLoadKeys: ['host_components/HostRoles/component_name', 'host_components/HostRoles/stale_configs', 'host_components/HostRoles/maintenance_state'],
-
   paginationKeys: ['page_size', 'from'],
 
   /**
@@ -363,10 +358,8 @@ App.UpdateController = Em.Controller.extend({
    * @return {Boolean}
    */
   preLoadHosts: function (callback) {
-    var preLoadKeys = this.get('hostsPreLoadKeys');
-
     if (this.get('queryParams.Hosts').length > 0 && this.get('queryParams.Hosts').filter(function (param) {
-      return preLoadKeys.contains(param.key);
+      return param.isComponentRelatedFilter;
     }, this).length > 0) {
       this.getHostByHostComponents(callback);
       return true;
@@ -393,7 +386,6 @@ App.UpdateController = Em.Controller.extend({
     })
   },
   getHostByHostComponentsSuccessCallback: function (data, opt, params) {
-    var preLoadKeys = this.get('hostsPreLoadKeys');
     var queryParams = this.get('queryParams.Hosts');
     var hostNames = data.items.mapProperty('Hosts.host_name');
     var skipCall = hostNames.length === 0;
@@ -406,15 +398,16 @@ App.UpdateController = Em.Controller.extend({
     if (skipCall) {
       params.callback(skipCall);
     } else {
+      // get all non-hostcomponent related keys
       queryParams = queryParams.filter(function (param) {
-        return !preLoadKeys.contains(param.key);
+        return !param.isComponentRelatedFilter;
       });
-
-      queryParams = [{
+      // force specific hosts
+      queryParams.push({
         key: 'Hosts/host_name',
         value: hostNames,
         type: 'MULTIPLE'
-      }];
+      });
       params.callback(skipCall, queryParams);
     }
   },
