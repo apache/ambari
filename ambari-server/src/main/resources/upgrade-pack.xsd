@@ -143,8 +143,8 @@
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="name" type="xs:string" />
-    <xs:attribute name="title" type="xs:string" />
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="title" type="xs:string" use="required" />
   </xs:complexType>
   
   <xs:complexType name="cluster">
