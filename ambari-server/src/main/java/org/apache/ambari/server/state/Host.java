@@ -388,4 +388,18 @@ public interface Host extends Comparable {
    * @return
    */
   List<HostVersionEntity> getAllHostVersions();
+
+  /**
+   * Gets whether this host has components which advertise their version.
+   *
+   * @param stackId
+   *          the version of the stack to use when checking version
+   *          advertise-ability.
+   * @return {@code true} if at least 1 component on this host advertises its
+   *         version.
+   * @throws AmbariException
+   *           if there is a problem retrieving the component from the stack.
+   * @see ComponentInfo#isVersionAdvertised()
+   */
+  boolean hasComponentsAdvertisingVersions(StackId stackId) throws AmbariException;
 }
