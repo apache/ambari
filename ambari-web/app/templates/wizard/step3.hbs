@@ -22,18 +22,20 @@
 
   <div class="panel panel-default">
     <div class="panel-body">
-      <div class="box">
-        <div class="box-header">
+
+      <div class="panel panel-default panel-internal">
+        <div class="panel-heading">
           <div class="button-section">
             {{#unless isBackDisabled}}
               <button class="btn btn-primary step3-remove-selected-btn" {{bindAttr disabled="view.noHostsSelected"}}
-                {{action removeSelectedHosts target="controller" }}><i class="glyphicon glyphicon-trash glyphicon-white"></i>
+                {{action removeSelectedHosts target="controller" }}>
+                <i class="glyphicon glyphicon-trash glyphicon-white"></i>
                 {{t installer.step3.removeSelected}}
               </button>
             {{/unless}}
             {{#unless isRetryDisabled}}
-              <a class="btn btn-primary decommission"
-                 href="#" {{action retrySelectedHosts target="view"}}><i class="glyphicon glyphicon-repeat glyphicon-white"></i>
+              <a class="btn btn-primary decommission" href="#" {{action retrySelectedHosts target="view"}}>
+                <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
                 {{t installer.step3.retryFailed}}
               </a>
             {{/unless}}
@@ -54,63 +56,65 @@
               </ul>
             </div>
           </div>
+          <div class="clearfix"></div>
         </div>
-
-        <div class="pre-scrollable col-sm-12" style="max-height: 440px;">
-          <table id="confirm-hosts-table" class="table table-hover">
-            <thead>
-            <tr>
-              <th class="col-md-5">{{t common.host}}</th>
-              <!-- retrieved from local storage initially -->
-              <th class="col-md-2">{{t common.progress}}</th>
-              <th class="col-md-2">{{t common.status}}</th>
-              <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
-              <th class="col-md-2">{{t common.action}}</th>
-              <!-- trash icon -->
-              <!-- retry icon -->
-              <th class="tinyspan">
-                {{view App.CheckboxView checkedBinding="view.pageChecked"}}
-              </th>
-            </tr>
-            </thead>
-            <tbody>
+        <div class="panel-body">
+          <div class="pre-scrollable col-sm-12" style="max-height: 440px;">
+            <table id="confirm-hosts-table" class="table table-hover">
+              <thead>
+              <tr>
+                <th class="col-md-5">{{t common.host}}</th>
+                <!-- retrieved from local storage initially -->
+                <th class="col-md-2">{{t common.progress}}</th>
+                <th class="col-md-2">{{t common.status}}</th>
+                <!-- given by the parsing function that parses data from bootstrap call, dynamically assign the color -->
+                <th class="col-md-2">{{t common.action}}</th>
+                <!-- trash icon -->
+                <!-- retry icon -->
+                <th class="tinyspan">
+                  {{view App.CheckboxView checkedBinding="view.pageChecked"}}
+                </th>
+              </tr>
+              </thead>
+              <tbody>
               {{#if view.pageContent}}
                 {{#each host in view.pageContent}}
                   {{#view App.WizardHostView categoryBinding="controller.category" hostInfoBinding="host"}}
-                  <td class="host">
-                    <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
-                  </td>
-                  <td class="step3-table-progress">
-                    <div class="progress">
-                      <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-bar-striped host.isBootDone::active :progress-bar"}} style="width:100%">
+                    <td class="host">
+                      <span title="{{unbound host.name}}" class="trim_hostname">{{host.name}}</span>
+                    </td>
+                    <td class="step3-table-progress">
+                      <div class="progress">
+                        <div {{bindAttr class="host.bootBarColor host.isBootDone::progress-bar-striped host.isBootDone::active :progress-bar"}}
+                          style="width:100%">
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td class="step3-table-status">
-                    <a href="javascript:void(null)"
-                       data-toggle="modal" {{action hostLogPopup host target="controller"}}><span {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span></a>
-                  </td>
-                  <td class="step3-table-action">
-                    <a class="action" href="#" {{action remove target="view"}}{{bindAttr disabled="isBackDisabled"}}>
-                      <i class="glyphicon glyphicon-trash" {{translateAttr title="common.remove"}}></i>
-                    </a>
-                  </td>
-                  <td class="step3-table-checkbox">
-                    {{view App.CheckboxView checkedBinding="host.isChecked"}}
-                  </td>
+                    </td>
+                    <td class="step3-table-status">
+                      <a href="javascript:void(null)" data-toggle="modal" {{action hostLogPopup host target="controller"}}>
+                        <span {{bindAttr class="host.bootStatusColor"}}>{{host.bootStatusForDisplay}}</span>
+                      </a>
+                    </td>
+                    <td class="step3-table-action">
+                      <a class="action" href="#" {{action remove target="view"}}{{bindAttr disabled="isBackDisabled"}}>
+                        <i class="glyphicon glyphicon-trash" {{translateAttr title="common.remove"}}></i>
+                      </a>
+                    </td>
+                    <td class="step3-table-checkbox">
+                      {{view App.CheckboxView checkedBinding="host.isChecked"}}
+                    </td>
                   {{/view}}
                 {{/each}}
               {{else}}
-              <tr>
-                <td class="step3-table-no-hosts" colspan="5">
-                  {{t hosts.table.noHosts}}
-                </td>
-              </tr>
+                <tr>
+                  <td class="step3-table-no-hosts" colspan="5">
+                    {{t hosts.table.noHosts}}
+                  </td>
+                </tr>
               {{/if}}
-            </tbody>
-          </table>
-        </div>
-        <div id="hosts col-sm-12">
+              </tbody>
+            </table>
+          </div>
           <div class="page-bar">
             <div class="selected-hosts-info pull-left">
               {{#if view.selectedHostsCount}}
@@ -130,6 +134,7 @@
           </div>
         </div>
       </div>
+
       {{#if hasMoreRegisteredHosts}}
         <div {{bindAttr class=":alert :alert-warning"}}>
           <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
@@ -144,6 +149,7 @@
           {{/unless}}
         {{/unless}}
       </div>
+
     </div>
   </div>
 </div>

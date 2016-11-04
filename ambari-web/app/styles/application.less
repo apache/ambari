@@ -830,6 +830,9 @@ h1 {
     }
   }
   .wizard-content {
+    .panel.panel-default.panel-internal {
+      border: 1px solid #ddd;
+    }
     padding: 25px;
     background-color: #fff;
 
@@ -906,6 +909,11 @@ h1 {
     }
   }
   #confirm-hosts {
+
+    .page-bar {
+      border: none;
+    }
+
     table {
       margin-bottom: 0;
       th {
@@ -918,15 +926,6 @@ h1 {
       .tinyspan {
         width: 2%;
         float: none;
-      }
-    }
-    .box-header {
-      padding: 0 4px 0 10px;
-      background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #e5e5e5));
-      background: -ms-linear-gradient(top, #ffffff, #e5e5e5);
-      background: -moz-linear-gradient(center top, #ffffff 0%, #e5e5e5 100%);
-      .btn-primary {
-        margin-top: 3px;
       }
     }
 
@@ -1045,19 +1044,12 @@ h1 {
     }
   }
   #deploy {
+
+    .page-bar {
+      border: none;
+    }
     .pre-scrollable {
       max-height: 750px;
-    }
-    #overallProgress {
-    }
-    .box-header {
-      padding: 0 4px 0 10px;
-      background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #ffffff), color-stop(1, #e5e5e5));
-      background: -ms-linear-gradient(top, #ffffff, #e5e5e5);
-      background: -moz-linear-gradient(center top, #ffffff 0%, #e5e5e5 100%);
-      .btn-primary {
-        margin-top: 3px;
-      }
     }
     table {
       margin-bottom: 0;
@@ -1290,7 +1282,6 @@ h1 {
     min-width: 280px;
   }
   .panel-heading {
-    background-color: #f0f0f0;
     cursor: pointer;
   }
   .panel-group {
@@ -1409,6 +1400,9 @@ h1 {
     }
   }
   .common-config-category, .enhanced-config-tab-content  {
+    .panel-title {
+      line-height: 16px;
+    }
     .action {
       cursor: pointer;
     }
@@ -1582,46 +1576,6 @@ a:focus {
 @rack-state-toggler: url("/img/rack-state-toggler.png");
 @rack-state-plus: url("/img/rack-state-plus.png");
 @rack-state-minus: url("/img/rack-state-minus.png");
-
-/*****start styles for boxes*****/
-.box {
-  border: 1px solid #D4D4D4;
-  margin-bottom: 20px;
-  background-color: #FFFFFF;
-
-  .box-header {
-    border-bottom: 1px solid #D4D4D4;
-  }
-  .box-header,
-  .box-footer {
-    padding: 4px 4px 4px 10px;
-    background: #f5f5f5;
-  }
-  .box-header:after,
-  .box-footer:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-  .box-header {
-    .btn-group {
-      float: right;
-    }
-    h4 {
-      float: left;
-      margin: 5px;
-      font-size: 15px;
-      color: #777;
-    }
-  }
-  .box-footer {
-    hr {
-      margin: 0;
-    }
-  }
-}
-
-/*****end styles for boxes*****/
 
 /*****start styles for well *****/
 .well {
@@ -3350,48 +3304,6 @@ table.graphs {
     position: relative;
     top: 10px;
   }
-  .box-header {
-    margin-left: 0;
-    .btn-group {
-      float: left;
-    }
-    .btn.decommission {
-      margin-left: 5px;
-    }
-    .btn.add-host-button {
-      margin-bottom: 10px;
-      margin-top: -5px;
-    }
-    .health-status-bar {
-      font-size: 0.9em;
-      margin-left: 0;
-      color: #b4b4b4;
-      a {
-        text-decoration: none;
-      }
-      .category-item:hover {
-        cursor: pointer;
-        a {
-          color: #ffffff;
-        }
-      }
-      .active {
-        a {
-          color: #ffffff;
-        }
-        background-color: #888888;
-        border-color: #888888;
-        -webkit-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
-        -moz-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
-        box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.25);
-      }
-      .category-item.active:hover {
-        a {
-          color: #ffffff;
-        }
-      }
-    }
-  }
   .progress {
     margin-bottom: 0;
   }
@@ -3665,9 +3577,6 @@ table.graphs {
   }
   .warnings-list {
     .block {
-      .panel-heading {
-        background-color: #f0f0f0;
-      }
       table {
         width: 100%;
         td, th {
@@ -3803,11 +3712,6 @@ table.graphs {
     display: block;
     width: 105px;
     margin-bottom: 5px;
-  }
-
-  .box-header .host-title {
-    margin: 0;
-    padding-left: 17px;
   }
 
   hr {
@@ -5885,6 +5789,9 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 .panel-heading {
   background-color: #f0f0f0;
+  .panel-title {
+    line-height: 34px;
+  }
 }
 
 .config-manage-nav {
@@ -5988,7 +5895,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 #select-stack {
   .panel-heading {
-    background-color: #f0f0f0;
     font-weight: bold;
     p {
       margin-bottom: 0;
