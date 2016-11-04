@@ -16,13 +16,14 @@
    limitations under the License.
 -->
 
-<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-config.xsd">
   <services>
     <service name="ZOOKEEPER">
       <component name="ZOOKEEPER_SERVER">
         <changes>
           <definition xsi:type="configure" id="hdp_2_2_0_zk_post_upgrade">
+            <type>zookeeper-newconfig</type>
+            <set key="fooKey" value="fooValue"/>          
           </definition>
         </changes>
       </component>
@@ -63,19 +64,6 @@
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_2_0_set_transport_mode">
-            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
-              <type>hive-site</type>
-              <key>hive.server2.thrift.port</key>
-              <value>10010</value>
-            </condition>
-            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
-              <type>hive-site</type>
-              <key>hive.server2.http.port</key>
-              <value>10011</value>
-            </condition>
-          </definition>
-
           <definition xsi:type="configure" id="hdp_2_2_0_hive_server_foo">
             <type>hive-site</type>
             <set key="fooKey" value="fooValue"/>
@@ -97,5 +85,4 @@
       </component>
     </service>
   </services>
-
 </upgrade-config-changes>

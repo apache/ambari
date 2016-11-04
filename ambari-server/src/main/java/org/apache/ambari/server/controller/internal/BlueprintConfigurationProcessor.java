@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -188,6 +188,10 @@ public class BlueprintConfigurationProcessor {
   private static final PropertyFilter[] clusterUpdatePropertyFilters =
     { new DependencyEqualsFilter("hbase.security.authorization", "hbase-site", "true"),
       new DependencyNotEqualsFilter("hive.server2.authentication", "hive-site", "NONE"),
+      /** Temporary solution related to HBASE/Phoenix issue PHOENIX-3360, to remove hbase.rpc.controllerfactory
+       * .class from hbase-site. */
+      new ConditionalPropertyFilter("hbase-site", "hbase.rpc.controllerfactory.class",
+        "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory"),
       new HDFSNameNodeHAFilter(),
       new HawqHAFilter() };
 
@@ -2238,16 +2242,17 @@ public class BlueprintConfigurationProcessor {
       String[] keyValuePairs = origValue.split(",");
       boolean firstValue = true;
       for (String keyValuePair : keyValuePairs) {
+        keyValuePair = keyValuePair.trim();
         if (!firstValue) {
           updatedResult.append(",");
         } else {
           firstValue = false;
         }
 
-        String key = keyValuePair.split("=")[0];
+        String key = keyValuePair.split("=")[0].trim();
         if (mapOfKeysToUpdaters.containsKey(key)) {
           String result = mapOfKeysToUpdaters.get(key).updateForClusterCreate(
-              key, keyValuePair.split("=")[1], properties, topology);
+              key, keyValuePair.split("=")[1].trim(), properties, topology);
           // append the internal property result, escape out any commas in the internal property,
           // this is required due to the specific syntax of templeton.hive.properties
           updatedResult.append(key);
@@ -3201,6 +3206,41 @@ public class BlueprintConfigurationProcessor {
         }
       }
 
+      return true;
+    }
+  }
+
+  /**
+   * Filter implementation filters out a property depending on property value.
+   */
+  private static class ConditionalPropertyFilter implements PropertyFilter {
+
+    private final String propertyName;
+    private final String propertyValue;
+    private final String configType;
+
+    public ConditionalPropertyFilter(String configType, String propertyName, String propertyValue) {
+      this.propertyName = propertyName;
+      this.propertyValue = propertyValue;
+      this.configType = configType;
+    }
+
+    /**
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @param configType config type that contains this property
+     * @param topology cluster topology instance
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue, String configType, ClusterTopology topology) {
+      if (configType.equals(this.configType) && propertyName.equals(this.propertyName) && propertyValue.equals(this
+        .propertyValue)) {
+        return false;
+      }
       return true;
     }
   }

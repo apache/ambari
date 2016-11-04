@@ -17,23 +17,16 @@
 }}
 
 <div id="ra-ha-wizard" class="wizard">
-  <div class="container">
-      <div class="row">
-        <div class="col-md-3">
-          <!--Sidebar content-->
-          <div class="well">
-            <ul class="nav nav-pills nav-stacked">
-              <li class="nav-header">{{t admin.ra_highAvailability.wizard.header}}</li>
-              <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t admin.ra_highAvailability.wizard.step1.header}}</a></li>
-              <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t admin.ra_highAvailability.wizard.step2.header}}</a></li>
-              <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t admin.ra_highAvailability.wizard.step3.header}}</a></li>
-              <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t admin.ra_highAvailability.wizard.step4.header}}</a></li>
-            </ul>
-          </div>
-        </div>
-          <div class="wizard-content well col-md-9">
-            {{outlet}}
-          </div>
-      </div>
+  <div class="wizard-body row">
+    <div class="wizard-nav col-md-3">
+      <ul class="nav nav-pills nav-stacked">
+        <li class="nav-header">{{t admin.ra_highAvailability.wizard.header}}</li>
+        <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled view.isStep1Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}><i class="step-marker"><span class="step-index">1</span></i><p class="step-name">{{t admin.ra_highAvailability.wizard.step1.header}}</p></a></li>
+        <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled view.isStep2Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}><i class="step-marker"><span class="step-index">2</span></i><p class="step-name">{{t admin.ra_highAvailability.wizard.step2.header}}</p></a></li>
+        <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled view.isStep3Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}><i class="step-marker"><span class="step-index">3</span></i><p class="step-name">{{t admin.ra_highAvailability.wizard.step3.header}}</p></a></li>
+        <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled view.isStep4Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}><i class="step-marker"><span class="step-index">4</span></i><p class="step-name">{{t admin.ra_highAvailability.wizard.step4.header}}</p></a></li>
+      </ul>
+    </div>
+    {{outlet}}
   </div>
 </div>

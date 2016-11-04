@@ -16,27 +16,29 @@
 * limitations under the License.
 }}
 
-<div id="add-widget-step1">
-  <h2>{{t widget.create.wizard.step1.header}}</h2>
+<div id="add-widget-step1" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t widget.create.wizard.step1.header}}</h4>
 
-  <div id="add-widget-step1-options-body">
-    <h4>{{t widget.create.wizard.step1.body.text}}</h4>
-
-    <div class="widgets-info-container row">
-      {{#each option in options}}
-        <div class="col-md-6 row widget-info-section" rel="selectable-tooltip"
-          {{translateAttr data-original-title="widget.create.wizard.step1.body.choose.tooltip"}}
-          {{action "chooseOption" option.name target="controller"}}>
-          <div class="icon col-md-4">
-            <a class="widget-icon-image" target="_blank"><img {{bindAttr src="option.iconPath"}}></a>
-          </div>
-          <div class="label-description col-md-8">
-            <p class="label-text">{{option.displayName}}</p>
-            <p class="description-text">{{option.description}}</p>
-          </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="add-widget-step1-options-body">
+        <h4>{{t widget.create.wizard.step1.body.text}}</h4>
+        <div class="widgets-info-container row">
+          {{#each option in options}}
+            <div class="col-md-6 row widget-info-section" rel="selectable-tooltip"
+              {{translateAttr data-original-title="widget.create.wizard.step1.body.choose.tooltip"}}
+              {{action "chooseOption" option.name target="controller"}}>
+              <div class="icon col-md-4">
+                <a class="widget-icon-image" target="_blank"><img {{bindAttr src="option.iconPath"}}></a>
+              </div>
+              <div class="label-description col-md-8">
+                <p class="label-text">{{option.displayName}}</p>
+                <p class="description-text">{{option.description}}</p>
+              </div>
+            </div>
+          {{/each}}
         </div>
-      {{/each}}
+      </div>
     </div>
   </div>
-
 </div>

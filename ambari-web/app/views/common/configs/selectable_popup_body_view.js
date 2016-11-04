@@ -48,7 +48,7 @@ App.SelectablePopupBodyView = Em.View.extend({
     var content = this.get('parentView.content');
     if (this.get('textareaVisible')) {
       var wrapper = $(".task-detail-log-maintext");
-      $('.task-detail-log-clipboard').html(content).width(wrapper.width()).height(wrapper.height());
+      $('.task-detail-log-clipboard').html(content).css('width', wrapper.css('width')).height(wrapper.height());
       Em.run.next(function () {
         $('.task-detail-log-clipboard').select();
       });

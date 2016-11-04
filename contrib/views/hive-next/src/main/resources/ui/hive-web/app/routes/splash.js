@@ -42,14 +42,54 @@ export default Ember.Route.extend({
 
     controller.set('model', model);
     var self = this;
-    controller.startTests().then(function() {
 
-      if (model.get("hiveserverTest") && model.get("hdfsTest") && model.get("atsTest") && model.get("userhomeTest")) {
-        Ember.run.later(this, function() {
-          self.send('transition');
-        }, 2000);
-      }
+    function loadView(){
+          controller.startTests().then(function() {
+
+            if (model.get("hiveserverTest")
+                && model.get("hdfsTest")
+                && model.get("atsTest")
+                && model.get("userhomeTest")) {
+              Ember.run.later(this, function() {
+                self.send('transition');
+              }, 2000);
+            }
+          });
+        }
+
+    controller.checkConnection().then(function(){
+      var percent = model.get('percent');
+      model.set("hiveserverTest",true);
+      model.set("hiveserver" + 'TestDone', true);
+      model.set('percent', percent + 25);
+      loadView();
+    },function(){
+        if(!model.get('ldapSuccess')) {
+          var percent = model.get('percent');
+          controller.requestLdapPassword(function(){
+            // check the connection again
+            controller.checkConnection().then(function(){
+              model.set("hiveserverTest",true);
+              model.set("hiveserver" + 'TestDone', true);
+              model.set('percent', percent + 25);
+              loadView();
+            },function(){
+              var percent = model.get('percent');
+              var checkFailedMessage = "Hive authentication failed";
+              var errors = controller.get("errors");
+              errors += checkFailedMessage;
+              errors += '<br>';
+              controller.set("errors", errors);
+              model.get("hiveserverTest",false);
+              model.set("hiveserver" + 'TestDone', true);
+              model.set('percent', percent + 25);
+              loadView();
+            });
+          });
+        }
     });
+
+
   },
 
   actions: {

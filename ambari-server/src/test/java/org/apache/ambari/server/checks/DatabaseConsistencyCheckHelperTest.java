@@ -380,8 +380,8 @@ public class DatabaseConsistencyCheckHelperTest {
     easyMockSupport.verifyAll();
 
     Assert.assertTrue("Missing service config for OPENSOFT R should have triggered a warning.",
-        DatabaseConsistencyCheckHelper.isWarningAvailable());
-    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.isErrorAvailable());
+        DatabaseConsistencyCheckHelper.ifWarningsFound());
+    Assert.assertFalse("No errors should have been triggered.", DatabaseConsistencyCheckHelper.ifErrorsFound());
   }
 
 

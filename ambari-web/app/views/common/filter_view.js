@@ -32,7 +32,7 @@ var validator = require('utils/validator');
 
 var wrapperView = Ember.View.extend({
   classNames: ['view-wrapper'],
-  layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a> {{yield}}'),
+  layout: Ember.Handlebars.compile('{{yield}} <a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a>'),
   template: Ember.Handlebars.compile(
     '{{#if view.fieldId}}<input type="hidden" id="{{unbound view.fieldId}}" value="" />{{/if}}' +
     '{{view view.filterView}}' +
@@ -594,7 +594,8 @@ module.exports = {
       default:
         return function (origin, compareValue) {
           if (validator.isValidMatchesRegexp(compareValue)) {
-            var regex = new RegExp(compareValue, "i");
+            var escapedCompareValue = compareValue.replace("(", "\\(").replace(")", "\\)").trim();
+            var regex = new RegExp(escapedCompareValue, "i");
             return regex.test(origin);
           }
           return false;

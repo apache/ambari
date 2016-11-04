@@ -55,6 +55,8 @@ Em.I18n.translations = {
   'app.settings.no.privileges': 'This user does not have any privileges.',
   'app.settings.clusterRole': 'Cluster Role',
   'app.settings.viewPermissions': 'View Permissions',
+  'app.goToView': 'Go To View',
+  'app.debugHiveQuery': 'Debug Hive Query',
 
   'app.aboutAmbari.getInvolved': 'Get involved!',
   'app.aboutAmbari.version': 'Version',
@@ -406,7 +408,7 @@ Em.I18n.translations = {
   'hostPopup.reccomendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
   'hostPopup.setRackId.success': 'Updating rack id to \"{0}\". It may take a few moments for it to get refreshed.',
   'hostPopup.setRackId.error': 'Updating the rack id failed.',
-  'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes.',
+  'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
 
@@ -627,6 +629,8 @@ Em.I18n.translations = {
   'installer.step1.invalidURLAttention': '<b>Attention:</b> Please make sure all repository URLs are valid before proceeding.',
   'installer.step1.checkAtLeastOneAttention': '<b>Attention:</b> Please check at least one repository.',
   'installer.step1.retryRepoUrls': 'Click <b>here</b> to retry.',
+  'installer.step1.error.inappropriateUrlForStackVersion.title':'Inappropriate Url for selected Stack Version',
+  'installer.step1.error.inappropriateUrlForStackVersion.content': 'Your stack version is {0} when version in Url is {1}',
 
   'installer.step2.header':'Install Options',
   'installer.step2.body':'Enter the list of hosts to be included in the cluster and provide your SSH key.',
@@ -842,6 +846,7 @@ Em.I18n.translations = {
   'installer.step4.serviceCheck.popup.body':'You did not select {0}, but it is needed by other services you selected. We will automatically add {0}. Is this OK?',
   'installer.step4.limitedFunctionality.popup.header':'Limited Functionality Warning',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
+  'installer.step4.ambariInfraCheck.popup.body':'Since Ambari Infra is not selected, you must supply your own Solr to make Atlas work. Are you sure you want to proceed?',
   'installer.step4.smartSenseCheck.popup.body':'SmartSense securely collects cluster diagnostics in order to send you recommendations and automate analysis for ' +
   'troubleshooting support cases. If you choose not to install SmartSense, you will not receive any recommendations, and you ' +
   'will need to collect configuration and logs manually for troubleshooting support cases. ' +
@@ -1266,6 +1271,81 @@ Em.I18n.translations = {
   'admin.kerberos.disable.notice.completed': 'Services have been successfully tested without kerberos environment.',
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
+  'admin.manageJournalNode.label': 'Manage JournalNode',
+  'admin.manageJournalNode.wizard.header': 'Manage JournalNode Wizard',
+  'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
+  'admin.manageJournalNode.wizard.step2.header': 'Review',
+  'admin.manageJournalNode.wizard.step3.header': 'Save Namespace',
+  'admin.manageJournalNode.wizard.step4.header': 'Add/Remove JournalNodes',
+  'admin.manageJournalNode.wizard.step5.header': 'Format JournalNodes',
+  'admin.manageJournalNode.wizard.step6.header': 'Start Active NameNode',
+  'admin.manageJournalNode.wizard.step7.header': 'BootStrap StandBy NameNode',
+  'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
+
+  'admin.manageJournalNode.wizard.step1.body': 'Assign hosts to JournalNodes',
+  'admin.manageJournalNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
+  '<b>Review Configuration Changes.</b></br>' +
+  'The following lists the configuration changes that will be made by the Wizard to manage JournalNode. This information is for <b> review only </b>.' +
+  '</div>',
+
+  'admin.manageJournalNode.wizard.step4.task0.title' : 'Stop Standby NameNode',
+  'admin.manageJournalNode.wizard.step4.task1.title': 'Stop Services',
+  'admin.manageJournalNode.wizard.step4.task2.title': 'Add JournalNodes',
+  'admin.manageJournalNode.wizard.step4.task3.title': 'Delete JournalNodes',
+  'admin.manageJournalNode.wizard.step4.task4.title': 'Start JournalNodes',
+  'admin.manageJournalNode.wizard.step4.task5.title': 'Reconfigure HDFS',
+  'admin.manageJournalNode.wizard.step6.task0.title': 'Start Zookeeper Server',
+  'admin.manageJournalNode.wizard.step6.task1.title': 'Start Active NameNode',
+  'admin.manageJournalNode.wizard.step8.task0.title': 'Stop HDFS',
+  'admin.manageJournalNode.wizard.step8.task1.title': 'Start All Services',
+
+
+  'admin.manageJournalNode.wizard.step5.bodyHeader': 'Manual Steps Required: Format JournalNodes',
+  'admin.manageJournalNode.wizard.step7.bodyHeader': 'Manual Steps Required: BootStrap Standby NameNode',
+
+
+  'admin.manageJournalNode.step4.save.configuration.note' : 'This configuration is created by Manage JournalNode Wizard',
+
+  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Wait all services to be started',
+  'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
+  'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step8.notice.completed':'JournalNodes has been processed successfully.',
+
+  'admin.manageJournalNode.wizard.step3.body':
+  '<ol>' +
+  '<li>Login to the NameNode host <b>{1}</b>.</li>' +
+  '<li>Put the NameNode in Safe Mode (read-only mode):' +
+  '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -safemode enter\'</div></li>' +
+  '<li>Once in Safe Mode, create a Checkpoint:' +
+  '<div class="code-snippet">sudo su {0} -l -c \'hdfs dfsadmin -saveNamespace\'</div></li>' +
+  '<li>You will be able to proceed once Ambari detects that the NameNode is in Safe Mode and the Checkpoint has been created successfully.</li>'+
+  '<div class="alert alert-warn">If the <b>Next</b> button is enabled before you run the <b>"Step 3: Save Namespace"</b> command, it means there is a recent Checkpoint already and you may proceed without running the <b>"Step 3: Save Namespace"</b> command.</div>' +
+  '</ol>',
+
+  'admin.manageJournalNode.wizard.step5.body':
+  '<ol>' +
+  '<li>Login to the NameNode host <b>{1}</b>.</li>' +
+  '<li>Initialize the JournalNodes by running:' +
+  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -initializeSharedEdits\'</div></li>' +
+  '<li>You will be able to proceed once Ambari detects that the JournalNodes have been initialized successfully.</li>' +
+  '</ol>',
+
+  'admin.manageJournalNode.wizard.step7.body':
+  '<div class="alert alert-info">' +
+  '<ol start="3">' +
+  '<li>Login to the Additional NameNode host <b>{1}</b>.<br>' +
+  '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from previous steps.</div>' +
+  '</li>' +
+  '<li>Initialize the metadata for the Additional NameNode by running:' +
+  '<div class="code-snippet">sudo su {0} -l -c \'hdfs namenode -bootstrapStandby\'</div></li>' +
+  '</ol>' +
+  '</div>' +
+  'Please proceed once you have completed the steps above.',
+
+
+
+
   'admin.highAvailability':' High Availability',
   'admin.highAvailability.button.enable':'Enable NameNode HA',
   'admin.highAvailability.button.disable':'Disable NameNode HA',
@@ -1329,19 +1409,21 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step5.task4.title':'Start JournalNodes',
   'admin.highAvailability.wizard.step5.task5.title':'Disable Secondary NameNode',
 
-  'admin.highAvailability.wizard.step7.task0.title':'Start ZooKeeper Servers',
-  'admin.highAvailability.wizard.step7.task1.title':'Start NameNode',
+  'admin.highAvailability.wizard.step7.task0.title':'Start Ranger',
+  'admin.highAvailability.wizard.step7.task1.title':'Start ZooKeeper Servers',
+  'admin.highAvailability.wizard.step7.task2.title':'Start NameNode',
 
   'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
   'admin.highAvailability.wizard.step9.task2.title':'Start Failover Controllers',
   'admin.highAvailability.wizard.step9.task3.title':'Install PXF',
-  'admin.highAvailability.wizard.step9.task4.title':'Reconfigure HBase',
-  'admin.highAvailability.wizard.step9.task5.title':'Reconfigure Accumulo',
-  'admin.highAvailability.wizard.step9.task6.title':'Reconfigure HAWQ',
-  'admin.highAvailability.wizard.step9.task7.title':'Delete Secondary NameNode',
-  'admin.highAvailability.wizard.step9.task8.title':'Stop HDFS',
-  'admin.highAvailability.wizard.step9.task9.title':'Start All Services',
+  'admin.highAvailability.wizard.step9.task4.title':'Reconfigure Ranger',
+  'admin.highAvailability.wizard.step9.task5.title':'Reconfigure HBase',
+  'admin.highAvailability.wizard.step9.task6.title':'Reconfigure Accumulo',
+  'admin.highAvailability.wizard.step9.task7.title':'Reconfigure HAWQ',
+  'admin.highAvailability.wizard.step9.task8.title':'Delete Secondary NameNode',
+  'admin.highAvailability.wizard.step9.task9.title':'Stop HDFS',
+  'admin.highAvailability.wizard.step9.task10.title':'Start All Services',
   'admin.highAvailability.wizard.step9.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.curNameNode': '<b>Current NameNode:</b> ',
@@ -1649,6 +1731,9 @@ Em.I18n.translations = {
   'admin.stackVersions.version.upgrade.upgradeOptions.notAllowed':'Not allowed by the current version',
   'admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg': 'You are about to perform an <b>Express Upgrade</b> from <b>{0}</b> to <b>{1}</b>. This will incur cluster downtime. Are you sure you want to proceed?',
   'admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg': 'You are about to perform a <b>Rolling Upgrade</b> from <b>{0}</b> to <b>{1}</b>. Are you sure you want to proceed?',
+  'admin.stackVersions.version.upgrade.upgradeOptions.error': 'Could not proceed with upgrade:',
+  'admin.stackVersions.version.upgrade.upgradeOptions.loading': 'Checking for supported upgrade types...',
+
   'admin.stackVersions.version.upgrade.alertsWarning': 'Cluster alerts will still be visible and recorded in Ambari but notifications (such as Email and SNMP) will be suppressed during the upgrade.',
 
   'admin.stackVersions.version.column.showDetails': "Show Details",

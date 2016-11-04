@@ -17,15 +17,16 @@
 }}
 <div>
   {{#if view.isLoaded}}
-      <h2>{{t admin.rollbackHighAvailability.wizard.step1.header}}</h2>
+    <div class="wizard-content col-md-9">
+      <h4 class="step-title">{{t admin.rollbackHighAvailability.wizard.step1.header}}</h4>
 
       <div class="alert alert-info">
           <p>
               Select Additional NameNode host:
-            {{view Ember.Select
-            contentBinding="view.addNNHosts"
-            valueBinding="view.selectedAddNNHost"
-            }}
+              {{view Ember.Select
+              contentBinding="view.addNNHosts"
+              valueBinding="view.selectedAddNNHost"
+              }}
           </p>
 
           <div class="code-snippet">Tip: Suggested host <b>{{view.tipAddNNHost}}</b></div>
@@ -33,17 +34,20 @@
       <div class="alert alert-info">
           <p>
               Select Secondary NameNode host:
-            {{view Ember.Select
-            contentBinding="view.sNNHosts"
-            valueBinding="view.selectedSNNHost"
-            }}
+              {{view Ember.Select
+              contentBinding="view.sNNHosts"
+              valueBinding="view.selectedSNNHost"
+              }}
           </p>
 
           <div class="code-snippet">Tip: Suggested host <b>{{view.tipSNNHost}}</b></div>
       </div>
+    </div>
+    <div class="wizard-footer col-md-12">
       <div class="btn-area">
           <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action done target="view"}}>{{t common.next}} &rarr;</a>
       </div>
+    </div>
   {{else}}
       {{view App.SpinnerView}}
   {{/if}}

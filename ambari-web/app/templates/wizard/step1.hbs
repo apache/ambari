@@ -15,193 +15,211 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="select-stack">
-  <h2>{{t installer.step1.header}}</h2>
-  <p class="alert alert-info">{{t installer.step1.body}}</p>
+<div id="select-stack" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step1.header}}</h4>
+  <p class="step-description">{{t installer.step1.body}}</p>
 
-  {{! left tabs }}
-  <div class="row">
-    <div class="col-md-2">
-      <ul class="nav nav-tabs nav-stacked nav-tabs-left">
-        {{#each stack in availableStackTypes}}
-          <li {{bindAttr class="stack.isSelected:active"}}><a {{action "selectRepoInList" stack target="controller"}} href="#">{{stack.stackName}}</a></li>
-        {{/each}}
-      </ul>
-    </div>
-
-    <div class="col-md-10">
-      <div class="details-panel">
-        <div class="version-info">
-          <div class="btn-group">
-            <button type="button" data-toggle="dropdown" class="btn dropdown-toggle btn-info">{{controller.selectedStack.displayName}} <span class="caret"></span></button>
-            <ul class="dropdown-menu">
-              {{#each stack in selectedStackType.stacks}}
-                <li>
-                  {{!view view.stackRadioButton stackBinding="stack"}}
-                  <a href="#" {{action "changeVersion" stack target="controller"}}>{{stack.displayName}}
-                    {{#if stack.stackDefault}}
-                      ({{t installer.step1.changeVersion.defaultVersion}})
-                    {{/if}}
-                  </a>
-                </li>
-              {{/each}}
-              <li><a href="#" {{action "uploadVdf" target="controller"}}>{{t installer.step1.addVersion}} ...</a></li>
-            </ul>
-          </div>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      {{! left tabs }}
+      <div class="row">
+        <div class="col-md-2">
+          <ul class="nav nav-tabs nav-stacked nav-tabs-left">
+            {{#each stack in availableStackTypes}}
+              <li {{bindAttr class="stack.isSelected:active"}}><a {{action "selectRepoInList" stack target="controller"}} href="#">{{stack.stackName}}</a></li>
+            {{/each}}
+          </ul>
         </div>
-        <div class="version-contents-section">
-          {{#unless servicesForSelectedStack}}
-            <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.content.empty}}</div>
-          {{/unless}}
-          <table class="table table-hover">
-            <tbody>
-              {{#each service in servicesForSelectedStack}}
-                <tr>
-                  <td class="col-md-4">{{service.displayName}}</td>
-                  <td class="col-md-8">{{service.latestVersion}}</td>
-                </tr>
-              {{/each}}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-  {{! left tabs end }}
-
-  {{! Public Repository radio }}
-  <label {{bindAttr class=":radio :big-radio :public-radio"}}>
-    {{view view.usePublicRepoRadioButton}} {{t installer.step1.selectUseRepoOptions.public}}
-    {{#if networkIssuesExist}}
-      <a id="public-disabled-link" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
-    {{/if}}
-  </label>
-  {{! Public Repository radio END }}
-
-  {{!--Local repo loaded info below--}}
-  <label class="radio big-radio">{{view view.useLocalRepoRadioButton}} {{t installer.step1.selectUseRepoOptions.local}}</label>
-
-  {{#if App.router.nextBtnClickInProgress}}
-    {{view App.SpinnerView}}
-  {{else}}
-  <form id="repoVersionInfoForm" class="form-horizontal" role="form" name="localVersionInfoForm" novalidate>
-
-    <div class="panel panel-default repos-panel">
-      <div class="panel-heading">
-        <p>{{t common.repositories}}</p>
-      </div>
-      <div class="panel-body version-contents-body">
-          <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.baseUrl}}</div>
-          {{#if view.showWarning}}
-            <div class="alert alert-warning">{{t installer.step1.attentionNeeded}}</div>
-          {{/if}}
-
-          {{! OSes and Repositories }}
-          <div class="clearfix repo-table-title row">
-            <div class="col-md-2"><label>{{t common.os}}</label></div>
-            <div class="col-md-9">
-              <div class="col-md-3"><label>{{t common.name}}</label></div>
-              <div class="col-md-1"></div>
-              <div class="col-md-8"><label>{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</label></div>
-            </div>
-            <div class="col-md-1">
-              {{! Add OS }}
-              <div class="add-os-button btn-group pull-right">
-                <button
-                  type="button" {{bindAttr data-original-title="view.addOsButtonTooltip"  class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
-                  data-toggle="dropdown">
-                  <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
-                </button>
+        <div class="col-md-10">
+          <div class="details-panel">
+            <div class="version-info">
+              <div class="btn-group">
+                <button type="button" data-toggle="dropdown" class="btn dropdown-toggle btn-info">{{controller.selectedStack.displayName}} <span class="caret"></span></button>
                 <ul class="dropdown-menu">
-                  {{#each operatingSystem in selectedStack.operatingSystems}}
-                    {{#unless operatingSystem.isSelected}}
-                      <li><a {{action "addOS" operatingSystem target="controller"}}>{{operatingSystem.osType}}</a></li>
-                    {{/unless}}
+                  {{#each stack in selectedStackType.stacks}}
+                    <li>
+                      {{!view view.stackRadioButton stackBinding="stack"}}
+                      <a href="#" {{action "changeVersion" stack target="controller"}}>{{stack.displayName}}
+                        {{#if stack.stackDefault}}
+                          ({{t installer.step1.changeVersion.defaultVersion}})
+                        {{/if}}
+                      </a>
+                    </li>
                   {{/each}}
+                  <li><a href="#" {{action "uploadVdf" target="controller"}}>{{t installer.step1.addVersion}} ...</a></li>
                 </ul>
               </div>
-              {{! Add OS END}}
+            </div>
+            <div class="version-contents-section">
+              {{#unless servicesForSelectedStack}}
+                <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.content.empty}}</div>
+              {{/unless}}
+              <table class="table table-hover">
+                <tbody>
+                  {{#each service in servicesForSelectedStack}}
+                    <tr>
+                      <td class="col-md-4">{{service.displayName}}</td>
+                      <td class="col-md-8">{{service.latestVersion}}</td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+              </table>
             </div>
           </div>
-
-          {{#each operatingSystem in selectedStack.operatingSystems}}
-            {{#if operatingSystem.isSelected}}
-              <div {{bindAttr class=":clearfix :row :border-bottom operatingSystem.osType"}}>
-                <div class="col-md-2 os-type-label">
-                  <label>{{operatingSystem.osType}}</label>
-                </div>
-                <div class="col-md-9 repo-name-url">
-                  {{#each repository in operatingSystem.repositories}}
-                    <div {{bindAttr class=":clearfix :repo-name-url-inner repository.repoName"}}>
-                      <div class="col-md-3">
-                        <label class="repo-name-label control-label">{{repository.repoId}}</label>
-                      </div>
-                      <div class="validation-td col-md-1">
-                        {{#if repository.validation}}
-                          {{view view.popoverView repositoryBinding="repository"}}
-                        {{/if}}
-                      </div>
-                      <div {{bindAttr class=":col-md-8 :repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
-                        {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
-                          {{#if controller.selectedStack.usePublicRepo}}
-                            {{#if repository.undo}}
-                              <i class="icon-undo" data-toggle="tooltip"
-                                {{action "doRestoreDefaultValue" repository target="controller"}}
-                                {{translateAttr title="common.undo"}}>
-                              </i>
-                            {{/if}}
-                          {{else}}
-                            {{#if repository.notEmpty}}
-                              <i class="icon-undo" data-toggle="tooltip"
-                                {{action "doRestoreToEmpty" repository target="controller"}}
-                                {{translateAttr title="common.undo"}}>
-                              </i>
-                            {{/if}}
-                          {{/if}}
-                      </div>
-                    </div>
-                  {{/each}}
-                </div>
-                <div {{bindAttr class=":col-md-1 :remove-icon controller.selectedStack.useRedhatSatellite:disabled"}} {{action "removeOS" operatingSystem target="controller"}}>
-                  <i class="glyphicon glyphicon-minus"></i>{{t common.remove}}</div>
-              </div>
-            {{/if}}
-          {{/each}}
-          {{! OSes and Repositories END }}
-
-          {{! Skip Repository Base URL validation }}
-          <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled :checkbox"}}>
-            <label>
-              {{view Ember.Checkbox checkedBinding="skipValidationChecked" disabledBinding="controller.selectedStack.useRedhatSatellite"}}
-              <span {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled"}}>{{t installer.step1.advancedRepo.skipValidation.message}}</span>
-              <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
-                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
-              </i>
-            </label>
-          </div>
-          {{! Skip Repository Base URL validation END }}
-
-          {{! Use RedHat Satellite/Spacewalk }}
-          <div id="use-redhat" class="checkbox">
-            <label>
-              {{view view.redhatCheckBoxView}}
-              <span {{bindAttr class=":redhat-label controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>{{t installer.step1.advancedRepo.useRedhatSatellite.message}}</span>
-              <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
-                 data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
-              </i>
-            </label>
-          </div>
-          {{! Use RedHat Satellite/Spacewalk END }}
+        </div>
       </div>
+      {{! left tabs end }}
+
+      {{! Public Repository radio }}
+      <div {{bindAttr class=":radio :big-radio :public-radio"}}>
+        {{view view.usePublicRepoRadioButton classNames="display-inline-block"}}
+        {{#if networkIssuesExist}}
+          <a id="public-disabled-link" class="display-inline-block" {{action "openPublicOptionDisabledWindow" target="view"}}>{{t installer.step1.selectUseRepoOptions.public.networkLost}}</a>
+        {{/if}}
+      </div>
+      {{! Public Repository radio END }}
+
+      {{!--Local repo loaded info below--}}
+      {{view view.useLocalRepoRadioButton classNames="radio big-radio"}}
+
+      {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView}}
+      {{else}}
+      <form id="repoVersionInfoForm" class="form-horizontal" role="form" name="localVersionInfoForm" novalidate>
+
+        <div class="panel panel-default repos-panel">
+          <div class="panel-heading">
+            <p>{{t common.repositories}}</p>
+          </div>
+          <div class="panel-body version-contents-body">
+              <div class="alert alert-info" role="alert">{{t installer.step1.useLocalRepo.infoForm.alert.baseUrl}}</div>
+              {{#if view.showWarning}}
+                <div class="alert alert-warning">{{t installer.step1.attentionNeeded}}</div>
+              {{/if}}
+
+              {{! OSes and Repositories }}
+              <div class="row">
+                <div class="table-controls row col-sm-12 pull-right">
+                  <div class="col-sm-12">
+                    {{! Add OS }}
+                    <div class="btn-group pull-right">
+                      <button
+                        type="button" {{bindAttr data-original-title="view.addOsButtonTooltip" class=":btn :btn-default :dropdown-toggle :add-os-button view.isAddOsButtonDisabled:disabled"}}
+                        data-toggle="dropdown">
+                        <i class="glyphicon glyphicon-plus"></i> {{t common.add}} &nbsp;<span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        {{#each operatingSystem in selectedStack.operatingSystems}}
+                          {{#unless operatingSystem.isSelected}}
+                            <li><a {{action "addOS" operatingSystem target="controller"}}>{{operatingSystem.osType}}</a></li>
+                          {{/unless}}
+                        {{/each}}
+                      </ul>
+                    </div>
+                    {{! Add OS END}}
+                  </div>
+                </div>
+              </div>
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th class="col-sm-2">{{t common.os}}</th>
+                    <th class="col-sm-3">{{t common.name}}</th>
+                    <th class="col-sm-6">{{t installer.step1.advancedRepo.localRepo.column.baseUrl}}</th>
+                    <th class="col-sm-1"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each operatingSystem in selectedStack.operatingSystems}}
+                    {{#if operatingSystem.isSelected}}
+                      <tr>
+                        <td class="col-sm-2">{{operatingSystem.osType}}</td>
+                        <td class="col-sm-9" colspan="2">
+                          <table class="table table-condensed no-borders repos-inner-table">
+                            <tbody>
+                              {{#each repository in operatingSystem.repositories}}
+                                <tr>
+                                  <td class="col-sm-3">{{repository.repoId}}</td>
+                                  <td class="col-sm-1">
+                                    {{view view.popoverView repositoryBinding="repository"}}
+                                  </td>
+                                  <td class="col-sm-8">
+                                    <div {{bindAttr class=":repo-url repository.invalidFormatError:textfield-error repository.invalidError:textfield-error"}}>
+                                      {{view Ember.TextField placeholderBinding="repository.placeholder" valueBinding="repository.baseUrl" disabledBinding="controller.selectedStack.useRedhatSatellite" classNames="form-control"}}
+                                      {{#if controller.selectedStack.usePublicRepo}}
+                                        <i {{bindAttr class="repository.undo::invisible :icon-undo"}}
+                                          {{action "doRestoreDefaultValue" repository target="controller"}}
+                                          {{translateAttr title="common.undo"}}>
+                                        </i>
+                                      {{else}}
+                                        <i {{bindAttr class="repository.notEmpty::invisible :icon-undo"}}
+                                          {{action "doRestoreToEmpty" repository target="controller"}}
+                                          {{translateAttr title="common.undo"}}>
+                                        </i>
+                                      {{/if}}
+                                    </div>
+                                  </td>
+                                </tr>
+                            {{/each}}
+                            </tbody>
+                          </table>
+                        </td>
+                        <td class="col-sm-1">
+                          <a class="action" href="#" {{action "removeOS" operatingSystem target="controller"}}>
+                            <span class="icon icon-minus" {{translateAttr title="common.remove"}}></span>
+                          </a>
+                        </td>
+                      </tr>
+                    {{/if}}
+                  {{/each}}
+                </tbody>
+              </table>
+              {{! OSes and Repositories END }}
+
+              {{! Skip Repository Base URL validation }}
+              <div id="skip-validation" {{bindAttr class="controller.selectedStack.useRedhatSatellite:disabled :checkbox"}}>
+                  {{#view App.CheckboxView
+                    labelTranslate="installer.step1.advancedRepo.skipValidation.message"
+                    labelClassNamesBinding="controller.selectedStack.useRedhatSatellite:disabled"
+                    checkedBinding="skipValidationChecked"
+                    disabledBinding="controller.selectedStack.useRedhatSatellite"
+                  }}
+                    <i class="glyphicon glyphicon-question-sign" rel="skip-validation-tooltip"
+                    data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}>
+                    </i>
+                  {{/view}}
+                <div class="clearfix"></div>
+              </div>
+              {{! Skip Repository Base URL validation END }}
+
+              {{! Use RedHat Satellite/Spacewalk }}
+              <div id="use-redhat" class="checkbox">
+                {{#view view.redhatCheckBoxView
+                  classNames="use-redhat-checkbox"
+                }}
+                  <label {{bindAttr for="view.checkboxId" class=":redhat-label :display-inline-block controller.selectedStack.usePublicRepo:disabled" data-original-title="view.redhatDisabledTooltip"}}>
+                    {{t installer.step1.advancedRepo.useRedhatSatellite.message}}
+                  </label>
+                  <i class="glyphicon glyphicon-question-sign" rel="use-redhat-tooltip"
+                  data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.useRedhatSatellite.tooltip"}}>
+                  </i>
+                {{/view}}
+              </div>
+              {{! Use RedHat Satellite/Spacewalk END }}
+          </div>
+        </div>
+      </form>
+    {{/if}}
+      {{#if view.invalidUrlExist}}
+        <div class="alert alert-warning">
+          {{t installer.step1.invalidURLAttention}}
+          <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
+        </div>
+      {{/if}}
     </div>
-  </form>
-  {{/if}}
-  {{#if view.invalidUrlExist}}
-    <div class="alert alert-warning">
-      {{t installer.step1.invalidURLAttention}}
-      <a href="javascript:void(null)" {{action "retryRepoUrls" target="view"}}>{{t installer.step1.retryRepoUrls}}</a>
-    </div>
-  {{/if}}
+  </div>
+</div>
+<div class="wizard-footer col-md-12">
   <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>
     &larr; {{t common.back}}
     {{#if App.router.backBtnClickInProgress}}

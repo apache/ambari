@@ -207,6 +207,17 @@ var urls = {
     }
   },
 
+  'common.service.multiConfigurations': {
+    'real':'/clusters/{clusterName}',
+    'mock':'',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.configs)
+      }
+    }
+  },
+
   'common.across.services.configurations': {
     'type': 'PUT',
     'real':'/clusters/{clusterName}',
@@ -1383,11 +1394,11 @@ var urls = {
     'mock': ''
   },
   'cluster.load_detailed_repo_version': {
-    'real': '/clusters/{clusterName}/stack_versions?ClusterStackVersions/state=CURRENT&fields=repository_versions/RepositoryVersions/repository_version&minimal_response=true',
+    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/repository_version,ClusterStackVersions/stack,ClusterStackVersions/version&minimal_response=true',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.load_current_repo_stack_services': {
-    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/state',
+    'real': '/clusters/{clusterName}/stack_versions?fields=repository_versions/RepositoryVersions/stack_services,ClusterStackVersions/stack,ClusterStackVersions/version',
     'mock': '/data/stack_versions/stack_version_all.json'
   },
   'cluster.save_provisioning_state': {
@@ -2178,6 +2189,27 @@ var urls = {
   'preinstalled.checks.tasks': {
     'real': '/requests/{requestId}?fields=tasks/Tasks,Requests/inputs,Requests/request_status',
     'mock': '/data/requests/host_check/1.json'
+  },
+
+  'persist.get': {
+    'real': '/persist/{key}',
+    'mock': '',
+    'type': 'GET',
+    'format': function() {
+      return {
+        dataType: 'text'
+      }
+    }
+  },
+  'persist.put': {
+    'real': '/persist',
+    'mock': '',
+    'type': 'POST',
+    'format': function (data) {
+      return {
+        data: JSON.stringify(data.keyValuePair)
+      }
+    }
   },
 
   'wizard.step3.rerun_checks': {

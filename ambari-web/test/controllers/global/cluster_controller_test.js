@@ -295,11 +295,29 @@ describe('App.clusterController', function () {
   });
 
   describe('#checkDetailedRepoVersionSuccessCallback()', function () {
+    beforeEach(function () {
+      sinon.stub(App, 'get', function(key) {
+        if (key === 'currentStackName') {
+          return 'HDP';
+        }
+        if (key === 'currentStackVersionNumber') {
+          return '2.2';
+        }
+        return Em.get(App, key);
+      });
+    });
+    afterEach(function() {
+      App.get.restore();
+    });
 
     var cases = [
       {
         items: [
           {
+            ClusterStackVersions: {
+              stack: 'HDP',
+              version: '2.2'
+            },
             repository_versions: [
               {
                 RepositoryVersions: {
@@ -315,6 +333,10 @@ describe('App.clusterController', function () {
       {
         items: [
           {
+            ClusterStackVersions: {
+              stack: 'HDP',
+              version: '2.2'
+            },
             repository_versions: [
               {
                 RepositoryVersions: {

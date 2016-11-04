@@ -57,6 +57,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link AlertTargetResourceProvider} class deals with managing the CRUD
@@ -371,6 +372,7 @@ public class AlertTargetResourceProvider extends
    * @throws AmbariException
    *           if the entity could not be found.
    */
+  @Transactional
   @SuppressWarnings("unchecked")
   private void updateAlertTargets(long alertTargetId,
       Map<String, Object> requestMap)
@@ -447,13 +449,10 @@ public class AlertTargetResourceProvider extends
       entity.setAlertGroups(groups);
     } else if (entity.isGlobal()){
       Set<AlertGroupEntity> groups = new HashSet<AlertGroupEntity>(s_dao.findAllGroups());
-      for (AlertGroupEntity group : groups) {
-        group.addAlertTarget(entity);
-        s_dao.merge(group);
-      }
       entity.setAlertGroups(groups);
     }
 
+    // merge the entity, cascading the merge to other entities, like groups
     s_dao.merge(entity);
   }
 

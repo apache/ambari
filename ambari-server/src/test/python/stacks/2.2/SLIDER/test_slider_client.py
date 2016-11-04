@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
+import os
+from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
 
@@ -59,6 +61,55 @@ class TestSliderClient(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/hdp/current/storm-slider-client/conf/storm-slider-env.sh',
                               content=Template('storm-slider-env.sh.j2'),
+                              mode = 0755,
+                              )
+
+    self.assertResourceCalled('File',
+                              '/usr/hdp/current/slider-client/conf/log4j.properties',
+                              mode=0644,
+                              content='log4jproperties\nline2'
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/slider-client/lib/slider.tar.gz',
+        owner = 'hdfs',
+        group = 'hadoop',
+    )
+
+    self.assertNoMoreResources()
+
+
+  @patch.object(os.path, "islink")
+  def test_configure_brokenlink(self, islink_mock):
+    self.maxDiff = None
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
+                       classname="SliderClient",
+                       command="configure",
+                       config_file="default.json",
+                       stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    def islink_mock_call(path):
+      if path == "/usr/hdp/current/storm-slider-client":
+        return True
+
+      return False
+
+    islink_mock.side_effect = islink_mock_call
+
+    self.assertResourceCalled('Directory',
+                              '/usr/hdp/current/slider-client/conf',
+                              create_parents = True
+    )
+
+    self.assertResourceCalled('XmlConfig',
+                              'slider-client.xml',
+                              conf_dir='/usr/hdp/current/slider-client/conf',
+                              configurations=self.getConfig()['configurations']['slider-client'],
+                              mode=0644
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/slider-client/conf/slider-env.sh',
+                              content = InlineTemplate(self.getConfig()['configurations']['slider-env']['content']),
                               mode = 0755,
                               )
 

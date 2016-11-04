@@ -162,6 +162,28 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     }
   },
 
+  initEvents: function() {
+    this.get('eventBus').subscribe('beforeSavingConfigs', function() {
+      this.set("tempRefreshNeed", this.get('isRefreshOrRestartNeeded') || false);
+      this.set("tempMustRestart", this.get('isQueuesMustNeedRestart') || false);
+    }.bind(this));
+
+    this.get('eventBus').subscribe('afterConfigsSaved', function(refresh) {
+      if (refresh !== undefined) {
+        this.set('isRefreshOrRestartNeeded', refresh);
+        this.set('isQueuesMustNeedRestart', refresh);
+      } else {
+        this.set('isRefreshOrRestartNeeded', this.get('tempRefreshNeed'));
+        this.set('isQueuesMustNeedRestart', this.get('tempMustRestart'));
+      }
+    }.bind(this));
+  }.on('init'),
+
+  teardownEvents: function() {
+    this.get('eventBus').unsubscribe('beforeSavingConfigs');
+    this.get('eventBus').unsubscribe('afterConfigsSaved');
+  }.on('willDestroy'),
+
   isAnyQueueDirty: function() {
     return this.get('queues').isAny('isAnyDirty', true);
   }.property('queues.@each.isAnyDirty'),
@@ -234,6 +256,9 @@ App.CapschedQueuesconfController = Ember.Controller.extend({
     } else if (qAlreadyExists) {
       this.set('isInvalidQueueName', true);
       this.set('invalidQueueNameMessage', 'Queue already exists');
+    } else if (queueName.indexOf(' ') > -1) {
+      this.set('isInvalidQueueName', true);
+      this.set('invalidQueueNameMessage', 'Queue name contains white spaces');
     } else {
       this.set('isInvalidQueueName', false);
       this.set('invalidQueueNameMessage', '');

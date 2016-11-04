@@ -47,71 +47,85 @@
 {{/if}}
 
 <div class="service-block">
-  <div class="box">
-    <div class="box-header summary-box-header">
-      <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
-      {{#if view.hasAlertDefinitions}}
-        {{#if view.alertsCount}}
-          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-            {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+  <div class="panel panel-default">
+    <div class="panel-heading summary-box-header">
+      <div class="row">
+        <div class="col-md-8 col-lg-8">
+          <h4 class="panel-title">{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
+        </div>
+        <div class="col-md-4 col-lg-4">
+          {{#if view.hasAlertDefinitions}}
+            {{#if view.alertsCount}}
+              <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+                {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
             {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
-        {{else}}
-          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-                  class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
-        {{/if}}
-      {{/if}}
+            {{else}}
+              <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+                class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+            {{/if}}
+          {{/if}}
+        </div>
+      </div>
     </div>
+    <div class="panel-body">
     {{#if view.serviceSummaryView}}
       {{view view.serviceSummaryView}}
     {{else}}
       {{view App.SpinnerView}}
     {{/if}}
+    </div>
   </div>
 
   {{! widgets in the metrics panel are loaded seperately from summary page text information
       and does not get block due to any global API poller information }}
   {{#if view.isServiceMetricLoaded}}
     <div class="service-metrics-block">
-      <div class="box">
-        <div class="box-header">
-          <h4>{{t services.service.metrics}}</h4>
-          {{#if showTimeRangeControl}}
-            {{view view.timeRangeListView}}
-          {{/if}}
-          {{#if isServiceWithEnhancedWidgets}}
-            {{#if isAmbariMetricsInstalled}}
-              <div class="btn-group pull-right actions">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                  {{t common.actions}} &nbsp;<span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  {{#each option in view.widgetActions}}
-                    <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
-                      {{#if option.isAction}}
-                        <a href="#" {{action doWidgetAction option.action target="view"}}>
-                          <i {{bindAttr class="option.class"}}></i>
-                          {{option.label}}
-                        </a>
-                        {{#if option.layouts}}
-                          <ul class="dropdown-menu">
-                            {{#each layout in option.layouts}}
-                              <li>
-                                <a href="javascript:void(0);">
-                                  {{layout.layoutName}}
-                                </a>
-                              </li>
-                            {{/each}}
-                          </ul>
-                        {{/if}}
-                      {{/if}}
-                    </li>
-                  {{/each}}
-                </ul>
-              </div>
-            {{/if}}
-          {{/if}}
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <div class="row">
+            <div class="col-md-8 col-lg-8">
+              <h4 class="panel-title">{{t services.service.metrics}}</h4>
+            </div>
+            <div class="col-md-4 col-lg-4">
+              {{#if showTimeRangeControl}}
+                {{view view.timeRangeListView}}
+              {{/if}}
+              {{#if isServiceWithEnhancedWidgets}}
+                {{#if isAmbariMetricsInstalled}}
+                  <div class="btn-group pull-right actions">
+                    <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                      {{t common.actions}} &nbsp;<span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      {{#each option in view.widgetActions}}
+                        <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
+                          {{#if option.isAction}}
+                            <a href="#" {{action doWidgetAction option.action target="view"}}>
+                              <i {{bindAttr class="option.class"}}></i>
+                              {{option.label}}
+                            </a>
+                            {{#if option.layouts}}
+                              <ul class="dropdown-menu">
+                                {{#each layout in option.layouts}}
+                                  <li>
+                                    <a href="javascript:void(0);">
+                                      {{layout.layoutName}}
+                                    </a>
+                                  </li>
+                                {{/each}}
+                              </ul>
+                            {{/if}}
+                          {{/if}}
+                        </li>
+                      {{/each}}
+                    </ul>
+                  </div>
+                {{/if}}
+              {{/if}}
+            </div>
+          </div>
         </div>
-        <div>
+        <div class="panel-body">
           {{#if isServiceWithEnhancedWidgets}}
             <div id="widget_layout" class="thumbnails">
               {{#each widget in controller.widgets}}

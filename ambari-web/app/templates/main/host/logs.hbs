@@ -16,6 +16,9 @@
 * limitations under the License.
 }}
 
+<div class="row">
+  <h2 class="table-title col-sm-1">{{t hosts.host.menu.logs}}</h2>
+</div>
 <table class="table advanced-header-table table-hover">
   <thead>
     {{#view view.sortView contentBinding="view.filteredContent"}}
@@ -41,7 +44,7 @@
                 <a {{action openLogFile row file.filePath target="view.parentView"}} href="#" rel="log-file-name-tooltip" {{bindAttr data-original-title="file.filePath"}}>{{file.fileName}}</a>
                 {{#view App.LogSearchUILinkView linkQueryParamsBinding="file.linkTail" tagName="span"}}
                   <a {{bindAttr href="view.formatedLink"}} target="_blank" rel="log-file-name-tooltip" {{translateAttr title="popup.logTail.openInLogSearch"}} class="pull-right external-link">
-                    <i class="glyphicon glyphicon-external-link"></i>
+                    <i class="icon-external-link"></i>
                     {{t popup.logTail.openInLogSearch}}
                   </a>
                 {{/view}}

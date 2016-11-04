@@ -637,17 +637,13 @@ describe('App.WizardStep8Controller', function () {
   describe('#loadRepoInfo', function() {
 
     beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP');
-      sinon.stub(App.StackVersion, 'find', function() {
-        return [
-          Em.Object.create({state: 'CURRENT', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
-        ];
-      });
+      var stubForGet = sinon.stub(App, 'get');
+      stubForGet.withArgs('currentStackName').returns('HDP');
+      stubForGet.withArgs('currentStackVersionNumber').returns('2.3.0.0-2208');
     });
 
     afterEach(function () {
       App.get.restore();
-      App.StackVersion.find.restore();
     });
     it('should use current StackVersion', function() {
       installerStep8Controller.loadRepoInfo();
@@ -900,11 +896,9 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.set('wizardController', Em.Object.create({
         getDBProperty: Em.K
       }));
-      this.mock = sinon.stub(installerStep8Controller.get('wizardController'), 'getDBProperty');
     });
 
     afterEach(function() {
-      this.mock.restore();
     });
 
     var tests = [
@@ -928,10 +922,10 @@ describe('App.WizardStep8Controller', function () {
 
     tests.forEach(function(test) {
       it(test.it, function() {
-        this.mock.returns(test.serviceConfigProperties);
+        installerStep8Controller.set('content.serviceConfigProperties', test.serviceConfigProperties);
         var dbComponent = installerStep8Controller.loadDbValue(test.serviceName);
         expect(dbComponent).to.equal(test.result);
-      })
+      });
     });
   });
 

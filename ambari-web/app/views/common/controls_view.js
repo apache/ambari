@@ -345,12 +345,7 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend(App.ServiceConfi
   rows: 10
 });
 
-/**
- * Checkbox control
- * @type {*}
- */
-App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
-
+var checkboxConfigView = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
   allowedPairs: {
     'trueFalse': ["true", "false"],
     'YesNo': ["Yes", "No"],
@@ -362,10 +357,9 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   falseValue: false,
 
   checked: false,
-  checkboxInstance: null,
 
   elementForPopover: function () {
-    return this.$().parent('.control-group').find('.bootstrap-checkbox');
+    return this.$().next();
   }.property(),
 
   /**
@@ -388,12 +382,6 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     this.propertyDidChange('checked');
     Em.run.next(function () {
       if (self.$()) {
-        self.set('checkboxInstance', self.$().checkbox({
-          defaultState: self.get('serviceConfig.value'),
-          buttonStyle: 'btn-link',
-          checkedClass: 'glyphicon glyphicon-check',
-          uncheckedClass: 'glyphicon glyphicon-unchecked'
-        }));
         self.propertyDidChange('elementForPopover');
         self.addPopover();
       }
@@ -402,7 +390,6 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   willDestroyElement: function() {
     this.removeObserver('serviceConfig.value', this, 'checkedBinding');
-    this.set('checkboxInstance', null);
   },
 
   /***
@@ -430,8 +417,6 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
   toggleChecker: function() {
     if (this.isNotAppropriateValue()) {
       this.set('checked', !this.get('checked'));
-      // change bootstrap-checkbox state
-      this.$().change();
     }
   },
 
@@ -439,7 +424,6 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   disabledDidChange: function() {
     if (!this.get('checkboxInstance')) return;
-    this.get('checkboxInstance').checkbox('refresh');
   }.observes('disabled'),
 
   //Set editDone false for all current category config text field parameter
@@ -448,6 +432,24 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
       this.get("parentView.categoryConfigsAll").setEach("editDone", false);
     }
   }
+});
+
+/**
+ * Checkbox control
+ * @type {*}
+ */
+App.ServiceConfigCheckbox = App.CheckboxView.extend({
+  classNames: ['display-inline-block'],
+  classNameBindings: ['containerClassName'],
+  containerClassName: 'checkbox',
+  categoryConfigsAllBinding: 'parentView.categoryConfigsAll',
+  checkboxView: checkboxConfigView.extend({
+    serviceConfigBinding: 'parentView.serviceConfig',
+    didInsertElement: function() {
+      this.set('parentView.checkboxId', this.get('elementId'));
+      this._super();
+    }
+  })
 });
 
 /**
@@ -743,7 +745,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         className += dbTypeMatch[0].replace(' ', '').toLowerCase();
       }
       return className ? Em.Object.create(option, {
-        className: className
+        className: className,
+        radioId: ''
       }) : option;
     });
   }.property('serviceConfig.options')
@@ -757,8 +760,14 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
   type: 'radio',
   name: null,
   value: null,
+  /**
+   * Element id passed to label's <code>for</code> attribute.
+   * @type {String}
+   */
+  radioId: '',
 
   didInsertElement: function () {
+    this.set('radioId', this.get('elementId'));
     this.set('checked', this.get('parentView.serviceConfig.value') === this.get('value'));
   },
 

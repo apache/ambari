@@ -254,7 +254,7 @@ module.exports = {
       return true;
     };
     if (/^[\?\|\*\!,]/.test(value)) return false;
-    return /^((\.\*?)?([\w\s\[\]\/\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
+    return /^((\.\*?)?([\w\s\[\]\/\?\-_,\|\*\!\{\}\(\)]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
   },
 
   /**
@@ -269,8 +269,9 @@ module.exports = {
   },
 
   isValidRackId: function(path) {
+    var _path = '' + path;
     // See app/message.js:hostPopup.setRackId.invalid
-    return /^\/[/.\w-]+$/.test(path);
+    return /^\/[/.\w-]+$/.test(_path) && _path.length < 255;
   },
 
   /**

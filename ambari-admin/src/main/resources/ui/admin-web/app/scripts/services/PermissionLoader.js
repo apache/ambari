@@ -28,8 +28,9 @@ angular.module('ambariAdminConsole')
       angular.forEach(permissions, function(permission) {
         permission.GROUP = [];
         permission.USER = [];
-        angular.forEach(View.clusterInheritedPermissionKeys, function(key) {
-          permission[key] = false;
+        permission.ROLE = {};
+        angular.forEach(View.permissionRoles, function(key) {
+          permission.ROLE[key] = false;
         });
         permissionsInner[permission.PermissionInfo.permission_name] = permission;
       });
@@ -37,10 +38,10 @@ angular.module('ambariAdminConsole')
       // Now we can get privileges
       resource.getPrivileges(params).then(function(privileges) {
         angular.forEach(privileges, function(privilege) {
-          if(!privilege.PrivilegeInfo.principal_type.startsWith("ALL.")) {
-            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type].push(privilege.PrivilegeInfo.principal_name);
+          if(privilege.PrivilegeInfo.principal_type == "ROLE") {
+            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type][privilege.PrivilegeInfo.principal_name] = true;
           } else {
-            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type] = true;
+            permissionsInner[privilege.PrivilegeInfo.permission_name][privilege.PrivilegeInfo.principal_type].push(privilege.PrivilegeInfo.principal_name);
           }
         });
 

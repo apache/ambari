@@ -204,17 +204,11 @@ App.CapschedRoute = Ember.Route.extend({
   actions: {
     saveCapSchedConfigs: function(saveMode, forceRefresh) {
       var store = this.get('store'),
-        that = this,
-        capschedCtrl = this.controllerFor("capsched"),
-        schedulerCtrl = this.controllerFor("capsched.scheduler"),
-        queuesconfCtrl = this.controllerFor("capsched.queuesconf"),
-        advancedCtrl = this.controllerFor("capsched.advanced"),
-        restartOrRefreshMap = {
-          schedulerTab: schedulerCtrl.get('isRefreshOrRestartNeeded') || false,
-          queuesTabRefresh: queuesconfCtrl.get('isRefreshOrRestartNeeded') || false,
-          queuesTabRestart: queuesconfCtrl.get('isQueuesMustNeedRestart') || false,
-          advancedTab: advancedCtrl.get('isRefreshOrRestartNeeded') || false
-        };
+      capschedCtrl = this.controllerFor("capsched"),
+      eventBus = this.get('eventBus'),
+      that = this;
+
+      eventBus.publish('beforeSavingConfigs');
 
       if (forceRefresh) {
         return this.forceRefreshOrRestartCapSched(saveMode);
@@ -240,19 +234,13 @@ App.CapschedRoute = Ember.Route.extend({
         Em.run.bind(that,'saveConfigsSuccess'),
         Em.run.bind(that,'saveConfigsError', 'save')
       ).then(function () {
-        schedulerCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.schedulerTab);
-        queuesconfCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.queuesTabRefresh);
-        queuesconfCtrl.set('isQueuesMustNeedRestart', restartOrRefreshMap.queuesTabRestart);
-        advancedCtrl.set('isRefreshOrRestartNeeded', restartOrRefreshMap.advancedTab);
+        eventBus.publish('afterConfigsSaved');
         if (opt) {
           return store.relaunchCapSched(opt);
         }
       }).then(function(){
         if (opt) {
-          schedulerCtrl.set('isRefreshOrRestartNeeded', false);
-          queuesconfCtrl.set('isRefreshOrRestartNeeded', false);
-          queuesconfCtrl.set('isQueuesMustNeedRestart', false);
-          advancedCtrl.set('isRefreshOrRestartNeeded', false);
+          eventBus.publish('afterConfigsSaved', false);
         }
         return store.getRmSchedulerConfigInfo();
       }).catch(
@@ -334,6 +322,8 @@ App.CapschedRoute = Ember.Route.extend({
         return store.find('queue');
       }).then(function(queues) {
         controller.set('queues', queues);
+        var allQLabels = store.all('label');
+        controller.set('allQueueLabels', allQLabels);
         loadingController.set('model', {
           message: 'loading rm info'
         });
@@ -373,10 +363,7 @@ App.CapschedRoute = Ember.Route.extend({
     var opt = '',
       that = this,
       store = this.get('store'),
-      capschedCtrl = this.controllerFor("capsched"),
-      schedulerCtrl = this.controllerFor("capsched.scheduler"),
-      queuesconfCtrl = this.controllerFor("capsched.queuesconf"),
-      advancedCtrl = this.controllerFor("capsched.advanced");
+      capschedCtrl = this.controllerFor("capsched");
 
     if (saveMode == 'restart') {
       opt = 'saveAndRestart';
@@ -386,10 +373,7 @@ App.CapschedRoute = Ember.Route.extend({
 
     capschedCtrl.startSpinner(saveMode);
     store.relaunchCapSched(opt).then(function() {
-      schedulerCtrl.set('isRefreshOrRestartNeeded', false);
-      advancedCtrl.set('isRefreshOrRestartNeeded', false);
-      queuesconfCtrl.set('isRefreshOrRestartNeeded', false);
-      queuesconfCtrl.set('isQueuesMustNeedRestart', false);
+      that.get('eventBus').publish('afterConfigsSaved', false);
     }).catch(
       Em.run.bind(that, 'saveConfigsError', opt)
     ).finally(function() {

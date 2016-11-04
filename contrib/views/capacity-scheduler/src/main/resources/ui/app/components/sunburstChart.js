@@ -51,7 +51,7 @@ function _getSunburstChartDataForLabel(queue, json, allQueues, labelName) {
       "name": queue.get('name'),
       "path": queue.get('path'),
       "capacity": qLabel?qLabel.get('capacity') : 0,
-      "absoluteCapacity": 0,
+      "absoluteCapacity": qLabel? qLabel.get('absolute_capacity') : 0,
       "size": qLabel? qLabel.get('capacity') : 0,
       "isLabel": true
     };
@@ -222,15 +222,10 @@ App.SunburstChartComponent = Ember.Component.extend({
   },
 
   showQueueInfo: function(node) {
-    var precentage = node.isLabel? node.capacity : node.absoluteCapacity;
-    var percentageString = precentage + "%";
+    var percentageString = node.absoluteCapacity + "%";
     d3.select("#capacityPercentage").text(percentageString);
     d3.select("#queuePath").text(node.path);
-    if (node.isLabel) {
-      d3.select("#type_text").text("Capacity:");
-    } else {
-      d3.select("#type_text").text("Abs Cap:");
-    }
+    d3.select("#type_text").text("Abs Cap:");
     d3.select("#explanation").style("visibility", "");
     d3.select("#queue_info").style("visibility", "");
   },
@@ -271,13 +266,15 @@ App.SunburstChartComponent = Ember.Component.extend({
         .style("fill", "#3276b1")
         .style("opacity", 1);
       var node = this.$("path[id='"+queue.get('path')+"']").data('node');
-      this.showQueueInfo({
-        name: node.name,
-        path: node.path,
-        capacity: node.capacity,
-        absoluteCapacity: node.absoluteCapacity,
-        isLabel: node.isLabel
-      });
+      if (node) {
+        this.showQueueInfo({
+          name: node.name,
+          path: node.path,
+          capacity: node.capacity,
+          absoluteCapacity: node.absoluteCapacity,
+          isLabel: node.isLabel
+        });
+      }
     }
   },
 

@@ -48,7 +48,6 @@ import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
-import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -260,7 +259,7 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(ExecutionScheduler.class).toInstance(EasyMock.createNiceMock(ExecutionScheduler.class));
       binder.bind(RequestFactory.class).toInstance(EasyMock.createNiceMock(RequestFactory.class));
       binder.bind(StageFactory.class).toInstance(EasyMock.createNiceMock(StageFactory.class));
-      binder.bind(RoleGraphFactory.class).toInstance(EasyMock.createNiceMock(RoleGraphFactoryImpl.class));
+      binder.bind(RoleGraphFactory.class).toInstance(EasyMock.createNiceMock(RoleGraphFactory.class));
       binder.bind(AbstractRootServiceResponseFactory.class).toInstance(EasyMock.createNiceMock(AbstractRootServiceResponseFactory.class));
       binder.bind(ConfigFactory.class).toInstance(EasyMock.createNiceMock(ConfigFactory.class));
       binder.bind(ConfigGroupFactory.class).toInstance(EasyMock.createNiceMock(ConfigGroupFactory.class));

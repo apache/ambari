@@ -128,7 +128,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    */
   getThresholdsProperty: function (type, property) {
     var warning = this.get('content.reporting').findProperty('type', type);
-    return warning && !Ember.isEmpty(warning.get(property)) ? warning.get(property) : null;
+    return warning && !Ember.isNone(warning.get(property)) ? warning.get(property) : null;
   },
 
   /**

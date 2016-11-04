@@ -30,17 +30,19 @@ describe('App.FormatWordBreakView', function () {
 
     Em.A([
       {content: 'abc', expected: 'abc'},
-      {content: 'a.bc', expected: 'a.<wbr />bc'},
-      {content: 'a.b.c', expected: 'a.<wbr />b.<wbr />c'},
-      {content: 'a.123456789A123456789B12345.c', expected: 'a.<wbr />123456789<wbr />A123456789<wbr />B12345.<wbr />c'},
-      {content: 'a_bc', expected: 'a_<wbr />bc'},
-      {content: 'a_b_c', expected: 'a_<wbr />b_<wbr />c'},
-      {content: 'a_123456789A123456789B12345_c', expected: 'a_<wbr />123456789<wbr />A123456789<wbr />B12345_<wbr />c'},
-      {content: 'a.123456789A123456789B12345_c', expected: 'a.<wbr />123456789<wbr />A123456789<wbr />B12345_<wbr />c'},
-      {content: 'a.123456789a123456789b12345_c', expected: 'a.<wbr />123456789a123456789b12345_<wbr />c'},
-      {content: 'a.123456789a-23456789b12345_c', expected: 'a.<wbr />123456789a-23456789b12345_<wbr />c'},
-      {content: 'a.123456789a 23456789b12345_c', expected: 'a.<wbr />123456789a 23456789b12345_<wbr />c'},
-      {content: 'a.123456789a123456789_c', expected: 'a.<wbr />123456789a123456789_<wbr />c'},
+      {content: 'a.bc', expected: 'a.<wbr>bc'},
+      {content: 'a.b.c', expected: 'a.<wbr>b.<wbr>c'},
+      {content: 'a/bc', expected: 'a/<wbr>bc'},
+      {content: 'a/b/c', expected: 'a/<wbr>b/<wbr>c'},
+      {content: 'a.123456789A123456789B12345.c', expected: 'a.<wbr>123456789<wbr>A123456789<wbr>B12345.<wbr>c'},
+      {content: 'a_bc', expected: 'a_<wbr>bc'},
+      {content: 'a_b_c', expected: 'a_<wbr>b_<wbr>c'},
+      {content: 'a_123456789A123456789B12345_c', expected: 'a_<wbr>123456789<wbr>A123456789<wbr>B12345_<wbr>c'},
+      {content: 'a.123456789A123456789B12345_c', expected: 'a.<wbr>123456789<wbr>A123456789<wbr>B12345_<wbr>c'},
+      {content: 'a.123456789a123456789b12345_c', expected: 'a.<wbr>123456789a123456789b12345_<wbr>c'},
+      {content: 'a.123456789a-23456789b12345_c', expected: 'a.<wbr>123456789a-23456789b12345_<wbr>c'},
+      {content: 'a.123456789a 23456789b12345_c', expected: 'a.<wbr>123456789a 23456789b12345_<wbr>c'},
+      {content: 'a.123456789a123456789_c', expected: 'a.<wbr>123456789a123456789_<wbr>c'},
     ]).forEach(function (test) {
       var message = 'content: {0}, expected: {1}'.format(JSON.stringify(test.content), JSON.stringify(test.expected));
       it(message, function () {

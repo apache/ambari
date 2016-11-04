@@ -16,44 +16,51 @@
 * limitations under the License.
 }}
 
-<div id="step4">
-  <h2>{{t installer.step4.header}}</h2>
+<div id="step4" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step4.header}}</h4>
+  <p class="step-description">{{t installer.step4.body}}</p>
 
-  <div class="alert alert-info">
-    {{t installer.step4.body}}
-  </div>
-  <table class="table table-hover">
-    <thead>
-    <tr>
-      <th class="col-md-3" id="service-name">
-          {{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isAllChecked"}}{{t common.service}}
-      </th>
-      <th id="service-version">{{t common.version}}</th>
-      <th id="service-description">{{t common.description}}</th>
-    </tr>
-    </thead>
-    <tbody>
-    {{#each controller}}
-      {{#unless isHiddenOnSelectServicePage}}
-        <tr {{bindAttr class="isSelected:active isSelected:service-selected"}}>
-          <td>
-            <div class="checkbox">
-              <label>
-                {{view Ember.Checkbox classBinding="serviceName"
-                  disabledBinding="isInstalled"
-                  checkedBinding="isSelected"}}
-                  {{displayNameOnSelectServicePage}}
-              </label>
-            </div>
-          </td>
-          <td>{{serviceVersionDisplay}}</td>
-          <td>{{{comments}}}</td>
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <table class="table table-hover">
+        <thead>
+        <tr>
+          <th class="col-md-3">{{t common.service}}</th>
+          <th id="service-version">{{t common.version}}</th>
+          <th id="service-description">{{t common.description}}</th>
+          <th>
+            {{view App.CheckboxView disabledBinding="isInstalled" checkedBinding="isAllChecked"}}
+          </th>
         </tr>
-      {{/unless}}
-    {{/each}}
-    </tbody>
-  </table>
+        </thead>
+        <tbody>
+        {{#each controller}}
+          {{#unless isHiddenOnSelectServicePage}}
+            <tr {{bindAttr class="isSelected:active isSelected:service-selected"}}>
+              <td>
+                <div class="checkbox">{{displayNameOnSelectServicePage}}</div>
+              </td>
+              <td>{{serviceVersionDisplay}}</td>
+              <td>{{{comments}}}</td>
+              <td>
+                <div class="checkbox">
+                  {{view App.CheckboxView checkboxClassNamesBinding="serviceName"
+                  disabledBinding="isDisabled"
+                  checkedBinding="isSelected"
+                  }}
+                </div>
+              </td>
+            </tr>
+          {{/unless}}
+        {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
+
+<div class="wizard-footer col-md-12">
   <div class="btn-area">
     {{#unless view.parentView.controller.hideBackButton}}
       <button type="button" class="btn btn-default pull-left installer-back-btn" {{bindAttr disabled="App.router.btnClickInProgress"}} {{action back}}>

@@ -52,16 +52,18 @@
       <tr>
         <td>&nbsp;</td>
         <td colspan="2">
-          {{view Ember.Checkbox checkedBinding="view.staleConfigsOnly"}}
-          {{view.staleConfigsOnlyMessage}}
+          {{view App.CheckboxView
+             labelBinding="view.staleConfigsOnlyMessage"
+             checkedBinding="view.staleConfigsOnly"}}
         </td>
       </tr>
       <tr>
         <td>&nbsp;</td>
         <td colspan="2">
           {{#unless view.isServiceInMM}}
-            {{view Ember.Checkbox checkedBinding="view.turnOnMm"}}
-            {{view.turnOnMmMsg}}
+            {{view App.CheckboxView
+              labelBinding="view.turnOnMmMsg"
+              checkedBinding="view.turnOnMm"}}
           {{/unless}}
         </td>
       </tr>

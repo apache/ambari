@@ -45,6 +45,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.ExtensionInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Test;
@@ -109,6 +110,11 @@ public class StackManagerExtensionTest  {
     File checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    List<ThemeInfo> themes = oozie.getThemes();
+    assertNotNull(themes);
+    assertTrue("Number of themes is " + themes.size(), themes.size() == 1);
+    ThemeInfo theme = themes.get(0);
+    assertTrue("Theme: " + theme.getFileName(), theme.getFileName().contains("working_theme.json"));
 
     extension = stackManager.getExtension("EXT", "0.2");
     assertNotNull("EXT 0.2's parent: " + extension.getParentExtensionVersion(), extension.getParentExtensionVersion());
@@ -121,6 +127,9 @@ public class StackManagerExtensionTest  {
     checks = oozie.getChecksFolder();
     assertNotNull(checks);
     assertTrue("Checks dir is " + checks.getPath(), checks.getPath().contains("extensions/EXT/0.1/services/OOZIE2/checks"));
+    themes = oozie.getThemes();
+    assertNotNull(themes);
+    assertTrue("Number of themes is " + themes.size(), themes.size() == 0);
 
     StackInfo stack = stackManager.getStack("HDP", "0.2");
     assertNotNull(stack.getService("OOZIE2"));

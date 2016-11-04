@@ -62,11 +62,19 @@ export default Ember.Route.extend({
     });
     return deferred.promise;
   },
+  setPageResultLen(){
+    /* 
+      setting the no of jobs to be displayed to multiple of 5
+    */
+    var relHeight = parseInt(Ember.$(window).width()/100); 
+    return relHeight - relHeight%5;
+  },
   search(params){
     params = params || {};
     var type = params.type || "wf",
     start = Number(params.start || 1),
-    len = Number(params.len || Ember.ENV.PAGE_SIZE),
+    //len = Number(params.len || Ember.ENV.PAGE_SIZE),
+    len = this.setPageResultLen(),
     index = 0,
     filter = params.filter || "",
     API_URL = Ember.ENV.API_URL,

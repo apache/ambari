@@ -371,7 +371,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
       if(self.get('popupView') && App.HostPopup.get('isBackgroundOperations')){
         self.set ('popupView.isNotShowBgChecked', !initValue);
         self.set('popupView.isOpen', true);
-        $(self.get('popupView.element')).appendTo('#wrapper');
+        var el = $(self.get('popupView.element'));
+        el.appendTo('#wrapper');
+        el.find('.modal').show();
       } else {
         self.set('popupView', App.HostPopup.initPopup("", self, true));
         self.set('popupView.isNotShowBgChecked', !initValue);

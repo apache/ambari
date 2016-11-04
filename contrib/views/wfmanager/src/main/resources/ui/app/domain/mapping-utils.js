@@ -22,7 +22,6 @@ var MappingMixin= Ember.Mixin.create({
   handleMapping(nodeDomain,nodeObj,mappings,nodeName){
     var self=this;
     mappings.forEach(function(mapping){
-      var nodeVals=[];
       if (mapping.mandatory){
         if (!(nodeDomain[mapping.domain] || mapping.customHandler)){
           var msgForVal=mapping.domain;
@@ -113,6 +112,7 @@ var MappingMixin= Ember.Mixin.create({
   }
 });
 var ConfigurationMapper= Ember.Object.extend({
+  /* jshint unused:vars */
   hanldeGeneration(node,nodeObj){
     if (!node || !node.configuration || !node.configuration.property){
       return;
@@ -205,24 +205,25 @@ var SLAMapper= Ember.Object.extend({
   hanldeGeneration(sla,nodeObj){
     if (sla){
       var slaInfo=nodeObj["info"]={};
-      slaInfo["__prefix"]="sla";
+      var slaPrefix="sla";
+      slaInfo["__prefix"]=slaPrefix;
       if (sla.nominalTime){
-        slaInfo["nominal-time"]=sla.nominalTime;
+        slaInfo[slaPrefix+":"+"nominal-time"]=sla.nominalTime;
       }
       if (sla.shouldStart){
-        slaInfo["should-start"]="${"+sla.shouldStart.time+ "*"+sla.shouldStart.unit+"}";
+        slaInfo[slaPrefix+":"+"should-start"]="${"+sla.shouldStart.time+ "*"+sla.shouldStart.unit+"}";
       }
       if (sla.shouldEnd){
-        slaInfo["should-end"]="${"+sla.shouldEnd.time+ "*"+sla.shouldEnd.unit+"}";
+        slaInfo[slaPrefix+":"+"should-end"]="${"+sla.shouldEnd.time+ "*"+sla.shouldEnd.unit+"}";
       }
       if (sla.maxDuration){
-        slaInfo["max-duration"]="${"+sla.maxDuration.time+ "*"+sla.maxDuration.unit+"}";
+        slaInfo[slaPrefix+":"+"max-duration"]="${"+sla.maxDuration.time+ "*"+sla.maxDuration.unit+"}";
       }
       if (sla.alertEvents){
-        slaInfo["alert-events"]=sla.alertEvents;
+        slaInfo[slaPrefix+":"+"alert-events"]=sla.alertEvents;
       }
       if (sla.alertContact){
-        slaInfo["alert-contact"]=sla.alertContact;
+        slaInfo[slaPrefix+":"+"alert-contact"]=sla.alertContact;
       }
 
     }
@@ -230,18 +231,22 @@ var SLAMapper= Ember.Object.extend({
   },
   handleImport(domain,infoJson,key){
     var sla=domain[key]=SlaInfo.create({});
-    if (infoJson["nominal-time"]){
-      sla.nominalTime=infoJson["nominal-time"];
+    if (infoJson["nominal-time"] && infoJson["nominal-time"].__text){
+      sla.nominalTime=infoJson["nominal-time"].__text;
     }
-    sla.alertContact=infoJson["alert-contact"];
-    sla.alertEvents=infoJson["alert-events"];
+    if (infoJson["alert-contact"]&& infoJson["alert-contact"].__text){
+      sla.alertContact=infoJson["alert-contact"].__text;
+    }
+    if (infoJson["alert-events"] && infoJson["alert-events"].__text){
+      sla.alertEvents=infoJson["alert-events"].__text;
+    }
     this.processTimePeriods(sla,infoJson,"should-start","shouldStart");
     this.processTimePeriods(sla,infoJson,"should-end","shouldEnd");
     this.processTimePeriods(sla,infoJson,"max-duration","maxDuration");
   },
   processTimePeriods(sla,infoJson,key,domainKey){
     if (infoJson[key]){
-      var timeParts=this.parseSlaTime(infoJson[key],key);
+      var timeParts=this.parseSlaTime(infoJson[key].__text,key);
       sla[domainKey].time=timeParts[0];
       sla[domainKey].unit=timeParts[1];
     }

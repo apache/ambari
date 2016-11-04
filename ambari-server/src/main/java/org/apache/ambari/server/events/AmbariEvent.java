@@ -118,6 +118,11 @@ public abstract class AmbariEvent {
     SERVICE_COMPONENT_RECOVERY_CHANGED,
 
     /**
+     * Stack upgrade or downgrade finishes
+     */
+    FINALIZE_UPGRADE_FINISH,
+
+    /**
      * Cluster configuration changed.
      */
     CLUSTER_CONFIG_CHANGED,

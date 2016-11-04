@@ -22,7 +22,30 @@ App.MainDashboardServiceHiveView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/hive'),
   serviceName: 'HIVE',
   isFullWidth: true,
-  
+  viewsToShow: {
+  'AUTO_HIVE_INSTANCE': {},
+  'TEZ_CLUSTER_INSTANCE': {
+    overwriteLabel: 'app.debugHiveQuery'
+  }},
+  viewLinks: function() {
+    var viewsToShow = this.get('viewsToShow');
+    var links = [];
+    App.router.get('mainViewsController.ambariViews').forEach(function(item) {
+      var view = viewsToShow[item.get('instanceName')];
+      if (view) {
+        var link = {
+          href: item.href,
+          label: item.label
+        };
+        if (view.overwriteLabel) {
+          link.label = Em.I18n.t(view.overwriteLabel);
+        }
+        links.push(link);
+      }
+    });
+    return links;
+  }.property('App.router.mainViewController.ambariViews'),
+
   didInsertElement: function () {
     var controller = this.get('controller');
     this._super();

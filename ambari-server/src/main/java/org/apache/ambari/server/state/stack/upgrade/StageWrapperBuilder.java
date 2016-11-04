@@ -27,6 +27,7 @@ import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryActio
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Defines how to build stages for an Upgrade or Downgrade.
@@ -128,7 +129,7 @@ public abstract class StageWrapperBuilder {
   protected List<StageWrapper> afterBuild(UpgradeContext upgradeContext,
       List<StageWrapper> stageWrappers) {
 
-    if (stageWrappers.isEmpty()) {
+    if (CollectionUtils.isEmpty(stageWrappers)) {
       return stageWrappers;
     }
 
@@ -196,7 +197,7 @@ public abstract class StageWrapperBuilder {
    *   <li>When performing a downgrade, but no downgrade tasks exist, reuse the upgrade tasks</li>
    * </ul>
    * @param context     the upgrade context
-   * @param preTasks    {@code true} if loading pre-upgrade or pre-downgrade
+   * @param preTasks    {@code true} if loading pre-(upgrade|downgrade) or {@code false for post-(upgrade|downgrade)
    * @param pc          the processing component holding task definitions
    * @return A collection, potentially empty, of the tasks to run, which may contain either
    * pre or post tasks if they exist, and the order depends on whether it's an upgrade or downgrade.

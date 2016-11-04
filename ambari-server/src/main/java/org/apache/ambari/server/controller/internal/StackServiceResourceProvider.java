@@ -88,6 +88,12 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String SERVICE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId(
     "StackServices", "properties");
 
+  private static final String CREDENTIAL_STORE_SUPPORTED = PropertyHelper.getPropertyId(
+          "StackServices", "credential_store_supported");
+
+  private static final String CREDENTIAL_STORE_ENABLED = PropertyHelper.getPropertyId(
+          "StackServices", "credential_store_enabled");
+
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[]{STACK_NAME_PROPERTY_ID,
         STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID}));
@@ -187,6 +193,12 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
     setResourceProperty(resource, SERVICE_PROPERTIES_PROPERTY_ID,
       response.getServiceProperties(), requestedIds);
 
+    setResourceProperty(resource, CREDENTIAL_STORE_SUPPORTED,
+      response.isCredentialStoreSupported(), requestedIds);
+
+    setResourceProperty(resource, CREDENTIAL_STORE_ENABLED,
+      response.isCredentialStoreEnabled(), requestedIds);
+
     return resource;
   }
 
@@ -194,7 +206,9 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
     return new StackServiceRequest(
         (String) properties.get(STACK_NAME_PROPERTY_ID),
         (String) properties.get(STACK_VERSION_PROPERTY_ID),
-        (String) properties.get(SERVICE_NAME_PROPERTY_ID));
+        (String) properties.get(SERVICE_NAME_PROPERTY_ID),
+        (String) properties.get(CREDENTIAL_STORE_SUPPORTED),
+        (String) properties.get(CREDENTIAL_STORE_ENABLED));
   }
 
   @Override

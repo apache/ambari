@@ -206,7 +206,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties'] and \
        'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
-      putHbaseSiteProperty("hbase.rpc.controllerfactory.class", "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory")
+      if 'hbase.rpc.controllerfactory.class' in services['configurations']['hbase-site']['properties'] and \
+          services['configurations']['hbase-site']['properties']['hbase.rpc.controllerfactory.class'] == \
+            'org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory':
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
+
       putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
     else:
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')

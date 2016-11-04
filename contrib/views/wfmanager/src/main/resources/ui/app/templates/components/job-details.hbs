@@ -49,7 +49,7 @@
             <li {{action 'getJobLog'}} role="presentation"><a href="#jobLog" aria-controls="jobLog" role="tab" data-toggle="tab">Log</a></li>
             <li {{action 'getErrorLog'}} role="presentation"><a href="#jobErrorLog" aria-controls="jobErrorLog" role="tab" data-toggle="tab">Error Log</a></li>
             <li {{action 'getAuditLog'}} role="presentation"><a href="#jobAuditLog" aria-controls="jobAuditLog" role="tab" data-toggle="tab">Audit Log</a></li>
-            <li {{action 'getJobDag'}} role="presentation"><a href="#jobDag" aria-controls="jobDag" role="tab" data-toggle="tab">DAG</a></li>
+            <li {{action 'getJobDag'}} role="presentation"><a href="#jobDag" aria-controls="jobDag" role="tab" data-toggle="tab">Flow Graph</a></li>
             <li role="presentation" class="pull-right">
                 {{#link-to 'design' (query-params appPath=model.appPath) class="backto-designer" }}
                     <button type="button" class="btn btn-success" title="Back" >

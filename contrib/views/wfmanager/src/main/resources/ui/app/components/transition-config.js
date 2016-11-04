@@ -16,32 +16,31 @@
 */
 
 import Ember from 'ember';
-import EmberValidations,{ validator } from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 import {FindNodeMixin} from '../domain/findnode-mixin';
 
-export default Ember.Component.extend(FindNodeMixin, EmberValidations, {
+const Validations = buildValidations({
+  'transition.errorNode.name': validator('presence', {
+    presence : true
+  })
+});
+
+export default Ember.Component.extend(FindNodeMixin, Validations, {
   selectedKillNode : '',
   initialize : function(){
     this.set('descendantNodes',this.getDesendantNodes(this.get('currentNode')));
-    this.set('okToNode', this.getOKToNode(this.get('currentNode')));
+    if(!this.get('transition.okToNode')){
+      var defaultOkToNode = this.getOKToNode(this.get('currentNode'));
+      this.set('transition.okToNode', defaultOkToNode);
+      this.set('defaultOkToNode', defaultOkToNode);
+    }
     this.sendAction('register','transition', this);
     if(Ember.isBlank(this.get('transition.errorNode.name'))){
       this.set('transition.errorNode', this.get('killNodes').objectAt(0));
     }
   }.on('init'),
-  //Work-around : Issue in ember-validations framework
-  errorNode : Ember.computed.alias('transition.errorNode'),
-  validations : {
-    'errorNode.name': {
-      inline : validator(function() {
-        if(!this.get('transition.errorNode.name') || this.get('transition.errorNode.name') === ""){
-          return "You need to provide an error-to transition";
-        }
-      })
-    }
-  },
   actions : {
-    onSelectChange (value){
+    errorToHandler (value){
       this.set('selectedKillNode', value);
       if(this.get('selectedKillNode') === 'createNew'){
         this.set('transition.errorNode.name', "");
@@ -60,8 +59,19 @@ export default Ember.Component.extend(FindNodeMixin, EmberValidations, {
         }
       }
     },
-    okNodeHandler (value){
-
+    okToHandler (name){
+      var validOkToNodes = this.get('currentNode.validOkToNodes');
+      var node = validOkToNodes.findBy('name',name);
+      if(node.id !== this.get('defaultOkToNode').id){
+        this.set('showWarning', true);
+      }else{
+        this.set('showWarning', false);
+      }
+      this.set('transition.okToNode', node);
+    },
+    undoChangeOkTo(){
+      this.set('transition.okToNode', this.get('defaultOkToNode'));
+      this.set('showWarning', false);
     }
   }
 });

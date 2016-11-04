@@ -19,9 +19,7 @@
 {{#each filter in view.filters}}
 <li>
   <div class="checkbox">
-    <label>
-      {{view Em.Checkbox checkedBinding="filter.checked"}} {{filter.label}}
-    </label>
+    {{view App.CheckboxView checkedBinding="filter.checked" labelBinding="filter.label"}}
   </div>
 </li>
 {{/each}}

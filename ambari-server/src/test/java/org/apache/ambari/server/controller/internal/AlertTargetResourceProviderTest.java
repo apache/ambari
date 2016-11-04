@@ -961,8 +961,6 @@ public class AlertTargetResourceProviderTest {
     AlertTargetEntity target = new AlertTargetEntity();
     expect(m_dao.findTargetById(ALERT_TARGET_ID)).andReturn(target).once();
 
-    Capture<AlertGroupEntity> groupEntityCapture = EasyMock.newCapture();
-
     //All Groups in the Database with CLuster ID = 1L
     List<AlertGroupEntity> groups = getMockGroupEntities();
 
@@ -971,9 +969,6 @@ public class AlertTargetResourceProviderTest {
 
     expect(m_dao.findGroupsById(EasyMock.eq(groupIds))).andReturn(groups).anyTimes();
     expect(m_dao.findAllGroups()).andReturn(groups).once();
-    for(AlertGroupEntity group: groups){
-      expect(m_dao.merge(capture(groupEntityCapture))).andReturn(group).once();
-    }
     expect(m_dao.merge(capture(entityCapture))).andReturn(target).anyTimes();
 
     //start execution with these Expectation setters

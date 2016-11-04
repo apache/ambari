@@ -37,5 +37,12 @@ public enum UpgradeType {
    */
   @XmlEnumValue("NON_ROLLING")
   @SerializedName("nonrolling_upgrade")
-  NON_ROLLING;
+  NON_ROLLING,
+
+  /**
+   * Host-ordered upgrade.
+   */
+  @XmlEnumValue("HOST_ORDERED")
+  @SerializedName("host_ordered_upgrade")
+  HOST_ORDERED;
 }

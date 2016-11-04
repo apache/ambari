@@ -1,0 +1,78 @@
+{
+  "services": [
+    {
+      "name": "DRUID",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "druid",
+          "principal": {
+            "value": "${druid-env/druid_user}@${realm}",
+            "type": "user",
+            "configuration": "druid-common/druid.hadoop.security.kerberos.principal",
+            "local_username": "${druid-env/druid_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/druid.headless.keytab",
+            "owner": {
+              "name": "${druid-env/druid_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "druid-common/druid.hadoop.security.kerberos.keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "components": [
+        {
+          "name": "DRUID_HISTORICAL",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
+        },
+        {
+          "name": "DRUID_BROKER",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
+        },
+        {
+          "name": "DRUID_OVERLORD",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
+        },
+        {
+          "name": "DRUID_COORDINATOR",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
+        },
+        {
+          "name": "DRUID_MIDDLEMANAGER",
+          "identities": [
+            {
+              "name": "/druid"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

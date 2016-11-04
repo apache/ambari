@@ -26,9 +26,11 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.StackId;
@@ -48,20 +50,21 @@ import com.google.inject.persist.PersistService;
 public class TestStagePlanner {
 
   private Injector injector;
-  private static StageFactory stageFactory;
 
   @Inject
-  StageUtils stageUtils;
-
+  private StageFactory stageFactory;
   @Inject
-  RoleGraphFactory roleGraphFactory;
+  private RoleCommandOrderProvider roleCommandOrderProvider;
+  @Inject
+  private StageUtils stageUtils;
+  @Inject
+  private RoleGraphFactory roleGraphFactory;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    stageFactory = injector.getInstance(StageFactory.class);
   }
 
   @After
@@ -71,11 +74,10 @@ public class TestStagePlanner {
 
   @Test
   public void testSingleStagePlan() throws AmbariException {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
 
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
 
     RoleGraph rg = roleGraphFactory.createNew(rco);
     String hostname = "dummy";
@@ -87,15 +89,14 @@ public class TestStagePlanner {
     }
     assertEquals(1, outStages.size());
     assertEquals(stage.getExecutionCommands(hostname), outStages.get(0)
-        .getExecutionCommands(hostname));
+      .getExecutionCommands(hostname));
   }
 
   @Test
   public void testMultiStagePlan() {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
@@ -118,23 +119,22 @@ public class TestStagePlanner {
 
   @Test
   public void testRestartStagePlan() {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
-    Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,  "execution command wrapper test",
-            "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+    Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L, "execution command wrapper test",
+      "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
     stage.addServerActionCommand("RESTART", null, Role.HIVE_METASTORE,
-            RoleCommand.CUSTOM_COMMAND, "cluster1",
-            new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
-            null, "command detail", null, null, false, false);
+      RoleCommand.CUSTOM_COMMAND, "cluster1",
+      new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
+      null, "command detail", null, null, false, false);
     stage.addServerActionCommand("RESTART", null, Role.MYSQL_SERVER,
-            RoleCommand.CUSTOM_COMMAND, "cluster1",
-            new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
-            null, "command detail", null, null, false, false);
+      RoleCommand.CUSTOM_COMMAND, "cluster1",
+      new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
+      null, "command detail", null, null, false, false);
     System.out.println(stage.toString());
 
     rg.build(stage);
@@ -148,10 +148,9 @@ public class TestStagePlanner {
 
   @Test
   public void testManyStages() {
-    RoleCommandOrder rco = injector.getInstance(RoleCommandOrder.class);
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
-    rco.initialize(cluster);
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
     RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
@@ -180,14 +179,14 @@ public class TestStagePlanner {
         RoleCommand.START, new ServiceComponentHostStartEvent("OOZIE_SERVER",
             "host6", now), "cluster1", "OOZIE", false, false);
     stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
-        RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
-            "host7", now), "cluster1", "WEBHCAT", false, false);
+      RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
+        "host7", now), "cluster1", "WEBHCAT", false, false);
     stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
-        RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
-            "host4", now), "cluster1", "GANGLIA", false, false);
+      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
+        "host4", now), "cluster1", "GANGLIA", false, false);
     stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
-        RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
-            "host9", now), "cluster1", "GANGLIA", false, false);
+      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
+        "host9", now), "cluster1", "GANGLIA", false, false);
     System.out.println(stage.toString());
     rg.build(stage);
     System.out.println(rg.stringifyGraph());
@@ -196,5 +195,57 @@ public class TestStagePlanner {
       System.out.println(s.toString());
     }
     assertEquals(4, outStages.size());
+  }
+
+  @Test
+  public void testDependencyOrderedStageCreate() {
+    ClusterImpl cluster = mock(ClusterImpl.class);
+    when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(cluster);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
+    rg.setCommandExecutionType(CommandExecutionType.DEPENDENCY_ORDERED);
+    long now = System.currentTimeMillis();
+    Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
+    stage.addHostRoleExecutionCommand("host11", Role.SECONDARY_NAMENODE,
+      RoleCommand.START, new ServiceComponentHostStartEvent("SECONDARY_NAMENODE",
+        "host11", now), "cluster1", "HDFS", false, false);
+    stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_MASTER",
+        "host2", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host3", Role.ZOOKEEPER_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("ZOOKEEPER_SERVER",
+        "host3", now), "cluster1", "ZOOKEEPER", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.DATANODE,
+      RoleCommand.START, new ServiceComponentHostStartEvent("DATANODE",
+        "host4", now), "cluster1", "HDFS", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.HBASE_REGIONSERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("HBASE_REGIONSERVER",
+        "host4", now), "cluster1", "HBASE", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.TASKTRACKER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("TASKTRACKER",
+        "host4", now), "cluster1", "MAPREDUCE", false, false);
+    stage.addHostRoleExecutionCommand("host5", Role.JOBTRACKER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("JOBTRACKER",
+        "host5", now), "cluster1", "MAPREDUCE", false, false);
+    stage.addHostRoleExecutionCommand("host6", Role.OOZIE_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("OOZIE_SERVER",
+        "host6", now), "cluster1", "OOZIE", false, false);
+    stage.addHostRoleExecutionCommand("host7", Role.WEBHCAT_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("WEBHCAT_SERVER",
+        "host7", now), "cluster1", "WEBHCAT", false, false);
+    stage.addHostRoleExecutionCommand("host4", Role.GANGLIA_MONITOR,
+      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_MONITOR",
+        "host4", now), "cluster1", "GANGLIA", false, false);
+    stage.addHostRoleExecutionCommand("host9", Role.GANGLIA_SERVER,
+      RoleCommand.START, new ServiceComponentHostStartEvent("GANGLIA_SERVER",
+        "host9", now), "cluster1", "GANGLIA", false, false);
+    System.out.println(stage.toString());
+    rg.build(stage);
+    System.out.println(rg.stringifyGraph());
+    List<Stage> outStages = rg.getStages();
+    for (Stage s : outStages) {
+      System.out.println(s.toString());
+    }
+    assertEquals(1, outStages.size());
   }
 }

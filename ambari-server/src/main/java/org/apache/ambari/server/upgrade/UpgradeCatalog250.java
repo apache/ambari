@@ -19,15 +19,17 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.DBAccessor;
+
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -54,6 +56,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   public static final String COMPONENT_VERSION_PK = "PK_sc_version";
   public static final String COMPONENT_VERSION_FK_COMPONENT = "FK_scv_component_id";
   public static final String COMPONENT_VERSION_FK_REPO_VERSION = "FK_scv_repo_version_id";
+
+  protected static final String SERVICE_DESIRED_STATE_TABLE = "servicedesiredstate";
+  protected static final String CREDENTIAL_STORE_SUPPORTED_COL = "credential_store_supported";
+  protected static final String CREDENTIAL_STORE_ENABLED_COL = "credential_store_enabled";
 
   /**
    * Logger.
@@ -94,7 +100,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getSourceVersion() {
-    return "2.4.0";
+    return "2.4.2";
   }
 
   /**
@@ -104,6 +110,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     updateHostVersionTable();
     createComponentVersionTable();
+    dbAccessor.addColumn("stage",
+      new DBAccessor.DBColumnInfo("command_execution_type", String.class, 32, CommandExecutionType.STAGE.toString(),
+        false));
+    updateServiceDesiredStateTable();
   }
 
   /**
@@ -120,7 +130,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     updateAMSConfigs();
-    createRoleAuthorizations();
     updateKafkaConfigs();
   }
 
@@ -181,21 +190,6 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     return content;
   }
 
-  /**
-   * Create new role authorizations: CLUSTER.RUN_CUSTOM_COMMAND and AMBARI.RUN_CUSTOM_COMMAND
-   *
-   * @throws SQLException
-   */
-  protected void createRoleAuthorizations() throws SQLException {
-    LOG.info("Adding authorizations");
-
-    addRoleAuthorization("CLUSTER.RUN_CUSTOM_COMMAND", "Perform custom cluster-level actions",
-        Arrays.asList("AMBARI.ADMINISTRATOR:AMBARI", "CLUSTER.ADMINISTRATOR:CLUSTER"));
-
-    addRoleAuthorization("AMBARI.RUN_CUSTOM_COMMAND", "Perform custom administrative actions",
-      Collections.singletonList("AMBARI.ADMINISTRATOR:AMBARI"));
-  }
-
   protected void updateKafkaConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -247,6 +241,21 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
         "repo_version", "repo_version_id", false);
 
     addSequence("servicecomponent_version_id_seq", 0L, false);
+  }
+
+  /**
+   * Alter servicedesiredstate table.
+   * @throws SQLException
+   */
+  private void updateServiceDesiredStateTable() throws SQLException {
+    // ALTER TABLE servicedesiredstate ADD COLUMN
+    // credential_store_supported SMALLINT DEFAULT 0 NOT NULL
+    // credential_store_enabled SMALLINT DEFAULT 0 NOT NULL
+    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
+            new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
+
+    dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
+            new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
   }
 }
 

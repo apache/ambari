@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
+import javax.persistence.EntityManager;
+import javax.servlet.DispatcherType;
+import javax.servlet.SessionCookieConfig;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -27,17 +31,24 @@ import static org.easymock.EasyMock.verify;
 import java.net.Authenticator;
 import java.net.InetAddress;
 import java.net.PasswordAuthentication;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.EnumSet;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.SessionCookieConfig;
-
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.checks.DatabaseConsistencyCheckHelper;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.velocity.app.Velocity;
 import org.easymock.EasyMock;
+import org.easymock.EasyMockSupport;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionManager;
 import org.eclipse.jetty.servlet.FilterHolder;
@@ -49,6 +60,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -191,4 +203,115 @@ public class AmbariServerTest {
     Assert.assertEquals(52, ((QueuedThreadPool) server.getThreadPool()).getMaxThreads());
 
   }
+
+  @Test
+  public void testRunDatabaseConsistencyCheck() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final Connection mockConnection = easyMockSupport.createNiceMock(Connection.class);
+    final Statement mockStatement = easyMockSupport.createNiceMock(Statement.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+
+    AmbariServer ambariServer = new AmbariServer();
+
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(Clusters.class).toInstance(mockClusters);
+      }
+    });
+
+    expect(mockDBDbAccessor.getConnection()).andReturn(mockConnection).atLeastOnce();
+    expect(mockConnection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)).andReturn(mockStatement).atLeastOnce();
+    expect(mockStatement.executeQuery(anyString())).andReturn(null).atLeastOnce();
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    mockAmbariMetainfo.init();
+
+    ambariServer.runDatabaseConsistencyCheck();
+
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testRunDatabaseConsistencyCheck_IgnoreDBCheck() throws Exception {
+    AmbariServer ambariServer = new AmbariServer();
+
+    System.setProperty("skipDatabaseConsistencyCheck", "");
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+
+      }
+    });
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    ambariServer.runDatabaseConsistencyCheck();
+
+    System.clearProperty("skipDatabaseConsistencyCheck");
+  }
+
+  @Test
+  public void testRunDatabaseConsistencyCheck_ThrowException() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    final AmbariMetaInfo mockAmbariMetainfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+    final DBAccessor mockDBDbAccessor = easyMockSupport.createNiceMock(DBAccessor.class);
+    final OsFamily mockOSFamily = easyMockSupport.createNiceMock(OsFamily.class);
+    final StackManagerFactory mockStackManagerFactory = easyMockSupport.createNiceMock(StackManagerFactory.class);
+    final EntityManager mockEntityManager = easyMockSupport.createNiceMock(EntityManager.class);
+    final Clusters mockClusters = easyMockSupport.createNiceMock(Clusters.class);
+
+    AmbariServer ambariServer = new AmbariServer();
+
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(StackManagerFactory.class).toInstance(mockStackManagerFactory);
+        bind(AmbariMetaInfo.class).toInstance(mockAmbariMetainfo);
+        bind(DBAccessor.class).toInstance(mockDBDbAccessor);
+        bind(OsFamily.class).toInstance(mockOSFamily);
+        bind(EntityManager.class).toInstance(mockEntityManager);
+        bind(Clusters.class).toInstance(mockClusters);
+      }
+    });
+
+    expect(mockDBDbAccessor.getConnection()).andReturn(null);
+
+
+    DatabaseConsistencyCheckHelper.setInjector(mockInjector);
+
+    easyMockSupport.replayAll();
+
+    mockAmbariMetainfo.init();
+
+    boolean errorOccurred = false;
+    try {
+      ambariServer.runDatabaseConsistencyCheck();
+    } catch(Exception e) {
+      errorOccurred = true;
+    }
+
+    junit.framework.Assert.assertTrue(errorOccurred);
+
+    easyMockSupport.verifyAll();
+  }
+
 }

@@ -33,6 +33,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -56,12 +57,26 @@ import com.google.common.collect.ImmutableSet;
  */
 @Entity
 @Table(name = "alert_target")
-@TableGenerator(name = "alert_target_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_target_id_seq", initialValue = 0)
+@TableGenerator(
+    name = "alert_target_id_generator",
+    table = "ambari_sequences",
+    pkColumnName = "sequence_name",
+    valueColumnName = "sequence_value",
+    pkColumnValue = "alert_target_id_seq",
+    initialValue = 0)
 @NamedQueries({
-    @NamedQuery(name = "AlertTargetEntity.findAll", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
-    @NamedQuery(name = "AlertTargetEntity.findAllGlobal", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),
-    @NamedQuery(name = "AlertTargetEntity.findByName", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetName = :targetName"),
-    @NamedQuery(name = "AlertTargetEntity.findByIds", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetId IN :targetIds") })
+    @NamedQuery(
+        name = "AlertTargetEntity.findAll",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findAllGlobal",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findByName",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetName = :targetName"),
+    @NamedQuery(
+        name = "AlertTargetEntity.findByIds",
+        query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.targetId IN :targetIds") })
 public class AlertTargetEntity {
 
   @Id
@@ -92,7 +107,10 @@ public class AlertTargetEntity {
   /**
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
-  @ManyToMany(mappedBy = "alertTargets", cascade = {CascadeType.MERGE, CascadeType.REFRESH})
+  @ManyToMany(
+      fetch = FetchType.EAGER,
+      mappedBy = "alertTargets",
+      cascade = { CascadeType.MERGE, CascadeType.REFRESH })
   private Set<AlertGroupEntity> alertGroups;
 
   /**

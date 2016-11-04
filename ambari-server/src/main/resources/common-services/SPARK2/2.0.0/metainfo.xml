@@ -24,6 +24,7 @@
       <displayName>Spark2</displayName>
       <comment>Apache Spark 2.0 is a fast and general engine for large-scale data processing. This service is &lt;b&gt;Technical Preview&lt;/b&gt;.</comment>
       <version>2.0.0</version>
+      <selection>TECH_PREVIEW</selection>
       <components>
         <component>
           <name>SPARK2_JOBHISTORYSERVER</name>

@@ -33,9 +33,17 @@ case "${1:-}" in
         ;;
 esac
 
+export HOME_DIR=""
+if [ "$#" = 3 ] && [ $2 = "--home" ] ; then
+  export HOME_DIR=$3
+  echo "Allow running multiple agents on this host; will use custom Home Dir: $HOME_DIR"
+fi
+
+export CONFIG_FILE="$HOME_DIR/etc/ambari-agent/conf/ambari-agent.ini"
+
 get_agent_property() {
   property_name="$1"
-  value=$(awk -F "=" "/^$property_name/ {print \$2}" /etc/ambari-agent/conf/ambari-agent.ini)
+  value=$(awk -F "=" "/^$property_name/ {print \$2}" $CONFIG_FILE)
   echo $value
 }
 
@@ -51,7 +59,7 @@ valid_path() {
 
 
 export PATH=/usr/sbin:/sbin:/usr/lib/ambari-server/*:$PATH
-export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
+export AMBARI_CONF_DIR=$HOME_DIR/etc/ambari-server/conf:$PATH
 
 # Because Ambari rpm unpacks modules here on all systems
 export PYTHONPATH=/usr/lib/python2.6/site-packages:${PYTHONPATH:-}

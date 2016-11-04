@@ -19,6 +19,9 @@
 package org.apache.ambari.server.controller;
 
 
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.Authenticator;
@@ -31,9 +34,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
-
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
@@ -125,15 +125,15 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
 import org.apache.commons.lang.StringUtils;
 import org.apache.velocity.app.Velocity;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
-import org.eclipse.jetty.server.NCSARequestLog;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -309,6 +309,8 @@ public class AmbariServer {
     Server serverForAgent = new Server();
 
     setSystemProperties(configs);
+
+    runDatabaseConsistencyCheck();
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =
@@ -657,6 +659,41 @@ public class AmbariServer {
   }
 
   /**
+   * this method executes database consistency check if skip option was not added
+   */
+  protected void runDatabaseConsistencyCheck() throws Exception {
+    if (System.getProperty("skipDatabaseConsistencyCheck") == null) {
+      System.out.println("Database consistency check started");
+      Logger DB_CHECK_LOG = LoggerFactory.getLogger(DatabaseConsistencyCheckHelper.class);
+      try{
+        DatabaseConsistencyCheckHelper.runAllDBChecks();
+      } catch(Throwable e) {
+        System.out.println("Database consistency check: failed");
+        if (e instanceof AmbariException) {
+          DB_CHECK_LOG.error("Exception occurred during database check:", e);
+          System.out.println("Exception occurred during database check: " + e.getMessage());
+          e.printStackTrace();
+          throw (AmbariException)e;
+        } else {
+          DB_CHECK_LOG.error("Unexpected error, database check failed", e);
+          System.out.println("Unexpected error, database check failed: " + e.getMessage());
+          e.printStackTrace();
+          throw new Exception("Unexpected error, database check failed", e);
+        }
+      } finally {
+        if (DatabaseConsistencyCheckHelper.ifErrorsFound()) {
+          System.out.println("Database consistency check: failed");
+          System.exit(1);
+        } else if (DatabaseConsistencyCheckHelper.ifWarningsFound()) {
+          System.out.println("Database consistency check: warning");
+        } else {
+          System.out.println("Database consistency check: successful");
+        }
+      }
+    }
+  }
+
+  /**
    * installs bridge handler which redirects log entries from JUL to Slf4J
    */
   private void setupJulLogging() {
@@ -876,7 +913,7 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(PrincipalDAO.class),
         injector.getInstance(PermissionDAO.class), injector.getInstance(ResourceDAO.class));
     UserPrivilegeResourceProvider.init(injector.getInstance(UserDAO.class), injector.getInstance(ClusterDAO.class),
-        injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class), injector.getInstance(PrivilegeDAO.class));
+        injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class), injector.getInstance(Users.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));

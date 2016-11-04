@@ -18,6 +18,7 @@
 package org.apache.ambari.server.configuration;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -51,6 +52,7 @@ import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
@@ -657,6 +659,16 @@ public class Configuration {
       "common.services.path", null);
 
   /**
+   * Determines whether an existing local users will be updated as LDAP users.
+   */
+  @Markdown(
+      description = "Determines how to handle username collision while updating from LDAP.",
+      examples = { "skip", "convert" }
+  )
+  public static final ConfigurationProperty<String> LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR = new ConfigurationProperty<>(
+      "ldap.sync.username.collision.behavior", "convert");
+
+  /**
    * The location on the Ambari Server where stack extensions exist.
    */
   @Markdown(
@@ -1111,6 +1123,12 @@ public class Configuration {
       "authentication.ldap.sync.groupMemberFilter",
       LDAP_SYNC_MEMBER_FILTER_DEFAULT);
 
+
+  /**
+   * Enable the profiling of internal locks.
+   */
+  @Markdown(description = "Enable the profiling of internal locks.")
+  public static final ConfigurationProperty<Boolean> SERVER_LOCKS_PROFILING = new ConfigurationProperty<>("server.locks.profiling", Boolean.FALSE);
 
   /**
    * The size of the cache used to hold {@link HostRoleCommand} instances in-memory.
@@ -1821,6 +1839,15 @@ public class Configuration {
       "server.stages.parallel", Boolean.TRUE);
 
   /**
+   * In case this is set to DEPENDENCY_ORDERED one stage is created for each request and command dependencies are
+   * handled directly by ActionScheduler. In case of STAGE (which is the default) one or more stages are
+   * created depending on dependencies.
+   */
+  @Markdown(description = "How to execute commands in one stage")
+  public static final ConfigurationProperty<String> COMMAND_EXECUTION_TYPE = new ConfigurationProperty<>(
+    "server.stage.command.execution_type", CommandExecutionType.STAGE.toString());
+
+  /**
    * The time, in {@link TimeUnit#SECONDS}, before agent commands are killed.
    * This does not include package installation commands.
    */
@@ -2457,6 +2484,16 @@ public class Configuration {
   }
 
   /**
+   * Ldap username collision handling behavior.
+   * CONVERT - convert existing local users to LDAP users.
+   * SKIP - skip existing local users.
+   */
+  public enum LdapUsernameCollisionHandlingBehavior {
+    CONVERT,
+    SKIP
+  }
+
+  /**
    * The {@link DatabaseType} enum represents the database being used.
    */
   public enum DatabaseType {
@@ -3059,6 +3096,10 @@ public class Configuration {
 
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
+  }
+
+  public CommandExecutionType getStageExecutionType(){
+    return CommandExecutionType.valueOf(getProperty(COMMAND_EXECUTION_TYPE));
   }
 
   public String getStackAdvisorScript() {
@@ -4504,6 +4545,18 @@ public class Configuration {
   }
 
   /**
+   * Determines whether an existing local users will be skipped on updated during LDAP sync.
+   *
+   * @return true if ambari need to skip existing user during LDAP sync.
+   */
+  public LdapUsernameCollisionHandlingBehavior getLdapSyncCollisionHandlingBehavior() {
+    if (getProperty(LDAP_SYNC_USERNAME_COLLISIONS_BEHAVIOR).toLowerCase().equals("skip")) {
+      return LdapUsernameCollisionHandlingBehavior.SKIP;
+    }
+    return LdapUsernameCollisionHandlingBehavior.CONVERT;
+  }
+
+  /**
    * Gets the type of database by examining the {@link #getDatabaseUrl()} JDBC
    * URL.
    *
@@ -4924,6 +4977,13 @@ public class Configuration {
 
   public boolean isAuditLogEnabled() {
     return Boolean.parseBoolean(getProperty(AUDIT_LOG_ENABLED));
+  }
+
+  /**
+   * @return true if lock profiling is enabled for Ambari Server, in which case LockFactory should create instrumented locks
+   */
+  public boolean isServerLocksProfilingEnabled() {
+    return Boolean.parseBoolean(getProperty(SERVER_LOCKS_PROFILING));
   }
 
   /**

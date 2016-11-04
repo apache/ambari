@@ -270,9 +270,6 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     UserDAO userDAO = injector.getInstance(UserDAO.class);
     expect(userDAO.findUsersByPrincipal(anyObject(List.class))).andReturn(userEntities).atLeastOnce();
 
-    GroupDAO groupDAO = injector.getInstance(GroupDAO.class);
-    expect(groupDAO.findGroupsByPrincipal(anyObject(List.class))).andReturn(Collections.<GroupEntity>emptyList()).atLeastOnce();
-
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
@@ -356,10 +353,11 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Map<Long, UserEntity> userEntities = new HashMap<>();
     Map<Long, GroupEntity> groupEntities = new HashMap<>();
+    Map<Long, PermissionEntity> roleEntities = new HashMap<>();
     Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
 
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
     Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
 
@@ -399,12 +397,13 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Map<Long, UserEntity> userEntities = new HashMap<>();
     Map<Long, GroupEntity> groupEntities = new HashMap<>();
+    Map<Long, PermissionEntity> roleEntities = new HashMap<>();
 
     Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
     resourceEntities.put(resourceEntity.getId(), clusterEntity);
 
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
     Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
     Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
@@ -450,12 +449,13 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Map<Long, UserEntity> userEntities = new HashMap<>();
     Map<Long, GroupEntity> groupEntities = new HashMap<>();
+    Map<Long, PermissionEntity> roleEntities = new HashMap<>();
 
     Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
     resourceEntities.put(resourceEntity.getId(), viewInstanceEntity);
 
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
@@ -503,12 +503,13 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     Map<Long, UserEntity> userEntities = new HashMap<>();
     Map<Long, GroupEntity> groupEntities = new HashMap<>();
+    Map<Long, PermissionEntity> roleEntities = new HashMap<>();
 
     Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
     resourceEntities.put(resourceEntity.getId(), viewInstanceEntity);
 
     AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
-    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, roleEntities, resourceEntities, provider.getPropertyIds());
 
     Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
     Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
@@ -608,9 +609,6 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     expect(clusterDAO.findAll()).andReturn(Collections.<ClusterEntity>emptyList()).atLeastOnce();
 
-    GroupDAO groupDAO = injector.getInstance(GroupDAO.class);
-    expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList()).atLeastOnce();
-
     replayAll();
 
     SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -663,9 +661,6 @@ public class AmbariPrivilegeResourceProviderTest extends EasyMockSupport {
 
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     expect(clusterDAO.findAll()).andReturn(clusterEntities).atLeastOnce();
-
-    GroupDAO groupDAO = injector.getInstance(GroupDAO.class);
-    expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList()).atLeastOnce();
 
     replayAll();
 

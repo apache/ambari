@@ -19,7 +19,9 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,8 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RoleSuccessCriteriaEntity;
@@ -75,6 +79,8 @@ public class Stage {
   private String clusterHostInfo;
   private String commandParamsStage;
   private String hostParamsStage;
+
+  private CommandExecutionType commandExecutionType = CommandExecutionType.STAGE;
 
   private boolean skippable;
   private boolean supportsAutoSkipOnFailure;
@@ -138,7 +144,7 @@ public class Stage {
     supportsAutoSkipOnFailure = stageEntity.isAutoSkipOnFailureSupported();
     logDir = stageEntity.getLogInfo();
 
-    long clusterId = stageEntity.getClusterId().longValue();
+    clusterId = stageEntity.getClusterId().longValue();
     if (-1L != clusterId) {
       try {
         clusterName = clusters.getClusterById(clusterId).getClusterName();
@@ -152,6 +158,7 @@ public class Stage {
     clusterHostInfo = stageEntity.getClusterHostInfo();
     commandParamsStage = stageEntity.getCommandParamsStage();
     hostParamsStage = stageEntity.getHostParamsStage();
+    commandExecutionType = stageEntity.getCommandExecutionType();
 
     List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
     Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
@@ -191,6 +198,7 @@ public class Stage {
     stageEntity.setClusterHostInfo(clusterHostInfo);
     stageEntity.setCommandParamsStage(commandParamsStage);
     stageEntity.setHostParamsStage(hostParamsStage);
+    stageEntity.setCommandExecutionType(commandExecutionType);
 
     for (Role role : successFactors.keySet()) {
       RoleSuccessCriteriaEntity roleSuccessCriteriaEntity = new RoleSuccessCriteriaEntity();
@@ -235,6 +243,23 @@ public class Stage {
     return commands;
   }
 
+  /**
+   * Returns <Role, RoleCommand> pairs which are in progress.
+   * @return
+   */
+  public Set<RoleCommandPair> getHostRolesInProgress() {
+    Set<RoleCommandPair> commandsToScheduleSet = new HashSet<>();
+    for (Map.Entry<String, Map<String, HostRoleCommand>> hostRoleCommandEntry : hostRoleCommands.entrySet()) {
+      for (Map.Entry<String, HostRoleCommand> roleCommandEntry : hostRoleCommandEntry.getValue().entrySet()) {
+        if (HostRoleStatus.IN_PROGRESS_STATUSES.contains(roleCommandEntry.getValue().getStatus())) {
+          commandsToScheduleSet.add(
+            new RoleCommandPair(roleCommandEntry.getValue().getRole(), roleCommandEntry.getValue().getRoleCommand()));
+        }
+      }
+    }
+    return commandsToScheduleSet;
+  }
+
   public String getClusterHostInfo() {
     return clusterHostInfo;
   }
@@ -259,6 +284,13 @@ public class Stage {
     this.hostParamsStage = hostParamsStage;
   }
 
+  public CommandExecutionType getCommandExecutionType() {
+    return commandExecutionType;
+  }
+
+  public void setCommandExecutionType(CommandExecutionType commandExecutionType) {
+    this.commandExecutionType = commandExecutionType;
+  }
 
   public synchronized void setStageId(long stageId) {
     if (this.stageId != -1) {

@@ -106,67 +106,11 @@
             <li role="presentation"><a href="#actionConf" aria-controls="action-conf" role="tab" data-toggle="tab">Configuration</a></li>
           </ul>
           <div class="tab-content">
-            <div role="tabpanel" class="tab-pane active" id="actionInfo">
-              <div class="panel panel-default">
-                <div class="panel-body">
-                  <div class="col-md-12">
-                    <div class="col-md-2">Name</div>
-                    <div class="col-md-10">{{model.actionDetails.name}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Type</div>
-                    <div class="col-md-10">{{model.actionDetails.type}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Transition</div>
-                    <div class="col-md-10">{{model.actionDetails.transition}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Start Time</div>
-                    <div class="col-md-10">{{model.actionDetails.startTime}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">End Time</div>
-                    <div class="col-md-10">{{model.actionDetails.endTime}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Status</div>
-                    <div class="col-md-10">{{model.actionDetails.status}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Error Code</div>
-                    <div class="col-md-10">{{model.actionDetails.errorCode}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Error Message</div>
-                    <div class="col-md-10">{{model.actionDetails.errorMessage}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">External ID</div>
-                    <div class="col-md-10">{{model.actionDetails.externalId}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">External Status</div>
-                    <div class="col-md-10">{{model.actionDetails.externalStatus}}</div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Console URL</div>
-                    {{#unless (eq "-" model.actionDetails.consoleUrl)}}
-                    <div class="col-md-10"><a target="_blank" href="{{model.actionDetails.consoleUrl}}">{{model.actionDetails.consoleUrl}}</a></div>
-                    {{else}}
-                    <div class="col-md-10">{{model.actionDetails.consoleUrl}}</div>
-                    {{/unless}}
-                  </div>
-                  <div class="col-md-12">
-                    <div class="col-md-2">Tracker URI</div>
-                    {{#unless (eq "-" model.actionDetails.trackerUri)}}
-                    <div class="col-md-10"><a target="_blank" href="{{model.actionDetails.trackerUri}}">{{model.actionDetails.trackerUri}}</a></div>
-                    {{else}}
-                    <div class="col-md-10">{{model.actionDetails.trackerUri}}</div>
-                    {{/unless}}
-                  </div>
-                </div>
-              </div>
+            <div role="tabpanel" class="tab-pane active">
+              {{#if model.actionDetails}}
+              {{#workflow-job-action-info actionInfo=model.actionDetails}}
+              {{/workflow-job-action-info}}
+              {{/if}}
             </div>
             <div role="tabpanel" class="tab-pane" id="actionConf">
               <div class="panel panel-default">
@@ -191,7 +135,22 @@
   <div role="tabpanel" class="tab-pane" id="jobConfig">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <pre class="prettyprint">{{model.conf}}</pre>
+        <table class="table table-striped configuration-property-table">
+          <thead>
+            <tr>
+              <th class="propertyName">Name</th>
+              <th class="propertyValue">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each model.configurationProperties as |configurationProperty|}}
+              <tr>
+                <td class="propertyName">{{configurationProperty.name}}</td>
+                <td class="propertyValue">{{configurationProperty.value}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -203,11 +162,11 @@
     <div class="panel panel-default">
       <div class="panel-body preview">
         {{#if model.errorLog}}
-          <pre>{{model.errorLog}}</pre>
+        <pre>{{model.errorLog}}</pre>
         {{else if model.error}}
-          <pre>{{model.errorLog}}</pre>
+        <pre>{{model.errorLog}}</pre>
         {{else}}
-          {{spin-spinner lines=8 length=5 width=3 radius=5 top=220}}
+        {{spin-spinner lines=8 length=5 width=3 radius=5 top=220}}
         {{/if}}
       </div>
     </div>
@@ -216,11 +175,11 @@
     <div class="panel panel-default">
       <div class="panel-body preview">
         {{#if model.auditLog}}
-          <pre>{{model.auditLog}}</pre>
+        <pre>{{model.auditLog}}</pre>
         {{else if model.error}}
-          <pre>{{model.auditLog}}</pre>
+        <pre>{{model.auditLog}}</pre>
         {{else}}
-          {{spin-spinner lines=8 length=5 width=3 radius=5 top=220}}
+        {{spin-spinner lines=8 length=5 width=3 radius=5 top=220}}
         {{/if}}
       </div>
     </div>
@@ -228,7 +187,68 @@
   <div role="tabpanel" class="tab-pane" id="jobDag">
     <div class="panel panel-default">
       <div class="panel-body">
-        <img src={{dagUrl}} />
+        <!-- <img src={{dagUrl}} /> -->
+        <div class="row">
+          <div class="col-xs-8">
+            <div id="cy" class="cy-panel"></div>
+          </div>
+          <div class="col-xs-4">
+            {{#if model.nodeName}}
+            <div class="panel panel-default">
+              <div class="panel-body">
+                <div class="row">
+                  <div class="col-md-4 text-bold">Name</div>
+                  <div class="col-md-8">{{model.nodeName}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 text-bold">Type</div>
+                  <div class="col-md-8">{{model.nodeType}}</div>
+                </div>
+                {{#if model.actionInfo}}
+                <div class="row">
+                  <div class="col-md-4 text-bold">Status</div>
+                  <div class="col-md-8">{{model.actionInfo.status}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 text-bold">Start Time</div>
+                  <div class="col-md-8">{{model.actionInfo.startTime}}</div>
+                </div>
+                <div class="row">
+                  <div class="col-md-4 text-bold">End Time</div>
+                  <div class="col-md-8">{{model.actionInfo.endTime}}</div>
+                </div>
+                <div class="row pull-right" {{action 'getActionDetails' model.actionInfo}}>
+                  <div class="col-md-12">
+                    <a data-toggle="modal" href="#" data-target="#actionDetailsModal">More</a>
+                  </div>
+                </div>
+                {{else}}
+                <div class="row">
+                  <div class="col-md-4 text-bold">Status</div>
+                  <div class="col-md-8">Not Started</div>
+                </div>
+                {{/if}}
+              </div>
+            </div>
+            {{#if model.actionDetails}}
+            <div class="modal fade" role="dialog" id="actionDetailsModal">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Job Action Details</h4>
+                  </div>
+                  <div class="modal-body">
+                    {{#workflow-job-action-info actionInfo=model.actionDetails}}
+                    {{/workflow-job-action-info}}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {{/if}}
+            {{/if}}
+          </div>
+        </div>
       </div>
     </div>
   </div>

@@ -17,13 +17,13 @@
 
 import Ember from 'ember';
 var DefaultLayoutManager= Ember.Object.extend({
-  doDagreLayout(nodes,edges){
+  doDagreLayout(component, nodes,edges){
     var g = new dagre.graphlib.Graph();
     g.setGraph({rankdir:"TB", nodesep:100,edgesep:200,marginx:40,ranksep:130});
     g.setDefaultEdgeLabel(function() { return {}; });
 
     for (var i = 0; i < nodes.length; i++) {
-      var n = Ember.$(nodes[i]);
+      var n = component.$(nodes[i]);
       g.setNode(n.attr("id"), {width: n.width(), height: n.height()});
     }
 
@@ -35,13 +35,13 @@ var DefaultLayoutManager= Ember.Object.extend({
     return g;
   },
   doLayout(component,nodes,edges){
-    var g=this.doDagreLayout(nodes,edges);
+    var g=this.doDagreLayout(component, nodes,edges);
     g.nodes().forEach(function(v) {
       try{
         var nodeWidth=component.$("#" + v).width();
         var displacement=150-Math.floor(nodeWidth/2);
-        Ember.$("#" + v).css("left", g.node(v).x+displacement + "px");
-        Ember.$("#" + v).css("top",g.node(v).y+ "px");
+        component.$("#" + v).css("left", g.node(v).x+displacement + "px");
+        component.$("#" + v).css("top",g.node(v).y+ "px");
       }catch(err){
       }
     });

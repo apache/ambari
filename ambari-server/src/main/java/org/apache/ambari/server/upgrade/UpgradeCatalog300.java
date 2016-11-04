@@ -87,8 +87,6 @@ public class UpgradeCatalog300 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-
-    createComponentVersionTable();
   }
 
   /**

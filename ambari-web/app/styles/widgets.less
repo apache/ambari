@@ -454,18 +454,16 @@
 
 .checkbox-widget {
   .widget-config-label {
-    margin-left: 10px;
     width: auto;
+    padding-left: 0;
   }
-
-  .bootstrap-checkbox {
-    &>button.btn {
-      padding: 0;
-      color: @green;
-      &:focus {
-        border-color: transparent;
-        box-shadow: 0;
-        outline: 0 none;
+  .checkbox {
+    .ember-checkbox:not([disabled]) {
+      & + label:hover, &:checked + label {
+        &:before {
+          background-color: @green;
+          border-color: @green;
+        }
       }
     }
   }

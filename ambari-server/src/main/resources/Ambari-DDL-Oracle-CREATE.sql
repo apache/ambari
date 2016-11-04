@@ -250,6 +250,8 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
+  credential_store_supported SMALLINT DEFAULT 0 NOT NULL,
+  credential_store_enabled SMALLINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
   CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
@@ -347,6 +349,7 @@ CREATE TABLE stage (
   cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
+  command_execution_type VARCHAR2(32) DEFAULT 'STAGE' NOT NULL,
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -1118,30 +1121,10 @@ insert into adminprincipaltype (principal_type_id, principal_type_name)
   union all
   select 2, 'GROUP' from dual
   union all
-  select 3, 'ALL.CLUSTER.ADMINISTRATOR' from dual
-  union all
-  select 4, 'ALL.CLUSTER.OPERATOR' from dual
-  union all
-  select 5, 'ALL.CLUSTER.USER' from dual
-  union all
-  select 6, 'ALL.SERVICE.ADMINISTRATOR' from dual
-  union all
-  select 7, 'ALL.SERVICE.OPERATOR' from dual
-  union all
   select 8, 'ROLE' from dual;
 
 insert into adminprincipal (principal_id, principal_type_id)
   select 1, 1 from dual
-  union all
-  select 2, 3 from dual
-  union all
-  select 3, 4 from dual
-  union all
-  select 4, 5 from dual
-  union all
-  select 5, 6 from dual
-  union all
-  select 6, 7 from dual
   union all
   select 7, 8 from dual
   union all
@@ -1367,7 +1350,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
-  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL;
+  SELECT permission_id, 'CLUSTER.MANAGE_USER_PERSISTED_DATA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
 
 -- Set authorizations for Administrator role

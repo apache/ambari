@@ -17,12 +17,19 @@
 
 import Ember from 'ember';
 export default Ember.Component.extend({
+  clipboardHasContents : Ember.computed.oneWay('clipboard', function(){
+    return !Ember.isEmpty(this.get('clipboard'));
+  }),
   actions : {
     addAction : function(type){
       this.$(".dr_action").css("background-color", "#fff");
       this.$("[data-type="+type+"]").css("background-color", "#538EC0");
       this.$(this.get('element')).popover('hide');
       this.sendAction("addNode", type);
+    },
+    pasteNode(){
+      this.$(this.get('element')).popover('hide');
+      this.sendAction("pasteNode");
     }
   }
 });

@@ -422,7 +422,8 @@ describe('validator', function () {
         { value: '[a1', expected: false },
         { value: 'a{1}', expected: true },
         { value: 'a{1,2}', expected: true },
-        { value: 'a{1,2}{', expected: false }
+        { value: 'a{1,2}{', expected: false },
+        { value: 'a(1)', expected: true }
       ];
     tests.forEach(function(test) {
       it(message.format(test.value, test.expected ? 'valid' : 'not valid'), function() {
@@ -497,4 +498,26 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isValidRackId()', function () {
+
+    [
+      {v: '', e: false},
+      {v: 'a', e: false},
+      {v: '1', e: false},
+      {v: '/', e: false},
+      {v: '/a', e: true},
+      {v: '/1', e: true},
+      {v: '/-', e: true},
+      {v: '/' + (new Array(255)).join('a'), m: 'Value bigger than 255 symbols', e: false}
+    ].forEach(function (test) {
+
+      it(test.m || test.v, function () {
+        expect(validator.isValidRackId(test.v)).to.be.equal(test.e);
+      })
+
+    });
+
+  });
+
 });

@@ -19,17 +19,20 @@
 package org.apache.ambari.view.hive2.client;
 
 import org.apache.ambari.view.hive2.actor.message.Connect;
-import org.apache.ambari.view.hive2.actor.message.HiveJob;
 
 public class ConnectionConfig {
   private final String username;
-  private final String password;
+  private String password;
   private final String jdbcUrl;
 
   public ConnectionConfig(String username, String password, String jdbcUrl) {
     this.username = username;
     this.password = password;
     this.jdbcUrl = jdbcUrl;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   public String getUsername() {

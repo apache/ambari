@@ -18,5 +18,5 @@
 
 <p class="alert alert-warning">{{t admin.kerberos.regenerate_keytabs.popup.body}}</p>
 <p>
-  <label>{{view Em.Checkbox classNames="checkbox" checkedBinding="view.parentView.regenerateKeytabsOnlyForMissing"}} {{t admin.kerberos.regenerate_keytabs.checkbox.label}}</label>
+  {{view App.CheckboxView classNames="checkbox" checkedBinding="view.parentView.regenerateKeytabsOnlyForMissing" labelTranslate="admin.kerberos.regenerate_keytabs.checkbox.label"}}
 </p>

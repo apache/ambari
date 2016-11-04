@@ -48,6 +48,15 @@
     </parameter>
 
     <parameter>
+        <name>hive.ldap.configured</name>
+        <description>Set to true if Hive server is configured through LDAP</description>
+        <label>Hive LDAP configuration</label>
+        <placeholder>false</placeholder>
+        <default-value>false</default-value>
+        <required>false</required>
+    </parameter>
+
+    <parameter>
         <name>hive.metastore.warehouse.dir</name>
         <description>Hive Metastore directory (example: /apps/hive/warehouse)</description>
         <label>Hive Metastore directory</label>
@@ -289,6 +298,12 @@
     <resource>
         <name>hive</name>
         <service-class>org.apache.ambari.view.hive2.HelpService</service-class>
+    </resource>
+
+
+    <resource>
+        <name>connection</name>
+        <service-class>org.apache.ambari.view.hive2.resources.browser.ConnectionService</service-class>
     </resource>
 
     <persistence>

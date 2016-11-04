@@ -19,12 +19,9 @@
 {{template "templates/common/configs/widgets/config_label"}}
 <div class="pull-left">
   {{#each item in view.content}}
-    <div class="radio">
-      <label>
-        {{view Ember.RadioButton nameBinding="view.elementId" valueBinding="item.value" selectionBinding="view.config.value"}}
-        {{item.label}}
-      </label>
-    </div>
+  {{view App.RadioButtonView nameBinding="view.elementId"
+    classNames="radio" labelBinding="item.label"
+    valueBinding="item.value" selectionBinding="view.config.value"}}
   {{/each}}
 </div>
 {{template "templates/common/configs/widgets/controls"}}

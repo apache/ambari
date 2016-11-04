@@ -36,6 +36,7 @@ The following are the properties which can be used to configure Ambari.
 
 | Property Name | Description | Default |
 | --- | --- | --- |
+| active.instance | Indicates whether the current ambari server instance is active or not. |`true` | 
 | agent.api.gzip.compression.enabled | Determiens whether communication with the Ambari Agents should have the JSON payloads compressed with GZIP. |`true` | 
 | agent.auto.cache.update | Determines whether the agents will automatically attempt to download updates to stack resources from the Ambari Server. |`true` | 
 | agent.check.mounts.timeout | The timeout, used by the `timeout` command in linux, when checking mounts for free capacity. |`0` | 
@@ -70,6 +71,11 @@ The following are the properties which can be used to configure Ambari.
 | authentication.jwt.originalUrlParamName | The original URL to use when constructing the logic URL for JWT.<br/><br/> This property is related to `authentication.jwt.enabled`. |`originalUrl` | 
 | authentication.jwt.providerUrl | The URL for authentication of the user in the absence of a JWT token when handling a JWT request.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
 | authentication.jwt.publicKey | The public key to use when verifying the authenticity of a JWT token.<br/><br/> This property is related to `authentication.jwt.enabled`. | | 
+| authentication.kerberos.auth_to_local.rules | The auth-to-local rules set to use when translating a user's principal name to a local user name during authentication via SPNEGO. |`DEFAULT` | 
+| authentication.kerberos.enabled | Determines whether to use Kerberos (SPNEGO) authentication when connecting Ambari. |`false` | 
+| authentication.kerberos.spnego.keytab.file | The Kerberos keytab file to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`/etc/security/keytabs/spnego.service.keytab` | 
+| authentication.kerberos.spnego.principal | The Kerberos principal name to use when verifying user-supplied Kerberos tokens for authentication via SPNEGO |`HTTP/_HOST` | 
+| authentication.kerberos.user.types | A comma-delimited (ordered) list of preferred user types to use when finding the Ambari user account for the user-supplied Kerberos identity during authentication via SPNEGO |`LDAP` | 
 | authentication.ldap.alternateUserSearchEnabled | Determines whether a secondary (alternate) LDAP user search filer is used if the primary filter fails to find a user. |`false` | 
 | authentication.ldap.alternateUserSearchFilter | An alternate LDAP user search filter which can be used if `authentication.ldap.alternateUserSearchEnabled` is enabled and the primary filter fails to find a user. |`(&(userPrincipalName={0})(objectClass={userObjectClass}))` | 
 | authentication.ldap.baseDn | The base DN to use when filtering LDAP users and groups. This is only used when LDAP authentication is enabled. |`dc=ambari,dc=apache,dc=org` | 
@@ -96,11 +102,11 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 
-| bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/var/run/ambari-server/bootstrap` | 
+| bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/home/crashtua/dev/ambari-work/var/run/ambari-server/bootstrap` | 
 | bootstrap.master_host_name | The host name of the Ambari Server which will be used by the Ambari Agents for communication. | | 
-| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py` | 
+| bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/home/crashtua/dev/ambari-work/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py` | 
 | bootstrap.setup_agent.password | The password to set on the `AMBARI_PASSPHRASE` environment variable before invoking the bootstrap script. |`password` | 
-| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py` | 
+| bootstrap.setup_agent.script | The location and name of the Python script executed on the Ambari Agent host during the bootstrap process. |`/home/crashtua/dev/ambari-work/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py` | 
 | client.api.port | The port that client connections will use with the REST API. The Ambari Web client runs on this port. |`8080` | 
 | client.api.ssl.cert_pass_file | The filename which contains the password for the keystores, truststores, and certificates for the REST API when it's protected by SSL. |`https.pass.txt` | 
 | client.api.ssl.crt_pass | The password for the keystores, truststores, and certificates for the REST API when it's protected by SSL. If not specified, then `client.api.ssl.cert_pass_file` should be used. | | 
@@ -113,7 +119,7 @@ The following are the properties which can be used to configure Ambari.
 | client.security | The type of authentication mechanism used by Ambari.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`ldap`</ul> | | 
 | client.threadpool.size.max | The size of the Jetty connection pool used for handling incoming REST API requests. This should be large enough to handle requests from both web browsers and embedded Views. |`25` | 
 | common.services.path | The location on the Ambari Server where common service resources exist. Stack services share the common service files.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/common-services`</ul> | | 
-| custom.action.definitions | The location on the Ambari Server where custom actions are defined. |`/var/lib/ambari-server/resources/custom_action_definitions` | 
+| custom.action.definitions | The location on the Ambari Server where custom actions are defined. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/resources/custom_action_definitions` | 
 | db.mysql.jdbc.name | The name of the MySQL JDBC JAR connector. |`mysql-connector-java.jar` | 
 | db.oracle.jdbc.name | The name of the Oracle JDBC JAR connector. |`ojdbc6.jar` | 
 | default.kdcserver.port | The port used to communicate with the Kerberos Key Distribution Center. |`88` | 
@@ -126,7 +132,8 @@ The following are the properties which can be used to configure Ambari.
 | jdk.name | The name of the JDK installation binary.<br/><br/>The following are examples of valid values:<ul><li>`jdk-7u45-linux-x64.tar.gz`</ul> | | 
 | kdcserver.connection.check.timeout | The timeout, in milliseconds, to wait when communicating with a Kerberos Key Distribution Center. |`10000` | 
 | kerberos.check.jaas.configuration | Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials. |`false` | 
-| kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/var/lib/ambari-server/data/cache` | 
+| kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/data/cache` | 
+| ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
 | metadata.path | The location on the Ambari Server where the stack resources exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/stacks`</ul> | | 
 | metrics.retrieval-service.cache.timeout | The amount of time, in minutes, that JMX and REST metrics retrieved directly can remain in the cache. |`30` | 
 | metrics.retrieval-service.request.ttl | The number of seconds to wait between issuing JMX or REST metric requests to the same endpoint. This property is used to throttle requests to the same URL being made too close together<br/><br/> This property is related to `metrics.retrieval-service.request.ttl.enabled`. |`5` | 
@@ -135,7 +142,7 @@ The following are the properties which can be used to configure Ambari.
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
 | proxy.allowed.hostports | A comma-separated whitelist of host and port values which Ambari Server can use to determine if a proxy value is valid. |`*:*` | 
 | recommendations.artifacts.lifetime | The amount of time that Recommendation API data is kept on the Ambari Server file system. This is specified using a `hdwmy` syntax for pairing the value with a time unit (hours, days, weeks, months, years)<br/><br/>The following are examples of valid values:<ul><li>`8h`<li>`2w`<li>`1m`</ul> |`1w` | 
-| recommendations.dir | The directory on the Ambari Server file system used for storing Recommendation API artifacts. |`/var/run/ambari-server/stack-recommendations` | 
+| recommendations.dir | The directory on the Ambari Server file system used for storing Recommendation API artifacts. |`/home/crashtua/dev/ambari-work/var/run/ambari-server/stack-recommendations` | 
 | recovery.disabled_components | A comma-separated list of component names which are not included in automatic recovery attempts.<br/><br/>The following are examples of valid values:<ul><li>`NAMENODE,ZOOKEEPER_SERVER`</ul> | | 
 | recovery.enabled_components | A comma-separated list of component names which are included in automatic recovery attempts.<br/><br/>The following are examples of valid values:<ul><li>`NAMENODE,ZOOKEEPER_SERVER`</ul> | | 
 | recovery.lifetime_max_count | The maximum number of recovery attempts of a failed component during the lifetime of an Ambari Agent instance. This is reset when the Ambari Agent is restarted. | | 
@@ -145,7 +152,7 @@ The following are the properties which can be used to configure Ambari.
 | recovery.window_in_minutes | The length of a recovery window, in minutes, in which recovery attempts can be retried.<br/><br/> This property is related to `recovery.max_count`. | | 
 | repo.validation.suffixes.default | The suffixes to use when validating most types of repositories. |`/repodata/repomd.xml` | 
 | repo.validation.suffixes.ubuntu | The suffixes to use when validating Ubuntu repositories. |`/dists/%s/Release` | 
-| resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/var/lib/ambari-server/resources/` | 
+| resources.dir | The location on the Ambari Server where all resources exist, including common services, stacks, and scripts. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/resources/` | 
 | rolling.upgrade.skip.packages.prefixes | A comma-separated list of packages which will be skipped during a stack upgrade. | | 
 | security.agent.hostname.validate | Determines whether the Ambari Agent host names should be validated against a regular expression to ensure that they are well-formed. |`true` | 
 | security.master.key.location | The location on the Ambari Server of the master key file. This is the key to the master keystore. | | 
@@ -207,19 +214,21 @@ The following are the properties which can be used to configure Ambari.
 | server.jdbc.rca.user.passwd | The password for the user when connecting to the database which stores RCA information. |`mapred` | 
 | server.jdbc.user.name | The user name used to login to the database. |`ambari` | 
 | server.jdbc.user.passwd | The password for the user when logging into the database. |`bigdata` | 
+| server.locks.profiling | Enable the profiling of internal locks. |`false` | 
 | server.metrics.retrieval-service.thread.priority | The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints. |`5` | 
-| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`16` | 
-| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`32` | 
-| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`320` | 
+| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`8` | 
+| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`16` | 
+| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`160` | 
 | server.operations.retry-attempts | The number of retry attempts for failed API and blueprint operations. |`0` | 
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
 | server.persistence.type | The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
 | server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performanc from the REST APIs. |`5000` | 
-| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
-| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`32` | 
+| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`8` | 
+| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
 | server.property-provider.threadpool.worker.size | The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests. |`2147483647` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`5000` | 
+| server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
 | server.stages.parallel | Determines whether operations in different execution requests can be run concurrently. |`true` | 
 | server.task.timeout | The time, in seconds, before a server-side operation is terminated. |`1200` | 
 | server.timeline.metrics.cache.catchup.interval | The time, in milliseconds, that Ambari Metrics intervals should use when extending the boundaries of the original request.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`300000` | 
@@ -232,11 +241,11 @@ The following are the properties which can be used to configure Ambari.
 | server.timeline.metrics.cache.read.timeout.millis | The time, in milliseconds, that initial requests to populate metric data will wait while reading from Ambari Metrics.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`10000` | 
 | server.timeline.metrics.cache.use.custom.sizing.engine | Determines if a custom engine should be used to increase performance of calculating the current size of the cache for Ambari Metric data.<br/><br/> This property is related to `server.timeline.metrics.cache.disabled`. |`true` | 
 | server.timeline.metrics.https.enabled | Determines whether to use to SSL to connect to Ambari Metrics when retrieving metric data. |`false` | 
-| server.tmp.dir | The location on the Ambari Server where temporary artifacts can be created. |`/var/lib/ambari-server/tmp` | 
+| server.tmp.dir | The location on the Ambari Server where temporary artifacts can be created. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/tmp` | 
 | server.version.file | The full path to the file which contains the Ambari Server version. This is used to ensure that there is not a version mismatch between Ambari Agents and Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/version`</ul> | | 
 | server.version_definition.connect.timeout.millis | The time, in milliseconds, that requests to connect to a URL to retrieve Version Definition Files (VDF) will wait before being terminated. |`5000` | 
 | server.version_definition.read.timeout.millis | The time, in milliseconds, that requests to read from a connected URL to retrieve Version Definition Files (VDF) will wait before being terminated. |`5000` | 
-| shared.resources.dir | The location on the Ambari Server where resources are stored. This is exposed via HTTP in order for Ambari Agents to access them. |`/usr/lib/ambari-server/lib/ambari_commons/resources` | 
+| shared.resources.dir | The location on the Ambari Server where resources are stored. This is exposed via HTTP in order for Ambari Agents to access them. |`/home/crashtua/dev/ambari-work/usr/lib/ambari-server/lib/ambari_commons/resources` | 
 | ssl.trustStore.password | The password to use when setting the `javax.net.ssl.trustStorePassword` property | | 
 | ssl.trustStore.path | The location of the truststore to use when setting the `javax.net.ssl.trustStore` property. | | 
 | ssl.trustStore.type | The type of truststore used by the `javax.net.ssl.trustStoreType` property. | | 
@@ -245,7 +254,7 @@ The following are the properties which can be used to configure Ambari.
 | stack.upgrade.auto.retry.command.names.to.ignore | A comma-separate list of upgrade tasks names to skip when retrying failed commands automatically. |`"ComponentVersionCheckAction","FinalizeUpgradeAction"` | 
 | stack.upgrade.auto.retry.timeout.mins | The amount of time to wait in order to retry a command during a stack upgrade when an agent loses communication. This value must be greater than the `agent.task.timeout` value. |`0` | 
 | stack.upgrade.bypass.prechecks | Determines whether pre-upgrade checks will be skipped when performing a rolling or express stack upgrade. |`false` | 
-| stackadvisor.script | The location and name of the Python stack advisor script executed when configuring services. |`/var/lib/ambari-server/resources/scripts/stack_advisor.py` | 
+| stackadvisor.script | The location and name of the Python stack advisor script executed when configuring services. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/resources/scripts/stack_advisor.py` | 
 | task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
 | view.extraction.threadpool.size.core | The number of threads used to extract Ambari Views when Ambari Server is starting up. |`10` | 
 | view.extraction.threadpool.size.max | The maximum number of threads used to extract Ambari Views when Ambari Server is starting up. |`20` | 
@@ -254,7 +263,7 @@ The following are the properties which can be used to configure Ambari.
 | view.request.threadpool.timeout | The time, milliseconds, that REST API requests from embedded views can wait if there are no threads available to service the view's request. Setting this too low can cause views to timeout. |`2000` | 
 | views.ambari.request.connect.timeout.millis | The amount of time, in milliseconds, that a view will wait when trying to connect on HTTP(S) operations to the Ambari REST API. |`30000` | 
 | views.ambari.request.read.timeout.millis | The amount of time, in milliseconds, that a view will wait before terminating an HTTP(S) read request to the Ambari REST API. |`45000` | 
-| views.dir | The directory on the Ambari Server file system used for expanding Views and storing webapp work. |`/var/lib/ambari-server/resources/views` | 
+| views.dir | The directory on the Ambari Server file system used for expanding Views and storing webapp work. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/resources/views` | 
 | views.http.strict-transport-security | The value that will be used to set the `Strict-Transport-Security` HTTP response header for Ambari View requests. |`max-age=31536000` | 
 | views.http.x-frame-options | The value that will be used to set the `X-Frame-Options` HTTP response header for Ambari View requests. |`SAMEORIGIN` | 
 | views.http.x-xss-protection | The value that will be used to set the `X-XSS-Protection` HTTP response header for Ambari View requests. |`1; mode=block` | 

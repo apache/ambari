@@ -24,6 +24,7 @@ import akka.actor.PoisonPill;
 import akka.actor.Props;
 import com.google.common.base.Optional;
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive2.AuthParams;
 import org.apache.ambari.view.hive2.ConnectionDelegate;
 import org.apache.ambari.view.hive2.actor.message.Connect;
 import org.apache.ambari.view.hive2.actor.message.FetchError;
@@ -78,6 +79,8 @@ public class JdbcConnector extends HiveActor {
 
   private final Logger LOG = LoggerFactory.getLogger(getClass());
 
+  public static final String SUFFIX = "validating the login";
+
   /**
    * Interval for maximum inactivity allowed
    */
@@ -116,6 +119,7 @@ public class JdbcConnector extends HiveActor {
   private final ActorRef parent;
   private ActorRef statementExecutor = null;
   private final HdfsApi hdfsApi;
+  private final AuthParams authParams;
 
   /**
    * true if the actor is currently executing any job.
@@ -153,6 +157,8 @@ public class JdbcConnector extends HiveActor {
     this.storage = storage;
     this.lastActivityTimestamp = System.currentTimeMillis();
     resultSetIterator = null;
+
+    authParams = new AuthParams(viewContext);
     actorConfiguration = new HiveActorConfiguration(viewContext);
   }
 
@@ -349,7 +355,9 @@ public class JdbcConnector extends HiveActor {
 
     Optional<HiveConnection> connectionOptional = connectable.getConnection();
     if (!connectionOptional.isPresent()) {
-      notifyConnectFailure(new SQLException("Hive connection is not created"));
+      SQLException sqlException = connectable.isUnauthorized() ? new SQLException("Hive Connection not Authorized", "AUTHFAIL")
+              : new SQLException("Hive connection is not created");
+      notifyConnectFailure(sqlException);
       return false;
     }
     return true;
@@ -381,10 +389,30 @@ public class JdbcConnector extends HiveActor {
     this.failure = new Failure("Cannot connect to hive", ex);
     if (isAsync()) {
       updateJobStatus(jobId.get(), Job.JOB_STATE_ERROR);
+
+      if(ex instanceof ConnectionException){
+        ConnectionException connectionException = (ConnectionException) ex;
+        Throwable cause = connectionException.getCause();
+        if(cause instanceof SQLException){
+          SQLException sqlException = (SQLException) cause;
+          if(isLoginError(sqlException))
+            return;
+        }
+      }
+
     } else {
       sender().tell(new ExecutionFailed("Cannot connect to hive"), ActorRef.noSender());
+    }
+    // Do not clean up in case of failed authorizations
+    // The failure is bubbled to the user for requesting credentials
+
+    if (!(ex instanceof SQLException) || !((SQLException) ex).getSQLState().equals("AUTHFAIL")) {
       cleanUpWithTermination();
     }
+  }
+
+  private boolean isLoginError(SQLException ce) {
+    return ce.getCause().getMessage().toLowerCase().endsWith(SUFFIX);
   }
 
   private void keepAlive() {
@@ -408,7 +436,7 @@ public class JdbcConnector extends HiveActor {
     executionType = message.getType();
     // check the connectable
     if (connectable == null) {
-      connectable = message.getConnectable();
+      connectable = message.getConnectable(authParams);
     }
     // make the connectable to Hive
     try {

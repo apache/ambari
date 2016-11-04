@@ -37,7 +37,7 @@
             <button class="btn btn-primary" type="button" {{action "openFileBrowser" "actionModel.script"}}>Browse</button>
           </span>
         </div>
-        {{#field-error error=errors.actionModel.script}}{{/field-error}}
+        {{field-error model=this field='actionModel.script' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     {{else}}
@@ -47,7 +47,7 @@
         <div class="input-group">
           {{textarea class="form-control" name="query" class="query-text-area" value=actionModel.query placeholder="hive query"}}
         </div>
-        {{#field-error error=errors.actionModel.query}}{{/field-error}}
+        {{field-error model=this field='actionModel.query' showErrorMessage=showErrorMessage}}
       </div>
     </div>
     {{/if}}
@@ -55,7 +55,7 @@
       <label class="control-label col-xs-2">jdbc-url<span class="requiredField">&nbsp;*</span></label>
       <div class="col-xs-7">
         {{input type="text" class="form-control" validations="required" name="jdbc-url" value=actionModel.jdbc-url placeholder="jdbc-url"}}
-        {{#field-error error=errors.actionModel.jdbc-url}}{{/field-error}}
+        {{field-error model=this field='actionModel.jdbc-url' showErrorMessage=showErrorMessage}}
       </div>
     </div>
 

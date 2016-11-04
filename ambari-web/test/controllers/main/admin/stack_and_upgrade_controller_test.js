@@ -2670,15 +2670,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#getSupportedUpgradeTypes()", function () {
 
-    it("App.ajax.send should be called", function() {
+    beforeEach(function() {
       controller.getSupportedUpgradeTypes({});
+    });
+
+    it("App.ajax.send should be called", function() {
       var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.get_supported_upgradeTypes');
       expect(args[0]).to.be.eql({
         name: "admin.upgrade.get_supported_upgradeTypes",
         sender: controller,
         data: {},
-        success: "getSupportedUpgradeTypesSuccess"
+        success: "getSupportedUpgradeTypesSuccess",
+        error: "getSupportedUpgradeTypesError"
       });
+    });
+
+    it("getSupportedUpgradeError should be empty", function() {
+      expect(controller.get('getSupportedUpgradeError')).to.be.empty;
+    });
+
+    it("isUpgradeTypesLoaded should be false", function() {
+      expect(controller.get('isUpgradeTypesLoaded')).to.be.false;
     });
   });
 
@@ -2729,6 +2741,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         controller.getSupportedUpgradeTypesSuccess(test.data);
         expect(controller.get('upgradeMethods')[0].get('allowed')).to.be.equal(test.expected);
       });
+    });
+  });
+
+  describe("#getSupportedUpgradeTypesError", function () {
+
+    it("correct responseText", function() {
+      controller.getSupportedUpgradeTypesError({responseText: JSON.stringify({
+        message: 'error'
+      })});
+      expect(controller.get('getSupportedUpgradeError')).to.be.equal('error');
+    });
+
+    it("invalid responseText", function() {
+      controller.getSupportedUpgradeTypesError({
+        responseText: '',
+        statusText: 'statusError'
+      });
+      expect(controller.get('getSupportedUpgradeError')).to.be.equal('statusError');
     });
   });
 
@@ -3136,32 +3166,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           items: [
             {
               ClusterStackVersions: {
-                state: 'CURRENT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S1', versions: ['v1']}
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        currentStackData: {
-          currentStackVersionNumber: '2.2',
-          currentStackName: 'HDP'
-        },
-        m: 'should add stack services from stack version with state CURRENT',
-        e: { "S1": "v1"}
-      },
-      {
-        jsonData: {
-          items: [
-            {
-              ClusterStackVersions: {
                 version: '2.3',
                 stack: 'HDP',
                 state: 'INIT'
@@ -3198,54 +3202,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           currentStackVersionNumber: '2.2',
           currentStackName: 'HDP'
         },
-        m: 'should add stack services from stack version by current stack name and version number' +
-           'when CURRENT version not available',
+        m: 'should add stack services from stack version by current stack name and version number',
         e: { "S2": "v2"}
-      },
-      {
-        jsonData: {
-          items: [
-            {
-              ClusterStackVersions: {
-                version: '2.3',
-                stack: 'HDP',
-                state: 'CURRENT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S3', versions: ['v3']}
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              ClusterStackVersions: {
-                version: '2.2',
-                stack: 'HDP',
-                state: 'INIT'
-              },
-              repository_versions: [
-                {
-                  RepositoryVersions: {
-                    stack_services: [
-                      { name: 'S2', versions: ['v2']}
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        currentStackData: {
-          currentStackVersionNumber: '2.2',
-          currentStackName: 'HDP'
-        },
-        m: 'should add stack services by state CURRENT even when there is stack version with ' +
-           'current stack name and version number',
-        e: { "S3": "v3"}
       }
     ];
 

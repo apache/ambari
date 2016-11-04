@@ -15,34 +15,38 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div id="get-started">
-  <h2>{{t installer.step0.body.header}}</h2>
-  <p class="alert alert-info">
-    {{t installer.step0.body}}
-  </p>
-  <div {{bindAttr class="view.onError:has-error :form-group"}}>
-    <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
-      <a href="javascript:void(null)"
-         rel="popover"
-        {{translateAttr title="installer.step0.clusterName.tooltip.title"
-        data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
-    </label>
+<div id="get-started" class="wizard-content col-md-9">
+  <h4 class="step-title">{{t installer.step0.body.header}}</h4>
+  <p class="step-description">{{t installer.step0.body}}</p>
 
-    <div>
-      {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="col-sm-3"}}
-      {{#if clusterNameError}}
-        <p class="help-block validation-block col-sm-9">{{clusterNameError}}</p>
-      {{/if}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div {{bindAttr class="view.onError:has-error :form-group"}}>
+        <label class="control-label" for="cluster-name">{{t installer.step0.clusterName}}
+          <a href="javascript:void(null)"
+           rel="popover"
+            {{translateAttr title="installer.step0.clusterName.tooltip.title"
+            data-content="installer.step0.clusterName.tooltip.content"}}>{{t common.learnMore}}</a>
+        </label>
+
+        <div>
+          {{view App.WizardStep0ViewClusterNameInput id="cluster-name" valueBinding="content.cluster.name" placeholder="cluster name" target="controller" classNames="col-sm-3"}}
+          {{#if clusterNameError}}
+            <p class="help-block validation-block col-sm-9">{{clusterNameError}}</p>
+          {{/if}}
+        </div>
+      </div>
     </div>
   </div>
-
-  <div class="btn-area">
-    <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>
-      {{#if App.router.nextBtnClickInProgress}}
-        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
-      {{/if}}
-      {{t common.next}} &rarr;
-    </button>
-  </div>
 </div>
+
+<div class="wizard-footer col-md-12 btn-area">
+  <button type="button" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>
+    {{#if App.router.nextBtnClickInProgress}}
+        {{view App.SpinnerView tagName="span" classNames="service-button-spinner"}}
+    {{/if}}
+    {{t common.next}} &rarr;
+  </button>
+</div>
+
 

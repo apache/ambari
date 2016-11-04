@@ -262,6 +262,8 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
+  credential_store_supported SMALLINT NOT NULL DEFAULT 0,
+  credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY CLUSTERED (cluster_id,service_name),
   CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
@@ -360,6 +362,7 @@ CREATE TABLE stage (
   cluster_host_info VARBINARY(MAX) NOT NULL,
   command_params VARBINARY(MAX),
   host_params VARBINARY(MAX),
+  command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
   CONSTRAINT PK_stage PRIMARY KEY CLUSTERED (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -1139,21 +1142,11 @@ BEGIN TRANSACTION
   values
     (1, 'USER'),
     (2, 'GROUP'),
-    (3, 'ALL.CLUSTER.ADMINISTRATOR'),
-    (4, 'ALL.CLUSTER.OPERATOR'),
-    (5, 'ALL.CLUSTER.USER'),
-    (6, 'ALL.SERVICE.ADMINISTRATOR'),
-    (7, 'ALL.SERVICE.OPERATOR'),
     (8, 'ROLE');
 
   insert into adminprincipal (principal_id, principal_type_id)
   values
     (1, 1),
-    (2, 3),
-    (3, 4),
-    (4, 5),
-    (5, 6),
-    (6, 7),
     (7, 8),
     (8, 8),
     (9, 8),

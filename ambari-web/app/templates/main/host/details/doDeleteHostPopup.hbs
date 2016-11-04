@@ -28,7 +28,7 @@
 <p><i class="glyphicon glyphicon-warning-sign"></i> {{{deletePopupBody}}}</p>
 {{#if lastComponent}}
     <div class="alert alert-danger row">
-        <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
+        <div class='tinyspan tinyoffset'>{{view App.CheckboxView checkedBinding="isChecked"}}</div>
         <div class='col-md-10'>{{view lastComponentError}}</div>
     </div>
 {{/if}}

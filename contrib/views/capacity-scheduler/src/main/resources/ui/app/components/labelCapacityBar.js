@@ -24,6 +24,7 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
   labels: null,
   queues: null,
   warnInvalidTotalLabelCapacity: false,
+  precision: 2,
 
   extractLabels: function() {
     var qLabels = this.get('queueLabels'),
@@ -40,9 +41,11 @@ App.LabelCapacityBarComponent = Ember.Component.extend({
     var labels = this.get('labels'),
     totalCapacity = 0;
     labels.forEach(function(label){
-      totalCapacity += label.get('capacity');
+      if (typeof label.get('capacity') === 'number') {
+        totalCapacity += label.get('capacity');
+      }
     });
-    return totalCapacity;
+    return parseFloat(totalCapacity.toFixed(this.get('precision')));
   }.property('labels.length', 'labels.@each.capacity'),
 
   widthPattern: 'width: %@%',

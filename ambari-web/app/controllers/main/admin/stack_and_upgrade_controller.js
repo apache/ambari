@@ -107,6 +107,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   serviceCheckFailuresServicenames: [],
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isUpgradeTypesLoaded: false,
+
+  /**
+   * @type {string}
+   */
+  getSupportedUpgradeError: '',
+
+  /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
    * by stack upgrade path
    * @type {Array}
@@ -930,7 +941,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             self.runUpgradeMethodChecks(version);
           }
       }).always(function () {
-          self.set('runningCheckRequests', runningCheckRequests.rejectProperty('type', 'ALL'));
+        self.set('isUpgradeTypesLoaded', true);
+        self.set('runningCheckRequests', runningCheckRequests.rejectProperty('type', 'ALL'));
         });
       request.type = 'ALL';
       this.get('runningCheckRequests').push(request);
@@ -938,10 +950,21 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     return App.ModalPopup.show({
       encodeBody: false,
-      primary: isInUpgradeWizard ? Em.I18n.t('ok') : Em.I18n.t('common.proceed'),
+      primary: function() {
+        return isInUpgradeWizard || this.get('controller.getSupportedUpgradeError')
+               ? Em.I18n.t('ok')
+               : Em.I18n.t('common.proceed')
+      }.property('controller.getSupportedUpgradeError'),
+      secondary: function() {
+        return this.get('controller.getSupportedUpgradeError') ? null : Em.I18n.t('common.cancel');
+      }.property('controller.getSupportedUpgradeError'),
       primaryClass: 'btn-success',
       classNames: ['upgrade-options-popup'],
       header: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.header'),
+      controller: this,
+      showFooter: function() {
+        return this.get('controller.isUpgradeTypesLoaded');
+      }.property('controller.isUpgradeTypesLoaded'),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/admin/stack_upgrade/upgrade_options'),
         didInsertElement: function () {
@@ -1039,7 +1062,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       skipComponentFailures: self.get('failuresTolerance.skipComponentFailures'),
       skipSCFailures: self.get('failuresTolerance.skipSCFailures'),
       disablePrimary: function () {
-        if (isInUpgradeWizard) return false;
+        if (isInUpgradeWizard || this.get('controller.getSupportedUpgradeError')) return false;
         var selectedMethod = this.get('selectedMethod');
         if (selectedMethod) {
           if (App.get('supports.preUpgradeCheck')) {
@@ -1136,11 +1159,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * send request to get available upgrade tye names
    */
   getSupportedUpgradeTypes: function(data) {
+    this.set('isUpgradeTypesLoaded', false);
+    this.set('getSupportedUpgradeError', '');
     return App.ajax.send({
       name: "admin.upgrade.get_supported_upgradeTypes",
       sender: this,
       data: data,
-      success: "getSupportedUpgradeTypesSuccess"
+      success: "getSupportedUpgradeTypesSuccess",
+      error: "getSupportedUpgradeTypesError"
     });
   },
 
@@ -1153,6 +1179,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.get('upgradeMethods').forEach(function (method) {
       method.set('allowed', Boolean(supportedUpgradeTypes && supportedUpgradeTypes.contains(method.get('type'))));
     });
+  },
+
+  /**
+   * error callback of <code>getSupportedUpgradeTypes()</code>
+   * @param xhr {object}
+   */
+  getSupportedUpgradeTypesError: function (xhr) {
+    var response;
+    try {
+      response = JSON.parse(xhr.responseText);
+    } catch (e) {
+      response = {message: xhr.statusText};
+    }
+    this.set('getSupportedUpgradeError', response.message);
   },
 
   /**
@@ -1903,11 +1943,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object|null} jsonData
    */
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var versions = Em.getWithDefault(jsonData, 'items', []);
-    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
-    var rv = currentVersion || versions.filter(function(i) {
-      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
-       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    var rv = Em.getWithDefault(jsonData, 'items', []).filter(function(i) {
+      return Em.getWithDefault(i, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
+       Em.getWithDefault(i, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
     })[0];
     var map = this.get('serviceVersionsMap');
     var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);

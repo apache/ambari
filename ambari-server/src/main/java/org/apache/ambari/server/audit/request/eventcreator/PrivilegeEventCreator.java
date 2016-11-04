@@ -33,8 +33,6 @@ import org.apache.ambari.server.audit.event.request.PrivilegeChangeRequestAuditE
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -88,6 +86,7 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
 
     Map<String, List<String>> users = getEntities(request, PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
     Map<String, List<String>> groups = getEntities(request, PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME);
+    Map<String, List<String>> roles = getEntities(request, PrincipalTypeEntity.ROLE_PRINCIPAL_TYPE_NAME);
 
     switch (request.getRequestType()) {
       case PUT:
@@ -99,6 +98,7 @@ public class PrivilegeEventCreator implements RequestAuditEventCreator {
           .withRemoteIp(request.getRemoteAddress())
           .withUsers(users)
           .withGroups(groups)
+          .withRoles(roles)
           .build();
       case POST:
         String role = users.isEmpty() ? Iterables.getFirst(groups.keySet(), null) : Iterables.getFirst(users.keySet(), null);

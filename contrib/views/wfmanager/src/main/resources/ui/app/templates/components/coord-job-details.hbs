@@ -119,7 +119,22 @@
   <div role="tabpanel" class="tab-pane" id="jobConfig">
     <div class="panel panel-default">
       <div class="panel-body preview">
-        <pre class="prettyprint">{{model.conf}}</pre>
+        <table class="table table-striped configuration-property-table">
+          <thead>
+            <tr>
+              <th class="propertyName">Name</th>
+              <th class="propertyValue">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each model.configurationProperties as |configurationProperty|}}
+              <tr>
+                <td class="propertyName">{{configurationProperty.name}}</td>
+                <td class="propertyValue">{{configurationProperty.value}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

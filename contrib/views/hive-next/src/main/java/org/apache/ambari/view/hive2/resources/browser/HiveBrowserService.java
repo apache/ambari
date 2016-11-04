@@ -74,9 +74,11 @@ public class HiveBrowserService {
     else
       like = "*" + like + "*";
     JSONObject response = new JSONObject();
+    ConnectionConfig hiveConnectionConfig = getHiveConnectionConfig();
     DDLDelegator delegator = new DDLDelegatorImpl(context, ConnectionSystem.getInstance().getActorSystem(), ConnectionSystem.getInstance().getOperationController(context));
-    List<String> databases = delegator.getDbList(getHiveConnectionConfig(), like);
+    List<String> databases = delegator.getDbList(hiveConnectionConfig, like);
     response.put("databases", databases);
+
     return Response.ok(response).build();
 
   }

@@ -259,6 +259,8 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
+  credential_store_supported SMALLINT NOT NULL DEFAULT 0,
+  credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
   CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
@@ -356,6 +358,7 @@ CREATE TABLE stage (
   cluster_host_info BLOB NOT NULL,
   command_params BLOB,
   host_params BLOB,
+  command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -1173,30 +1176,10 @@ INSERT INTO adminprincipaltype (principal_type_id, principal_type_name)
   UNION ALL
   SELECT 2, 'GROUP' FROM SYSIBM.SYSDUMMY1
   UNION ALL
-  SELECT 3, 'ALL.CLUSTER.ADMINISTRATOR' FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 4, 'ALL.CLUSTER.OPERATOR' FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 5, 'ALL.CLUSTER.USER' FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 6, 'ALL.SERVICE.ADMINISTRATOR' FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 7, 'ALL.SERVICE.OPERRATOR' FROM SYSIBM.SYSDUMMY1
-  UNION ALL
   SELECT 8, 'ROLE' FROM SYSIBM.SYSDUMMY1;
 
 INSERT INTO adminprincipal (principal_id, principal_type_id)
   SELECT 1, 1 FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 2, 3 FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 3, 4 FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 4, 5 FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 5, 6 FROM SYSIBM.SYSDUMMY1
-  UNION ALL
-  SELECT 6, 7 FROM SYSIBM.SYSDUMMY1
   UNION ALL
   SELECT 7, 8 FROM SYSIBM.SYSDUMMY1
   UNION ALL

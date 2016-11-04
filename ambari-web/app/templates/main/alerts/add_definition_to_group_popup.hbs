@@ -86,12 +86,12 @@
       <table class="table table-hover">
         <thead>
         <tr>
-          <th width="10%">
-            {{view Ember.Checkbox checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
-          </th>
           <th width="35%">{{t common.alertDefinition}}</th>
           <th width="25%">{{t common.service}}</th>
           <th width="30%">{{t common.component}}</th>
+          <th width="10%">
+            {{view App.CheckboxView checkedBinding="view.allDefsSelected" disabledBinding="view.isDisabled"}}
+          </th>
         </tr>
         </thead>
       </table>
@@ -101,17 +101,17 @@
             {{#if view.pageContent}}
               {{#each entry in view.pageContent}}
                 <tr {{bindAttr class="entry.filtered::hidden"}}>
-                  <td width="10%">
-                    {{view Ember.Checkbox checkedBinding="entry.selected"}}
-                  </td>
                   <td width="35%">
                     {{entry.label}}
                   </td>
-                  <td>
+                  <td width="25%">
                     {{entry.serviceNameDisplay}}
                   </td>
-                  <td>
+                  <td width="30%">
                     {{entry.componentNameDisplay}}
+                  </td>
+                  <td width="10%">
+                    {{view App.CheckboxView checkedBinding="entry.selected"}}
                   </td>
                 </tr>
               {{/each}}

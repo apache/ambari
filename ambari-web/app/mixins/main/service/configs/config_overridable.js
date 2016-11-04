@@ -192,27 +192,25 @@ App.ConfigOverridable = Em.Mixin.create({
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/selectCreateConfigGroup'),
         controllerBinding: 'App.router.mainServiceInfoConfigsController',
-        selectConfigGroupRadioButton: Em.Checkbox.extend({
-          tagName: 'input',
-          attributeBindings: ['type', 'checked', 'disabled'],
+        selectConfigGroupRadioButton: App.RadioButtonView.extend({
+          label: Em.computed.alias('parentView.parentView.selectExistingGroupLabel'),
           checked: Em.computed.alias('parentView.parentView.optionSelectConfigGroup'),
-          type: 'radio',
-          disabled: false,
+          disabled: Em.computed.not('parentView.parentView.hasExistedGroups'),
           click: function () {
+            if (this.get('disabled')) {
+              return;
+            }
             this.set('parentView.parentView.optionSelectConfigGroup', true);
           },
           didInsertElement: function () {
             if (!this.get('parentView.parentView.hasExistedGroups')) {
-              this.set('disabled', true);
               this.set('parentView.parentView.optionSelectConfigGroup', false);
             }
           }
         }),
-        createConfigGroupRadioButton: Em.Checkbox.extend({
-          tagName: 'input',
-          attributeBindings: ['type', 'checked'],
+        createConfigGroupRadioButton: App.RadioButtonView.extend({
+          label: Em.computed.alias('parentView.parentView.createNewGroupLabel'),
           checked: Em.computed.not('parentView.parentView.optionSelectConfigGroup'),
-          type: 'radio',
           click: function () {
             this.set('parentView.parentView.optionSelectConfigGroup', false);
           }

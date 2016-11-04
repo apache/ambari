@@ -44,7 +44,7 @@
       {{#each level in view.levelsContext}}
         <div class="display-inline-block level-checkbox">
           <label>
-            {{view Em.Checkbox checkedBinding="level.checked"}}
+            {{view App.CheckboxView checkedBinding="level.checked"}}
             {{level.displayName}} ({{level.counter}})
           </label>
         </div>
@@ -78,7 +78,7 @@
   <div class="context-menu pull-left">
     <a href="#" {{action moveTableTop target="view"}} class="move-to-top glyphicon glyphicon-caret-up"></a>
     <a href="#" {{action moveTableBottom target="view"}} class="move-to-bottom glyphicon glyphicon-caret-down"></a>
-    <a href="#" {{action navigateToLogUI target="view"}} class="glyphicon glyphicon-external-link"></a>
+    <a href="#" {{action navigateToLogUI target="view"}} class="icon-external-link"></a>
   </div>
   <div class="clearfix"></div>
 </div>

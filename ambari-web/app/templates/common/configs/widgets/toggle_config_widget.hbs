@@ -18,6 +18,6 @@
 
 {{template "templates/common/configs/widgets/config_label"}}
 <div {{bindAttr class=":pull-left view.doNotShowWidget:hide view.isOriginalSCP:original-widget"}}>
-  {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
+  {{view App.CheckboxView checkedBinding="view.switcherValue"}}
 </div>
 {{template "templates/common/configs/widgets/controls"}}

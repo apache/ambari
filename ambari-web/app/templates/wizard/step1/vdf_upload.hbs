@@ -19,9 +19,7 @@
 <div class="clearfix register-version-options row">
   {{#view "view.uploadFileView" class="col-md-12"}}
     <div class="col-md-5 option-radio-button">
-      <label class="local-option-label radio">
-        {{view view.uploadFileRadioButton}} {{t installer.step1.useLocalRepo.uploadFile}}
-      </label>
+      {{view view.uploadFileRadioButton classNames="radio" labelClassNames="local-option-label"}}
     </div>
     <div class="col-md-12">
       {{#if view.isFileApi}}
@@ -31,9 +29,7 @@
   {{/view}}
   {{#view "view.enterUrlView" class="col-md-12"}}
     <div class="option-radio-button col-md-12">
-      <label class="local-option-label radio">
-        {{view view.enterUrlRadioButton}} {{t installer.step1.useLocalRepo.enterUrl}}
-      </label>
+      {{view view.enterUrlRadioButton classNames="radio" labelClassNames="local-option-label"}}
     </div>
     <div class="col-md-12 vdf-url">
       <div {{bindAttr class="optionsToSelect.useLocalRepo.enterUrl.name optionsToSelect.useLocalRepo.enterUrl.url.hasError:has-error"}}>

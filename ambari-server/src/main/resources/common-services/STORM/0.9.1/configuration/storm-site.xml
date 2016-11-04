@@ -79,7 +79,7 @@
   </property>
   <property>
     <name>storm.zookeeper.connection.timeout</name>
-    <value>15000</value>
+    <value>30000</value>
     <description>The connection timeout for clients to ZooKeeper.</description>
     <value-attributes>
       <type>int</type>

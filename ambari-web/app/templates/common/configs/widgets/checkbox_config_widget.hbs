@@ -16,17 +16,17 @@
 * limitations under the License.
 }}
 <div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget"}}>
-  <label>
+  <div class="checkbox">
     {{view view.configView class="pull-left"}}
     {{#if view.isOriginalSCP}}
-      <span {{bindAttr class=":widget-config-label view.configLabelClass"}}>
+      <label {{bindAttr class=":widget-config-label view.configLabelClass" for="view.configViewId"}}>
         {{view view.issueView configBinding="view.config"}}
         {{view.configLabel}}
-      </span>
+      </label>
     {{else}}
       <span class="widget-config-label text-success">{{t common.override}}</span>
     {{/if}}
     <div class="clearfix"></div>
-  </label>
+  </div>
 </div>
 {{template "templates/common/configs/widgets/controls"}}

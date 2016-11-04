@@ -555,13 +555,6 @@ App.InstallerController = App.WizardController.extend({
   },
 
   /**
-   * Load serviceConfigProperties to model
-   */
-  loadServiceConfigProperties: function () {
-    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
-  },
-  /**
    * Generate clients list for selected services and save it to model
    * @param stepController step4WizardController
    */
@@ -848,6 +841,7 @@ App.InstallerController = App.WizardController.extend({
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
+            if (!repo.get('isUtils') && wizardStep1Controller.inappropriateUrlForStackVersion(repo, stackVersion)) return;
             repo.setProperties({
               errorTitle: '',
               errorContent: '',
@@ -895,8 +889,8 @@ App.InstallerController = App.WizardController.extend({
       }
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
+    this.set('content.isCheckInProgress', false);
     if (!this.get('validationCnt')) {
-      this.set('content.isCheckInProgress', false);
       data.dfd.resolve();
     }
   },
@@ -1015,12 +1009,18 @@ App.InstallerController = App.WizardController.extend({
       {
         type: 'async',
         callback: function () {
-          this.loadServiceConfigGroups();
-          this.loadServiceConfigProperties();
-          this.loadCurrentHostGroups();
-          this.loadRecommendationsConfigs();
-          this.loadComponentsFromConfigs();
-          return this.loadConfigThemes();
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadServiceConfigProperties().always(function() {
+            self.loadServiceConfigGroups();
+            self.loadCurrentHostGroups();
+            self.loadRecommendationsConfigs();
+            self.loadComponentsFromConfigs();
+            self.loadConfigThemes().then(function() {
+              dfd.resolve();
+            });
+          });
+          return dfd.promise();
         }
       }
     ]
@@ -1047,6 +1047,7 @@ App.InstallerController = App.WizardController.extend({
   finish: function () {
     this.setCurrentStep('0');
     this.clearStorageData();
+    this.clearServiceConfigProperties();
     App.router.get('userSettingsController').postUserPref('show_bg', true);
   },
 

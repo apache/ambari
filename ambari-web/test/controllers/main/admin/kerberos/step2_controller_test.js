@@ -212,6 +212,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       }]);
       sinon.stub(controller, 'clearStep');
       sinon.stub(App.config, 'setPreDefinedServiceConfigs');
+      sinon.stub(App.config, 'mergeStoredValue');
       sinon.stub(controller, 'filterConfigs');
       sinon.stub(controller, 'getKerberosConfigs');
       sinon.stub(controller, 'initializeKDCStoreProperties');
@@ -233,6 +234,7 @@ describe('App.KerberosWizardStep2Controller', function() {
       this.mockStackService.restore();
       controller.clearStep.restore();
       App.config.setPreDefinedServiceConfigs.restore();
+      App.config.mergeStoredValue.restore();
       controller.filterConfigs.restore();
       controller.getKerberosConfigs.restore();
       controller.initializeKDCStoreProperties.restore();

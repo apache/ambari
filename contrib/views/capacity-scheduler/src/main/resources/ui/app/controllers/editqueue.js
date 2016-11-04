@@ -124,6 +124,9 @@ App.CapschedQueuesconfEditqueueController = Ember.Controller.extend({
     } else if (qAlreadyExists && qName !== originalQName) {
       this.set('isInvalidQName', true);
       this.set('invalidQNameMessage', 'Queue already exists');
+    } else if (qName.indexOf(' ') > -1) {
+      this.set('isInvalidQName', true);
+      this.set('invalidQNameMessage', 'Queue name contains white spaces');
     } else {
       this.set('isInvalidQName', false);
       this.set('invalidQNameMessage', '');

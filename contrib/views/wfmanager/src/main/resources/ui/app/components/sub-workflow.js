@@ -16,9 +16,15 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+const Validations = buildValidations({
+  'actionModel.appPath': validator('presence', {
+    presence : true
+  })
+});
+
+export default Ember.Component.extend(Validations,{
   setUp : function(){
     if(this.get('actionModel.configuration') === undefined){
       this.set("actionModel.configuration",{});
@@ -36,13 +42,6 @@ export default Ember.Component.extend(EmberValidations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.appPath': {
-      presence: {
-        'message' : 'You need to provide a value for app path'
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

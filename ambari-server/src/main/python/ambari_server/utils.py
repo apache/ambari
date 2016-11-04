@@ -105,12 +105,14 @@ def save_pid(pid, pidfile):
   try:
     pfile = open(pidfile, "w")
     pfile.write("%s\n" % pid)
-  except IOError:
+  except IOError as e:
+    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
-    except:
+    except Exception as e:
+      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
@@ -132,16 +134,19 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
           os.kill(int(item["pid"]), signal.SIGKILL)
         except:
           pass
-  except IOError:
+  except IOError as e:
+    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
-    except:
+    except Exception as e:
+      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
-def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout, properties):
+def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout,
+                 server_out_file, db_check_log, properties):
   """
     Check pid for existence during timeout
   """
@@ -175,9 +180,20 @@ def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_tim
       #print str(e)
       pass
 
+  if 'Database consistency check: failed' in open(server_out_file).read():
+    print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
+          "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
+          "or perform a cluster upgrade until you correct the database consistency issues. See " + \
+          db_check_log + "for more details on the consistency issues."
+  elif 'Database consistency check: warning' in open(server_out_file).read():
+    print "\nDB configs consistency check found warnings. See " + db_check_log + " for more details."
+  else:
+    print "\nDB configs consistency check: no errors and warnings were found."
+
+
   if not server_ui_port_occupied:
     raise FatalException(1, "Server not yet listening on http port " + str(ambari_server_ui_port) +
-                            " after " + str(occupy_port_timeout) + str(server_init_timeout) + " seconds. Exiting.")
+                            " after " + str(occupy_port_timeout + server_init_timeout) + " seconds. Exiting.")
 
   tstart = time.time()
   print "Waiting for 10 seconds, for server WEB UI initialization"

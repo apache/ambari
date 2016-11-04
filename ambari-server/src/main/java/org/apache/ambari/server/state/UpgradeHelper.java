@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.stack.upgrade.Task.Type;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeFunction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,7 +185,6 @@ public class UpgradeHelper {
   @Inject
   private Provider<RepositoryVersionDAO> s_repoVersionDAO;
 
-
   /**
    * Get right Upgrade Pack, depends on stack, direction and upgrade type information
    * @param clusterName The name of the cluster
@@ -272,6 +272,13 @@ public class UpgradeHelper {
 
       // !!! grouping is not scoped to context
       if (!context.isScoped(group.scope)) {
+        continue;
+      }
+
+      // if there is a condition on the group, evaluate it and skip scheduling
+      // of this group if the condition has not been satisfied
+      if (null != group.condition && !group.condition.isSatisfied(context)) {
+        LOG.info("Skipping {} while building upgrade orchestration due to {}", group, group.condition );
         continue;
       }
 
@@ -457,7 +464,7 @@ public class UpgradeHelper {
 
       List<StageWrapper> proxies = builder.build(context);
 
-      if (!proxies.isEmpty()) {
+      if (CollectionUtils.isNotEmpty(proxies)) {
         groupHolder.items = proxies;
         postProcess(context, groupHolder);
         groups.add(groupHolder);

@@ -131,7 +131,7 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     var element = Em.TextField;
     switch (this.get('displayType')) {
       case 'checkbox':
-        element = Em.Checkbox;
+        element = App.CheckboxView;
         options.checkedBinding = "value";
         break;
       case 'select':

@@ -34,15 +34,16 @@ To list all the configurations defined in a cluster:
 
     GET /api/v1/clusters/c1/configurations
     {
-    "items" : [
-      {
-        "tag" : "version1",
-        "type" : "global",
-        "Config" : {
-          "cluster_name" : "c1"
-        }
-      },
-      /* etc */   
+      "items" : [
+        {
+          "tag" : "version1",
+          "type" : "global",
+          "Config" : {
+            "cluster_name" : "c1"
+          }
+        },
+        /* etc */
+      ]
     }
 To view the real set of key/value pairs, use the `type` and `tag` as request parameters:
 
@@ -60,7 +61,7 @@ To view the real set of key/value pairs, use the `type` and `tag` as request par
           "hive_lib" : "/usr/lib/hive/lib/",
           /* etc */
         }
-      }
+      ]}
     }
 
 To create a new configuration, the below call can be made. Creating a configuration is different than applying a configuration.
@@ -105,7 +106,8 @@ and then apply it to the cluster:
       "Clusters": {
         "desired_config": {
           "type": "core-site",
-          "tag": "version2",
+          "tag": "version2"
+        }
       }
     }
 
@@ -121,6 +123,7 @@ The other, more efficient way is to create and apply a configuration on a cluste
             "a": "b",
             /* etc */
           }
+        }
       }
     }
     
@@ -208,4 +211,7 @@ The most common use-case for actual configuration is knowing when a service or c
           /* etc */
          ]
         }
+      ]
+    }
+
 The actual configurations are used at the host_component level to indicate which services are different from the desired configurations.  Any differences requires a restart of the component (or the entire service, if needed).  This is because components of the the same service may be on different hosts.

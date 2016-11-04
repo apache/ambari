@@ -48,6 +48,7 @@
                 {{/if}}
               </div>
             </div>
+            {{#if isOperator}}
             <div class="row">
               <div class="col-sm-4 col-md-4">
                 <div class="checkbox">
@@ -71,6 +72,7 @@
                 </div>
               {{/if}}
             </div>
+            {{/if}}
           {{else}}
             <div class="text-warning">
               <span>Preemption is not supported for your current stack version {{currentStack}}</span>

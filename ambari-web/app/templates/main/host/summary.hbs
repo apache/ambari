@@ -19,33 +19,33 @@
 <div class="row host-block">
   <div class="col-md-6">
       {{!components}}
-    <div class="box">
-      <div class="box-header">
-        <div class="pull-left">
-          <h4>{{t common.components}}</h4>
-        </div>
-        <div class="pull-right col-md-5 row" style="padding:0 10px;">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <div class="row">
+          <div class="col-md-6">
+            <h4 class="panel-title">{{t common.components}}</h4>
+          </div>
+          <div class="col-md-6">
             {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
-              <div class="btn-group pull-right col-md-6">
-                <button id="add_component"
-                        data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle"}}>
+              <div class="dropdown pull-right">
+                <button id="add_component" data-toggle="dropdown" {{bindAttr class="view.addComponentDisabled:disabled :btn :btn-default :dropdown-toggle"}}>
                   <span class="glyphicon glyphicon-plus"></span>&nbsp;{{t add}}
                 </button>
                 <ul class="dropdown-menu">
-                    {{#each component in view.addableComponents}}
-                      <li>
-                        <a href="javascript:void(null)"
-                           data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
-                            {{component.displayName}}
-                        </a>
-                      </li>
-                    {{/each}}
+                  {{#each component in view.addableComponents}}
+                    <li>
+                      <a href="javascript:void(null)" data-toggle="modal" {{action addComponentWithCheck component target="controller"}}>
+                        {{component.displayName}}
+                      </a>
+                    </li>
+                  {{/each}}
                 </ul>
               </div>
             {{/isAuthorized}}
+          </div>
         </div>
       </div>
-      <div class="host-components">
+      <div class="host-components panel-body">
           {{#if view.sortedComponents.length}}
 
               {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
@@ -140,11 +140,11 @@
       </div>
     </div>
     <div class="host-configuration">
-      <div class="box">
-        <div class="box-header">
-          <h4>{{t hosts.host.summary.header}}</h4>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">{{t hosts.host.summary.header}}</h4>
         </div>
-        <div class="host-summary-content">
+        <div class="host-summary-content panel-body">
           <dl class="dl-horizontal host-details-summary-list">
 
             <dt class="summary-hostname-label">{{t hosts.host.summary.hostname}}:</dt>
@@ -154,7 +154,7 @@
             <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
 
             <dt class="summary-rack-label">{{t common.rack}}:</dt>
-            <dd class="summary-rack-value">&nbsp;{{view.content.rack}}
+            <dd class="summary-rack-value">&nbsp;{{formatWordBreak view.content.rack}}
                 {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
                   <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i
                     class="glyphicon glyphicon-pencil"></i></a>
@@ -189,12 +189,14 @@
   <div class="col-md-6">
       {{!metrics}}
       {{#unless view.isNoHostMetricsService}}
-        <div class="box">
-          <div class="box-header">
-            <h4>{{t hosts.host.summary.hostMetrics}}</h4>
-              {{view view.timeRangeListView}}
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <div class="row">
+              <div class="col-md-6"><h4 class="panel-title">{{t hosts.host.summary.hostMetrics}}</h4></div>
+              <div class="col-md-6">{{view view.timeRangeListView}}</div>
+            </div>
           </div>
-          <div>
+          <div class="panel-body">
               {{view App.MainHostMetricsView contentBinding="view.content"}}
           </div>
         </div>
@@ -202,11 +204,11 @@
 
       {{!logs metrics}}
       {{#if App.supports.logCountVizualization}}
-        <div class="box">
-          <div class="box-header">
-            <h4>{{t hosts.host.summary.hostLogMetrics}}</h4>
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h4 class="panel-title">{{t hosts.host.summary.hostLogMetrics}}</h4>
           </div>
-          <div>
+          <div class="panel-body">
               {{view App.MainHostLogMetrics contentBinding="view.content"}}
           </div>
         </div>

@@ -72,6 +72,12 @@ export default Ember.Component.extend(Ember.Evented,{
     registerAddBranchAction(component){
       this.set("addBranchListener",component);
     },
+    showNotification(node){
+       this.sendAction("showNotification", node);
+    },
+    // hideNotification(){
+    //    this.sendAction("hideNotification");
+    // },    
     openEditor (){
       this.sendAction("openEditor", this.get('node'));
     },
@@ -86,6 +92,9 @@ export default Ember.Component.extend(Ember.Evented,{
     },
     addDecisionBranch(settings){
       this.sendAction("addDecisionBranch",settings);
+    },
+    copyNode(){
+      this.sendAction("copyNode", this.get('node'));
     }
   }
 });

@@ -16,9 +16,18 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
+import { validator, buildValidations } from 'ember-cp-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+const Validations = buildValidations({
+  'actionModel.mainClass': validator('presence', {
+    presence : true
+  }),
+  'actionModel.jobTracker': validator('presence', {
+    presence : true
+  })  
+});
+
+export default Ember.Component.extend(Validations, {
   fileBrowser : Ember.inject.service('file-browser'),
   javaOptsObserver : Ember.observer('isSingle',function(){
     if(this.get('isSingle')){
@@ -67,18 +76,6 @@ export default Ember.Component.extend(EmberValidations, {
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-    'actionModel.mainClass': {
-      presence: {
-        'message' : 'You need to provide a value for Main Class',
-      },
-      format: {
-        with: /([a-z][a-z_0-9]*\.)*[A-Za-z_]($[A-Za-z_]|[\w_])*/,
-        allowBlank: false,
-        message: 'You need to provide a valid value'
-      }
-    }
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

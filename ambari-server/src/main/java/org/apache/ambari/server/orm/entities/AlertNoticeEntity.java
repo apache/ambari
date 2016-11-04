@@ -34,6 +34,7 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.commons.lang.builder.EqualsBuilder;
 
 /**
  * The {@link AlertNoticeEntity} class represents the need to dispatch a
@@ -67,7 +68,7 @@ public class AlertNoticeEntity {
   private NotificationState notifyState;
 
   @Basic
-  @Column(nullable = false, length = 64)
+  @Column(nullable = false, length = 64, unique = true)
   private String uuid;
 
   /**
@@ -83,7 +84,7 @@ public class AlertNoticeEntity {
   /**
    * Bi-directional many-to-one association to {@link AlertTargetEntity}
    */
-  @ManyToOne(cascade = { CascadeType.REFRESH })
+  @ManyToOne(cascade = { CascadeType.MERGE, CascadeType.REFRESH })
   @JoinColumn(name = "target_id", nullable = false)
   private AlertTargetEntity alertTarget;
 
@@ -171,7 +172,7 @@ public class AlertNoticeEntity {
    */
   public void setAlertHistory(AlertHistoryEntity alertHistory) {
     this.alertHistory = alertHistory;
-    this.historyId = alertHistory.getAlertId();
+    historyId = alertHistory.getAlertId();
   }
 
   /**
@@ -225,12 +226,9 @@ public class AlertNoticeEntity {
 
     AlertNoticeEntity that = (AlertNoticeEntity) object;
 
-    if (notificationId != null ? !notificationId.equals(that.notificationId)
-        : that.notificationId != null) {
-      return false;
-    }
-
-    return true;
+    EqualsBuilder equalsBuilder = new EqualsBuilder();
+    equalsBuilder.append(uuid, that.uuid);
+    return equalsBuilder.isEquals();
   }
 
   /**
@@ -238,7 +236,7 @@ public class AlertNoticeEntity {
    */
   @Override
   public int hashCode() {
-    int result = null != notificationId ? notificationId.hashCode() : 0;
+    int result = null != uuid ? uuid.hashCode() : 0;
     return result;
   }
 

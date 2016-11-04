@@ -24,12 +24,12 @@ public interface RoleGraphFactory {
    *
    * @return
    */
-  public RoleGraph createNew();
+  RoleGraph createNew();
 
   /**
    *
    * @param rd
    * @return
    */
-  public RoleGraph createNew(RoleCommandOrder rd);
+  RoleGraph createNew(RoleCommandOrder rd);
 }

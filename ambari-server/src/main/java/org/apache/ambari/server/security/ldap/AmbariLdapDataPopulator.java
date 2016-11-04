@@ -221,8 +221,13 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          batchInfo.getUsersToBecomeLdap().add(userName);
-          LOG.trace("Convert user '{}' to LDAP user.", userName);
+          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()){
+            LOG.info("User '{}' skipped because it is local user", userName);
+            batchInfo.getUsersSkipped().add(userName);
+          } else {
+            batchInfo.getUsersToBecomeLdap().add(userName);
+            LOG.trace("Convert user '{}' to LDAP user.", userName);
+          }
         }
         internalUsersMap.remove(userName);
       } else {
@@ -293,7 +298,12 @@ public class AmbariLdapDataPopulator {
       if (internalUsersMap.containsKey(userName)) {
         final User user = internalUsersMap.get(userName);
         if (user != null && !user.isLdapUser()) {
-          batchInfo.getUsersToBecomeLdap().add(userName);
+          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()){
+            LOG.info("User '{}' skipped because it is local user", userName);
+            batchInfo.getUsersSkipped().add(userName);
+          } else {
+            batchInfo.getUsersToBecomeLdap().add(userName);
+          }
         }
         internalUsersMap.remove(userName);
       } else {
@@ -401,7 +411,14 @@ public class AmbariLdapDataPopulator {
           continue;
         }
         if (!user.isLdapUser()) {
-          batchInfo.getUsersToBecomeLdap().add(externalMember);
+          if (Configuration.LdapUsernameCollisionHandlingBehavior.SKIP == configuration.getLdapSyncCollisionHandlingBehavior()) {
+            // existing user can not be converted to ldap user, so skip it
+            LOG.info("User '{}' skipped because it is local user", externalMember);
+            batchInfo.getUsersSkipped().add(externalMember);
+            continue; // and remove from group
+          } else {
+            batchInfo.getUsersToBecomeLdap().add(externalMember);
+          }
         }
         if (!internalMembers.containsKey(externalMember)) {
           batchInfo.getMembershipToAdd().add(new LdapUserGroupMemberDto(groupName, externalMember));

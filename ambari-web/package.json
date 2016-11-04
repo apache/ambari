@@ -35,7 +35,7 @@
     "karma-phantomjs-launcher": "0.1.3",
     "karma-coverage": "~0.2.0",
     "karma-commonjs-require": "~0.0.1",
-    "karma-ember-precompile-brunch": "^0.0.1"
+    "karma-ember-precompiler-brunch": "^1.0.0"
   },
   "scripts": {
     "start": "brunch watch --server",

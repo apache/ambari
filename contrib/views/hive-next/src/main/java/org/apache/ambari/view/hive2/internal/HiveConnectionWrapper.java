@@ -20,8 +20,13 @@ package org.apache.ambari.view.hive2.internal;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+import org.apache.ambari.view.hive2.AuthParams;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hive.jdbc.HiveConnection;
 
+import java.io.IOException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.security.PrivilegedExceptionAction;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -31,21 +36,26 @@ import java.sql.SQLException;
  * This class only provides a connection over which
  * callers should run their own JDBC statements
  */
-public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnection> {
+public class HiveConnectionWrapper implements Connectable, Supplier<HiveConnection> {
 
   private static String DRIVER_NAME = "org.apache.hive.jdbc.HiveDriver";
+  public static final String SUFFIX = "validating the login";
   private final String jdbcUrl;
   private final String username;
   private final String password;
+  private final AuthParams authParams;
+
+  private UserGroupInformation ugi;
 
   private HiveConnection connection = null;
+  private boolean authFailed;
 
-  public HiveConnectionWrapper(String jdbcUrl, String username, String password) {
+  public HiveConnectionWrapper(String jdbcUrl, String username, String password, AuthParams authParams) {
     this.jdbcUrl = jdbcUrl;
     this.username = username;
     this.password = password;
+    this.authParams = authParams;
   }
-
 
   @Override
   public void connect() throws ConnectionException {
@@ -56,13 +66,32 @@ public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnectio
     }
 
     try {
-      Connection conn = DriverManager.getConnection(jdbcUrl, username, password);
-      connection = (HiveConnection)conn;
-
-    } catch (SQLException e) {
-      throw new ConnectionException(e, "Cannot open a hive connection with connect string " + jdbcUrl);
+      ugi = UserGroupInformation.createProxyUser(username, authParams.getProxyUser());
+    } catch (IOException e) {
+      throw new ConnectionException(e, "Cannot set kerberos authentication for getting connection.");
     }
 
+    try {
+      Connection conn = ugi.doAs(new PrivilegedExceptionAction<Connection>() {
+        @Override
+        public Connection run() throws Exception {
+          return DriverManager.getConnection(jdbcUrl, username, password);
+        }
+      });
+      connection = (HiveConnection) conn;
+    } catch (UndeclaredThrowableException exception) {
+      // Check if the reason was an auth error
+      Throwable undeclaredThrowable = exception.getUndeclaredThrowable();
+      if (undeclaredThrowable instanceof SQLException) {
+        SQLException sqlException = (SQLException) undeclaredThrowable;
+        if (isLoginError(sqlException))
+          authFailed = true;
+        throw new ConnectionException(sqlException, "Cannot open a hive connection with connect string " + jdbcUrl);
+      }
+
+    } catch (IOException | InterruptedException e) {
+      throw new ConnectionException(e, "Cannot open a hive connection with connect string " + jdbcUrl);
+    }
 
   }
 
@@ -80,6 +109,20 @@ public class HiveConnectionWrapper implements Connectable,Supplier<HiveConnectio
         throw new ConnectionException(e, "Cannot close the hive connection with connect string " + jdbcUrl);
       }
     }
+  }
+
+  private boolean isLoginError(SQLException ce) {
+    return ce.getCause().getMessage().toLowerCase().endsWith(SUFFIX);
+  }
+
+  /**
+   * True when the connection is unauthorized
+   *
+   * @return
+   */
+  @Override
+  public boolean isUnauthorized() {
+    return authFailed;
   }
 
   public Optional<HiveConnection> getConnection() {

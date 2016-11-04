@@ -95,7 +95,7 @@ var WorkflowImporter= Ember.Object.extend({
   },
   getNodeIds(nodeMap){
     var ids=[];
-    nodeMap.forEach(function(entry,key){
+    nodeMap.forEach(function(entry){
       var node=entry.node;
       ids.push(node.id);
     });
@@ -103,7 +103,7 @@ var WorkflowImporter= Ember.Object.extend({
   },
   getNodeNames(nodeMap){
     var names=[];
-    nodeMap.forEach(function(entry,key){
+    nodeMap.forEach(function(entry){
       var node=entry.node;
       names.push(node.id);
     });
@@ -113,7 +113,7 @@ var WorkflowImporter= Ember.Object.extend({
     if (this.containsKillNode(nodeMap)){
       workflow.resetKillNodes();
     }
-    nodeMap.forEach(function(entry,key){
+    nodeMap.forEach(function(entry){
       var node=entry.node;
       if (node.isKillNode()){
         workflow.get("killNodes").pushObject(node);
@@ -122,7 +122,7 @@ var WorkflowImporter= Ember.Object.extend({
   },
   containsKillNode(nodeMap){
     var containsKillNode=false;
-    nodeMap.forEach(function(entry,key){
+    nodeMap.forEach(function(entry){
       var node=entry.node;
       if (node.isKillNode()){
         containsKillNode=true;

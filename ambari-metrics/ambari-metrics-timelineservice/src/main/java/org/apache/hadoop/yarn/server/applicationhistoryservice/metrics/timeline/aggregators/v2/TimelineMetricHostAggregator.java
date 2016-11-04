@@ -64,7 +64,8 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     condition.setDoUpdate(true);
 
     condition.setStatement(String.format(GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL,
-      getQueryHint(startTime), outputTableName, endTime, tableName, startTime, endTime));
+      getQueryHint(startTime), outputTableName, endTime, tableName,
+      getDownsampledMetricSkipClause(), startTime, endTime));
 
     if (LOG.isDebugEnabled()) {
       LOG.debug("Condition: " + condition.toString());

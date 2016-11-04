@@ -296,6 +296,9 @@ class TestZeppelinMaster(RMFTestCase):
     self.assertResourceCalled('Execute', ('chown', '-R', u'zeppelin:zeppelin', '/etc/zeppelin'),
         sudo = True,
     )
+    self.assertResourceCalled('Execute', ('chown', '-R', 'zeppelin:zeppelin', '/usr/hdp/current/zeppelin-server/notebook'),
+        sudo = True,
+    )
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/zeppelin.server.kerberos.keytab zeppelin@EXAMPLE.COM; ',
         user = 'zeppelin',
     )

@@ -360,14 +360,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             controller.get('content').set('serviceConfigProperties', null);
             controller.get('content').set('componentsFromConfigs', []);
             controller.setDBProperties({
-              serviceConfigProperties: null,
               serviceConfigGroups: null,
               recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
               recommendationsConfigs: null,
               componentsFromConfigs: []
             });
-            router.transitionTo('step7');
-            console.timeEnd('step6 next');
+            controller.clearServiceConfigProperties().then(function() {
+              router.transitionTo('step7');
+              console.timeEnd('step6 next');
+            });
           }
         });
       }
@@ -418,14 +419,15 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         App.set('router.nextBtnClickInProgress', true);
         var controller = router.get('installerController');
         var wizardStep7Controller = router.get('wizardStep7Controller');
-        controller.saveServiceConfigProperties(wizardStep7Controller);
-        controller.saveServiceConfigGroups(wizardStep7Controller);
-        controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
-        controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
-        controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('content.recommendationsHostGroup'));
-        controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('content.masterComponentHosts'));
-        router.transitionTo('step8');
-        console.timeEnd('step7 next');
+        controller.saveServiceConfigProperties(wizardStep7Controller).always(function() {
+          controller.saveServiceConfigGroups(wizardStep7Controller);
+          controller.setDBProperty('recommendationsConfigs', wizardStep7Controller.get('recommendationsConfigs'));
+          controller.saveComponentsFromConfigs(controller.get('content.componentsFromConfigs'));
+          controller.setDBProperty('recommendationsHostGroup', wizardStep7Controller.get('content.recommendationsHostGroup'));
+          controller.setDBProperty('masterComponentHosts', wizardStep7Controller.get('content.masterComponentHosts'));
+          router.transitionTo('step8');
+          console.timeEnd('step7 next');
+        });
       }
     }
   }),

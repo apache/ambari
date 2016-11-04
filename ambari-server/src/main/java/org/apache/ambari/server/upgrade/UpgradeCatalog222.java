@@ -572,7 +572,7 @@ public class UpgradeCatalog222 extends AbstractUpgradeCatalog {
     return Collections.emptyMap();
   }
 
-  private void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,
+  protected void updateWidgetDefinitionsForService(String serviceName, Map<String, List<String>> widgetMap,
                                                  Map<String, String> sectionLayoutMap) throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);

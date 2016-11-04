@@ -3012,7 +3012,7 @@ POST/PUT/DELETE resource
     PUT /clusters/c1/services/HDFS/
     {
       "ServiceInfo": {
-        "state" : "STARTED”
+        "state" : "STARTED"
       }
     }
 

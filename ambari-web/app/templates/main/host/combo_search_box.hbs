@@ -16,11 +16,10 @@
 * limitations under the License.
 }}
 {{#if App.supports.hostComboSearchBox}}
-<br/>
-{{#if view.errMsg}}
-<div class="alert alert-danger">
-    {{view.errMsg}}
-</div>
-{{/if}}
-<div id="combo_search_box"></div>
+  {{#if view.errMsg}}
+    <div class="alert alert-danger">
+      {{view.errMsg}}
+    </div>
+  {{/if}}
+  <div id="combo_search_box"></div>
 {{/if}}

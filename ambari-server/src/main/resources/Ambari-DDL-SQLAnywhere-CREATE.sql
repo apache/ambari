@@ -248,6 +248,8 @@ CREATE TABLE servicedesiredstate (
   service_name VARCHAR(255) NOT NULL,
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
+  credential_store_supported SMALLINT NOT NULL DEFAULT 0,
+  credential_store_enabled SMALLINT NOT NULL DEFAULT 0,
   CONSTRAINT PK_servicedesiredstate PRIMARY KEY (cluster_id, service_name),
   CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id),
   CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id));
@@ -345,6 +347,7 @@ CREATE TABLE stage (
   cluster_host_info IMAGE,
   command_params IMAGE,
   host_params IMAGE,
+  command_execution_type VARCHAR(32) NOT NULL DEFAULT 'STAGE',
   CONSTRAINT PK_stage PRIMARY KEY (stage_id, request_id),
   CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id));
 
@@ -1115,30 +1118,10 @@ insert into adminprincipaltype (principal_type_id, principal_type_name)
   union all
   select 2, 'GROUP'
   union all
-  select 3, 'ALL.CLUSTER.ADMINISTRATOR'
-  union all
-  select 4, 'ALL.CLUSTER.OPERATOR'
-  union all
-  select 5, 'ALL.CLUSTER.USER'
-  union all
-  select 6, 'ALL.SERVICE.ADMINISTRATOR'
-  union all
-  select 7, 'ALL.SERVICE.OPERATOR'
-  union all
   select 8, 'ROLE';
 
 insert into adminprincipal (principal_id, principal_type_id)
   select 1, 1
-  union all
-  select 2, 3
-  union all
-  select 3, 4
-  union all
-  select 4, 5
-  union all
-  select 5, 6
-  union all
-  select 6, 7
   union all
   select 7, 8
   union all

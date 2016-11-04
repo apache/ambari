@@ -71,6 +71,7 @@ TRANSLATIONS = {
       },
       query: {
         execution: 'Query has been submitted.',
+        rerun: "Password updated, please execute the query again",
         save: 'The query has been saved.',
         update: 'The query has been updated.'
       }
@@ -195,6 +196,7 @@ TRANSLATIONS = {
     save: 'Save',
     downloadQuery: 'Download',
     newQuery: 'New Worksheet',
+    uploadQuery: 'Upload',
     newUdf: 'New UDF',
     history: 'History',
     ok: 'OK',
@@ -297,6 +299,7 @@ TRANSLATIONS = {
     },
     ui : {
       'uploadProgress' : "Upload Progress",
+      'uploading': "Uploading..",
       'uploadFromLocal':"Upload from Local",
       'uploadFromHdfs':"Upload from HDFS",
       'selectFileType':"Select File Type",

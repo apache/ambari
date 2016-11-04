@@ -283,5 +283,7 @@ describe('App.StackService', function () {
     });
   });
 
+  App.TestAliases.testAsComputedOr(ss, 'isDisabled', ['isMandatory', 'isInstalled']);
+
 
 });

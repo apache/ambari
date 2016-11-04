@@ -31,7 +31,7 @@ function getView() {
     serviceConfigs: [],
     categoryConfigs: [],
     categoryConfigsAll: [],
-    parentView: Em.View.create({
+    mainView: Em.View.create({
       filter: '',
       columns: []
     })
@@ -70,20 +70,26 @@ describe('App.NotificationsConfigsView', function () {
       var configs = [
         Em.Object.create({
           name: "create_notification",
-          value: 'yes'
+          value: 'yes',
+          filename: "alert_notification"
         }),
         Em.Object.create({
           name: 'mail.smtp.starttls.enable',
-          value: false
+          value: false,
+          filename: "alert_notification"
         }),
         Em.Object.create({
           name: 'smtp_use_auth',
-          value: 'true'
+          value: 'true',
+          filename: "alert_notification"
         })
       ];
 
       beforeEach(function () {
-        view.set('categoryConfigsAll', configs);
+        view.set('serviceConfigs', configs);
+        view.reopen({
+          categoryConfigsAll: Em.computed.filterBy('serviceConfigs', 'filename', 'alert_notification')
+        });
         view.didInsertElement();
       });
 

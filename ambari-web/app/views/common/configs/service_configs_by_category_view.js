@@ -48,13 +48,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   serviceConfigs: null,
 
   /**
-   * Configs for current category filtered by <code>isVisible</code>
-   * and sorted by <code>displayType</code> and <code>index</code>
-   * @type {App.ServiceConfigProperty[]}
-   */
-  categoryConfigs: [],
-
-  /**
    * This is array of all the properties which apply
    * to this category, irrespective of visibility. This
    * is helpful in Oozie/Hive database configuration, where
@@ -64,24 +57,44 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   categoryConfigsAll: [],
 
+  /**
+   * Configs for current category filtered by <code>isVisible</code>
+   * and sorted by <code>displayType</code> and <code>index</code>
+   * @type {App.ServiceConfigProperty[]}
+   */
+  categoryConfigs: [],
+
+  /**
+   * Link to main configs view
+   * @type {Ember.View}
+   */
+  mainView: function () {
+    //todo: Get rid of this logic. Get data from controller instead.
+    return this.get('controller.name') === 'mainServiceInfoConfigsController' ? this.get('parentView.parentView') : this.get('parentView');
+  }.property('controller.name'),
+
   didInsertElement: function () {
     var self = this;
-    this.setCategoryConfigs();
-    this.setVisibleCategoryConfigs();
-    var isCollapsed = this.calcIsCollapsed();
-    this.set('category.isCollapsed', isCollapsed);
-    if (isCollapsed) {
-      this.$('.accordion-body').hide();
-    }
-    else {
-      this.$('.accordion-body').show();
-    }
-    $('#serviceConfig').tooltip({
-      selector: '[data-toggle=tooltip]',
-      placement: 'top'
-    });
-    this.filteredCategoryConfigs();
+    // If `this.categoryConfigsAll` is a computed property then don't set it.
+    // some extended class like `App.NotificationsConfigsView` overrides `categoryConfigsAll` as computed property
     Em.run.next(function () {
+      if ($.isArray(self.categoryConfigsAll)) {
+        self.setCategoryConfigsAll();
+      }
+      self.setVisibleCategoryConfigs();
+      var isCollapsed = self.calcIsCollapsed();
+      self.set('category.isCollapsed', isCollapsed);
+      if (isCollapsed) {
+        self.$('.accordion-body').hide();
+      }
+      else {
+        self.$('.accordion-body').show();
+      }
+      $('#serviceConfig').tooltip({
+        selector: '[data-toggle=tooltip]',
+        placement: 'top'
+      });
+      self.filteredCategoryConfigs();
       self.updateReadOnlyFlags();
     });
   },
@@ -94,7 +107,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     Em.run.once(this, 'addConfigToCategoryConfigs');
   }.observes('categoryConfigsAll.@each.isVisible'),
 
-  setCategoryConfigs: function () {
+  setCategoryConfigsAll: function () {
+    // reset `categoryConfigsAll` to empty array
+    this.set('categoryConfigsAll', []);
     var categoryConfigsAll = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
     if (categoryConfigsAll && categoryConfigsAll.length) {
       this.set('categoryConfigsAll',categoryConfigsAll);
@@ -165,9 +180,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     var hasFilteredAdvancedConfigs = this.get('categoryConfigs').filter(function (config) {
         return config.get('isHiddenByFilter') === false && Em.isNone(config.get('widget'));
       }, this).length > 0;
-    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('parentView.columns').someProperty('selected')) ||
+    return (isCustomPropertiesCategory && this.get('controller.filter') === '' && !this.get('mainView.columns').someProperty('selected')) ||
       hasFilteredAdvancedConfigs;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'parentView.columns.@each.selected'),
+  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget', 'controller.filter', 'mainView.columns.@each.selected'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category
@@ -311,7 +326,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   collapseCategory: function () {
     if (this.get('state') === 'destroyed') return;
     $('.popover').remove();
-    var filter = this.get('parentView.filter').toLowerCase();
+    var filter = this.get('mainView.filter').toLowerCase();
     var filteredResult = this.get('categoryConfigs');
     var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
 
@@ -473,6 +488,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
       name: '',
       value: '',
+      propertyType: [],
+      content: ['PASSWORD', 'USER', 'GROUP', 'TEXT', 'ADDITIONAL_USER_PROPERTY', 'NOT_MANAGED_HDFS_PATH', 'VALUE_FROM_PROPERTY_FILE'],
       isKeyError: false,
       showFilterLink: false,
       errorMessage: '',
@@ -552,6 +569,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           if (!serviceConfigObj.isKeyError) {
             propertyObj.name = serviceConfigObj.get('name');
             propertyObj.value = serviceConfigObj.get('value');
+            propertyObj.propertyType = serviceConfigObj.get('propertyType');
             self.createProperty(propertyObj);
             this.hide();
           }
@@ -631,7 +649,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var controller = (App.router.get('currentState.name') == 'configs')
               ? App.router.get('mainServiceInfoConfigsController')
               : App.router.get('wizardStep7Controller');
-          this.get('parentView').onClose();
+          this.get('mainView').onClose();
           controller.set('filter', event.view.get('serviceConfigObj.name'));
         }
       })

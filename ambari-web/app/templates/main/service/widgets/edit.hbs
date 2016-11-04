@@ -17,39 +17,29 @@
 }}
 
 <div class="wizard" id="edit-widget-wizard">
-  <div class="container">
-    <div class="container">
-      <div class="row">
-        <div class="col-md-3">
-          <!--Sidebar content-->
-          <div class="well">
-            <ul class="nav nav-pills nav-stacked">
-              <li class="nav-header"> {{t widget.create.wizard.header}}</li>
-              <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t widget.create.wizard.step2.header}}</a></li>
-              <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t widget.create.wizard.step3.header}}</a></li>
-            </ul>
+  <div class="wizard-body row">
+    <div class="wizard-nav col-md-3">
+      <ul class="nav nav-pills nav-stacked">
+        <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled view.isStep1Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}><i class="step-marker"><span class="step-index">1</span></i><p class="step-name">{{t widget.create.wizard.step2.header}}</p></a></li>
+        <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled view.isStep2Completed:completed"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}><i class="step-marker"><span class="step-index">2</span></i><p class="step-name">{{t widget.create.wizard.step3.header}}</p></a></li>
+      </ul>
+      {{#if view.isStep1}}
+        <div class="preview" id="widget-preview">
+          <h5>{{t common.preview}}:</h5>
+          <div class="widget">
+            {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep2Controller"}}
           </div>
-          {{#if view.isStep1}}
-            <div class="preview" id="widget-preview">
-              <h5>{{t common.preview}}:</h5>
-              <div class="widget">
-                {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep2Controller"}}
-              </div>
-            </div>
-          {{/if}}
-          {{#if view.isStep2}}
-            <div class="preview" id="widget-preview">
-              <h5>{{t common.preview}}:</h5>
-              <div class="widget">
-                {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep3Controller"}}
-              </div>
-            </div>
-          {{/if}}
         </div>
-        <div class="wizard-content well col-md-9">
-          {{outlet}}
+      {{/if}}
+      {{#if view.isStep2}}
+        <div class="preview" id="widget-preview">
+          <h5>{{t common.preview}}:</h5>
+          <div class="widget">
+            {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep3Controller"}}
+          </div>
         </div>
-      </div>
+      {{/if}}
     </div>
+    {{outlet}}
   </div>
 </div>

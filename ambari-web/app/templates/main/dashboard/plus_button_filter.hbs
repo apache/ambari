@@ -23,9 +23,7 @@
         {{#each widget in view.hiddenWidgets}}
           <li>
             <div class="checkbox">
-              <label>
-                {{view view.widgetCheckbox checkedBinding="widget.checked"}} {{unbound widget.displayName}}
-              </label>
+              {{view view.widgetCheckbox checkedBinding="widget.checked" labelBinding="widget.displayName"}}
             </div>
           </li>
         {{/each}}

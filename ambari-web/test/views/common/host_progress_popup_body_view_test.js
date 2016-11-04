@@ -288,7 +288,7 @@ describe('App.HostProgressPopupBodyView', function () {
     });
 
     it("controller.hosts should be empty", function() {
-      view.set('controller.hosts', [{}]);
+      view.set('controller.hosts', [Em.Object.create({})]);
       view.set('parentView.isOpen', true);
       expect(view.get('controller.hosts')).to.be.empty;
     });

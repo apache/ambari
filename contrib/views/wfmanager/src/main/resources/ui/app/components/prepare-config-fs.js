@@ -15,9 +15,8 @@
 *    limitations under the License.
 */
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 
-export default Ember.Component.extend(EmberValidations, {
+export default Ember.Component.extend({
   mkdirORdeleteORtouchz: true,
   mkdir: 1,
   delete: 0,
@@ -96,8 +95,8 @@ export default Ember.Component.extend(EmberValidations, {
       var gPerm = this.formPermissions(this.get("gread"), this.get("gwrite"), this.get("gexecute"), "g");
       var rPerm = this.formPermissions(this.get("rread"), this.get("rwrite"), this.get("rexecute"), "r");
       var permissionsObj = {};
-      permissionsObj = $.extend(true, oPerm, gPerm);
-      permissionsObj = $.extend(true, permissionsObj, rPerm);
+      permissionsObj = Ember.$.extend(true, oPerm, gPerm);
+      permissionsObj = Ember.$.extend(true, permissionsObj, rPerm);
       var perm = oPerm.operm + ""+ gPerm.gperm + ""+ rPerm.rperm;
       this.get('fsOps').pushObject({
         settings: {

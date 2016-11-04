@@ -47,11 +47,14 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -389,6 +392,45 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.fail("Expected an exception since there are no hosts which can run the Flume service check");
   }
 
+  /**
+   * Perform a Service Check for ZOOKEEPER/ZOOKEEPER_CLIENT without specifying a host to run in the request.
+   * This should cause Ambari to randomly pick one of the ZOOKEEPER_CLIENT hosts.
+   * The current logic first excludes hosts in maintenance mode or that are not healthy (i.e., not heartbeating).
+   * From that candidate list, if any hosts have 0 IN-PROGRESS tasks, it randomly picks from that set.
+   * Otherwise, it picks from all candidate hosts.
+   * @throws Exception
+   */
+  @Test
+  public void testServiceCheckPicksRandomHost() throws Exception {
+    AmbariCustomCommandExecutionHelper ambariCustomCommandExecutionHelper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
+
+    Cluster c1 = clusters.getCluster("c1");
+    Service s = c1.getService("ZOOKEEPER");
+    ServiceComponent sc = s.getServiceComponent("ZOOKEEPER_CLIENT");
+    Assert.assertTrue(sc.getServiceComponentHosts().keySet().size() > 1);
+
+    // There are multiple hosts with ZK Client.
+    List<RequestResourceFilter> requestResourceFilter = new ArrayList<RequestResourceFilter>() {{
+      add(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT", null));
+    }};
+    ActionExecutionContext actionExecutionContext = new ActionExecutionContext("c1", "SERVICE_CHECK", requestResourceFilter);
+    Stage stage = EasyMock.niceMock(Stage.class);
+    ExecutionCommandWrapper execCmdWrapper = EasyMock.niceMock(ExecutionCommandWrapper.class);
+    ExecutionCommand execCmd = EasyMock.niceMock(ExecutionCommand.class);
+
+    EasyMock.expect(stage.getClusterName()).andReturn("c1");
+    //
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6401"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(stage.getExecutionCommandWrapper(EasyMock.eq("c1-c6402"), EasyMock.anyString())).andReturn(execCmdWrapper);
+    EasyMock.expect(execCmdWrapper.getExecutionCommand()).andReturn(execCmd);
+    EasyMock.expect(execCmd.getForceRefreshConfigTagsBeforeExecution()).andReturn(true);
+
+    HashSet<String> localComponents = new HashSet<>();
+    EasyMock.expect(execCmd.getLocalComponents()).andReturn(localComponents).anyTimes();
+    EasyMock.replay(stage, execCmdWrapper, execCmd);
+
+    ambariCustomCommandExecutionHelper.addExecutionCommandsToStage(actionExecutionContext, stage, new HashMap<String, String>());
+  }
 
   @Test
   public void testIsTopologyRefreshRequired() throws Exception {
@@ -460,11 +502,11 @@ public class AmbariCustomCommandExecutionHelperTest {
     createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6401, null);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_SERVER", hostC6401, State.INIT);
     createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6401, State.INIT);
+    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6401, State.INIT);
 
-    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostPrefix + "-c6402", null);
-    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostPrefix + "-c6402", State.INIT);
-    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostPrefix + "-c6402", State.INIT);
-
+    createServiceComponentHost(clusterName, "YARN", "NODEMANAGER", hostC6402, null);
+    createServiceComponentHost(clusterName, "GANGLIA", "GANGLIA_MONITOR", hostC6402, State.INIT);
+    createServiceComponentHost(clusterName, "ZOOKEEPER", "ZOOKEEPER_CLIENT", hostC6402, State.INIT);
   }
   private void addHost(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);

@@ -18,7 +18,6 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
-var date = require('utils/date/date');
 var fileUtils = require('utils/file_utils');
 
 /**
@@ -92,6 +91,9 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    */
   clipBoardContent: null,
 
+  /**
+   * @type {boolean}
+   */
   isClipBoardActive: false,
 
   /**
@@ -136,6 +138,17 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
     return this.get('tasks').findProperty('id', this.get('openedTaskId'));
   }.property('tasks', 'tasks.@each.stderr', 'tasks.@each.stdout', 'openedTaskId'),
+
+  /**
+   * stderr and stdout joined together for clipboard
+   *
+   * @type {string}
+   */
+  formattedLogsForOpenedTask: function () {
+    var stderr = this.get('openedTask.stderr');
+    var stdout = this.get('openedTask.stdout');
+    return 'stderr: \n' + stderr + '\n stdout:\n' + stdout;
+  }.property('openedTask.stderr', 'openedTask.stdout'),
 
   /**
    * @type {object}
@@ -224,9 +237,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   /**
    * @type {wrappedHost}
    */
-  currentHost: function () {
-    return this.get('hosts') && this.get('hosts').findProperty('name', this.get('controller.currentHostName'));
-  }.property('controller.currentHostName'),
+  currentHost: Em.computed.findByKey('hosts', 'name', 'controller.currentHostName'),
 
   /**
    * Tasks for current shown host (<code>currentHost</code>)
@@ -246,7 +257,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @type {string}
    */
   requestScheduleAbortLabel: function () {
-    return 'ROLLING-RESTART' == this.get('sourceRequestScheduleCommand') ?
+    return 'ROLLING-RESTART' === this.get('sourceRequestScheduleCommand') ?
       Em.I18n.t("hostPopup.bgop.abort.rollingRestart"):
       Em.I18n.t("common.abort");
   }.property('sourceRequestScheduleCommand'),
@@ -257,7 +268,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   },
 
   willDestroyElement: function () {
-    if (this.get('controller.dataSourceController.name') == 'highAvailabilityProgressPopupController') {
+    if (this.get('controller.dataSourceController.name') === 'highAvailabilityProgressPopupController') {
       this.set('controller.dataSourceController.isTaskPolling', false);
     }
     this.unsubscribeResize();
@@ -338,9 +349,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
   },
 
-  currentLevelName: function() {
-    return this.get('controller.dataSourceController.levelInfo.name');
-  }.property('controller.dataSourceController.levelInfo.name'),
+  currentLevelName: Em.computed.alias('controller.dataSourceController.levelInfo.name'),
 
   /**
    * Preset values on init
@@ -472,14 +481,14 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   setVisibility: function (filter, obj) {
     var isEmptyList = true;
     var filterMap = this.get('filterMap');
-    if (filter == "all") {
+    if (filter === "all") {
       obj.setEach("isVisible", true);
       isEmptyList = !obj.length;
     }
     else {
       obj.forEach(function (item) {
         item.set('isVisible', filterMap[filter].contains(item.status));
-        isEmptyList = (isEmptyList) ? !item.get('isVisible') : false;
+        isEmptyList = isEmptyList ? !item.get('isVisible') : false;
       }, this)
     }
     return isEmptyList;
@@ -509,7 +518,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
 
     }
     this.set('isPaginate', !!isPaginate);
-  }.observes('tasks.@each.status', 'hosts.@each.status', 'parentView.isTaskListHidden', 'parentView.isHostListHidden', 'services.length', 'services.@each.status'),
+  }.observes('tasks.@each.status', 'hosts.@each.status', 'parentView.isTaskListHidden', 'parentView.isHostListHidden', 'services.@each.status'),
 
   /**
    * control data uploading, depending on which display level is showed
@@ -655,7 +664,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   requestMoreOperations: function () {
     var BGOController = App.router.get('backgroundOperationsController');
     var count = BGOController.get('operationsCount');
-    BGOController.set('operationsCount', (count + 10));
+    BGOController.set('operationsCount', count + 10);
     BGOController.requestMostRecent();
   },
 
@@ -723,7 +732,6 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     if (this.get('parentView') && typeof this.get('parentView').onClose === 'function') this.get('parentView').onClose();
   },
 
-  /**
   /**
   * Determines if opened task related to service or component.
   *
@@ -907,7 +915,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
         activeHostLog = this.get('hostComponentLogs').findProperty('isActive', true),
         activeHostLogSelector = activeHostLog ? activeHostLog.get('tabClassNameSelector') + '.active' : false;
 
-    if ($(".task-detail-log-clipboard").length) {
+    if (this.get('isClipBoardActive')) {
       this.destroyClipBoard();
     }
     if (activeHostLog && $(activeHostLogSelector).length) {
@@ -915,7 +923,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     }
     var newWindow = window.open();
     var newDocument = newWindow.document;
-    newDocument.write($(target).html());
+    newDocument.write('<pre>' + this.get('textAreaValue') + '</pre>');
     newDocument.close();
   },
 
@@ -928,7 +936,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   toggleTaskLog: function (event) {
     var taskInfo = event.context;
     this.set("parentView.isLogWrapHidden", false);
-    if ($(".task-detail-log-clipboard").length) {
+    if (this.get('isClipBoardActive')) {
       this.destroyClipBoard();
     }
     this.set("parentView.isHostListHidden", true);
@@ -945,8 +953,15 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method textTrigger
    */
   textTrigger: function () {
-    $(".task-detail-log-clipboard").length ? this.destroyClipBoard() : this.createClipBoard();
+    return this.get('isClipBoardActive') ? this.destroyClipBoard() : this.createClipBoard();
   },
+
+  /**
+   * @type {string}
+   */
+  textAreaValue: function () {
+    return this.get('isLogComponentActive') ? this.get('clipBoardContent') : this.get('formattedLogsForOpenedTask');
+  }.property('clipBoardContent', 'formattedLogsForOpenedTask', 'isLogComponentActive'),
 
   /**
    * Create Clip Board
@@ -954,18 +969,6 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method createClipBoard
    */
   createClipBoard: function () {
-    var isLogComponentActive = this.get('hostComponentLogs').someProperty('isActive', true),
-        logElement = isLogComponentActive ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext"),
-        logElementRect = logElement[0].getBoundingClientRect(),
-        clipBoardContent = this.get('clipBoardContent');
-    $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
-    $(".task-detail-log-clipboard")
-      .html(isLogComponentActive ? this.get('clipBoardContent') : "stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
-      .css('display', 'block')
-      .width(logElementRect.width)
-      .height(isLogComponentActive ? logElement[0].scrollHeight : logElementRect.height)
-      .select();
-
     this.set('isClipBoardActive', true);
   },
 
@@ -975,13 +978,14 @@ App.HostProgressPopupBodyView = App.TableView.extend({
    * @method destroyClipBoard
    */
   destroyClipBoard: function () {
-    var logElement = this.get('hostComponentLogs').someProperty('isActive', true) ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext");
-
-    $(".task-detail-log-clipboard").remove();
-    logElement.css("display", "block");
+    var logElement = this.get('isLogComponentActive') ? $('.log-component-tab.active .log-tail-content'): $(".task-detail-log-maintext");
+    logElement.css('display', 'block');
     this.set('isClipBoardActive', false);
   },
 
+  /**
+   * @type {boolean}
+   */
   isLogSearchInstalled: function() {
     return App.Service.find().someProperty('serviceName', 'LOGSEARCH');
   }.property(),
@@ -995,9 +999,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
     var relationType,
         componentName,
         hostName,
-        logFile,
-        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}',
-        self = this;
+        linkTailTpl = '?host_name={0}&file_name={1}&component_name={2}';
 
     if (this.get('openedTask.id')) {
       relationType = this._determineRoleRelation(this.get('openedTask'));
@@ -1008,8 +1010,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
           .filterProperty('hostComponent.host.hostName', hostName)
           .filterProperty('hostComponent.componentName', componentName)
           .reduce(function(acc, item, index) {
-            var serviceName = item.get('hostComponent.service.serviceName'),
-                logComponentName = item.get('name'),
+            var logComponentName = item.get('name'),
                 componentHostName = item.get('hostComponent.host.hostName');
             acc.pushObjects(item.get('logFileNames').map(function(logFileName, idx) {
               var tabClassName = logComponentName + '_' + index + '_' + idx;
@@ -1032,13 +1033,16 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   }.property('openedTaskId', 'isLevelLoaded'),
 
   /**
+   * @type {boolean}
+   */
+  isLogComponentActive: Em.computed.someBy('hostComponentLogs', 'isActive', true),
+
+  /**
    * Determines if there are component logs for selected component within 'TASK_DETAILS' level.
    *
    * @property {boolean}
    */
-  hostComponentLogsExists: function() {
-    return this.get('isLogSearchInstalled') && !!this.get('hostComponentLogs.length') && this.get('parentView.isOpen');
-  }.property('hostComponentLogs.length', 'isLogSearchInstalled', 'parentView.isOpen'),
+  hostComponentLogsExists: Em.computed.and('isLogSearchInstalled', 'hostComponentLogs.length', 'parentView.isOpen'),
 
   /**
    * Minimum required content to embed in App.LogTailView. This property observes current active host component log.

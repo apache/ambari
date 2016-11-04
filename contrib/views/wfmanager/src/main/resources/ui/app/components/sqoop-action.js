@@ -16,9 +16,8 @@
 */
 
 import Ember from 'ember';
-import EmberValidations from 'ember-validations';
 
-export default Ember.Component.extend(EmberValidations,{
+export default Ember.Component.extend({
   sqoopSendType : Ember.observer('isArg',function(){
     if(this.get('isArg')){
       this.set("actionModel.command", undefined);
@@ -61,8 +60,6 @@ export default Ember.Component.extend(EmberValidations,{
       this.$('#collapseOne').collapse('show');
     }
   }.on('didUpdate'),
-  validations : {
-  },
   actions : {
     openFileBrowser(model, context){
       if(undefined === context){

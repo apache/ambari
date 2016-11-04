@@ -240,7 +240,7 @@
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
+      <execute-stage title="Update Target Stack">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -285,6 +285,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_remove_empty_storm_topology_submission_notifier_plugin_class"/>
       </execute-stage>
 
+      <!--STORM-->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="increase_storm_zookeeper_timeouts"/>
+      </execute-stage>
     </group>
 
     <!--
@@ -657,7 +661,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage title="Save Cluster State" service="" component="">
+      <execute-stage title="Save Cluster State">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
       </execute-stage>

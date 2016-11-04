@@ -50,6 +50,9 @@ import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.jpa.EntityManagerCacheInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.JPAEventPublisher;
+import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
+import org.apache.ambari.server.metadata.RoleCommandPair;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
@@ -66,6 +69,7 @@ import org.apache.ambari.server.state.ServiceComponentHostEvent;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpFailedEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +98,10 @@ class ActionScheduler implements Runnable {
   private static Logger LOG = LoggerFactory.getLogger(ActionScheduler.class);
 
   public static final String FAILED_TASK_ABORT_REASONING =
-          "Server considered task failed and automatically aborted it";
+    "Server considered task failed and automatically aborted it";
+
+  @Inject
+  private RoleCommandOrderProvider roleCommandOrderProvider;
 
   @Inject
   private UnitOfWork unitOfWork;
@@ -154,7 +161,7 @@ class ActionScheduler implements Runnable {
    * but are not cancelled yet
    */
   private final Set<Long> requestsToBeCancelled =
-          Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
+    Collections.newSetFromMap(new ConcurrentHashMap<Long, Boolean>());
 
   /**
    * Maps request IDs to reasoning for cancelling request.
@@ -162,7 +169,7 @@ class ActionScheduler implements Runnable {
    * requestsToBeCancelled object
    */
   private final Map<Long, String> requestCancelReasons =
-          new HashMap<Long, String>();
+    new HashMap<Long, String>();
 
   /**
    * true if scheduler should run ASAP.
@@ -185,8 +192,8 @@ class ActionScheduler implements Runnable {
    */
   @Inject
   public ActionScheduler(@Named("schedulerSleeptime") long sleepTime,
-      @Named("actionTimeout") long actionTimeout, ActionDBAccessor db,
-      JPAEventPublisher jpaPublisher) {
+                         @Named("actionTimeout") long actionTimeout, ActionDBAccessor db,
+                         JPAEventPublisher jpaPublisher) {
 
     this.sleepTime = sleepTime;
     this.actionTimeout = actionTimeout;
@@ -217,10 +224,10 @@ class ActionScheduler implements Runnable {
    * @param hostRoleCommandFactory
    */
   protected ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec, ActionDBAccessor db,
-      ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
-      UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
-      Configuration configuration, Provider<EntityManager> entityManagerProvider,
-      HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
+                            ActionQueue actionQueue, Clusters fsmObject, int maxAttempts, HostsMap hostsMap,
+                            UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
+                            Configuration configuration, Provider<EntityManager> entityManagerProvider,
+                            HostRoleCommandDAO hostRoleCommandDAO, HostRoleCommandFactory hostRoleCommandFactory) {
 
     sleepTime = sleepTimeMilliSec;
     actionTimeout = actionTimeoutMilliSec;
@@ -244,10 +251,10 @@ class ActionScheduler implements Runnable {
   /**
    * Initializes the caches.
    */
-  private void initializeCaches(){
+  private void initializeCaches() {
     clusterHostInfoCache = CacheBuilder.newBuilder().
-        expireAfterAccess(5, TimeUnit.MINUTES).
-        build();
+      expireAfterAccess(5, TimeUnit.MINUTES).
+      build();
 
     commandParamsStageCache = CacheBuilder.newBuilder().
       expireAfterAccess(5, TimeUnit.MINUTES).
@@ -294,7 +301,7 @@ class ActionScheduler implements Runnable {
       try {
         synchronized (wakeupSyncObject) {
           if (!activeAwakeRequest) {
-              wakeupSyncObject.wait(sleepTime);
+            wakeupSyncObject.wait(sleepTime);
           }
           activeAwakeRequest = false;
         }
@@ -367,14 +374,14 @@ class ActionScheduler implements Runnable {
       // a list does not change between invocations
       for (Stage stage : stages) {
         // Check if we can process this stage in parallel with another stages
-        i_stage ++;
+        i_stage++;
         long requestId = stage.getRequestId();
         LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + stage.getStageId() + ")");
 
         RequestEntity request = db.getRequestEntity(requestId);
 
         if (request.isExclusive()) {
-          if (runningRequestIds.size() > 0 ) {
+          if (runningRequestIds.size() > 0) {
             // As a result, we will wait until any previous stages are finished
             LOG.debug("Stage requires exclusive execution, but other requests are already executing. Stopping for now");
             break;
@@ -395,7 +402,8 @@ class ActionScheduler implements Runnable {
         }
 
         // Commands that will be scheduled in current scheduler wakeup
-        List<ExecutionCommand> commandsToSchedule = new ArrayList<ExecutionCommand>();
+        List<ExecutionCommand> commandsToSchedule = new ArrayList<>();
+
         Map<String, RoleStats> roleStats = processInProgressStage(stage, commandsToSchedule);
 
         // Check if stage is failed
@@ -500,7 +508,7 @@ class ActionScheduler implements Runnable {
         }
         LOG.debug("==> Finished.");
 
-        if (! configuration.getParallelStageExecution()) { // If disabled
+        if (!configuration.getParallelStageExecution()) { // If disabled
           return;
         }
 
@@ -519,11 +527,11 @@ class ActionScheduler implements Runnable {
     }
   }
 
+
   /**
    * Returns the list of hosts that have a task assigned
    *
    * @param stages
-   *
    * @return
    */
   private HashSet<String> getListOfHostsWithPendingTask(List<Stage> stages) {
@@ -653,7 +661,7 @@ class ActionScheduler implements Runnable {
         return false;
       }
 
-      Map<Role, Integer> hostCountsForRoles       = new HashMap<Role, Integer>();
+      Map<Role, Integer> hostCountsForRoles = new HashMap<Role, Integer>();
       Map<Role, Integer> failedHostCountsForRoles = new HashMap<Role, Integer>();
 
       for (String host : prevStage.getHostRoleCommands().keySet()) {
@@ -687,16 +695,15 @@ class ActionScheduler implements Runnable {
   /**
    * This method processes command timeouts and retry attempts, and
    * adds new (pending) execution commands to commandsToSchedule list.
-   *
    * @return the stats for the roles in the stage which are used to determine
    * whether stage has succeeded or failed
    */
-  protected Map<String, RoleStats> processInProgressStage(Stage s,
-      List<ExecutionCommand> commandsToSchedule) throws AmbariException {
+  protected Map<String, RoleStats> processInProgressStage(Stage s, List<ExecutionCommand> commandsToSchedule) throws AmbariException {
     LOG.debug("==> Collecting commands to schedule...");
     // Map to track role status
     Map<String, RoleStats> roleStats = initRoleStats(s);
     long now = System.currentTimeMillis();
+    Set<RoleCommandPair> rolesCommandsInProgress = s.getHostRolesInProgress();
 
     Cluster cluster = null;
     if (null != s.getClusterName()) {
@@ -716,14 +723,14 @@ class ActionScheduler implements Runnable {
       int i_my = 0;
       LOG.trace("===>host=" + host);
 
-      for(ExecutionCommandWrapper wrapper : commandWrappers) {
+      for (ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
         HostRoleStatus status = s.getHostRoleStatus(host, roleStr);
-        i_my ++;
+        i_my++;
         if (LOG.isTraceEnabled()) {
           LOG.trace("Host task " + i_my + ") id = " + c.getTaskId() + " status = " + status.toString() +
-            " (role=" + roleStr + "), roleCommand = "+ c.getRoleCommand());
+            " (role=" + roleStr + "), roleCommand = " + c.getRoleCommand());
         }
         boolean hostDeleted = false;
         if (null != cluster) {
@@ -741,8 +748,8 @@ class ActionScheduler implements Runnable {
             }
           } catch (ServiceComponentNotFoundException scnex) {
             String msg = String.format(
-                    "%s is not not a service component, assuming its an action",
-                    roleStr);
+              "%s is not not a service component, assuming its an action",
+              roleStr);
             LOG.debug(msg);
           }
 
@@ -750,7 +757,7 @@ class ActionScheduler implements Runnable {
           if (hostDeleted) {
             String message = String.format(
               "Host component information has not been found.  Details:" +
-              "cluster=%s; host=%s; service=%s; component=%s; ",
+                "cluster=%s; host=%s; service=%s; component=%s; ",
               c.getClusterName(), host,
               svcComp == null ? "null" : svcComp.getServiceName(),
               svcComp == null ? "null" : svcComp.getName());
@@ -768,7 +775,7 @@ class ActionScheduler implements Runnable {
             commandTimeout += Long.parseLong(timeoutStr) * 1000; // Converting to milliseconds
           } else {
             LOG.error("Execution command has no timeout parameter" +
-                    c.toString());
+              c.toString());
           }
         }
 
@@ -777,10 +784,10 @@ class ActionScheduler implements Runnable {
 
           String message = String.format(
             "Host not found when trying to schedule an execution command. " +
-            "The most probable reason for that is that host or host component " +
-            "has been deleted recently. The command has been aborted and dequeued." +
-            "Execution command details: " +
-            "cmdId: %s; taskId: %s; roleCommand: %s",
+              "The most probable reason for that is that host or host component " +
+              "has been deleted recently. The command has been aborted and dequeued." +
+              "Execution command details: " +
+              "cmdId: %s; taskId: %s; roleCommand: %s",
             c.getCommandId(), c.getTaskId(), c.getRoleCommand());
           LOG.warn("Host {} has been detected as non-available. {}", host, message);
           // Abort the command itself
@@ -794,7 +801,7 @@ class ActionScheduler implements Runnable {
           // Process command timeouts
           if (s.getAttemptCount(host, roleStr) >= maxAttempts) {
             LOG.warn("Host: {}, role: {}, actionId: {} expired and will be failed", host, roleStr,
-                s.getActionId());
+              s.getActionId());
 
             // determine if the task should be auto skipped
             boolean isSkipSupported = s.isAutoSkipOnFailureSupported();
@@ -826,23 +833,57 @@ class ActionScheduler implements Runnable {
             cancelCommandOnTimeout(Collections.singletonList(s.getHostRoleCommand(host, roleStr)));
 
             LOG.info("Host: {}, role: {}, actionId: {} timed out and will be rescheduled", host,
-                roleStr, s.getActionId());
+              roleStr, s.getActionId());
 
             // reschedule command
             commandsToSchedule.add(c);
             LOG.trace("===> commandsToSchedule(reschedule)=" + commandsToSchedule.size());
           }
         } else if (status.equals(HostRoleStatus.PENDING)) {
-          //Need to schedule first time
-          commandsToSchedule.add(c);
-          LOG.trace("===>commandsToSchedule(first_time)=" + commandsToSchedule.size());
+          // in case of DEPENDENCY_ORDERED stage command can be scheduled only if all of it's dependencies are
+          // already finished
+          if (CommandExecutionType.STAGE == s.getCommandExecutionType() ||
+                (CommandExecutionType.DEPENDENCY_ORDERED == s.getCommandExecutionType() &&
+                  CommandExecutionType.DEPENDENCY_ORDERED == configuration.getStageExecutionType() &&
+                  areCommandDependenciesFinished(c, s, rolesCommandsInProgress))) {
+
+            //Need to schedule first time
+            commandsToSchedule.add(c);
+            LOG.trace("===>commandsToSchedule(first_time)=" + commandsToSchedule.size());
+          }
         }
 
         updateRoleStats(status, roleStats.get(roleStr));
+
       }
     }
     LOG.debug("Collected {} commands to schedule in this wakeup.", commandsToSchedule.size());
     return roleStats;
+  }
+
+  /**
+   * Returns true if all command dependencies are already finished (not IN_PROGRESS states).
+   * @param command
+   * @param stage
+   * @param rolesCommandsInProgress
+   * @return
+   */
+  private boolean areCommandDependenciesFinished(ExecutionCommand command, Stage stage, Set<RoleCommandPair>
+    rolesCommandsInProgress) {
+    boolean areCommandDependenciesFinished = true;
+    RoleCommandOrder rco = roleCommandOrderProvider.getRoleCommandOrder(stage.getClusterId());
+    if (rco != null) {
+      Set<RoleCommandPair> roleCommandDependencies = rco.getDependencies().get(new
+        RoleCommandPair(Role.valueOf(command.getRole()), command.getRoleCommand()));
+
+      // check if there are any dependencies IN_PROGRESS
+      if (roleCommandDependencies != null && CollectionUtils.containsAny(rolesCommandsInProgress, roleCommandDependencies)) {
+        areCommandDependenciesFinished = false;
+      }
+    }
+
+    return areCommandDependenciesFinished;
+
   }
 
   /**

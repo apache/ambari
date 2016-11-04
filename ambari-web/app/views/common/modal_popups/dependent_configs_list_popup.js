@@ -36,9 +36,10 @@ App.showDependentConfigsPopup = function (recommendations, primary, secondary) {
     secondaryClass: 'cancel-button',
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/dependent_configs_list'),
-
-      toggleAll: Em.Checkbox.extend({
+      toggleAllId: '',
+      toggleAll: App.CheckboxView.extend({
         didInsertElement: function () {
+          this.set('parentView.toggleAllId', this.get('elementId'));
           this.updateCheckbox();
         },
         click: function () {

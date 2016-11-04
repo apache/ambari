@@ -75,8 +75,8 @@ describe('App.InstallerController', function () {
       Em.Object.create({
         isSelected: true,
         reload: false,
-        id: 'nn-cc',
-        stackNameVersion: 'nn-cc',
+        id: 'nn-2.5',
+        stackNameVersion: 'nn-2.5',
         repositories: Em.A([
           Em.Object.create({
             isSelected: true,
@@ -89,6 +89,7 @@ describe('App.InstallerController', function () {
             isEmpty: false,
             repositories: Em.A([
               Em.Object.create({
+                baseUrl: 'url/2.5',
                 isEmpty: false,
                 errorTitle: '1',
                 errorContent: '1',
@@ -100,7 +101,8 @@ describe('App.InstallerController', function () {
       })
     ]);
     var wizard = Em.Object.create({
-      skipValidationChecked: true
+      skipValidationChecked: true,
+      inappropriateUrlForStackVersion: App.WizardStep1Controller.create().inappropriateUrlForStackVersion
     });
     it ('Should reload installed stacks', function() {
 
@@ -114,8 +116,8 @@ describe('App.InstallerController', function () {
         {
           "isSelected": true,
           "reload": true,
-          "id": "nn-cc",
-          "stackNameVersion": 'nn-cc',
+          "id": "nn-2.5",
+          "stackNameVersion": 'nn-2.5',
           "repositories": [
             {
               "isSelected": true,
@@ -128,6 +130,7 @@ describe('App.InstallerController', function () {
               "isEmpty": false,
               "repositories": [
                 {
+                  "baseUrl": "url/2.5",
                   "isEmpty": false,
                   "errorTitle": "",
                   "errorContent": "",
@@ -608,6 +611,7 @@ describe('App.InstallerController', function () {
         },
         loadServiceConfigProperties: function() {
           loadServiceConfigProperties = true;
+          return $.Deferred().resolve().promise();
         },
         loadCurrentHostGroups: function() {
           loadCurrentHostGroups = true;
@@ -620,6 +624,7 @@ describe('App.InstallerController', function () {
         },
         loadConfigThemes: function() {
           loadConfigThemes = true;
+          return $.Deferred().resolve().promise();
         }
       };
 
@@ -785,12 +790,12 @@ describe('App.InstallerController', function () {
 
   describe('#loadServiceConfigProperties', function() {
     beforeEach(function () {
-      sinon.stub(installerController, 'getDBProperty').returns({
+      sinon.stub(installerController, 'getPersistentProperty').returns($.Deferred().resolve({
         value: 2
-      });
+      }).promise());
     });
     afterEach(function () {
-      installerController.getDBProperty.restore();
+      installerController.getPersistentProperty.restore();
     });
     it ('Should load service config property', function() {
       installerController.loadServiceConfigProperties();

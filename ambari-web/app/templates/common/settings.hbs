@@ -21,10 +21,7 @@
     <h4>{{t app.settings.categories.general}}</h4>
     <hr />
     <div class="checkbox">
-      <label>
-        {{view Ember.Checkbox checkedBinding="view.isNotShowBgChecked" class="checkbox"}}
-        {{t app.settings.notshowBgOperationsPopup}}
-      </label>
+      {{view App.CheckboxView checkedBinding="view.isNotShowBgChecked" labelTranslate="app.settings.notshowBgOperationsPopup"}}
     </div>
   </div>
   <div class="setting-wrapper">

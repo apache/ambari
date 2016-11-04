@@ -18,9 +18,11 @@
 
 
 var App = require('app');
+var persistUtils = require('utils/persist');
+
 require('models/host');
 
-App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, {
+App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, App.Persist, {
 
   isStepDisabled: null,
 
@@ -696,11 +698,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   serviceVersionsMap: {},
   loadServiceVersionFromVersionDefinitionsSuccessCallback: function (jsonData) {
-    var versions = Em.getWithDefault(jsonData, 'items', []);
-    var currentVersion = versions.filterProperty('ClusterStackVersions.state', 'CURRENT')[0];
-    var rv = currentVersion || versions.filter(function(i) {
-      return i.ClusterStackVersions.stack === App.get('currentStackName') &&
-       i.ClusterStackVersions.version === App.get('currentStackVersionNumber');
+    var rv = Em.getWithDefault(jsonData, 'items', []).filter(function(i) {
+      return Em.getWithDefault(i, 'ClusterStackVersions.stack', null) === App.get('currentStackName') &&
+        Em.getWithDefault(i, 'ClusterStackVersions.version', null) === App.get('currentStackVersionNumber');
     })[0];
     var map = this.get('serviceVersionsMap');
     var stackServices = Em.getWithDefault(rv || {}, 'repository_versions.0.RepositoryVersions.stack_services', false);
@@ -907,11 +907,19 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
-   * Load serviceConfigProperties to model
+   * Load serviceConfigProperties from persist
+   * @return {$.Deferred}
    */
   loadServiceConfigProperties: function () {
-    var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
-    this.set('content.serviceConfigProperties', serviceConfigProperties);
+    var dfd = $.Deferred();
+    var self = this;
+    this.getPersistentProperty('serviceConfigProperties').always(function(data) {
+      if (data && !data.error) {
+        self.set('content.serviceConfigProperties', data);
+      }
+      dfd.resolve();
+    });
+    return dfd.promise();
   },
   /**
    * Save config properties
@@ -926,11 +934,19 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (_content.serviceName === 'YARN') {
         _content.set('configs', App.config.textareaIntoFileConfigs(_content.get('configs'), 'capacity-scheduler.xml'));
       }
-      _content.get('configs').forEach(function (_configProperty) {
-        if (!Em.isNone(_configProperty.get('group'))) {
+      _content.get('configs').forEach(function (_configProperties) {
+        if (!Em.isNone(_configProperties.get('group'))) {
           return false;
         }
-        var configProperty = App.config.createMinifiedConfig(_configProperty);
+        var configProperty = App.config.createDefaultConfig(
+          _configProperties.get('name'),
+          _configProperties.get('filename'),
+          // need to invert boolean because this argument will be inverted in method body
+          !_configProperties.get('isUserProperty'),
+          _configProperties.getProperties('value', 'isRequired', 'errorMessage', 'warnMessage')
+        );
+        configProperty = App.config.mergeStaticProperties(configProperty, _configProperties, [], ['name', 'filename', 'isUserProperty', 'value']);
+
         if (this.isExcludedConfig(configProperty)) {
           configProperty.value = '';
         }
@@ -951,11 +967,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         }
       }
     }, this);
-    this.setDBProperties({
-      fileNamesToUpdate: fileNamesToUpdate,
-      serviceConfigProperties: serviceConfigProperties
-    });
     this.set('content.serviceConfigProperties', serviceConfigProperties);
+    this.setDBProperty('fileNamesToUpdate', fileNamesToUpdate);
+    return this.setPersistentProperty('serviceConfigProperties', serviceConfigProperties);
   },
 
   isExcludedConfig: function (configProperty) {
@@ -1375,6 +1389,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     this.setDBProperty(stepController.name + "-sc", null);
   },
 
+  clearServiceConfigProperties: function() {
+    this.get('content.serviceConfigProperties', null);
+    return this.removePersistentProperty('serviceConfigProperties');
+  },
+
   saveTasksStatuses: function (tasksStatuses) {
     this.set('content.tasksStatuses', tasksStatuses);
     this.setDBProperty('tasksStatuses', tasksStatuses);
@@ -1417,6 +1436,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   loadRecommendations: function () {
     this.set("content.recommendations", this.getDBProperty('recommendations'));
+  },
+
+  loadHdfsUserFromServer: function () {
+    return App.get('router.configurationController').loadFromServer([{'siteName': 'hadoop-env'}]);
   },
 
   /**

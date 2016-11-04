@@ -17,10 +17,19 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.metamodel.SingularAttribute;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
@@ -43,16 +52,10 @@ import org.eclipse.persistence.config.QueryHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Order;
-import javax.persistence.metamodel.SingularAttribute;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link AlertDispatchDAO} class manages the {@link AlertTargetEntity},
@@ -562,20 +565,29 @@ public class AlertDispatchDAO {
   }
 
   /**
-   * Persists new alert notices.
+   * Creates new alert notices using the {@link EntityManager#merge(Object)}
+   * method to ensure that the associated {@link AlertTargetEntity} instances
+   * are also updated.
+   * <p/>
+   * The method returns the newly managed entities as the ones passed in will
+   * not be managed.
    *
    * @param entities
-   *          the targets to persist (not {@code null}).
+   *          the targets to create (not {@code null}).
    */
   @Transactional
-  public void createNotices(List<AlertNoticeEntity> entities) {
-    if (null == entities) {
-      return;
+  public List<AlertNoticeEntity> createNotices(List<AlertNoticeEntity> entities) {
+    if (null == entities || entities.isEmpty()) {
+      return entities;
     }
 
+    List<AlertNoticeEntity> managedEntities = new ArrayList<>(entities.size());
     for (AlertNoticeEntity entity : entities) {
-      create(entity);
+      AlertNoticeEntity managedEntity = merge(entity);
+      managedEntities.add(managedEntity);
     }
+
+    return managedEntities;
   }
 
   /**
@@ -628,7 +640,7 @@ public class AlertDispatchDAO {
    */
   @Transactional
   public void remove(AlertTargetEntity alertTarget) {
-    entityManagerProvider.get().remove(merge(alertTarget));
+    entityManagerProvider.get().remove(alertTarget);
   }
 
   /**
@@ -673,7 +685,7 @@ public class AlertDispatchDAO {
    */
   @Transactional
   public void remove(AlertNoticeEntity alertNotice) {
-    entityManagerProvider.get().remove(merge(alertNotice));
+    entityManagerProvider.get().remove(alertNotice);
   }
 
   /**

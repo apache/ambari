@@ -272,6 +272,25 @@ App.WizardStep1Controller = Em.Controller.extend({
     this.selectStackBy('id', event.context.get('id'));
   },
 
+  inappropriateUrlForStackVersion: function (repo, stackVersion) {
+    var baseUrl = repo.get('baseUrl'),
+      splittedBaseUrlArray = baseUrl.split('/'),
+      versionInUrl =  baseUrl[baseUrl.length - 1] === '/' ? splittedBaseUrlArray[splittedBaseUrlArray.length - 2] :
+                      splittedBaseUrlArray[splittedBaseUrlArray.length - 1],
+      versionInUrlString = String(parseFloat(versionInUrl)),
+      UrlIsInvalidForStackVersion = versionInUrlString !== stackVersion;
+
+    if (UrlIsInvalidForStackVersion) {
+      repo.setProperties({
+        validation: App.Repository.validation.INVALID,
+        errorTitle: Em.I18n.t("installer.step1.error.inappropriateUrlForStackVersion.title"),
+        errorContent: Em.I18n.t("installer.step1.error.inappropriateUrlForStackVersion.content").format(stackVersion, versionInUrlString)
+      });
+    }
+
+    return UrlIsInvalidForStackVersion;
+  },
+
   /**
    * Show popup with options to upload new version
    *
@@ -352,14 +371,13 @@ App.WizardStep1Controller = Em.Controller.extend({
           classNames: ['clearfix'],
 
           /**
-           * Checkbox for Use local Repo > Upload VDF file
+           * Radio button for Use local Repo > Upload VDF file
            *
-           * @type {Ember.Checkbox}
+           * @type {App.RadioButtonView}
            */
-          uploadFileRadioButton: Em.Checkbox.extend({
-            attributeBindings: ['type', 'checked'],
-            checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected'),
-            type: 'radio'
+          uploadFileRadioButton: App.RadioButtonView.extend({
+            labelTranslate: 'installer.step1.useLocalRepo.uploadFile',
+            checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.uploadFile.isSelected')
           }),
 
           /**
@@ -437,14 +455,13 @@ App.WizardStep1Controller = Em.Controller.extend({
           }),
 
           /**
-           * Checkbox for Use local Repo > Enter Url of VDF file
+           * Radio button for Use local Repo > Enter Url of VDF file
            *
-           * @type {Ember.Checkbox}
+           * @type {App.RadioButtonView}
            */
-          enterUrlRadioButton: Em.Checkbox.extend({
-            attributeBindings: [ 'type', 'checked' ],
+          enterUrlRadioButton: App.RadioButtonView.extend({
+            labelTranslate: 'installer.step1.useLocalRepo.enterUrl',
             checked: Em.computed.alias('controller.optionsToSelect.useLocalRepo.enterUrl.isSelected'),
-            type: 'radio',
           }),
 
           click: function () {

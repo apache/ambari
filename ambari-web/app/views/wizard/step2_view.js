@@ -74,21 +74,14 @@ App.WizardStep2View = Em.View.extend({
   }.property(),
 
   /**
-   * Checkbox for activate SSH fields
-   * @type {Ember.Checkbox}
+   * Radio button for activate SSH fields
+   * @type {App.RadioButtonView}
    * TODO: replace next 2 properties with new one used in both places
    */
-  providingSSHKeyRadioButton: Em.Checkbox.extend({
-
-    tagName: 'input',
-
-    attributeBindings: ['type', 'checked'],
-
-    classNames: ['radio-btn-provide-ssh-key'],
-
+  providingSSHKeyRadioButton: App.RadioButtonView.extend({
+    classNames: ['radio'],
+    checkboxClassNames: ['radio-btn-provide-ssh-key'],
     checked: Em.computed.alias('controller.content.installOptions.useSsh'),
-
-    type: 'radio',
 
     click: function () {
       this.set('controller.content.installOptions.useSsh', true);
@@ -97,18 +90,12 @@ App.WizardStep2View = Em.View.extend({
   }),
 
   /**
-   * Checkbox for manual registration
-   * @type {Ember.Checkbox}
+   * Radio button for manual registration
+   * @type {App.RadioButtonView}
    */
-  manualRegistrationRadioButton: Em.Checkbox.extend({
-    tagName: 'input',
-
-    attributeBindings: ['type', 'checked'],
-
-    classNames: ['radio-btn-manual-reg'],
-
-    type: 'radio',
-
+  manualRegistrationRadioButton: App.RadioButtonView.extend({
+    classNames: ['radio'],
+    checkboxClassNames: ['radio-btn-manual-reg'],
     checked: Em.computed.alias('controller.content.installOptions.manualInstall'),
 
     click: function () {
@@ -131,5 +118,3 @@ App.WizardStep2View = Em.View.extend({
   })
 
 });
-
-

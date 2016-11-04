@@ -15,7 +15,7 @@
      limitations under the License.
   -->
 <view>
-  <name>Workflow Manager</name>
+  <name>WORKFLOW_MANAGER</name>
   <label>Workflow Manager</label>
   <version>1.0.0</version>
   <build>${env.BUILD_NUMBER}</build>

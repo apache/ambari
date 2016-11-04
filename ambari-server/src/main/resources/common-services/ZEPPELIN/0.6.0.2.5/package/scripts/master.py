@@ -161,6 +161,8 @@ class Master(Script):
 
     Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"), "/etc/zeppelin"),
             sudo=True)
+    Execute(("chown", "-R", format("{zeppelin_user}") + ":" + format("{zeppelin_group}"),
+             os.path.join(params.zeppelin_dir, "notebook")), sudo=True)
 
     if params.security_enabled:
         zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
@@ -176,7 +178,7 @@ class Master(Script):
       not os.path.exists(params.conf_dir + "/interpreter.json"):
       Execute(params.zeppelin_dir + '/bin/zeppelin-daemon.sh start >> '
               + params.zeppelin_log_file, user=params.zeppelin_user)
-      time.sleep(20)
+      self.check_zeppelin_server()
       self.update_zeppelin_interpreter()
 
     self.update_kerberos_properties()
@@ -307,6 +309,22 @@ class Master(Script):
       elif notebook['group'] == 'spark':
         notebook['properties']['master'] = "yarn-client"
     self.set_interpreter_settings(config_data)
+
+  def check_zeppelin_server(self, retries=10):
+    import params
+    import time
+    path = params.conf_dir + "/interpreter.json"
+    if os.path.exists(path) and os.path.getsize(path):
+      Logger.info("interpreter.json found. Zeppelin server started.")
+      return True
+    else:
+      if retries > 0:
+        Logger.info("interpreter.json not found. waiting for zeppelin server to start...")
+        time.sleep(5)
+        self.check_zeppelin_server(retries - 1)
+      else:
+        return False
+    return False
 
 if __name__ == "__main__":
   Master().execute()
