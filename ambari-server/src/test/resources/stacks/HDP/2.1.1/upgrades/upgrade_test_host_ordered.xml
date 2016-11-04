@@ -21,7 +21,7 @@
   <type>HOST_ORDERED</type>
   
   <order>
-    <group xsi:type="host-order" name="HOST_GROUP" />
+    <group xsi:type="host-order" name="HOST_GROUP" title="Host Group" />
     
     <group xsi:type="cluster" name="MANUAL_TASK" title="A manual task just for fun">
       <execute-stage title="You need to accept this task">

@@ -938,6 +938,5 @@ public class ClustersImpl implements Clusters {
     Cluster currentCluster = clusterFactory.create(clusterEntity);
     clusters.put(clusterEntity.getClusterName(), currentCluster);
     clustersById.put(currentCluster.getClusterId(), currentCluster);
-    clusterHostMap.put(currentCluster.getClusterName(), Collections.newSetFromMap(new ConcurrentHashMap<Host, Boolean>()));
   }
 }
