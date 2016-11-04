@@ -154,7 +154,7 @@
             <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
 
             <dt class="summary-rack-label">{{t common.rack}}:</dt>
-            <dd class="summary-rack-value">&nbsp;{{view.content.rack}}
+            <dd class="summary-rack-value">&nbsp;{{formatWordBreak view.content.rack}}
                 {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
                   <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i
                     class="glyphicon glyphicon-pencil"></i></a>

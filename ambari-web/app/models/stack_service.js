@@ -36,7 +36,7 @@ App.StackService = DS.Model.extend({
   stackName: DS.attr('string'),
   stackVersion: DS.attr('string'),
   selection: DS.attr('string'),
-  isDisabled: DS.attr('boolean', {defaultValue: false}),
+  isMandatory: DS.attr('boolean', {defaultValue: false}),
   isSelected: DS.attr('boolean', {defaultValue: true}),
   isInstalled: DS.attr('boolean', {defaultValue: false}),
   isInstallable: DS.attr('boolean', {defaultValue: true}),
@@ -45,6 +45,8 @@ App.StackService = DS.Model.extend({
   serviceComponents: DS.hasMany('App.StackServiceComponent'),
   configs: DS.attr('array'),
   requiredServices: DS.attr('array', {defaultValue: []}),
+
+  isDisabled: Em.computed.or('isMandatory', 'isInstalled'),
 
   /**
    * @type {String[]}

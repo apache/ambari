@@ -31,7 +31,7 @@ App.FormatWordBreakView = Em.View.extend({
     if (str.length <= maxBlockLength || str.contains('-') || str.contains(' ')) {
       return str;
     }
-    return str.split(/(?=[A-Z])/).join('<wbr />');
+    return str.split(/(?=[A-Z])/).join('<wbr>');
   },
 
   /**
@@ -40,13 +40,13 @@ App.FormatWordBreakView = Em.View.extend({
   result: function() {
     var content = this.get('content') || '';
     var self = this;
-    ['.', '_'].forEach(function (delimiter) {
+    ['.', '_', '/'].forEach(function (delimiter) {
       if (content.contains(delimiter)) {
         content = content.split(delimiter).map(function (substr) {
           return self._splitLongSubStrings(substr);
-        }).join(delimiter + '<wbr />');
+        }).join(delimiter + '<wbr>');
       }
     });
-    return content.replace(/(<wbr \/>){2,}/, '<wbr />'); // no need for double <wbr />
+    return content.replace(/(<wbr>){2,}/g, '<wbr>'); // no need for double <wbr>
   }.property('content')
 });

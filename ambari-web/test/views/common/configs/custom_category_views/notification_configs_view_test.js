@@ -32,8 +32,10 @@ function getView() {
     categoryConfigs: [],
     categoryConfigsAll: [],
     parentView: Em.View.create({
-      filter: '',
-      columns: []
+      parentView: Em.View.create({
+        filter: '',
+        columns: []
+      })
     })
   });
 }

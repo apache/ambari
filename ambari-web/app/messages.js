@@ -408,7 +408,7 @@ Em.I18n.translations = {
   'hostPopup.reccomendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
   'hostPopup.setRackId.success': 'Updating rack id to \"{0}\". It may take a few moments for it to get refreshed.',
   'hostPopup.setRackId.error': 'Updating the rack id failed.',
-  'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes.',
+  'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes. Should be less than 255 symbols.',
   'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
 
