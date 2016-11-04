@@ -45,6 +45,17 @@ public class CredentialStoreInfo {
     }
 
     /**
+     * Constructor taking in values for supported and enabled
+     *
+     * @param supported
+     * @param enabled
+     */
+    public CredentialStoreInfo(Boolean supported, Boolean enabled) {
+        this.supported = supported;
+        this.enabled = enabled;
+    }
+
+    /**
      * Gets a value indicating if the service supports
      * credential store. If null, this was not specified.
      * @return
