@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Scanner;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -42,8 +41,10 @@ import freemarker.template.TemplateException;
 
 import org.apache.ambari.logsearch.common.HadoopServiceConfigHelper;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
+import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.ServiceLogsSolrDao;
+import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.ServiceGraphRequest;
@@ -71,7 +72,6 @@ import org.apache.ambari.logsearch.solr.model.SolrComponentTypeLogData;
 import org.apache.ambari.logsearch.solr.model.SolrHostLogData;
 import org.apache.ambari.logsearch.solr.model.SolrServiceLogData;
 import org.apache.ambari.logsearch.util.DownloadUtil;
-import org.apache.ambari.logsearch.util.JSONUtil;
 import org.apache.ambari.logsearch.util.DateUtil;
 import org.apache.ambari.logsearch.util.RESTErrorUtil;
 import org.apache.ambari.logsearch.util.SolrUtil;
@@ -116,6 +116,8 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   private ConversionService conversionService;
   @Inject
   private Configuration freemarkerConfiguration;
+  @Inject
+  private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public ServiceLogResponse searchLogs(ServiceLogRequest request) {
     String event = "/service/logs";
@@ -418,7 +420,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   }
 
   public String getServiceLogsSchemaFieldsName() {
-    return convertObjToString(serviceLogsSolrDao.getSolrSchemaFieldDao().getSchemaFieldNameMap());
+    return convertObjToString(solrSchemaFieldDao.getSchemaFieldNameMap(LogType.SERVICE));
   }
 
   public BarGraphDataListResponse getAnyGraphCountData(ServiceAnyGraphRequest request) {

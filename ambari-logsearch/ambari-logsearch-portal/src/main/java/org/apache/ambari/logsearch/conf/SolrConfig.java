@@ -19,8 +19,6 @@
 package org.apache.ambari.logsearch.conf;
 
 import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClient;
-import org.apache.ambari.logsearch.solr.AmbariSolrCloudClientBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.impl.HttpClientUtil;
@@ -32,11 +30,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.solr.core.SolrTemplate;
 import org.springframework.data.solr.repository.config.EnableSolrRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.inject.Inject;
 
 @Configuration
 @EnableSolrRepositories
+@EnableScheduling
 public class SolrConfig {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrConfig.class);
@@ -80,18 +80,9 @@ public class SolrConfig {
       solrUserConfigPropsConfig.getCollection()));
   }
 
-  @Bean(name = "serviceSolrFieldDao")
-  public SolrSchemaFieldDao serviceSolrFieldDao() {
-    return new SolrSchemaFieldDao();
-  }
-
-  @Bean(name = "auditSolrFieldDao")
-  public SolrSchemaFieldDao auditSolrFieldDao() {
-    return new SolrSchemaFieldDao();
-  }
-
-  @Bean(name = "userConfigSolrFieldDao")
-  public SolrSchemaFieldDao userConfigSolrFieldDao() {
+  @Bean
+  @DependsOn({"serviceSolrTemplate", "auditSolrTemplate"})
+  public SolrSchemaFieldDao solrSchemaFieldDao() {
     return new SolrSchemaFieldDao();
   }
 

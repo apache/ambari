@@ -69,10 +69,6 @@ public class UserConfigSolrDao extends SolrDaoBase {
   private SolrCollectionDao solrCollectionDao;
 
   @Inject
-  @Named("userConfigSolrFieldDao")
-  private SolrSchemaFieldDao solrSchemaFieldDao;
-
-  @Inject
   @Named("userConfigSolrTemplate")
   private SolrTemplate userConfigSolrTemplate;
 
@@ -94,7 +90,6 @@ public class UserConfigSolrDao extends SolrDaoBase {
     try {
       solrCollectionDao.checkSolrStatus(getSolrClient());
       solrCollectionDao.setupCollections(getSolrClient(), solrUserConfig);
-      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrUserConfig);
       intializeLogFeederFilter();
 
     } catch (Exception e) {
@@ -185,6 +180,6 @@ public class UserConfigSolrDao extends SolrDaoBase {
 
   @Override
   public SolrSchemaFieldDao getSolrSchemaFieldDao() {
-    return solrSchemaFieldDao;
+    throw new UnsupportedOperationException();
   }
 }

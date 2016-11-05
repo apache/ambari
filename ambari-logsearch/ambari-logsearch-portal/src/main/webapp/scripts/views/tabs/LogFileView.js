@@ -596,12 +596,13 @@ define(['require',
                         this.ui.find.trigger("keyup");
                         this.ui.find.focus();
                     }else if(type === "IA" || type === "EA"){
-    					this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
-    						key:Globals.serviceLogsColumns["log_message"],value:"*"+this.selectionText+"*"});
-    				}
+                        this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
+                          key:Globals.defaultServiceLogMappings["log_message"],value:"*"+this.selectionText+"*"});
+                    }
                     else {
                         //this.vent.trigger("add:include:exclude",{type:type,value:this.selectionText});
-                        this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns", key: Globals.serviceLogsColumns["log_message"], value: this.selectionText });
+                        this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns",
+                          key: Globals.defaultServiceLogMappings["log_message"], value: this.selectionText });
                     }
                     this.ui.contextMenu.hide();
                 }

@@ -46,5 +46,4 @@ public interface SolrPropsConfig {
   String getSplitInterval();
 
   void setSplitInterval(String splitInterval);
-
 }

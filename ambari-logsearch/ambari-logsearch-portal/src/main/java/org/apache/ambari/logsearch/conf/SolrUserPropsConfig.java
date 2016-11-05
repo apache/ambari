@@ -44,6 +44,9 @@ public class SolrUserPropsConfig extends SolrConnectionPropsConfig {
   @Value("#{'${logsearch.logfeeder.include.default.level:FATAL,ERROR,WARN,INFO,DEBUG,TRACE,UNKNOWN}'.split(',')}")
   private List<String> logLevels;
 
+  @Value("${logsearch.schema.fields.populate.interval.mins:1}")
+  private Integer populateIntervalMins;
+  
   @Override
   public String getCollection() {
     return collection;
@@ -100,5 +103,14 @@ public class SolrUserPropsConfig extends SolrConnectionPropsConfig {
 
   public void setLogLevels(List<String> logLevels) {
     this.logLevels = logLevels;
+  }
+  
+
+  public Integer getPopulateIntervalMins() {
+    return populateIntervalMins;
+  }
+  
+  void setPopulateIntervalMins(Integer populateIntervalMins) {
+    this.populateIntervalMins = populateIntervalMins;
   }
 }

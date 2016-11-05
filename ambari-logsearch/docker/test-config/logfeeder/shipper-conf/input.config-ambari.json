@@ -282,16 +282,6 @@
             "new_fieldname":"cliType"
           }
         },
-        "RequestId":{
-          "map_fieldname":{
-            "new_fieldname":"request_id"
-          }
-        },
-        "TaskId":{
-          "map_fieldname":{
-            "new_fieldname":"task_id"
-          }
-        },
         "Operation":{
           "map_fieldname":{
             "new_fieldname":"action"
@@ -374,6 +364,11 @@
             "new_fieldname":"ws_repositories"
           }
         },
+        "RequestId":{
+          "map_fieldname":{
+            "new_fieldname":"ws_request_id"
+          }
+        },
         "Roles":{
           "map_fieldname":{
             "new_fieldname":"ws_roles"
@@ -387,6 +382,11 @@
         "Stack version":{
           "map_fieldname":{
             "new_fieldname":"ws_stack_version"
+          }
+        },
+        "TaskId":{
+          "map_fieldname":{
+            "new_fieldname":"ws_task_id"
           }
         },
         "VersionNote":{

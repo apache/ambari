@@ -21,6 +21,8 @@ package org.apache.ambari.logsearch.model.request.impl;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 import org.apache.ambari.logsearch.model.request.CommonSearchParamDefinition;
 import org.apache.ambari.logsearch.model.request.SearchRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import javax.ws.rs.QueryParam;
 
@@ -115,5 +117,10 @@ public class CommonSearchRequest implements SearchRequest, CommonSearchParamDefi
   @Override
   public void setEndTime(String endTime) {
     this.endTime = endTime;
+  }
+  
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
   }
 }

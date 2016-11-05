@@ -32,11 +32,10 @@ import javax.inject.Named;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 
 @Named
-public class SolrAliasDao {
+class SolrAliasDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrAliasDao.class);
 
@@ -45,9 +44,9 @@ public class SolrAliasDao {
   @Inject
   private SolrCollectionDao solrCollectionDao;
 
-  protected void setupAlias(final SolrSchemaFieldDao solrSchemaFieldDao, final CloudSolrClient solrClient,
-                            final SolrAuditLogPropsConfig solrPropsConfig) throws Exception {
-    final Collection<String> collectionListIn = Arrays.asList(solrPropsConfig.getCollection(), solrPropsConfig.getRangerCollection().trim());
+  void setupAlias(final CloudSolrClient solrClient, final SolrAuditLogPropsConfig solrPropsConfig) throws Exception {
+    final Collection<String> collectionListIn =
+        Arrays.asList(solrPropsConfig.getCollection(), solrPropsConfig.getRangerCollection().trim());
 
     if (solrPropsConfig.getAliasNameIn() == null || collectionListIn.size() == 0 || solrClient == null) {
       LOG.info("Will not create alias " + solrPropsConfig.getAliasNameIn() + " for " +
@@ -71,7 +70,6 @@ public class SolrAliasDao {
               if (count == collectionListIn.size()) {
                 LOG.info("Setup for alias " + solrPropsConfig.getAliasNameIn() + " is successful. Exiting setup retry thread. " +
                   "Collections=" + collectionListIn);
-                solrSchemaFieldDao.populateSchemaFields(solrClient, solrPropsConfig);
                 break;
               }
             } else {
