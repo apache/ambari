@@ -184,4 +184,13 @@ public class ServiceLogsResource {
   public String getHadoopServiceConfigJSON() {
     return serviceLogsManager.getHadoopServiceConfigJSON();
   }
+
+  @GET
+  @Path("/request/cancel")
+  @Produces({"application/json"})
+  @ApiOperation(REQUEST_CANCEL)
+  public String cancelRequest() {
+    // TODO: create function that cancels an ongoing solr request
+    return "{\"endpoint status\": \"not supported yet\"}";
+  }
 }

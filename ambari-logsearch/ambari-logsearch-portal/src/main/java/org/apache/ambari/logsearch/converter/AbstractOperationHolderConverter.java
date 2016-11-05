@@ -26,13 +26,13 @@ import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrTokenizer;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.Query;
 import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,12 +43,7 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
   extends AbstractConverterAware<REQUEST_TYPE, QUERY_TYPE> {
 
   @Inject
-  @Named("serviceSolrFieldDao")
-  private SolrSchemaFieldDao serviceSolrSchemaFieldDao;
-
-  @Inject
-  @Named("auditSolrFieldDao")
-  private SolrSchemaFieldDao auditSolrSchemaFieldDao;
+  private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public List<String> splitValueAsList(String value, String separator) {
     return StringUtils.isNotEmpty(value) ? Splitter.on(separator).omitEmptyStrings().splitToList(value) : null;
@@ -111,11 +106,10 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
         new TypeToken<List<HashMap<String, String>>>(){}.getType());
       for (Map<String, String> criteriaMap : criterias) {
         for (Map.Entry<String, String> fieldEntry : criteriaMap.entrySet()) {
-          escapeFieldValueByType(fieldEntry);
           if (fieldEntry.getKey().equalsIgnoreCase(LOG_MESSAGE)) {
-            addFilterQuery(query, new Criteria(fieldEntry.getKey()).contains(escapeFieldValueByType(fieldEntry)), false);
+            addLogMessageFilter(query, fieldEntry.getValue(), false);
           } else {
-            addFilterQuery(query, new Criteria(fieldEntry.getKey()).is(escapeFieldValueByType(fieldEntry)), false);
+            addFilterQuery(query, new Criteria(fieldEntry.getKey()).is(escapeNonLogMessageField(fieldEntry)), false);
           }
         }
       }
@@ -129,11 +123,10 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
         new TypeToken<List<HashMap<String, String>>>(){}.getType());
       for (Map<String, String> criteriaMap : criterias) {
         for (Map.Entry<String, String> fieldEntry : criteriaMap.entrySet()) {
-          escapeFieldValueByType(fieldEntry);
           if (fieldEntry.getKey().equalsIgnoreCase(LOG_MESSAGE)) {
-            addFilterQuery(query, new Criteria(fieldEntry.getKey()).contains(escapeFieldValueByType(fieldEntry)), true);
+            addLogMessageFilter(query, fieldEntry.getValue(), true);
           } else {
-            addFilterQuery(query, new Criteria(fieldEntry.getKey()).is(escapeFieldValueByType(fieldEntry)), true);
+            addFilterQuery(query, new Criteria(fieldEntry.getKey()).is(escapeNonLogMessageField(fieldEntry)), true);
           }
         }
       }
@@ -143,18 +136,31 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public abstract LogType getLogType();
 
-  private String escapeFieldValueByType(Map.Entry<String, String> fieldEntry) {
-    String escapedFieldValue;
-    if (fieldEntry.getKey().equalsIgnoreCase(LOG_MESSAGE)) {
-      escapedFieldValue = SolrUtil.escapeForLogMessage(fieldEntry.getValue());
-    } else {
-      escapedFieldValue = SolrUtil.putWildCardByType(fieldEntry.getValue(), fieldEntry.getKey(), getSchemaFieldsTypeMapByLogType(getLogType()));
+  private void addLogMessageFilter(Query query, String value, boolean negate) {
+    StrTokenizer tokenizer = new StrTokenizer(value, ' ', '"');
+    for (String token : tokenizer.getTokenArray()) {
+      token = token.trim();
+      if (token.contains(" ") || !token.startsWith("*") && !token.endsWith("*")) {
+        addFilterQuery(query, new Criteria(LOG_MESSAGE).is(SolrUtil.escapeQueryChars(token)), negate);
+      } else if (token.startsWith("*") && token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 1, -1);
+        addFilterQuery(query, new Criteria(LOG_MESSAGE).contains(SolrUtil.escapeQueryChars(plainToken)), negate);
+      } else if (token.startsWith("*") && !token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 1);
+        addFilterQuery(query, new Criteria(LOG_MESSAGE).endsWith(SolrUtil.escapeQueryChars(plainToken)), negate);
+      } else if (!token.startsWith("*") && token.endsWith("*")) {
+        String plainToken = StringUtils.substring(token, 0, -1);
+        addFilterQuery(query, new Criteria(LOG_MESSAGE).startsWith(SolrUtil.escapeQueryChars(plainToken)), negate);
+      }
     }
-    return escapedFieldValue;
   }
 
-  private Map<String, String> getSchemaFieldsTypeMapByLogType(LogType logType) {
-    return LogType.AUDIT.equals(logType) ? auditSolrSchemaFieldDao.getSchemaFieldTypeMap() : serviceSolrSchemaFieldDao.getSchemaFieldTypeMap();
+  private String escapeNonLogMessageField(Map.Entry<String, String> fieldEntry) {
+    Map<String, String> schemaFieldNameMap = solrSchemaFieldDao.getSchemaFieldNameMap(getLogType());
+    Map<String, String> schemaFieldTypeMap = solrSchemaFieldDao.getSchemaFieldTypeMap(getLogType());
+    String fieldType = schemaFieldNameMap.get(fieldEntry.getKey());
+    String fieldTypeMetaData = schemaFieldTypeMap.get(fieldType);
+    return SolrUtil.putWildCardByType(fieldEntry.getValue(), fieldType, fieldTypeMetaData);
   }
 
 }

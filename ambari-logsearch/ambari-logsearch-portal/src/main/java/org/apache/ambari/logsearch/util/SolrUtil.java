@@ -35,7 +35,7 @@ import org.apache.solr.schema.TrieFloatField;
 import org.apache.solr.schema.TrieIntField;
 import org.apache.solr.schema.TrieLongField;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class SolrUtil {
   private SolrUtil() {
@@ -74,48 +74,12 @@ public class SolrUtil {
     if (search == null) {
       return null;
     }
-    String newString = search.trim();
-    String newSearch = escapeQueryChars(newString);
-    boolean isSingleWord = true;
-    for (int i = 0; i < search.length(); i++) {
-      if (Character.isWhitespace(search.charAt(i))) {
-        isSingleWord = false;
-      }
-    }
-    if (!isSingleWord) {
+    String newSearch = escapeQueryChars(search.trim());
+    if (StringUtils.containsWhitespace(newSearch)) {
       newSearch = "\"" + newSearch + "\"";
     }
 
     return newSearch;
-  }
-
-  private static String escapeForKeyTokenizer(String search) {
-    if (search.startsWith("*") && search.endsWith("*") && StringUtils.isNotBlank(search)) {
-      // Remove the * from both the sides
-      if (search.length() > 1) {
-        search = search.substring(1, search.length() - 1);
-      } else {
-        //search string have only * 
-        search="";
-      }
-    }
-    search = escapeQueryChars(search);
-
-    return "*" + search + "*";
-  }
-
-  /**
-   * This is a special case scenario to handle log_message for wild card
-   * scenarios
-   */
-  public static String escapeForLogMessage(String search) {
-    if (search.startsWith("*") && search.endsWith("*")) {
-      search = escapeForKeyTokenizer(search);
-    } else {
-      // Use whitespace index
-      search = escapeForStandardTokenizer(search);
-    }
-    return search;
   }
 
   private static String makeSolrSearchStringWithoutAsterisk(String search) {
@@ -152,48 +116,45 @@ public class SolrUtil {
   }
   
 
-  private static boolean isSolrFieldNumber(String fieldType, Map<String, String> schemaFieldsMap) {
-    if (StringUtils.isBlank(fieldType)) {
+  private static boolean isSolrFieldNumber(Map<String, Object> fieldTypeInfoMap) {
+    if (MapUtils.isEmpty(fieldTypeInfoMap)) {
       return false;
-    } else {
-      HashMap<String, Object> typeInfoMap = getFieldTypeInfoMap(fieldType, schemaFieldsMap);
-      if (MapUtils.isEmpty(typeInfoMap)) {
-        return false;
-      }
-      String fieldTypeClassName = (String) typeInfoMap.get("class");
-      return fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName()) ||
-             fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName()) ||
-             fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName()) ||
-             fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName());
     }
+    String fieldTypeClassName = (String) fieldTypeInfoMap.get("class");
+    return fieldTypeClassName.equalsIgnoreCase(TrieIntField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieDoubleField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieFloatField.class.getSimpleName()) ||
+           fieldTypeClassName.equalsIgnoreCase(TrieLongField.class.getSimpleName());
   }
 
-  public static String putWildCardByType(String str, String key, Map<String, String> schemaFieldsMap) {
-    String fieldType = schemaFieldsMap.get(key);
+  public static String putWildCardByType(String str, String fieldType, String fieldTypeMetaData) {
+    Map<String, Object> fieldTypeInfoMap = getFieldTypeInfoMap(fieldTypeMetaData);
     if (StringUtils.isNotBlank(fieldType)) {
-      if (isSolrFieldNumber(fieldType, schemaFieldsMap)) {
-        String value = putEscapeCharacterForNumber(str, fieldType, schemaFieldsMap);
+      if (isSolrFieldNumber(fieldTypeInfoMap)) {
+        String value = putEscapeCharacterForNumber(str, fieldTypeInfoMap);
         if (StringUtils.isNotBlank(value)) {
           return value;
         } else {
           return null;
         }
-      } else if (checkTokenizer(fieldType, StandardTokenizerFactory.class, schemaFieldsMap)) {
+      } else if (checkTokenizer(StandardTokenizerFactory.class, fieldTypeInfoMap)) {
         return escapeForStandardTokenizer(str);
-      } else if (checkTokenizer(fieldType, KeywordTokenizerFactory.class, schemaFieldsMap)|| "string".equalsIgnoreCase(fieldType)) {
+      } else if (checkTokenizer(KeywordTokenizerFactory.class, fieldTypeInfoMap) || "string".equalsIgnoreCase(fieldType)) {
         return makeSolrSearchStringWithoutAsterisk(str);
-      } else if (checkTokenizer(fieldType, PathHierarchyTokenizerFactory.class, schemaFieldsMap)) {
+      } else if (checkTokenizer(PathHierarchyTokenizerFactory.class, fieldTypeInfoMap)) {
         return str;
+      } else {
+        return escapeQueryChars(str);
       }
     }
     return str;
   }
 
-  private static String putEscapeCharacterForNumber(String str,String fieldType, Map<String, String> schemaFieldsMap) {
+  private static String putEscapeCharacterForNumber(String str, Map<String, Object> fieldTypeInfoMap) {
     if (StringUtils.isNotEmpty(str)) {
       str = str.replace("*", "");
     }
-    String escapeCharSting = parseInputValueAsPerFieldType(str,fieldType, schemaFieldsMap);
+    String escapeCharSting = parseInputValueAsPerFieldType(str, fieldTypeInfoMap);
     if (escapeCharSting == null || escapeCharSting.isEmpty()) {
       return null;
     }
@@ -201,9 +162,8 @@ public class SolrUtil {
     return escapeCharSting;
   }
 
-  private static String parseInputValueAsPerFieldType(String str,String fieldType, Map<String, String> schemaFieldsMap) {
+  private static String parseInputValueAsPerFieldType(String str, Map<String, Object> fieldTypeInfoMap) {
     try {
-      HashMap<String, Object> fieldTypeInfoMap = SolrUtil.getFieldTypeInfoMap(fieldType, schemaFieldsMap);
       String className = (String) fieldTypeInfoMap.get("class");
       if (className.equalsIgnoreCase(TrieDoubleField.class.getSimpleName())) {
         return "" + Double.parseDouble(str);
@@ -219,8 +179,7 @@ public class SolrUtil {
     }
   }
   
-  private static HashMap<String, Object> getFieldTypeInfoMap(String fieldType, Map<String, String> schemaFieldsTypeMap) {
-    String fieldTypeMetaData = schemaFieldsTypeMap.get(fieldType);
+  private static Map<String, Object> getFieldTypeInfoMap(String fieldTypeMetaData) {
     HashMap<String, Object> fieldTypeMap = JSONUtil.jsonToMapObject(fieldTypeMetaData);
     if (fieldTypeMap == null) {
       return new HashMap<>();
@@ -269,10 +228,8 @@ public class SolrUtil {
   }
 
   @SuppressWarnings("unchecked")
-  private static boolean checkTokenizer(String fieldType, Class<? extends TokenizerFactory> tokenizerFactoryClass,
-      Map<String, String> schemaFieldsMap) {
-    HashMap<String, Object> fieldTypeMap = SolrUtil.getFieldTypeInfoMap(fieldType ,schemaFieldsMap);
-    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeMap.get("analyzer");
+  private static boolean checkTokenizer(Class<? extends TokenizerFactory> tokenizerFactoryClass, Map<String, Object> fieldTypeInfoMap) {
+    HashMap<String, Object> analyzer = (HashMap<String, Object>) fieldTypeInfoMap.get("analyzer");
     HashMap<String, Object> tokenizerMap = (HashMap<String, Object>)MapUtils.getObject(analyzer, "tokenizer");
     if (tokenizerMap != null) {
       String tokenizerClass = (String) tokenizerMap.get("class");

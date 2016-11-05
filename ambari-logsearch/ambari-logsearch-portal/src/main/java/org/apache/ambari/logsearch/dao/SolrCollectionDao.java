@@ -40,7 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 
 @Named
-public class SolrCollectionDao {
+class SolrCollectionDao {
 
   private static final Logger LOG = LoggerFactory.getLogger(SolrCollectionDao.class);
 
@@ -50,7 +50,7 @@ public class SolrCollectionDao {
    * This will try to get the collections from the Solr. Ping doesn't work if
    * collection is not given
    */
-  public boolean checkSolrStatus(CloudSolrClient cloudSolrClient) {
+  boolean checkSolrStatus(CloudSolrClient cloudSolrClient) {
     int waitDurationMS = 3 * 60 * 1000;
     boolean status = false;
     try {
@@ -86,7 +86,7 @@ public class SolrCollectionDao {
     return status;
   }
 
-  public void setupCollections(final CloudSolrClient solrClient, final SolrPropsConfig solrPropsConfig) throws Exception {
+  void setupCollections(final CloudSolrClient solrClient, final SolrPropsConfig solrPropsConfig) throws Exception {
     boolean setupStatus = createCollectionsIfNeeded(solrClient, solrPropsConfig);
     LOG.info("Setup status for " + solrPropsConfig.getCollection() + " is " + setupStatus);
     if (!setupStatus) {
@@ -136,7 +136,7 @@ public class SolrCollectionDao {
   }
 
   @SuppressWarnings("unchecked")
-  public List<String> getCollections(CloudSolrClient solrClient) throws SolrServerException,
+  List<String> getCollections(CloudSolrClient solrClient) throws SolrServerException,
     IOException {
     try {
       CollectionAdminRequest.List colListReq = new CollectionAdminRequest.List();

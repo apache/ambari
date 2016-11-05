@@ -18,7 +18,6 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.model.request.impl.CommonSearchRequest;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.domain.PageRequest;
@@ -26,9 +25,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.Query;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
-
-import javax.inject.Inject;
-import javax.inject.Named;
 
 public abstract class AbstractSearchRequestQueryConverter<REQUEST_TYPE extends CommonSearchRequest, QUERY_TYPE extends Query>
   extends AbstractOperationHolderConverter<REQUEST_TYPE, QUERY_TYPE> {

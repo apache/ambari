@@ -44,7 +44,6 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
   private SolrTemplate serviceSolrTemplate;
 
   @Inject
-  @Named("serviceSolrFieldDao")
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public ServiceLogsSolrDao() {
@@ -62,7 +61,7 @@ public class ServiceLogsSolrDao extends SolrDaoBase {
     try {
       solrCollectionDao.checkSolrStatus(getSolrClient());
       solrCollectionDao.setupCollections(getSolrClient(), solrServiceLogPropsConfig);
-      solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrServiceLogPropsConfig);
+      solrSchemaFieldDao.serviceCollectionSetUp();
     } catch (Exception e) {
       LOG.error("error while connecting to Solr for service logs : solrUrl=" + solrServiceLogPropsConfig.getSolrUrl()
         + ", zkConnectString=" + solrServiceLogPropsConfig.getZkConnectString()

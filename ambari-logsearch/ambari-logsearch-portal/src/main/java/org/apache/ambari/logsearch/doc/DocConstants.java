@@ -90,6 +90,7 @@ public class DocConstants {
     public static final String GET_SERVICE_LOGS_SCHEMA_FIELD_NAME_OD = "Get service logs schema fields";
     public static final String GET_HADOOP_SERVICE_CONFIG_JSON_OD = "Get the json having meta data of services supported by logsearch";
     public static final String GET_AFTER_BEFORE_LOGS_OD = "Preview feature data";
+    public static final String REQUEST_CANCEL = "Cancel an ongoing solr request";
   }
 
   public class PublicOperationDescriptions {

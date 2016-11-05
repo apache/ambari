@@ -36,8 +36,11 @@ import java.util.Map;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+
+import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.common.MessageEnums;
 import org.apache.ambari.logsearch.dao.AuditSolrDao;
+import org.apache.ambari.logsearch.dao.SolrSchemaFieldDao;
 import org.apache.ambari.logsearch.graph.GraphDataGenerator;
 import org.apache.ambari.logsearch.model.request.impl.AuditBarGraphRequest;
 import org.apache.ambari.logsearch.model.request.impl.AuditComponentRequest;
@@ -79,6 +82,8 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   private ConversionService conversionService;
   @Inject
   private Configuration freemarkerConfiguration;
+  @Inject
+  private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public AuditLogResponse getLogs(AuditLogRequest auditLogRequest) {
     return getLogAsPaginationProvided(conversionService.convert(auditLogRequest, SimpleQuery.class), auditSolrDao, "/audit/logs");
@@ -118,7 +123,7 @@ public class AuditLogsManager extends ManagerBase<SolrAuditLogData, AuditLogResp
   }
 
   public String getAuditLogsSchemaFieldsName() {
-    return convertObjToString(auditSolrDao.getSolrSchemaFieldDao().getSchemaFieldNameMap());
+    return convertObjToString(solrSchemaFieldDao.getSchemaFieldNameMap(LogType.AUDIT));
   }
 
   public BarGraphDataListResponse getServiceLoad(AuditServiceLoadRequest request) {

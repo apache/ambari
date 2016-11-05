@@ -48,7 +48,6 @@ public class AuditSolrDao extends SolrDaoBase {
   private SolrCollectionDao solrCollectionDao;
 
   @Inject
-  @Named("auditSolrFieldDao")
   private SolrSchemaFieldDao solrSchemaFieldDao;
 
   public AuditSolrDao() {
@@ -70,10 +69,9 @@ public class AuditSolrDao extends SolrDaoBase {
       boolean createAlias = (aliasNameIn != null && StringUtils.isNotBlank(rangerAuditCollection));
       solrCollectionDao.setupCollections(getSolrClient(), solrAuditLogPropsConfig);
       if (createAlias) {
-        solrAliasDao.setupAlias(solrSchemaFieldDao, getSolrClient(), solrAuditLogPropsConfig);
-      } else {
-        solrSchemaFieldDao.populateSchemaFields(getSolrClient(), solrAuditLogPropsConfig);
+        solrAliasDao.setupAlias(getSolrClient(), solrAuditLogPropsConfig);
       }
+      solrSchemaFieldDao.auditCollectionSetUp();
     } catch (Exception e) {
       LOG.error("Error while connecting to Solr for audit logs : solrUrl=" + solrAuditLogPropsConfig.getSolrUrl() + ", zkConnectString=" +
           solrAuditLogPropsConfig.getZkConnectString() + ", collection=" + solrAuditLogPropsConfig.getCollection(), e);
