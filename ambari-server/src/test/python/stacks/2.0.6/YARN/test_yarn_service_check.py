@@ -22,9 +22,11 @@ import re
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+curl_call = MagicMock(return_value=(0, "{ \"app\": {\"state\": \"FINISHED\",\"finalStatus\": \"SUCCEEDED\"}}",''))
+
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("sys.executable", new = '/usr/bin/python2.6')
-@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new = MagicMock(return_value=(0, "{ \"app\": {\"state\": \"FINISHED\",\"finalStatus\": \"SUCCEEDED\"}}",'')))
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new = curl_call)
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -59,6 +61,7 @@ class TestServiceCheck(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               )
+    self.assertCurlCallForwardsCredentialsOnRedirect()
     self.assertNoMoreResources()
 
 
@@ -91,4 +94,8 @@ class TestServiceCheck(RMFTestCase):
                               hadoop_conf_dir = '/etc/hadoop/conf',
                               type = 'directory',
                               )
+    self.assertCurlCallForwardsCredentialsOnRedirect()
     self.assertNoMoreResources()
+
+  def assertCurlCallForwardsCredentialsOnRedirect(self):
+    self.assertIn('--location-trusted', curl_call.call_args[0][0])
