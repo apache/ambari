@@ -369,7 +369,7 @@ class TestHostInfo(TestCase):
     subproc_popen.return_value = p
     result = []
     get_os_type_method.return_value = 'redhat'
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Healthy')
     self.assertEquals(result[0]['name'], 'service1')
@@ -380,7 +380,7 @@ class TestHostInfo(TestCase):
     p.returncode = 1
     p.communicate.return_value = ('out', 'err')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
@@ -388,7 +388,7 @@ class TestHostInfo(TestCase):
 
     p.communicate.return_value = ('', 'err')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
@@ -396,11 +396,29 @@ class TestHostInfo(TestCase):
 
     p.communicate.return_value = ('', 'err', '')
     result = []
-    hostInfo.checkLiveServices(['service1'], result)
+    hostInfo.checkLiveServices([('service1',)], result)
 
     self.assertEquals(result[0]['status'], 'Unhealthy')
     self.assertEquals(result[0]['name'], 'service1')
     self.assertTrue(len(result[0]['desc']) > 0)
+
+    p.returncode = 0
+    p.communicate.return_value = ('', 'err')
+    result = []
+    hostInfo.checkLiveServices([('service1', 'service2',)], result)
+
+    self.assertEquals(result[0]['status'], 'Healthy')
+    self.assertEquals(result[0]['name'], 'service1 or service2')
+    self.assertEquals(result[0]['desc'], '')
+
+    p.returncode = 1
+    p.communicate.return_value = ('out', 'err')
+    result = []
+    hostInfo.checkLiveServices([('service1', 'service2',)], result)
+
+    self.assertEquals(result[0]['status'], 'Unhealthy')
+    self.assertEquals(result[0]['name'], 'service1 or service2')
+    self.assertEquals(result[0]['desc'], 'out\nout')
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))
   @patch("os.path.exists")
