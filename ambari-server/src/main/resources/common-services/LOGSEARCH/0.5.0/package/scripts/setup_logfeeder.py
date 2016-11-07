@@ -17,15 +17,16 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.functions.default import default
 from resource_management.core.resources.system import Directory, File
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.resources.properties_file import PropertiesFile
 
 def setup_logfeeder():
   import params
 
-  Directory([params.logfeeder_log_dir, params.logfeeder_pid_dir,
-             params.logfeeder_checkpoint_folder],
+  Directory([params.logfeeder_log_dir, params.logfeeder_pid_dir, params.logfeeder_checkpoint_folder],
             mode=0755,
             cd_access='a',
             create_parents=True
@@ -43,9 +44,9 @@ def setup_logfeeder():
        content=''
        )
 
-  File(format("{logsearch_logfeeder_conf}/logfeeder.properties"),
-       content=Template("logfeeder.properties.j2"),
-       )
+  PropertiesFile(format("{logsearch_logfeeder_conf}/logfeeder.properties"),
+                 properties = params.logfeeder_properties
+                 )
 
   File(format("{logsearch_logfeeder_conf}/logfeeder-env.sh"),
        content=InlineTemplate(params.logfeeder_env_content),
@@ -57,14 +58,29 @@ def setup_logfeeder():
        )
 
   File(format("{logsearch_logfeeder_conf}/grok-patterns"),
-       content=Template("grok-patterns.j2"),
+       content=InlineTemplate(params.logfeeder_grok_patterns),
        encoding="utf-8"
        )
 
-  for file_name in params.logfeeder_config_file_names:
+  for file_name in params.logfeeder_default_config_file_names:
     File(format("{logsearch_logfeeder_conf}/" + file_name),
          content=Template(file_name + ".j2")
          )
+
+  for service, pattern_content in params.logfeeder_metadata.iteritems():
+    File(format("{logsearch_logfeeder_conf}/input.config-" + service.replace('-logsearch-conf', '') + ".json"),
+      content=InlineTemplate(pattern_content, extra_imports=[default])
+    )
+
+  if params.logfeeder_system_log_enabled:
+    File(format("{logsearch_logfeeder_conf}/input.config-system_messages.json"),
+         content=params.logfeeder_system_messages_content
+         )
+    File(format("{logsearch_logfeeder_conf}/input.config-secure_log.json"),
+         content=params.logfeeder_secure_log_content
+         )
+
+
   if params.security_enabled:
     File(format("{logfeeder_jaas_file}"),
          content=Template("logfeeder_jaas.conf.j2")

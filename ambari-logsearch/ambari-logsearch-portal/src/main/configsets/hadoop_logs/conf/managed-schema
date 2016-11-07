@@ -101,7 +101,6 @@
   <field name="logger_name" type="key_lower_case" multiValued="false"/>
   <field name="logtime" type="tdate" multiValued="false"  docValues="true"/>
   <field name="logtype" type="key_lower_case" multiValued="false"/>
-  <!-- <field name="message" type="text_std_token_lower_case" indexed="true" stored="true"/> -->
   <field name="message_md5" type="string" multiValued="false"/>
   <field name="method" type="key_lower_case" multiValued="false" omitNorms="false"/>
   <field name="path" type="key_lower_case" multiValued="false"/>
@@ -117,28 +116,5 @@
   <dynamicField name='key_*' type="key_lower_case" multiValued="false" stored="false"/>
   <dynamicField name="ws_*" type="text_ws" multiValued="false" omitNorms="false" stored="false"/>
   <copyField source="log_message" dest="key_log_message"/>
-  <!-- <copyField source="log_message" dest="ws_log_message"/> -->
 
-  
-  <!-- Copy Fields-->
-  <!-- ngram fields -->
-  <!-- Whenever using a copy field provide following structure "ngram_"<OriginalFieldName> --> 
-<!-- Commenting till we test properly. Now it is not used and it is taking unnecessary cpu, memory and disk space
-  <copyField source="bundle_id" dest="ngram_bundle_id"/>
-  <copyField source="case_id" dest="ngram_case_id"/>
-  <copyField source="cluster" dest="ngram_cluster"/>
-  <copyField source="file" dest="ngram_file"/>
-  <copyField source="host" dest="ngram_host"/>
-  <copyField source="level" dest="ngram_level"/>
-  <copyField source="log_message" dest="ngram_log_message"/>
-  <copyField source="logger_name" dest="ngram_logger_name"/>
-  <copyField source="logtype" dest="ngram_logtype"/>
-  <copyField source="method" dest="ngram_method"/>
-  <copyField source="path" dest="ngram_path"/>
-  <copyField source="thread_name" dest="ngram_thread_name"/>
-  <copyField source="type" dest="ngram_type"/>
-  
--->
-
-  
 </schema>

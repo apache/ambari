@@ -99,7 +99,7 @@ define(['require',
                         pageSize: 25
                     }
                 });
-                this.logFileCollection.url = Globals.baseURL + "dashboard/solr/logs_search";
+                this.logFileCollection.url = Globals.baseURL + "service/logs";
                 this.vent = new Backbone.Wreqr.EventAggregator();
                 this.bindEvents();
                 this.commonTableOptions = {
@@ -199,11 +199,8 @@ define(['require',
             downloadLogFile: function(obj) {
                 obj.utcOffset = moment().utcOffset();
                 obj.startIndex = this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize;
-                //			var params = $.param(_.pick(_.extend({},this.logFileCollection.queryParams,
-                //				{startIndex : this.logFileCollection.state.currentPage * this.logFileCollection.state.pageSize},obj),
-                //				'component','from','to','host','level','unit','startIndex','pageSize','format','utcOffset'));
                 var params = $.param(_.extend({}, this.logFileCollection.queryParams, obj));
-                var url = "service/dashboard/exportToTextFile?" + params;
+                var url = "api/v1/service/logs/export?" + params;
                 window.open(url);
                 this.onDialogClosed();
             },
@@ -256,7 +253,7 @@ define(['require',
                             var top = element.offset().top;
                             element.addClass('highlightLog');
                             $("html, body").animate({ scrollTop: (top - 200) }, 1);
-                            /*setTimeout(function(){ 
+                            /*setTimeout(function(){
                             	element.addClass('fadeOutColor')
                             	setTimeout(function(){element.removeClass('fadeOutColor highlightLog');},4000)
                             },6000);*/
@@ -305,60 +302,43 @@ define(['require',
                 });
             },
             renderVisualSearch: function() {
-                var that = this;
-                var data = _.values(Globals.serviceLogsColumns);
-                var columns = _.without(data, _.findWhere(data, "logtime"));
-                require(['views/tabs/VisualSearchView'], function(VisualSearchView) {
-                    /*that.RVSSearch.show(new VisualSearchView({
-                    	viewName : "includeExclude",
-                    	vent : that.vent,
-                    	globalVent:that.globalVent,
-                    	params : that.params,
-                    	eventName : "search:include:exclude"
-                    }));*/
-                    that.RVisualSearchIncCol.show(new VisualSearchView({
-                        params: that.params,
-                        viewName: "includeServiceColumns",
-                        placeholder: "Include Search",
-                        vent: that.vent,
-                        globalVent: that.globalVent,
-                        customOptions: columns,
-                        eventName: Globals.eventName.serviceLogsIncludeColumns,
-                        myFormatData: function(query, searchCollection) {
-                            var obj = [];
-                            searchCollection.each(function(m) {
-                                var data = {};
-                                data[m.get("category")] = m.get("value");
-                                obj.push(data);
-                            });
-                            return {
-                                includeQuery: JSON.stringify(obj),
-                                query: query
-                            }
-                        }
-                    }));
-                    that.RVisualSearchExCol.show(new VisualSearchView({
-                        params: that.params,
-                        viewName: "excludeServiceColumns",
-                        placeholder: "Exclude Search",
-                        vent: that.vent,
-                        globalVent: that.globalVent,
-                        customOptions: columns,
-                        eventName: Globals.eventName.serviceLogsExcludeColumns,
-                        myFormatData: function(query, searchCollection) {
-                            var obj = [];
-                            searchCollection.each(function(m) {
-                                var data = {};
-                                data[m.get("category")] = m.get("value");
-                                obj.push(data);
-                            });
-                            return {
-                                excludeQuery: JSON.stringify(obj),
-                                query: query
-                            }
-                        }
-                    }));
-                });
+              var that = this;
+              var data = _.values(Globals.serviceLogsColumns);
+              var columns = _.without(data, _.findWhere(data, "logtime"));
+              require(['views/tabs/VisualSearchView'], function (VisualSearchView) {
+                that.RVisualSearchIncCol.show(new VisualSearchView({
+                  params: that.params,
+                  viewName: "includeServiceColumns",
+                  placeholder: "Include Search",
+                  vent: that.vent,
+                  globalVent: that.globalVent,
+                  customOptions: columns,
+                  eventName: Globals.eventName.serviceLogsIncludeColumns,
+                  myFormatData: function (query, searchCollection) {
+                    var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
+                    return {
+                      includeQuery: JSON.stringify(obj),
+                      query: query
+                    }
+                  }
+                }));
+                that.RVisualSearchExCol.show(new VisualSearchView({
+                  params: that.params,
+                  viewName: "excludeServiceColumns",
+                  placeholder: "Exclude Search",
+                  vent: that.vent,
+                  globalVent: that.globalVent,
+                  customOptions: columns,
+                  eventName: Globals.eventName.serviceLogsExcludeColumns,
+                  myFormatData: function (query, searchCollection) {
+                    var obj = ViewUtils.replaceColumnNamesWithKeys(searchCollection, Globals.invertedServiceLogMappings, false);
+                    return {
+                      excludeQuery: JSON.stringify(obj),
+                      query: query
+                    }
+                  }
+                }));
+              });
             },
             renderHistogram: function() {
                 var that = this;
@@ -478,14 +458,6 @@ define(['require',
                 var timeZone = moment().zoneAbbr(),
                     that = this,
                     cols = {};
-                _.each(Globals.serviceLogsColumns, function(value, col) {
-                    cols[col] = {
-                        label: value,
-                        cell: "String",
-                        sortType: 'toggle',
-                        editable: false,
-                    }
-                });
                 this.cols = {
                     logtime: {
                         label: "Log Time " + (!_.isEmpty(timeZone) ? "(" + timeZone + ")" : ""),
@@ -495,7 +467,7 @@ define(['require',
                         direction: "descending",
                         orderable: true,
                         displayOrder: 1,
-                        width: "10",
+                        width: "17",
                         className: "logTime",
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                             fromRaw: function(rawValue, model) {
@@ -509,30 +481,6 @@ define(['require',
                             }
                         })
                     },
-                    /*type: {
-                    	//label: "Type",
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :2
-                    },*/
-                    /*level : {
-                    	label: "Level",
-                    	cell: "html",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	sortable : true,
-                    	orderable : true,
-                    	width : "5",
-                    	displayOrder :3,
-                    	formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                    		fromRaw: function(rawValue, model){
-                    			if(rawValue)
-                    				return "<span class='"+rawValue+"'>"+rawValue+"</span>";
-                    		}
-                    	})
-                    },*/
                     log_message: {
                         label: "Message",
                         cell: "html",
@@ -569,37 +517,30 @@ define(['require',
                         displayOrder: 6,
                         width: 6
                     }
-                    /*host : {
-                    	label: "Host",
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :5
-                    },
-                    logger_name : {
-                    	cell: "String",
-                    	editable: false,
-                    	sortType: 'toggle',
-                    	orderable : true,
-                    	displayOrder :6
-                    }*/
 
                 };
-                _.each(cols, function(c, k) {
-                    if (that.cols[k] == undefined) {
-                        that.cols[k] = c;
-                    } else {
-                        if (that.cols[k] && that.cols[k].label) {
-                            that.cols[k].label = c.label;
-                        }
+                _.each(this.columns, function(value){
+                  var name = Globals.invertedServiceLogMappings[value];
+                  if (columns[name] === undefined) {
+                    var columnObj = {
+                      name: Globals.invertedServiceLogMappings[value],
+                      label:value,
+                      cell: "String",
+                      sortType: 'toggle',
+                      editable: false
+                    };
+                    columns[name] = columnObj;
+                  } else {
+                    if (columns[name] && columns[name].label) {
+                      columns[name].label = value;
                     }
+                  }
                 });
                 return this.logFileCollection.constructor.getTableCols(this.cols, this.logFileCollection);
             },
             initializeContextMenu: function() {
                 var that = this;
-                
+
                 $('body').on("mouseup.contextMenuLogFile", function(e) {
                     var selection;
                     if (window.getSelection) {
@@ -655,19 +596,20 @@ define(['require',
                         this.ui.find.trigger("keyup");
                         this.ui.find.focus();
                     }else if(type === "IA" || type === "EA"){
-    					this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
-    						key:Globals.serviceLogsColumns["log_message"],value:"*"+this.selectionText+"*"});
-    				} 
+                        this.vent.trigger("toggle:facet",{viewName:((type === "IA") ? "include" : "exclude") +"ServiceColumns",
+                          key:Globals.defaultServiceLogMappings["log_message"],value:"*"+this.selectionText+"*"});
+                    }
                     else {
                         //this.vent.trigger("add:include:exclude",{type:type,value:this.selectionText});
-                        this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns", key: Globals.serviceLogsColumns["log_message"], value: this.selectionText });
+                        this.vent.trigger("toggle:facet", { viewName: ((type === "I") ? "include" : "exclude") + "ServiceColumns",
+                          key: Globals.defaultServiceLogMappings["log_message"], value: this.selectionText });
                     }
                     this.ui.contextMenu.hide();
                 }
             },
             setHostName: function() {
-                this.$("[data-id='hostName']").text(this.params.host);
-                this.$("[data-id='componentName']").text(this.params.component);
+                this.$("[data-id='hostName']").text(this.params.host_name);
+                this.$("[data-id='componentName']").text(this.params.component_name);
             },
             getFindValue: function() {
                 return this.ui.find.val();

@@ -231,6 +231,7 @@ var files = [
   'test/views/common/ajax_default_error_popup_body_test',
   'test/views/common/filter_combo_cleanable_test',
   'test/views/common/filter_view_test',
+  'test/views/common/pagination_view_test',
   'test/views/common/table_view_test',
   'test/views/common/quick_link_view_test',
   'test/views/common/rolling_restart_view_test',

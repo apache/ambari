@@ -16,49 +16,51 @@
 * limitations under the License.
 }}
 
-{{#isAuthorized "SERVICE.START_STOP, SERVICE.ADD_DELETE_SERVICES"}}
-    <div class="service-button" style="margin-top: 10px;">
-        <div class="btn-group display-inline-block col-md-11 col-md-offset-1">
-            <button class="btn btn-default dropdown-toggle col-md-10" data-toggle="dropdown" href="#">{{t common.actions}}
-                <span class="caret"></span>
-            </button>
-            <ul class="pull-left dropdown-menu">
-                {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
-                    <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled :add-service-button"}}>
-                        <a href="#"
-                            {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
-                            {{action gotoAddService target="view.serviceController"}}>
-                            <i class="glyphicon glyphicon-plus glyphicon-white"></i> {{t services.service.add}}</a>
-                    </li>
-                {{/isAuthorized}}
-                {{#isAuthorized "SERVICE.START_STOP"}}
-                    <li class="divider"></li>
-                    <li {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}>
-                        <a href="#" data-toggle="modal"
-                            {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}
-                            {{action "startAllService" target="view.serviceController"}}>
-                            <i {{bindAttr class=":glyphicon glyphicon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
-                            {{t services.service.startAll}}
-                        </a>
-                    </li>
-                    <li {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}>
-                        <a href="#" data-toggle="modal"
-                            {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}
-                            {{action "stopAllService" target="view.serviceController"}}>
-                            <i {{bindAttr class=":glyphicon glyphicon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
-                            {{t services.service.stopAll}}
-                        </a>
-                    </li>
-                    <li {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}>
-                        <a href="#" data-toggle="modal"
-                            {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}
-                            {{action "restartAllRequired" target="view.serviceController"}}>
-                            <i {{bindAttr class=":glyphicon glyphicon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
-                            {{t services.service.restartAllRequired}}
-                        </a>
-                    </li>
-                {{/isAuthorized}}
-            </ul>
-        </div>
-    </div>
-{{/isAuthorized}}
+<div class="row">
+  <div class="col-md-10 col-md-offset-1">
+    {{#isAuthorized "SERVICE.START_STOP, SERVICE.ADD_DELETE_SERVICES"}}
+      <div class="dropdown">
+        <button class="btn btn-default dropdown-toggle center-block" data-toggle="dropdown" href="#">{{t common.actions}}
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
+            <li {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled :add-service-button"}}>
+              <a href="#"
+                {{bindAttr class="view.serviceController.isAllServicesInstalled:disabled"}}
+                {{action gotoAddService target="view.serviceController"}}>
+                <i class="glyphicon glyphicon-plus glyphicon-white"></i> {{t services.service.add}}</a>
+            </li>
+          {{/isAuthorized}}
+          {{#isAuthorized "SERVICE.START_STOP"}}
+            <li class="divider"></li>
+            <li {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}>
+              <a href="#" data-toggle="modal"
+                {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}
+                {{action "startAllService" target="view.serviceController"}}>
+                <i {{bindAttr class=":glyphicon glyphicon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
+                {{t services.service.startAll}}
+              </a>
+            </li>
+            <li {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}>
+              <a href="#" data-toggle="modal"
+                {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}
+                {{action "stopAllService" target="view.serviceController"}}>
+                <i {{bindAttr class=":glyphicon glyphicon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
+                {{t services.service.stopAll}}
+              </a>
+            </li>
+            <li {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}>
+              <a href="#" data-toggle="modal"
+                {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}
+                {{action "restartAllRequired" target="view.serviceController"}}>
+                <i {{bindAttr class=":glyphicon glyphicon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+                {{t services.service.restartAllRequired}}
+              </a>
+            </li>
+          {{/isAuthorized}}
+        </ul>
+      </div>
+    {{/isAuthorized}}
+  </div>
+</div>

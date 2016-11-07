@@ -52,7 +52,7 @@
 #
 
 # DEFAULT: console appender only
-log4j.rootLogger=INFO, CONSOLE
+log4j.rootLogger=INFO, CONSOLE, ROLLINGFILE
 
 # Example with rolling log file
 #log4j.rootLogger=DEBUG, CONSOLE, ROLLINGFILE
@@ -73,7 +73,7 @@ log4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L]
 #    Log DEBUG level and above messages to a log file
 log4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender
 log4j.appender.ROLLINGFILE.Threshold=DEBUG
-log4j.appender.ROLLINGFILE.File=zookeeper.log
+log4j.appender.ROLLINGFILE.File={{zk_log_dir}}/zookeeper.log
 
 # Max log file size of 10MB
 log4j.appender.ROLLINGFILE.MaxFileSize=10MB

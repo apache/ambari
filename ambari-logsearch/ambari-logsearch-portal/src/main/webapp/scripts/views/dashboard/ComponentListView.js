@@ -68,14 +68,14 @@ define(['require',
 		                    pageSize: 99999
 		                }
 					});
-					this.componentsList.url = Globals.baseURL + "dashboard/getComponentListWithLevelCounts";
+					this.componentsList.url = Globals.baseURL + "service/logs/components/levels/counts";
 					this.hostList = new VNodeList([],{
 						state: {
 		                    firstPage: 0,
 		                    pageSize: 99999
 		                }
 					});
-					this.hostList.url = Globals.baseURL + "dashboard/getHostListByComponent";
+					this.hostList.url = Globals.baseURL + "service/logs/hosts/components";
 				},
 				/** all events binding here */
 				bindEvents : function(){
@@ -181,7 +181,7 @@ define(['require',
 					this.lastComponentLI = $el.data("name");
 					this.ui.componentsList.find("li").removeClass("active");
 					$el.addClass("active");
-					this.fetchComponentsHost(_.extend({componentName:$el.data("name")},this.searchParams));
+					this.fetchComponentsHost(_.extend({component_name:$el.data("name")},this.searchParams));
 				},
 				onNewTabIconClick : function(e){
 					var $el = $(e.currentTarget),host,component,that=this;
@@ -189,8 +189,8 @@ define(['require',
 					component = $el.data("type");
 					that.globalVent.trigger("render:tab",{
 						params:_.extend({},{
-							host :  host,
-							component : component
+							host_name :  host,
+							component_name : component
 						},that.searchParams,{treeParams:null}),
 						globalVent : that.globalVent
 					});

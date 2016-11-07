@@ -23,6 +23,7 @@ from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.decorator import retry
 from resource_management.core.source import InlineTemplate, Template
+from resource_management.libraries.resources.properties_file import PropertiesFile
 
 
 def setup_logsearch():
@@ -37,13 +38,14 @@ def setup_logsearch():
             )
 
   Directory([params.logsearch_dir, params.logsearch_server_conf, params.logsearch_config_set_dir],
-          mode=0755,
-          cd_access='a',
-          owner=params.logsearch_user,
-          group=params.user_group,
-          create_parents=True,
-          recursive_ownership=True
-          )
+            mode=0755,
+            cd_access='a',
+            owner=params.logsearch_user,
+            group=params.user_group,
+            create_parents=True,
+            recursive_ownership=True
+            )
+
   File(params.logsearch_log,
        mode=0644,
        owner=params.logsearch_user,
@@ -51,11 +53,9 @@ def setup_logsearch():
        content=''
        )
 
-  File(format("{logsearch_server_conf}/logsearch.properties"),
-       content=Template("logsearch.properties.j2"),
-       owner=params.logsearch_user,
-       group=params.user_group
-       )
+  PropertiesFile(format("{logsearch_server_conf}/logsearch.properties"),
+                 properties=params.logsearch_properties
+                 )
 
   File(format("{logsearch_server_conf}/HadoopServiceConfig.json"),
        content=Template("HadoopServiceConfig.json.j2"),

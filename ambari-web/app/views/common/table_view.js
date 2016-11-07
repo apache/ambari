@@ -19,22 +19,6 @@
 var App = require('app');
 var filters = require('views/common/filter_view');
 
-App.PaginationBtnsView = Ember.View.extend({
-  tag: 'div',
-  previousBtnClass: function () {
-    if (this.get("parentView.startIndex") > 1) {
-      return "paginate_previous";
-    }
-    return "paginate_disabled_previous";
-  }.property("parentView.startIndex", 'parentView.filteredCount'),
-  nextBtnClass: function () {
-    if ((this.get("parentView.endIndex")) < this.get("parentView.filteredCount")) {
-      return "paginate_next";
-    }
-    return "paginate_disabled_next";
-  }.property("parentView.endIndex", 'parentView.filteredCount')
-});
-
 App.TableView = Em.View.extend(App.UserPref, {
 
   init: function() {
@@ -84,6 +68,16 @@ App.TableView = Em.View.extend(App.UserPref, {
    * total number of items in table before applying filters
    */
   totalCount: Em.computed.alias('content.length'),
+
+  /**
+   * Determines whether cuurent page is the first one
+   */
+  isCurrentPageFirst: Em.computed.equal('startIndex', 1),
+
+  /**
+   * Determines whether cuurent page is the last one
+   */
+  isCurrentPageLast: Em.computed.equalProperties('endIndex', 'filteredCount'),
 
   /**
    * Do filtering, using saved in the local storage filter conditions
@@ -197,80 +191,6 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @type {String}
    */
   paginationInfo: Em.computed.i18nFormat('tableView.filters.paginationInfo', 'startIndex', 'endIndex', 'filteredCount'),
-
-  pagination2Btns: App.PaginationBtnsView.extend({
-    classNames: ['paging_two_button'],
-    template: Em.Handlebars.compile('<ul class="pagination">' +
-        '<li {{action previousPage target="view.parentView"}} {{bindAttr class="view.previousBtnClass"}}>' +
-        '<i class="glyphicon glyphicon-arrow-left"></i>' +
-        '</li>' +
-        '<li {{action nextPage target="view.parentView"}} {{bindAttr class="view.nextBtnClass"}}>' +
-        '<i class="glyphicon glyphicon-arrow-right"></i>' +
-        '</li>' +
-        '</ul>')
-  }),
-
-  pagination4Btns: App.PaginationBtnsView.extend({
-    classNames: ['paging_two_button'],
-    template: Em.Handlebars.compile('<ul class="pagination">' +
-        '{{view view.parentView.paginationFirst}}' +
-        '<li {{action previousPage target="view.parentView"}} {{bindAttr class="view.previousBtnClass"}}>' +
-        '<i class="glyphicon glyphicon-arrow-left"></i>' +
-        '</li>' +
-        '<li {{action nextPage target="view.parentView"}} {{bindAttr class="view.nextBtnClass"}}>' +
-        '<i class="glyphicon glyphicon-arrow-right"></i>' +
-        '</li>' +
-        '{{view view.parentView.paginationLast}}' +
-        '</ul>')
-  }),
-
-  paginationFirst: Ember.View.extend({
-    tagName: 'li',
-    template: Ember.Handlebars.compile('<i class="glyphicon glyphicon-step-backward"></i>'),
-    classNameBindings: ['class'],
-    class: function () {
-      if ((this.get("parentView.parentView.endIndex")) > parseInt(this.get("parentView.parentView.displayLength"))) {
-        return "paginate_previous";
-      }
-      return "paginate_disabled_previous";
-    }.property("parentView.parentView.endIndex", 'parentView.parentView.filteredCount'),
-
-    click: function () {
-      if (this.get('class') === "paginate_previous") {
-        this.get('parentView.parentView').firstPage();
-      }
-    }
-  }),
-
-  paginationLast: Ember.View.extend({
-    tagName: 'li',
-    template: Ember.Handlebars.compile('<i class="glyphicon glyphicon-step-forward"></i>'),
-    classNameBindings: ['class'],
-    class: function () {
-      if (this.get("parentView.parentView.endIndex") !== this.get("parentView.parentView.filteredCount")) {
-        return "paginate_next";
-      }
-      return "paginate_disabled_next";
-    }.property("parentView.parentView.endIndex", 'parentView.parentView.filteredCount'),
-
-    click: function () {
-      if (this.get('class') === "paginate_next") {
-        this.get('pparentView.arentView').lastPage();
-      }
-    }
-  }),
-
-  /**
-   * Select View with list of "rows-per-page" options
-   * @type {Ember.View}
-   */
-  rowsPerPageSelectView: Em.Select.extend({
-    classNames: ['form-control'],
-    content: ['10', '25', '50', '100'],
-    change: function () {
-      this.get('parentView').saveDisplayLength();
-    }
-  }),
 
   /**
    * Start index for displayed content on the page

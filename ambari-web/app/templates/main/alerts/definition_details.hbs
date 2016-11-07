@@ -63,32 +63,33 @@
 
     {{! Left column }}
     {{! Alert Definition Configs }}
-    <div class="box col-md-8">
-      <div class="box-header row">
+    <div class="panel panel-default col-md-8">
+      <div class="panel-heading row">
         <div class="pull-left col-md-7">
-          <h4>{{t common.configuration}}</h4>
+          <h4 class="panel-title">{{t common.configuration}}</h4>
         </div>
         <div class="pull-right col-md-5">
           {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
-              <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}}
-                  class="pull-right edit-link">
+              <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link btn btn-link">
                 {{t common.edit}}
               </a>
             {{/unless}}
           {{/isAuthorized}}
         </div>
       </div>
-      {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
-      {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
-        <div class="edit-buttons">
-          <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}}
-              class="btn btn-default">{{t common.cancel}}</button>
-          <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
-              class="btn btn-primary">{{t common.save}}
-          </button>
-        </div>
-      {{/if}}
+      <div class="panel-body">
+        {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
+        {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
+          <div class="edit-buttons">
+            <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}}
+                class="btn btn-default">{{t common.cancel}}</button>
+            <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}
+                class="btn btn-primary">{{t common.save}}
+            </button>
+          </div>
+        {{/if}}
+      </div>
     </div>
     {{! Alert Definition Configs end }}
     {{! Left column end }}
@@ -255,21 +256,14 @@
           </tr>
         {{/if}}
         </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="5">
+            {{view App.PaginationView}}
+          </td>
+        </tr>
+        </tfoot>
       </table>
-
-      <div class="page-bar">
-        <div class="filtered-info col-md-4">
-          {{#if view.showFilteredContent}}
-            <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-              href="#">{{t tableView.filters.clearAllFilters}}</a></label>
-          {{/if}}
-        </div>
-        <div class="items-on-page">
-          <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-        </div>
-        <div class="info">{{view.paginationInfo}}</div>
-        {{view view.pagination2Btns}}
-      </div>
 
     {{else}}
       {{view App.SpinnerView}}

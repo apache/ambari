@@ -27,7 +27,7 @@ define(['require',
 	'd3.tip'
 ],function(require,Backbone,Utils,ViewUtils,Globals,MainLayoutViewTmpl){
     'use strict';
-	
+
 	var MainLayoutView = Backbone.Marionette.Layout.extend(
 	/** @lends MainLayoutView */
 	{
@@ -87,13 +87,6 @@ define(['require',
 		 */
 		initialize: function(options) {
 			_.extend(this, _.pick(options,'globalVent'));
-//			this.collection = new VLogList([], {
-//                state: {
-//                    firstPage: 0,
-//                    pageSize: 50
-//                }
-//            });
-//			this.collection.url = Globals.baseURL + "dashboard/solr/logs_search";
 			this.vent = new Backbone.Wreqr.EventAggregator();
 			this.dateUtil = Utils.dateUtil;
 			this.bindEvents();
@@ -107,7 +100,7 @@ define(['require',
             	setTimeout(function(){
             		that.reAdjustTab()
             	},1000);
-            	
+
             },this);
             this.listenTo(this.globalVent,"render:comparison:tab",function(options){
 				this.hideContextMenu();
@@ -137,8 +130,8 @@ define(['require',
 			if(params.host_name && params.component_name){
 				this.globalVent.trigger("render:tab",{
 					params:_.extend({},{
-						host :  params.host_name,
-						component : params.component_name
+						host_name :  params.host_name,
+						component_name : params.component_name
 					},params),
 					globalVent : this.globalVent
 				});
@@ -147,7 +140,7 @@ define(['require',
 		renderLogFileTab : function(view){
 			var that = this;
 			require(['views/tabs/LogFileView'], function(LogFileView){
-				var tabName = (view.params.host + view.params.component).replace(/\./g,"_");
+				var tabName = (view.params.host_name + view.params.component_name).replace(/\./g,"_");
 				if(_.isUndefined(that[tabName])){
 					var region = {};
 					region[tabName] = '#' + tabName;
@@ -160,7 +153,7 @@ define(['require',
 					var region = that.getRegion(tabName);
 					region.show(new LogFileView(view));
 					that.$(".nav.nav-tabs").append('<li data-id="'+tabName+'" role="presentation">'+
-							'<a data-id="'+tabName+'" data-host="'+view.params.host+'" data-component="'+view.params.component+'" href="#'+tabName+'" aria-controls="profile" role="tab" data-toggle="tab" title="'+view.params.host.split(".")[0]+' >> '+view.params.component+' ">'+view.params.host.split(".")[0]+'<b> >> </b>'+view.params.component+'</a>'+
+							'<a data-id="'+tabName+'" data-host="'+view.params.host_name+'" data-component="'+view.params.component_name+'" href="#'+tabName+'" aria-controls="profile" role="tab" data-toggle="tab" title="'+view.params.host_name.split(".")[0]+' >> '+view.params.component_name+' ">'+view.params.host_name.split(".")[0]+'<b> >> </b>'+view.params.component_name+'</a>'+
 	//						'<span class="air air-top-right">'+
 								'<button data-tab-id="'+tabName+'" class="btn-closeTab"><i class="fa fa-times-circle"></i></button>'+
 								'<div class="compareClick" title="Compare"><i class="fa fa-square-o"></i></div>');
@@ -181,8 +174,8 @@ define(['require',
 			require(['views/tabs/ComparisonLayoutView'], function(ComparisonLayoutView){
 				var tabName = "";
 				_.each(view.componetList,function(object){
-					if(object.host && object.component){
-						tabName += (object.host + object.component).replace(/\./g,"_");
+					if(object.host_name && object.component_name){
+						tabName += (object.host_name + object.component_name).replace(/\./g,"_");
 					}
 				});
 				if(_.isUndefined(that[tabName])){
@@ -211,7 +204,7 @@ define(['require',
 				$("html, body").animate({ scrollTop: 0 }, 500);
 				that.showTab(tabName);
 			});
-		
+
 		},
 		showTab : function(tabId){
 			this.$(".nav.nav-tabs li").removeClass("active");
@@ -242,7 +235,7 @@ define(['require',
 					globalVent:that.globalVent
 				}));
 			})
-			
+
 		},
 		renderComponents : function(){
 			var that = this;
@@ -274,7 +267,7 @@ define(['require',
 		renderTroubleShootTab:function(){
 			var that = this;
 			require(['views/troubleshoot/TroubleShootLayoutView'], function(TroubleShootLayoutView){
-				
+
 				that.RTroubleShoot.show(new TroubleShootLayoutView({
 					globalVent:that.globalVent
 				}));
@@ -345,7 +338,7 @@ define(['require',
 		var pack = d3.layout.pack()
 		    .padding(2)
 		    .size([diameter - margin, diameter - margin])
-		    .value(function(d) { 
+		    .value(function(d) {
 		    	return d.count; })
 		    .children(function(d){
 		    	return d.dataList;
@@ -381,9 +374,9 @@ define(['require',
 		  var circle = svg.selectAll("circle")
 		      .data(nodes)
 		    .enter().append("circle")
-		      .attr("class", function(d) { 
+		      .attr("class", function(d) {
 		    	  return d.parent ? d.children ? "node" : "node node--leaf "+d.name : "node node--root"; })
-		      .style("fill", function(d) { 
+		      .style("fill", function(d) {
 		    	  return d.children ? color(d.depth) : null; })
 		      .on("click", function(d) {
 		    	  if(d3.event.shiftKey){
@@ -391,7 +384,7 @@ define(['require',
 		    	  }else{
 		    		  if (focus !== d) zoom(d), d3.event.stopPropagation();
 		    	  }
-		    		   
+
 		      })
 		      .on('mouseover', function (d,i) {
                     if (d.x) {
@@ -403,7 +396,7 @@ define(['require',
                         tipCirclePack.hide(d);
                     }
                 });
-		  
+
 		  var text = svg.selectAll("text")
 		      .data(nodes)
 		    .enter().append("text")
@@ -418,7 +411,7 @@ define(['require',
 		    			  return "";
 		    	  }else
 		    		  return d.name;
-		    	   
+
 		      });
 
 		  var node = svg.selectAll("circle,text");
@@ -472,7 +465,7 @@ define(['require',
 			    		el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
 			    		this.quickMenuCompare = false;
 			    		this.onCompareLink(el);
-			    	}        
+			    	}
 			    }else{
 			    	el.find('i').removeClass('fa-square-o').addClass('fa-check-square-o');
 			    }
@@ -518,10 +511,10 @@ define(['require',
 			        var component = dataValue.component || dataValue.node;
 			        var spanLength = this.$('.compare .panel-body span.hasNode');
 			        if (spanLength.length != 0 && spanLength.length >= 1) {
-			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.componetList.push({ 'host_name': host, 'component_name': component, id: clickedId });
 			            this.$('.compare .panel-body .hostCompList').append('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
 			        } else {
-			            this.componetList.push({ 'host': host, 'component': component, id: clickedId });
+			            this.componetList.push({ 'host_name': host, 'component_name': component, id: clickedId });
 			            this.$('.compare .panel-body .hostCompList').html('<span class="hasNode" data-id="' + clickedId + '"><i class=" closeComponent fa fa-times-circle"></i>' + host.split(".")[0] + ' <i class="fa fa-angle-double-right"></i><br> ' + component + '</span>');
 			        }
 			    }
@@ -643,7 +636,7 @@ define(['require',
 			  else {
 			    that.$('.scroller-right').hide();
 			  }
-			  
+
 			  if (getLeftPosi()<0) {
 			    that.$('.scroller-left').show();
 			  }
@@ -655,7 +648,7 @@ define(['require',
 
 
 			this.$('.scroller-right').click(function(e) {
-			  
+
 			 /* that.$('.scroller-left').fadeIn('slow');
 			  that.$('.scroller-right').fadeOut('slow');*/
 			  //console.log(widthOfHidden())
@@ -664,23 +657,23 @@ define(['require',
 			  		that.reAdjustTab();
 			 	 });
 			  }
-			 
+
 			});
 
 			this.$('.scroller-left').click(function() {
-			  
+
 				/*that.$('.scroller-right').fadeIn('slow');
 				that.$('.scroller-left').fadeOut('slow');*/
 			  	//console.log(getLeftPosi())
 			  	if(getLeftPosi() < 0){
 			  		that.$('.list').animate({left:"-="+(-40)+"px"},0,function(){
 			  		that.reAdjustTab();
-			  	});	
+			  	});
 			  	}
-			  	
-			});    
+
+			});
 		},
 	});
 	return MainLayoutView;
-	
+
 });

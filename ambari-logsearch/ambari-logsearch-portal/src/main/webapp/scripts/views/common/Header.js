@@ -168,11 +168,11 @@ define(['require',
                 require(['views/filter/CreateLogfeederFilterView'],function(CreateLogfeederFilter){
                     var view = new CreateLogfeederFilter({});
                     var options = {
-                        title: "Logfeeder Filter",
+                        title: "Log Feeder Log Levels Filter",
                         content: view,
                         viewType: 'Filter',
                         resizable: false,
-                        width: 950,
+                        width: 1000,
                         height: 550,
                         autoFocus1stElement : false,
                         buttons: [{
@@ -339,12 +339,8 @@ define(['require',
 
                 var gMessage = logMessagesList.map(function(e) {
                     return e.message
-                })
-                this.setNotificationCount(componentList.length, gMessage.length);
-                this.globalVent.trigger("globalExclusion:component:message", {
-                    gMustNot: (componentList.length != 0) ? (componentList.join()) : (""),
-                    gEMessage: (gMessage.length != 0) ? (gMessage.join(Globals.splitToken)) : ("")
                 });
+                this.setNotificationCount(componentList.length, gMessage.length);
             },
             /** closing the movable/resizable popup */
             onDialogClosed: function() {

@@ -18,15 +18,13 @@
 
 define(['backbone','utils/LangSupport', 'backbone.marionette'],function(Backbone,localization) {
     'use strict';
-
-	//var SessionMgr		= require('mgrs/SessionMgr');
+  
     /*
      * Localization initialization
      */
     localization.setDefaultCulture(); // will take default that is en
     
 	var App = new Backbone.Marionette.Application();
-	//App.userProfile = SessionMgr.getUserProfile();
 
 	/* Add application regions here */
 	App.addRegions({
@@ -60,7 +58,7 @@ define(['backbone','utils/LangSupport', 'backbone.marionette'],function(Backbone
             context: this,
             url: tempUrl,
             success: function(response){
-                    serverUrl += "http://" + response.parameters['logsearch.server.url']+"/service/";
+                    serverUrl += "http://" + response.parameters['logsearch.server.url']+"/api/v1/";
             },
             error: function(response){
                     console.log("Error while getting log search server url");
@@ -70,7 +68,7 @@ define(['backbone','utils/LangSupport', 'backbone.marionette'],function(Backbone
     
         App.baseUrl = serverUrl//Utils.getLogSearchHostDetails();
     } else {
-        App.baseUrl = "service/";
+        App.baseUrl = "api/v1/";
     }
 
     // Add initialize hooks

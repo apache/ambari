@@ -21,9 +21,9 @@
     <div class="row">
       <div class="col-md-9">
         {{view compareConfig.viewClass serviceConfigBinding="compareConfig" versionBinding="compareConfig.serviceVersion.version" categoryConfigsAllBinding="view.parentView.categoryConfigsAll"}}
-        <span class="label label-info">{{compareConfig.serviceVersion.versionText}}</span>
+        <span class="label label-info config-controls">{{compareConfig.serviceVersion.versionText}}</span>
         {{#if compareConfig.serviceVersion.isCurrent}}
-          <span class="label label-success">{{t common.current}}</span>
+          <span class="label label-success config-controls">{{t common.current}}</span>
         {{/if}}
         {{#unless compareConfig.isMock}}
           {{#if compareConfig.supportsFinal}}

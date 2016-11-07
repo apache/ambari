@@ -70,11 +70,11 @@
         font-size: 11px;
         .top-label {
           min-width: 20px;
-          padding: 3px 2px;
+          padding: 6px 2px;
         }
         .author,
         .content {
-          padding: 0 2px;
+          padding: 2px;
           text-align: center;
           color: #555555;
           display: block;
@@ -105,7 +105,7 @@
         left: -45px;
         z-index: 1000;
         float: left;
-        width: 370px;
+        width: 380px;
         padding: 8px;
         list-style: none;
         background-color: #ffffff;
@@ -121,11 +121,13 @@
           padding: 1px 5px 15px 5px;
           text-align: left;
           .notes{
+            padding-top: 6px;
             overflow-wrap: break-word;
             word-wrap: break-word;
             white-space: pre-wrap;
           }
           .date{
+            padding-top: 5px;
             color: #808080;
             font-size: 11px;
             white-space: nowrap;
@@ -209,18 +211,19 @@
     -moz-border-radius: 4px;
     border-radius: 4px;
     padding: 5px;
+    clear:both;
+    margin-bottom: 5px;
 
     .glyphicon-remove-circle {
       color: #ffffff;
       font-size: 1.5em;
       padding-top: 4px;
-      margin-top: 0px;
+      margin-top: 0;
       display: inline-block;
       cursor: pointer;
     }
     .label-wrapper {
       line-height: 30px;
-      margin-left: 10px;
       color: #d3d3d3;
       .label {
         font-size: 14px;
@@ -281,6 +284,9 @@
         background-image: linear-gradient(to bottom, #666666, #555555);
         color: #ffffff;
       }
+      li#show_more:hover {
+        background: none;
+      }
       li.not-allowed {
         // the version which is displayed
         cursor: not-allowed;
@@ -305,7 +311,7 @@
       max-width: 300px;
       line-height: 20px;
       font-size: 13px;
-      margin: 0px;
+      margin: 0;
       padding: 8px;
       color: #333333;
       cursor: default;
@@ -395,9 +401,6 @@
     td.notes .show-more-button {
       font-size: @default-font-size - 1;
     }
-  }
-  div.page-bar div.filtered-info {
-    margin-left: 17px;
   }
   a {
     cursor: pointer;

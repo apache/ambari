@@ -34,8 +34,8 @@
         </div>
       </div>
 
-      <div class="box">
-        <div class="box-header">
+      <div class="panel panel-default panel-internal">
+        <div class="panel-heading">
           <div class="pull-left">
             {{#if controller.showRetry}}
               <a class="btn btn-primary" href="#" {{action retry}}>
@@ -60,8 +60,9 @@
               {{/each}}
             </ul>
           </div>
+          <div class="clearfix"></div>
         </div>
-        <div class="pre-scrollable col-sm-12">
+        <div class="panel-body pre-scrollable">
           <table id="deploy-status-by-host" class="table table-hover">
             <thead>
             <tr>
@@ -102,21 +103,14 @@
               </tr>
               {{/if}}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">
+                  {{view App.PaginationView}}
+                </td>
+              </tr>
+            </tfoot>
           </table>
-        </div>
-        <div id="hosts">
-          <div class="page-bar">
-            <div class="selected-hosts-info pull-left">
-              {{view.filteredHostsInfo}}
-              -
-              <a {{action showAllHosts target="view"}} href="#">{{t tableView.filters.showAll}}</a>
-            </div>
-            <div class="items-on-page">
-              <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-            </div>
-            <div class="info">{{view.paginationInfo}}</div>
-            {{view view.pagination4Btns}}
-          </div>
         </div>
       </div>
       {{#if view.resultMsg}}
@@ -127,8 +121,11 @@
           {{/if}}
         </p>
       {{/if}}
+
     </div>
+
   </div>
+
 </div>
 <div class="wizard-footer col-md-12">
     <div class="btn-area">

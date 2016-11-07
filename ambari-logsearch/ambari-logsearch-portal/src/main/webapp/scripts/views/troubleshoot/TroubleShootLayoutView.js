@@ -82,7 +82,7 @@ define(['backbone',
 
                     }
                 });
-                this.serviceLogsCollection.url = Globals.baseURL + "dashboard/getAnyGraphData";
+                this.serviceLogsCollection.url = Globals.baseURL + "service/logs/count/anygraph";
                 this.serviceLogsCollection.modelAttrName = "graphData";
                 
             	this.topUsers = new VNameValueList([],{
@@ -91,7 +91,7 @@ define(['backbone',
                         pageSize: 9999
                     }
     			});
-    			this.topUsers.url = Globals.baseURL + "audit/getTopAuditUsers";
+    			this.topUsers.url = Globals.baseURL + "audit/logs/resources/10";
     			this.topUsers.modelAttrName = "graphData";
     			
     			this.serviceLoadCollection = new VLogList([], {
@@ -101,7 +101,7 @@ define(['backbone',
 
                     }
                 });
-            	this.serviceLoadCollection.url = Globals.baseURL + "audit/getServiceLoad";
+            	this.serviceLoadCollection.url = Globals.baseURL + "audit/logs/serviceload";
                 this.serviceLoadCollection.modelAttrName = "graphData";
             },
             bindEvents : function(){
@@ -133,7 +133,7 @@ define(['backbone',
             },
             onRender : function(){
             	var that = this;
-            	this.fetchTopUsers(this.params);
+            	this.fetchTopUsers(_.extend({field : "reqUser"},this.params));
             	this.serviceLogsCollection.getServicesInfo({
                 	success : function(resp){
                 		Globals.servicesInfo = resp;
@@ -275,7 +275,7 @@ define(['backbone',
     					hideFireButton : false,
     					buttonLabel : "Apply",
     					parentEl: that.$el.find(".row").first(),
-    					datePickerPosition : "right"
+    					datePickerPosition : "left"
     				}));
                 });
             },
@@ -369,7 +369,8 @@ define(['backbone',
                                 ( (""+name).toUpperCase() === 'WARN') ? ("#FF8916") :
                                 ( (""+name).toUpperCase() === 'FATAL') ? ("#830A0A") :
                                 ( (""+name).toUpperCase() === 'DEBUG') ? ("#65E8FF") :
-                                ( (""+name).toUpperCase() === 'TRACE') ? ("#888888") : "")
+                                ( (""+name).toUpperCase() === 'TRACE') ? ("#888888") :
+                                ( (""+name).toUpperCase() === 'UNKNOWN') ? ("#bdbdbd") : "")
             			});
             			
             		}

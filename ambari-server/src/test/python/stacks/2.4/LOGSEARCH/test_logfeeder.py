@@ -60,8 +60,13 @@ class TestLogFeeder(RMFTestCase):
                               mode=0644,
                               content=''
                               )
-    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
-                              content=Template('logfeeder.properties.j2')
+    self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
+                              properties={'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
+                                          'logfeeder.config.files': 'global.config.json,output.config.json,input.config-ambari.json,input.config-logsearch.json,input.config-zookeeper.json',
+                                          'logfeeder.metrics.collector.hosts': '',
+                                          'logfeeder.solr.core.config.name': 'history',
+                                          'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
+                                         }
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/logfeeder-env.sh',
                               mode=0755,
@@ -71,20 +76,22 @@ class TestLogFeeder(RMFTestCase):
                               content=InlineTemplate(self.getConfig()['configurations']['logfeeder-log4j']['content'])
                               )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/grok-patterns',
-                              content=Template('grok-patterns.j2'),
+                              content=InlineTemplate('GP'),
                               encoding='utf-8'
                               )
 
-    logfeeder_supported_services = ['accumulo', 'ambari', 'ams', 'atlas', 'falcon', 'flume', 'hbase', 'hdfs', 'hive', 'hst', 'infra', 'kafka',
-                                    'knox', 'logsearch', 'nifi', 'oozie', 'ranger', 'spark', 'spark2', 'storm', 'yarn', 'zeppelin', 'zookeeper']
+    logfeeder_supported_services = ['ambari','logsearch']
 
-    logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag
-                                                                                  in logfeeder_supported_services]
+    logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + \
+                                  ['input.config-%s.json' % (tag) for tag in logfeeder_supported_services]
 
     for file_name in logfeeder_config_file_names:
       self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
                                 content=Template(file_name + ".j2")
                                 )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-zookeeper.json',
+                              content=InlineTemplate("pattern content")
+                              )
 
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/logfeeder.py",

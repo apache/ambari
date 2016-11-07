@@ -78,7 +78,7 @@ define(['require',
                 this.graphParams = {};
                 this.unit = (this.model.params && this.model.params.unit) ? this.model.params.unit : "+1HOUR";
                 this.firstRender = true;
-                this.collection.url = Globals.baseURL + "audit/getAnyGraphData";
+                this.collection.url = Globals.baseURL + "audit/logs/anygraph";
                 this.collection.modelAttrName = "graphData";
 
             },

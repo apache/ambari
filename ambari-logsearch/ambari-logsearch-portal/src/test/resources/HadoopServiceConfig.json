@@ -1,0 +1,17 @@
+{
+  "service": {
+    "accumulo": {
+      "label": "TestService",
+      "components": [
+        {
+          "name": "test_component1"
+        },
+        {
+          "name": "test_component2"
+        }
+      ],
+      "dependencies": [
+      ]
+    }
+  }
+}
