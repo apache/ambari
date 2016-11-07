@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 
-<div class="col-md-3">
+<div class="col-md-4">
   <span {{bindAttr class="view.property.badgeCssClass :alert-label :label :alert-state-single-host"}}>{{view.property.badge}}</span>
 </div>
 {{#if view.property.showInputForValue}}
-  <div class="col-md-3">
+  <div class="col-md-4">
     <div {{bindAttr class="view.property.valueMetric:input-group"}}>
       {{view Em.TextField valueBinding="view.property.displayValue" disabledBinding="view.property.isDisabled" class="form-control"}}
       {{#if view.property.valueMetric}}
@@ -30,7 +30,7 @@
   </div>
 {{/if}}
 {{#if view.property.showInputForText}}
-  <div {{bindAttr class="view.property.showInputForValue:col-md-6:col-md-9"}}>
+  <div {{bindAttr class="view.property.showInputForValue:col-md-4:col-md-8"}}>
     {{view Em.TextField valueBinding="view.property.text" disabledBinding="view.property.isDisabled" class="form-control"}}
   </div>
 {{/if}}
