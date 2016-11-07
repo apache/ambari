@@ -78,6 +78,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     // If `this.categoryConfigsAll` is a computed property then don't set it.
     // some extended class like `App.NotificationsConfigsView` overrides `categoryConfigsAll` as computed property
     Em.run.next(function () {
+      if (self.get('state') !== 'inDOM') {
+        return;
+      }
       if ($.isArray(self.categoryConfigsAll)) {
         self.setCategoryConfigsAll();
       }
