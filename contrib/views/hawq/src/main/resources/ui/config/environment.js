@@ -18,14 +18,14 @@
 
 /* jshint node: true */
 
-module.exports = function(environment) {
+module.exports = function (environment) {
   var ENV = {
     modulePrefix: 'hawq-view',
     environment: environment,
     baseURL: '/',
     apiURL: 'api/v1',
     locationType: 'hash',
-    pollingInterval: 7500,
+    pollingInterval: 5000,
     shouldPoll: true,
     EmberENV: {
       FEATURES: {

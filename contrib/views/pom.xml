@@ -74,6 +74,7 @@
             <exclude>pass.txt</exclude>
             <exclude>.DS_Store</exclude>
             <exclude>.iml/</exclude>
+            <exclude>**/*.iml</exclude>
             <exclude>.classpath</exclude>
             <exclude>.project</exclude>
             <exclude>.settings</exclude>
