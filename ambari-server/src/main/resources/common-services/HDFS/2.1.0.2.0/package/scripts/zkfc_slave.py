@@ -169,6 +169,15 @@ class ZkfcSlaveDefault(ZkfcSlave):
     import params
     return params.hdfs_user
 
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
+    import params
+    env.set_params(params)
+    if params.version and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version) \
+        and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      stack_select.select("hadoop-hdfs-zkfc", params.version)
+
 def initialize_ha_zookeeper(params):
   try:
     iterations = 10
@@ -188,15 +197,6 @@ def initialize_ha_zookeeper(params):
   except Exception as ex:
     Logger.error('HA state initialization in ZooKeeper threw an exception. Reason %s' %(str(ex)))
   return False
-
-  def pre_upgrade_restart(self, env, upgrade_type=None):
-    Logger.info("Executing Stack Upgrade pre-restart")
-    import params
-    env.set_params(params)
-    if params.version and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version) \
-        and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
-      conf_select.select(params.stack_name, "hadoop", params.version)
-      stack_select.select("hadoop-hdfs-zkfc", params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ZkfcSlaveWindows(ZkfcSlave):
