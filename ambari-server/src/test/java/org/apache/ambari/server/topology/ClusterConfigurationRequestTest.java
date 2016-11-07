@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,7 +111,7 @@ public class ClusterConfigurationRequestTest {
   @Test
   public void testProcessWithKerberos_UpdateKererosConfigProperty_WithNoCustomValue() throws Exception {
 
-    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue");
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
     assertEquals(2, updatedConfigTypes.size());
@@ -125,7 +126,8 @@ public class ClusterConfigurationRequestTest {
   public void testProcessWithKerberos_UpdateKererosConfigProperty_WithCustomValueEqualToStackDefault() throws
     Exception {
 
-    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("defaultTestValue", "defaultTestValue");
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("defaultTestValue",
+      "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
     assertEquals(2, updatedConfigTypes.size());
@@ -141,7 +143,8 @@ public class ClusterConfigurationRequestTest {
   public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithCustomValueDifferentThanStackDefault() throws
     Exception {
 
-    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("testPropertyValue", "defaultTestValue");
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("testPropertyValue",
+      "defaultTestValue", null);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
     assertEquals(1, updatedConfigTypes.size());
@@ -156,14 +159,43 @@ public class ClusterConfigurationRequestTest {
   @Test
   public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithCustomValueNoStackDefault() throws Exception {
 
-    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("testPropertyValue", null);
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos("testPropertyValue", null, null);
+
+    Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
+    assertEquals(1, updatedConfigTypes.size());
+  }
+
+  @Test
+  public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithKerberosConfigSameAsDefault() throws
+    Exception {
+    Map<String, Map<String, String>> kerberosConfig = new HashMap<>();
+    Map<String, String> properties = new HashMap<>();
+    properties.put("testProperty", "defaultTestValue");
+    kerberosConfig.put("testConfigType", properties);
+
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", kerberosConfig);
+
+    Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
+    assertEquals(1, updatedConfigTypes.size());
+  }
+
+  @Test
+  public void testProcessWithKerberos_DontUpdateKererosConfigProperty_WithOrphanedKerberosConfigType() throws
+    Exception {
+    Map<String, Map<String, String>> kerberosConfig = new HashMap<>();
+    Map<String, String> properties = new HashMap<>();
+    properties.put("testProperty", "KERBEROStestValue");
+    kerberosConfig.put("orphanedTestConfigType", properties);
+
+    Capture<? extends Set<String>> captureUpdatedConfigTypes = testProcessWithKerberos(null, "defaultTestValue", kerberosConfig);
 
     Set<String> updatedConfigTypes = captureUpdatedConfigTypes.getValue();
     assertEquals(1, updatedConfigTypes.size());
   }
 
   private Capture<? extends Set<String>> testProcessWithKerberos(String blueprintPropertyValue, String
-    stackPropertyValue) throws AmbariException, KerberosInvalidConfigurationException, ConfigurationTopologyException {
+    stackPropertyValue,  Map<String, Map<String, String>> kerberosConfig) throws AmbariException, KerberosInvalidConfigurationException,
+    ConfigurationTopologyException {
 
 
     Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
@@ -189,7 +221,7 @@ public class ClusterConfigurationRequestTest {
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
-    expect(stack.getServiceForConfigType(anyString())).andReturn("KERBEROS").anyTimes();
+    expect(stack.getServiceForConfigType("testConfigType")).andReturn("KERBEROS").anyTimes();
     expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
     ).anyTimes();
     expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
@@ -219,14 +251,19 @@ public class ClusterConfigurationRequestTest {
     expect(topology.getConfiguration()).andReturn(blueprintConfig).anyTimes();
     expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap()).anyTimes();
     expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
-    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
+    expect(topology.getHostGroupsForComponent(anyString())).andReturn(Collections.<String>emptyList())
+      .anyTimes();
+
+      expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
     expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
       .<ConfigurationRequest>emptyList()).anyTimes();
 
-    Map<String, Map<String, String>> kerberosConfig = new HashMap<String, Map<String, String>>();
-    Map<String, String> properties = new HashMap<>();
-    properties.put("testProperty", "KERBEROStestValue");
-    kerberosConfig.put("testConfigType", properties);
+    if (kerberosConfig == null) {
+      kerberosConfig = new HashMap<>();
+      Map<String, String> properties = new HashMap<>();
+      properties.put("testProperty", "KERBEROStestValue");
+      kerberosConfig.put("testConfigType", properties);
+     }
     expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
       (Set.class))).andReturn(true).once();
     expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
