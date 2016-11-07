@@ -21,17 +21,14 @@ package org.apache.ambari.logsearch.web.security;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.ambari.logsearch.util.PropertiesUtil;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-public abstract class LogsearchAbstractAuthenticationProvider implements AuthenticationProvider {
+abstract class LogsearchAbstractAuthenticationProvider implements AuthenticationProvider {
 
-  public final static String AUTH_METHOD_PROP_START_WITH = "logsearch.auth.";
-
-  protected enum AUTH_METHOD {
+  protected enum AuthMethod {
     LDAP, FILE, EXTERNAL_AUTH, SIMPLE
   };
 
@@ -42,37 +39,10 @@ public abstract class LogsearchAbstractAuthenticationProvider implements Authent
 
   /**
    * GET Default GrantedAuthority
-   * 
-   * @param username
-   * @return List<GrantedAuthority>
    */
-  protected List<GrantedAuthority> getAuthorities(String username) {
-    final List<GrantedAuthority> grantedAuths = new ArrayList<>();
+  protected List<GrantedAuthority> getAuthorities() {
+    List<GrantedAuthority> grantedAuths = new ArrayList<>();
     grantedAuths.add(new SimpleGrantedAuthority("ROLE_USER"));
     return grantedAuths;
   }
-
-  /**
-   * Check authentication provider is enable or disable for specified method
-   * 
-   * @param method
-   * @return boolean
-   */
-  public boolean isEnable(AUTH_METHOD method) {
-    String methodName = method.name().toLowerCase();
-    String property = AUTH_METHOD_PROP_START_WITH + methodName + ".enable";
-    boolean isEnable = PropertiesUtil.getBooleanProperty(property, false);
-    return isEnable;
-  }
-
-  /**
-   * Check authentication provider is enable or disable
-   * 
-   * @return boolean
-   */
-  public boolean isEnable() {
-    // default is disabled
-    return false;
-  }
-
 }

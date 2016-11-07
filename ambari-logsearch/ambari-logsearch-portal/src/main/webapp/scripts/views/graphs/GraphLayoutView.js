@@ -81,10 +81,10 @@ define(['require',
                 this.firstRender = true;
                 if (!this.viewType || this.viewType == Globals.graphType.HISTOGRAM.value) {
                     this.histogramView = true;
-                    this.collection.url = Globals.baseURL + "dashboard/getHistogramData";
+                    this.collection.url = Globals.baseURL + "service/logs/histogram";
                     this.collection.modelAttrName = "graphData";
                 } else {
-                    this.collection.url = Globals.baseURL + "audit/getAuditLineGraphData";
+                    this.collection.url = Globals.baseURL + "audit/logs/bargraph";
                     this.collection.modelAttrName = "graphData";
                     this.lineView = true;
                 }
@@ -205,7 +205,8 @@ define(['require',
                         parentEl: that.$el,
                         fetch: true,
                         rangeLabel: true,
-                        width: '55%'
+                        datePickerPosition : "left",
+                        width: '65%'
                     }));
                 });
             },
@@ -245,7 +246,7 @@ define(['require',
                                                  }
                                 }
                         }
-                        Obj.values = newObj;                      
+                        Obj.values = newObj;
                     }
 
                     if (that.histogramView) {
@@ -254,7 +255,8 @@ define(['require',
                             (model.get('name') === 'WARN') ? ("#FF8916") :
                             (model.get('name') === 'FATAL') ? ("#830A0A") :
                             (model.get('name') === 'DEBUG') ? ("#65E8FF") :
-                            (model.get('name') === 'TRACE') ? ("#888888") : ("white"));
+                            (model.get('name') === 'TRACE') ? ("#888888") : 
+                            (model.get('name') === 'UNKNOWN') ? ("#bdbdbd") : ("white"));
                     } else {
                         Obj['color'] = color[i];
                     }
@@ -281,7 +283,7 @@ define(['require',
                     generate: function() {
                         /* var parentWidth = (that.ui.histoGraph.find('svg').parent().width()),
                              parentHeight = (that.ui.histoGraph.find('svg').parent().height())
-                             width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding 
+                             width = ((parentWidth === 0) ? (891) : (parentWidth)), // -15 because  parent has 15 padding
                               height = ((parentHeight === 0) ? (640) : (parentHeight)) // -15 because  parent has 15 padding */
                         if (that.histogramView) {
                             that.chart = nv.models.multiBarChart()
@@ -289,7 +291,7 @@ define(['require',
                                  .height(height)*/
                                 .stacked(true)
                                 .showControls(false);
-                            that.chart.groupSpacing(0.6) // for bar width and aspace 
+                            that.chart.groupSpacing(0.6) // for bar width and aspace
                         } else {
                             that.chart = nv.models.lineChart().options({
                                 transitionDuration: 300,
@@ -483,7 +485,7 @@ define(['require',
                         that.vent.trigger("date:setDate", {
                                 'from': that.dateUtil.getMomentObject(that.brushValue[0]),
                                 'to': that.dateUtil.getMomentObject(that.brushValue[1])
-                          });          
+                          });
                      }
                     /*}*/
 

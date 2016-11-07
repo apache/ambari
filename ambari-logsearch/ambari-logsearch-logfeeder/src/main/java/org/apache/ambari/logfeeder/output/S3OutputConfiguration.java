@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,10 +18,10 @@
 
 package org.apache.ambari.logfeeder.output;
 
-import org.apache.ambari.logfeeder.ConfigBlock;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.ambari.logfeeder.common.ConfigBlock;
 
 /**
  * Holds all configuration relevant for S3 upload.
@@ -103,8 +103,7 @@ public class S3OutputConfiguration {
     };
 
     for (int i = 0; i < longValuedKeysToCopy.length; i++) {
-      configs.put(longValuedKeysToCopy[i],
-          configBlock.getLongValue(longValuedKeysToCopy[i], defaultValuesForLongValuedKeys[i]));
+      configs.put(longValuedKeysToCopy[i], configBlock.getLongValue(longValuedKeysToCopy[i], defaultValuesForLongValuedKeys[i]));
     }
 
     configs.put(ADDITIONAL_FIELDS_KEY, configBlock.getNVList(ADDITIONAL_FIELDS_KEY));

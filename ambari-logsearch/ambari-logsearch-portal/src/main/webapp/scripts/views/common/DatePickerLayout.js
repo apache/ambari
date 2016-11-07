@@ -59,6 +59,7 @@ define(['require',
                 this.bindEvents();
                 this.graphParams = {};
                 this.unit = this.params.unit ? this.params.unit : "+1HOUR";
+                this.isEventTriggerdFromVent = false;
             },
             bindEvents: function() {
                 this.listenTo(this.vent, "tab:refresh", function(params) {
@@ -68,6 +69,7 @@ define(['require',
                     this.setValues(options);
                 }, this);
                 this.listenTo(this.vent, "date:click", function(options) {
+                	this.isEventTriggerdFromVent = true;
                     this.setValues(options);
                     this.ui.dateRange.data('daterangepicker').clickApply();
                 }, this);
@@ -165,6 +167,15 @@ define(['require',
 
 
                 this.ui.dateRange.on('apply.daterangepicker ', function(ev, picker) {
+                	if(! that.isEventTriggerdFromVent && !(_.isUndefined(picker.chosenLabel)) ){
+                		that.dateRangeLabel = picker.chosenLabel;
+                	}else{
+                		that.isEventTriggerdFromVent = false;
+                	}
+                	if (that.dateRangeLabel !== "Custom Range") {
+                		var last1Hour = that.dateUtil.getRelativeDateFromString(that.dateRangeLabel);
+                		that.setDateText(last1Hour[0], last1Hour[1]);  
+                	}
                     that.ui.dateRangeTitle.html(that.dateRangeLabel);
                     that.unit = that.checkDateRange(picker);
                     var options = {
@@ -178,7 +189,8 @@ define(['require',
                 });
                 this.ui.dateRange.on('show.daterangepicker', function(ev, picker) {
                     elem.find('li').removeClass('active');
-                    elem.find('li:contains(' + that.dateRangeLabel + ')').addClass('active')
+                    elem.find('li:contains(' + that.dateRangeLabel + ')').addClass('active');
+                       picker.chosenLabel = that.dateRangeLabel; 
                 });
                 this.ui.dateRange.on('hide.daterangepicker', function(ev, picker) {
                     that.pickerOpend = true
@@ -195,15 +207,6 @@ define(['require',
                     }
                     that.ui.dateRange.data('daterangepicker').clickApply();
 
-                });
-
-                elem.on("click", '.ranges ul li', function(e) {
-                    that.dateRangeLabel = $(this).text();
-                    if (that.dateRangeLabel !== "Custom Range") {
-                        var last1Hour = that.dateUtil.getRelativeDateFromString(that.dateRangeLabel);
-                        that.setDateText(last1Hour[0], last1Hour[1]);
-                        that.ui.dateRange.data('daterangepicker').clickApply();
-                    }
                 });
             },
             checkDateRange: function(picker) {

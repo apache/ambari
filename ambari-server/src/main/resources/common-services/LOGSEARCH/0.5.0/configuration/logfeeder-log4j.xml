@@ -21,7 +21,6 @@
 -->
 <!-- This is a special config file for properties used to monitor status of the service -->
 <configuration supports_adding_forbidden="true">
-  <!-- solrconfig.xml -->
   <property>
     <name>content</name>
     <display-name>logfeeder-log4j template</display-name>

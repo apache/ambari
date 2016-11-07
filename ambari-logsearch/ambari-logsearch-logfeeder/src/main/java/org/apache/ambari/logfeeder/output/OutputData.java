@@ -27,18 +27,16 @@ import org.apache.ambari.logfeeder.input.InputMarker;
  * This contains the output json object and InputMarker.
  */
 public class OutputData {
-  Map<String, Object> jsonObj;
-  InputMarker inputMarker;
+  public final Map<String, Object> jsonObj;
+  public final InputMarker inputMarker;
 
   public OutputData(Map<String, Object> jsonObj, InputMarker inputMarker) {
-    super();
     this.jsonObj = jsonObj;
     this.inputMarker = inputMarker;
   }
 
   @Override
   public String toString() {
-    return "OutputData [jsonObj=" + jsonObj + ", inputMarker="
-      + inputMarker + "]";
+    return "OutputData [jsonObj=" + jsonObj + ", inputMarker=" + inputMarker + "]";
   }
 }

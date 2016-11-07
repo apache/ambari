@@ -1962,6 +1962,21 @@ var hdp2properties = [
     "category": "Advanced logfeeder-env",
     "index": 14
   },
+  /*logfeeder-grok*/
+  {
+    "name": "default_grok_patterns",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-grok.xml",
+    "category": "Advanced logfeeder-grok",
+    "index": 1
+  },
+  {
+    "name": "custom_grok_patterns",
+    "serviceName": "LOGSEARCH",
+    "filename": "logfeeder-grok.xml",
+    "category": "Advanced logfeeder-grok",
+    "index": 2
+  },
   /*logfeeder-log4j*/
   {
     "name": "content",
@@ -2208,32 +2223,46 @@ var hdp2properties = [
     "index": 5
   },
   {
-    "name": "logsearch.solr.metrics.collector.hosts",
+    "name": "logsearch.solr.audit.logs.use.ranger",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 6
   },
   {
-    "name": "logsearch.external.auth.enabled",
+    "name": "logsearch.ranger.audit.logs.collection.name",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 7
   },
   {
-    "name": "logsearch.external.auth.host_url",
+    "name": "logsearch.solr.metrics.collector.hosts",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 8
   },
   {
-    "name": "logsearch.external.auth.login_url",
+    "name": "logsearch.auth.external_auth.enable",
     "serviceName": "LOGSEARCH",
     "filename": "logsearch-properties.xml",
     "category": "Advanced logsearch-properties",
     "index": 9
+  },
+  {
+    "name": "logsearch.auth.external_auth.host_url",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 10
+  },
+  {
+    "name": "logsearch.auth.external_auth.login_url",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 11
   },
   /*infra-solr-client-log4j*/
   {

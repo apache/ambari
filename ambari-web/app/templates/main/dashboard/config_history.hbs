@@ -90,19 +90,13 @@
       <tr><td colspan="5">{{view App.SpinnerView}}</td></tr>
     {{/if}}
     </tbody>
-</table>
+    <tfoot>
+    <tr>
+      <td colspan="5">
+        {{view App.PaginationView dataViewBinding="view" isDataLoadedBinding="view.filteringComplete"}}
+      </td>
+    </tr>
+    </tfoot>
+  </table>
 
-  <div class="page-bar">
-    <div class="filtered-info col-md-4">
-    {{#if view.showFilteredContent}}
-      <label>{{view.filteredContentInfo}} - <a {{action clearFilters target="view"}}
-              href="#">{{t tableView.filters.clearAllFilters}}</a></label>
-    {{/if}}
-    </div>
-    <div class="items-on-page">
-      <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-    </div>
-    <div class="info">{{view.paginationInfo}}</div>
-    {{view view.pagination2Btns}}
-  </div>
 </div>

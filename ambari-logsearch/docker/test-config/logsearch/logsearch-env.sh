@@ -21,7 +21,7 @@ export LOGSEARCH_PORT=61888
 # path containing LogSearch.jar file
 export LOGSEARCH_PATH=/root/ambari/ambari-logsearch/ambari-logsearch-portal/target/package
 
-export LOGSEARCH_CONF_DIR=/root/test-config/logsearch
+export LOGSEARCH_CONF_DIR=/root/config/logsearch
 
 export LOGFILE=/var/log/ambari-logsearch-portal/logsearch.log
 
@@ -34,3 +34,11 @@ LOGSEARCH_JAVA_MEM=${LOGSEARCH_JAVA_MEM:-"-Xmx1024m"}
 export LOGSEARCH_DEBUG=true
 
 export LOGSEARCH_DEBUG_PORT=5005
+
+export LOGSEARCH_SSL="true"
+export LOGSEARCH_KEYSTORE_LOCATION=/root/config/ssl/logsearch.keyStore.jks
+export LOGSEARCH_KEYSTORE_PASSWORD=bigdata
+export LOGSEARCH_KEYSTORE_TYPE=jks
+export LOGSEARCH_TRUSTSTORE_LOCATION=/root/config/ssl/logsearch.trustStore.jks
+export LOGSEARCH_TRUSTSTORE_PASSWORD=bigdata
+export LOGSEARCH_TRUSTSTORE_TYPE=jks

@@ -80,16 +80,14 @@
               {{/if}}
             {{/each}}
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="100">
+                {{view App.PaginationView}}
+              </td>
+            </tr>
+          </tfoot>
         </table>
-      </div>
-      <div id="hosts">
-        <div class="page-bar">
-          <div class="items-on-page">
-            <label>{{t common.show}}: {{view view.rowsPerPageSelectView selectionBinding="view.displayLength"}}</label>
-          </div>
-          <div class="info">{{view.paginationInfo}}</div>
-          {{view view.pagination4Btns}}
-        </div>
       </div>
     </div>
   </div>

@@ -230,7 +230,7 @@ App.AlertConfigProperties = {
     label: 'Check Interval',
     displayType: 'textField',
     unit: 'Minute',
-    colWidth: 'col-md-3',
+    colWidth: 'col-md-4',
     apiProperty: 'interval',
     isValid: function () {
       var value = this.get('value');

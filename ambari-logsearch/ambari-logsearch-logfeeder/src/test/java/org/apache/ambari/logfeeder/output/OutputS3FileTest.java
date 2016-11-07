@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -69,15 +69,14 @@ public class OutputS3FileTest {
   @Test
   public void shouldSpoolLogEventToNewSpooler() throws Exception {
 
-    InputMarker inputMarker = mock(InputMarker.class);
     Input input = mock(Input.class);
-    inputMarker.input = input;
+    InputMarker inputMarker = new InputMarker(input, null, 0);
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
     expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block");
     final S3Uploader s3Uploader = mock(S3Uploader.class);
-    replay(input, inputMarker, spooler, s3Uploader);
+    replay(input, spooler, s3Uploader);
 
     OutputS3File outputS3File = new OutputS3File() {
       @Override
@@ -98,16 +97,15 @@ public class OutputS3FileTest {
 
   @Test
   public void shouldReuseSpoolerForSamePath() throws Exception {
-    InputMarker inputMarker = mock(InputMarker.class);
     Input input = mock(Input.class);
-    inputMarker.input = input;
+    InputMarker inputMarker = new InputMarker(input, null, 0);
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
     expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block1");
     spooler.add("log event block2");
     final S3Uploader s3Uploader = mock(S3Uploader.class);
-    replay(input, inputMarker, spooler, s3Uploader);
+    replay(input, spooler, s3Uploader);
 
     OutputS3File outputS3File = new OutputS3File() {
       private boolean firstCallComplete;
@@ -169,16 +167,15 @@ public class OutputS3FileTest {
 
   @Test
   public void shouldUploadFileOnRollover() throws Exception {
-    InputMarker inputMarker = mock(InputMarker.class);
     Input input = mock(Input.class);
-    inputMarker.input = input;
+    InputMarker inputMarker = new InputMarker(input, null, 0);
     expect(input.getFilePath()).andReturn("/var/log/hdfs-namenode.log");
     expect(input.getStringValue(OutputS3File.INPUT_ATTRIBUTE_TYPE)).andReturn("hdfs-namenode");
     final LogSpooler spooler = mock(LogSpooler.class);
     spooler.add("log event block1");
     final S3Uploader s3Uploader = mock(S3Uploader.class);
     s3Uploader.addFileForUpload("/var/ambari-logsearch/logfeeder/hdfs-namenode.log.gz");
-    replay(input, inputMarker, spooler, s3Uploader);
+    replay(input, spooler, s3Uploader);
 
     OutputS3File outputS3File = new OutputS3File() {
       @Override

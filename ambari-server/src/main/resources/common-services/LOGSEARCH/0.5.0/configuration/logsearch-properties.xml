@@ -113,10 +113,27 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>logsearch.solr.audit.logs.use.ranger</name>
+    <value>false</value>
+    <display-name>Ranger Audit Logs Enabled</display-name>
+    <description>Use Ranger Audit collection. This is supported only if Ranger Solr is installed in SolrCloud mode</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.ranger.audit.logs.collection.name</name>
+    <value>ranger_audits</value>
+    <display-name>Log Search Solr Ranger Audit Logs Collection</display-name>
+    <description>Name for the ranger audit logs collection</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>logsearch.logfeeder.include.default.level</name>
     <value>FATAL,ERROR,WARN</value>
-    <description>Include default Logfeeder log levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
-    <display-name>Logfeeder log levels</display-name>
+    <description>Include default Log Feeder Log Levels for Log Search. Used for bootstrapping the configuration only. (levels: FATAL,ERROR,WARN,INFO,DEBUG,TRACE)</description>
+    <display-name>Log Feeder Log Levels</display-name>
     <value-attributes>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -133,7 +150,7 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.enabled</name>
+    <name>logsearch.auth.external_auth.enabled</name>
     <value>true</value>
     <display-name>External authentication</display-name>
     <description>Enable external authentication</description>
@@ -143,14 +160,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.host_url</name>
+    <name>logsearch.auth.external_auth.host_url</name>
     <value>{ambari_server_auth_host_url}</value>
     <display-name>External authentication url - host and port</display-name>
     <description>The host and port of the external server used to authenticate</description>
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
-    <name>logsearch.external.auth.login_url</name>
+    <name>logsearch.auth.external_auth.login_url</name>
     <value>/api/v1/users/$USERNAME/privileges?fields=*</value>
     <display-name>External authentication url - path and query</display-name>
     <description>The path and query of the external server used to authenticate</description>

@@ -1,0 +1,118 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.ambari.logsearch.web.security;
+
+import org.apache.ambari.logsearch.conf.AuthPropsConfig;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertSame;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.strictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+
+public class LogsearchSimpleAuthenticationProviderTest {
+
+  private LogsearchSimpleAuthenticationProvider provider;
+  private AuthPropsConfig mockAuthPropsConfig;
+  
+  @Before
+  public void init() throws Exception {
+    provider = new LogsearchSimpleAuthenticationProvider();
+    mockAuthPropsConfig = strictMock(AuthPropsConfig.class);
+    
+    Field f = LogsearchSimpleAuthenticationProvider.class.getDeclaredField("authPropsConfig");
+    f.setAccessible(true);
+    f.set(provider, mockAuthPropsConfig);
+  }
+  
+  @Test
+  public void testAuthenticationDisabled() {
+    expect(mockAuthPropsConfig.isAuthSimpleEnabled()).andReturn(false);
+    
+    replay(mockAuthPropsConfig);
+    
+    Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
+    assertSame(provider.authenticate(authentication), authentication);
+    
+    verify(mockAuthPropsConfig);
+  }
+  
+  @Test
+  public void testAuthenticationEmptyUser() {
+    expect(mockAuthPropsConfig.isAuthSimpleEnabled()).andReturn(true);
+    
+    replay(mockAuthPropsConfig);
+    
+    Authentication authentication = new TestingAuthenticationToken("", "credentials");
+    
+    try {
+      provider.authenticate(authentication);
+      assertTrue("Should have thrown BadCredentialsException", false);
+    } catch(BadCredentialsException e) {
+      assertEquals("Username can't be null or empty.", e.getMessage());
+    }
+    
+    verify(mockAuthPropsConfig);
+  }
+  
+  @Test
+  public void testAuthenticationNullUser() {
+    expect(mockAuthPropsConfig.isAuthSimpleEnabled()).andReturn(true);
+    
+    replay(mockAuthPropsConfig);
+    
+    Authentication authentication = new TestingAuthenticationToken(null, "credentials");
+    
+    try {
+      provider.authenticate(authentication);
+      assertTrue("Should have thrown BadCredentialsException", false);
+    } catch(BadCredentialsException e) {
+      assertEquals("Username can't be null or empty.", e.getMessage());
+    }
+    
+    verify(mockAuthPropsConfig);
+  }
+  
+  @Test
+  public void testAuthenticationSuccessful() {
+    expect(mockAuthPropsConfig.isAuthSimpleEnabled()).andReturn(true);
+    
+    replay(mockAuthPropsConfig);
+    
+    Authentication authentication = new TestingAuthenticationToken("principal", "credentials");
+    
+    Authentication authenticationResult = provider.authenticate(authentication);
+    assertEquals("principal", authenticationResult.getName());
+    assertEquals("credentials", authenticationResult.getCredentials());
+    assertEquals(1, authenticationResult.getAuthorities().size());
+    assertEquals(new SimpleGrantedAuthority("ROLE_USER"), authenticationResult.getAuthorities().iterator().next());
+    
+    verify(mockAuthPropsConfig);
+  }
+}

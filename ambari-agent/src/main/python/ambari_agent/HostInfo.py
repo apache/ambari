@@ -66,15 +66,20 @@ class HostInfo(object):
     return 'unknown'
 
   def checkLiveServices(self, services, result):
-    osType = OSCheck.get_os_family()
     for service in services:
       svcCheckResult = {}
-      serviceName = service
-      svcCheckResult['name'] = serviceName
+      svcCheckResult['name'] = " or ".join(service)
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
       try:
-        out, err, code = self.getServiceStatus(serviceName)
+        out = ""
+        err = ""
+        for serviceName in service:
+          sys_out, sys_err, code = self.getServiceStatus(serviceName)
+          if code == 0:
+            break
+          out += sys_out if len(out) == 0 else os.linesep + sys_out
+          err += sys_err if len(err) == 0 else os.linesep + sys_err
         if 0 != code:
           svcCheckResult['status'] = "Unhealthy"
           svcCheckResult['desc'] = out
@@ -116,10 +121,12 @@ class HostInfo(object):
     return False
 
 def get_ntp_service():
-  if OSCheck.is_redhat_family():
-    return "ntpd"
+  if OSCheck.is_redhat_family() and int(OSCheck.get_os_major_version()) >= 7:
+    return ("chronyd", "ntpd",)
+  elif OSCheck.is_redhat_family():
+    return ("ntpd",)
   elif OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-    return "ntp"
+    return ("ntp",)
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -341,7 +348,7 @@ class HostInfoWindows(HostInfo):
   GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "name = \'{0}\' and Disabled=\'False\'" -ErrorAction Stop); foreach ($acc in $accounts) {{Write-Host ($acc.Domain + "\\" + $acc.Name)}}'
   GET_JAVA_PROC_CMD = 'foreach ($process in (gwmi Win32_Process -Filter "name = \'java.exe\'")){{echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}}'
   DEFAULT_LIVE_SERVICES = [
-    "W32Time"
+    ("W32Time",)
   ]
   DEFAULT_USERS = "hadoop"
 

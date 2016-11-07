@@ -68,8 +68,8 @@ define(['require',
             onRender: function() {
             	var that = this;
             	this.fetchLogs({
-            		host : this.model.get("host"),
-            		component : this.model.get("type"),
+            		host_name : this.model.get("host"),
+            		component_name : this.model.get("type"),
             		numberRows : this.defaultRecords,
             		id : this.model.get("id")
             	},{

@@ -192,6 +192,26 @@ public class OpenCSVParserTest {
   }
 
   @Test
+  public void testMultipleEscape() throws Exception {
+
+    String csv = "BBAABBKMAABB";
+    ParseOptions po = new ParseOptions();
+    po.setOption(ParseOptions.OPTIONS_CSV_ESCAPE_CHAR,'B');
+    po.setOption(ParseOptions.OPTIONS_CSV_DELIMITER,'M');
+
+    try(
+      StringReader sr = new StringReader(csv);
+      OpenCSVParser jp = new OpenCSVParser(sr, po);
+    ) {
+      Iterator<Row> iterator = jp.iterator();
+
+      Row row = new Row(new Object[]{"AABK", "AAB"});
+      Assert.assertEquals("Failed to detect 1st row!", true, iterator.hasNext());
+      Assert.assertEquals("Failed to match 1st row!", row, iterator.next());
+    }
+  }
+
+  @Test
   public void testSpecialEscapedEscape() throws Exception {
 
     String csv = "aaa,b$$bb,ccc";

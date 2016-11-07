@@ -807,6 +807,7 @@ public class AmbariServer {
           EnumSet.of(DispatcherType.REQUEST));
 
       gzipFilter.setInitParameter("methods", "GET,POST,PUT,DELETE");
+      gzipFilter.setInitParameter("excludePathPatterns", ".*(\\.woff|\\.ttf|\\.woff2|\\.eot|\\.svg)");
       gzipFilter.setInitParameter("mimeTypes",
           "text/html,text/plain,text/xml,text/css,application/x-javascript," +
               "application/xml,application/x-www-form-urlencoded," +

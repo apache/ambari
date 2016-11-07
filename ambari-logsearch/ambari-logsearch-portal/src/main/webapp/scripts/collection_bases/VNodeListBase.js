@@ -28,7 +28,7 @@ define(['require',
 	var VNodeListBase = BaseCollection.extend(
 	/** @lends VNodeListBase.prototype */
 	{
-		url: Globals.baseURL + 'dashboard/getTreeExtension',
+		url: Globals.baseURL + 'service/logs/tree',
 
 		model : VNode,
 
@@ -48,7 +48,7 @@ define(['require',
 		 *************************/
 
 		cancelFindRequest : function(token, options){
-			var url = Globals.baseURL  + 'dashboard/cancelFindRequest';
+			var url = Globals.baseURL  + 'service/logs/request/cancel';
 			
 			options = _.extend({
 				data : $.param(token),

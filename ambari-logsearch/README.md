@@ -33,4 +33,13 @@ mvn -Dbuild-rpm clean package
 mvn -Dbuild-deb clean package
 ```
 3. Generated RPM/DPKG files will be found in ambari-logsearch-assembly/target folder
-  
+
+## Running Integration Tests
+
+By default integration tests are not a part of the build process, you need to set ${it.skip} variable to true (docker needed here too)
+
+```bash
+# from ambari-logsearch folder
+mvn clean integration-test -Dit.skip=false
+```
+Also you can run from the IDE, but make sure all of the ambari logsearch modules are built.

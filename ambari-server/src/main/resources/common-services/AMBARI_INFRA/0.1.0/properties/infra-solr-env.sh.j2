@@ -96,8 +96,8 @@ SOLR_PORT={{infra_solr_port}}
 {% if infra_solr_ssl_enabled %}
 SOLR_SSL_KEY_STORE={{infra_solr_keystore_location}}
 SOLR_SSL_KEY_STORE_PASSWORD={{infra_solr_keystore_password}}
-SOLR_SSL_TRUST_STORE={{infra_solr_keystore_location}}
-SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_keystore_password}}
+SOLR_SSL_TRUST_STORE={{infra_solr_truststore_location}}
+SOLR_SSL_TRUST_STORE_PASSWORD={{infra_solr_truststore_password}}
 SOLR_SSL_NEED_CLIENT_AUTH=false
 SOLR_SSL_WANT_CLIENT_AUTH=false
 {% endif %}

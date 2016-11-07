@@ -242,8 +242,10 @@ describe('App.MainHostView', function () {
     beforeEach(function () {
       rowsPerPageSelectView = view.get('rowsPerPageSelectView').create({
         parentView: Em.Object.create({
-          saveDisplayLength: Em.K,
-          startIndex: 1
+          dataView: {
+            saveDisplayLength: Em.K,
+            startIndex: 1
+          }
         }),
         controller: Em.Object.create()
       });
@@ -262,7 +264,7 @@ describe('App.MainHostView', function () {
       });
 
       it("disabled should be false", function () {
-        rowsPerPageSelectView.set('parentView.filteringComplete', true);
+        rowsPerPageSelectView.set('parentView.dataView.filteringComplete', true);
         expect(rowsPerPageSelectView.get('disabled')).to.be.false;
       });
     });
@@ -270,36 +272,36 @@ describe('App.MainHostView', function () {
     describe("#change()", function () {
 
       beforeEach(function () {
-        sinon.stub(rowsPerPageSelectView.get('parentView'), 'saveDisplayLength');
+        sinon.stub(rowsPerPageSelectView.get('parentView.dataView'), 'saveDisplayLength');
         sinon.stub(Ember.run, 'next', Em.clb);
       });
 
       afterEach(function () {
-        rowsPerPageSelectView.get('parentView').saveDisplayLength.restore();
+        rowsPerPageSelectView.get('parentView.dataView').saveDisplayLength.restore();
         Ember.run.next.restore();
       });
 
       it("saveDisplayLength should be called", function () {
         rowsPerPageSelectView.change();
-        expect(rowsPerPageSelectView.get('parentView').saveDisplayLength.calledOnce).to.be.true;
+        expect(rowsPerPageSelectView.get('parentView.dataView').saveDisplayLength.calledOnce).to.be.true;
       });
 
       it("startIndex = 1", function () {
-        rowsPerPageSelectView.set('parentView.startIndex', 1);
+        rowsPerPageSelectView.set('parentView.dataView.startIndex', 1);
         rowsPerPageSelectView.change();
-        expect(rowsPerPageSelectView.get('parentView.startIndex')).to.be.equal(1);
+        expect(rowsPerPageSelectView.get('parentView.dataView.startIndex')).to.be.equal(1);
       });
 
       it("startIndex = 0", function () {
-        rowsPerPageSelectView.set('parentView.startIndex', 0);
+        rowsPerPageSelectView.set('parentView.dataView.startIndex', 0);
         rowsPerPageSelectView.change();
-        expect(rowsPerPageSelectView.get('parentView.startIndex')).to.be.equal(0);
+        expect(rowsPerPageSelectView.get('parentView.dataView.startIndex')).to.be.equal(0);
       });
 
       it("startIndex = 2", function () {
-        rowsPerPageSelectView.set('parentView.startIndex', 2);
+        rowsPerPageSelectView.set('parentView.dataView.startIndex', 2);
         rowsPerPageSelectView.change();
-        expect(rowsPerPageSelectView.get('parentView.startIndex')).to.be.equal(1);
+        expect(rowsPerPageSelectView.get('parentView.dataView.startIndex')).to.be.equal(1);
       });
     });
   });

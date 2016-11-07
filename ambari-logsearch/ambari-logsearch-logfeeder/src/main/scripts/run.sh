@@ -97,9 +97,9 @@ if [ $foreground -eq 0 ]; then
     echo "Starting logfeeder. Output file=$LOGFILE pid_file=$PID_FILE"
     #LOGFEEDER_CLI_CLASSPATH=
     #set -x
-    nohup $JAVA -cp "$LOGFEEDER_CLI_CLASSPATH:$LOGFEEDER_CONF_DIR:$script_dir/libs/*:$script_dir/classes:$script_dir/LogProcessor.jar" $LOGFEEDER_GC_OPTS $LOGFEEDER_JAVA_MEM $LOGFEEDER_JAVA_OPTS $JMX org.apache.ambari.logfeeder.LogFeeder $* > $LOGFILE 2>&1 &
+    nohup $JAVA -cp "$LOGFEEDER_CLI_CLASSPATH:$LOGFEEDER_CONF_DIR:$script_dir/libs/*:$script_dir/classes" $LOGFEEDER_GC_OPTS $LOGFEEDER_JAVA_MEM $LOGFEEDER_JAVA_OPTS $JMX org.apache.ambari.logfeeder.LogFeeder $* > $LOGFILE 2>&1 &
     echo $! > $PID_FILE
 else
-    $JAVA -cp "$LOGFEEDER_CLI_CLASSPATH:$LOGFEEDER_CONF_DIR:$script_dir/libs/*:$script_dir/classes:$script_dir/LogProcessor.jar" $LOGFEEDER_JAVA_MEM $LOGFEEDER_JAVA_OPTS $JMX org.apache.ambari.logfeeder.LogFeeder $*
+    $JAVA -cp "$LOGFEEDER_CLI_CLASSPATH:$LOGFEEDER_CONF_DIR:$script_dir/libs/*:$script_dir/classes" $LOGFEEDER_JAVA_MEM $LOGFEEDER_JAVA_OPTS $JMX org.apache.ambari.logfeeder.LogFeeder $*
 fi
 

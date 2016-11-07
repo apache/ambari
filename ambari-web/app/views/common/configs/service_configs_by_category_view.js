@@ -70,7 +70,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   mainView: function () {
     //todo: Get rid of this logic. Get data from controller instead.
-    return this.get('controller.name') === 'mainServiceInfoConfigsController' ? this.get('parentView.parentView') : this.get('parentView');
+    return ['mainHostServiceConfigsController', 'mainServiceInfoConfigsController'].contains(this.get('controller.name')) ? this.get('parentView.parentView') : this.get('parentView');
   }.property('controller.name'),
 
   didInsertElement: function () {
@@ -78,6 +78,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     // If `this.categoryConfigsAll` is a computed property then don't set it.
     // some extended class like `App.NotificationsConfigsView` overrides `categoryConfigsAll` as computed property
     Em.run.next(function () {
+      if (self.get('state') !== 'inDOM') {
+        return;
+      }
       if ($.isArray(self.categoryConfigsAll)) {
         self.setCategoryConfigsAll();
       }

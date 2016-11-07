@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -85,8 +85,7 @@ public class OutputKafkaTest {
     EasyMock.replay(mockKafkaProducer);
 
     for (int i = 0; i < 10; i++) {
-      InputMarker inputMarker = new InputMarker();
-      inputMarker.input = EasyMock.mock(Input.class);
+      InputMarker inputMarker = new InputMarker(EasyMock.mock(Input.class), null, 0);
       outputKafka.write("value" + i, inputMarker);
     }
 
