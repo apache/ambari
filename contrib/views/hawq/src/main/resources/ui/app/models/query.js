@@ -21,27 +21,27 @@ import DS from 'ember-data';
 import Utils from 'hawq-view/utils/utils';
 
 export default DS.Model.extend({
+  databaseName: DS.attr('string'),
+  pid: DS.attr('number'),
+  userName: DS.attr('string'),
+  queryText: DS.attr('string'),
+  waiting: DS.attr('boolean'),
+  waitingResource: DS.attr('boolean'),
+  duration: DS.attr('number'),
+  queryStartTime: DS.attr('string'),
+  clientHost: DS.attr('string'),
+  clientPort: DS.attr('number'),
+  applicationName: DS.attr('string'),
 
-  databaseName:         DS.attr('string'),
-  pid:                  DS.attr('number'),
-  userName:             DS.attr('string'),
-  queryText:            DS.attr('string'),
-  waiting:              DS.attr('boolean'),
-  waitingResource:      DS.attr('boolean'),
-  duration:             DS.attr('string'),
-  queryStartTime:       DS.attr('date'),
-  clientHost:           DS.attr('string'),
-  clientPort:           DS.attr('number'),
-  applicationName:      DS.attr('string'),
-
-  clientAddress: Ember.computed('clientHost', 'clientPort', function() {
+  clientAddress: Ember.computed('clientHost', 'clientPort', function () {
     return Utils.computeClientAddress(this.get('clientHost'), this.get('clientPort'));
   }),
 
-  status: Ember.computed('waiting', 'waitingResource', function() {
+  status: Ember.computed('waiting', 'waitingResource', function () {
     return Utils.generateStatusString(this.get('waiting'), this.get('waitingResource'));
   }),
-  formattedQueryStartTime: Ember.computed('queryStartTime', function () {
-    return Utils.formatTimeOfDay(this.get('queryStartTime'));
+  
+  formattedDuration: Ember.computed('duration', function () {
+    return Utils.formatDuration(this.get('duration'));
   })
 });
