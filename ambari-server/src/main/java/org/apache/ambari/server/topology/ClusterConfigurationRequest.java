@@ -159,6 +159,20 @@ public class ClusterConfigurationRequest {
     setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
   }
 
+  /**
+   * A config type is orphaned if there are services related to except cluster-env and global.
+   */
+  private boolean isOrphanedConfigType(String configType, Blueprint blueprint) {
+    boolean isOrphanedConfigType = false;
+    if (!"cluster-env".equals(configType) && !"global".equals(configType)) {
+      String service = blueprint.getStack().getServiceForConfigType(configType);
+      if (!blueprint.getServices().contains(service)) {
+        isOrphanedConfigType = true;
+      }
+    }
+    return isOrphanedConfigType;
+  }
+
   private Set<String> configureKerberos(Configuration clusterConfiguration, Map<String, Map<String, String>> existingConfigurations) throws AmbariException {
     Set<String> updatedConfigTypes = new HashSet<>();
 
@@ -198,16 +212,23 @@ public class ClusterConfigurationRequest {
       // ******************************************************************************************
 
       for (String configType : updatedConfigs.keySet()) {
-        Map<String, String> propertyMap = updatedConfigs.get(configType);
-        Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
-        Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
-        for (String property : propertyMap.keySet()) {
-          // update value only if property value configured in Blueprint /ClusterTemplate is not a custom one
-          if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property)) {
-            LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
-              (property));
-            clusterConfiguration.setProperty(configType, property, propertyMap.get(property));
-            updatedConfigTypes.add(configType);
+        // apply only if config type has related services in Blueprint
+        if (!isOrphanedConfigType(configType, blueprint)) {
+          Map<String, String> propertyMap = updatedConfigs.get(configType);
+          Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
+          Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
+          for (String property : propertyMap.keySet()) {
+            // update value only if property value configured in Blueprint / ClusterTemplate is not a custom one
+            String currentValue = clusterConfiguration.getPropertyValue(configType, property);
+            String newValue = propertyMap.get(property);
+            if (!propertyHasCustomValue(clusterConfigProperties, stackDefaultConfigProperties, property) &&
+              (currentValue == null || !currentValue.equals(newValue))) {
+
+              LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
+                (property));
+              clusterConfiguration.setProperty(configType, property, newValue);
+              updatedConfigTypes.add(configType);
+            }
           }
         }
       }
