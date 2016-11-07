@@ -45,7 +45,7 @@ mvn install [-DskipTests]
 Copy the hawq-view jar to the ambari-server host and restart ambari-server.
 ```sh
 scp $AMBARI_DIR/contrib/views/hawq/target/hawq-view-${version}.jar ambari.server.host:/var/lib/ambari-server/resources/views/
-ambari-server start
+ambari-server restart
 ```
 
 ## Creating an Instance of HAWQ View
