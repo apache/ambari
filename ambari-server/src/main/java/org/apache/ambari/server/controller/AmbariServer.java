@@ -120,6 +120,8 @@ import org.apache.ambari.server.view.AmbariViewsMDCLoggingFilter;
 import org.apache.ambari.server.view.ViewDirectoryWatcher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewThrottleFilter;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -491,6 +493,8 @@ public class AmbariServer {
 
       viewRegistry.readViewArchives();
       viewDirectoryWatcher.start();
+
+      enableLog4jMonitor(configsMap);
 
       handlerList.addHandler(root);
       server.setHandler(handlerList);
@@ -936,6 +940,26 @@ public class AmbariServer {
       });
     } else {
       LOG.debug("Proxy authentication not specified");
+    }
+  }
+
+  /**
+   * To change log level without restart.
+   */
+  public static void enableLog4jMonitor(Map<String, String> configsMap){
+
+    String log4jpath = AmbariServer.class.getResource("/"+Configuration.AMBARI_LOG_FILE).toString();
+    String monitorDelay = configsMap.get(Configuration.LOG4JMONITOR_DELAY.getKey());
+    long monitorDelayLong = Configuration.LOG4JMONITOR_DELAY.getDefaultValue();
+
+    try{
+      log4jpath = log4jpath.replace("file:", "");
+      if(StringUtils.isNotBlank(monitorDelay)) {
+        monitorDelayLong = Long.parseLong(monitorDelay);
+      }
+      PropertyConfigurator.configureAndWatch(log4jpath,  monitorDelayLong);
+    }catch(Exception e){
+      LOG.error("Exception in setting log4j monitor delay of {} for {}", monitorDelay, log4jpath, e);
     }
   }
 

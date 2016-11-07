@@ -2384,6 +2384,13 @@ public class Configuration {
   public static final ConfigurationProperty<Boolean> ACTIVE_INSTANCE = new ConfigurationProperty<>(
           "active.instance", Boolean.TRUE);
 
+  /**
+   * PropertyConfigurator checks log4j.properties file change every LOG4JMONITOR_DELAY milliseconds.
+   */
+  @Markdown(description = "Indicates the delay, in milliseconds, for the log4j monitor to check for changes")
+  public static final ConfigurationProperty<Long> LOG4JMONITOR_DELAY = new ConfigurationProperty<>(
+          "log4j.monitor.delay", TimeUnit.MINUTES.toMillis(5));
+
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
 
@@ -2693,6 +2700,7 @@ public class Configuration {
     configsMap.put(JAVA_HOME.getKey(), getProperty(JAVA_HOME));
     configsMap.put(PARALLEL_STAGE_EXECUTION.getKey(), getProperty(PARALLEL_STAGE_EXECUTION));
     configsMap.put(SERVER_TMP_DIR.getKey(), getProperty(SERVER_TMP_DIR));
+    configsMap.put(LOG4JMONITOR_DELAY.getKey(), getProperty(LOG4JMONITOR_DELAY));
     configsMap.put(EXTERNAL_SCRIPT_TIMEOUT.getKey(), getProperty(EXTERNAL_SCRIPT_TIMEOUT));
     configsMap.put(SHARED_RESOURCES_DIR.getKey(), getProperty(SHARED_RESOURCES_DIR));
     configsMap.put(KDC_PORT.getKey(), getProperty(KDC_PORT));
