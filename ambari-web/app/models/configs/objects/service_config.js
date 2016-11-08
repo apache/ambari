@@ -44,17 +44,52 @@ App.ServiceConfig = Ember.Object.extend({
    *
    * @type {Object[]}
    */
-  activeProperties: function() {
-    return this.get('configs').filter(function(c) {
+  activeProperties: [],
+
+  configsWithErrors: [],
+
+  /**
+   * Collection of properties that were changed:
+   * for saved properties use - <code>isNotDefaultValue<code>
+   * for not saved properties (on wizards, for new services) use
+   *    - <code>isNotInitialValue<code>
+   * for added properties use - <code>isNotSaved<code>
+   * @type {Object[]}
+   */
+  changedConfigProperties: [],
+
+  setActiveProperties: function() {
+    Em.run.once(this, 'setActivePropertiesOnce');
+  }.observes('configs.@each.isActive', 'configs.@each.isRequiredByAgent', 'configs.@each.value'),
+
+  setActivePropertiesOnce: function() {
+    var activeProperties = this.get('configs').filter(function(c) {
       return c.get('isActive') && (c.get('isRequiredByAgent') || c.get('isRequired'));
     });
-  }.property('configs.@each.isActive', 'configs.@each.isRequiredByAgent'),
+    this.set('activeProperties', activeProperties);
+  },
 
-  configsWithErrors: function() {
-    return this.get('activeProperties').filter(function(c) {
+  setChangedConfigProperties: function() {
+    Em.run.once(this, 'setChangedConfigPropertiesOnce');
+  }.observes('activeProperties.@each.isNotDefaultValue', 'activeProperties.@each.isNotSaved', 'activeProperties.@each.isNotInitialValue'),
+
+  setChangedConfigPropertiesOnce: function() {
+    var changedConfigProperties = this.get('activeProperties').filter(function(c) {
+      return c.get('isNotDefaultValue') || c.get('isNotSaved') || c.get('isNotInitialValue');
+    }, this);
+    this.set('changedConfigProperties', changedConfigProperties);
+  },
+
+  setConfigsWithErrors: function() {
+    Em.run.once(this, 'setConfigsWithErrorsOnce');
+  }.observes('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride', 'activeProperties.length'),
+
+  setConfigsWithErrorsOnce: function() {
+    var configsWithErrors = this.get('activeProperties').filter(function(c) {
       return !c.get('isValid') || !c.get('isValidOverride');
     });
-  }.property('activeProperties.@each.isValid', 'activeProperties.@each.isValidOverride', 'activeProperties.length'),
+    this.set('configsWithErrors', configsWithErrors);
+  },
 
   observeErrors: function() {
     this.get('configCategories').setEach('errorCount', 0);
@@ -96,20 +131,6 @@ App.ServiceConfig = Ember.Object.extend({
       }
     });
   },
-
-  /**
-   * Collection of properties that were changed:
-   * for saved properties use - <code>isNotDefaultValue<code>
-   * for not saved properties (on wizards, for new services) use
-   *    - <code>isNotInitialValue<code>
-   * for added properties use - <code>isNotSaved<code>
-   * @type {Object[]}
-   */
-  changedConfigProperties: function() {
-    return this.get('activeProperties').filter(function(c) {
-      return c.get('isNotDefaultValue') || c.get('isNotSaved') || c.get('isNotInitialValue');
-    }, this);
-  }.property('activeProperties.@each.isNotDefaultValue', 'activeProperties.@each.isNotSaved', 'activeProperties.@each.isNotInitialValue'),
 
   /**
    * Config with overrides that has values that differs from saved
