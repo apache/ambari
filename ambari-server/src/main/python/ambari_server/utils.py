@@ -150,13 +150,8 @@ def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_tim
   """
     Check pid for existence during timeout
   """
-  ambari_server_ui_port = 8080
-  api_ssl = properties.get_property("api.ssl")
-  ssl_api_port = properties.get_property("client.api.ssl.port")
-  if api_ssl and str(api_ssl).lower() == "true":
-    if ssl_api_port:
-      ambari_server_ui_port = int(ssl_api_port)
-
+  from ambari_server.serverConfiguration import get_ambari_server_ui_port
+  ambari_server_ui_port = int(get_ambari_server_ui_port(properties))
   server_ui_port_occupied = False
   tstart = time.time()
   pid_live = 0
