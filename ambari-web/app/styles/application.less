@@ -144,6 +144,20 @@ table.diff {
   padding: 10px;
 }
 
+.row.row-no-pad {
+  .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+  .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+    padding-left: 1px;
+    padding-right: 1px;
+    &:first-child {
+      padding-left: 15px;
+    }
+    &:last-child {
+      padding-right: 15px;
+    }
+  }
+}
+
 .ru-badge {
   text-align: center;
   .upgrade-in-progress {
@@ -3591,12 +3605,6 @@ table.graphs {
     border-bottom-color: #000000;
   }
 
-  //hack to apply style only for firefox
-  .host-components .btn-group{
-   white-space: normal;
-  }
-
-
   .marker {
     background-repeat: no-repeat;
     height: 13px;
@@ -3664,8 +3672,7 @@ table.graphs {
   }
 
   .content {
-    padding: 10px;
-
+    padding: 10px 0;
   }
 
   .host-configuration .dl-horizontal {
@@ -3695,29 +3702,19 @@ table.graphs {
 
   .host-components {
     padding: 10px;
-    padding-bottom: 0;
     border-radius: 4px;
     background: #FFF;
+    .component-name-block-wrapper {
+      display: table;
+      height: 34px;
+      .component-name-block {
+        white-space: normal;
+        word-wrap: break-word;
+        display: table-cell;
+        vertical-align: middle;
+      }
 
-  }
-
-  .host-components .btn-group {
-    margin: 0 5px 10px 0;
-
-    .component-text-status{
-      cursor: default;
-      display: block;
-      padding: 3px 20px;
-      clear: both;
-      font-weight: normal;
-      line-height: 20px;
-      color: #333333;
-      white-space: nowrap;
-      font-style: italic;
     }
-  }
-
-  .host-components {
     .dropdown-menu {
       .disabled {
         pointer-events: none;
@@ -3728,7 +3725,38 @@ table.graphs {
         pointer-events: auto;
       }
     }
+    .status-icons {
+      line-height: 34px;
+    }
+    .client-list {
+      ul {
+        list-style: none;
+      }
+    }
+    &>.row {
+      padding-bottom: 10px;
+    }
+    .btn-group {
+      //hack to apply style only for firefox
+      white-space: normal;
+      margin: 0 5px 10px 0;
+      & > .btn {
+        width: 140px;
+      }
+      .component-text-status {
+        cursor: default;
+        display: block;
+        padding: 3px 20px;
+        clear: both;
+        font-weight: normal;
+        line-height: 20px;
+        color: #333;
+        white-space: nowrap;
+        font-style: italic;
+      }
+    }
   }
+
   .host-tab-content,
   .logs-tab-content {
     margin-top: 20px;
@@ -4705,10 +4733,6 @@ ul.list-inline li {
 
 /* TIME RANGE WIDGET END */
 
-#host-details .host-components .btn-group > .btn {
-  width: 140px;
-}
-
 /* fieldset begin */
 .fieldset {
   border: 2px solid black;
@@ -5140,11 +5164,6 @@ i.glyphicon-asterisks {
 }
 
 .row .host-component-block {
-  .health-icon-block {
-    width: 6%;
-    float: left;
-    padding-right: 5px;
-  }
 
   .refresh-icon-block {
     width: 6%;
@@ -5155,13 +5174,6 @@ i.glyphicon-asterisks {
     width: 6%;
     float: left;
     padding-left: 3px;
-  }
-
-  .component-name-block {
-    width: 77%;
-    float: left;
-    white-space: normal;
-    word-wrap: break-word;
   }
 }
 
