@@ -232,8 +232,14 @@ if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY, stac
   livy_log4j_properties = config['configurations']['livy-log4j-properties']['content']
   livy_spark_blacklist_properties = config['configurations']['livy-spark-blacklist']['content']
 
-  livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.kerberos.keytab']
-  livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.kerberos.principal']
+  if 'livy.server.kerberos.keytab' in config['configurations']['livy-conf']:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.kerberos.keytab']
+  else:
+    livy_kerberos_keytab =  config['configurations']['livy-conf']['livy.server.launch.kerberos.keytab']
+  if 'livy.server.kerberos.principal' in config['configurations']['livy-conf']:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.kerberos.principal']
+  else:
+    livy_kerberos_principal = config['configurations']['livy-conf']['livy.server.launch.kerberos.principal']
 
   livy_livyserver_hosts = default("/clusterHostInfo/livy_server_hosts", [])
 
