@@ -48,6 +48,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.controller.AmbariActionExecutionHelper;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -88,6 +89,8 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -110,6 +113,16 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
+
+  /**
+   * Forces the {@link HostVersionEntity}s to a specific
+   * {@link RepositoryVersionState}. When used during the creation of
+   * {@link HostVersionEntity}s, this will set the state to
+   * {@link RepositoryVersionState#INSTALLED}. When used during the update of a
+   * cluster stack version, this will force all entities to
+   * {@link RepositoryVersionState#CURRENT}.
+   *
+   */
   protected static final String CLUSTER_STACK_VERSION_FORCE = "ClusterStackVersions/force";
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
@@ -127,43 +140,25 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
    */
   private static final float INSTALL_PACKAGES_SUCCESS_FACTOR = 0.85f;
 
-  @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Sets.newHashSet(
+      CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_STACK_PROPERTY_ID, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_STATE_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
-  private static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-      add(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
-      add(CLUSTER_STACK_VERSION_FORCE);
-    }
-  };
+  private static Set<String> propertyIds = Sets.newHashSet(CLUSTER_STACK_VERSION_ID_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+      CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR, CLUSTER_STACK_VERSION_FORCE);
 
-  @SuppressWarnings("serial")
-  private static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
-    {
-      put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID);
-      put(Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID);
-      put(Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
-      put(Type.StackVersion, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      put(Type.RepositoryVersion, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
-    }
-  };
+  private static Map<Type, String> keyPropertyIds = ImmutableMap.<Type, String> builder()
+      .put(Type.Cluster, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID)
+      .put(Type.ClusterStackVersion, CLUSTER_STACK_VERSION_ID_PROPERTY_ID)
+      .put(Type.Stack, CLUSTER_STACK_VERSION_STACK_PROPERTY_ID)
+      .put(Type.StackVersion, CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)
+      .put(Type.RepositoryVersion, CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID)
+      .build();
 
   @Inject
   private static ClusterVersionDAO clusterVersionDAO;
@@ -177,7 +172,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   private static HostRoleCommandFactory hostRoleCommandFactory;
 
-  private static Gson gson = StageUtils.getGson();
+  @Inject
+  private static Gson gson;
 
   @Inject
   private static Provider<AmbariActionExecutionHelper> actionExecutionHelper;
@@ -338,9 +334,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           cluster.getClusterName(), entity.getDirection().getText(false)));
     }
 
-    // get all of the host eligible for stack distribution
-    List<Host> hosts = getHostsForStackDistribution(cluster);
-
     final StackId stackId;
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
             propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
@@ -354,14 +347,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     } else { // Using stack that is current for cluster
       StackId currentStackVersion = cluster.getCurrentStackVersion();
       stackId = currentStackVersion;
-    }
-
-
-    // why does the JSON body parser convert JSON primitives into strings!?
-    Float successFactor = INSTALL_PACKAGES_SUCCESS_FACTOR;
-    String successFactorProperty = (String) propertyMap.get(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
-    if (StringUtils.isNotBlank(successFactorProperty)) {
-      successFactor = Float.valueOf(successFactorProperty);
     }
 
     RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(
@@ -380,6 +365,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new IllegalArgumentException(
           String.format("Version %s is backed by a version definition, but it could not be parsed", desiredRepoVersion), e);
     }
+
+    // get all of the host eligible for stack distribution
+    List<Host> hosts = getHostsForStackDistribution(cluster);
 
     /*
     If there is a repository that is already ATTEMPTED to be installed and the version
@@ -427,6 +415,80 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
     }
 
+    // if true, then we need to force all new host versions into the INSTALLED state
+    boolean forceInstalled = Boolean.parseBoolean((String)propertyMap.get(
+        CLUSTER_STACK_VERSION_FORCE));
+
+    final RequestStatusResponse response;
+
+    try {
+      if (forceInstalled) {
+        createHostVersions(cluster, hosts, stackId, desiredRepoVersion, RepositoryVersionState.INSTALLED);
+        response = null;
+      } else {
+        createHostVersions(cluster, hosts, stackId, desiredRepoVersion,
+            RepositoryVersionState.INSTALLING);
+
+        RequestStageContainer installRequest = createOrchestration(cluster, stackId, hosts,
+            repoVersionEnt, propertyMap);
+
+        response = installRequest.getRequestStatusResponse();
+      }
+    } catch (AmbariException e) {
+      throw new SystemException("Can not persist request", e);
+    }
+
+    return getRequestStatus(response);
+  }
+
+  @Transactional
+  private void createHostVersions(Cluster cluster, List<Host> hosts, StackId stackId,
+      String desiredRepoVersion, RepositoryVersionState repoState)
+      throws AmbariException, SystemException {
+    final String clusterName = cluster.getClusterName();
+    final String authName = getManagementController().getAuthName();
+
+    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
+        clusterName, stackId, desiredRepoVersion);
+
+    if (clusterVersionEntity == null) {
+      try {
+        // Create/persist new cluster stack version
+        cluster.createClusterVersion(stackId, desiredRepoVersion, authName, repoState);
+
+        clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
+            stackId, desiredRepoVersion);
+      } catch (AmbariException e) {
+        throw new SystemException(
+            String.format("Can not create cluster stack version %s for cluster %s",
+                desiredRepoVersion, clusterName), e);
+      }
+    } else {
+      // Move cluster version into the specified state (retry installation)
+      cluster.transitionClusterVersion(stackId, desiredRepoVersion, repoState);
+    }
+
+    // Will also initialize all Host Versions to the specified state state.
+    cluster.transitionHosts(clusterVersionEntity, repoState);
+
+    // Directly transition host versions to NOT_REQUIRED for hosts that don't
+    // have versionable components
+    for (Host host : hosts) {
+      if (!host.hasComponentsAdvertisingVersions(stackId)) {
+        transitionHostVersionToNotRequired(host, cluster,
+            clusterVersionEntity.getRepositoryVersion());
+      }
+    }
+  }
+
+  @Transactional
+  private RequestStageContainer createOrchestration(Cluster cluster, StackId stackId,
+      List<Host> hosts, RepositoryVersionEntity repoVersionEnt, Map<String, Object> propertyMap)
+      throws AmbariException, SystemException {
+    final AmbariManagementController managementController = getManagementController();
+    final AmbariMetaInfo ami = managementController.getAmbariMetaInfo();
+
+    // build the list of OS repos
     List<OperatingSystemEntity> operatingSystems = repoVersionEnt.getOperatingSystems();
     Map<String, List<RepositoryEntity>> perOsRepos = new HashMap<String, List<RepositoryEntity>>();
     for (OperatingSystemEntity operatingSystem : operatingSystems) {
@@ -434,9 +496,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       if (operatingSystem.isAmbariManagedRepos()) {
         perOsRepos.put(operatingSystem.getOsType(), operatingSystem.getRepositories());
       } else {
-        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity>emptyList());
+        perOsRepos.put(operatingSystem.getOsType(), Collections.<RepositoryEntity> emptyList());
       }
-
     }
 
     RequestStageContainer req = createRequest();
@@ -459,11 +520,16 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     int hostCount = hosts.size();
     int batchCount = (int) (Math.ceil((double)hostCount / maxTasks));
 
-    ArrayList<Host> directTransitions = new ArrayList<Host>();
-
     long stageId = req.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
+    }
+
+    // why does the JSON body parser convert JSON primitives into strings!?
+    Float successFactor = INSTALL_PACKAGES_SUCCESS_FACTOR;
+    String successFactorProperty = (String) propertyMap.get(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
+    if (StringUtils.isNotBlank(successFactorProperty)) {
+      successFactor = Float.valueOf(successFactorProperty);
     }
 
     boolean hasStage = false;
@@ -515,59 +581,20 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
               throw new SystemException("Cannot modify stage", e);
             }
           }
-        } else {
-          directTransitions.add(host);
         }
       }
     }
 
     if (!hasStage) {
-      throw new SystemException(String.format("There are no hosts that have components to install repository %s",
-          desiredRepoVersion));
+      throw new SystemException(
+          String.format("There are no hosts that have components to install for repository %s",
+              repoVersionEnt.getDisplayName()));
     }
 
     req.addStages(stages);
+    req.persist();
 
-    try {
-      ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
-          clName, stackId, desiredRepoVersion);
-
-      if (clusterVersionEntity == null) {
-        try {
-          // Create/persist new cluster stack version
-          cluster.createClusterVersion(stackId,
-              desiredRepoVersion, managementController.getAuthName(),
-              RepositoryVersionState.INSTALLING);
-
-          clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(
-              clName, stackId, desiredRepoVersion);
-        } catch (AmbariException e) {
-          throw new SystemException(
-                  String.format(
-                          "Can not create cluster stack version %s for cluster %s",
-              desiredRepoVersion, clName), e);
-        }
-      } else {
-        // Move cluster version into INSTALLING state (retry installation)
-        cluster.transitionClusterVersion(stackId,
-            desiredRepoVersion, RepositoryVersionState.INSTALLING);
-      }
-
-      // Will also initialize all Host Versions in an INSTALLING state.
-      cluster.transitionHostsToInstalling(clusterVersionEntity);
-
-      // Directly transition host versions to NOT_REQUIRED for hosts that don't have
-      // versionable components
-      for(Host host : directTransitions) {
-        transitionHostVersionToNotRequired(host, cluster,
-            clusterVersionEntity.getRepositoryVersion());
-      }
-
-      req.persist();
-    } catch (AmbariException e) {
-      throw new SystemException("Can not persist request", e);
-    }
-    return getRequestStatus(req.getRequestStatusResponse());
+    return req;
   }
 
   private ActionExecutionContext getHostVersionInstallCommand(RepositoryVersionEntity repoVersion,

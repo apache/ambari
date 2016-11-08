@@ -67,7 +67,6 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
@@ -108,6 +107,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.commons.lang.StringUtils;
 import org.junit.After;
@@ -146,7 +146,6 @@ public class ClusterTest {
   private ConfigGroupFactory configGroupFactory;
   private OrmTestHelper helper;
   private StackDAO stackDAO;
-  private ResourceTypeDAO resourceTypeDAO;
   private ClusterDAO clusterDAO;
   private HostDAO hostDAO;
   private ClusterVersionDAO clusterVersionDAO;
@@ -204,7 +203,6 @@ public class ClusterTest {
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     helper = injector.getInstance(OrmTestHelper.class);
     stackDAO = injector.getInstance(StackDAO.class);
-    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     hostDAO = injector.getInstance(HostDAO.class);
     clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
@@ -1720,7 +1718,7 @@ public class ClusterTest {
     List<HostVersionEntity> hostVersionsH1Before = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(1, hostVersionsH1Before.size());
 
-    c1.transitionHostsToInstalling(entityHDP2);
+    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
 
     List<HostVersionEntity> hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1739,7 +1737,7 @@ public class ClusterTest {
     assertTrue(checked);
 
     // Test for update of existing host stack version
-    c1.transitionHostsToInstalling(entityHDP2);
+    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
 
     hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
     assertEquals(2, hostVersionsH1After.size());
@@ -1778,7 +1776,7 @@ public class ClusterTest {
     hostInMaintenanceMode.setMaintenanceState(c1.getClusterId(), MaintenanceState.ON);
 
     // transition host versions to INSTALLING
-    c1.transitionHostsToInstalling(entityHDP2);
+    c1.transitionHosts(entityHDP2, RepositoryVersionState.INSTALLING);
 
     List<HostVersionEntity> hostInMaintModeVersions = hostVersionDAO.findByClusterAndHost("c1",
         hostInMaintenanceMode.getHostName());
@@ -2720,5 +2718,28 @@ public class ClusterTest {
     publisher.publish(event);
 
     assertFalse(((ClusterImpl) cluster).isClusterPropertyCached("foo"));
+  }
+
+  /**
+   * Tests that the {@link ClusterVersionEntity} can be created initially with a
+   * state of {@link RepositoryVersionState#INSTALLED}. This state is needed for
+   * {@link UpgradeType#HOST_ORDERED}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testClusterVersionCreationWithInstalledState() throws Exception {
+    StackId stackId = new StackId("HDP", "0.1");
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    org.junit.Assert.assertNotNull(stackEntity);
+
+    String clusterName = "c1";
+    clusters.addCluster(clusterName, stackId);
+    c1 = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.INSTALLED);
   }
 }

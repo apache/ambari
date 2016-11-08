@@ -1609,6 +1609,190 @@ public class ClusterStackVersionResourceProviderTest {
      testCreateResourcesExistingUpgrade(TestAuthenticationFactory.createClusterOperator());
    }
 
+  /**
+   * Tests that forcing the host versions into
+   * {@link RepositoryVersionState#INSTALLED}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testCreateResourcesInInstalledState() throws Exception {
+    Resource.Type type = Resource.Type.ClusterStackVersion;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    StackId stackId = new StackId("HDP", "2.2.0");
+    String repoVersion = "2.2.0.1-885";
+
+    File f = new File("src/test/resources/hbase_version_test.xml");
+
+    RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setId(1l);
+    repoVersionEntity.setOperatingSystems(OS_JSON);
+    repoVersionEntity.setVersionXml(IOUtils.toString(new FileInputStream(f)));
+    repoVersionEntity.setVersionXsd("version_definition.xsd");
+    repoVersionEntity.setType(RepositoryType.STANDARD);
+
+    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    List<HostVersionEntity> hostVersionEntitiesMergedWithNotRequired = new ArrayList<>();
+    int hostCount = 10;
+
+    for (int i = 0; i < hostCount; i++) {
+      String hostname = "host" + i;
+      Host host = createNiceMock(hostname, Host.class);
+      expect(host.getHostName()).andReturn(hostname).anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      expect(host.getMaintenanceState(EasyMock.anyLong())).andReturn(MaintenanceState.OFF).anyTimes();
+
+      // ensure that 2 hosts don't have versionable components so they
+      // transition correct into the not required state
+      if (i < hostCount - 2) {
+        expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(true).atLeastOnce();
+      } else {
+        expect(host.hasComponentsAdvertisingVersions(eq(stackId))).andReturn(false).atLeastOnce();
+
+        // mock out the host versions so that we can test hosts being
+        // transitioned into NOT_REQUIRED
+        HostVersionEntity hostVersionEntity = EasyMock.createNiceMock(HostVersionEntity.class);
+        expect(hostVersionEntity.getRepositoryVersion()).andReturn(repoVersionEntity).atLeastOnce();
+        replay(hostVersionEntity);
+
+        hostVersionEntitiesMergedWithNotRequired.add(hostVersionEntity);
+        expect(host.getAllHostVersions()).andReturn(hostVersionEntitiesMergedWithNotRequired).anyTimes();
+      }
+
+      replay(host);
+
+      hostsForCluster.put(hostname, host);
+    }
+
+    Service hdfsService = createNiceMock(Service.class);
+    expect(hdfsService.getName()).andReturn("HDFS").anyTimes();
+    expect(hdfsService.getServiceComponents()).andReturn(new HashMap<String, ServiceComponent>());
+
+    Map<String, Service> serviceMap = new HashMap<>();
+    serviceMap.put("HDFS", hdfsService);
+
+    final ServiceComponentHost schDatanode = createMock(ServiceComponentHost.class);
+    expect(schDatanode.getServiceName()).andReturn("HDFS").anyTimes();
+    expect(schDatanode.getServiceComponentName()).andReturn("DATANODE").anyTimes();
+
+    final List<ServiceComponentHost> serviceComponentHosts = Arrays.asList(schDatanode);
+
+    ServiceOsSpecific.Package hdfsPackage = new ServiceOsSpecific.Package();
+    hdfsPackage.setName("hdfs");
+
+    List<ServiceOsSpecific.Package> packages = Collections.singletonList(hdfsPackage);
+
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider csvResourceProvider = createNiceMock(
+        ClusterStackVersionResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(managementController.getJdkResourceUrl()).andReturn("/JdkResourceUrl").anyTimes();
+    expect(managementController.getPackagesForServiceHost(anyObject(ServiceInfo.class),
+        (Map<String, String>) anyObject(List.class), anyObject(String.class))).andReturn(
+            packages).anyTimes(); // only one host has the versionable component
+
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class),
+        anyObject(Map.class), eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+
+    expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
+    expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(
+        hostsForCluster).anyTimes();
+
+    String clusterName = "Cluster100";
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getClusterName()).andReturn(clusterName).atLeastOnce();
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+    expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(
+        serviceComponentHosts).anyTimes();
+
+    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(StackId.class),
+        anyObject(String.class))).andReturn(repoVersionEntity);
+
+    expect(clusterVersionDAO.findByCluster(anyObject(String.class))).andReturn(
+        Collections.<ClusterVersionEntity> emptyList()).once();
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1l);
+    clusterEntity.setClusterName(clusterName);
+
+    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity, repoVersionEntity,
+        RepositoryVersionState.INSTALL_FAILED, 0, "");
+
+    // first expect back a null to make the code think it needs to create one,
+    // then return the real one it's going to use
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+        anyObject(StackId.class), anyObject(String.class))).andReturn(null).once();
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+        anyObject(StackId.class), anyObject(String.class))).andReturn(cve).once();
+
+    // now the important expectations - that the cluster transition methods were
+    // called correctly
+    cluster.transitionHosts(cve, RepositoryVersionState.INSTALLED);
+    for (HostVersionEntity hostVersionEntity : hostVersionEntitiesMergedWithNotRequired) {
+      expect(hostVersionDAO.merge(hostVersionEntity)).andReturn(hostVersionEntity).once();
+    }
+
+    // replay
+    replay(managementController, response, clusters, hdfsService, resourceProviderFactory,
+        csvResourceProvider, cluster, repositoryVersionDAOMock, configHelper, schDatanode,
+        stageFactory, clusterVersionDAO, hostVersionDAO);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(type,
+        PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    injector.injectMembers(provider);
+
+    // add the property map to a set for the request. add more maps for multiple
+    // creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add properties to the request map
+    properties.put(
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID,
+        clusterName);
+
+    properties.put(
+        ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+        repoVersion);
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STACK_PROPERTY_ID,
+        stackId.getStackName());
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID,
+        stackId.getStackVersion());
+
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_FORCE, "true");
+
+    propertySet.add(properties);
+
+    // set the security auth
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    RequestStatus status = provider.createResources(request);
+    Assert.assertNotNull(status);
+
+    // verify
+    verify(managementController, response, clusters, cluster, hostVersionDAO);
+   }
+
+
    private void testCreateResourcesExistingUpgrade(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
 
