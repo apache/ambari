@@ -157,15 +157,15 @@ App.config = Em.Object.create({
     var
       baseStackFolder = App.get('currentStackName'),
       singMap = {
-        "1": ">",
-        "-1": "<",
-        "0": "="
+        "1": [">", ">="],
+        "-1": ["<", "<="],
+        "0": ["=", ">=","<="]
       };
 
     this.get('customStackMapping').every(function (stack) {
       if(stack.stackName == App.get('currentStackName')){
         var versionCompare = Em.compare(App.get('currentStackVersionNumber'), stack.stackVersionNumber);
-        if(singMap[versionCompare+""] === stack.sign){
+        if(singMap[versionCompare+""].contains(stack.sign)){
           baseStackFolder = stack.baseStackFolder;
           return false;
         }
