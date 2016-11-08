@@ -39,6 +39,7 @@ import AmbariConfig
 from ambari_agent.Heartbeat import Heartbeat
 from ambari_agent.Register import Register
 from ambari_agent.ActionQueue import ActionQueue
+from ambari_agent.StatusCommandsExecutor import StatusCommandsExecutor
 from ambari_agent.FileCache import FileCache
 from ambari_agent.NetUtil import NetUtil
 from ambari_agent.LiveStatus import LiveStatus
@@ -83,6 +84,7 @@ class Controller(threading.Thread):
     self.cachedconnect = None
     self.max_reconnect_retry_delay = int(config.get('server','max_reconnect_retry_delay', default=30))
     self.hasMappedComponents = True
+    self.statusCommandsExecutor = None
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
     self.heartbeat_stop_callback = heartbeat_stop_callback
@@ -448,10 +450,18 @@ class Controller(threading.Thread):
         logger.info("Stop event received")
         self.DEBUG_STOP_HEARTBEATING=True
 
+  def spawnStatusCommandsExecutorProcess(self):
+    self.statusCommandsExecutor = StatusCommandsExecutor(self.config, self.actionQueue)
+    self.statusCommandsExecutor.start()
+
+  def getStatusCommandsExecutor(self):
+    return self.statusCommandsExecutor
+
   def run(self):
     try:
       self.actionQueue = ActionQueue(self.config, controller=self)
       self.actionQueue.start()
+      self.spawnStatusCommandsExecutorProcess()
       self.register = Register(self.config)
       self.heartbeat = Heartbeat(self.actionQueue, self.config, self.alert_scheduler_handler.collector())
  

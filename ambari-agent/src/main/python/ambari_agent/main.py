@@ -284,6 +284,22 @@ def reset_agent(options):
 
 MAX_RETRIES = 10
 
+def run_threads(server_hostname, heartbeat_stop_callback):
+  # Launch Controller communication
+  controller = Controller(config, server_hostname, heartbeat_stop_callback)
+  controller.start()
+  while controller.is_alive():
+    time.sleep(0.1)
+
+    if controller.getStatusCommandsExecutor() is not None and (not controller.getStatusCommandsExecutor().is_alive() or controller.getStatusCommandsExecutor().hasTimeoutedEvent.is_set()):
+      if controller.getStatusCommandsExecutor().is_alive():
+        logger.info("Terminating statusCommandsExecutor")
+        controller.getStatusCommandsExecutor().kill()
+      logger.info("Respawning statusCommandsExecutor")
+      controller.spawnStatusCommandsExecutorProcess()
+
+  controller.getStatusCommandsExecutor().kill()
+
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
 def main(heartbeat_stop_callback=None):
@@ -388,10 +404,7 @@ def main(heartbeat_stop_callback=None):
         # Set the active server
         active_server = server_hostname
         # Launch Controller communication
-        controller = Controller(config, server_hostname, heartbeat_stop_callback)
-        controller.start()
-        while controller.is_alive():
-          time.sleep(0.1)
+        run_threads(server_hostname, heartbeat_stop_callback)
 
       #
       # If Ambari Agent connected to the server or
