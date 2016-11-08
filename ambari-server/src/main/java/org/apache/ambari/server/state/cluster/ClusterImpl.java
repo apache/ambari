@@ -167,7 +167,8 @@ public class ClusterImpl implements Cluster {
    */
   private static final String CLUSTER_SESSION_ATTRIBUTES_PREFIX = "cluster_session_attributes:";
   private static final Set<RepositoryVersionState> ALLOWED_REPOSITORY_STATES =
-      EnumSet.of(RepositoryVersionState.INIT, RepositoryVersionState.INSTALLING);
+      EnumSet.of(RepositoryVersionState.INIT, RepositoryVersionState.INSTALLING,
+          RepositoryVersionState.INSTALLED);
 
   @Inject
   private Clusters clusters;
@@ -1179,15 +1180,16 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public void transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion) throws AmbariException {
+  public void transitionHosts(ClusterVersionEntity sourceClusterVersion,
+      RepositoryVersionState state) throws AmbariException {
+
     if (sourceClusterVersion == null) {
       throw new AmbariException("Could not find current stack version of cluster " + getClusterName());
     }
 
-    if (RepositoryVersionState.INSTALLING != sourceClusterVersion.getState()) {
-      throw new AmbariException("Unable to transition cluster hosts into "
-          + RepositoryVersionState.INSTALLING
-          + ". The only valid state is INSTALLING");
+    if (state != sourceClusterVersion.getState()) {
+      throw new AmbariException("Unable to transition cluster hosts into " + state
+          + ". The only valid state is " + sourceClusterVersion.getState());
     }
 
     Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
@@ -1215,8 +1217,7 @@ public class ClusterImpl implements Cluster {
         hosts.keySet(), existingHostsWithClusterStackAndVersion);
 
       createOrUpdateHostVersionToState(sourceClusterVersion, hosts,
-        existingHostStackVersions, hostsMissingRepoVersion,
-        RepositoryVersionState.INSTALLING);
+          existingHostStackVersions, hostsMissingRepoVersion, state);
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }

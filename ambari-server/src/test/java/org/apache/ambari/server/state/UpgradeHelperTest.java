@@ -1959,6 +1959,16 @@ public class UpgradeHelperTest {
         assertEquals(StageWrapper.Type.STOP, w.getType());
       } else if (i == 1 || i == 4) {
         assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, w.getType());
+        assertEquals(1, w.getTasks().size());
+        assertEquals(1, w.getTasks().get(0).getTasks().size());
+        Task t = w.getTasks().get(0).getTasks().get(0);
+        assertEquals(ManualTask.class, t.getClass());
+        ManualTask mt = (ManualTask) t;
+        assertNotNull(mt.structuredOut);
+        assertTrue(mt.structuredOut.contains("type"));
+        assertTrue(mt.structuredOut.contains(HostOrderItem.HostOrderActionType.HOST_UPGRADE.toString()));
+        assertTrue(mt.structuredOut.contains("host"));
+        assertTrue(mt.structuredOut.contains(i == 1 ? "h1" : "h2"));
       } else {
         assertEquals(StageWrapper.Type.RESTART, w.getType());
       }
