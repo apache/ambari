@@ -312,7 +312,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var isLastComponent = (this.getTotalComponent(component) === 1);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
-      primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
+      primary: componentName == 'JOURNALNODE'? Em.I18n.t('ok') : Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
@@ -321,6 +321,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       isNimbus: componentName == 'NIMBUS',
       isRangerKMSServer: componentName == 'RANGER_KMS_SERVER',
       isZkServer: componentName == 'ZOOKEEPER_SERVER',
+      isJournalNode: componentName == 'JOURNALNODE',
 
       deleteHiveMetastoreMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'),
       deleteWebHCatServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteWebHCatServer'),
@@ -329,6 +330,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName),
       deleteComponentMsg: Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName),
       deleteZkServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteZooKeeperServer'),
+      deleteJournalNodeMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteJournalNodeMsg'),
 
       isChecked: false,
       disablePrimary: Em.computed.not('isChecked'),
@@ -339,10 +341,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
 
       onPrimary: function () {
         var popup = this;
-        self._doDeleteHostComponent(component, function () {
-          self.set('redrawComponents', true);
+        if (componentName == 'JOURNALNODE') {
           popup.hide();
-        });
+          App.router.transitionTo('main.services.manageJournalNode');
+        } else {
+          self._doDeleteHostComponent(component, function () {
+            self.set('redrawComponents', true);
+            popup.hide();
+          });
+        }
       }
     });
   },
@@ -591,6 +598,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         returnFunc = App.showConfirmationPopup(function () {
           self.set('rangerKMSServerHost', hostName);
           self.loadConfigs("loadRangerConfigs");
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
+        break;
+      case 'JOURNALNODE':
+        returnFunc = App.showConfirmationPopup(function () {
+          App.router.transitionTo('main.services.manageJournalNode');
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       default:
