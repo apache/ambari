@@ -21,7 +21,6 @@ Ambari Agent
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
 import traceback
 
@@ -48,7 +47,7 @@ def webhcat_service(action='start', upgrade_type=None):
       environ['HADOOP_HOME'] = format("{stack_root}/{version}/hadoop")
 
     daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
-    no_op_test = as_user(format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1'), user=params.webhcat_user)
+    no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
     try:
       Execute(daemon_cmd,
               user=params.webhcat_user,
@@ -65,8 +64,8 @@ def webhcat_service(action='start', upgrade_type=None):
       show_logs(params.hcat_log_dir, params.webhcat_user)
       Logger.info(traceback.format_exc())
 
-    # run this as WebHcat since the Execute conditions of not_of and only_if can't
-    pid_expression = "`" + as_user(format("cat {webhcat_pid_file}"), user=params.webhcat_user) + "`"
+    # this will retrieve the PID
+    pid_expression = format("`cat {webhcat_pid_file}`")
 
     # the PID must exist AND'd with the process must be alive
     # the return code here is going to be 0 IFF both conditions are met correctly
