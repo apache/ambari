@@ -126,6 +126,28 @@ describe('App.config', function () {
     });
   });
 
+  describe('#mapCustomStack', function() {
+    before(function() {
+      setups.setupStackVersion(this, 'HDF-2.2');
+    });
+
+    it('versions of HDF > 2.0 should map with HDP 2.3 stack based property definitions', function() {
+      var baseStackFolder = App.config.mapCustomStack();
+      expect(baseStackFolder).to.equal("HDP2.3");
+    });
+
+    it('versions of HDF = 2.0 should map with HDP 2.3 stack based property definitions', function() {
+      App.set('currentStackVersion', 'HDF-2.0');
+      var baseStackFolder = App.config.mapCustomStack();
+      expect(baseStackFolder).to.equal("HDP2.3");
+    });
+
+
+    after(function() {
+      setups.restoreStackVersion(this);
+    });
+  });
+
   describe('#preDefinedConfigFile', function() {
     before(function() {
       setups.setupStackVersion(this, 'BIGTOP-0.8');
