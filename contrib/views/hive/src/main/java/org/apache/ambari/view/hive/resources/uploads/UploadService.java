@@ -36,6 +36,8 @@ import org.apache.ambari.view.hive.resources.uploads.query.TableInfo;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -464,7 +466,8 @@ public class UploadService extends BaseService {
 
     LOG.info("isFirstRowHeader : {}, inputFileType : {}", isFirstRowHeader, inputFileType);
 
-    DataParser dataParser = new DataParser(new InputStreamReader(uploadedInputStream), parseOptions);
+    Reader reader = getInputStreamReader(uploadedInputStream);
+    DataParser dataParser = new DataParser(reader, parseOptions);
 
     return dataParser.parsePreview();
   }
@@ -510,11 +513,31 @@ public class UploadService extends BaseService {
       parseOptions.setOption(ParseOptions.OPTIONS_CSV_QUOTE, csvParams.getCsvQuote());
     }
 
-    DataParser dataParser = new DataParser(new InputStreamReader(uploadedInputStream), parseOptions);
+    Reader reader = getInputStreamReader(uploadedInputStream);
+    DataParser dataParser = new DataParser(reader, parseOptions);
 
     Reader csvReader = new TableDataReader(dataParser.iterator(), header, containsEndlines); // encode column values into HEX so that \n etc dont appear in the hive table data
     String path = uploadIntoTable(csvReader, databaseName, tableName);
     return path;
+  }
+
+  /**
+   * takes care of any BOM in the stream
+   * @param is : the input stream
+   * @return : the reader from the stream
+   * @throws IOException
+   */
+  private Reader getInputStreamReader(InputStream is) throws IOException {
+    BOMInputStream bomInputStream = new BOMInputStream(is,
+      ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE,
+      ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_32BE
+    );
+    if(bomInputStream.hasBOM()){
+      String charSetName = bomInputStream.getBOMCharsetName();
+      return new InputStreamReader(bomInputStream, charSetName); // return with the encoded charset encoding.
+    }else{
+      return new InputStreamReader(bomInputStream); //return with default charset
+    }
   }
 
   private String getBasenameFromPath(String path) {

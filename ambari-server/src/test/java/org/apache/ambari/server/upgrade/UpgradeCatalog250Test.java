@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import javax.persistence.EntityManager;
+import junit.framework.Assert;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
@@ -40,8 +42,6 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.configuration.Configuration;
@@ -68,8 +68,6 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
-
-import junit.framework.Assert;
 
 /**
  * {@link UpgradeCatalog250} unit tests.
@@ -199,14 +197,19 @@ public class UpgradeCatalog250Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
+    Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
         .addMockedMethod(updateAmsConfigs)
+        .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(updateKafkaConfigs)
         .createMock();
 
     upgradeCatalog250.updateAMSConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.addNewConfigurationsFromXml();
     expectLastCall().once();
 
     upgradeCatalog250.updateKafkaConfigs();

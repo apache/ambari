@@ -21,15 +21,12 @@ package org.apache.ambari.view.hive.resources.upload;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import org.apache.ambari.view.hive.client.Row;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Iterator;
 
 public class OpenCSVTest {
 
@@ -129,6 +126,20 @@ public class OpenCSVTest {
       Assert.assertArrayEquals("Failed to match 1st row!",new String[]{"valu#e1", "c", "10", "10.1"}, row1);
 
       Assert.assertArrayEquals("Failed to match 2nd row!",new String[]{"value2", "c2", "102", "true"}, row2);
+    }
+  }
+
+  @Test
+  public void testMultipleEscape() throws Exception {
+
+    String csv = "BBAABBKMAABB";
+
+    try(
+      StringReader sr = new StringReader(csv);
+      CSVReader csvReader = new CSVReader(sr,'M','"','B');
+    ) {
+      String[] row1 = csvReader.readNext();
+      Assert.assertArrayEquals("Failed to match 1st row!",new String[]{"AABK", "AAB"}, row1);
     }
   }
 

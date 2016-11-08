@@ -21,6 +21,10 @@
     <service>
       <name>HIVE</name>
       <version>1.2.1.2.5</version>
+      <credential-store>
+        <supported>true</supported>
+        <enabled>false</enabled>
+      </credential-store>
       <components>
         <component>
           <name>HIVE_SERVER_INTERACTIVE</name>

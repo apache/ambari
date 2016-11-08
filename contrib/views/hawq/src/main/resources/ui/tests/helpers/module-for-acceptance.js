@@ -21,7 +21,7 @@ import startApp from 'hawq-view/tests/helpers/start-app';
 import destroyApp from 'hawq-view/tests/helpers/destroy-app';
 import Pretender from 'pretender';
 import { getMockPayload } from 'hawq-view/tests/helpers/test-helper';
-import ENV from 'hawq-view/config/environment';
+import Utils from 'hawq-view/utils/utils';
 
 let server;
 
@@ -30,7 +30,7 @@ export default function(name, options = {}) {
     beforeEach() {
       this.application = startApp();
       server = new Pretender(function() {
-        this.get(ENV.apiURL + '/queries', function () {
+        this.get(Utils.getNamespace() + '/queries', function () {
           return [200, {'Content-Type': 'application/json'}, JSON.stringify(getMockPayload())];
         });
       });

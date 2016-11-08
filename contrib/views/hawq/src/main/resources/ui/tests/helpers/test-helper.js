@@ -20,40 +20,61 @@ import Ember from 'ember';
 
 export function getMockPayload() {
   return {
-    data: [
+    "href": "http://c6401.ambari.apache.org:8080/api/v1/views/HAWQ/versions/1.0.0/instances/HAWQ/queries?fields=*",
+    "items": [
       {
-        id: 1,
-        type: 'query',
-        attributes: {
-          'database-name': 'template1',
-          'pid': 90201,
-          'user-name': 'gpadmin',
-          'waiting': false,
-          'waiting-resource': false,
-          'duration': '00:00:12',
-          'query-start-time': '2016-02-16T16:41:13-08:00',
-          'formatted-query-start-time': '2016-02-16T16:41:13-08:00',
-          'client-host': '127.0.0.1',
-          'client-port': 9999,
-          'application-name': 'psql'
+        "href": "http://c6401.ambari.apache.org:8080/api/v1/views/HAWQ/versions/1.0.0/instances/HAWQ/queries/116662",
+        "id": "116662",
+        "instance_name": "HAWQ",
+        "type": "query",
+        "version": "1.0.0",
+        "view_name": "HAWQ",
+        "attributes": {
+          "application_name": "",
+          "backend_start": "2016-10-25 19:24:19",
+          "client_addr": "192.168.64.101",
+          "client_port": 34941,
+          "current_query": "SELECT * FROM pg_stat_activity",
+          "datid": 1,
+          "datname": "template1",
+          "procpid": 116662,
+          "query_duration": 0.0,
+          "query_start": "2016-10-25 19:31:04",
+          "sess_id": 420,
+          "usename": "gpadmin",
+          "usesysid": 10,
+          "waiting": false,
+          "waiting_resource": false,
+          "xact_start": "2016-10-25 19:31:04"
         }
-      }, {
-        id: 2,
-        type: 'query',
-        attributes: {
-          'database-name': 'gpadmin',
-          'pid': 13345,
-          'user-name': 'foo',
-          'waiting': true,
-          'waiting-resource': true,
-          'duration': '00:20:12',
-          'query-start-time': '1963-10-21T00:00:00-08:00',
-          'formatted-query-start-time': '2016-02-16T16:41:13-08:00',
-          'client-port': -1,
-          'application-name': 'mock'
+      },
+      {
+        "href": "http://c6401.ambari.apache.org:8080/api/v1/views/HAWQ/versions/1.0.0/instances/HAWQ/queries/12345",
+        "id": "12345",
+        "instance_name": "HAWQ",
+        "type": "query",
+        "version": "1.0.0",
+        "view_name": "HAWQ",
+        "attributes": {
+          "application_name": "",
+          "backend_start": "2016-10-25 19:24:19",
+          "client_addr": "192.168.64.104",
+          "client_port": 42811,
+          "current_query": "SELECT * FROM customers",
+          "datid": 1,
+          "datname": "gpadmin",
+          "procpid": 12345,
+          "query_duration": 0.0,
+          "query_start": "2016-10-25 19:31:24",
+          "sess_id": 420,
+          "usename": "gpadmin",
+          "usesysid": 10,
+          "waiting": true,
+          "waiting_resource": true,
+          "xact_start": "2016-10-25 19:31:24"
         }
-      }],
-    'server-time': '1963-10-21T00:43:15-08:00'
+      }
+    ]
   };
 }
 
@@ -71,9 +92,9 @@ export function makeQueryObjects() {
       'waitingResource': false,
       'statusClass': 'green',
       'duration': '02:30:57',
-      'queryStartTime': '2016-02-16T16:41:13-08:00',
-      'formattedQueryStartTime': '2016-02-16T16:41:13-08:00',
-      'clientAddress': 'local'
+      'queryStartTime': '2016-02-16 16:41:13',
+      'clientAddress': 'local',
+      'formattedDuration': '00:00:00'
     }, {
       'id': 2,
       'databaseName': 'DB2',
@@ -86,9 +107,9 @@ export function makeQueryObjects() {
       'waitingResource': false,
       'statusClass': 'orange',
       'duration': '01:20:12',
-      'queryStartTime': '2016-02-16T16:41:13-08:00',
-      'formattedQueryStartTime': '2016-02-16T16:41:13-08:00',
-      'clientAddress': 'local'
+      'queryStartTime': '2016-02-16 16:41:13',
+      'clientAddress': 'local',
+      'formattedDuration': '01:00:00'
     }, {
       'id': 3,
       'databaseName': 'FoxPro',
@@ -101,9 +122,9 @@ export function makeQueryObjects() {
       'waitingResource': true,
       'statusClass': '',
       'duration': '00:20:12',
-      'queryStartTime': '2016-02-16T16:41:13-08:00',
-      'formattedQueryStartTime': '2016-02-16T16:41:13-08:00',
-      'clientAddress': 'local'
+      'queryStartTime': '2016-02-16 16:41:13',
+      'clientAddress': 'local',
+      'formattedDuration': '00:00:01'
     }];
 
   var queries = [];
@@ -115,4 +136,4 @@ export function makeQueryObjects() {
   return queries;
 }
 
-export { getMockPayload, makeQueryObjects };
+export {getMockPayload, makeQueryObjects};

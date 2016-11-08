@@ -123,15 +123,18 @@ class TestUtils(TestCase):
   @patch('time.time')
   @patch.object(utils, 'pid_exists')
   @patch('time.sleep')
-  @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("socket.socket")
   @patch('__builtin__.open')
-  def test_wait_for_pid(self, open_mock, socket_mock, get_properties_mock, sleep_mock, pid_exists_mock, time_mock):
+  def test_wait_for_pid(self, open_mock, socket_mock, sleep_mock, pid_exists_mock, time_mock):
+    from ambari_server.serverConfiguration import SSL_API, CLIENT_API_PORT_PROPERTY
     pid_exists_mock.return_value = True
     time_mock.side_effect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51]
     s = socket_mock.return_value
     s.connect = MagicMock()
-
+    properties = FakeProperties({
+      SSL_API: "false",
+      CLIENT_API_PORT_PROPERTY: "8080"
+    })
     out = StringIO.StringIO()
     sys.stdout = out
     live_pids = utils.wait_for_pid([
@@ -143,7 +146,7 @@ class TestUtils(TestCase):
                                     "exe": "",
                                     "cmd": ""
                                     },
-                                   ], 5, 40, 10, '', '', get_properties_mock)
+                                   ], 5, 40, 10, '', '', properties)
     self.assertEqual(".\nServer started listening on 8080\n\nDB configs consistency check: no errors and warnings were "
                      "found.\nWaiting for 10 seconds, for server WEB UI initialization\n........", out.getvalue())
     sys.stdout = sys.__stdout__
@@ -249,3 +252,9 @@ class TestUtils(TestCase):
     self.assertEquals(utils.compare_versions("2.0.0_1","2.0.0_2"),0)
     self.assertEquals(utils.compare_versions("2.0.0-abc","2.0.0_abc"),0)
 
+class FakeProperties(object):
+  def __init__(self, prop_map):
+    self.prop_map = prop_map
+
+  def get_property(self, prop_name):
+    return self.prop_map[prop_name]
