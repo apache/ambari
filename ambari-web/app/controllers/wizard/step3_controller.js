@@ -222,6 +222,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   checksUpdateStatus: null,
 
   /**
+   * disables host check on Add host wizard as per the experimental flag
+   */
+  disableHostCheck: function () {
+    return App.get('supports.disableHostCheckOnAddHostWizard') && this.get('isAddHostWizard');
+  }.property('App.supports.disableHostCheckOnAddHostWizard', 'isAddHostWizard'),
+
+  /**
    *
    * @method navigateStep
    */
@@ -939,7 +946,12 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       this.getHostCheckSuccess();
     } else {
       var data = this.getDataForCheckRequest("host_resolution_check", true);
-      data ? this.requestToPerformHostCheck(data) : this.stopHostCheck();
+      if (data && !this.get('disableHostCheck')) {
+        this.requestToPerformHostCheck(data);
+      } else {
+        this.stopHostCheck();
+        this.stopRegistration();
+      }
     }
   },
 
