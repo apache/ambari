@@ -95,6 +95,20 @@ App.CheckHostMixin = Em.Mixin.create({
   warningsByHost: [],
 
   /**
+   * This property should be overridden if being used for Add Host Wizard
+   * @return {bool}
+   */
+  isAddHostWizard: false,
+
+
+  /**
+   * disables host check on Add host wizard as per the experimental flag
+   */
+  disableHostCheck: function () {
+    return App.get('supports.disableHostCheckOnAddHostWizard') && this.get('isAddHostWizard');
+  }.property('App.supports.disableHostCheckOnAddHostWizard', 'isAddHostWizard'),
+
+  /**
    * send request to create tasks for performing hosts checks
    * @params {object} data
    *    {
@@ -390,7 +404,12 @@ App.CheckHostMixin = Em.Mixin.create({
       this.getHostCheckSuccess();
     } else {
       var data = dataForHostCheck || this.getDataForCheckRequest("host_resolution_check", true);
-      data ? this.requestToPerformHostCheck(data) : this.stopHostCheck();
+      if (data && !this.get('disableHostCheck')) {
+        this.requestToPerformHostCheck(data);
+      } else {
+        this.stopHostCheck();
+        this.stopRegistration();
+      }
     }
   },
 
