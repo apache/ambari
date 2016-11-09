@@ -2433,3 +2433,32 @@ class TestHDP206StackAdvisor(TestCase):
     self.assertFalse(recommendations['blueprint']['host_groups'][0]['components'])
     # Assert that DATANODE is placed on host-group-2
     self.assertEquals(recommendations['blueprint']['host_groups'][1]['components'][0]['name'], 'DATANODE')
+
+  def test_validateYARNConfigurations(self):
+    configurations = {
+      "cluster-env": {
+        "properties": {
+          "user_group": "hadoop",
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          'yarn.nodemanager.resource.memory-mb' : '12288',
+          'yarn.scheduler.minimum-allocation-mb' : '3072',
+          'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+          'yarn.scheduler.maximum-allocation-mb': '12288'
+        }
+      }
+    }
+    services = {'configurations': {} }
+    recommendedDefaults = {'yarn.nodemanager.resource.memory-mb' : '12288',
+      'yarn.scheduler.minimum-allocation-mb' : '3072',
+      'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+      'yarn.scheduler.maximum-allocation-mb': '12288'}
+    properties = {'yarn.nodemanager.resource.memory-mb' : '12288',
+      'yarn.scheduler.minimum-allocation-mb' : '3072',
+      'yarn.nodemanager.linux-container-executor.group': 'hadoop',
+      'yarn.scheduler.maximum-allocation-mb': '12288'}
+
+    res = self.stackAdvisor.validateYARNConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertFalse(res)

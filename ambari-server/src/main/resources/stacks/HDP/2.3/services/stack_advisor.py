@@ -436,6 +436,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
     putRangerKmsAuditProperty = self.putProperty(configurations, "ranger-kms-audit", services)
+    security_enabled = self.isSecurityEnabled(services)
+    putRangerKmsSiteProperty = self.putProperty(configurations, "kms-site", services)
+    putRangerKmsSitePropertyAttribute = self.putPropertyAttribute(configurations, "kms-site")
 
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
 
@@ -477,6 +480,95 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
         putRangerKmsAuditProperty('xasecure.audit.destination.hdfs.dir', '{0}/{1}/{2}'.format(default_fs,'ranger','audit'))
 
+    required_services = [{'service' : 'YARN', 'config-type': 'yarn-env', 'property-name': 'yarn_user', 'proxy-category': ['hosts', 'users', 'groups']},
+    {'service' : 'SPARK', 'config-type': 'livy-env', 'property-name': 'livy_user', 'proxy-category': ['hosts', 'users', 'groups']}]
+
+    required_services_for_secure = [{'service' : 'HIVE', 'config-type': 'hive-env', 'property-name': 'hive_user', 'proxy-category': ['hosts', 'users']},
+    {'service' : 'OOZIE', 'config-type': 'oozie-env', 'property-name': 'oozie_user', 'proxy-category': ['hosts', 'users']}]
+
+    if security_enabled:
+      required_services.extend(required_services_for_secure)
+
+    # recommendations for kms proxy related properties
+    self.recommendKMSProxyUsers(configurations, services, hosts, required_services)
+
+    ambari_user = self.getAmbariUser(services)
+    if security_enabled:
+      # adding for ambari user
+      putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.users'.format(ambari_user), '*')
+      putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.hosts'.format(ambari_user), '*')
+      # adding for HTTP
+      putRangerKmsSiteProperty('hadoop.kms.proxyuser.HTTP.users', '*')
+      putRangerKmsSiteProperty('hadoop.kms.proxyuser.HTTP.hosts', '*')
+    else:
+      self.deleteKMSProxyUsers(configurations, services, hosts, required_services_for_secure)
+      # deleting ambari user proxy properties
+      putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.hosts'.format(ambari_user), 'delete', 'true')
+      putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.users'.format(ambari_user), 'delete', 'true')
+      # deleting HTTP proxy properties
+      putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.HTTP.hosts', 'delete', 'true')
+      putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.HTTP.users', 'delete', 'true')
+
+  def recommendKMSProxyUsers(self, configurations, services, hosts, requiredServices):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsSiteProperty = self.putProperty(configurations, "kms-site", services)
+    putRangerKmsSitePropertyAttribute = self.putPropertyAttribute(configurations, "kms-site")
+
+    if 'forced-configurations' not in services:
+      services["forced-configurations"] = []
+
+    for index in range(len(requiredServices)):
+      service = requiredServices[index]['service']
+      config_type = requiredServices[index]['config-type']
+      property_name = requiredServices[index]['property-name']
+      proxy_category = requiredServices[index]['proxy-category']
+
+      if service in servicesList:
+        if config_type in services['configurations'] and property_name in services['configurations'][config_type]['properties']:
+          service_user = services['configurations'][config_type]['properties'][property_name]
+          service_old_user = getOldValue(self, services, config_type, property_name)
+
+          if 'groups' in proxy_category:
+            putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.groups'.format(service_user), '*')
+          if 'hosts' in proxy_category:
+            putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.hosts'.format(service_user), '*')
+          if 'users' in proxy_category:
+            putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.users'.format(service_user), '*')
+
+          if service_old_user is not None and service_user != service_old_user:
+            if 'groups' in proxy_category:
+              putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.groups'.format(service_old_user), 'delete', 'true')
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.groups".format(service_old_user)})
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.groups".format(service_user)})
+            if 'hosts' in proxy_category:
+              putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.hosts'.format(service_old_user), 'delete', 'true')
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.hosts".format(service_old_user)})
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.hosts".format(service_user)})
+            if 'users' in proxy_category:
+              putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.users'.format(service_old_user), 'delete', 'true')
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.users".format(service_old_user)})
+              services["forced-configurations"].append({"type" : "kms-site", "name" : "hadoop.kms.proxyuser.{0}.users".format(service_user)})
+
+  def deleteKMSProxyUsers(self, configurations, services, hosts, requiredServices):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsSitePropertyAttribute = self.putPropertyAttribute(configurations, "kms-site")
+
+    for index in range(len(requiredServices)):
+      service = requiredServices[index]['service']
+      config_type = requiredServices[index]['config-type']
+      property_name = requiredServices[index]['property-name']
+      proxy_category = requiredServices[index]['proxy-category']
+
+      if service in servicesList:
+        if config_type in services['configurations'] and property_name in services['configurations'][config_type]['properties']:
+          service_user = services['configurations'][config_type]['properties'][property_name]
+
+          if 'groups' in proxy_category:
+            putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.groups'.format(service_user), 'delete', 'true')
+          if 'hosts' in proxy_category:
+            putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.hosts'.format(service_user), 'delete', 'true')
+          if 'users' in proxy_category:
+            putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.{0}.users'.format(service_user), 'delete', 'true')
 
   def getOracleDBConnectionHostPort(self, db_type, db_host, rangerDbName):
     connection_string = self.getDBConnectionHostPort(db_type, db_host)
@@ -696,16 +788,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putYarnSitePropertyAttributes('yarn.authorization-provider', 'delete', 'true')
 
-    if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
-      if self.isSecurityEnabled(services):
-        # enable proxy-user privileges for secure clusters for long-running services (spark streaming etc)
-        putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'true')
-        if 'RANGER_KMS' in servicesList:
-          # disable proxy-user privileges on secure clusters as it does not work with TDE
-          putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
-      else:
-        putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
-
 
   def recommendSqoopConfigurations(self, configurations, clusterData, services, hosts):
     putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
@@ -754,7 +836,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations},
       "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
-      "YARN": {"yarn-site": self.validateYARNConfigurations},
       "RANGER": {"admin-properties": self.validateRangerAdminConfigurations,
                  "ranger-env": self.validateRangerConfigurationsEnv}
     }
@@ -933,20 +1014,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "{0} needs to be set to {1}".format(prop_name,prop_val))})
 
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
-
-  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    yarn_site = properties
-    validationItems = []
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
-      yarn_resource_proxy_enabled = yarn_site['yarn.resourcemanager.proxy-user-privileges.enabled']
-      if yarn_resource_proxy_enabled.lower() == 'true':
-        validationItems.append({"config-name": 'yarn.resourcemanager.proxy-user-privileges.enabled',
-          "item": self.getWarnItem("If Ranger KMS service is installed set yarn.resourcemanager.proxy-user-privileges.enabled " \
-          "property value as false under yarn-site"
-        )})
-
-    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']

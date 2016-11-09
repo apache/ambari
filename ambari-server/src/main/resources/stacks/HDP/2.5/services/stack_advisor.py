@@ -1693,16 +1693,15 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
   def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerKMSConfigurations(configurations, clusterData, services, hosts)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    putRangerKmsSiteProperty = self.putProperty(configurations, "kms-site", services)
 
-    if 'ranger-env' in services['configurations'] and 'ranger_user' in services['configurations']['ranger-env']['properties']:
-      rangerUser = services['configurations']['ranger-env']['properties']['ranger_user']
+    security_enabled = self.isSecurityEnabled(services)
+    required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']}]
 
-      if 'kms-site' in services['configurations'] and 'KERBEROS' in servicesList:
-        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.groups'.format(rangerUser), '*')
-        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.hosts'.format(rangerUser), '*')
-        putRangerKmsSiteProperty('hadoop.kms.proxyuser.{0}.users'.format(rangerUser), '*')
+    if security_enabled:
+      # recommendations for kms proxy related properties
+      self.recommendKMSProxyUsers(configurations, services, hosts, required_services)
+    else:
+      self.deleteKMSProxyUsers(configurations, services, hosts, required_services)
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP25StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
