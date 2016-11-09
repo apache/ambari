@@ -22,7 +22,7 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/namenode.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
-        "restart_type": "nonrolling_upgrade", 
+        "upgrade_type": "nonrolling_upgrade",
         "version": "2.3.2.0-2844", 
         "forceRefreshConfigTagsBeforeExecution": "*", 
         "original_stack": "HDP-2.2", 

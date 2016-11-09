@@ -55,10 +55,10 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 stack_version_unformatted = config['hostLevelParams']['stack_version']
 stack_version_formatted = format_stack_version(stack_version_unformatted)
 
-restart_type = default("/commandParams/restart_type", "")
+upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 version = default("/commandParams/version", None)
 # Handle upgrade and downgrade
-if (restart_type.lower() == "rolling_upgrade" or restart_type.lower() == "nonrolling_upgrade") and version:
+if (upgrade_type is not None) and version:
   stack_version_formatted = format_stack_version(version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
