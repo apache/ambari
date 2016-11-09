@@ -15,31 +15,37 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div class="wizard-content col-md-9">
+  <h4 class="step-title">{{t services.reassign.step3.header}}</h4>
+  <p class="step-description">
+    {{t services.reassign.step3.body}}
+  </p>
+  {{#if view.jdbcSetupMessage}}
+    <div class="alert alert-warning">
+      {{{view.jdbcSetupMessage}}}
+    </div>
+  {{/if}}
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div id="step8-content" class="well pre-scrollable">
+        <div id="printReview">
+          <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
+        </div>
+        <div id="step8-info">
+          <p><b>{{t services.reassign.step3.component}}</b> {{controller.content.reassign.display_name}}</p>
 
-<h2>{{t services.reassign.step3.header}}</h2>
+          <p><b>{{t services.reassign.step3.sourceHost}}</b> {{view.sourceHost}}</p>
 
-<div class="alert alert-info">
-  {{t services.reassign.step3.body}}
+          <p><b>{{t services.reassign.step3.targetHost}}</b> {{view.targetHost}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-{{#if view.jdbcSetupMessage}}
-  <div class="alert alert-warning">
-    {{{view.jdbcSetupMessage}}}
+<div class="wizard-footer col-md-12">
+  <div class="btn-area">
+    <a class="btn btn-default pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
+    <a class="btn btn-success pull-right"
+       id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
   </div>
-{{/if}}
-<div id="step8-content" class="well pre-scrollable">
-  <div id="printReview">
-    <a class="btn btn-info pull-right" {{action printReview target="view"}}>{{t common.print}}</a> <br/>
-  </div>
-  <div id="step8-info">
-    <p><b>{{t services.reassign.step3.component}}</b> {{controller.content.reassign.display_name}}</p>
-
-    <p><b>{{t services.reassign.step3.sourceHost}}</b> {{view.sourceHost}}</p>
-
-    <p><b>{{t services.reassign.step3.targetHost}}</b> {{view.targetHost}}</p>
-  </div>
-</div>
-<div class="btn-area">
-  <a class="btn btn-default pull-left" {{action back href="true"}}>&larr; {{t common.back}}</a>
-  <a class="btn btn-success pull-right"
-     id="spinner" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action submit target="controller"}}>{{t common.deploy}} &rarr;</a>
 </div>
