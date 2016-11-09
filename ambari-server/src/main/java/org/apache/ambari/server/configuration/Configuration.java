@@ -418,6 +418,8 @@ public class Configuration {
   public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = AmbariPath.getPath("/var/lib/ambari-server/data/cache");
   public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_KEY = "kerberos.check.jaas.configuration";
   public static final String KERBEROS_CHECK_JAAS_CONFIGURATION_DEFAULT = "false";
+  public static final String KERBEROS_OPERATION_RETRIES_KEY = "kerberos.operation.retries";
+  public static final String KERBEROS_OPERATION_RETRIES_DEFAULT = "3";
 
   /**
    * Recovery related configuration
@@ -3322,4 +3324,9 @@ public class Configuration {
             String.valueOf(TASK_ID_LIST_LIMIT_DEFAULT)));
   }
 
+  public int getKerberosOperationRetries(){
+    return Integer.parseInt(properties.getProperty(
+        KERBEROS_OPERATION_RETRIES_KEY,
+        KERBEROS_OPERATION_RETRIES_DEFAULT));
+  }
 }
