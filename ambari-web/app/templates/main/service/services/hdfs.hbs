@@ -16,143 +16,143 @@
 * limitations under the License.
 }}
 
-{{view view.dashboardMasterComponentView}}
-<!-- Data Nodes -->
-{{#if view.isDataNodeCreated}}
-  <tr {{bindAttr class=":component view.dataNodeComponent.componentName"}}>
-    <td class="summary-label"><a
-            href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
-    </td>
-    <td class="summary-value">
-      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-        <span>
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-        </span>
-        {{t common.started}}
-      {{else}}
-        {{t common.loading.eclipses}}
-      {{/if}}
-    </td>
-  </tr>
-{{/if}}
-<!-- Data Node Counts -->
-<tr class="datanode-count">
-  <td class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</td>
-  {{#if view.service.metricsNotAvailable}}
-    <td class="summary-value">{{t services.service.summary.notAvailable}}</td>
-  {{else}}
-    <td class="summary-value">
-      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }}
-              rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
-      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }}
-              rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
-      <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }}
-              rel="tooltip">{{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}</span>
-    </td>
-  {{/if}}
-</tr>
-<!-- JournalNodes -->
-{{#if view.isJournalNodeCreated}}
-  <tr {{bindAttr class=":component view.journalNodeComponent.componentName"}}>
-    <td class="summary-label">
-      <a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
-    </td>
-    <td class="summary-value">
-      {{#if App.router.clusterController.isComponentsStateLoaded}}
-        <span>
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.journalNodesLive" totalComponentsBinding="view.journalNodesTotal"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-        </span>
-        {{t services.service.summary.JournalNodesLive}}
-      {{else}}
-        {{t common.loading.eclipses}}
-      {{/if}}
-    </td>
-  </tr>
-{{/if}}
-<!-- NFS Gateway -->
-{{#if view.isNfsInStack}}
-  <tr {{bindAttr class=":component view.nfsGatewayComponent.componentName"}}>
-    <td class="summary-label">
-      <a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a>
-    </td>
-    <td class="summary-value">
-      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-        <span>
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-        </span>
-        {{t common.started}}
-      {{else}}
-        {{t common.loading.eclipses}}
-      {{/if}}
-    </td>
-  </tr>
-{{/if}}
-<!-- NameNode Uptime -->
-<tr class="namenode-uptime">
-  <td class="summary-label">{{t dashboard.services.hdfs.nodes.uptime}}</td>
-  <td class="summary-value">{{view.nodeUptime}}</td>
-</tr>
-<!-- NameNode Heap -->
-<tr class="namenode-heap">
-  <td class="summary-label">{{t dashboard.services.hdfs.nodes.heap}}</td>
-  <td class="summary-value">{{view.nodeHeap}}</td>
-</tr>
-<!-- HDFS Capacity (Disk Usage)-->
-<tr class="dfs-usage">
-  <td class="summary-label">{{t dashboard.services.hdfs.capacity.dfsUsed}}</td>
-  <td class="summary-value">{{view.dfsUsedDisk}}</td>
-</tr>
-<tr class="non-dfs-used">
-  <td class="summary-label">{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</td>
-  <td class="summary-value">{{view.nonDfsUsedDisk}}</td>
-</tr>
+<div class="row">
+  {{! left column }}
+  <div class="col-md-6">
+    {{view view.dashboardMasterComponentView}}
+    {{! Data Nodes }}
+    {{#if view.isDataNodeCreated}}
+      <div {{bindAttr class=":row :component view.dataNodeComponent.componentName"}}>
+        <div class="col-md-6 summary-label">
+          <a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a>
+        </div>
+        <div class="col-md-6 summary-value">
+          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+            <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+            </span>
+            {{t common.started}}
+          {{else}}
+            {{t common.loading.eclipses}}
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+    {{! Data Node Counts }}
+    <div class="row datanode-count">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.datanodecounts}}</div>
+      <div class="col-md-6 summary-value">
+        {{#if view.service.metricsNotAvailable}}
+          {{t services.service.summary.notAvailable}}
+        {{else}}
+          <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }}
+            rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
+        <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }}
+          rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
+        <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.decommission" }}
+          rel="tooltip">{{view.service.decommissionDataNodes.length}} {{t dashboard.services.hdfs.nodes.decom}}</span>
+        {{/if}}
+      </div>
+    </div>
+    {{! JournalNodes }}
+    {{#if view.isJournalNodeCreated}}
+      <div {{bindAttr class=":row :component view.journalNodeComponent.componentName"}}>
+        <div class="col-md-6 summary-label">
+          <a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
+        </div>
+        <div class="col-md-6 summary-value">
+          {{#if App.router.clusterController.isComponentsStateLoaded}}
+            <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.journalNodesLive" totalComponentsBinding="view.journalNodesTotal"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+            </span>
+            {{t services.service.summary.JournalNodesLive}}
+          {{else}}
+            {{t common.loading.eclipses}}
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+    {{! NFS Gateway }}
+    {{#if view.isNfsInStack}}
+      <div {{bindAttr class=":row :component view.nfsGatewayComponent.componentName"}}>
+        <div class="col-md-6 summary-label">
+          <a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a>
+        </div>
+        <div class="col-md-6 summary-value">
+          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+            <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+            </span>
+            {{t common.started}}
+          {{else}}
+            {{t common.loading.eclipses}}
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+    {{! NameNode Uptime }}
+    <div class="row namenode-uptime">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.nodes.uptime}}</div>
+      <div class="col-md-6 summary-value">{{view.nodeUptime}}</div>
+    </div>
+    {{! NameNode Heap }}
+    <div class="row namenode-heap">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.nodes.heap}}</div>
+      <div class="col-md-6 summary-value">{{view.nodeHeap}}</div>
+    </div>
+    {{! HDFS Capacity (Disk Usage)}}
+    <div class="row dfs-usage">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.capacity.dfsUsed}}</div>
+      <div class="col-md-6 summary-value">{{view.dfsUsedDisk}}</div>
+    </div>
+    <div class="row non-dfs-used">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</div>
+      <div class="col-md-6 summary-value">{{view.nonDfsUsedDisk}}</div>
+    </div>
+  </div>
+  {{! left column end }}
 
-<!-- Divider-- make the remaining summary info on 2nd table-->
-    </tbody>
-  </table>
-</div>
-<div class="col-md-6">
-  <table class="summary-info table no-borders table-condensed">
-    <tbody>
-
-    <tr class="capacity-remaining">
-      <td class="summary-label">{{t dashboard.services.hdfs.capacity.remaining}}</td>
-      <td>{{view.remainingDisk}}</td>
-    </tr>
-    <!-- Blocks Total -->
-    <tr class="blocks-total">
-      <td class="summary-label">{{t services.service.summary.blocksTotal}}</td>
-      <td>{{view.dfsTotalBlocks}}</td>
-    </tr>
-    <!-- Block Errors -->
-    <tr class="block-errors">
-      <td class="summary-label">{{t services.service.summary.blockErrors}}</td>
-      <td>
-        {{view.blockErrorsMessage}}
-      </td>
-    </tr>
-    <!-- Total Files And Directories -->
-    <tr class="total-files-dirs">
-      <td class="summary-label">{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
-      <td>{{view.dfsTotalFiles}}</td>
-    </tr>
-    <!-- Upgrade Status -->
-    <tr class="upgrade-status">
-      <td class="summary-label">{{t services.service.summary.pendingUpgradeStatus}}</td>
-      <td>
+  {{! right column }}
+  <div class="col-md-6">
+    <div class="row capacity-remaining">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.capacity.remaining}}</div>
+      <div class="col-md-6 ">{{view.remainingDisk}}</div>
+    </div>
+    {{! Blocks Total }}
+    <div class="row blocks-total">
+      <div class="col-md-6 summary-label">{{t services.service.summary.blocksTotal}}</div>
+      <div class="col-md-6 ">{{view.dfsTotalBlocks}}</div>
+    </div>
+    {{! Block Errors }}
+    <div class="row block-errors">
+      <div class="col-md-6 summary-label">{{t services.service.summary.blockErrors}}</div>
+      <div class="col-md-6 ">{{view.blockErrorsMessage}}</div>
+    </div>
+    {{! Total Files And Directories }}
+    <div class="row total-files-dirs">
+      <div class="col-md-6 summary-label">{{t dashboard.services.hdfs.totalFilesAndDirs}}</div>
+      <div class="col-md-6 ">{{view.dfsTotalFiles}}</div>
+    </div>
+    {{! Upgrade Status }}
+    <div class="row upgrade-status">
+      <div class="col-md-6 summary-label">{{t services.service.summary.pendingUpgradeStatus}}</div>
+      <div class="col-md-6 ">
         <span {{bindAttr class="view.isUpgradeStatusWarning:upgrade-status-warning"}}>{{view.upgradeStatus}}</span>
-      </td>
-    </tr>
-    <!-- Safe Mode Status -->
-    <tr class="safe-mode-status">
-      <td class="summary-label">{{t services.service.summary.safeModeStatus}}</td>
-      <td>
+      </div>
+    </div>
+    {{! Safe Mode Status }}
+    <div class="row safe-mode-status">
+      <div class="col-md-6 summary-label">{{t services.service.summary.safeModeStatus}}</div>
+      <div class="col-md-6 ">
         {{view.safeModeStatus}}
-      </td>
-    </tr>
+      </div>
+    </div>
+  </div>
+  {{! right column end }}
+</div>

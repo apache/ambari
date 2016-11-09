@@ -16,118 +16,126 @@
 * limitations under the License.
 }}
 
-<!-- Flume Agents -->
-<tr>
-  <td>
-    <div id="flume-summary">
-      <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
-      <a href="#" class="pull-right" {{action gotoConfigs target="controller"}}>{{t dashboard.services.flume.summary.configure}}</a>
-      <div id="flume-agent-table-wrap" class="scrollable-container">
-        <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
-          <thead>
+{{! Flume Agents }}
+<div id="flume-summary" class="row">
+  <div class="col-md-12">
+    <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
+    <a href="#" class="pull-right" {{action gotoConfigs target="controller"}}>{{t dashboard.services.flume.summary.configure}}</a>
+    <div id="flume-agent-table-wrap" class="scrollable-container">
+      <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
+        <thead>
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
             {{view view.parentView.hostSort}}
             <th>{{t dashboard.services.flume.agent}}</th>
-            <th><i class="glyphicon glyphicon-signin" {{translateAttr title="dashboard.services.flume.sources"}}></i> {{t dashboard.services.flume.sources}}</th>
-            <th><i class="glyphicon glyphicon-random" {{translateAttr title="dashboard.services.flume.channels"}}></i> {{t dashboard.services.flume.channels}}</th>
-            <th><i class="glyphicon glyphicon-signout" {{translateAttr title="dashboard.services.flume.sinks"}}></i> {{t dashboard.services.flume.sinks}}</th>
+            <th>
+              <i class="glyphicon glyphicon-signin" {{translateAttr title="dashboard.services.flume.sources"}}></i> {{t dashboard.services.flume.sources}}
+            </th>
+            <th>
+              <i class="glyphicon glyphicon-random" {{translateAttr title="dashboard.services.flume.channels"}}></i> {{t dashboard.services.flume.channels}}
+            </th>
+            <th>
+              <i class="glyphicon glyphicon-signout" {{translateAttr title="dashboard.services.flume.sinks"}}></i> {{t dashboard.services.flume.sinks}}
+            </th>
           {{/view}}
-          </thead>
-          {{#if view.pageContent}}
-            {{#each host in view.pageContent}}
-              <tbody class="flume-agent-table-tbody">
-                {{#view view.agentView contentBinding="host"}}
-                  <td {{bindAttr rowspan="host.rowspan"}} id="flume-host-agent-row" class="agent-host-name">
-                      <a class="agent-host-link" href="javascript:void(null)" {{action click host target="view"}}>
-                        {{host.hostName}}
-                      </a>
-                  </td>
-                  <td class="agent-status">
-                    <div class="wrapp-flume-status">
-                      <div class="pull-left flume-agents-status"><span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
-                      <div class="btn-wrapper flume-agents-actions">
-                        <div class="btn-group display-inline-block">
-                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
-                                <span class="caret"></span>
-                            </a>
-                            <ul class="pull-left dropdown-menu">
-                                <li {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}>
-                                    <a href="javascript:void(null)"
-                                      {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled :start-agent"}}
-                                      {{action startFlumeAgent host.firtstAgent target="controller"}}>
-                                      {{t services.service.summary.flume.startAgent}}</a>
-                                </li>
-                                <li {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}>
-                                    <a href="javascript:void(null)"
-                                      {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled :stop-agent"}}
-                                      {{action stopFlumeAgent host.firtstAgent target="controller"}}>
-                                      {{t services.service.summary.flume.stopAgent}}</a>
-                                </li>
-                            </ul>
-                        </div>
-                        </div>
-                    </div>
-                  </td>
-                  <td class="flume-sources-count">
-                    {{host.firtstAgent.sourcesCount}}
-                  </td>
-                  <td class="flume-channels-count">
-                    {{host.firtstAgent.channelsCount}}
-                  </td>
-                  <td class="flume-sinks-count">
-                    {{host.firtstAgent.sinksCount}}
-                  </td>
-                {{/view}}
-                {{#each agent in host.otherAgents}}
-                  {{#view view.agentView contentBinding="host"}}
-                    <td class="agent-status">
-                        <div class="wrapp-flume-status">
-                          <div class="pull-left flume-agents-status"><span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}</div>
-                          <div class="btn-wrapper flume-agents-actions">
-                            <div class="btn-group display-inline-block">
-                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="javascript:void(null)">{{agent.displayStatus}}
-                                    <span class="caret"></span>
-                                </a>
-                                <ul class="pull-left dropdown-menu">
-                                    <li {{bindAttr class="agent.isStartAgentDisabled:disabled :start-agent"}}>
-                                        <a href="javascript:void(null)"
-                                          {{bindAttr class="agent.isStartAgentDisabled:disabled"}}
-                                          {{action startFlumeAgent agent target="controller"}}>
-                                          {{t services.service.summary.flume.startAgent}}</a>
-                                    </li>
-                                    <li {{bindAttr class="agent.isStopAgentDisabled:disabled"}}>
-                                        <a href="javascript:void(null)"
-                                          {{bindAttr class="agent.isStopAgentDisabled:disabled :stop-agent"}}
-                                          {{action stopFlumeAgent agent target="controller"}}>
-                                          {{t services.service.summary.flume.stopAgent}}</a>
-                                    </li>
-                                </ul>
-                              </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="flume-agent-sources-count">
-                      {{agent.sourcesCount}}
-                    </td>
-                    <td class="flume-agent-channels-count">
-                      {{agent.channelsCount}}
-                    </td>
-                    <td class="flume-agent-sink-count">
-                      {{agent.sinksCount}}
-                    </td>
-                  {{/view}}
-                {{/each}}
-              </tbody>
-            {{/each}}
-          {{else}}
-            <tr>
-              <td colspan="6" id="flume-agents-empty-label" class="empty-label">
-                {{t services.service.summary.flume.noAgents}}
+        </thead>
+        {{#if view.pageContent}}
+          {{#each host in view.pageContent}}
+            <tbody class="flume-agent-table-tbody">
+            {{#view view.agentView contentBinding="host"}}
+              <td {{bindAttr rowspan="host.rowspan"}} id="flume-host-agent-row" class="agent-host-name">
+                <a class="agent-host-link" href="javascript:void(null)" {{action click host target="view"}}>
+                  {{host.hostName}}
+                </a>
               </td>
-            </tr>
-          {{/if}}
-        </table>
-      </div>
+              <td class="agent-status">
+                <div class="wrapp-flume-status">
+                  <div class="pull-left flume-agents-status">
+                    <span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
+                  <div class="btn-wrapper flume-agents-actions">
+                    <div class="btn-group display-inline-block">
+                      <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                         href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
+                        <span class="caret"></span>
+                      </a>
+                      <ul class="pull-left dropdown-menu">
+                        <li {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}>
+                          <a href="javascript:void(null)"
+                            {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled :start-agent"}}
+                            {{action startFlumeAgent host.firtstAgent target="controller"}}>
+                            {{t services.service.summary.flume.startAgent}}</a>
+                        </li>
+                        <li {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}>
+                          <a href="javascript:void(null)"
+                            {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled :stop-agent"}}
+                            {{action stopFlumeAgent host.firtstAgent target="controller"}}>
+                            {{t services.service.summary.flume.stopAgent}}</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="flume-sources-count">
+                {{host.firtstAgent.sourcesCount}}
+              </td>
+              <td class="flume-channels-count">
+                {{host.firtstAgent.channelsCount}}
+              </td>
+              <td class="flume-sinks-count">
+                {{host.firtstAgent.sinksCount}}
+              </td>
+            {{/view}}
+            {{#each agent in host.otherAgents}}
+              {{#view view.agentView contentBinding="host"}}
+                <td class="agent-status">
+                  <div class="wrapp-flume-status">
+                    <div class="pull-left flume-agents-status">
+                      <span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}</div>
+                    <div class="btn-wrapper flume-agents-actions">
+                      <div class="btn-group display-inline-block">
+                        <a class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                           href="javascript:void(null)">{{agent.displayStatus}}
+                          <span class="caret"></span>
+                        </a>
+                        <ul class="pull-left dropdown-menu">
+                          <li {{bindAttr class="agent.isStartAgentDisabled:disabled :start-agent"}}>
+                            <a href="javascript:void(null)"
+                              {{bindAttr class="agent.isStartAgentDisabled:disabled"}}
+                              {{action startFlumeAgent agent target="controller"}}>
+                              {{t services.service.summary.flume.startAgent}}</a>
+                          </li>
+                          <li {{bindAttr class="agent.isStopAgentDisabled:disabled"}}>
+                            <a href="javascript:void(null)"
+                              {{bindAttr class="agent.isStopAgentDisabled:disabled :stop-agent"}}
+                              {{action stopFlumeAgent agent target="controller"}}>
+                              {{t services.service.summary.flume.stopAgent}}</a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="flume-agent-sources-count">
+                  {{agent.sourcesCount}}
+                </td>
+                <td class="flume-agent-channels-count">
+                  {{agent.channelsCount}}
+                </td>
+                <td class="flume-agent-sink-count">
+                  {{agent.sinksCount}}
+                </td>
+              {{/view}}
+            {{/each}}
+            </tbody>
+          {{/each}}
+        {{else}}
+          <tr>
+            <td colspan="6" id="flume-agents-empty-label" class="empty-label">
+              {{t services.service.summary.flume.noAgents}}
+            </td>
+          </tr>
+        {{/if}}
+      </table>
     </div>
-  </td>
-</tr>
+  </div>
+</div>

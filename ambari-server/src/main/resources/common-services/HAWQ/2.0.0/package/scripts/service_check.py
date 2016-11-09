@@ -164,6 +164,7 @@ class HAWQServiceCheck(Script):
     params.HdfsResource(hawq_constants.pxf_hdfs_test_dir,
                         type="directory",
                         action="delete_on_execute")
+    params.HdfsResource(None, action="execute")
 
 
 if __name__ == "__main__":

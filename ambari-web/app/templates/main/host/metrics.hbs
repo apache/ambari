@@ -17,30 +17,30 @@
 }}
 
 <div class="host-metrics">
-    <table class="graphs">
-        <tr>
-            <td>
-              {{view App.ChartHostMetricsCPU contentBinding="view.content"}}
-            </td>
-            <td>
-              {{view App.ChartHostMetricsDisk contentBinding="view.content"}}
-            </td>
-        </tr>
-        <tr>
-            <td>
-              {{view App.ChartHostMetricsLoad contentBinding="view.content"}}
-            </td>
-            <td>
-              {{view App.ChartHostMetricsMemory contentBinding="view.content"}}
-            </td>
-        </tr>
-        <tr>
-            <td>
-              {{view App.ChartHostMetricsNetwork contentBinding="view.content"}}
-            </td>
-            <td>
-              {{view App.ChartHostMetricsProcesses contentBinding="view.content"}}
-            </td>
-        </tr>
-    </table>
+  <div class="graphs">
+    <div class="row">
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsCPU contentBinding="view.content"}}
+      </div>
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsDisk contentBinding="view.content"}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsLoad contentBinding="view.content"}}
+      </div>
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsMemory contentBinding="view.content"}}
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsNetwork contentBinding="view.content"}}
+      </div>
+      <div class="col-md-6">
+        {{view App.ChartHostMetricsProcesses contentBinding="view.content"}}
+      </div>
+    </div>
+  </div>
 </div>

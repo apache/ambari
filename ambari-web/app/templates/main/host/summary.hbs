@@ -60,35 +60,40 @@
               {{/isAuthorized}}
 
               {{#each component in view.sortedComponents}}
-                <div class="row">
-                    {{view component.viewClass contentBinding="component"}}
-                </div>
+                {{view component.viewClass classNames="row row-no-pad" contentBinding="component"}}
               {{/each}}
           {{/if}}
           {{!clients and add component button}}
-        <div class="clients row">
-          <div class="col-md-7 row client-list">
+        <div class="clients row row-no-pad">
+          <div class="col-md-7 col-lg-8 row client-list component-name-block-wrapper">
               {{#if view.clients.length}}
                 <div class="col-md-3 align-right">{{t common.clients}}&nbsp;/</div>
-                <div class="col-md-7">
+                <div class="col-md-9 component-name-block-wrapper">
+                  <ul>
                     {{#each component in view.clients}}
-                      <span {{bindAttr class="component.staleConfigs:component-restart-required-name"}}> {{component.displayName}} </span> {{#if component.isInstallFailed}}
-                      &nbsp;<span
-                      class="health-status-installed icon-warning-sign"></span>{{/if}}{{#if component.staleConfigs}}
-                      &nbsp;<span
-                      class="text-warning glyphicon glyphicon-refresh"></span>{{/if}}{{#if component.service.isInPassive}}
-                      &nbsp;<span class="icon-medkit"></span>{{/if}}{{#unless component.isLast}}
-                      ,{{/unless}}
+                      <li>
+                        <span {{bindAttr class="component.staleConfigs:component-restart-required-name"}}>{{component.displayName}}</span>
+                        {{#if component.isInstallFailed}}
+                          &nbsp;<span class="health-status-installed icon-warning-sign"></span>
+                        {{/if}}
+                        {{#if component.staleConfigs}}
+                          &nbsp;<span class="text-warning glyphicon glyphicon-refresh"></span>
+                        {{/if}}
+                        {{#if component.service.isInPassive}}
+                          &nbsp;<span class="icon-medkit"></span>
+                        {{/if}}
+                      </li>
                     {{/each}}
+                  </ul>
                 </div>
               {{/if}}
           </div>
-          <div class="col-md-5 pull-right">
+          <div class="col-md-5 col-lg-4 pull-right">
               {{#isAuthorized "SERVICE.MODIFY_CONFIGS, SERVICE.START_STOP, HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE"}}
                   {{#if view.clients.length}}
-                    <div class="btn-group pull-right">
+                    <div class="dropdown">
                       <button id="add_component"
-                              data-toggle="dropdown" {{bindAttr class=":btn :btn-default :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
+                              data-toggle="dropdown" {{bindAttr class=":btn :btn-default :btn-block :dropdown-toggle controller.content.isNotHeartBeating:disabled"}}>
                           {{t common.installed}}
                         <span class="caret pull-right button-caret-margin"></span>
                       </button>

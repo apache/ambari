@@ -144,6 +144,20 @@ table.diff {
   padding: 10px;
 }
 
+.row.row-no-pad {
+  .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12,
+  .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12 {
+    padding-left: 1px;
+    padding-right: 1px;
+    &:first-child {
+      padding-left: 15px;
+    }
+    &:last-child {
+      padding-right: 15px;
+    }
+  }
+}
+
 .ru-badge {
   text-align: center;
   .upgrade-in-progress {
@@ -1195,14 +1209,10 @@ h1 {
 
 #summary-restart-bar {
   margin-top: 20px;
-  .alert{
-    .glyphicon-refresh{
-      margin-left:10px;
+  .alert {
+    .glyphicon-refresh {
       color: #fdb82f;
     }
-  }
-  .dropdown-menu > li > a:hover {
-    text-shadow: none;
   }
 }
 
@@ -1972,10 +1982,6 @@ a:focus {
 
 /*start services summary*/
 .services {
-  margin-left: 0;
-  margin-top: 0;
-  position: relative;
-
   .alert{
     padding: 5px;
   }
@@ -2137,18 +2143,16 @@ a:focus {
 }
 
 .summary-info {
-  border-top: none;
-  border-collapse: collapse;
   color: #666;
   font-size: 13px;
-  tr.component-small {
-    font-size: 11px;
+  line-height: 16px;
+  .row {
+    margin-bottom: 8px;
   }
   .upgrade-status-warning {
     color: @health-status-red;
   }
-  tr td:first-child {
-    width: 180px;
+  .summary-label {
     text-align: right;
   }
   a {
@@ -2566,11 +2570,9 @@ a:focus {
 a.services-menu-blocks{
   overflow:auto;
   .icon-health-block{
-    width:16%;
     float:left;
   }
   .service-name-block{
-    width:55%;
     float:left;
     white-space:normal;
     word-break:break-word;
@@ -2602,25 +2604,6 @@ a.services-menu-blocks{
     padding: 0 2px;
     margin: 0 2px;
   }
-
-  .nav li.dropdown.open {
-    .dropdown-toggle{
-      color: #005580;
-      background-color: #eeeeee;
-      border-color: #eeeeee;
-      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    a:hover .caret {
-      border-top-color: #005580;
-      border-bottom-color: #005580;
-    }
-    .caret {
-      border-top-color: #005580;
-      border-bottom-color: #005580;
-    }
-  }
 }
 .host-rack-id-popup {
   .control-label {
@@ -2629,52 +2612,9 @@ a.services-menu-blocks{
   }
 }
 
-.service-content {
-  .summary-info {
-    margin-bottom: 0;
-  }
-}
 
 .service-block {
   margin-top: 20px;
-}
-
-.service-configuration {
-  padding: 10px;
-}
-
-.service-summary {
-  background: #F6FAFD;
-  .service-block.col-md-8 {
-    margin-left: 0;
-    border-right: 1px solid #5fa3c3;
-  }
-  .service-block.col-md-3 {
-    padding-left: 0;
-  }
-  .service-content {
-    padding: 5px 0 0 10px;
-    .service-links {
-      padding: 5px 0;
-    }
-  }
-  h5 {
-    color: #0088CC;
-    font-size: 14px;
-  }
-  .service-links {
-    padding: 5px 0 10px 0;
-  }
-  .service-configuration .dl-horizontal {
-    dt {
-      width: 90px;
-      line-height: 19px;
-    }
-    dd {
-      margin-left: 100px;
-      line-height: 19px;
-    }
-  }
 }
 
 .service-button {
@@ -3591,12 +3531,6 @@ table.graphs {
     border-bottom-color: #000000;
   }
 
-  //hack to apply style only for firefox
-  .host-components .btn-group{
-   white-space: normal;
-  }
-
-
   .marker {
     background-repeat: no-repeat;
     height: 13px;
@@ -3664,8 +3598,7 @@ table.graphs {
   }
 
   .content {
-    padding: 10px;
-
+    padding: 10px 0;
   }
 
   .host-configuration .dl-horizontal {
@@ -3695,29 +3628,19 @@ table.graphs {
 
   .host-components {
     padding: 10px;
-    padding-bottom: 0;
     border-radius: 4px;
     background: #FFF;
+    .component-name-block-wrapper {
+      display: table;
+      height: 34px;
+      .component-name-block {
+        white-space: normal;
+        word-wrap: break-word;
+        display: table-cell;
+        vertical-align: middle;
+      }
 
-  }
-
-  .host-components .btn-group {
-    margin: 0 5px 10px 0;
-
-    .component-text-status{
-      cursor: default;
-      display: block;
-      padding: 3px 20px;
-      clear: both;
-      font-weight: normal;
-      line-height: 20px;
-      color: #333333;
-      white-space: nowrap;
-      font-style: italic;
     }
-  }
-
-  .host-components {
     .dropdown-menu {
       .disabled {
         pointer-events: none;
@@ -3728,7 +3651,38 @@ table.graphs {
         pointer-events: auto;
       }
     }
+    .status-icons {
+      line-height: 34px;
+    }
+    .client-list {
+      ul {
+        list-style: none;
+      }
+    }
+    &>.row {
+      padding-bottom: 10px;
+    }
+    .btn-group {
+      //hack to apply style only for firefox
+      white-space: normal;
+      margin: 0 5px 10px 0;
+      & > .btn {
+        width: 140px;
+      }
+      .component-text-status {
+        cursor: default;
+        display: block;
+        padding: 3px 20px;
+        clear: both;
+        font-weight: normal;
+        line-height: 20px;
+        color: #333;
+        white-space: nowrap;
+        font-style: italic;
+      }
+    }
   }
+
   .host-tab-content,
   .logs-tab-content {
     margin-top: 20px;
@@ -4705,10 +4659,6 @@ ul.list-inline li {
 
 /* TIME RANGE WIDGET END */
 
-#host-details .host-components .btn-group > .btn {
-  width: 140px;
-}
-
 /* fieldset begin */
 .fieldset {
   border: 2px solid black;
@@ -4788,13 +4738,6 @@ ul.list-inline li {
   }
 }
 
-//bootstrap
-//.dropdown-menu .active > a, .dropdown-menu .active > a:hover {
-//  background-color: #49AFCD;
-//  background-image: -moz-linear-gradient(center top, #5BC0DE, #2F96B4);
-//}
-//bootstrap end
-
 // COMBOBOX FIXES
 .combobox-container .btn:hover {
   background-position: 0;
@@ -4870,11 +4813,6 @@ ul.list-inline li {
       }
     }
   }
-
-  .summary-width {
-    padding-right: 0;
-  }
-
 
   .assign-masters {
     .host-assignments {
@@ -4977,16 +4915,6 @@ li.break {
     max-height: 416px;
   }
 }
-
-/*
-.progress-striped .bar {
-  background-color: #A5A5A5;
-}
-
-.progress-info.progress-striped .bar, .progress-striped .bar-info {
-  background-color: #A5A5A5;
-}
-*/
 
 .modal-body {
   .api-error {
@@ -5140,11 +5068,6 @@ i.glyphicon-asterisks {
 }
 
 .row .host-component-block {
-  .health-icon-block {
-    width: 6%;
-    float: left;
-    padding-right: 5px;
-  }
 
   .refresh-icon-block {
     width: 6%;
@@ -5155,13 +5078,6 @@ i.glyphicon-asterisks {
     width: 6%;
     float: left;
     padding-left: 3px;
-  }
-
-  .component-name-block {
-    width: 77%;
-    float: left;
-    white-space: normal;
-    word-wrap: break-word;
   }
 }
 

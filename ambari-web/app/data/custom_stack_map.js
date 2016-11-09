@@ -52,7 +52,7 @@ module.exports = [
   {
     "stackName": "HDF",
     "stackVersionNumber": "2.0",
-    "sign": "=",
+    "sign": ">=",
     "baseStackFolder": "HDP2.3"
   }
 ];

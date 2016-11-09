@@ -16,33 +16,37 @@
 * limitations under the License.
 }}
 
-{{view view.dashboardMasterComponentView}}
+<div class="row">
+  <div class="col-md-6">
+    {{view view.dashboardMasterComponentView}}
 
-<!-- Ranger Tagsyncs -->
-{{#if view.isRangerTagsyncCreated}}
-  <tr {{bindAttr class=":component view.rangerTagsyncComponent.componentName"}}>
-    <td class="summary-label">
-      <a href="#" {{action filterHosts view.rangerTagsyncComponent}}>{{t dashboard.services.ranger.rangerTagsyncs}}</a>
-    </td>
-    <td class="summary-value">
-      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-        <span>
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.rangerTagsyncsStarted" totalComponentsBinding="view.service.rangerTagsyncsTotal"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-        </span>{{t common.started}}
-      {{else}}
-        {{t common.loading.eclipses}}
+    {{! Ranger Tagsyncs }}
+    {{#if view.isRangerTagsyncCreated}}
+      <div {{bindAttr class=":row :component view.rangerTagsyncComponent.componentName"}}>
+        <div class="col-md-6 summary-label">
+          <a href="#" {{action filterHosts view.rangerTagsyncComponent}}>{{t dashboard.services.ranger.rangerTagsyncs}}</a>
+        </div>
+        <div class="col-md-6 summary-value">
+          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+            <span>
+              {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.rangerTagsyncsStarted" totalComponentsBinding="view.service.rangerTagsyncsTotal"}}
+                {{view.liveComponents}}/{{view.totalComponents}}
+              {{/view}}
+            </span>{{t common.started}}
+          {{else}}
+            {{t common.loading.eclipses}}
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{#each item in controller.rangerPlugins}}
+      {{#if item.isDisplayed}}
+        <div class="row ranger-plugin">
+          <div class="col-md-6 summary-label">{{item.pluginTitle}}</div>
+          <div class="col-md-6 summary-value">{{item.status}}</div>
+        </div>
       {{/if}}
-    </td>
-  </tr>
-{{/if}}
-
-{{#each item in controller.rangerPlugins}}
-  {{#if item.isDisplayed}}
-    <tr class="ranger-plugin">
-      <td class="summary-label">{{item.pluginTitle}}</td>
-      <td class="summary-value">{{item.status}}</td>
-    </tr>
-  {{/if}}
-{{/each}}
+    {{/each}}
+  </div>
+</div>
