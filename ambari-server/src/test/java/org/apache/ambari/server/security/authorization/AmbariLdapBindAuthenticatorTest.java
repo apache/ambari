@@ -84,7 +84,16 @@ public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationPro
   }
 
   @Test
-  public void testAuthenticateWithLoginAlias() throws Exception {
+  public void testAuthenticateWithLoginAliasDefault() throws Exception {
+    testAuthenticateWithLoginAlias(false);
+  }
+
+  @Test
+  public void testAuthenticateWithLoginAliasForceToLower() throws Exception {
+    testAuthenticateWithLoginAlias(true);
+  }
+
+  private void testAuthenticateWithLoginAlias(boolean forceUsernameToLower) throws Exception {
     // Given
 
     LdapContextSource ldapCtxSource = new LdapContextSource();
@@ -101,6 +110,10 @@ public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationPro
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
     properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=ambari,dc=apache,dc=org");
 
+    if(forceUsernameToLower) {
+      properties.setProperty(Configuration.LDAP_USERNAME_FORCE_LOWERCASE.getKey(), "true");
+    }
+
     Configuration configuration = new Configuration(properties);
 
     AmbariLdapBindAuthenticator bindAuthenticator = new AmbariLdapBindAuthenticator(ldapCtxSource, configuration);
@@ -116,7 +129,7 @@ public class AmbariLdapBindAuthenticatorTest extends AmbariLdapAuthenticationPro
 
     RequestContextHolder.setRequestAttributes(servletRequestAttributes);
 
-    servletRequestAttributes.setAttribute(eq(loginAlias), eq(userName), eq(RequestAttributes.SCOPE_SESSION));
+    servletRequestAttributes.setAttribute(eq(loginAlias), eq(forceUsernameToLower ? userName.toLowerCase(): userName), eq(RequestAttributes.SCOPE_SESSION));
     expectLastCall().once();
 
     replayAll();

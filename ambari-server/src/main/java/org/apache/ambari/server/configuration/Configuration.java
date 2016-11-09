@@ -962,6 +962,15 @@ public class Configuration {
       "authentication.ldap.usernameAttribute", "uid");
 
   /**
+   * Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when
+   * local user names are expected to be lowercase but the LDAP user names are not.
+   */
+  @Markdown(description = "Declares whether to force the ldap user name to be lowercase or leave as-is." +
+      " This is useful when local user names are expected to be lowercase but the LDAP user names are not.")
+  public static final ConfigurationProperty<String> LDAP_USERNAME_FORCE_LOWERCASE = new ConfigurationProperty<>(
+      "authentication.ldap.username.forceLowercase", "false");
+
+  /**
    * The filter used when searching for users in LDAP.
    */
   @Markdown(description = "The filter used when searching for users in LDAP.")
@@ -3587,6 +3596,7 @@ public class Configuration {
 
     ldapServerProperties.setBaseDN(getProperty(LDAP_BASE_DN));
     ldapServerProperties.setUsernameAttribute(getProperty(LDAP_USERNAME_ATTRIBUTE));
+    ldapServerProperties.setForceUsernameToLowercase(Boolean.parseBoolean(getProperty(LDAP_USERNAME_FORCE_LOWERCASE)));
     ldapServerProperties.setUserBase(getProperty(LDAP_USER_BASE));
     ldapServerProperties.setUserObjectClass(getProperty(LDAP_USER_OBJECT_CLASS));
     ldapServerProperties.setDnAttribute(getProperty(LDAP_DN_ATTRIBUTE));

@@ -99,6 +99,7 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.userBase | The filter used when searching for users in LDAP. |`ou=people,dc=ambari,dc=apache,dc=org` | 
 | authentication.ldap.userObjectClass | The class to which user objects in LDAP belong. |`person` | 
 | authentication.ldap.userSearchFilter | A filter used to lookup a user in LDAP based on the Ambari user name<br/><br/>The following are examples of valid values:<ul><li>`(&({usernameAttribute}={0})(objectClass={userObjectClass}))`</ul> |`(&({usernameAttribute}={0})(objectClass={userObjectClass}))` | 
+| authentication.ldap.username.forceLowercase | Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when local user names are expected to be lowercase but the LDAP user names are not. |`false` | 
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 

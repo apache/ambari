@@ -71,9 +71,20 @@ public class AmbariLdapBindAuthenticator extends BindAuthenticator {
       // if authenticated user name is different from ldap user name than user has logged in
       // with a login name that is different (e.g. user principal name) from the ambari user name stored in
       // ambari db. In this case add the user login name  as login alias for ambari user name.
-      LOG.info("User with {}='{}' logged in with login alias '{}'", ldapUserName, loginName);
+      LOG.info("User with {}='{}' logged in with login alias '{}'", ldapServerProperties.getUsernameAttribute(), ldapUserName, loginName);
 
-      AuthorizationHelper.addLoginNameAlias(ldapUserName, loginName);
+      // If the ldap username needs to be processed (like converted to all lowercase characters),
+      // process it before setting it in the session via AuthorizationHelper#addLoginNameAlias
+      String processedLdapUserName;
+      if(ldapServerProperties.isForceUsernameToLowercase()) {
+        processedLdapUserName = ldapUserName.toLowerCase();
+        LOG.info("Forcing ldap username to be lowercase characters: {} ==> {}", ldapUserName, processedLdapUserName);
+      }
+      else {
+        processedLdapUserName = ldapUserName;
+      }
+
+      AuthorizationHelper.addLoginNameAlias(processedLdapUserName, loginName);
     }
 
     return user;
