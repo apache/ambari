@@ -38,7 +38,7 @@
         "service_package_folder": "stacks/HDP/2.0.6/services/HBASE/package", 
         "script": "scripts/hbase_client.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "version": "2.2.1.0-2067", 
         "command_timeout": "900", 
         "script_type": "PYTHON"

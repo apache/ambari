@@ -31,7 +31,9 @@ import tarfile
 from optparse import OptionParser
 import resource_management
 from ambari_commons import OSCheck, OSConst
-from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
+from ambari_commons.constants import UPGRADE_TYPE_HOST_ORDERED
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -644,25 +646,20 @@ class Script(object):
     except KeyError:
       pass
 
-    restart_type = ""
+    upgrade_type_command_param = ""
     direction = None
     if config is not None:
       command_params = config["commandParams"] if "commandParams" in config else None
       if command_params is not None:
-        restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
+        upgrade_type_command_param = command_params["upgrade_type"] if "upgrade_type" in command_params else ""
         direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
 
-    upgrade_type = None
-    if restart_type.lower() == "rolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_ROLLING
-    elif restart_type.lower() == "nonrolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_NON_ROLLING
-
+    upgrade_type = Script.get_upgrade_type(upgrade_type_command_param)
     is_stack_upgrade = upgrade_type is not None
 
     # need this before actually executing so that failures still report upgrade info
     if is_stack_upgrade:
-      upgrade_info = {"upgrade_type": restart_type}
+      upgrade_info = {"upgrade_type": upgrade_type_command_param}
       if direction is not None:
         upgrade_info["direction"] = direction.upper()
 
@@ -685,7 +682,7 @@ class Script(object):
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
-          self.stop(env, rolling_restart=(restart_type == "rolling_upgrade"))
+          self.stop(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.stop(env)
 
@@ -720,7 +717,7 @@ class Script(object):
         self.start(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
-          self.start(env, rolling_restart=(restart_type == "rolling_upgrade"))
+          self.start(env, rolling_restart=(upgrade_type == UPGRADE_TYPE_ROLLING))
         else:
           self.start(env)
 
@@ -842,6 +839,19 @@ class Script(object):
     if Script.instance is None:
       Script.instance = Script()
     return Script.instance
+
+  @staticmethod
+  def get_upgrade_type(upgrade_type_command_param):
+    upgrade_type = None
+    if upgrade_type_command_param.lower() == "rolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_ROLLING
+    elif upgrade_type_command_param.lower() == "nonrolling_upgrade":
+      upgrade_type = UPGRADE_TYPE_NON_ROLLING
+    elif upgrade_type_command_param.lower() == "host_ordered_upgrade":
+      upgrade_type = UPGRADE_TYPE_HOST_ORDERED
+
+    return upgrade_type
+
 
   def __init__(self):
     if Script.instance is not None:

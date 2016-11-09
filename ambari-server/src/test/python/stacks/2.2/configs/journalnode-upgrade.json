@@ -50,7 +50,7 @@
         "cluster-env": {}
     }, 
     "commandParams": {
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/journalnode.py", 
         "upgrade_direction": "upgrade", 

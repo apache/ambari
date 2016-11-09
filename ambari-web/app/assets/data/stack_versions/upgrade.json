@@ -44,7 +44,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting ZOOKEEPER_SERVER on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 1421139703156,
             "group_id" : 1,
@@ -77,7 +77,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting ZOOKEEPER_SERVER on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 1421139720823,
             "group_id" : 1,
@@ -110,7 +110,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting ZOOKEEPER_SERVER on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 1421139730880,
             "group_id" : 1,
@@ -189,7 +189,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting JOURNALNODE on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 1421139774445,
             "group_id" : 2,
@@ -222,7 +222,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting JOURNALNODE on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 1421139792374,
             "group_id" : 2,
@@ -255,7 +255,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting JOURNALNODE on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 1421139812096,
             "group_id" : 2,
@@ -321,7 +321,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting NAMENODE on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -354,7 +354,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting NAMENODE on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -387,7 +387,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HISTORYSERVER on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -420,7 +420,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting APP_TIMELINE_SERVER on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -453,7 +453,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting RESOURCEMANAGER on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -519,7 +519,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HBASE_MASTER on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 2,
@@ -633,7 +633,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting  DATANODE on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 3,
@@ -666,7 +666,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting  NODEMANAGER on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 3,
@@ -699,7 +699,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting  HBASE_REGIONSERVER on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 3,
@@ -833,7 +833,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HDFS_CLIENT on ab2test-1.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,
@@ -866,7 +866,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HDFS_CLIENT on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,
@@ -899,7 +899,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HDFS_CLIENT on ab2test-2.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,
@@ -932,7 +932,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting YARN_CLIENT on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,
@@ -965,7 +965,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting MAPREDUCE2_CLIENT on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,
@@ -998,7 +998,7 @@
           "UpgradeItem" : {
             "cluster_host_info" : "{\"nm_hosts\":[\"1\"],\"hs_host\":[\"2\"],\"hbase_master_hosts\":[\"0\"],\"all_hosts\":[\"ab2test-1.c.pramod-thangali.internal\",\"ab2test-3.c.pramod-thangali.internal\",\"ab2test-2.c.pramod-thangali.internal\"],\"namenode_host\":[\"2\",\"0\"],\"zkfc_hosts\":[\"2\",\"0\"],\"rm_host\":[\"2\"],\"slave_hosts\":[\"1\"],\"app_timeline_server_hosts\":[\"2\"],\"ambari_server_host\":[\"ab2test-1.c.pramod-thangali.internal\"],\"zookeeper_hosts\":[\"0-2\"],\"hbase_rs_hosts\":[\"0\"],\"all_ping_ports\":[\"8670:0-2\"],\"journalnode_hosts\":[\"0-2\"]}",
             "cluster_name" : "1",
-            "command_params" : "{\"restart_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
+            "command_params" : "{\"upgrade_type\":\"rolling_upgrade\",\"version\":\"2.2.1.0-2207\"}",
             "context" : "Restarting HBASE_CLIENT on ab2test-3.c.pramod-thangali.internal",
             "end_time" : 0,
             "group_id" : 4,

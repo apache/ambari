@@ -365,7 +365,7 @@ if stack_supports_ranger_kerberos and not has_namenode:
     core_site_auth_to_local_property = core_site_auth_to_local_property + 'DEFAULT'
     core_site_property['hadoop.security.auth_to_local'] = core_site_auth_to_local_property
 
-restart_type = default("/commandParams/restart_type", "")
+upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 
 # ranger service pid
 user_group = config['configurations']['cluster-env']['user_group']

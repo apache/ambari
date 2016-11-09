@@ -75,8 +75,8 @@ class ZookeeperServerLinux(ZookeeperServer):
     Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
-    
-    if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
+
+    if check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
       conf_select.select(params.stack_name, "zookeeper", params.version)
       stack_select.select("zookeeper-server", params.version)
 

@@ -25,7 +25,7 @@
         "service_package_folder": "common-services/HIVE/0.12.0.2.0/package",
         "script": "scripts/hive_server.py",
         "hooks_folder": "HDP/2.0.6/hooks",
-        "restart_type": "rolling_upgrade",
+        "upgrade_type": "rolling_upgrade",
         "version": "2.2.1.0-2065",
         "command_timeout": "900",
         "script_type": "PYTHON"

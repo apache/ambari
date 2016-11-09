@@ -19,6 +19,8 @@ limitations under the License.
 """
 import os
 import re
+from resource_management.libraries.script import Script
+from resource_management.libraries.functions.default import default
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute, Link
 from resource_management.core.source import DownloadSource, InlineTemplate, Template
@@ -54,10 +56,7 @@ def setup_ranger_admin(upgrade_type=None):
   import params
 
   if upgrade_type is None:
-    if params.restart_type.lower() == "rolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_ROLLING
-    elif params.restart_type.lower() == "nonrolling_upgrade":
-      upgrade_type = UPGRADE_TYPE_NON_ROLLING
+    upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 
   ranger_home = params.ranger_home
   ranger_conf = params.ranger_conf

@@ -34,14 +34,6 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 def zookeeper(type = None, upgrade_type=None):
   import params
 
-  if type == 'server':
-    # This path may be missing after Ambari upgrade. We need to create it. We need to do this before any configs will
-    # be applied.
-    if upgrade_type is None and not os.path.exists(os.path.join(params.stack_root,"/current/zookeeper-server")) and params.current_version\
-      and check_stack_feature(StackFeature.ROLLING_UPGRADE, format_stack_version(params.version)):
-      conf_select.select(params.stack_name, "zookeeper", params.current_version)
-      stack_select.select("zookeeper-server", params.version)
-
   Directory(params.config_dir,
             owner=params.zk_user,
             create_parents = True,

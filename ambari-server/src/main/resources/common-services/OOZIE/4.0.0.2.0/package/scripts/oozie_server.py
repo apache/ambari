@@ -57,11 +57,7 @@ class OozieServer(Script):
 
     # The configure command doesn't actually receive the upgrade_type from Script.py, so get it from the config dictionary
     if upgrade_type is None:
-      restart_type = default("/commandParams/restart_type", "")
-      if restart_type.lower() == "rolling_upgrade":
-        upgrade_type = UPGRADE_TYPE_ROLLING
-      elif restart_type.lower() == "nonrolling_upgrade":
-        upgrade_type = UPGRADE_TYPE_NON_ROLLING
+      upgrade_type = Script.get_upgrade_type(default("/commandParams/upgrade_type", ""))
 
     if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE and params.version is not None:
       Logger.info(format("Configuring Oozie during upgrade type: {upgrade_type}, direction: {params.upgrade_direction}, and version {params.version}"))
