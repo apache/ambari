@@ -16,75 +16,70 @@
 * limitations under the License.
 }}
 
-{{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-{{#if view.isSupervisorCreated}}
-  <tr class="component SUPERVISOR">
-    <td class="summary-label">
-      <a href="#" {{action filterHosts view.filterComponent}}>
-        {{t dashboard.services.storm.supervisors}}
-      </a>
-    </td>
-    <td class="summary-value">
-      {{#if App.router.clusterController.isServiceContentFullyLoaded}}
-        <span>
-          {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
-            {{view.liveComponents}}/{{view.totalComponents}}
-          {{/view}}
-        </span> {{t services.service.summary.SupervisorsLIVE}}
-      {{else}}
-        {{t common.loading.eclipses}}
-      {{/if}}
-    </td>
-  </tr>
-{{/if}}
-<!-- Divider-- make the remaining summary info on 2nd table-->
-</tbody>
-</table>
-</div>
-<div class="col-md-6">
-  <table class="summary-info table no-borders table-condensed">
-    <tbody>
-
-    <tr class="storm-slots">
-      <td class="summary-label">
+<div class="row">
+  <div class="col-md-6">
+    {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
+    {{#if view.isSupervisorCreated}}
+      <div class="row component SUPERVISOR">
+        <div class="col-md-6 summary-label">
+          <a href="#" {{action filterHosts view.filterComponent}}>
+            {{t dashboard.services.storm.supervisors}}
+          </a>
+        </div>
+        <div class="col-md-6 summary-value">
+          {{#if App.router.clusterController.isServiceContentFullyLoaded}}
+            {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal" tagName="span"}}
+              {{view.liveComponents}}/{{view.totalComponents}}
+            {{/view}}
+            {{t services.service.summary.SupervisorsLIVE}}
+          {{else}}
+            {{t common.loading.eclipses}}
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+  </div>
+  <div class="col-md-6">
+    <div class="row storm-slots">
+      <div class="col-md-6 summary-label">
         {{t services.service.summary.storm.freeslots}}
-      </td>
-      <td class="summary-value">
+      </div>
+      <div class="col-md-6 summary-value">
         {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}}
         ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
-      </td>
-    </tr>
-    <tr class="storm-tasks">
-      <td class="summary-label">
+      </div>
+    </div>
+    <div class="row storm-tasks">
+      <div class="col-md-6 summary-label">
         {{t services.service.summary.storm.tasks}}
-      </td>
-      <td class="summary-value">
+      </div>
+      <div class="col-md-6 summary-value">
         {{formatNull view.service.totalTasks}}
-      </td>
-    </tr>
-    <tr class="storm-executors">
-      <td class="summary-label">
+      </div>
+    </div>
+    <div class="row storm-executors">
+      <div class="col-md-6 summary-label">
         {{t services.service.summary.storm.executors}}
-      </td>
-      <td class="summary-value">
+      </div>
+      <div class="col-md-6 summary-value">
         {{formatNull view.service.totalExecutors}}
-      </td>
-    </tr>
-    <tr class="storm-topologies">
-      <td class="summary-label">
+      </div>
+    </div>
+    <div class="row storm-topologies">
+      <div class="col-md-6 summary-label">
         {{t services.service.summary.storm.topologies}}
-      </td>
-      <td class="summary-value">
+      </div>
+      <div class="col-md-6 summary-value">
         {{formatNull view.service.topologies}}
-      </td>
-    </tr>
-    <tr class="nimbus-uptime">
-      <td class="summary-label">
+      </div>
+    </div>
+    <div class="row nimbus-uptime">
+      <div class="col-md-6 summary-label">
         {{t services.service.summary.storm.nimbus.uptime}}
-      </td>
-      <td class="summary-value">
+      </div>
+      <div class="col-md-6 summary-value">
         {{view.nimbusUptimeFormatted}}
-      </td>
-    </tr>
-
-
+      </div>
+    </div>
+  </div>
+</div>

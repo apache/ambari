@@ -1209,14 +1209,10 @@ h1 {
 
 #summary-restart-bar {
   margin-top: 20px;
-  .alert{
-    .glyphicon-refresh{
-      margin-left:10px;
+  .alert {
+    .glyphicon-refresh {
       color: #fdb82f;
     }
-  }
-  .dropdown-menu > li > a:hover {
-    text-shadow: none;
   }
 }
 
@@ -1986,10 +1982,6 @@ a:focus {
 
 /*start services summary*/
 .services {
-  margin-left: 0;
-  margin-top: 0;
-  position: relative;
-
   .alert{
     padding: 5px;
   }
@@ -2151,18 +2143,16 @@ a:focus {
 }
 
 .summary-info {
-  border-top: none;
-  border-collapse: collapse;
   color: #666;
   font-size: 13px;
-  tr.component-small {
-    font-size: 11px;
+  line-height: 16px;
+  .row {
+    margin-bottom: 8px;
   }
   .upgrade-status-warning {
     color: @health-status-red;
   }
-  tr td:first-child {
-    width: 180px;
+  .summary-label {
     text-align: right;
   }
   a {
@@ -2580,11 +2570,9 @@ a:focus {
 a.services-menu-blocks{
   overflow:auto;
   .icon-health-block{
-    width:16%;
     float:left;
   }
   .service-name-block{
-    width:55%;
     float:left;
     white-space:normal;
     word-break:break-word;
@@ -2616,25 +2604,6 @@ a.services-menu-blocks{
     padding: 0 2px;
     margin: 0 2px;
   }
-
-  .nav li.dropdown.open {
-    .dropdown-toggle{
-      color: #005580;
-      background-color: #eeeeee;
-      border-color: #eeeeee;
-      -webkit-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      -moz-box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-    a:hover .caret {
-      border-top-color: #005580;
-      border-bottom-color: #005580;
-    }
-    .caret {
-      border-top-color: #005580;
-      border-bottom-color: #005580;
-    }
-  }
 }
 .host-rack-id-popup {
   .control-label {
@@ -2643,52 +2612,9 @@ a.services-menu-blocks{
   }
 }
 
-.service-content {
-  .summary-info {
-    margin-bottom: 0;
-  }
-}
 
 .service-block {
   margin-top: 20px;
-}
-
-.service-configuration {
-  padding: 10px;
-}
-
-.service-summary {
-  background: #F6FAFD;
-  .service-block.col-md-8 {
-    margin-left: 0;
-    border-right: 1px solid #5fa3c3;
-  }
-  .service-block.col-md-3 {
-    padding-left: 0;
-  }
-  .service-content {
-    padding: 5px 0 0 10px;
-    .service-links {
-      padding: 5px 0;
-    }
-  }
-  h5 {
-    color: #0088CC;
-    font-size: 14px;
-  }
-  .service-links {
-    padding: 5px 0 10px 0;
-  }
-  .service-configuration .dl-horizontal {
-    dt {
-      width: 90px;
-      line-height: 19px;
-    }
-    dd {
-      margin-left: 100px;
-      line-height: 19px;
-    }
-  }
 }
 
 .service-button {
@@ -4812,13 +4738,6 @@ ul.list-inline li {
   }
 }
 
-//bootstrap
-//.dropdown-menu .active > a, .dropdown-menu .active > a:hover {
-//  background-color: #49AFCD;
-//  background-image: -moz-linear-gradient(center top, #5BC0DE, #2F96B4);
-//}
-//bootstrap end
-
 // COMBOBOX FIXES
 .combobox-container .btn:hover {
   background-position: 0;
@@ -4894,11 +4813,6 @@ ul.list-inline li {
       }
     }
   }
-
-  .summary-width {
-    padding-right: 0;
-  }
-
 
   .assign-masters {
     .host-assignments {
@@ -5001,16 +4915,6 @@ li.break {
     max-height: 416px;
   }
 }
-
-/*
-.progress-striped .bar {
-  background-color: #A5A5A5;
-}
-
-.progress-info.progress-striped .bar, .progress-striped .bar-info {
-  background-color: #A5A5A5;
-}
-*/
 
 .modal-body {
   .api-error {
