@@ -66,7 +66,9 @@ public class CheckDescription {
     "Hosts in Maintenance Mode will be excluded from the upgrade.",
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
-          "There are hosts in Maintenance Mode which excludes them from being upgraded.").build());
+          "There are hosts in Maintenance Mode which excludes them from being upgraded.")
+      .put(HostMaintenanceModeCheck.KEY_CANNOT_START_HOST_ORDERED,
+          "The following hosts cannot be in Maintenance Mode: {{fails}}.").build());
 
   public static CheckDescription HOSTS_MASTER_MAINTENANCE = new CheckDescription("HOSTS_MASTER_MAINTENANCE",
     PrereqCheckType.HOST,
@@ -296,7 +298,7 @@ public class CheckDescription {
     new ImmutableMap.Builder<String, String>()
       .put(AbstractCheckDescriptor.DEFAULT,
           "HiveServer2 does not currently support rolling upgrades. HiveServer2 will be upgraded, however existing queries which have not completed will fail and need to be resubmitted after HiveServer2 has been upgraded.").build());
-  
+
   public static CheckDescription SERVICES_STORM_ROLLING_WARNING = new CheckDescription("SERVICES_STORM_ROLLING_WARNING",
     PrereqCheckType.SERVICE,
     "Storm Downtime During Upgrade",
