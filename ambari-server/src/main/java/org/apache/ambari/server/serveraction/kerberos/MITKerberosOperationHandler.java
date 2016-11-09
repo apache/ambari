@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Inject;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.lang.ArrayUtils;
@@ -43,6 +45,9 @@ import java.util.regex.Pattern;
  * available
  */
 public class MITKerberosOperationHandler extends KerberosOperationHandler {
+
+  @Inject
+  private Configuration configuration;
 
   /**
    * A regular expression pattern to use to parse the key number from the text captured from the
@@ -388,7 +393,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Missing kadmin query");
     }
 
-    ShellCommandUtil.Result result;
+    ShellCommandUtil.Result result = null;
     PrincipalKeyCredential administratorCredential = getAdministratorCredential();
     String defaultRealm = getDefaultRealm();
 
@@ -451,7 +456,26 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       LOG.debug(String.format("Executing: %s", command));
     }
 
-    result = executeCommand(command.toArray(new String[command.size()]), null, interactiveHandler);
+    int retryCount = configuration.getKerberosOperationRetries();
+    int tries = 0;
+
+    while (tries <= retryCount) {
+      try {
+        result = executeCommand(command.toArray(new String[command.size()]), null, interactiveHandler);
+      } catch (KerberosOperationException exception) {
+        if (tries == retryCount) {
+          throw exception;
+        }
+      } finally {
+        if (result != null && result.isSuccessful()) {
+          break; // break on successful result
+        }
+        tries++;
+        String message = String.format("Retrying to execute kadmin:\n\tCommand: %s", command);
+        LOG.warn(message);
+      }
+    }
+
 
     if (!result.isSuccessful()) {
       String message = String.format("Failed to execute kadmin:\n\tCommand: %s\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",

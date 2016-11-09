@@ -116,6 +116,10 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class Configuration {
+  /**
+   * JVM property with optional path to Makrdown template file.
+   */
+  private static final String AMBARI_CONFIGURATION_MD_TEMPLATE_PROPERTY = "ambari.configuration.md.template";
 
   /**
    * The file to generate the complete Markdown documentation.
@@ -1382,6 +1386,11 @@ public class Configuration {
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
    * Kerberos authentication-specific properties (end)
    * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
+
+
+  @Markdown(description = "The number of times failed kerberos operations should be retried to execute.")
+  public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
+      "kerberos.operation.retries", 3);
 
   /**
    * The type of connection pool to use with JDBC connections to the database.
@@ -5112,7 +5121,12 @@ public class Configuration {
     // replace the tokens in the markdown template and write out the final MD file
     InputStream inputStream = null;
     try {
-      inputStream = Configuration.class.getResourceAsStream(MARKDOWN_TEMPLATE_FILE);
+      if (System.getProperties().containsKey(AMBARI_CONFIGURATION_MD_TEMPLATE_PROPERTY)) {
+        // for using from IDEA or other tools without whole compilation
+        inputStream = new FileInputStream(System.getProperties().getProperty(AMBARI_CONFIGURATION_MD_TEMPLATE_PROPERTY));
+      } else {
+        inputStream = Configuration.class.getResourceAsStream(MARKDOWN_TEMPLATE_FILE);
+      }
       String template = IOUtils.toString(inputStream);
       String markdown = template.replace(MARKDOWN_CONFIGURATION_TABLE_KEY, allPropertiesBuffer.toString());
       markdown = markdown.replace(MARKDOWN_BASELINE_VALUES_KEY, baselineBuffer.toString());
@@ -5468,5 +5482,9 @@ public class Configuration {
         kerberosAuthProperties.getAuthToLocalRules());
 
     return kerberosAuthProperties;
+  }
+
+  public int getKerberosOperationRetries(){
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
   }
 }
