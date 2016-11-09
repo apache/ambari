@@ -42,7 +42,7 @@
         "cluster-env": {}
     }, 
     "commandParams": {
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "service_package_folder": "common-services/RANGER/0.4.0/package", 
         "script": "scripts/ranger_admin.py", 
         "upgrade_direction": "upgrade", 

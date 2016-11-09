@@ -4,7 +4,7 @@
         "service_package_folder": "common-services/HDFS/2.1.0.2.0/package", 
         "script": "scripts/namenode.py", 
         "hooks_folder": "HDP/2.0.6/hooks", 
-        "restart_type": "rolling_upgrade", 
+        "upgrade_type": "rolling_upgrade",
         "version": "2.2.2.0-2603", 
         "command_timeout": "1200", 
         "script_type": "PYTHON"
