@@ -707,6 +707,28 @@ describe('App.UpgradeVersionBoxView', function () {
           'isUpgrading': true,
           'controller.isDowngrade': false,
           'controller.upgradeVersion': 'HDP-2.2.1',
+          'controller.isWizardRestricted': true,
+          'content.displayName': 'HDP-2.2.1'
+        },
+        setup: function () {
+          this.getMock.withArgs('upgradeState').returns('HOLDING');
+        },
+        expected: {
+          isDisabled: true,
+          status: 'UPGRADING',
+          isLink: true,
+          action: 'openUpgradeDialog',
+          iconClass: 'glyphicon glyphicon-pause',
+          text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
+        },
+        title: 'upgrading, holding, isWizardRestricted=true'
+      },
+      {
+        inputData: {
+          'content.status': 'UPGRADING',
+          'isUpgrading': true,
+          'controller.isDowngrade': false,
+          'controller.upgradeVersion': 'HDP-2.2.1',
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {

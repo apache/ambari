@@ -89,6 +89,7 @@ App.supports = {
   addingNewRepository: false,
   kerberosStackAdvisor: true,
   logCountVizualization: false,
+  enabledWizardForHostOrderedUpgrade: true,
   manageJournalNode: true
 };
 

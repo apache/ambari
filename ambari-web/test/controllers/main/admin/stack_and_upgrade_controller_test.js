@@ -365,8 +365,22 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.router.transitionTo.called).to.be.false;
     });
 
+    it('should not open dialog, isWizardRestricted=true', function () {
+      this.mockAuthorized.returns(true);
+      controller.set('isWizardRestricted', true);
+      controller.openUpgradeDialog();
+      expect(App.router.transitionTo.called).to.be.false;
+    });
+
     it('upgradeSuspended should not receive value', function () {
       this.mockAuthorized.returns(false);
+      controller.openUpgradeDialog();
+      expect(mock.observer.called).to.be.false;
+    });
+
+    it('upgradeSuspended should not receive value, isWizardRestricted=true', function () {
+      this.mockAuthorized.returns(true);
+      controller.set('isWizardRestricted', true);
       controller.openUpgradeDialog();
       expect(mock.observer.called).to.be.false;
     });
@@ -1791,6 +1805,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         isDowngrade: false,
         upgradeState: 'PENDING',
         upgradeType: "ROLLING",
+        isWizardRestricted: false,
         downgradeAllowed: true,
         upgradeTypeDisplayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
         failuresTolerance: Em.Object.create({
@@ -3021,6 +3036,22 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     afterEach(function() {
       controller.setDBProperties.restore();
       App.clusterStatus.setClusterStatus.restore();
+    });
+
+    it("setDBProperties should be called", function() {
+      controller.finish();
+      expect(controller.setDBProperties.calledWith({
+        upgradeId: undefined,
+        upgradeState: 'INIT',
+        upgradeVersion: undefined,
+        currentVersion: undefined,
+        upgradeTypeDisplayName: undefined,
+        upgradeType: undefined,
+        isWizardRestricted: false,
+        failuresTolerance: undefined,
+        isDowngrade: undefined,
+        downgradeAllowed: undefined
+      })).to.be.true;
     });
 
     it("App.clusterStatus.setClusterStatus should be called", function() {

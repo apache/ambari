@@ -107,6 +107,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   serviceCheckFailuresServicenames: [],
 
   /**
+   * Restricted type of upgrade, can't be viewed in wizard.
+   * It's status visible only in upgrade status label
+   * @type {boolean}
+   * @default false
+   */
+  isWizardRestricted: false,
+
+  /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
    * by stack upgrade path
    * @type {Array}
@@ -123,7 +131,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isCheckRequestInProgress: false,
       precheckResultsMessage: '',
       precheckResultsTitle: '',
-      action: ''
+      action: '',
+      isWizardRestricted: false
     }),
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
@@ -136,7 +145,22 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isCheckRequestInProgress: false,
       precheckResultsMessage: '',
       precheckResultsTitle: '',
-      action: ''
+      action: '',
+      isWizardRestricted: false
+    }),
+    Em.Object.create({
+      displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.HOU.title'),
+      type: 'HOST_ORDERED',
+      icon: "glyphicon glyphicon-bolt",
+      description: '',
+      selected: false,
+      allowed: false,
+      isCheckComplete: false,
+      isCheckRequestInProgress: false,
+      precheckResultsMessage: '',
+      precheckResultsTitle: '',
+      action: '',
+      isWizardRestricted: !App.supports.enabledWizardForHostOrderedUpgrade
     })
   ],
 
@@ -195,7 +219,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     'failuresTolerance',
     'isDowngrade',
     'downgradeAllowed',
-    'isSuspended'
+    'isSuspended',
+    'isWizardRestricted'
   ],
 
   /**
@@ -815,15 +840,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.set('upgradeId', data.resources[0].Upgrade.request_id);
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
-    var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type);
-    var upgradeTypeDisplayName = null;
-    var upgradeType = null;
+    var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type),
+        upgradeTypeDisplayName = null,
+        upgradeType = null,
+        isWizardRestricted = false;
 
     if (upgradeMethod) {
       upgradeTypeDisplayName = upgradeMethod.get('displayName');
       upgradeType = upgradeMethod.get('type');
+      isWizardRestricted = upgradeMethod.get('isWizardRestricted');
     }
 
+    this.set('isWizardRestricted', isWizardRestricted);
     this.set('upgradeType', upgradeType);
     this.set('upgradeTypeDisplayName', upgradeTypeDisplayName);
     this.set('failuresTolerance', Em.Object.create({
@@ -836,6 +864,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
       upgradeType: upgradeType,
+      isWizardRestricted: isWizardRestricted,
       upgradeTypeDisplayName: upgradeTypeDisplayName,
       failuresTolerance: Em.Object.create({
         skipComponentFailures: params.skipComponentFailures == 'true',
@@ -934,6 +963,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         });
       request.type = 'ALL';
       this.get('runningCheckRequests').push(request);
+    } else {
+      this.set('isUpgradeTypesLoaded', true);
     }
 
     return App.ModalPopup.show({
@@ -1596,6 +1627,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       currentVersion: undefined,
       upgradeTypeDisplayName: undefined,
       upgradeType: undefined,
+      isWizardRestricted: false,
       failuresTolerance: undefined,
       isDowngrade: undefined,
       downgradeAllowed: undefined
@@ -1648,7 +1680,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @return {App.ModalPopup}
    */
   openUpgradeDialog: function () {
-    if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+    if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') && !this.get('isWizardRestricted')) {
       App.propertyDidChange('upgradeSuspended');
       App.router.transitionTo('admin.stackUpgrade');
     }
@@ -1834,6 +1866,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
       upgradeState: lastUpgradeData.Upgrade.request_status,
       upgradeType: lastUpgradeData.Upgrade.upgrade_type,
+      isWizardRestricted: upgradeType.get('isWizardRestricted'),
       downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
       upgradeTypeDisplayName: upgradeType.get('displayName'),
       failuresTolerance: Em.Object.create({
