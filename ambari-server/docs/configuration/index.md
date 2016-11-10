@@ -53,7 +53,8 @@ The following are the properties which can be used to configure Ambari.
 | alerts.cache.size | The size of the alert cache.<br/><br/> This property is related to `alerts.cache.enabled`. |`50000` | 
 | alerts.execution.scheduler.maxThreads | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
-| alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
+| alerts.ambari.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | |
+| alerts.template.file | The full path to the XML file that describes the different alert templates. | |
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
 | ambari.ldap.isConfigured | An internal property used for unit testing and development purposes. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 

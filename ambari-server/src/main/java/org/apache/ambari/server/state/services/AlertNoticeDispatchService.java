@@ -777,6 +777,25 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     }
 
     /**
+     * Gets the definition id of the alert.
+     *
+     * @return
+     */
+    public Long getAlertDefinitionId() {
+      return m_history.getAlertDefinitionId();
+    }
+
+    /**
+     * Gets the hash of alert definition entity.
+     *
+     * @return
+     */
+    public int getAlertDefinitionHash() {
+      return m_history.getAlertDefinitionHash();
+    }
+
+
+    /**
      * Gets the descriptive name of the alert.
      *
      * @return
