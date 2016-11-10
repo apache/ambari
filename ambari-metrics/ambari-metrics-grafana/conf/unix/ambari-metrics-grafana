@@ -50,6 +50,7 @@ GRAFANA_HOME=${AMS_GRAFANA_HOME_DIR}
 WORK_DIR=$GRAFANA_HOME
 DATA_DIR=${AMS_GRAFANA_DATA_DIR}
 LOG_DIR=${AMS_GRAFANA_LOG_DIR}
+LOG_FILE=$LOG_DIR/grafana.log
 CONF_FILE=$CONF_DIR/ams-grafana.ini
 MAX_OPEN_FILES=10000
 PID_FILE=${AMS_GRAFANA_PID_DIR}/$NAME.pid
@@ -99,6 +100,22 @@ case "$1" in
     if [ $? -eq 0 ]; then
       echo "Already running."
       exit 0
+    fi
+
+    echo "$(date) Checking for previously running Grafana with out of sync PID..." >> $LOG_FILE
+    if [ -n "`ps ax | grep -w ambari-metrics-grafana/bin/grafana-server`" ]; then
+      PID=`ps aux | grep -w ambari-metrics-grafana/bin/grafana-server | head -n 1 | awk '{print $2}'`
+      echo "$(date) Grafana Server already running with PID: ${PID}. Killing that instance"  >> $LOG_FILE
+      kill "${PID}" >/dev/null 2>&1
+      sleep "${STOP_TIMEOUT}"
+
+      if kill -0 "${PID}" > /dev/null 2>&1; then
+        echo "$(date) WARNING: Grafana Server did not stop gracefully. Trying to kill with kill -9" >> $LOG_FILE
+        kill -9 "${PID}" >/dev/null 2>&1
+      fi
+
+    else
+      echo "$(date) No out of sync Grafana server process found" >> $LOG_FILE
     fi
 
     # Prepare environment

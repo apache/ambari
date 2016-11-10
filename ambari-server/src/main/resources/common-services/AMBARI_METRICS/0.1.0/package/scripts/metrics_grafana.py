@@ -23,6 +23,8 @@ from resource_management.libraries.functions import format
 from status import check_service_status
 from ams import ams
 from metrics_grafana_util import create_ams_datasource, create_ams_dashboards
+from resource_management.core.logger import Logger
+from resource_management.core import sudo
 
 class AmsGrafana(Script):
   def install(self, env):
@@ -46,6 +48,12 @@ class AmsGrafana(Script):
             user=params.ams_user,
             not_if = params.grafana_process_exists_cmd,
             )
+    pidfile = format("{ams_grafana_pid_dir}/grafana-server.pid")
+    if not sudo.path_exists(pidfile):
+      Logger.warn("Pid file doesn't exist after starting of the component.")
+    else:
+      Logger.info("Grafana Server has started with pid: {0}".format(sudo.read_file(pidfile).strip()))
+
     # Create datasource
     create_ams_datasource()
     # Create pre-built dashboards
