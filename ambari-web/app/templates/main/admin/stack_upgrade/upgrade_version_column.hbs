@@ -61,9 +61,10 @@
   {{/if}}
   {{#if view.stateElement.isLink}}
     {{#if view.stateElement.iconClass}}
-        <i {{bindAttr class="view.stateElement.iconClass"}}></i>
+      <i {{bindAttr class="view.stateElement.iconClass" disabled="view.stateElement.isDisabled"}}></i>
     {{/if}}
-      <a href="#" {{action runAction target="view"}}>{{view.stateElement.text}}</a>
+    <a href="#" {{action runAction target="view"}}
+        {{bindAttr disabled="view.stateElement.isDisabled"}}>{{view.stateElement.text}}</a>
     {{#if view.stateElement.isInstalling}}
       {{view App.ProgressBarView
           progressBinding="view.installProgress"

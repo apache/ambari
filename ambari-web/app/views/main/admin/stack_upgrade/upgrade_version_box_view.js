@@ -226,6 +226,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('text', this.get('isVersionColumnView') ? Em.I18n.t('common.resume'): text);
       element.set('isDisabled', this.get('controller.requestInProgress'));
     }
+    //For restricted upgrade wizard should be disabled in any state
+    if (this.get('controller.isWizardRestricted')) {
+      element.set('isDisabled', true);
+    }
     return element;
   }.property(
     'content.status',
