@@ -307,7 +307,7 @@ def format_namenode(force=None):
                     conf_dir=hadoop_conf_dir)
     else:
       if not is_namenode_formatted(params):
-        Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+        Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
                 user = params.hdfs_user,
                 path = [params.hadoop_bin_dir]
         )
@@ -328,7 +328,7 @@ def format_namenode(force=None):
         nn_name_dirs = params.dfs_name_dir.split(',')
         if not is_namenode_formatted(params):
           try:
-            Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+            Execute(format("hdfs --config {hadoop_conf_dir} namenode -format -nonInteractive"),
                     user = params.hdfs_user,
                     path = [params.hadoop_bin_dir]
             )
@@ -384,18 +384,26 @@ def is_namenode_formatted(params):
       )
       marked = True
       
+  if marked:
+    return True
+
   # Check if name dirs are not empty
   for name_dir in nn_name_dirs:
+    code, out = shell.call(("ls", name_dir))
+    dir_exists_and_valid = bool(not code)
+
+    if not dir_exists_and_valid: # situations if disk exists but is crashed at the moment (ls: reading directory ...: Input/output error)
+      Logger.info(format("NameNode will not be formatted because the directory {name_dir} is missing or cannot be checked for content. {out}"))
+      return True
+
     try:
       Execute(format("ls {name_dir} | wc -l  | grep -q ^0$"),
       )
-      marked = False
     except Fail:
-      marked = True
-      Logger.info(format("ERROR: Namenode directory(s) is non empty. Will not format the namenode. List of non-empty namenode dirs {nn_name_dirs}"))
-      break
+      Logger.info(format("NameNode will not be formatted since {name_dir} exists and contains content"))
+      return True
        
-  return marked
+  return False
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def decommission():
