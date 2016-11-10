@@ -675,7 +675,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     var ret = {};
     if (App.get('isHaEnabled')) {
       ret.namespaceId = configs['hdfs-site']['dfs.nameservices'];
-      ret.suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + ret.namespaceId + '.nn1'] === this.get('content.reassignHosts.source') + ':50070') ? 'nn1' : 'nn2';
+      ret.suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + ret.namespaceId + '.nn1'].indexOf(this.get('content.reassignHosts.source')) != -1) ? 'nn1' : 'nn2';
     }
     return ret;
   },
