@@ -157,9 +157,13 @@ public class UpgradeCatalog242 extends AbstractUpgradeCatalog {
 
       dbAccessor.dropFKConstraint(HOST_GROUP_TABLE, "FK_hg_blueprint_name");
 
+      dbAccessor.dropFKConstraint(HOST_GROUP_TABLE, "FK_hostgroup_blueprint_name");
+
       dbAccessor.dropFKConstraint(BLUEPRINT_CONFIGURATION, "FK_cfg_blueprint_name");
 
       dbAccessor.dropFKConstraint(BLUEPRINT_CONFIGURATION, "FK_blueprint_configuration_blueprint_name");
+
+      dbAccessor.dropFKConstraint(BLUEPRINT_SETTING, "FK_blueprint_setting_blueprint_name");
 
       dbAccessor.dropFKConstraint(BLUEPRINT_SETTING, "FK_blueprint_setting_name");
 
