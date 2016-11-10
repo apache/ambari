@@ -441,4 +441,7 @@ public class AlertHistoryEntity {
     return buffer.toString();
   }
 
+  public int getAlertDefinitionHash() {
+    return this.getAlertDefinition().hashCode();
+  }
 }

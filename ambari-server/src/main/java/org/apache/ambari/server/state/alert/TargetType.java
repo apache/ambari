@@ -30,9 +30,14 @@ public enum TargetType {
   EMAIL,
 
   /**
-   * Alerts will be distributed via SNMP.
+   * Alerts will be distributed via SNMP with custom OIDs.
    */
   SNMP,
+
+  /**
+   * Alerts will be distributed via SNMP with ambari OIDs
+   */
+  AMBARI_SNMP,
 
   /**
    * Alerts will be distributed to a logger.

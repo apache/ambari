@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
@@ -119,7 +120,8 @@ public class AlertDefinitionHash {
    * The hashes for all hosts for any cluster. The key is the hostname and the
    * value is a map between cluster name and hash.
    */
-  private Map<String, Map<String, String>> m_hashes = new HashMap<String, Map<String, String>>();
+  private ConcurrentMap<String, ConcurrentMap<String, String>> m_hashes =
+      new ConcurrentHashMap<String, ConcurrentMap<String, String>>();
 
   /**
    * Gets a unique hash value reprssenting all of the alert definitions that
@@ -138,10 +140,13 @@ public class AlertDefinitionHash {
    * @return the unique hash or {@value #NULL_MD5_HASH} if none.
    */
   public String getHash(String clusterName, String hostName) {
-    Map<String, String> clusterMapping = m_hashes.get(hostName);
+    ConcurrentMap<String, String> clusterMapping = m_hashes.get(hostName);
     if (null == clusterMapping) {
       clusterMapping = new ConcurrentHashMap<String, String>();
-      m_hashes.put(hostName, clusterMapping);
+      ConcurrentMap<String, String> temp = m_hashes.putIfAbsent(hostName, clusterMapping);
+      if (temp != null) {
+        clusterMapping = temp;
+      }
     }
 
     String hash = clusterMapping.get(hostName);
