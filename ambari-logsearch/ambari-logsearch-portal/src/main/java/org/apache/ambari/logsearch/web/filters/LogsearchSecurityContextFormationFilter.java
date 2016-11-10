@@ -88,8 +88,7 @@ public class LogsearchSecurityContextFormationFilter extends GenericFilterBean {
           httpResponse.addCookie(cookie);
         }
         // [1]get the context from session
-        LogSearchContext context = (LogSearchContext) httpSession
-          .getAttribute(LOGSEARCH_SC_SESSION_KEY);
+        LogSearchContext context = (LogSearchContext) httpSession.getAttribute(LOGSEARCH_SC_SESSION_KEY);
         if (context == null) {
           context = new LogSearchContext();
           httpSession.setAttribute(LOGSEARCH_SC_SESSION_KEY, context);
