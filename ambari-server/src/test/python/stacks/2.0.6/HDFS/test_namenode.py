@@ -57,7 +57,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
-    self.assertResourceCalled('Execute', 'yes Y | hdfs --config /etc/hadoop/conf namenode -format',
+    self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
                               path = ['/usr/bin'],
                               user = 'hdfs',
                               )
@@ -172,7 +172,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
-    self.assertResourceCalled('Execute', 'yes Y | hdfs --config /etc/hadoop/conf namenode -format',
+    self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
     )
@@ -300,7 +300,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
-    self.assertResourceCalled('Execute', 'yes Y | hdfs --config /etc/hadoop/conf namenode -format',
+    self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
     )
@@ -725,7 +725,7 @@ class TestNamenode(RMFTestCase):
 
     # verify that active namenode was formatted
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
-    self.assertResourceCalled('Execute', 'yes Y | hdfs --config /etc/hadoop/conf namenode -format',
+    self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf namenode -format -nonInteractive',
         path = ['/usr/bin'],
         user = 'hdfs',
     )
@@ -1775,7 +1775,7 @@ class TestNamenode(RMFTestCase):
       config_dict = json_content,
       stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
-      call_mocks = [(0, None, ''), (0, None)],
+      call_mocks = [(0, None), (0, None, ''), (0, None)],
       mocks_dict = mocks_dict)
 
     # jump right to the start of the NN and then verify that we DO NOT call HdfsResource after
