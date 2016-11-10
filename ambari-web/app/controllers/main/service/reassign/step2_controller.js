@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep2Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
+App.ReassignMasterWizardStep2Controller = Em.Controller.extend(App.AssignMasterComponents, {
 
   name: "reassignMasterWizardStep2Controller",
 

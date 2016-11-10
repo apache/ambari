@@ -1123,7 +1123,7 @@ describe('App.WizardStep6Controller', function () {
         masterComponentHosts: Em.A([
           {hostName: 'h1', component: 'c1'}
         ]),
-        hosts: {'h1': {}},
+        hosts: [{hostName: 'h1'}],
         m: 'one host and one component',
         e:{
           blueprint: {
@@ -1154,7 +1154,7 @@ describe('App.WizardStep6Controller', function () {
           {hostName: 'h2', component: 'c2'},
           {hostName: 'h2', component: 'c3'}
         ]),
-        hosts: {'h1': {}, 'h2': {}, 'h3': {}},
+        hosts: [{hostName: 'h1'}, {hostName: 'h2'}, {hostName: 'h3'}],
         m: 'multiple hosts and multiple components',
         e: {
           blueprint: {
@@ -1206,7 +1206,7 @@ describe('App.WizardStep6Controller', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         controller.set('content.masterComponentHosts', test.masterComponentHosts);
-        controller.set('content.hosts', test.hosts);
+        controller.set('hosts', test.hosts);
         var r = controller.getCurrentMastersBlueprint();
         expect(r).to.eql(test.e);
       });

@@ -23,14 +23,16 @@ var dataManipulation = require('utils/data_manipulation');
 App.BlueprintMixin = Em.Mixin.create({
 
   /**
-   * returns blueprint for all currently installed master, slave and client components
-   * @method getCurrentMasterSlaveBlueprint
+   * returns blueprint for selected components
+   * @method getComponentsBlueprint
+   * @param  {Em.Object[]} components components objects or model @see App.HostComponent
+   *  required properties are <code>hostName, componentName</code>
+   * @param {string[]} [allHostNames=[]] host names, provide when host groups without components should be created
+   * @return {Object} blueprint object
    */
-  getCurrentMasterSlaveBlueprint: function () {
-    var components = App.HostComponent.find();
-    var hosts = components.mapProperty("hostName").uniq();
+  getComponentsBlueprint: function(components, allHostNames) {
+    var hosts = components.mapProperty('hostName').concat(allHostNames || []).uniq();
     var mappedComponents = dataManipulation.groupPropertyValues(components, 'hostName');
-
     var res = {
       blueprint: { host_groups: [] },
       blueprint_cluster_binding: { host_groups: [] }
@@ -54,6 +56,14 @@ App.BlueprintMixin = Em.Mixin.create({
       });
     });
     return res;
+  },
+
+  /**
+   * returns blueprint for all currently installed master, slave and client components
+   * @method getCurrentMasterSlaveBlueprint
+   */
+  getCurrentMasterSlaveBlueprint: function () {
+    return this.getComponentsBlueprint(App.HostComponent.find());
   },
 
   /**

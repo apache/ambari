@@ -60,6 +60,8 @@ require('mixins/common/configs/configs_saver');
 require('mixins/common/configs/configs_loader');
 require('mixins/common/configs/configs_comparator');
 require('mixins/common/configs/toggle_isrequired');
+require('mixins/common/hosts/host_component_recommendation_mixin');
+require('mixins/common/hosts/host_component_validation_mixin');
 require('mixins/common/widgets/export_metrics_mixin');
 require('mixins/common/widgets/time_range_mixin');
 require('mixins/common/widgets/widget_mixin');

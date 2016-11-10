@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
+App.RMHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.AssignMasterComponents, {
 
   name: "rMHighAvailabilityWizardStep2Controller",
 
