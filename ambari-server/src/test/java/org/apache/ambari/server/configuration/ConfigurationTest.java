@@ -119,7 +119,7 @@ public class ConfigurationTest {
    */
   @Test
   public void testDefaultTwoWayAuthNotSet() throws Exception {
-    Assert.assertFalse(new Configuration().getTwoWaySsl());
+    Assert.assertFalse(new Configuration().isTwoWaySsl());
   }
 
   /**
@@ -131,7 +131,7 @@ public class ConfigurationTest {
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty("security.server.two_way_ssl", "true");
     Configuration conf = new Configuration(ambariProperties);
-    Assert.assertTrue(conf.getTwoWaySsl());
+    Assert.assertTrue(conf.isTwoWaySsl());
   }
 
   /**
@@ -143,7 +143,7 @@ public class ConfigurationTest {
     Properties ambariProperties = new Properties();
     ambariProperties.setProperty("security.server.two_way_ssl", "false");
     Configuration conf = new Configuration(ambariProperties);
-    Assert.assertFalse(conf.getTwoWaySsl());
+    Assert.assertFalse(conf.isTwoWaySsl());
   }
 
   @Test

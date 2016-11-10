@@ -167,7 +167,7 @@ public class AmbariServer {
   /**
    * The thread name prefix for threads handling agent requests.
    */
-  private static final String AGENT_THREAD_POOL_NAME = "ambari-agent-thread";
+  private static final String AGENT_THREAD_POOL_NAME = "qtp-ambari-agent";
 
   /**
    * The thread name prefix for threads handling REST API requests.
@@ -406,73 +406,27 @@ public class AmbariServer {
 
       Map<String, String> configsMap = configs.getConfigsMap();
 
-      if (configs.getAgentSSLAuthentication()) {
-        //Secured connector for 2-way auth
-        SslContextFactory contextFactoryTwoWay = new SslContextFactory();
-        disableInsecureProtocols(contextFactoryTwoWay);
+      SelectChannelConnector agentOneWayConnector = createSelectChannelConnectorForAgent(configs.getOneWayAuthPort(), false);
+      // Override acceptor defaults if configured or use Jetty defaults
+      Integer acceptors = configs.getAgentApiAcceptors() != null ?
+        configs.getAgentApiAcceptors() : agentOneWayConnector.getAcceptors();
+      agentOneWayConnector.setAcceptors(acceptors);
 
-        SslSelectChannelConnector sslConnectorTwoWay = new SslSelectChannelConnector(contextFactoryTwoWay);
-        sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
+      SelectChannelConnector agentTwoWayConnector = null;
+      if (configs.isTwoWaySsl()) {
+        agentTwoWayConnector = createSelectChannelConnectorForAgent(configs.getTwoWayAuthPort(), true);
+        agentTwoWayConnector.setAcceptors(acceptors);
+      }
 
-        String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
-            + configsMap.get(Configuration.KSTR_NAME.getKey());
+      // Account for both the connectors if configured
+      int totalAgentAcceptorCount = configs.isTwoWaySsl() ? acceptors * 2 : acceptors;
+      // Agent Jetty thread pool - widen the thread pool if needed !
+      configureJettyThreadPool(serverForAgent, totalAgentAcceptorCount,
+        AGENT_THREAD_POOL_NAME, configs.getAgentThreadPoolSize());
 
-        String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
-            + configsMap.get(Configuration.TSTR_NAME.getKey());
-
-        String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
-
-        sslConnectorTwoWay.setKeystore(keystore);
-        sslConnectorTwoWay.setTruststore(truststore);
-        sslConnectorTwoWay.setPassword(srvrCrtPass);
-        sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
-        sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
-        sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
-        sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
-        sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
-        sslConnectorTwoWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-        sslConnectorTwoWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-        //SSL Context Factory
-        SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
-        contextFactoryOneWay.setKeyStorePath(keystore);
-        contextFactoryOneWay.setTrustStore(truststore);
-        contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
-        contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
-        contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
-        contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
-        contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
-        contextFactoryOneWay.setNeedClientAuth(false);
-        disableInsecureProtocols(contextFactoryOneWay);
-
-        //Secured connector for 1-way auth
-        SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
-        sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
-        sslConnectorOneWay.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-        sslConnectorOneWay.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-        // because there are two connectors sharing the same pool, cut each's
-        // acceptors in half
-        int sslAcceptors = sslConnectorOneWay.getAcceptors();
-        sslConnectorOneWay.setAcceptors(Math.max(2, sslAcceptors / 2));
-        sslConnectorTwoWay.setAcceptors(Math.max(2, sslAcceptors / 2));
-
-        // Agent Jetty thread pool
-        configureJettyThreadPool(serverForAgent, sslConnectorOneWay.getAcceptors(),
-          "qtp-ambari-agent", configs.getAgentThreadPoolSize());
-
-        serverForAgent.addConnector(sslConnectorOneWay);
-        serverForAgent.addConnector(sslConnectorTwoWay);
-      } else {
-        SelectChannelConnector agentConnector = new SelectChannelConnector();
-        agentConnector.setPort(configs.getOneWayAuthPort());
-        agentConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-
-        // Agent Jetty thread pool
-        configureJettyThreadPool(serverForAgent, agentConnector.getAcceptors(), "qtp-ambari-agent",
-          configs.getAgentThreadPoolSize());
-
-        serverForAgent.addConnector(agentConnector);
+      serverForAgent.addConnector(agentOneWayConnector);
+      if (agentTwoWayConnector != null) {
+        serverForAgent.addConnector(agentTwoWayConnector);
       }
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
@@ -535,41 +489,15 @@ public class AmbariServer {
       }
 
       /* Configure the API server to use the NIO connectors */
-      SelectChannelConnector apiConnector;
+      SelectChannelConnector apiConnector = createSelectChannelConnectorForClient();
 
-      if (configs.getApiSSLAuthentication()) {
-        String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey());
-        String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
-            File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME.getKey());
-        LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
+      acceptors = configs.getClientApiAcceptors() != null ? configs
+        .getClientApiAcceptors() : apiConnector.getAcceptors();
+      apiConnector.setAcceptors(acceptors);
 
-        String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
-
-        SslContextFactory contextFactoryApi = new SslContextFactory();
-        disableInsecureProtocols(contextFactoryApi);
-        SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
-        sapiConnector.setPort(configs.getClientSSLApiPort());
-        sapiConnector.setKeystore(httpsKeystore);
-        sapiConnector.setTruststore(httpsTruststore);
-        sapiConnector.setPassword(httpsCrtPass);
-        sapiConnector.setKeyPassword(httpsCrtPass);
-        sapiConnector.setTrustPassword(httpsCrtPass);
-        sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
-        sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
-        sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-        apiConnector = sapiConnector;
-      } else  {
-        apiConnector = new SelectChannelConnector();
-        apiConnector.setPort(configs.getClientApiPort());
-        apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
-      }
-
-      apiConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
-      apiConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
-
-      // Client Jetty thread pool
-      configureJettyThreadPool(server, apiConnector.getAcceptors(), CLIENT_THREAD_POOL_NAME, configs.getClientThreadPoolSize());
+      // Client Jetty thread pool - widen the thread pool if needed !
+      configureJettyThreadPool(server, acceptors, CLIENT_THREAD_POOL_NAME,
+        configs.getClientThreadPoolSize());
       server.addConnector(apiConnector);
 
       server.setStopAtShutdown(true);
@@ -640,6 +568,93 @@ public class AmbariServer {
           "Terminating this instance.", bindException);
       throw bindException;
     }
+  }
+
+  /**
+   * Create org.eclipse.jetty.server.nio.SelectChannelConnector
+   * implementation for SSL or non-SSL based on configuration.
+   *
+   * @param port connector port
+   * @param needClientAuth one-way / two-way SSL
+   * @return org.eclipse.jetty.server.nio.SelectChannelConnector
+   */
+  @SuppressWarnings("deprecation")
+  private SelectChannelConnector createSelectChannelConnectorForAgent(int port, boolean needClientAuth) {
+    Map<String, String> configsMap = configs.getConfigsMap();
+    SelectChannelConnector agentConnector;
+
+    if (configs.getAgentSSLAuthentication()) {
+      String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+        + configsMap.get(Configuration.KSTR_NAME.getKey());
+
+      String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR.getKey()) + File.separator
+        + configsMap.get(Configuration.TSTR_NAME.getKey());
+
+      String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS.getKey());
+
+      // Secured connector - default constructor sets trustAll = true for certs
+      SslContextFactory contextFactory = new SslContextFactory();
+      disableInsecureProtocols(contextFactory);
+
+      SslSelectChannelConnector agentSslConnector = new SslSelectChannelConnector(contextFactory);
+      agentSslConnector.setKeystore(keystore);
+      agentSslConnector.setTruststore(truststore);
+      agentSslConnector.setPassword(srvrCrtPass);
+      agentSslConnector.setKeyPassword(srvrCrtPass);
+      agentSslConnector.setTrustPassword(srvrCrtPass);
+      agentSslConnector.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE.getKey()));
+      agentSslConnector.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE.getKey()));
+      agentSslConnector.setNeedClientAuth(needClientAuth);
+      agentSslConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
+      agentSslConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+      agentConnector = agentSslConnector;
+    } else {
+      agentConnector = new SelectChannelConnector();
+      agentConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+    }
+
+    agentConnector.setPort(port);
+
+    return agentConnector;
+  }
+
+  @SuppressWarnings("deprecation")
+  private SelectChannelConnector createSelectChannelConnectorForClient() {
+    Map<String, String> configsMap = configs.getConfigsMap();
+    SelectChannelConnector apiConnector;
+
+    if (configs.getApiSSLAuthentication()) {
+      String httpsKeystore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+        File.separator + configsMap.get(Configuration.CLIENT_API_SSL_KSTR_NAME.getKey());
+      String httpsTruststore = configsMap.get(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey()) +
+        File.separator + configsMap.get(Configuration.CLIENT_API_SSL_TSTR_NAME.getKey());
+      LOG.info("API SSL Authentication is turned on. Keystore - " + httpsKeystore);
+
+      String httpsCrtPass = configsMap.get(Configuration.CLIENT_API_SSL_CRT_PASS.getKey());
+
+      SslContextFactory contextFactoryApi = new SslContextFactory();
+      disableInsecureProtocols(contextFactoryApi);
+      SslSelectChannelConnector sapiConnector = new SslSelectChannelConnector(contextFactoryApi);
+      sapiConnector.setPort(configs.getClientSSLApiPort());
+      sapiConnector.setKeystore(httpsKeystore);
+      sapiConnector.setTruststore(httpsTruststore);
+      sapiConnector.setPassword(httpsCrtPass);
+      sapiConnector.setKeyPassword(httpsCrtPass);
+      sapiConnector.setTrustPassword(httpsCrtPass);
+      sapiConnector.setKeystoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+      sapiConnector.setTruststoreType(configsMap.get(Configuration.CLIENT_API_SSL_KSTR_TYPE.getKey()));
+      sapiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+      apiConnector = sapiConnector;
+    } else  {
+      apiConnector = new SelectChannelConnector();
+      apiConnector.setPort(configs.getClientApiPort());
+      apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+    }
+
+    apiConnector.setRequestHeaderSize(configs.getHttpRequestHeaderSize());
+    apiConnector.setResponseHeaderSize(configs.getHttpResponseHeaderSize());
+
+    return apiConnector;
   }
 
   /**
@@ -751,7 +766,7 @@ public class AmbariServer {
   private void disableInsecureProtocols(SslContextFactory factory) {
     // by default all protocols should be available
     factory.setExcludeProtocols();
-    factory.setIncludeProtocols(new String[] { "SSLv2Hello","TLSv1"});
+    factory.setIncludeProtocols(new String[] { "SSLv2Hello", "TLSv1" });
 
     if (!configs.getSrvrDisabledCiphers().isEmpty()) {
       String[] masks = configs.getSrvrDisabledCiphers().split(DISABLED_ENTRIES_SPLITTER);
