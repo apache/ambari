@@ -18,11 +18,13 @@
  */
 package org.apache.ambari.logsearch.conf;
 
+import com.google.common.collect.Lists;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthFailureHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchAuthSuccessHandler;
 import org.apache.ambari.logsearch.web.authenticate.LogsearchLogoutSuccessHandler;
 import org.apache.ambari.logsearch.web.filters.LogsearchAuthenticationEntryPoint;
 import org.apache.ambari.logsearch.web.filters.LogsearchKRBAuthenticationFilter;
+import org.apache.ambari.logsearch.web.filters.LogsearchJWTFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchSecurityContextFormationFilter;
 import org.apache.ambari.logsearch.web.filters.LogsearchUsernamePasswordAuthenticationFilter;
 import org.apache.ambari.logsearch.web.security.LogsearchAuthenticationProvider;
@@ -34,10 +36,20 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import javax.inject.Inject;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+  @Inject
+  private AuthPropsConfig authPropsConfig;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -46,20 +58,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       .sessionManagement()
          .sessionFixation()
          .newSession()
-         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
       .and()
       .authorizeRequests()
-        .antMatchers("/login.html").permitAll()
-        .antMatchers("/styles/**").permitAll()
-        .antMatchers("/fonts/**").permitAll()
-        .antMatchers("/fonts/**").permitAll()
-        .antMatchers("/scripts/**").permitAll()
-        .antMatchers("/libs/**").permitAll()
-        .antMatchers("/images/**").permitAll()
-        .antMatchers("/templates/**").permitAll()
-        .antMatchers("/favicon.ico").permitAll()
-        .antMatchers("/api/v1/public/**").permitAll()
-        .antMatchers("/api/v1/swagger.json").permitAll()
+        .requestMatchers(requestMatcher()).permitAll()
         .antMatchers("/**").authenticated()
       .and()
       .authenticationProvider(logsearchAuthenticationProvider())
@@ -70,8 +72,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .authenticationEntryPoint(logsearchAuthenticationEntryPoint())
       .and()
       .addFilterBefore(logsearchUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-      .addFilterBefore(new LogsearchKRBAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+      .addFilterBefore(logsearchKRBAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
       .addFilterAfter(securityContextFormationFilter(), FilterSecurityInterceptor.class)
+      .addFilterBefore(logsearchJwtFilter(), LogsearchSecurityContextFormationFilter.class)
       .logout()
         .logoutUrl("/logout.html")
         .deleteCookies("JSESSIONID")
@@ -94,6 +97,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
+  public LogsearchJWTFilter logsearchJwtFilter() throws Exception {
+    LogsearchJWTFilter filter = new LogsearchJWTFilter(requestMatcher(), authPropsConfig);
+    filter.setAuthenticationManager(authenticationManagerBean());
+    filter.setAuthenticationSuccessHandler(new LogsearchAuthSuccessHandler());
+    filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());
+    return filter;
+  }
+
+  @Bean
   public LogsearchAuthenticationEntryPoint logsearchAuthenticationEntryPoint() {
     LogsearchAuthenticationEntryPoint entryPoint = new LogsearchAuthenticationEntryPoint("/login.html");
     entryPoint.setForceHttps(false);
@@ -107,6 +119,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     filter.setAuthenticationFailureHandler(new LogsearchAuthFailureHandler());
     filter.setAuthenticationManager(authenticationManagerBean());
     return filter;
+  }
+
+  @Bean
+  public RequestMatcher requestMatcher() {
+    List<RequestMatcher> matchers = Lists.newArrayList();
+    matchers.add(new AntPathRequestMatcher("/login.html"));
+    matchers.add(new AntPathRequestMatcher("/logout.html"));
+    matchers.add(new AntPathRequestMatcher("/styles/**"));
+    matchers.add(new AntPathRequestMatcher("/fonts/**"));
+    matchers.add(new AntPathRequestMatcher("/scripts/**"));
+    matchers.add(new AntPathRequestMatcher("/libs/**"));
+    matchers.add(new AntPathRequestMatcher("/templates/**"));
+    matchers.add(new AntPathRequestMatcher("/favicon.ico"));
+    matchers.add(new AntPathRequestMatcher("/api/v1/public/**"));
+    matchers.add(new AntPathRequestMatcher("/api/v1/swagger.json"));
+    matchers.add(new AntPathRequestMatcher("/api/v1/swagger.yaml"));
+    return new OrRequestMatcher(matchers);
   }
 
 }
