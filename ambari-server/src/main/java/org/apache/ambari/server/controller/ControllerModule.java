@@ -66,6 +66,7 @@ import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.dispatchers.AmbariSNMPDispatcher;
 import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
@@ -600,7 +601,9 @@ public class ControllerModule extends AbstractModule {
 
       try {
         NotificationDispatcher dispatcher;
-        if (clazz.equals(SNMPDispatcher.class)) {
+        if (clazz.equals(AmbariSNMPDispatcher.class)) {
+          dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getAmbariSNMPUdpBindPort());
+        } else if (clazz.equals(SNMPDispatcher.class)) {
           dispatcher = (NotificationDispatcher) clazz.getConstructor(Integer.class).newInstance(configuration.getSNMPUdpBindPort());
         } else {
           dispatcher = (NotificationDispatcher) clazz.newInstance();

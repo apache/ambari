@@ -2306,6 +2306,13 @@ public class Configuration {
       "alerts.snmp.dispatcher.udp.port", null);
 
   /**
+   * The UDP port to use when binding the Ambari SNMP dispatcher on Ambari Server startup.
+   */
+  @Markdown(description = "The UDP port to use when binding the Ambari SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used.")
+  public static final ConfigurationProperty<String> ALERTS_AMBARI_SNMP_DISPATCH_UDP_PORT = new ConfigurationProperty<>(
+          "alerts.ambari.snmp.dispatcher.udp.port", null);
+
+  /**
    * The amount of time, in {@link TimeUnit#MINUTES}, that the
    * {@link MetricsRetrievalService} will cache retrieved metric data.
    */
@@ -4871,6 +4878,15 @@ public class Configuration {
    */
   public Integer getSNMPUdpBindPort() {
     String udpPort = getProperty(ALERTS_SNMP_DISPATCH_UDP_PORT);
+    return StringUtils.isEmpty(udpPort) ? null : Integer.parseInt(udpPort);
+  }
+
+  /**
+   * Customized UDP port for Ambari SNMP dispatcher
+   * @return Integer if property exists else null
+   */
+  public Integer getAmbariSNMPUdpBindPort() {
+    String udpPort = getProperty(ALERTS_AMBARI_SNMP_DISPATCH_UDP_PORT);
     return StringUtils.isEmpty(udpPort) ? null : Integer.parseInt(udpPort);
   }
 
