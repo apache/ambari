@@ -329,7 +329,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   collapseCategory: function () {
     if (this.get('state') === 'destroyed') return;
     $('.popover').remove();
-    var filter = this.get('mainView.filter').toLowerCase();
+    var filter = this.get('mainView.filter');
+    filter = filter? filter.toLowerCase() : filter; // filter can be undefined in some wizard
     var filteredResult = this.get('categoryConfigs');
     var isInitialRendering = !arguments.length || arguments[1] != 'categoryConfigs';
 
