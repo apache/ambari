@@ -39,7 +39,7 @@
     {{#if view.isLoaded}}
       <div>
         {{#if view.runningItem}}
-          <div class="box details-box row">
+          <div class="panel panel-default details-box row">
             <div class="row col-md-12">
               <div class="pull-left col-md-6">{{t admin.stackUpgrade.dialog.inProgress}}&nbsp;{{view.runningItem.text}}</div>
               {{#if view.isDetailsOpened}}
@@ -59,7 +59,7 @@
         {{/if}}
         {{#if view.failedItem}}
           {{#unless view.isSlaveComponentFailuresItem}}
-            <div class="box details-box row">
+            <div class="panel panel-default details-box row">
               <div class="row col-md-12">
                 <div class="pull-left col-md-6">{{t admin.stackUpgrade.dialog.failed}}&nbsp;{{view.failedItem.text}}</div>
                 {{#if view.isDetailsOpened}}
@@ -95,7 +95,7 @@
           {{/unless}}
         {{/if}}
         {{#if view.plainManualItem}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
             {{#each message in view.manualItem.messages}}
               <p class="manual-steps-content">{{message}}</p>
@@ -119,7 +119,7 @@
           </div>
         {{/if}}
         {{#if view.isFinalizeItem}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
             {{#if isDowngrade}}
               <p class="manual-steps-content">{{t admin.stackUpgrade.finalize.message.downgrade}}</p>
@@ -156,7 +156,7 @@
           </div>
         {{/if}}
         {{#if view.isSlaveComponentFailuresItem}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
             <div class="slave-failures-info">
             <p>
@@ -202,7 +202,7 @@
           </div>
         {{/if}}
         {{#if view.isServiceCheckFailuresItem}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
 
             {{#if areServiceCheckFailuresServicenamesLoaded}}
@@ -260,14 +260,14 @@
           </div>
         {{/if}}
         {{#if view.noActiveItem}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <div>
               {{t admin.stackUpgrade.dialog.notActive}}
             </div>
           </div>
         {{/if}}
         {{#if App.upgradeSuspended}}
-          <div class="box details-box">
+          <div class="panel panel-default details-box">
             <label class="message">
             {{#if isDowngrade}}
               {{t admin.stackUpgrade.dialog.suspended.downgrade}}

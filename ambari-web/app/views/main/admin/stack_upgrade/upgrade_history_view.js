@@ -277,19 +277,20 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
     this.set('isReady', true);
   },
 
-  showUpgradeHistoryRecord: function(event) {
-    var record = event.context
+  showUpgradeHistoryRecord: function (event) {
+    var record = event.context;
     var title = '';
     var direction = App.format.normalizeName(record.get('direction'));
-    var type = record.get('upgradeType')
-    if ('ROLLING' == type)
+    var type = record.get('upgradeType');
+    if ('ROLLING' === type) {
       type = App.format.normalizeName(type);
-    else if ('NON_ROLLING' == type)
+    } else if ('NON_ROLLING' === type) {
       type = 'Express'
+    }
 
     title = Em.I18n.t('admin.stackVersions.upgradeHistory.record.title').format(type, direction, record.get('fromVersion'));
 
-    this.get('controller').set('currentUpgradeRecord', record)
+    this.get('controller').set('currentUpgradeRecord', record);
 
     App.ModalPopup.show({
       classNames: ['wizard-modal-wrapper'],
@@ -304,11 +305,11 @@ App.MainAdminStackUpgradeHistoryView = App.TableView.extend(App.TableServerViewM
         this.fitInnerHeight();
       },
       fitInnerHeight: function () {
-        var block = this.$().find('#modal > .modal-body');
-        var scrollable = this.$().find('#modal .scrollable-block');
+        var block = this.$().find('.modal .modal-body');
+        var scrollable = this.$().find('.modal .scrollable-block');
         scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
         block.css('max-height', 'none');
-      },
+      }
     });
-  },
+  }
 });
