@@ -374,13 +374,7 @@ public class TestHeartbeatHandler {
   }
 
   @Test
-  public void testRegistrationRecoveryConfig() throws Exception,
-      InvalidStateTransitionException {
-    ActionManager am = actionManagerTestHelper.getMockActionManager();
-    replay(am);
-    Clusters fsm = clusters;
-    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
-                                                    injector);
+  public void testRegistrationRecoveryConfig() throws Exception {
     Cluster cluster = heartbeatTestHelper.getDummyCluster();
     Service hdfs = cluster.addService(HDFS);
 
@@ -394,6 +388,15 @@ public class TestHeartbeatHandler {
 
     hdfs.addServiceComponent(HDFS_CLIENT);
     hdfs.getServiceComponent(HDFS_CLIENT).addServiceComponentHost(DummyHostname1);
+
+    // Create helper after creating service to avoid race condition caused by asynchronous recovery configs
+    // timestamp invalidation (RecoveryConfigHelper.handleServiceComponentInstalledEvent())
+    ActionManager am = actionManagerTestHelper.getMockActionManager();
+    replay(am);
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+        injector);
+    handler.start();
 
     Host hostObject = clusters.getHost(DummyHostname1);
     hostObject.setIPv4("ipv4");
