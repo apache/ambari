@@ -58,7 +58,7 @@ AGENT_RAM_OVERUSE_MESSAGE = "Ambari-agent RAM usage {used_ram} MB went above {co
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, server_hostname, heartbeat_stop_callback = None, range=30):
+  def __init__(self, config, server_hostname, heartbeat_stop_callback = None):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     if heartbeat_stop_callback is None:
@@ -81,7 +81,7 @@ class Controller(threading.Thread):
     self.repeatRegistration = False
     self.isRegistered = False
     self.cachedconnect = None
-    self.range = range
+    self.max_reconnect_retry_delay = int(config.get('server','max_reconnect_retry_delay', default=30))
     self.hasMappedComponents = True
     # Event is used for synchronizing heartbeat iterations (to make possible
     # manual wait() interruption between heartbeats )
@@ -208,7 +208,7 @@ class Controller(threading.Thread):
         return
       except Exception, ex:
         # try a reconnect only after a certain amount of random time
-        delay = randint(0, self.range)
+        delay = randint(0, self.max_reconnect_retry_delay)
         logger.error("Unable to connect to: " + self.registerUrl, exc_info=True)
         logger.error("Error:" + str(ex))
         logger.warn(""" Sleeping for {0} seconds and then trying again """.format(delay,))
@@ -430,7 +430,7 @@ class Controller(threading.Thread):
         retry = True
 
         #randomize the heartbeat
-        delay = randint(0, self.range)
+        delay = randint(0, self.max_reconnect_retry_delay)
         time.sleep(delay)
 
       # Sleep for some time
