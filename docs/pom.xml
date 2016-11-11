@@ -747,6 +747,18 @@
             </organization>            
         </developer>
         <developer>
+            <id>rkamath</id>
+            <name>Renjith Kamath</name>
+            <email>rkamath@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>rzang</id>
             <name>Richard Zang</name>
             <email>rzang@hortonworks.com</email>
