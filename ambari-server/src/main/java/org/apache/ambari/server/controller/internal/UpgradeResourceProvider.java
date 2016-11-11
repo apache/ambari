@@ -126,6 +126,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -1402,8 +1403,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Map<String, String> commandParams = getNewParameterMap(request);
     if (null != context.getType()) {
-      // use the serialized attributes of the enum to convert it to a string
-      commandParams.put(COMMAND_PARAM_UPGRADE_TYPE, s_gson.toJson(context.getType()));
+      // use the serialized attributes of the enum to convert it to a string,
+      // but first we must convert it into an element so that we don't get a
+      // quoted string - using toString() actually returns a quoted stirng which is bad
+      JsonElement json = s_gson.toJsonTree(context.getType());
+      commandParams.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
     }
 
     commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
