@@ -18,6 +18,7 @@
 @import 'common.less';
 
 #config_history_flow {
+  margin-bottom: 10px;
   .version-slider {
     .flow-element {
       .version-box .box {
@@ -48,10 +49,10 @@
   margin-top: -5px;
   .version-slider {
     width: 100%;
-    height: 69px;
+    height: 75px;
     margin: 5px 0;
     .flow-element {
-      height: 69px;
+      height: 75px;
       width: 15.2%;
       max-width: 146px;
       .version-box {
@@ -62,7 +63,7 @@
         cursor: pointer;
         width: 92%;
         height: 100%;
-        background-color: #ffffff;
+        background-color: #fff;
         -webkit-border-radius: 4px;
         -moz-border-radius: 4px;
         border-radius: 4px;
@@ -70,27 +71,20 @@
         font-size: 11px;
         .top-label {
           min-width: 20px;
-          padding: 6px 2px;
+          padding: 3px 2px 0 2px;
         }
         .author,
         .content {
-          padding: 2px;
           text-align: center;
-          color: #555555;
+          color: #555;
           display: block;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        .content {
-          max-width: 97% !important;
-        }
-        .author {
-          max-width: 75% !important;
-        }
         .current-label {
           text-align: center;
-          padding: 5px 5px;
+          padding: 5px;
         }
         .stack-label {
           margin-right: 6px;
@@ -108,7 +102,7 @@
         width: 380px;
         padding: 8px;
         list-style: none;
-        background-color: #ffffff;
+        background-color: #fff;
         border: 1px solid #c3c3c3;
         -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -145,7 +139,7 @@
       .version-box .box.displayed {
         background-color: #e6f1f6;
         .content {
-          color: #444444;
+          color: #444;
         }
       }
       .version-box .box.grayedOut {
@@ -215,7 +209,7 @@
     margin-bottom: 5px;
 
     .glyphicon-remove-circle {
-      color: #ffffff;
+      color: #fff;
       font-size: 1.5em;
       padding-top: 4px;
       margin-top: 0;
@@ -280,9 +274,9 @@
         }
       }
       li:hover {
-        background-color: #666666;
-        background-image: linear-gradient(to bottom, #666666, #555555);
-        color: #ffffff;
+        background-color: #666;
+        background-image: linear-gradient(to bottom, #666, #555);
+        color: #fff;
       }
       li#show_more:hover {
         background: none;
@@ -297,7 +291,7 @@
         }
       }
       li.not-allowed:hover {
-        background-color: #ffffff;
+        background-color: #fff;
         background-image: none;
         color: #808080;
       }
@@ -313,7 +307,7 @@
       font-size: 13px;
       margin: 0;
       padding: 8px;
-      color: #333333;
+      color: #333;
       cursor: default;
       .content {
         padding: 1px 5px 15px 5px;

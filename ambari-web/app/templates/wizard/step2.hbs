@@ -36,13 +36,14 @@
           </p>
 
           <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-7">
               {{view Ember.TextArea id="host-names" class="form-control" valueBinding="content.installOptions.hostNames" rows="5"
               placeholder="host names"}}
             </div>
-            <div class="clearfix"></div>
             {{#if hostsError}}
-              <p class="help-block validation-block col-md-8">{{hostsError}}</p>
+              <div class="col-md-5">
+                <p class="help-block validation-block">{{hostsError}}</p>
+              </div>
             {{/if}}
           </div>
         </div>
@@ -77,66 +78,76 @@
                   {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
                 </div>
               {{/if}}
+
+              {{! ssh key }}
               <div {{bindAttr class="sshKeyError:has-error :form-group :row"}}>
-                <div class="col-md-6">
+                <div class="col-md-7">
                   {{view Ember.TextArea class="form-control" rows="3" id="sshKey"
                   placeholder="ssh private key" disabledBinding="view.sshKeyState" valueBinding="content.installOptions.sshKey"}}
                 </div>
-                <div class="clearfix"></div>
                 {{#if sshKeyError}}
-                  <span class="help-block validation-block col-md-8">{{sshKeyError}}</span>
+                  <div class="col-md-5">
+                    <span class="help-block validation-block">{{sshKeyError}}</span>
+                  </div>
                 {{/if}}
               </div>
-              <div class="row">
-                <span rel="tooltip" {{translateAttr title="installer.step2.sshUser.toolTip"}} class="ssh-user col-md-4">
-                  {{t installer.step2.sshUser}}
-                </span>
+              {{! ssh key end }}
 
-                <div {{bindAttr class="sshUserError:has-error :form-group :col-md-8"}}>
-                  <div class="row">
-                    <div class="col-md-4">
-                      {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh" classNames="form-control"}}
-                    </div>
-                    {{#if sshUserError}}
-                      <span class="help-block validation-block col-md-8 help-inline">{{sshUserError}}</span>
-                    {{/if}}
-                  </div>
+              {{! ssh user }}
+              <div {{bindAttr class="sshUserError:has-error :row"}}>
+                <div class="col-md-4">
+                  <label rel="tooltip" {{translateAttr title="installer.step2.sshUser.toolTip"}} class="ssh-user">
+                    {{t installer.step2.sshUser}}
+                  </label>
                 </div>
-              </div>
-               <div class="row">
-                    <span rel="tooltip" {{translateAttr title="installer.step2.sshPort.toolTip"}} class="ssh-port col-md-4">
-                        {{t installer.step2.sshPort}}
-                    </span>
-
-                    <div {{bindAttr class="sshPortError:has-error :form-group :col-md-8"}}>
-                        <div class="row">
-                          <div class="col-md-4">
-                            {{view view.textFieldView valueBinding="content.installOptions.sshPort" isEnabledBinding="content.installOptions.useSsh" classNames="form-control"}}
-                          </div>
-                          {{#if sshPortError}}
-                              <span class="help-block validation-block col-md-8 help-inline">{{sshPortError}}</span>
-                          {{/if}}
-                        </div>
-                    </div>
-               </div>
-              {{#if App.supports.customizeAgentUserAccount}}
-                <div class="row">
-                  <span rel="tooltip" {{translateAttr title="installer.step2.agentUser.toolTip"}} class="ssh-user col-md-4">
-                    {{t installer.step2.agentUser}}
-                  </span>
-
-                  <div {{bindAttr class="agentUserError:has-error :form-group :col-md-8"}}>
-                    <div class="row">
-                      <div class="col-md-4">
-                        {{view view.textFieldView valueBinding="content.installOptions.agentUser" isEnabledBinding="content.installOptions.useSsh" classNames="form-control"}}
-                      </div>
-                      {{#if agentUserError}}
-                        <span class="help-block validation-block col-md-8 help-inline">{{agentUserError}}</span>
-                      {{/if}}
-                    </div>
+                <div {{bindAttr class="sshUserError:has-error :form-group :col-md-3"}}>
+                  {{view view.textFieldView valueBinding="content.installOptions.sshUser" isEnabledBinding="content.installOptions.useSsh" classNames="form-control pull-right"}}
+                </div>
+                {{#if sshUserError}}
+                  <div class="col-md-5">
+                    <span class="help-block validation-block help-inline">{{sshUserError}}</span>
                   </div>
+                {{/if}}
+              </div>
+              {{! ssh user end }}
+
+              {{! ssh port }}
+               <div {{bindAttr class="sshPortError:has-error :row"}}>
+                 <div class="col-md-4">
+                   <label rel="tooltip" {{translateAttr title="installer.step2.sshPort.toolTip"}} class="ssh-port">
+                    {{t installer.step2.sshPort}}
+                   </label>
+                 </div>
+                 <div class="form-group col-md-3">
+                   {{view view.textFieldView valueBinding="content.installOptions.sshPort" isEnabledBinding="content.installOptions.useSsh" classNames="form-control"}}
+                 </div>
+                 {{#if sshPortError}}
+                   <div class="col-md-5">
+                     <span class="help-block validation-block help-inline">{{sshPortError}}</span>
+                   </div>
+                 {{/if}}
+               </div>
+              {{! ssh port end }}
+
+              {{! ambari agent user }}
+              {{#if App.supports.customizeAgentUserAccount}}
+                <div {{bindAttr class="agentUserError:has-error :row"}}>
+                  <div class="col-md-4">
+                    <label rel="tooltip" {{translateAttr title="installer.step2.agentUser.toolTip"}} class="ssh-user">
+                      {{t installer.step2.agentUser}}
+                    </label>
+                  </div>
+                  <div {{bindAttr class="agentUserError:has-error :form-group :col-md-3"}}>
+                    {{view view.textFieldView valueBinding="content.installOptions.agentUser" isEnabledBinding="content.installOptions.useSsh" classNames="form-control"}}
+                  </div>
+                  {{#if agentUserError}}
+                    <div class="col-md-5">
+                      <span class="help-block validation-block help-inline">{{agentUserError}}</span>
+                    </div>
+                  {{/if}}
                 </div>
               {{/if}}
+              {{! ambari agent user end }}
 
             </div>
           {{/if}}

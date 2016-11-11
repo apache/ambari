@@ -93,14 +93,14 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     }
     if (upgradeHolding) {
       return {
-        cls: 'upgrade-in-holding',
+        cls: 'upgrade-holding',
         icon: 'glyphicon-pause',
         msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.pause')
       }
     }
     if (upgradeSuspended) {
       return {
-        cls: 'upgrade-in-holding',
+        cls: 'upgrade-aborted',
         icon: 'glyphicon-pause',
         msg: Em.I18n.t('admin.stackVersions.version.' + typeSuffix + '.suspended')
       }
