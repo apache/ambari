@@ -100,7 +100,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-
 /**
  * The {@link Configuration} class is used to read from the
  * {{ambari.properties}} file and manage/expose the configuration properties.
@@ -2415,6 +2414,22 @@ public class Configuration {
   @Markdown(description = "Indicates the delay, in milliseconds, for the log4j monitor to check for changes")
   public static final ConfigurationProperty<Long> LOG4JMONITOR_DELAY = new ConfigurationProperty<>(
           "log4j.monitor.delay", TimeUnit.MINUTES.toMillis(5));
+
+  /**
+   * Indicates whether parallel topology task creation is enabled for blueprint cluster provisioning.
+   * Defaults to <code>false</code>.
+   * @see #TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT
+   */
+  @Markdown(description = "Indicates whether parallel topology task creation is enabled")
+  public static final ConfigurationProperty<Boolean> TOPOLOGY_TASK_PARALLEL_CREATION_ENABLED = new ConfigurationProperty<>("topology.task.creation.parallel", Boolean.FALSE);
+
+  /**
+   * The number of threads to use for parallel topology task creation in blueprint cluster provisioning if enabled.
+   * Defaults to 10.
+   * @see #TOPOLOGY_TASK_PARALLEL_CREATION_ENABLED
+   */
+  @Markdown(description = "The number of threads to use for parallel topology task creation if enabled")
+  public static final ConfigurationProperty<Integer> TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT = new ConfigurationProperty<>("topology.task.creation.parallel.threads", 10);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -5010,6 +5025,24 @@ public class Configuration {
    */
   public boolean isActiveInstance() {
     return Boolean.parseBoolean(getProperty(ACTIVE_INSTANCE));
+  }
+
+  /**
+   * @return the number of threads to use for parallel topology task creation if enabled
+   */
+  public int getParallelTopologyTaskCreationThreadPoolSize() {
+    try {
+      return Integer.parseInt(getProperty(TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT));
+    } catch (NumberFormatException e) {
+      return TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT.getDefaultValue();
+    }
+  }
+
+  /**
+   * @return true if parallel execution of task creation is enabled explicitly
+   */
+  public boolean isParallelTopologyTaskCreationEnabled() {
+    return Boolean.parseBoolean(getProperty(TOPOLOGY_TASK_PARALLEL_CREATION_ENABLED));
   }
 
   /**

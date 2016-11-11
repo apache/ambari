@@ -2142,16 +2142,16 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       commandParams.putAll(commandParamsInp);
     }
 
-    //Propogate HCFS service type info
-    Iterator<Service> it = cluster.getServices().values().iterator();
-    while(it.hasNext()) {
-    	ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), it.next().getName());
-    	LOG.info("Iterating service type Instance in createHostAction:: " + serviceInfoInstance.getName());
-    	if(serviceInfoInstance.getServiceType() != null) {
-    	    LOG.info("Adding service type info in createHostAction:: " + serviceInfoInstance.getServiceType());
-            commandParams.put("dfs_type",serviceInfoInstance.getServiceType());
-    	    break;
-    	}
+    // Propagate HCFS service type info
+    for (Service service : cluster.getServices().values()) {
+      ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(stackId.getStackName(),stackId.getStackVersion(), service.getName());
+      LOG.debug("Iterating service type Instance in createHostAction: {}", serviceInfoInstance.getName());
+      String serviceType = serviceInfoInstance.getServiceType();
+      if (serviceType != null) {
+        LOG.info("Adding service type info in createHostAction: {}", serviceType);
+        commandParams.put("dfs_type", serviceType);
+        break;
+      }
     }
 
     boolean isInstallCommand = roleCommand.equals(RoleCommand.INSTALL);

@@ -910,8 +910,6 @@ public class ConfigurationTest {
   /**
    * Tests that every {@link ConfigurationProperty} field in
    * {@link Configuration} has a property {@link Markdown} annotation.
-   *
-   * @throws Exception
    */
   @Test
   public void testAllPropertiesHaveMarkdownDescriptions() throws Exception {
@@ -923,9 +921,9 @@ public class ConfigurationTest {
 
       ConfigurationProperty<?> configurationProperty = (ConfigurationProperty<?>) field.get(null);
       Markdown markdown = field.getAnnotation(Markdown.class);
-      if( null == markdown ){
+      if (null == markdown) {
         ConfigurationMarkdown configMarkdown = field.getAnnotation(ConfigurationMarkdown.class);
-        markdown = configMarkdown.markdown();
+        markdown = configMarkdown != null ? configMarkdown.markdown() : null;
       }
 
       Assert.assertNotNull("The configuration property " + configurationProperty.getKey()

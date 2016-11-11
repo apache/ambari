@@ -266,7 +266,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Create the components for the given requests.
-  public synchronized void createComponents(Set<ServiceComponentRequest> requests)
+  public void createComponents(Set<ServiceComponentRequest> requests)
       throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
@@ -473,7 +473,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Update the components for the given requests.
-  protected synchronized RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
+  protected RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
                                                                 Map<String, String> requestProperties,
                                                                 boolean runSmokeTest)
       throws AmbariException, AuthorizationException {
