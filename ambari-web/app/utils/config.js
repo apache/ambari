@@ -22,6 +22,7 @@ var stringUtils = require('utils/string_utils');
 var validator = require('utils/validator');
 
 var configTagFromFileNameMap = {};
+var PASSWORD = "PASSWORD";
 
 App.config = Em.Object.create({
 
@@ -237,14 +238,34 @@ App.config = Em.Object.create({
     var configs = [],
       filename = App.config.getOriginalFileName(configJSON.type),
       properties = configJSON.properties,
-      finalAttributes = Em.get(configJSON, 'properties_attributes.final') || {};
+      attributes = [];
+      ['FINAL', 'PASSWORD', 'USER', 'GROUP', 'TEXT', 'ADDITIONAL_USER_PROPERTY', 'NOT_MANAGED_HDFS_PATH', 'VALUE_FROM_PROPERTY_FILE'].forEach(function (attribute){
+        var json = {};
+        json[attribute] = Em.get(configJSON, 'properties_attributes.' + attribute.toLowerCase()) || {};
+        attributes.push(json);
+      });
 
     for (var index in properties) {
       var serviceConfigObj = this.getDefaultConfig(index, filename);
 
       if (serviceConfigObj.isRequiredByAgent !== false) {
         serviceConfigObj.value = serviceConfigObj.savedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
-        serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = finalAttributes[index] === "true";
+        serviceConfigObj.isFinal = serviceConfigObj.savedIsFinal = attributes[0]['FINAL'][index] === "true";
+
+        var propertyType = [];
+        // iterate through all the attributes, except for FINAL
+        for (var i=1; i<attributes.length; i++) {
+          for (var type in attributes[i]) {
+            if (attributes[i][type][index] === "true") {
+              propertyType.push(type);
+
+              if (type === PASSWORD) {
+                serviceConfigObj.displayType = "password";
+              }
+            }
+          }
+        }
+        serviceConfigObj.propertyType = propertyType;
         serviceConfigObj.isEditable = serviceConfigObj.isReconfigurable;
       }
 
@@ -305,7 +326,7 @@ App.config = Em.Object.create({
       supportsAddingForbidden: this.shouldSupportAddingForbidden(serviceName, fileName),
       serviceName: serviceName,
       displayName: name,
-      displayType: this.getDefaultDisplayType(coreObject ? coreObject.value : ''),
+      displayType: (coreObject && coreObject.propertyType && coreObject.propertyType.contains(PASSWORD)) ? 'password' : this.getDefaultDisplayType(coreObject ? coreObject.value : ''),
       description: '',
       category: this.getDefaultCategory(definedInStack, fileName),
       isSecureConfig: this.getIsSecure(name),

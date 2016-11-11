@@ -63,6 +63,7 @@ public class ConfigurationResponse {
     this.version = version;
     this.configs = configs;
     this.configAttributes = configAttributes;
+    SecretReference.replacePasswordsWithReferencesForCustomProperties(configAttributes, configs, type, version);
   }
 
   public ConfigurationResponse(String clusterName, StackId stackId,
@@ -80,6 +81,7 @@ public class ConfigurationResponse {
     this.configAttributes = configAttributes;
     this.propertiesTypes = propertiesTypes;
     SecretReference.replacePasswordsWithReferences(propertiesTypes, configs, type, version);
+    SecretReference.replacePasswordsWithReferencesForCustomProperties(configAttributes, configs, type, version);
   }
 
   /**

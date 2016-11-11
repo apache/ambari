@@ -87,5 +87,17 @@
         {{view Ember.TextArea valueBinding="view.serviceConfigObj.value" rows="4" classNames="input-block-level"}}
       </div>
     </div>
+    <div class="each-row control-group">
+      <label class="control-label">{{t common.propertyType}}</label>
+
+      <div class="controls">
+        {{view Em.Select
+            classNames="input-block-level"
+            multiple="multiple"
+            contentBinding="view.serviceConfigObj.content"
+            selectionBinding="view.serviceConfigObj.propertyType"
+        }}
+      </div>
+    </div>
   {{/if}}
 </form>

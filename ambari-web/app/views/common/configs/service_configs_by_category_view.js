@@ -412,6 +412,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     if (selectedConfigGroup.get('isDefault')) {
       config = App.config.createDefaultConfig(propertyObj.name, propertyObj.filename, false, {
         value: propertyObj.value,
+        propertyType: propertyObj.propertyType,
         category: propertyObj.categoryName,
         isNotSaved: true
       });
@@ -420,6 +421,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         propertyName: propertyObj.name,
         filename: propertyObj.filename,
         value: propertyObj.value,
+        propertyType: propertyObj.propertyType,
         category: propertyObj.categoryName,
         isNotSaved: true
       }, selectedConfigGroup);
@@ -477,6 +479,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
 
       name: '',
       value: '',
+      propertyType: [],
+      content: ['PASSWORD', 'USER', 'GROUP', 'TEXT', 'ADDITIONAL_USER_PROPERTY', 'NOT_MANAGED_HDFS_PATH', 'VALUE_FROM_PROPERTY_FILE'],
       isKeyError: false,
       showFilterLink: false,
       errorMessage: '',
@@ -555,6 +559,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           if (!serviceConfigObj.isKeyError) {
             propertyObj.name = serviceConfigObj.get('name');
             propertyObj.value = serviceConfigObj.get('value');
+            propertyObj.propertyType = serviceConfigObj.get('propertyType');
             self.createProperty(propertyObj);
             this.hide();
           }
