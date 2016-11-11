@@ -34,6 +34,8 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
 
   JOURNALNODES_COUNT_MINIMUM: 3, // TODO get this from stack
 
+  nextButtonCheckTrigger: true,
+
   /**
    * On initial rendering, load equivalent number of existing JournalNodes to masterToShow
    * @param masterComponents
@@ -50,6 +52,7 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
     this._super(masterComponents);
     this.updateJournalNodeInfo();
     this.showHideJournalNodesAddRemoveControl();
+    this.toggleProperty('nextButtonCheckTrigger');
   },
 
   /**
@@ -103,7 +106,7 @@ App.ManageJournalNodeWizardStep1Controller = Em.Controller.extend(App.BlueprintM
     var currentHosts = this.get('selectedServicesMasters').filterProperty('component_name', 'JOURNALNODE').mapProperty('selectedHost');
     var originalHosts = App.HostComponent.find().filterProperty('componentName', 'JOURNALNODE').mapProperty('hostName');
     return currentHosts.sort().join() == originalHosts.sort().join();
-  }.property('hostNameCheckTrigger')
+  }.property('hostNameCheckTrigger', 'nextButtonCheckTrigger')
 
 });
 
