@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -134,15 +134,15 @@ public class HostRequest implements Comparable<HostRequest> {
   //todo: synchronization
   public synchronized HostOfferResponse offer(HostImpl host) {
     if (!isOutstanding) {
-      return new HostOfferResponse(HostOfferResponse.Answer.DECLINED_DONE);
+      return HostOfferResponse.DECLINED_DUE_TO_DONE;
     }
     if (matchesHost(host)) {
       isOutstanding = false;
       hostname = host.getHostName();
       setHostOnTasks(host);
-      return new HostOfferResponse(HostOfferResponse.Answer.ACCEPTED, id, hostGroup.getName(), topologyTasks);
+      return HostOfferResponse.createAcceptedResponse(id, hostGroup.getName(), topologyTasks);
     } else {
-      return new HostOfferResponse(HostOfferResponse.Answer.DECLINED_PREDICATE);
+      return HostOfferResponse.DECLINED_DUE_TO_PREDICATE;
     }
   }
 
@@ -466,6 +466,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
+      LOG.info("HostRequest: Executing RESOURCE_CREATION task for host: {}", hostname);
       HostGroup group = topology.getBlueprint().getHostGroup(getHostgroupName());
       Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
       for (String service : group.getServices()) {
@@ -492,6 +493,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
+      LOG.info("HostRequest: Executing CONFIGURE task for host: {}", hostname);
       ambariContext.registerHostWithConfigGroup(getHostName(), clusterTopology, getHostgroupName());
     }
   }
@@ -517,7 +519,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
-      LOG.info("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
+      LOG.info("HostRequest: Executing INSTALL task for host: {}", hostname);
       boolean skipInstallTaskCreate = topology.getProvisionAction().equals(ProvisionAction.START_ONLY);
       RequestStatusResponse response = clusterTopology.installHost(hostname, skipInstallTaskCreate, skipFailure);
       // map logical install tasks to physical install tasks
@@ -543,7 +545,7 @@ public class HostRequest implements Comparable<HostRequest> {
         }
       }
 
-      LOG.info("HostRequest.InstallHostTask: Exiting INSTALL task for host: " + hostname);
+      LOG.info("HostRequest: Exiting INSTALL task for host: {}", hostname);
     }
   }
 
@@ -568,7 +570,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     @Override
     public void run() {
-      LOG.info("HostRequest.StartHostTask: Executing START task for host: " + hostname);
+      LOG.info("HostRequest: Executing START task for host: {}", hostname);
       RequestStatusResponse response = clusterTopology.startHost(hostname, skipFailure);
       // map logical install tasks to physical install tasks
       List<ShortTaskStatus> underlyingTasks = response.getTasks();
@@ -591,7 +593,7 @@ public class HostRequest implements Comparable<HostRequest> {
         }
       }
 
-      LOG.info("HostRequest.StartHostTask: Exiting START task for host: " + hostname);
+      LOG.info("HostRequest: Exiting START task for host: {}", hostname);
     }
   }
 

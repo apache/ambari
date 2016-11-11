@@ -474,7 +474,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   //todo: This was moved from AmbariManagementController and needs a lot of refactoring.
   //todo: Look into using the predicate instead of Set<ServiceComponentHostRequest>
   //todo: change to private access when all AMC tests have been moved.
-  protected synchronized RequestStageContainer updateHostComponents(RequestStageContainer stages,
+  protected RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
                                                                     boolean runSmokeTest) throws AmbariException, AuthorizationException {
