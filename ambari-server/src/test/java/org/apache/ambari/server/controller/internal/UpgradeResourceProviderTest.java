@@ -1246,10 +1246,13 @@ public class UpgradeResourceProviderTest {
     List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
     Gson gson = new Gson();
     for (StageEntity se : stageEntities) {
-      Map<String, String> map = gson.<Map<String, String>> fromJson(se.getCommandParamsStage(),
-          Map.class);
+      Map<String, String> map = gson.<Map<String, String>> fromJson(se.getCommandParamsStage(),Map.class);
       assertTrue(map.containsKey("upgrade_direction"));
       assertEquals("upgrade", map.get("upgrade_direction"));
+      
+      if(map.containsKey("upgrade_type")){
+        assertEquals("rolling_upgrade", map.get("upgrade_type"));
+      }
     }
 
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
