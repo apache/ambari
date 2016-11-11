@@ -43,7 +43,8 @@ from resource_management.libraries.functions.version_select_util import get_comp
 class ZkfcSlave(Script):
   def get_component_name(self):
     import params
-    if params.version and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version):
+    if params.version_for_stack_feature_checks and check_stack_feature(StackFeature.ZKFC_VERSION_ADVERTISED, params.version_for_stack_feature_checks):
+      # params.version is not defined when installing cluster from blueprint
       return "hadoop-hdfs-zkfc"
     pass
 
