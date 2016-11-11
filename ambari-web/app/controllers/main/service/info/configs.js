@@ -21,7 +21,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfigs, App.ConfigsLoader,
   App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.ConfigsSaverMixin,
-  App.ConfigsComparator, App.ComponentActionsByConfigs, {
+  App.ConfigsComparator, App.ComponentActionsByConfigs, App.TrackRequestMixin, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -42,8 +42,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   selectedService: null,
 
   selectedConfigGroup: null,
-
-  requestsInProgress: [],
 
   groupsStore: App.ServiceConfigGroup.find(),
 
@@ -232,25 +230,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   },
 
   /**
-   * register request to view to track his progress
-   * @param {$.ajax} request
-   * @method trackRequest
-   */
-  trackRequest: function (request) {
-    this.get('requestsInProgress').push(request);
-  },
-
-  /**
    * clear and set properties to default value
    * @method clearStep
    */
   clearStep: function () {
-    this.get('requestsInProgress').forEach(function(r) {
-      if (r && r.readyState !== 4) {
-        r.abort();
-      }
-    });
-    this.get('requestsInProgress').clear();
+    this.abortRequests();
     App.set('componentToBeAdded', {});
     App.set('componentToBeDeleted', {});
     this.clearLoadInfo();
@@ -305,14 +289,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
       acc.push(i);
       return Array.prototype.concat.apply(acc, App.StackService.find(i).get('dependentServiceNames').toArray()).without(serviceName).uniq();
     }, []));
-    this.loadConfigTheme(serviceName).always(function () {
+    this.trackRequest(this.loadConfigTheme(serviceName).always(function () {
       if (self.get('preSelectedConfigVersion')) {
         self.loadPreSelectedConfigVersion();
       } else {
         self.loadCurrentVersions();
       }
-      self.loadServiceConfigVersions();
-    });
+      self.trackRequest(self.loadServiceConfigVersions());
+    }));
   },
 
   /**

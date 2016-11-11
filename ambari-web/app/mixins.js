@@ -29,6 +29,7 @@ require('mixins/common/reload_popup');
 require('mixins/common/serverValidator');
 require('mixins/common/table_server_view_mixin');
 require('mixins/common/table_server_mixin');
+require('mixins/common/track_request_mixin');
 require('mixins/main/dashboard/widgets/editable');
 require('mixins/main/dashboard/widgets/editable_with_limit');
 require('mixins/main/dashboard/widgets/single_numeric_threshold');

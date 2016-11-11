@@ -233,7 +233,7 @@ Ember._HandlebarsBoundView.reopen({
     if(!this.get('isDestroyed') && !this.get('isDestroying')){
       this._super(buffer);
     } else {
-      console.debug('Calling set on destroyed view');
+      console.debug('Calling render on destroyed view');
     }
   }
 });
