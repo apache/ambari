@@ -1054,7 +1054,7 @@ App.AssignMasterComponents = Em.Mixin.create({
      */
 
     var maxNumMasters = this.getMaxNumberOfMasters(componentName),
-        currentMasters = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
+        currentMasters = this.get("selectedServicesMasters").filterProperty("component_name", componentName).sortProperty('serviceComponentId'),
         newMaster = null,
         masterHosts = null,
         suggestedHost = null,
