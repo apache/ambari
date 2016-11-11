@@ -42,7 +42,7 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.TrackRequestMixin, {
 
   name: 'wizardStep7Controller',
 
@@ -299,6 +299,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method clearStep
    */
   clearStep: function () {
+    this.abortRequests();
     this.setProperties({
       configValidationGlobalMessage: [],
       submitButtonClicked: false,

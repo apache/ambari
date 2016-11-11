@@ -329,8 +329,8 @@ App.themesMapper = App.QuickDataMapper.create({
       var configProperty = App.configsCollection.getConfig(configId);
 
       if (configProperty) {
-        configProperty.widget = widget.widget;
-        configProperty.widgetType = Em.get(widget, 'widget.type');
+        Em.set(configProperty, 'widget', widget.widget);
+        Em.set(configProperty, 'widgetType', Em.get(widget, 'widget.type'));
       } else {
         var split = widget.config.split("/");
         var fileName =  split[0] + '.xml';

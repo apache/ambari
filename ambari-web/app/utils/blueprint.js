@@ -355,7 +355,9 @@ module.exports = {
   buildConfigsJSON: function (stepConfigs) {
     var configurations = {};
     stepConfigs.forEach(function (stepConfig) {
-      stepConfig.get('configs').forEach(function (config) {
+      var configs = stepConfig.get('configs');
+      if (!configs) return false;
+      configs.forEach(function (config) {
         var type = App.config.getConfigTagFromFileName(config.get('filename'));
         if (!configurations[type]) {
           configurations[type] = {properties: {}}

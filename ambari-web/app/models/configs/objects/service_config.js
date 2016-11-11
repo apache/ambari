@@ -63,6 +63,7 @@ App.ServiceConfig = Ember.Object.extend({
   }.observes('configs.@each.isActive', 'configs.@each.isRequiredByAgent', 'configs.@each.value'),
 
   setActivePropertiesOnce: function() {
+    if (this.get('isDestroyed')) return false;
     var activeProperties = this.get('configs').filter(function(c) {
       return c.get('isActive') && (c.get('isRequiredByAgent') || c.get('isRequired'));
     });

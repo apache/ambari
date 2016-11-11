@@ -37,7 +37,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
       this.set('configGroupsAreLoaded', true);
       dfd.resolve();
     } else {
-      App.ajax.send({
+      this.trackRequest(App.ajax.send({
         name: 'configs.config_groups.load.services',
         sender: this,
         data: {
@@ -45,7 +45,7 @@ App.GroupsMappingMixin = Em.Mixin.create({
           dfd: dfd
         },
         success: 'saveConfigGroupsToModel'
-      });
+      }));
     }
     return dfd.promise();
   },
