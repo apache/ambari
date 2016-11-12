@@ -45,11 +45,13 @@ public class SafeViewContext implements ViewContext {
   private final ViewContext viewContext;
   private final String username;
   private final String loggedinUser;
+  private final Map<String, String> properties;
 
   public SafeViewContext(ViewContext viewContext) {
     this.viewContext = viewContext;
     username = viewContext.getUsername();
     loggedinUser = viewContext.getLoggedinUser();
+    properties = viewContext.getProperties();
   }
 
   @Override
@@ -89,7 +91,7 @@ public class SafeViewContext implements ViewContext {
 
   @Override
   public Map<String, String> getProperties() {
-    return viewContext.getProperties();
+    return properties;
   }
 
   @Override
