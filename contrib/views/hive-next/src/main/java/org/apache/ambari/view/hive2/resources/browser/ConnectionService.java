@@ -80,9 +80,9 @@ public class ConnectionService {
       // get the password
         String pass = password.get();
       // password may be stale, try to connect to Hive
-        return attemptHiveConnection(pass);
+        return attemptHiveConnection(pass,ldapEnabled);
     }
-      return attemptHiveConnection(NO_PASSWORD);
+      return attemptHiveConnection(NO_PASSWORD,ldapEnabled);
 
   }
 
@@ -95,7 +95,7 @@ public class ConnectionService {
         return Response.ok().entity(response).type(MediaType.APPLICATION_JSON).build();
     }
 
-    private Response attemptHiveConnection(String pass) {
+    private Response attemptHiveConnection(String pass, boolean ldapEnabled) {
         ConnectionConfig connectionConfig = ConnectionFactory.create(context);
         HiveConnectionWrapper hiveConnectionWrapper = new HiveConnectionWrapper(connectionConfig.getJdbcUrl(), connectionConfig.getUsername(), pass,new AuthParams(context));
         try {
@@ -105,7 +105,7 @@ public class ConnectionService {
           // check the message to see if the cause was a login failure
           // return a 401
           // else return a 500
-          if(isLoginError(e))
+          if(isLoginError(e) && ldapEnabled)
             return Response.status(Response.Status.UNAUTHORIZED).build();
           else
               throw new ServiceFormattedException(e.getMessage(), e);
