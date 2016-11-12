@@ -41,12 +41,26 @@ checkConnection: function() {
         .then(
             function(data) {
               console.log("fulfil");
-              model.set('ldapSuccess',true);
+              model.set('ldapFailure',false);
             },
             function(reason) {
               console.log("fail");
               if(reason.status === 401){
-                model.set('ldapSuccess',false);
+                model.set('ldapFailure',true);
+              } else {
+
+                  var data = reason.responseJSON;
+                  var checkFailedMessage = "Service Hive check failed";
+                  var errors = self.get("errors");
+                  errors += checkFailedMessage;
+                  errors += (data.message) ? (': <i>' + data.message + '</i><br>') : '<br>';
+                  self.set("errors", errors);
+
+                if (data.trace != null) {
+                  var stackTrace = self.get("stackTrace");
+                  stackTrace += checkFailedMessage + ':\n' + data.trace;
+                  self.set("stackTrace", stackTrace);
+                }
               }
             }
         );
