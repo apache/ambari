@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 import base64
+import getpass
 import os
 import string
 import subprocess
@@ -379,6 +380,8 @@ class KerberosScript(Script):
               Directory(head, create_parents = True, mode=0755, owner="root", group="root")
 
             owner = get_property_value(item, 'keytab_file_owner_name')
+            if not owner:
+              owner = getpass.getuser()
             owner_access = get_property_value(item, 'keytab_file_owner_access')
             group = get_property_value(item, 'keytab_file_group_name')
             group_access = get_property_value(item, 'keytab_file_group_access')
