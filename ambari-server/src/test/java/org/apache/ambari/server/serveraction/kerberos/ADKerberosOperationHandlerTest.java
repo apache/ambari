@@ -91,6 +91,20 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
     handler.close();
   }
 
+  @Test(expected = KerberosKDCConnectionException.class)
+  public void testOpenExceptionNoLdaps() throws Exception {
+    PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, "hello");
+    KerberosOperationHandler handler = new ADKerberosOperationHandler();
+    Map<String, String> kerberosEnvMap = new HashMap<String, String>() {
+      {
+        put(ADKerberosOperationHandler.KERBEROS_ENV_LDAP_URL, "ldap://this_wont_work");
+        put(ADKerberosOperationHandler.KERBEROS_ENV_PRINCIPAL_CONTAINER_DN, DEFAULT_PRINCIPAL_CONTAINER_DN);
+      }
+    };
+    handler.open(kc, DEFAULT_REALM, kerberosEnvMap);
+    handler.close();
+  }
+
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testTestAdministratorCredentialsIncorrectAdminPassword() throws Exception {
     PrincipalKeyCredential kc = new PrincipalKeyCredential(DEFAULT_ADMIN_PRINCIPAL, "wrong");
