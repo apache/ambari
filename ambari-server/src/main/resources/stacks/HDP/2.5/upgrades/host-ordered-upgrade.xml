@@ -81,15 +81,28 @@
     verification task, and the "start" commands as indicated by the processing element.
     If we get to the point where we need additional flexibility, it will get added at that time.
     -->
-    <group xsi:type="host-order" name="HOST_ORDER" title="Upgrade All Hosts"/>
-         
+    <group xsi:type="host-order" name="HOST_ORDER" title="Upgrade All Hosts">
+      <skippable>true</skippable>
+    </group>
+    
     <!--
     After processing this group, the user-specified Kerberos descriptor will be updated to work with
     the new stack-level Kerberos descriptor.
     -->
     <group xsi:type="cluster" name="UPDATE_KERBEROS_DESCRIPTORS" title="Update Kerberos Descriptors">
+      <condition xsi:type="security" type="kerberos"/>
       <execute-stage title="Update the user-specified Kerberos descriptor">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpgradeUserKerberosDescriptor"/>
+      </execute-stage>
+    </group>
+
+    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Finalize Hosts">
+      <scope>COMPLETE</scope>
+      <execute-stage title="Update remaining HDP stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
+        </task>
       </execute-stage>
     </group>
 

@@ -129,14 +129,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
    */
   protected static final String AUTHENTICATED_USER_NAME = "ambari-upgrade";
 
-  private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
   public static final String CONFIGURATION_TYPE_RANGER_HBASE_PLUGIN_PROPERTIES = "ranger-hbase-plugin-properties";
   public static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
   public static final String CONFIGURATION_TYPE_RANGER_HIVE_PLUGIN_PROPERTIES = "ranger-hive-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
-  private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
   public static final String PROPERTY_RANGER_HBASE_PLUGIN_ENABLED = "ranger-hbase-plugin-enabled";
   public static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
   public static final String PROPERTY_RANGER_HIVE_PLUGIN_ENABLED = "ranger-hive-plugin-enabled";
@@ -404,7 +402,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
           for (PropertyInfo property : properties) {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
-            Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             PropertyUpgradeBehavior upgradeBehavior = property.getPropertyAmbariUpgradeBehavior();
 
             if (property.isDeleted()) {
