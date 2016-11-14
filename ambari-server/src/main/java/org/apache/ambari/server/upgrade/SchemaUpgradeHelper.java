@@ -137,8 +137,8 @@ public class SchemaUpgradeHelper {
    */
   protected List<UpgradeCatalog> getUpgradePath(String sourceVersion,
                                                        String targetVersion) throws AmbariException {
-    List<UpgradeCatalog> upgradeCatalogs = new ArrayList<UpgradeCatalog>();
-    List<UpgradeCatalog> candidateCatalogs = new ArrayList<UpgradeCatalog>(allUpgradeCatalogs);
+    List<UpgradeCatalog> upgradeCatalogs = new ArrayList<>();
+    List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
 
     Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
 
@@ -316,6 +316,38 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  /**
+   * Returns minimal version of available {@link UpgradeCatalog}
+   *
+   * @return string representation of minimal version of {@link UpgradeCatalog}
+   */
+  private String getMinimalUpgradeCatalogVersion(){
+    List<UpgradeCatalog> candidateCatalogs = new ArrayList<>(allUpgradeCatalogs);
+    Collections.sort(candidateCatalogs, new AbstractUpgradeCatalog.VersionComparator());
+
+    if (candidateCatalogs.isEmpty()) {
+      return null;
+    }
+
+    return candidateCatalogs.iterator().next().getTargetVersion();
+  }
+
+  /**
+   * Checks if source version meets minimal requirements for upgrade
+   *
+   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link SchemaUpgradeHelper.getMinimalUpgradeCatalogVersion}
+   * @param sourceVersion current version of the Database, which need to be upgraded
+   *
+   * @return  true if upgrade is allowed or false if not
+   */
+  private boolean verifyUpgradePath(String minUpgradeVersion, String sourceVersion){
+    if (null == minUpgradeVersion){
+      return false;
+    }
+
+    return VersionUtils.compareVersions(sourceVersion, minUpgradeVersion) >= 0;
+  }
+
 
   /**
    * Upgrade Ambari DB schema to the target version passed in as the only
@@ -347,6 +379,13 @@ public class SchemaUpgradeHelper {
       // Read source version from DB
       String sourceVersion = schemaUpgradeHelper.readSourceVersion();
       LOG.info("Upgrading schema from source version = " + sourceVersion);
+
+      String minimalRequiredUpgradeVersion = schemaUpgradeHelper.getMinimalUpgradeCatalogVersion();
+
+      if (!schemaUpgradeHelper.verifyUpgradePath(minimalRequiredUpgradeVersion, sourceVersion)){
+        throw new AmbariException(String.format("Database version does not meet minimal upgrade requirements. Expected version should be not less than %s, current version is %s",
+          minimalRequiredUpgradeVersion, sourceVersion));
+      }
 
       List<UpgradeCatalog> upgradeCatalogs =
         schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
