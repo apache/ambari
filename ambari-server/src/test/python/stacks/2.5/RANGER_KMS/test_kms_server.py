@@ -267,6 +267,13 @@ class TestRangerKMS(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
+      content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
       owner = 'kms',
       group = 'kms',
@@ -590,6 +597,13 @@ class TestRangerKMS(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-kms/conf/ranger-kms-env-piddir.sh',
+      content = 'export RANGER_KMS_PID_DIR_PATH=/var/run/ranger_kms\nexport KMS_USER=kms',
+      owner = 'kms',
+      group = 'kms',
+      mode = 0755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/kms',
