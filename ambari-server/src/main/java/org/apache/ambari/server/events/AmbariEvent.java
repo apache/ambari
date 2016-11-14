@@ -130,7 +130,12 @@ public abstract class AmbariEvent {
     /**
      * Metrics Collector force refresh needed.
      */
-    METRICS_COLLECTOR_HOST_DOWN;
+    METRICS_COLLECTOR_HOST_DOWN,
+
+    /**
+     * Local user has been created.
+     */
+    USER_CREATED;
   }
 
   /**

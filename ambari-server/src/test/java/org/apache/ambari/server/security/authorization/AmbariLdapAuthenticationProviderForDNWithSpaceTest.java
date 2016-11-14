@@ -17,13 +17,18 @@
  */
 package org.apache.ambari.server.security.authorization;
 
+import java.util.Properties;
+
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 import org.apache.ambari.server.audit.AuditLoggerModule;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.ClientSecurityType;
@@ -71,14 +76,16 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
   private UserDAO userDAO;
   @Inject
   private Users users;
+
   @Inject
   Configuration configuration;
 
   @Before
-  public void setUp() {
-    injector = Guice.createInjector(new AuditLoggerModule(), new AuthorizationTestModuleForLdapDNWithSpace());
-    injector.injectMembers(this);
+  public void setUp() throws Exception {
+    injector = Guice.createInjector(new ControllerModule(getTestProperties()), new AuditLoggerModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
+
     configuration.setClientSecurityType(ClientSecurityType.LDAP);
     configuration.setProperty(Configuration.LDAP_PRIMARY_URL, "localhost:" + getLdapServer().getPort());
   }
@@ -111,5 +118,20 @@ public class AmbariLdapAuthenticationProviderForDNWithSpaceTest extends AmbariLd
     Authentication authentication = new UsernamePasswordAuthenticationToken("the allowedUser", "password");
     Authentication auth = authenticationProvider.authenticate(authentication);
     assertTrue(auth == null);
+  }
+
+
+  protected Properties getTestProperties() {
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.CLIENT_SECURITY.getKey(), "ldap");
+    properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE.getKey(), "in-memory");
+    properties.setProperty(Configuration.METADATA_DIR_PATH.getKey(), "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE.getKey(), "src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION.getKey(), "centos5");
+    properties.setProperty(Configuration.SHARED_RESOURCES_DIR.getKey(), "src/test/resources/");
+    //make ambari detect active configuration
+    properties.setProperty(Configuration.LDAP_BASE_DN.getKey(), "dc=ambari,dc=the apache,dc=org");
+    properties.setProperty(Configuration.LDAP_GROUP_BASE.getKey(), "ou=the groups,dc=ambari,dc=the apache,dc=org");
+    return properties;
   }
 }

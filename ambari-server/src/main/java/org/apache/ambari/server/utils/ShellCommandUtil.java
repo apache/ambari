@@ -502,7 +502,7 @@ public class ShellCommandUtil {
 
   public static class Result {
 
-    Result(int exitCode, String stdout, String stderr) {
+    public  Result(int exitCode, String stdout, String stderr) {
       this.exitCode = exitCode;
       this.stdout = stdout;
       this.stderr = stderr;

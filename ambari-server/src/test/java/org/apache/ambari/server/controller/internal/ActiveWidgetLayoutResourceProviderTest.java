@@ -38,6 +38,8 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -400,6 +402,8 @@ public class ActiveWidgetLayoutResourceProviderTest extends EasyMockSupport {
         bind(UserDAO.class).toInstance(createMock(UserDAO.class));
         bind(WidgetLayoutDAO.class).toInstance(createMock(WidgetLayoutDAO.class));
         bind(HostRoleCommandDAO.class).toInstance(createMock(HostRoleCommandDAO.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
   }
