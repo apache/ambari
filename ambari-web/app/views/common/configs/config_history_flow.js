@@ -240,7 +240,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
         }
       });
       // if there is no current version in selected group show current version from default group
-      if (!currentIndex) {
+      if (!currentIndex && !Em.isNone(isCurrentInDefaultGroupIndex)) {
         serviceVersions[isCurrentInDefaultGroupIndex].set('isDisplayed', true);
         currentIndex = isCurrentInDefaultGroupIndex + 1;
       }

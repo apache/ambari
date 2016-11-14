@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import org.easymock.EasyMockRule;
+import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
 import org.easymock.MockType;
 import org.junit.Assert;
@@ -29,14 +30,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-public class AsyncCallableServiceTest {
+public class AsyncCallableServiceTest extends EasyMockSupport {
   public static final Logger LOGGER = LoggerFactory.getLogger(AsyncCallableService.class);
 
   @Rule
@@ -45,7 +49,11 @@ public class AsyncCallableServiceTest {
   @Mock(type = MockType.STRICT)
   private Callable<Boolean> taskMock;
 
-  private ExecutorService singleThreadedExecutor = Executors.newSingleThreadExecutor();
+  @Mock
+  private ScheduledExecutorService executorServiceMock;
+
+  @Mock
+  private ScheduledFuture<Boolean> futureMock;
 
   private long timeout;
 
@@ -66,18 +74,30 @@ public class AsyncCallableServiceTest {
   @Test
   public void testCallableServiceShouldCancelTaskWhenTimeoutExceeded() throws Exception {
     // GIVEN
+
+    //the timeout period should be small!!!
+    timeout = 1l;
+
     // the task to be executed never completes successfully
-    expect(taskMock.call()).andThrow(new IllegalStateException("Prerequisites are not yet satisfied!")).anyTimes();
-    replay(taskMock);
-    asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, Executors.newScheduledThreadPool(1));
+    expect(futureMock.get(timeout, TimeUnit.MILLISECONDS)).andThrow(new TimeoutException("Testing the timeout exceeded case"));
+    expect(futureMock.isDone()).andReturn(Boolean.FALSE);
+
+    // this is only called when a timeout occurs
+    expect(futureMock.cancel(true)).andReturn(Boolean.TRUE);
+
+    expect(executorServiceMock.submit(taskMock)).andReturn(futureMock);
+
+    replayAll();
+
+    asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, executorServiceMock);
 
     // WHEN
     Boolean serviceResult = asyncCallableService.call();
 
     // THEN
     verify();
-    Assert.assertNotNull("Service result must not be null", serviceResult);
-    Assert.assertFalse("The expected boolean result is 'false'!", serviceResult);
+    Assert.assertNull("Service result must be null", serviceResult);
+    Assert.assertFalse("The service should have errors!", asyncCallableService.getErrors().isEmpty());
   }
 
   @Test
@@ -98,8 +118,8 @@ public class AsyncCallableServiceTest {
     Boolean serviceResult = asyncCallableService.call();
 
     // THEN
-    Assert.assertNotNull("Service result must not be null", serviceResult);
-    Assert.assertFalse("The expected boolean result is 'false'!", serviceResult);
+    Assert.assertNull("Service result must be null", serviceResult);
+    Assert.assertFalse("The service should have errors!", asyncCallableService.getErrors().isEmpty());
   }
 
   @Test
@@ -107,7 +127,8 @@ public class AsyncCallableServiceTest {
     // GIVEN
     // the task to be executed never completes successfully
     expect(taskMock.call()).andReturn(Boolean.TRUE).times(1);
-    replay(taskMock);
+
+    replayAll();
     asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
@@ -124,9 +145,8 @@ public class AsyncCallableServiceTest {
     // GIVEN
 
     // the task to be throws exception
-    expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times
-        (2,3);
-    replay(taskMock);
+    expect(taskMock.call()).andThrow(new IllegalStateException("****************** TESTING ****************")).times(2, 3);
+    replayAll();
     asyncCallableService = new AsyncCallableService(taskMock, timeout, delay, Executors.newScheduledThreadPool(2));
 
     // WHEN
@@ -135,8 +155,7 @@ public class AsyncCallableServiceTest {
     // THEN
     verify();
     // THEN
-    Assert.assertNotNull("Service result must not be null", serviceResult);
-    Assert.assertFalse("The expected boolean result is 'false'!", serviceResult);
+    Assert.assertNull("Service result must be null", serviceResult);
 
   }
 
@@ -158,9 +177,7 @@ public class AsyncCallableServiceTest {
     Boolean serviceResult = asyncCallableService.call();
 
     // THEN
-    Assert.assertNotNull("Service result must not be null", serviceResult);
-    Assert.assertFalse("The expected boolean result is 'false'!", serviceResult);
-
-
+    verify();
+    Assert.assertNull("Service result must be null", serviceResult);
   }
 }

@@ -32,7 +32,7 @@ var validationUtils = require('utils/validator');
  *   slaveComponentHosts: App.db.slaveComponentHosts (slave-components-to-hosts mapping the user selected in Step 6)
  *
  */
-App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
+App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixin, App.HostComponentRecommendationMixin, {
 
   name: 'wizardStep6Controller',
 
@@ -571,13 +571,21 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
   callValidation: function (successCallback) {
     var self = this;
+    var validationCallback = function() {
+      self.set('validationInProgress', false);
+      if (App.get('router.btnClickInProgress') && successCallback) {
+        successCallback();
+      }
+    };
     clearTimeout(this.get('timer'));
     if (this.get('validationInProgress')) {
       this.set('timer', setTimeout(function () {
-        self.callValidation(successCallback);
+        self.callValidation()
+          .then(validationCallback);
       }, 700));
     } else {
-      this.callServerSideValidation(successCallback);
+      this.callServerSideValidation()
+        .then(validationCallback);
     }
   },
 
@@ -586,18 +594,37 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method callServerSideValidation
    */
   callServerSideValidation: function (successCallback) {
-    var self = this;
     this.set('validationInProgress', true);
 
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
     var services = installedServices.concat(selectedServices).uniq();
+    var hostNames = this.get('hosts').mapProperty('hostName');
 
-    var hostNames = self.get('hosts').mapProperty('hostName');
-    var slaveBlueprint = self.getCurrentBlueprint();
+    var bluePrintsForValidation = this.getValidationBlueprint();
+    this.set('content.recommendationsHostGroups', bluePrintsForValidation);
+
+    return this.validateSelectedHostComponents({
+      services: services,
+      hosts: hostNames,
+      blueprint: bluePrintsForValidation
+    });
+  },
+
+  /**
+   * Returns blueprint passed to validation request
+   * @method getValidationBlueprint
+   */
+  getValidationBlueprint: function() {
+    var slaveBlueprint = this.getCurrentBlueprint();
     var masterBlueprint = null;
-    //Existing Installed but invisible masters on `Assign Masters page` should be included in host component layout for recommnedation/validation call
     var invisibleInstalledMasters = [];
+    var hostNames = this.get('hosts').mapProperty('hostName');
+    var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
+      return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
+        component.get("isClient") && component.get("isRequiredOnAllHosts");
+    }).mapProperty("componentName");
+    //Existing Installed but invisible masters on `Assign Masters page` should be included in host component layout for recommnedation/validation call
     if (this.get('isAddServiceWizard')) {
       var invisibleMasters = App.StackServiceComponent.find().filterProperty("isMaster").filterProperty("isShownOnAddServiceAssignMasterPage", false);
       invisibleInstalledMasters = invisibleMasters.filter(function(item){
@@ -605,56 +632,28 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         return masterComponent && !!masterComponent.get('totalCount');
       }).mapProperty("componentName");
     }
-    var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
-      return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
-        component.get("isClient") && component.get("isRequiredOnAllHosts");
-    }).mapProperty("componentName");
     if (this.get('isInstallerWizard') || this.get('isAddServiceWizard')) {
-      masterBlueprint = self.getCurrentMastersBlueprint();
-      var selectedClientComponents = self.get('content.clients').mapProperty('component_name');
+      masterBlueprint = this.getCurrentMastersBlueprint();
+      var selectedClientComponents = this.get('content.clients').mapProperty('component_name');
       var alreadyInstalledClients = App.get('components.clients').reject(function (c) {
         return selectedClientComponents.contains(c);
       });
-
       var invisibleComponents = invisibleInstalledMasters.concat(invisibleSlavesAndClients).concat(alreadyInstalledClients);
-
       var invisibleBlueprint = blueprintUtils.filterByComponents(this.get('content.recommendations'), invisibleComponents);
       masterBlueprint = blueprintUtils.mergeBlueprints(masterBlueprint, invisibleBlueprint);
     } else if (this.get('isAddHostWizard')) {
-      masterBlueprint = self.getCurrentMasterSlaveBlueprint();
+      masterBlueprint = this.getCurrentMasterSlaveBlueprint();
       hostNames = hostNames.concat(App.Host.find().mapProperty("hostName")).uniq();
       slaveBlueprint = blueprintUtils.addComponentsToBlueprint(slaveBlueprint, invisibleSlavesAndClients);
     }
-
-    var bluePrintsForValidation = blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
-    this.set('content.recommendationsHostGroups', bluePrintsForValidation);
-
-    return App.ajax.send({
-      name: 'config.validations',
-      sender: self,
-      data: {
-        stackVersionUrl: App.get('stackVersionURL'),
-        hosts: hostNames,
-        services: services,
-        validate: 'host_groups',
-        recommendations: bluePrintsForValidation
-      },
-      success: 'updateValidationsSuccessCallback',
-      error: 'updateValidationsErrorCallback'
-    }).
-      then(function () {
-        self.set('validationInProgress', false);
-        if (App.get('router.btnClickInProgress') && successCallback) {
-          successCallback();
-        }
-      }
-    );
+    return blueprintUtils.mergeBlueprints(masterBlueprint, slaveBlueprint);
   },
 
   /**
    * Success-callback for validations request
    * @param {object} data
    * @method updateValidationsSuccessCallback
+   * @override App.HostComponentRecommendationMixin
    */
   updateValidationsSuccessCallback: function (data) {
     var self = this;
@@ -738,6 +737,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @param {string} error
    * @param {object} opt
    * @method updateValidationsErrorCallback
+   * @override App.HostComponentRecommendationMixin
    */
   updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
   },
@@ -746,46 +746,18 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Composes selected values of comboboxes into blueprint format
    */
   getCurrentBlueprint: function () {
-    var self = this;
-
-    var res = {
-      blueprint: { host_groups: [] },
-      blueprint_cluster_binding: { host_groups: [] }
-    };
-
-    var clientComponents = self.get('content.clients').mapProperty('component_name');
-    var mapping = self.get('hosts');
-
-    mapping.forEach(function (item, i) {
-      var groupName = 'host-group-' + (i+1);
-
-      var hostGroup = {
-        name: groupName,
-        components: item.checkboxes.filterProperty('checked', true).map(function (checkbox) {
-          if (checkbox.component === "CLIENT") {
-            return clientComponents.map(function (client) {
-              return { name: client };
-            });
-          } else {
-            return { name: checkbox.component };
-          }
-        })
-      };
-
-      hostGroup.components = [].concat.apply([], hostGroup.components);
-
-      var binding = {
-        name: groupName,
-        hosts: [
-          { fqdn: item.hostName }
-        ]
-      };
-
-      res.blueprint.host_groups.push(hostGroup);
-      res.blueprint_cluster_binding.host_groups.push(binding);
-    });
-
-    return res;
+    var clientComponents = this.get('content.clients').mapProperty('component_name');
+    var components = this.get('hosts').reduce(function(acc, host) {
+      var checked = host.checkboxes.filterProperty('checked', true).mapProperty('component');
+      var componentNames = checked.indexOf('CLIENT') > -1 ? checked.without('CLIENT').concat(clientComponents) : checked;
+      return acc.concat(componentNames.map(function(componentName) {
+        return Em.Object.create({
+          componentName: componentName,
+          hostName: Em.get(host, 'hostName')
+        });
+      }));
+    }, []);
+    return this.getComponentsBlueprint(components);
   },
 
   /**
@@ -794,38 +766,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method getCurrentMastersBlueprint
    */
   getCurrentMastersBlueprint: function () {
-    var res = {
-      blueprint: { host_groups: [] },
-      blueprint_cluster_binding: { host_groups: [] }
-    };
-
     var masters = this.get('content.masterComponentHosts');
-    var hosts = this.get('content.hosts');
-
-    Em.keys(hosts).forEach(function (host, i) {
-      var groupName = 'host-group-' + (i + 1);
-      var components = [];
-      masters.forEach(function (master) {
-        if (master.hostName === host) {
-          components.push({
-            name: master.component
-          });
-        }
-      });
-      res.blueprint.host_groups.push({
-        name: groupName,
-        components: components
-      });
-      res.blueprint_cluster_binding.host_groups.push({
-        name: groupName,
-        hosts: [
-          {
-            fqdn: host
-          }
-        ]
-      });
-    }, this);
-    return blueprintUtils.mergeBlueprints(res, this.getCurrentSlaveBlueprint());
+    var mastersBlueprint = this.getComponentsBlueprint(masters.map(function(component) {
+      var c = Em.Object.create(component);
+      c.set('componentName', c.get('component'));
+      return c;
+    }), this.get('hosts').mapProperty('hostName'));
+    return blueprintUtils.mergeBlueprints(mastersBlueprint, this.getCurrentSlaveBlueprint());
   },
 
   /**

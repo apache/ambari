@@ -1149,61 +1149,6 @@ describe('App.WizardStep5Controller', function () {
 
   });
 
-  describe('#getCurrentBlueprint', function () {
-
-    beforeEach(function() {
-      sinon.stub(c, 'getCurrentSlaveBlueprint', function() {
-        return {
-          blueprint_cluster_binding: {
-            host_groups: []
-          },
-          blueprint: {
-            host_groups: []
-          }
-        };
-      });
-    });
-
-    afterEach(function() {
-      c.getCurrentSlaveBlueprint.restore();
-    });
-
-    it('should map masterHostMapping', function () {
-
-      c.reopen({masterHostMapping: [
-        {host_name: 'h1', hostInfo:{}, masterServices: [
-          {serviceId: 's1', component_name: 'c1'},
-          {serviceId: 's2', component_name: 'c2'}
-        ]},
-        {host_name: 'h2', hostInfo:{}, masterServices: [
-          {serviceId: 's1', component_name: 'c1'},
-          {serviceId: 's3', component_name: 'c3'}
-        ]}
-      ]});
-
-      var r = c.getCurrentBlueprint();
-      expect(r).to.eql({"blueprint": {"host_groups": [
-          {"name": "host-group-1", "components": [
-            {"name": "c1"},
-            {"name": "c2"}
-          ]},
-          {"name": "host-group-2", "components": [
-            {"name": "c1"},
-            {"name": "c3"}
-          ]}
-        ]}, "blueprint_cluster_binding": {"host_groups": [
-          {"name": "host-group-1", "hosts": [
-            {"fqdn": "h1"}
-          ]},
-          {"name": "host-group-2", "hosts": [
-            {"fqdn": "h2"}
-          ]}
-        ]}}
-      );
-    });
-
-  });
-
   describe('#updateValidationsSuccessCallback', function() {
 
     beforeEach(function() {

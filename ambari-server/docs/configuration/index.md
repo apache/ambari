@@ -53,7 +53,8 @@ The following are the properties which can be used to configure Ambari.
 | alerts.cache.size | The size of the alert cache.<br/><br/> This property is related to `alerts.cache.enabled`. |`50000` | 
 | alerts.execution.scheduler.maxThreads | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
-| alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
+| alerts.ambari.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | |
+| alerts.template.file | The full path to the XML file that describes the different alert templates. | |
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
 | ambari.ldap.isConfigured | An internal property used for unit testing and development purposes. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 
@@ -99,6 +100,7 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.userBase | The filter used when searching for users in LDAP. |`ou=people,dc=ambari,dc=apache,dc=org` | 
 | authentication.ldap.userObjectClass | The class to which user objects in LDAP belong. |`person` | 
 | authentication.ldap.userSearchFilter | A filter used to lookup a user in LDAP based on the Ambari user name<br/><br/>The following are examples of valid values:<ul><li>`(&({usernameAttribute}={0})(objectClass={userObjectClass}))`</ul> |`(&({usernameAttribute}={0})(objectClass={userObjectClass}))` | 
+| authentication.ldap.username.forceLowercase | Declares whether to force the ldap user name to be lowercase or leave as-is. This is useful when local user names are expected to be lowercase but the LDAP user names are not. |`false` | 
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 
@@ -133,6 +135,7 @@ The following are the properties which can be used to configure Ambari.
 | kdcserver.connection.check.timeout | The timeout, in milliseconds, to wait when communicating with a Kerberos Key Distribution Center. |`10000` | 
 | kerberos.check.jaas.configuration | Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials. |`false` | 
 | kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/home/crashtua/dev/ambari-work/var/lib/ambari-server/data/cache` | 
+| kerberos.operation.retries | The number of times failed kerberos operations should be retried to execute. |`3` | 
 | ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
 | metadata.path | The location on the Ambari Server where the stack resources exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/stacks`</ul> | | 
 | metrics.retrieval-service.cache.timeout | The amount of time, in minutes, that JMX and REST metrics retrieved directly can remain in the cache. |`30` | 

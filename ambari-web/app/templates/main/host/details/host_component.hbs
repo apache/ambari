@@ -16,42 +16,47 @@
 * limitations under the License.
 }}
 
-<div class="col-md-7 component-label host-component-block">
-  <div class="health-icon-block">
-    {{#if view.isUpgradeFailed}}
-      {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
-        <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
-          <i title="Component upgrade failed" class="components-health glyphicon glyphicon-arrow-up"></i>
-        </a>
-      {{/isAuthorized}}
-    {{else}}
-      <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>&nbsp;
-    {{/if}}
-  </div>
-  <div class="component-name-block">
-    {{#if component.displayNameAdvanced}}
-      <span {{bindAttr title="component.displayNameAdvanced"}}>{{component.getDisplayNameAdvanced}}</span>
-    {{else}}
-      <span {{bindAttr title="component.displayName"}}>{{component.getDisplayName}}</span>
-    {{/if}}
-    &nbsp;/&nbsp;
-    <a href="#" {{action routeToService component.service}} {{bindAttr title="component.service.displayName"}}>{{component.serviceDisplayName}}</a>
-  </div>
-  <div class="refresh-icon-block">
+    <div class="col-md-1 col-lg-1 align-left status-icons component-label host-component-block">
+      <span class="health-icon-block">
+        {{#if view.isUpgradeFailed}}
+          {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS"}}
+            <a href="#" {{action "upgradeComponent" view.content target="controller"}} >
+              <i title="Component upgrade failed" class="components-health glyphicon glyphicon-arrow-up"></i>
+            </a>
+          {{/isAuthorized}}
+        {{else}}
+          <span rel='componentHealthTooltip' {{bindAttr class="view.statusClass view.statusIconClass :components-health" data-original-title="view.componentTextStatus"}}></span>
+        {{/if}}
+      </span>
+    </div>
+    <div class="col-md-4 col-lg-5 component-name-block-wrapper">
+      <span class="component-name-block">
+        {{#if component.displayNameAdvanced}}
+          <span {{bindAttr title="component.displayNameAdvanced"}}>{{component.getDisplayNameAdvanced}}&nbsp;/</span>
+        {{else}}
+          <span {{bindAttr title="component.displayName"}}>{{component.getDisplayName}}&nbsp;/</span>
+        {{/if}}
+        <span class="hidden-lg"><br /></span> <a href="#" {{action routeToService component.service}} {{bindAttr title="component.service.displayName"}}>{{component.serviceDisplayName}}</a>
+      </span>
+    </div>
+<div class="col-md-1 col-lg-1 align-center status-icons">
+  <span class="refresh-icon-block">
     {{#if component.staleConfigs}}
       <span class="text-warning glyphicon glyphicon-refresh"></span>
     {{/if}}
-  </div>
-  <div class="medkit-icon-block">
+  </span>
+</div>
+<div class="col-md-1 col-lg-1 align-center status-icons">
+  <span class="medkit-icon-block">
     {{#unless component.isActive}}
       <span class="icon-medkit"></span>
     {{/unless}}
-  </div>
+  </span>
 </div>
-<div class="col-md-5 pull-right">
+<div class="col-md-5 col-lg-4">
   {{#isAuthorized "SERVICE.DECOMMISSION_RECOMMISSION"}}
-    <div class="btn-group pull-right">
-      <button {{ bindAttr class="view.disabled :btn :btn-default :dropdown-toggle"}} data-toggle="dropdown">
+    <div class="dropdown">
+      <button {{ bindAttr class="view.disabled :btn :btn-default :btn-block :dropdown-toggle"}} data-toggle="dropdown">
         {{view.componentTextStatus}}
         <span class="caret pull-right button-caret-margin"></span>
       </button>

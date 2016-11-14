@@ -16,8 +16,44 @@
  * limitations under the License.
  */
 
+/**
+ * @typedef {object} BlueprintObject
+ * @property {BlueprintMappings} blueprint
+ * @property {BlueprintClusterBindings} blueprint_cluster_bindings
+ */
+/**
+ * @typedef {object} BlueprintMappings
+ * @property {BlueprintMappingsHostGroup[]} host_groups
+ */
+/**
+ * @typedef {object[]} BlueprintMappingsHostGroup
+ * @property {BlueprintHostGroupComponent[]} components
+ * @property {string} name host group name
+ */
+/**
+ * @typedef {object} BlueprintHostGroupComponent
+ * @property {string} name component name
+ */
+/**
+ * @typedef {object} BlueprintClusterBindings
+ * @property {BlueprintClusterBindingsHostGroup[]} host_groups
+ */
+/**
+ * @typedef {object} BlueprintClusterBindingsHostGroup
+ * @property {BlueprintClusterBindingsHostGroupHosts[]} hosts
+ * @property {string} name host group name
+ */
+/**
+ * @typedef {object} BlueprintClusterBindingsHostGroupHosts
+ * @property {string} fqdn host fqdn
+ */
 module.exports = {
 
+  /**
+   * @param {BlueprintObject} masterBlueprint
+   * @param {BlueprintObject} slaveBlueprint
+   * @return {BlueprintObject}
+   */
   mergeBlueprints: function(masterBlueprint, slaveBlueprint) {
     console.time('mergeBlueprints');
     var self = this;
@@ -319,7 +355,9 @@ module.exports = {
   buildConfigsJSON: function (stepConfigs) {
     var configurations = {};
     stepConfigs.forEach(function (stepConfig) {
-      stepConfig.get('configs').forEach(function (config) {
+      var configs = stepConfig.get('configs');
+      if (!configs) return false;
+      configs.forEach(function (config) {
         var type = App.config.getConfigTagFromFileName(config.get('filename'));
         if (!configurations[type]) {
           configurations[type] = {properties: {}}

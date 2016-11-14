@@ -21,29 +21,20 @@ import ENV from 'hawq-view/config/environment';
 
 export default Ember.Route.extend({
   model() {
-    return this.store.findAll('query');
+    return this.store.query('query', {fields: '*'});
   },
-  setupController: function(controller, model) {
-    this._super(controller, model);
-    if(ENV.shouldPoll) {
-      this.startRefreshing();
-    }
-  },
-  startRefreshing: function() {
-    this.set('refreshing', true);
-    Ember.run.later(this, this.refresh, ENV.pollingInterval);
-  },
-  refresh: function() {
-    if(!this.get('refreshing')) {
+
+  activate() {
+    if (ENV.environment === 'test') {
       return;
     }
-    this.store.unloadAll('query');
-    this.store.findAll('query');
-    Ember.run.later(this, this.refresh, ENV.pollingInterval);
+    this.set('timer', setInterval(this.refresh.bind(this), ENV.pollingInterval));
   },
-  actions: {
-    willTransition: function() {
-      this.set('refreshing', false);
+
+  deactivate() {
+    if (ENV.environment === 'test') {
+      return;
     }
+    clearTimeout(this.get('timer'));
   }
 });

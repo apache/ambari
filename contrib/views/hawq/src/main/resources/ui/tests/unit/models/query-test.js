@@ -19,15 +19,12 @@
 /*jshint node:true*/
 /* global sinon */
 
-import { moduleForModel, test } from 'ember-qunit';
+import {moduleForModel, test} from 'ember-qunit';
 import Utils from 'hawq-view/utils/utils';
 
-moduleForModel('query', 'Unit | Model | query', {
-  // Specify the other units that are required for this test.
-  needs: []
-});
+moduleForModel('query', 'Unit | Model | query', {});
 
-test('#computeClientAddress called ', function(assert) {
+test('#computeClientAddress called ', function (assert) {
   assert.expect(0);
   let options = {
     clientHost: 'host',
@@ -42,7 +39,7 @@ test('#computeClientAddress called ', function(assert) {
   Utils.computeClientAddress.restore();
 });
 
-test('#generateStatusString called', function(assert) {
+test('#generateStatusString called', function (assert) {
   assert.expect(0);
   let options = {
     waiting: false,

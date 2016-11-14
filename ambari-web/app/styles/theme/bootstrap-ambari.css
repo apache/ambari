@@ -431,6 +431,64 @@ h2.table-title {
   background-color: transparent;
   color: #1491C1;
 }
+.nav.nav-tabs {
+  border: none;
+  margin-bottom: 20px;
+}
+.nav.nav-tabs li a {
+  border: none;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  color: #666;
+  text-transform: uppercase;
+}
+.nav.nav-tabs li a:hover,
+.nav.nav-tabs li a:active,
+.nav.nav-tabs li a:focus {
+  color: #333;
+  border: none;
+  background: none;
+}
+.nav.nav-tabs li a .badge.badge-important {
+  display: inline;
+}
+.nav.nav-tabs li.active a {
+  color: #333;
+  border-bottom: 2px solid #3FAE2A;
+}
+.nav-tabs-left li,
+.nav-tabs-right li {
+  float: none;
+  margin-bottom: 2px;
+}
+.nav-tabs-left li a,
+.nav-tabs-right li a {
+  margin-right: 0;
+}
+.nav-tabs-left li {
+  margin-right: -1px;
+}
+.nav-tabs-left li a {
+  border-bottom: 2px solid transparent !important;
+}
+.nav-tabs-left li.active a,
+.nav-tabs-left li.active a:hover,
+.nav-tabs-left li.active a:active,
+.nav-tabs-left li.active a:focus {
+  border-right: 2px solid #3FAE2A;
+}
+.nav-tabs-right li {
+  margin-left: -1px;
+}
+.nav-tabs-right li a {
+  border-bottom: 2px solid transparent !important;
+}
+.nav-tabs-right li.active a,
+.nav-tabs-right li.active a:hover,
+.nav-tabs-right li.active a:active,
+.nav-tabs-right li.active a:focus {
+  border-left: 2px solid #3FAE2A;
+}
 .wizard {
   border: 2px solid #ebecf1;
 }
@@ -706,29 +764,6 @@ body,
   font-family: 'Roboto', sans-serif;
   font-size: 12px;
   color: #000;
-}
-.nav.nav-tabs {
-  border: none;
-}
-.nav.nav-tabs li a {
-  border: none;
-  border-bottom: 2px solid transparent;
-  color: #666;
-  text-transform: uppercase;
-}
-.nav.nav-tabs li a:hover,
-.nav.nav-tabs li a:active,
-.nav.nav-tabs li a:focus {
-  color: #333;
-  border: none;
-  background: none;
-}
-.nav.nav-tabs li a .badge.badge-important {
-  display: inline;
-}
-.nav.nav-tabs li.active a {
-  color: #333;
-  border-bottom: 2px solid #3FAE2A;
 }
 a,
 a:visited,

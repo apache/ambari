@@ -343,7 +343,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Create services from the given request.
-  public synchronized void createServices(Set<ServiceRequest> requests)
+  public void createServices(Set<ServiceRequest> requests)
       throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
@@ -461,7 +461,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Update services based on the given requests.
-  protected synchronized RequestStageContainer updateServices(RequestStageContainer requestStages, Set<ServiceRequest> requests,
+  protected RequestStageContainer updateServices(RequestStageContainer requestStages, Set<ServiceRequest> requests,
                                                       Map<String, String> requestProperties, boolean runSmokeTest,
                                                       boolean reconfigureClients, boolean startDependencies) throws AmbariException, AuthorizationException {
 

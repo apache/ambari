@@ -57,8 +57,8 @@ module.exports = App.WizardRoute.extend({
              * fit height of scrollable block inside of modal body
              */
             fitInnerHeight: function () {
-              var block = this.$().find('#modal > .modal-body');
-              var scrollable = this.$().find('#modal .scrollable-block');
+              var block = this.$().find('.modal .modal-body');
+              var scrollable = this.$().find('.modal .scrollable-block');
 
               scrollable.css('max-height', Number(block.css('max-height').slice(0, -2)) - block.height());
               block.css('max-height', 'none');

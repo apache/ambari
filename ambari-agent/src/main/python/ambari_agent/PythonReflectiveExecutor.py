@@ -53,7 +53,9 @@ class PythonReflectiveExecutor(PythonExecutor):
     returncode = 1
 
     try:
-      with PythonContext(script_dir, pythonCommand):
+      current_context = PythonContext(script_dir, pythonCommand)
+      PythonReflectiveExecutor.last_context = current_context
+      with current_context:
         imp.load_source('__main__', script)
     except SystemExit as e:
       returncode = e.code
@@ -76,6 +78,8 @@ class PythonContext:
   def __init__(self, script_dir, pythonCommand):
     self.script_dir = script_dir
     self.pythonCommand = pythonCommand
+    self.is_reverted = False
+    self.is_forced_revert = False
     
   def __enter__(self):
     self.old_sys_path = copy.copy(sys.path)
@@ -88,12 +92,18 @@ class PythonContext:
     sys.argv = self.pythonCommand[1:]
 
   def __exit__(self, exc_type, exc_val, exc_tb):
-    sys.path = self.old_sys_path
-    sys.argv = self.old_agv
-    logging.disable(self.old_logging_disable)
-    self.revert_sys_modules(self.old_sys_modules)
+    self.revert(is_forced_revert=False)
     return False
   
+  def revert(self, is_forced_revert=True):
+    if not self.is_reverted:
+      self.is_forced_revert = is_forced_revert
+      self.is_reverted = True
+      sys.path = self.old_sys_path
+      sys.argv = self.old_agv
+      logging.disable(self.old_logging_disable)
+      self.revert_sys_modules(self.old_sys_modules)
+
   def revert_sys_modules(self, value):
     sys.modules.update(value)
     

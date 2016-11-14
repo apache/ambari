@@ -129,18 +129,21 @@
           <a href="#" {{action registeredHostsPopup target="controller"}}>{{view.registeredHostsMessage}}</a>
         </div>
       {{/if}}
-      <div {{bindAttr class=":alert :alert-warning view.status isWarningsBoxVisible::hidden"}}>
-        {{view.message}}
-        <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
-        {{#unless isBootstrapFailed}}
-          {{#unless isWarningsLoaded}}
-            {{view App.SpinnerView}}
+      {{#unless disableHostCheck}}
+        <div {{bindAttr class=":alert :alert-warning view.status isWarningsBoxVisible::hidden"}}>
+          {{view.message}}
+          <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
+          {{#unless isBootstrapFailed}}
+            {{#unless isWarningsLoaded}}
+              {{view App.SpinnerView}}
+            {{/unless}}
           {{/unless}}
-        {{/unless}}
-      </div>
+        </div>
+      {{/unless}}
 
     </div>
   </div>
+</div>
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">

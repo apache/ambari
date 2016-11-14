@@ -68,11 +68,11 @@
       </div>
     </div>
     <div class="panel-body">
-    {{#if view.serviceSummaryView}}
-      {{view view.serviceSummaryView}}
-    {{else}}
-      {{view App.SpinnerView}}
-    {{/if}}
+      {{#if view.serviceSummaryView}}
+        {{view view.serviceSummaryView}}
+      {{else}}
+        {{view App.SpinnerView}}
+      {{/if}}
     </div>
   </div>
 
@@ -83,10 +83,10 @@
       <div class="panel panel-default">
         <div class="panel-heading">
           <div class="row">
-            <div class="col-md-8 col-lg-8">
+            <div class="col-md-7 col-lg-7">
               <h4 class="panel-title">{{t services.service.metrics}}</h4>
             </div>
-            <div class="col-md-4 col-lg-4">
+            <div class="col-md-5 col-lg-5">
               {{#if showTimeRangeControl}}
                 {{view view.timeRangeListView}}
               {{/if}}
@@ -148,7 +148,7 @@
               <tr>
                 {{#each graph in graphs}}
                   <td>
-                    <div class="">
+                    <div>
                       {{view graph}}
                     </div>
                   </td>

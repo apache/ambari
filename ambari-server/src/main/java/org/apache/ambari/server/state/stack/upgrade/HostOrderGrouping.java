@@ -36,12 +36,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.JsonObject;
+
 /**
  * Marker group for Host-Ordered upgrades.
  */
 @XmlType(name="host-order")
 public class HostOrderGrouping extends Grouping {
-
+  private static final String TYPE = "type";
+  private static final String HOST = "host";
   private static Logger LOG = LoggerFactory.getLogger(HostOrderGrouping.class);
 
   /**
@@ -172,6 +175,10 @@ public class HostOrderGrouping extends Grouping {
 
         ManualTask mt = new ManualTask();
         mt.messages.add(message);
+        JsonObject structuredOut = new JsonObject();
+        structuredOut.addProperty(TYPE, HostOrderItem.HostOrderActionType.HOST_UPGRADE.toString());
+        structuredOut.addProperty(HOST, hostName);
+        mt.structuredOut = structuredOut.toString();
 
         StageWrapper manualWrapper = new StageWrapper(StageWrapper.Type.SERVER_SIDE_ACTION, "Manual Confirmation",
             new TaskWrapper(null, null, Collections.<String>emptySet(), mt));

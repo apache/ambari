@@ -21,8 +21,10 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   didRender() {
     this._super(...arguments);
+    // Enable tooltips
+    Ember.$('[data-toggle="tooltip"]').tooltip();
     // Ember.$ is contextual == #bootstrapSortable is called by default but at too high a level within Ember
     // (and Ambari) to find the table which it is supposed to modify.
-    Ember.$.bootstrapSortable(true);
+    // Ember.$.bootstrapSortable({applyLast: true, sign: 'reversed'});
   }
 });

@@ -228,7 +228,7 @@ public interface Cluster {
   /**
    * Creates or updates host versions for all of the hosts within a cluster
    * based on state of cluster stack version. This is used to transition all
-   * hosts into the {@link RepositoryVersionState#INSTALLING} state.
+   * hosts into the specified state.
    * <p/>
    * The difference between this method compared to
    * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
@@ -241,9 +241,11 @@ public interface Cluster {
    *          cluster version to be queried for a stack name/version info and
    *          desired RepositoryVersionState. The only valid state of a cluster
    *          version is {@link RepositoryVersionState#INSTALLING}
+   * @param state
+   *          the state to transition the cluster's hosts to.
    * @throws AmbariException
    */
-  void transitionHostsToInstalling(ClusterVersionEntity sourceClusterVersion)
+  void transitionHosts(ClusterVersionEntity sourceClusterVersion, RepositoryVersionState state)
       throws AmbariException;
 
   /**

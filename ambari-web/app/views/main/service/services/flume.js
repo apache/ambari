@@ -16,14 +16,11 @@
  */
 
 var App = require('app');
-var date = require('utils/date/date');
 var sort = require('views/common/sort_view');
 require('views/main/service/info/metrics/flume/flume_agent_metrics_section');
 
 App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServiceViewWrapper, {
   templateName: require('templates/main/service/services/flume'),
-
-  isFullWidth: true,
 
   pagination: false,
 
@@ -54,7 +51,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
     var agentCount = App.FlumeService.find().objectAt(0).get('agents.length'),
       hostCount = this.get('service.flumeHandlersTotal');
     return this.t("dashboard.services.flume.summary.title")
-      .format(hostCount, (hostCount > 1 ? "s" : ""), agentCount, (agentCount > 1 ? "s" : ""));
+      .format(hostCount, hostCount > 1 ? 's' : '', agentCount, agentCount > 1 ? 's' : '');
   }.property('service.agents', 'service.hostComponents.length'),
 
   flumeHandlerComponent: Em.Object.create({
@@ -67,9 +64,9 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
 
     click: function (e) {
       var numberOfAgents = this.get('content.agents').length;
-      if ($(e.target).attr('class') == "agent-host-name" || $(e.target).attr('class') == "agent-host-link") {
+      if ($(e.target).attr('class') === "agent-host-name" || $(e.target).attr('class') === "agent-host-link") {
         var currentTargetRow = $(e.currentTarget);
-        if ($(e.target).attr('class') == "agent-host-link") {
+        if ($(e.target).attr('class') === "agent-host-link") {
           currentTargetRow = currentTargetRow.parent(".agent-host-name").parent();
         }
         currentTargetRow.parents("table:first").find('tr').removeClass('highlight');
@@ -90,7 +87,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
   didInsertElement: function () {
     var self = this;
     this.filter();
-    this.$().on('click', '.flume-agents-actions .dropdown-toggle', function (e) {
+    this.$().on('click', '.flume-agents-actions .dropdown-toggle', function () {
       self.setDropdownPosition(this);
     });
   },

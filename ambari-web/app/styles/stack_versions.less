@@ -140,6 +140,10 @@
     .hosts-section {
       padding-bottom: 16px;
     }
+    .out-of-sync-badge {
+      top: 0;
+      left: 0;
+    }
   }
 }
 
@@ -150,6 +154,7 @@
     padding-bottom: 25px;
     padding-left: 0;
     margin-top: 10px;
+    margin-left: -1px;
     .versions-slides-bar {
       display: inline-flex;
     }
@@ -171,7 +176,7 @@
     background: none repeat scroll 0 0 #fff;
     border: 1px solid #d2d9dd;
     margin: 15px 15px 0 0;
-    padding: 5px 0;
+    padding: 0 5px;
     a.not-active:hover {
       text-decoration: none;
     }
@@ -187,10 +192,13 @@
       margin: 15px 0;
       line-height: 30px;
       padding-top: 5px;
-      height: 30px;
+      height: 35px;
       i {
         color: #0088cc;
         font-size: 16px;
+      }
+      i[disabled='disabled'] {
+        color: inherit;
       }
       .label {
         padding: 5px 20px;
@@ -291,8 +299,9 @@
       }
     }
     .state {
-      margin: 5px 0px 15px 0px;
+      margin: 5px 0 15px 0;
       line-height: 20px;
+      height: 35px;
       .label-success {
         line-height: 30px;
       }
@@ -312,7 +321,8 @@
       text-align: center;
       padding-bottom: 4px;
       .service-version-info {
-        margin-bottom: 14px;
+        line-height: 20px;
+        margin-bottom: 12px;
         text-align: center;
         span.label {
           padding: 5px 15px;

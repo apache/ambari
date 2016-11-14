@@ -92,11 +92,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   clientsHostText: function () {
     if (this.get('controller.content.installedClients').length === 0) {
       return '';
-    } else if (this.get("hasManyClients")) {
-      return Em.I18n.t('services.service.summary.viewHosts');
-    } else {
-      return Em.I18n.t('services.service.summary.viewHost');
     }
+    if (this.get("hasManyClients")) {
+      return Em.I18n.t('services.service.summary.viewHosts');
+    }
+    return Em.I18n.t('services.service.summary.viewHost');
   }.property("hasManyClients"),
 
   hasManyClients: Em.computed.gt('controller.content.installedClients.length', 1),
@@ -104,7 +104,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   servers: function () {
     var result = [];
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
+    if (service.get("id") === "ZOOKEEPER" || service.get("id") === "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         result = [
@@ -137,9 +137,9 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
   historyServerUI: function () {
     var master = this.get('controller.content.hostComponents').findProperty('isMaster');
-    return (App.singleNodeInstall
+    return App.singleNodeInstall
       ? "http://" + App.singleNodeAlias + ":19888"
-      : "http://" + master.get("host.publicHostName") + ":19888");
+      : "http://" + master.get("host.publicHostName") + ":19888";
   }.property('controller.content'),
 
   /**
@@ -148,7 +148,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    */
   serversHost: function() {
     var service = this.get('controller.content');
-    if (service.get("id") == "ZOOKEEPER" || service.get("id") == "FLUME") {
+    if (service.get("id") === "ZOOKEEPER" || service.get("id") === "FLUME") {
       var servers = service.get('hostComponents').filterProperty('isMaster');
       if (servers.length > 0) {
         return servers[0];
@@ -196,7 +196,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       source.pushObjects(data);
     }
     if (source.length > data.length) {
-      sourceIds.forEach(function(item, index) {
+      sourceIds.forEach(function(item) {
         if (!dataIds.contains(item)) {
           var sourceItem = source.findProperty('id',item);
           source.removeObject(sourceItem);
@@ -258,7 +258,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     template: Ember.Handlebars.compile('{{t services.service.summary.moreStats}}'),
     attributeBindings: ['href'],
     classNames: ['more-stats'],
-    click: function (event) {
+    click: function () {
       this._parentView._parentView.set('isHide', false);
       this.remove();
     },
@@ -325,11 +325,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     var restartRequiredHostsAndComponents = this.get('controller.content.restartRequiredHostsAndComponents');
     for (var hostName in restartRequiredHostsAndComponents) {
       restartRequiredHostsAndComponents[hostName].forEach(function (hostComponent) {
-        if (hostComponent == 'NameNode')
+        if (hostComponent === 'NameNode')
           isNNAffected = true;
       })
     }
-    if (serviceDisplayName == 'HDFS' && isNNAffected &&
+    if (serviceDisplayName === 'HDFS' && isNNAffected &&
       this.get('controller.content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
         return App.showConfirmationFeedBackPopup(function (query) {
@@ -397,7 +397,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    */
   persistKey: Em.computed.format('time-range-service-{0}', 'service.serviceName'),
 
-  getUserPrefSuccessCallback: function (response, request, data) {
+  getUserPrefSuccessCallback: function (response, request) {
     if (response) {
       this.set('currentTimeRangeIndex', response);
     }
@@ -514,10 +514,10 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
     var customServiceView = this.get('serviceCustomViewsMap')[serviceName];
     if (customServiceView) {
-      serviceSummaryView  = customServiceView.extend({
+      serviceSummaryView = customServiceView.extend({
         service: this.get('service')
       });
-    } else  {
+    } else {
       serviceSummaryView = Em.View.extend(App.MainDashboardServiceViewWrapper, {
         templateName: this.get('templatePathPrefix') + 'base'
       });
@@ -529,10 +529,10 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
   /**
    * Service metrics panel not displayed when metrics service (ex:Ganglia) is not in stack definition.
+   *
+   * @type {boolean}
    */
-  isNoServiceMetricsService: function() {
-    return !App.get('services.serviceMetrics').length;
-  }.property('App.services.serviceMetrics'),
+  isNoServiceMetricsService: Em.computed.equal('App.services.serviceMetrics.length', 0),
 
   didInsertElement: function () {
     this._super();
@@ -549,7 +549,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
       var allServices = require('data/service_graph_config');
       this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
-    this.adjustSummaryHeight();
     this.makeSortable();
     this.addWidgetTooltip();
     App.loadTimer.finish('Service Summary Page');
@@ -567,25 +566,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
         $(this).find('.hidden-description').stop().hide().end();
       });
     }, 1000);
-  },
-
-  /**
-   * adjust the summary table height
-   */
-  adjustSummaryHeight: function() {
-    var summaryTable = document.getElementById('summary-info');
-
-    if (summaryTable) {
-      var rows = $(summaryTable).find('tr');
-      if (rows != null && rows.length > 0) {
-        var minimumHeightSum = 20;
-        var summaryActualHeight = summaryTable.clientHeight;
-        // for summary window
-        if (summaryActualHeight <= minimumHeightSum) {
-          $(summaryTable).attr('style', "height:" + minimumHeightSum + "px;");
-        }
-      }
-    }
   },
 
   willDestroyElement: function() {
@@ -623,10 +603,10 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
           }), self.get('controller.widgets'));
           self.get('controller').saveWidgetLayout(widgets);
         },
-        activate: function (event, ui) {
+        activate: function () {
           self.set('isMoving', true);
         },
-        deactivate: function (event, ui) {
+        deactivate: function () {
           self.set('isMoving', false);
         }
       }).disableSelection();

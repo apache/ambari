@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-import { test } from 'qunit';
+import {test} from 'qunit';
 import moduleForAcceptance from 'hawq-view/tests/helpers/module-for-acceptance';
-import { getMockPayload } from 'hawq-view/tests/helpers/test-helper';
+import {getMockPayload} from 'hawq-view/tests/helpers/test-helper';
 import Utils from  'hawq-view/utils/utils';
 
 moduleForAcceptance('Acceptance | application');
@@ -31,25 +31,24 @@ test('visiting /', function (assert) {
     assert.equal(find('img#hawq-logo').length, 1);
 
     // Test Row Data
-    var data = getMockPayload().data;
+    var data = getMockPayload().items;
 
     for (var i = 0, ii = data.length; i < ii; i++) {
       let rowName = `query-table-row${i}`;
       assert.equal(this.$(`tr#${rowName}`).length, 1);
 
       let attr = data[i].attributes;
-      assert.equal(this.$(`td#${rowName}-pid`).text(), attr['pid']);
-      assert.equal(this.$(`td#${rowName}-databasename`).text(), attr['database-name']);
-      assert.equal(this.$(`td#${rowName}-duration`).text(), attr['duration']);
+      assert.equal(this.$(`td#${rowName}-pid`).text(), attr['procpid']);
+      assert.equal(this.$(`td#${rowName}-databasename`).text(), attr['datname']);
+      assert.equal(this.$(`td#${rowName}-duration`).text(), Utils.formatDuration(attr['query_duration']));
 
       let statusDOM = this.$(`td#${rowName}-status`);
-      assert.equal(statusDOM.text(), Utils.generateStatusString(attr['waiting'], attr['waiting-resource']));
+      assert.equal(statusDOM.text(), Utils.generateStatusString(attr['waiting'], attr['waiting_resource']));
 
-      let mockStatusClass = attr['waiting-resource'] ? '' : (attr['waiting'] ? 'orange' : 'green');
+      let mockStatusClass = attr['waiting_resource'] ? '' : (attr['waiting'] ? 'orange' : 'green');
       assert.ok(statusDOM.attr('class').match(mockStatusClass));
-      assert.equal(this.$(`td#${rowName}-username`).text(), attr['user-name']);
-      assert.equal(this.$(`td#${rowName}-clientaddress`).text(), Utils.computeClientAddress(attr['client-host'], attr['client-port']));
-
+      assert.equal(this.$(`td#${rowName}-username`).text(), attr['usename']);
+      assert.equal(this.$(`td#${rowName}-clientaddress`).text(), Utils.computeClientAddress(attr['client_addr'], attr['client_port']));
     }
   });
 });

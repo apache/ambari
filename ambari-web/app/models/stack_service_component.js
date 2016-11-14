@@ -97,7 +97,9 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isAddableToHost - component can be added on host details page **/
   isAddableToHost: function() {
-    return this.get('isMasterAddableInstallerWizard') || ((this.get('isNotAddableOnlyInInstall') || this.get('isSlave') || this.get('isClient')) && !this.get('isHAComponentOnly'));
+    return this.get('isMasterAddableInstallerWizard')
+      || ((this.get('isNotAddableOnlyInInstall') || this.get('isSlave') || this.get('isClient'))
+        && (!this.get('isHAComponentOnly') || (App.get('isHaEnabled') && this.get('componentName') == 'JOURNALNODE')));
   }.property('componentName'),
 
   /** @property {Boolean} isDeletable - component supports delete action **/

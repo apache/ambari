@@ -64,7 +64,7 @@ export default Ember.Route.extend({
       model.set('percent', percent + 25);
       loadView();
     },function(){
-        if(!model.get('ldapSuccess')) {
+        if(model.get('ldapFailure')) {
           var percent = model.get('percent');
           controller.requestLdapPassword(function(){
             // check the connection again
@@ -86,6 +86,11 @@ export default Ember.Route.extend({
               loadView();
             });
           });
+        } else {
+          model.get("hiveserverTest",false);
+          model.set("hiveserver" + 'TestDone', true);
+          model.set('percent', model.get('percent') + 25);
+          loadView();
         }
     });
 

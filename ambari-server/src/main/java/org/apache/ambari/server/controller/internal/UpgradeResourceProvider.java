@@ -130,6 +130,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -228,9 +229,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
   public static final String COMMAND_PARAM_REQUEST_ID = "request_id";
 
-  // TODO AMBARI-12698, change this variable name since it is no longer always a restart. Possible values are rolling_upgrade or nonrolling_upgrade
-  // This will involve changing Script.py
-  private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
+  private static final String COMMAND_PARAM_UPGRADE_TYPE = "upgrade_type";
   private static final String COMMAND_PARAM_TASKS = "tasks";
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
   private static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
@@ -297,6 +296,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static Configuration s_configuration;
+
+  @Inject
+  private static Gson s_gson;
 
   static {
     // properties
@@ -1425,13 +1427,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Map<String, String> commandParams = getNewParameterMap(request);
-
-    // TODO AMBARI-12698, change COMMAND_PARAM_RESTART_TYPE to something that isn't "RESTART" specific.
-    if (context.getType() == UpgradeType.ROLLING) {
-      commandParams.put(COMMAND_PARAM_RESTART_TYPE, "rolling_upgrade");
-    }
-    if (context.getType() == UpgradeType.NON_ROLLING) {
-      commandParams.put(COMMAND_PARAM_RESTART_TYPE, "nonrolling_upgrade");
+    if (null != context.getType()) {
+      // use the serialized attributes of the enum to convert it to a string,
+      // but first we must convert it into an element so that we don't get a
+      // quoted string - using toString() actually returns a quoted stirng which is bad
+      JsonElement json = s_gson.toJsonTree(context.getType());
+      commandParams.put(COMMAND_PARAM_UPGRADE_TYPE, json.getAsString());
     }
 
     commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
@@ -2086,10 +2087,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
 
       if (!failedResources.isEmpty()) {
-        Gson gson = new Gson();
         throw new AmbariException(
             String.format("Unable to perform %s. Prerequisite checks failed %s",
-                direction.getText(false), gson.toJson(failedResources)));
+                direction.getText(false), s_gson.toJson(failedResources)));
       }
     }
   }

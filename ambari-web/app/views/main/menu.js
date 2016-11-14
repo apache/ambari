@@ -24,7 +24,7 @@ var App = require('app');
  */
 App.MainMenuView = Em.CollectionView.extend({
   tagName: 'ul',
-  classNames: ['nav', 'top-nav-menu', 'navbar-nav'],
+  classNames: ['nav', 'top-nav-menu', 'navbar-nav', 'navbar-right'],
 
   views: function () {
     return App.router.get('mainViewsController.ambariViews');

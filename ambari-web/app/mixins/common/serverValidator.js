@@ -19,6 +19,21 @@
 var App = require('app');
 var blueprintUtils = require('utils/blueprint');
 
+/**
+ * @typedef {object} ConfigsValidationRequestData
+ * @property {string} stackVersionUrl stack version url
+ * @property {string[]} hosts host names
+ * @property {string[]} services service names
+ * @property {string} validate validation type e.g. 'configurations'
+ * @property {object} recommendations blueprint object
+ */
+
+/**
+ * @typedef {object} ConfigsValidationOptions
+ * @property {string[]} hosts host names
+ * @property {string[]} services service names
+ * @property {object} blueprint service configurations blueprint
+ */
 App.ServerValidatorMixin = Em.Mixin.create({
 
   /**
@@ -124,41 +139,79 @@ App.ServerValidatorMixin = Em.Mixin.create({
     var stepConfigs = this.get('stepConfigs');
     var dfd = $.Deferred();
 
-    this.getBlueprintConfigurations().done(function(blueprintConfigurations) {
-      recommendations.blueprint.configurations = blueprintConfigurations;
-      App.ajax.send({
-        name: 'config.validations',
-        sender: self,
-        data: {
-          stackVersionUrl: App.get('stackVersionURL'),
+    this.getBlueprintConfigurations(this.get('stepConfigs'))
+      .done(function(blueprintConfigurations) {
+        recommendations.blueprint.configurations = blueprintConfigurations;
+        self.validateSelectedConfigs({
           hosts: self.get('hostNames'),
           services: self.get('serviceNames'),
-          validate: 'configurations',
-          recommendations: recommendations
-        },
-        success: 'validationSuccess',
-        error: 'validationError'
-      }).done(dfd.resolve).fail(dfd.reject);
-    });
+          blueprint: recommendations
+        }).done(dfd.resolve)
+          .fail(dfd.reject);
+      });
     return dfd.promise();
   },
 
   /**
+   * Perform service config validation
+   * @param validateSelectedConfigs
+   * @param {ConfigsValidationOptions} options
+   * @returns {$.Deferred}
+   */
+  validateSelectedConfigs: function(options) {
+    var opts = $.extend({
+      services: [],
+      hosts: [],
+      blueprint: null
+    }, options || {});
+
+    return this.getServiceConfigsValidationRequest(this.getServiceConfigsValidationParams(opts));
+  },
+
+  /**
+   * @method getServiceConfigsValidationRequest
+   * @param {ConfigsValidationRequestData} validationData
+   * @returns {$.Deferred}
+   */
+  getServiceConfigsValidationRequest: function(validationData) {
+    return App.ajax.send({
+      name: 'config.validations',
+      sender: this,
+      data: validationData,
+      success: 'validationSuccess',
+      error: 'validationError'
+    });
+  },
+
+  /**
+   * @method getServiceConfigsValidationParams
+   * @param {ConfigsValidationOptions} options
+   * @returns {ConfigsValidationRequestData}
+   */
+  getServiceConfigsValidationParams: function(options) {
+    return {
+      stackVersionUrl: App.get('stackVersionURL'),
+      hosts: options.hosts,
+      services: options.services,
+      validate: 'configurations',
+      recommendations: options.blueprint
+    };
+  },
+
+  /**
    * Return JSON for blueprint configurations
+   * @param {App.ServiceConfigs[]} serviceConfigs
    * @returns {*}
    */
-  getBlueprintConfigurations: function () {
+  getBlueprintConfigurations: function (serviceConfigs) {
     var dfd = $.Deferred();
-    var stepConfigs = this.get('stepConfigs');
-
     // check if we have configs from 'cluster-env', if not, then load them, as they are mandatory for validation request
-    if (!stepConfigs.findProperty('serviceName', 'MISC')) {
-      App.config.getConfigsByTypes([{site: 'cluster-env', serviceName: 'MISC'}]).done(function (configs) {
-        stepConfigs = stepConfigs.concat(configs);
-        dfd.resolve(blueprintUtils.buildConfigsJSON(stepConfigs));
+    if (!serviceConfigs.findProperty('serviceName', 'MISC')) {
+      App.config.getConfigsByTypes([{site: 'cluster-env', serviceName: 'MISC'}]).done(function(configs) {
+        dfd.resolve(blueprintUtils.buildConfigsJSON(serviceConfigs.concat(configs)));
       });
     } else {
-      dfd.resolve(blueprintUtils.buildConfigsJSON(stepConfigs));
+      dfd.resolve(blueprintUtils.buildConfigsJSON(serviceConfigs));
     }
     return dfd.promise();
   },

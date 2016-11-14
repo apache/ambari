@@ -17,60 +17,58 @@
  */
 
 /*jshint node:true*/
-/* global moment */
 
 import ENV from 'hawq-view/config/environment';
 
 export default {
-  formatTimeOfDay: function(date) {
-    return moment(date).local().format("HH:mm:ss");
+  computeClientAddress(clientHost, clientPort) {
+    return (clientPort === -1 || !clientHost) ? 'local' : `${clientHost}:${clientPort}`;
   },
 
-  calculateTimeDelta: function(time1, time2) {
-    return moment(time2).diff(moment(time1));
-  },
-
-  formatTimeDelta: function(time1, time2) {
-    let response = {
-      value: Math.max(0, this.calculateTimeDelta(time1, time2))
-    };
-
-    let delta =  Math.round((response.value) / 1000);
-    let deltaString = `${delta % 60}s`;
-    delta = Math.floor(delta / 60);
-
-    if (delta > 0) {
-      deltaString = `${delta % 60}m ${deltaString}`;
-      delta = Math.floor(delta / 60);
+  formatDuration(duration) {
+    if (isNaN(duration)) {
+      return "00:00:00";
     }
 
-    if (delta > 0) {
-      deltaString = `${delta}h ${deltaString}`;
-    }
+    let hours = Math.floor(duration / 3600);
+    let durationForMinutes = duration % 3600;
+    let minutes = Math.floor(durationForMinutes / 60);
+    let seconds = Math.ceil(durationForMinutes % 60);
 
-    response.text = deltaString;
-    return response;
+    hours = ( hours < 10 ? "0" : "") + hours;
+    minutes = (minutes < 10 ? "0" : "") + minutes;
+    seconds = (seconds < 10 ? "0" : "") + seconds;
+
+    return `${hours}:${minutes}:${seconds}`;
   },
 
-  computeClientAddress: function(clientHost, clientPort) {
-    if (clientPort === -1 || !clientHost) {
-      return 'local';
-    }
-    return `${clientHost}:${clientPort}`;
-  },
-
-  getWindowPathname: function() {
+  getWindowPathname() {
     return window.location.pathname;
   },
 
-  getNamespace: function() {
-    return (ENV.environment === 'test' ? '' : this.getWindowPathname()) + ENV.apiURL;
+  getNamespace() {
+    let version = '1.0.0',
+      instanceName = 'HAWQ',
+      apiPrefix = '/api/v1/views/HAWQ/versions/',
+      instancePrefix = '/instances/';
+
+    let params = this.getWindowPathname().split('/').filter(function (param) {
+      return !!param;
+    });
+
+    if (params[params.length - 3] === 'HAWQ') {
+      version = params[params.length - 2];
+      instanceName = params[params.length - 1];
+    }
+
+    let hawqViewInstanceURL = `${apiPrefix}${version}${instancePrefix}${instanceName}`;
+    return ENV.environment === 'test' ? ENV.apiURL : hawqViewInstanceURL;
   },
 
-  generateStatusString: function(waiting, waitingResource) {
-    if(waitingResource) {
+  generateStatusString(waiting, waitingResource) {
+    if (waitingResource) {
       return 'Queued';
-    } else if(waiting) {
+    } else if (waiting) {
       return 'Waiting on Lock';
     }
     return 'Running';

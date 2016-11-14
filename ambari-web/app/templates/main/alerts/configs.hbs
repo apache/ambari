@@ -15,32 +15,30 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div style="padding-top:20px;">
-  <form class="form-horizontal alert-configs">
-    {{#each property in controller.configs}}
-      {{#unless property.hidden}}
-        <div {{bindAttr class=":form-group property.name property.isValid::has-error"}}>
-          {{#if property.isPreLabeled}}
-            <label {{bindAttr class=":control-label :col-md-2"}}>{{property.label}}</label>
+<form class="form-horizontal alert-configs">
+  {{#each property in controller.configs}}
+    {{#unless property.hidden}}
+      <div {{bindAttr class=":form-group property.name property.isValid::has-error"}}>
+        {{#if property.isPreLabeled}}
+          <label {{bindAttr class=":control-label :col-md-2"}}>{{property.label}}</label>
 
-            <div {{bindAttr class=":col-md-10"}}>
+          <div {{bindAttr class=":col-md-10"}}>
+            {{view property.viewClass propertyBinding="property"}}
+          </div>
+        {{else}}
+          <div>
+            <label class="radio">
               {{view property.viewClass propertyBinding="property"}}
-            </div>
-          {{else}}
-            <div>
-              <label class="radio">
-                {{view property.viewClass propertyBinding="property"}}
-                {{property.label}}
-              </label>
-            </div>
-          {{/if}}
-        </div>
-      {{/unless}}
-    {{/each}}
-    {{#if controller.hasThresholdsError}}
-      <div class="error-message">
-        {{view.errorMessage}}
+              {{property.label}}
+            </label>
+          </div>
+        {{/if}}
       </div>
-    {{/if}}
-  </form>
-</div>
+    {{/unless}}
+  {{/each}}
+  {{#if controller.hasThresholdsError}}
+    <div class="error-message">
+      {{view.errorMessage}}
+    </div>
+  {{/if}}
+</form>

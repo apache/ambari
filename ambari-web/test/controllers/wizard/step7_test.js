@@ -372,6 +372,15 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#clearStep', function () {
+
+    beforeEach(function () {
+      sinon.stub(installerStep7Controller, 'abortRequests');
+    });
+
+    afterEach(function () {
+      installerStep7Controller.abortRequests.restore();
+    });
+
     it('should clear stepConfigs', function () {
       installerStep7Controller.set('stepConfigs', [
         {},
@@ -393,6 +402,10 @@ describe('App.InstallerStep7Controller', function () {
       ]);
       installerStep7Controller.clearStep();
       expect(installerStep7Controller.get('filterColumns').everyProperty('selected', false)).to.equal(true);
+    });
+    it('should call abortRequests', function () {
+      installerStep7Controller.clearStep();
+      expect(installerStep7Controller.abortRequests.calledOnce).to.be.true;
     });
   });
 

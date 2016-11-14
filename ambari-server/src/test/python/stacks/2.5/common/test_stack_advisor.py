@@ -446,9 +446,9 @@ class TestHDP25StackAdvisor(TestCase):
   def test_validateYarnConfigurations(self):
     properties = {'enable_hive_interactive': 'true',
                   'hive_server_interactive_host': 'c6401.ambari.apache.org',
-                  'hive.tez.container.size': '2048'}
+                  'hive.tez.container.size': '2048', "yarn.nodemanager.linux-container-executor.group": "hadoop"}
     recommendedDefaults = {'enable_hive_interactive': 'true',
-                           "hive_server_interactive_host": "c6401.ambari.apache.org"}
+                           "hive_server_interactive_host": "c6401.ambari.apache.org", "yarn.nodemanager.linux-container-executor.group": "hadoop"}
     configurations = {
       "hive-interactive-env": {
         "properties": {'enable_hive_interactive': 'true', "hive_server_interactive_host": "c6401.ambari.apache.org"}
@@ -461,6 +461,11 @@ class TestHDP25StackAdvisor(TestCase):
       },
       "yarn-site": {
         "properties": {"yarn.resourcemanager.work-preserving-recovery.enabled": "false"}
+      },
+      "cluster-env": {
+        "properties": {
+          "user_group": "hadoop",
+        }
       }
     }
     services = self.load_json("services-normal-his-valid.json")

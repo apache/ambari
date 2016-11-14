@@ -161,6 +161,8 @@ var files = [
   'test/mixins/common/configs/configs_loader_test',
   'test/mixins/common/configs/configs_saver_test',
   'test/mixins/common/configs/toggle_isrequired_test',
+  'test/mixins/common/hosts/host_component_recommendation_mixin_test',
+  'test/mixins/common/hosts/host_component_validation_mixin_test',
   'test/mixins/common/widgets/export_metrics_mixin_test',
   'test/mixins/common/widgets/time_range_mixin_test',
   'test/mixins/common/widgets/widget_section_test',

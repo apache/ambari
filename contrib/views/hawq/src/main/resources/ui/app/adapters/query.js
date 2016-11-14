@@ -16,12 +16,16 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
 import DS from 'ember-data';
 import Utils from 'hawq-view/utils/utils';
 
 export default DS.JSONAPIAdapter.extend({
-  namespace: Ember.computed(function() {
-    return Utils.getNamespace();
-  })
+  headers: {
+    'X-Requested-By': 'ambari',
+    'Accept': '*/*'
+  },
+
+  buildURL() {
+    return Utils.getNamespace() + this._super.apply(this, arguments);
+  }
 });

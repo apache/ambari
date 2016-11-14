@@ -56,11 +56,20 @@ describe('App.KerberosWizardStep4Controller', function() {
   });
 
   describe('#isSubmitDisabled', function() {
-    var controller = App.KerberosWizardStep4Controller.create({});
-    var configs = Em.A([
-      App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', identityType: 'user', category: 'Ambari Principals', serviceName: 'Cluster'})
-    ]);
-    controller.set('stepConfigs', controller.createServiceConfig(configs));
+    var controller, configs;
+    beforeEach(function() {
+      controller = App.KerberosWizardStep4Controller.create({});
+      configs = Em.A([
+        App.ServiceConfigProperty.create({
+          name: 'prop1',
+          value: 'someVal1',
+          identityType: 'user',
+          category: 'Ambari Principals',
+          serviceName: 'Cluster'
+        })
+      ]);
+      controller.set('stepConfigs', controller.createServiceConfig(configs));
+    });
 
     it('configuration errors are absent, submit should be not disabled', function() {
       expect(controller.get('stepConfigs')[0].get('errorCount')).to.be.equal(0);
@@ -70,6 +79,8 @@ describe('App.KerberosWizardStep4Controller', function() {
     it('config has invalid value, submit should be disabled', function() {
       var serviceConfig = controller.get('stepConfigs')[0];
       serviceConfig.get('configs').findProperty('name', 'prop1').set('value', '');
+      serviceConfig.setActivePropertiesOnce();
+      serviceConfig.setConfigsWithErrorsOnce();
       expect(serviceConfig.get('errorCount')).to.be.equal(1);
       expect(controller.get('isSubmitDisabled')).to.be.true;
     });

@@ -15,19 +15,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<tr class="hidden"><td></td></tr>
 
 {{#each slaveComponent in view.slavesObj}}
-  <tr {{bindAttr class=":component slaveComponent.componentName"}}>
-    <td {{bindAttr class=":summary-label slaveComponent.summaryLabelClassName"}}><a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
-    </td>
-    <td {{bindAttr class=":summary-value slaveComponent.summaryValueClassName"}}>
-      <span>
-        {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount"}}
-          {{view.liveComponents}}/{{view.totalComponents}}
-        {{/view}}
-      </span>
+  <div {{bindAttr class=":row :component slaveComponent.componentName"}}>
+    <div {{bindAttr class=":col-md-6 :summary-label slaveComponent.summaryLabelClassName"}}>
+      <a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
+    </div>
+    <div {{bindAttr class=":col-md-6 :summary-value slaveComponent.summaryValueClassName"}}>
+      {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount" tagName="span"}}
+        {{view.liveComponents}}/{{view.totalComponents}}
+      {{/view}}
       {{slaveComponent.displayNamePluralized}} {{t dashboard.services.summary.slaves.live}}
-    </td>
-  </tr>
+    </div>
+  </div>
 {{/each}}

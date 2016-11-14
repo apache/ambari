@@ -34,6 +34,7 @@ import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
 import org.apache.ambari.server.agent.RecoveryReport;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -45,12 +46,14 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
@@ -61,6 +64,7 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
@@ -127,6 +131,9 @@ public class HostImpl implements Host {
 
   @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
+
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
 
   /**
    * The ID of the host which is to retrieve it from JPA.
@@ -1145,6 +1152,26 @@ public class HostImpl implements Host {
   // Get the cached host state entity or load it fresh through the DAO.
   public HostStateEntity getHostStateEntity() {
     return hostStateDAO.findByHostId(hostId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasComponentsAdvertisingVersions(StackId stackId) throws AmbariException {
+    HostEntity hostEntity = getHostEntity();
+
+    for (HostComponentStateEntity componentState : hostEntity.getHostComponentStateEntities()) {
+      ComponentInfo component = ambariMetaInfo.getComponent(stackId.getStackName(),
+          stackId.getStackVersion(), componentState.getServiceName(),
+          componentState.getComponentName());
+
+      if (component.isVersionAdvertised()) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 

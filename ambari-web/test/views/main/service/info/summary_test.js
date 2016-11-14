@@ -731,7 +731,6 @@ describe('App.MainServiceInfoSummaryView', function() {
       sinon.stub(view, 'getServiceModel');
       sinon.stub(view.get('controller'), 'getActiveWidgetLayout');
       sinon.stub(view.get('controller'), 'loadWidgetLayouts');
-      sinon.stub(view, 'adjustSummaryHeight');
       sinon.stub(view, 'makeSortable');
       sinon.stub(view, 'addWidgetTooltip');
 
@@ -743,7 +742,6 @@ describe('App.MainServiceInfoSummaryView', function() {
       view.getServiceModel.restore();
       view.get('controller').getActiveWidgetLayout.restore();
       view.get('controller').loadWidgetLayouts.restore();
-      view.adjustSummaryHeight.restore();
       view.makeSortable.restore();
       view.addWidgetTooltip.restore();
     });
@@ -751,10 +749,6 @@ describe('App.MainServiceInfoSummaryView', function() {
     it("getServiceModel should be called", function() {
       view.didInsertElement();
       expect(view.getServiceModel.calledOnce).to.be.true;
-    });
-    it("adjustSummaryHeight should be called", function() {
-      view.didInsertElement();
-      expect(view.adjustSummaryHeight.calledOnce).to.be.true;
     });
     it("addWidgetTooltip should be called", function() {
       view.didInsertElement();
@@ -832,46 +826,4 @@ describe('App.MainServiceInfoSummaryView', function() {
     });
   });
 
-  describe("#adjustSummaryHeight()", function() {
-    var jQueryMock = {
-      find: Em.K,
-      attr: Em.K
-    };
-
-    beforeEach(function() {
-      sinon.stub(window, '$').returns(jQueryMock);
-      this.mockFind = sinon.stub(jQueryMock, 'find');
-      sinon.spy(jQueryMock, 'attr');
-      this.mockGetElementById = sinon.stub(document, 'getElementById');
-    });
-    afterEach(function() {
-      this.mockGetElementById.restore();
-      window.$.restore();
-      this.mockFind.restore();
-      jQueryMock.attr.restore();
-    });
-
-    it("summary-info not in DOM", function() {
-      this.mockGetElementById.returns(null);
-      view.adjustSummaryHeight();
-      expect(jQueryMock.find.called).to.be.false;
-    });
-
-    it("summary-info has no rows", function() {
-      this.mockGetElementById.returns({});
-      this.mockFind.returns(null);
-      view.adjustSummaryHeight();
-      expect(jQueryMock.find.calledOnce).to.be.true;
-      expect(jQueryMock.attr.called).to.be.false;
-    });
-
-    it("summary-info has rows", function() {
-      this.mockGetElementById.returns({
-        clientHeight: 10
-      });
-      this.mockFind.returns([{}]);
-      view.adjustSummaryHeight();
-      expect(jQueryMock.attr.calledWith('style', "height:20px;")).to.be.true;
-    });
-  });
 });

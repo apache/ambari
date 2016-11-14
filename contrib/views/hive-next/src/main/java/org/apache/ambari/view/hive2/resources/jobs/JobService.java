@@ -100,7 +100,6 @@ public class JobService extends BaseService {
 
   protected final static Logger LOG =
       LoggerFactory.getLogger(JobService.class);
-  private Aggregator aggregator;
 
   protected synchronized JobResourceManager getResourceManager() {
     if (resourceManager == null) {
@@ -112,16 +111,9 @@ public class JobService extends BaseService {
 
 
   protected Aggregator getAggregator() {
-    if (aggregator == null) {
       IATSParser atsParser = getSharedObjectsFactory().getATSParser();
       ActorRef operationController = ConnectionSystem.getInstance().getOperationController(context);
-      aggregator = new Aggregator(getResourceManager(), atsParser, operationController);
-    }
-    return aggregator;
-  }
-
-  protected void setAggregator(Aggregator aggregator) {
-    this.aggregator = aggregator;
+      return new Aggregator(getResourceManager(), atsParser, operationController);
   }
 
   /**
