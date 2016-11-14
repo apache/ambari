@@ -54,7 +54,7 @@ App.ServiceConfigVersion = DS.Model.extend({
    * @type {Boolean}
    */
   isConfigGroupDeleted: function () {
-    return this.get('groupName') === 'Deleted';
+    return this.get('groupName') === App.ServiceConfigGroup.deletedGroupName;
   }.property('groupName'),
 
   /**
