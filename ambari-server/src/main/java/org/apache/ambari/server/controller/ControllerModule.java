@@ -62,6 +62,14 @@ import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetric
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.KerberosChecker;
+import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.hooks.AmbariEventFactory;
+import org.apache.ambari.server.hooks.HookContext;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.PostUserCreationHookContext;
+import org.apache.ambari.server.hooks.users.UserCreatedEvent;
+import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.metadata.CachedRoleCommandOrderProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.notifications.DispatchFactory;
@@ -80,6 +88,10 @@ import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
+import org.apache.ambari.server.serveraction.users.CollectionPersisterService;
+import org.apache.ambari.server.serveraction.users.CollectionPersisterServiceFactory;
+import org.apache.ambari.server.serveraction.users.CsvFilePersisterService;
+import org.apache.ambari.server.serveraction.users.ShellCommandCallableFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -343,14 +355,14 @@ public class ControllerModule extends AbstractModule {
 
     // Host role commands status summary max cache enable/disable
     bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_ENABLED)).
-      to(configuration.getHostRoleCommandStatusSummaryCacheEnabled());
+        to(configuration.getHostRoleCommandStatusSummaryCacheEnabled());
 
     // Host role commands status summary max cache size
     bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_SIZE)).
-      to(configuration.getHostRoleCommandStatusSummaryCacheSize());
+        to(configuration.getHostRoleCommandStatusSummaryCacheSize());
     // Host role command status summary cache expiry duration in minutes
     bindConstant().annotatedWith(Names.named(HostRoleCommandDAO.HRC_STATUS_SUMMARY_CACHE_EXPIRY_DURATION_MINUTES)).
-      to(configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration());
+        to(configuration.getHostRoleCommandStatusSummaryCacheExpiryDuration());
 
     bind(AmbariManagementController.class).to(
         AmbariManagementControllerImpl.class);
@@ -374,6 +386,7 @@ public class ControllerModule extends AbstractModule {
     bindByAnnotation(null);
     bindNotificationDispatchers(null);
     registerUpgradeChecks(null);
+    bind(HookService.class).to(UserHookService.class);
   }
 
   // ----- helper methods ----------------------------------------------------
@@ -423,7 +436,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         Host.class, HostImpl.class).build(HostFactory.class));
     install(new FactoryModuleBuilder().implement(
-      Service.class, ServiceImpl.class).build(ServiceFactory.class));
+        Service.class, ServiceImpl.class).build(ServiceFactory.class));
 
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
@@ -439,8 +452,8 @@ public class ControllerModule extends AbstractModule {
         .build(ResourceProviderFactory.class));
 
     install(new FactoryModuleBuilder().implement(
-      ServiceComponent.class, ServiceComponentImpl.class).build(
-      ServiceComponentFactory.class));
+        ServiceComponent.class, ServiceComponentImpl.class).build(
+        ServiceComponentFactory.class));
     install(new FactoryModuleBuilder().implement(
         ServiceComponentHost.class, ServiceComponentHostImpl.class).build(
         ServiceComponentHostFactory.class));
@@ -449,7 +462,7 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
-      RequestExecutionImpl.class).build(RequestExecutionFactory.class));
+        RequestExecutionImpl.class).build(RequestExecutionFactory.class));
 
     bind(StageFactory.class).to(StageFactoryImpl.class);
     bind(RoleCommandOrderProvider.class).to(CachedRoleCommandOrderProvider.class);
@@ -464,6 +477,11 @@ public class ControllerModule extends AbstractModule {
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     bind(BlueprintFactory.class);
+
+    install(new FactoryModuleBuilder().implement(AmbariEvent.class, Names.named("userCreated"), UserCreatedEvent.class).build(AmbariEventFactory.class));
+    install(new FactoryModuleBuilder().implement(HookContext.class, PostUserCreationHookContext.class).build(HookContextFactory.class));
+    install(new FactoryModuleBuilder().implement(CollectionPersisterService.class, CsvFilePersisterService.class).build(CollectionPersisterServiceFactory.class));
+
   }
 
   /**
@@ -482,11 +500,9 @@ public class ControllerModule extends AbstractModule {
    *
    * @param beanDefinitions the set of bean definitions. If it is empty or
    *                        {@code null} scan will occur.
-   *
    * @return the set of bean definitions that was found during scan if
-   *         {@code beanDefinitions} was null or empty. Else original
-   *         {@code beanDefinitions} will be returned.
-   *
+   * {@code beanDefinitions} was null or empty. Else original
+   * {@code beanDefinitions} will be returned.
    */
   // Method is protected and returns a set of bean definitions for testing convenience.
   @SuppressWarnings("unchecked")
@@ -575,11 +591,11 @@ public class ControllerModule extends AbstractModule {
 
     if (null == beanDefinitions || beanDefinitions.isEmpty()) {
       ClassPathScanningCandidateComponentProvider scanner =
-        new ClassPathScanningCandidateComponentProvider(false);
+          new ClassPathScanningCandidateComponentProvider(false);
 
       // match all implementations of the dispatcher interface
       AssignableTypeFilter filter = new AssignableTypeFilter(
-        NotificationDispatcher.class);
+          NotificationDispatcher.class);
 
       scanner.addIncludeFilter(filter);
 

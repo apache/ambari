@@ -126,6 +126,9 @@
     <fileSet>
       <directory>src/main/resources/scripts</directory>
       <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
+      <excludes>
+        <exclude>post-user-creation-hook.sh</exclude>
+      </excludes>
     </fileSet>
     <fileSet>
       <directory>${ambari-admin-dir}/target</directory>
@@ -335,6 +338,11 @@
     <file>
       <source>${basedir}/target/version</source>
       <outputDirectory>/var/lib/ambari-server/resources</outputDirectory>
+    </file>
+    <file>
+      <fileMode>755</fileMode>
+      <source>src/main/resources/scripts/post-user-creation-hook.sh</source>
+      <outputDirectory>/var/lib/ambari-server/resources/scripts</outputDirectory>
     </file>
   </files>    
   <dependencySets>

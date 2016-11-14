@@ -2408,6 +2408,14 @@ public class Configuration {
   public static final ConfigurationProperty<Boolean> ACTIVE_INSTANCE = new ConfigurationProperty<>(
           "active.instance", Boolean.TRUE);
 
+  @Markdown(description = "Indicates whether the post user creation is enabled or not. By default is false.")
+  public static final ConfigurationProperty<Boolean> POST_USER_CREATION_HOOK_ENABLED = new ConfigurationProperty<>(
+      "ambari.post.user.creation.hook.enabled", Boolean.FALSE);
+
+  @Markdown(description = "The location of the post user creation hook on the ambari server hosting machine.")
+  public static final ConfigurationProperty<String> POST_USER_CREATION_HOOK = new ConfigurationProperty<>(
+      "ambari.post.user.creation.hook", "/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh");
+
   /**
    * PropertyConfigurator checks log4j.properties file change every LOG4JMONITOR_DELAY milliseconds.
    */
@@ -5025,6 +5033,15 @@ public class Configuration {
    */
   public boolean isActiveInstance() {
     return Boolean.parseBoolean(getProperty(ACTIVE_INSTANCE));
+  }
+
+  /**
+   * Indicates whether feature for user hook execution is enabled or not.
+   *
+   * @return true / false (defaults to false)
+   */
+  public boolean isUserHookEnabled() {
+    return Boolean.parseBoolean(getProperty(POST_USER_CREATION_HOOK_ENABLED));
   }
 
   /**

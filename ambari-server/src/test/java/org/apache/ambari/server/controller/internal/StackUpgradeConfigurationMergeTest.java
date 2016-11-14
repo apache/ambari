@@ -31,6 +31,8 @@ import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -291,6 +293,9 @@ public class StackUpgradeConfigurationMergeTest extends EasyMockSupport {
       binder.bind(Users.class).toInstance(createNiceMock(Users.class));
       binder.bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
       binder.bind(RepositoryVersionDAO.class).toInstance(createNiceMock(RepositoryVersionDAO.class));
+      binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+      binder.bind(HookService.class).toInstance(createMock(HookService.class));
+
 
       binder.requestStaticInjection(UpgradeResourceProvider.class);
     }

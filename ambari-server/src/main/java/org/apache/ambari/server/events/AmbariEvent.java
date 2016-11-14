@@ -125,7 +125,17 @@ public abstract class AmbariEvent {
     /**
      * Cluster configuration changed.
      */
-    CLUSTER_CONFIG_CHANGED;
+    CLUSTER_CONFIG_CHANGED,
+
+    /**
+     * Metrics Collector force refresh needed.
+     */
+    METRICS_COLLECTOR_HOST_DOWN,
+
+    /**
+     * Local user has been created.
+     */
+    USER_CREATED;
   }
 
   /**

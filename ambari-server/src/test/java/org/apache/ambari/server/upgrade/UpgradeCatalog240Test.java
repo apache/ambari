@@ -67,6 +67,8 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -338,6 +340,8 @@ public class UpgradeCatalog240Test {
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(EntityManager.class).toInstance(entityManager);
         binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        binder.bind(HookService.class).toInstance(createMock(HookService.class));
       }
       };
 
@@ -736,6 +740,8 @@ public class UpgradeCatalog240Test {
         binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        binder.bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -818,6 +824,8 @@ public class UpgradeCatalog240Test {
         binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        binder.bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -885,6 +893,9 @@ public class UpgradeCatalog240Test {
         binder.bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         binder.bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        binder.bind(HookService.class).toInstance(createMock(HookService.class));
+
       }
     });
 
@@ -1526,6 +1537,8 @@ public class UpgradeCatalog240Test {
         bind(OsFamily.class).toInstance(osFamily);
         bind(EntityManager.class).toInstance(entityManager);
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -1662,6 +1675,8 @@ public class UpgradeCatalog240Test {
         bind(OsFamily.class).toInstance(osFamily);
         bind(EntityManager.class).toInstance(entityManager);
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -1720,6 +1735,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -1780,6 +1797,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -1982,6 +2001,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(ems.createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(ems.createNiceMock(OsFamily.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -2040,6 +2061,8 @@ public class UpgradeCatalog240Test {
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(AmbariMetaInfo.class).toInstance(metaInfo);
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
@@ -2097,6 +2120,8 @@ public class UpgradeCatalog240Test {
         bind(RemoteAmbariClusterDAO.class).toInstance(clusterDAO);
         bind(ViewInstanceDAO.class).toInstance(instanceDAO);
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -2248,6 +2273,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -2375,6 +2402,8 @@ public class UpgradeCatalog240Test {
         bind(EntityManager.class).toInstance(entityManager);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -2499,6 +2528,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(EntityManager.class).toInstance(entityManager);
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
@@ -2535,6 +2566,8 @@ public class UpgradeCatalog240Test {
         bind(DBAccessor.class).toInstance(createMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(EntityManager.class).toInstance(entityManager);
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
       }
     });
 
