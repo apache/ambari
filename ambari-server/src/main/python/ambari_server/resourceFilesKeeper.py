@@ -39,6 +39,7 @@ class ResourceFilesKeeper():
   COMMON_SERVICES_DIR="common-services"
   CUSTOM_ACTIONS_DIR="custom_actions"
   HOST_SCRIPTS_DIR="host_scripts"
+  DASHBOARDS_DIR="dashboards"
 
   # For these directories archives are created
   ARCHIVABLE_DIRS = [HOOKS_DIR, PACKAGE_DIR]
@@ -68,7 +69,7 @@ class ResourceFilesKeeper():
     """
     Performs housekeeping operations on resource files
     """
-    self.update_directory_archieves()
+    self.update_directory_archives()
     # probably, later we will need some additional operations
 
 
@@ -87,7 +88,7 @@ class ResourceFilesKeeper():
     # update the directories so that the .hash is generated
     self.update_directory_archive(archive_root)
 
-  def update_directory_archieves(self):
+  def update_directory_archives(self):
     """
     Please see AMBARI-4481 for more details
     """
@@ -111,6 +112,9 @@ class ResourceFilesKeeper():
 
     # agent host scripts
     self._update_resources_subdir_archive(self.HOST_SCRIPTS_DIR)
+
+    # custom service dashboards
+    self._update_resources_subdir_archive(self.DASHBOARDS_DIR)
 
 
   def _list_metainfo_dirs(self, root_dir):
@@ -153,7 +157,7 @@ class ResourceFilesKeeper():
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
       # Skip generation of .hash file is directory is empty
-      if (skip_empty_directory and not os.listdir(directory)):
+      if (skip_empty_directory and (not os.path.exists(directory) or not os.listdir(directory))):
         self.dbg_out("Empty directory. Skipping generation of hash file for {0}".format(directory))
       else:
         self.write_hash_sum(directory, cur_hash)

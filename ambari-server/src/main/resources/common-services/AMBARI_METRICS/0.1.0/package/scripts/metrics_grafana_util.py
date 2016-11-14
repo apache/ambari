@@ -31,7 +31,7 @@ import network
 
 GRAFANA_CONNECT_TRIES = 5
 GRAFANA_CONNECT_TIMEOUT = 10
-GRAFANA_SEARCH_BULTIN_DASHBOARDS = "/api/search?tag=builtin"
+GRAFANA_SEARCH_BUILTIN_DASHBOARDS = "/api/search?tag=builtin"
 GRAFANA_DATASOURCE_URL = "/api/datasources"
 GRAFANA_DASHBOARDS_URL = "/api/dashboards/db"
 METRICS_GRAFANA_DATASOURCE_NAME = "AMBARI_METRICS"
@@ -279,14 +279,14 @@ def create_ams_dashboards():
   Dashboard = namedtuple('Dashboard', ['uri', 'id', 'title', 'tags'])
 
   existing_dashboards = []
-  response = perform_grafana_get_call(GRAFANA_SEARCH_BULTIN_DASHBOARDS, server)
+  response = perform_grafana_get_call(GRAFANA_SEARCH_BUILTIN_DASHBOARDS, server)
   if response and response.status == 200:
     data = response.read()
     try:
       dashboards = json.loads(data)
     except:
       Logger.error("Unable to parse JSON response from grafana request: %s" %
-                   GRAFANA_SEARCH_BULTIN_DASHBOARDS)
+                   GRAFANA_SEARCH_BUILTIN_DASHBOARDS)
       Logger.info(data)
       return
 
@@ -302,7 +302,7 @@ def create_ams_dashboards():
   else:
     Logger.error("Failed to execute search query on Grafana dashboards. "
                  "query = %s\n statuscode = %s\n reason = %s\n data = %s\n" %
-                 (GRAFANA_SEARCH_BULTIN_DASHBOARDS, response.status, response.reason, response.read()))
+                 (GRAFANA_SEARCH_BUILTIN_DASHBOARDS, response.status, response.reason, response.read()))
     return
 
   Logger.debug('Dashboard definitions found = %s' % str(dashboard_files))
