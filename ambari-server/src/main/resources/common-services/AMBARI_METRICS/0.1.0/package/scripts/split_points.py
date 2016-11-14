@@ -67,12 +67,11 @@ def format_Xmx_size_to_bytes(value, default='b'):
 # pre-splits based on selected services also passed as a parameter to the class.
 class FindSplitPointsForAMSRegions():
 
-  def __init__(self, ams_hbase_site, ams_hbase_env, serviceMetricsDir, customServiceMetricsDir,
+  def __init__(self, ams_hbase_site, ams_hbase_env, serviceMetricsDir,
                operation_mode = 'embedded', services = None):
     self.ams_hbase_site = ams_hbase_site
     self.ams_hbase_env = ams_hbase_env
     self.serviceMetricsDir = serviceMetricsDir
-    self.customServiceMetricsDir = customServiceMetricsDir
     self.services = services
     self.mode = operation_mode
     # Add host metrics if not present as input
@@ -118,39 +117,18 @@ class FindSplitPointsForAMSRegions():
     pass
 
   def initialize_ordered_set_of_metrics(self):
-    stackServiceFiles = [ f for f in os.listdir(self.serviceMetricsDir) if
+    onlyServicefiles = [ f for f in os.listdir(self.serviceMetricsDir) if
                   os.path.isfile(os.path.join(self.serviceMetricsDir, f)) ]
-
-    if os.path.exists(self.customServiceMetricsDir):
-      customServiceFiles = [ f for f in os.listdir(self.customServiceMetricsDir) if
-                  os.path.isfile(os.path.join(self.customServiceMetricsDir, f)) ]
-    else:
-      customServiceFiles = []
 
     metrics = set()
 
-    for file in stackServiceFiles:
-      # Process for stack services selected at deploy time or all stack services if
+    for file in onlyServicefiles:
+      # Process for services selected at deploy time or all services if
       # services arg is not passed
       if self.services is None or file.rstrip(metric_filename_ext) in self.services:
         print 'Processing file: %s' % os.path.join(self.serviceMetricsDir, file)
         service_metrics = set()
         with open(os.path.join(self.serviceMetricsDir, file), 'r') as f:
-          for metric in f:
-            service_metrics.add(metric.strip())
-          pass
-        pass
-        metrics.update(self.find_equidistant_metrics(list(sorted(service_metrics))))
-      pass
-    pass
-
-    for file in customServiceFiles:
-      # Process for custom services selected at deploy time or all custom services if
-      # services arg is not passed
-      if self.services is None or file.rstrip(metric_filename_ext) in self.services:
-        print 'Processing file: %s' % os.path.join(self.customServiceMetricsDir, file)
-        service_metrics = set()
-        with open(os.path.join(self.customServiceMetricsDir, file), 'r') as f:
           for metric in f:
             service_metrics.add(metric.strip())
           pass
