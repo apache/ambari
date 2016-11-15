@@ -22,13 +22,12 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.RetryLoop;
 import org.apache.curator.RetryPolicy;
-import org.apache.curator.retry.RetryOneTime;
 import org.apache.curator.retry.RetryUntilElapsed;
 import org.apache.zookeeper.ZooKeeper;
 
-import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -43,7 +42,7 @@ public class MetricCollectorHAHelper {
   private final int sleepMsBetweenRetries;
 
   private static final int CONNECTION_TIMEOUT = 2000;
-  private static final int SESSION_TIMEOUT = 5000;
+  private static final int SESSION_TIMEOUT = 10000;
   private static final String ZK_PATH = "/ambari-metrics-cluster/LIVEINSTANCES";
   private static final String INSTANCE_NAME_DELIMITER = "_";
 
@@ -68,15 +67,15 @@ public class MetricCollectorHAHelper {
     final CuratorZookeeperClient client = new CuratorZookeeperClient(zookeeperQuorum,
       SESSION_TIMEOUT, CONNECTION_TIMEOUT, null, retryPolicy);
 
-    String liveInstances = null;
+    List<String> liveInstances = null;
 
     try {
-      liveInstances = RetryLoop.callWithRetry(client, new Callable<String>() {
+      client.start();
+      liveInstances = RetryLoop.callWithRetry(client, new Callable<List<String>>() {
         @Override
-        public String call() throws Exception {
+        public List<String> call() throws Exception {
           ZooKeeper zookeeper = client.getZooKeeper();
-          byte[] data = zookeeper.getData(ZK_PATH, null, null);
-          return data != null ? new String(data) : null;
+          return zookeeper.getChildren(ZK_PATH, false);
         }
       });
     } catch (Exception e) {
@@ -86,7 +85,7 @@ public class MetricCollectorHAHelper {
 
     // [ambari-sid-3.c.pramod-thangali.internal_12001]
     if (liveInstances != null && !liveInstances.isEmpty()) {
-      for (String instanceStr : liveInstances.split(",")) {
+      for (String instanceStr : liveInstances) {
         collectors.add(instanceStr.substring(0, instanceStr.indexOf(INSTANCE_NAME_DELIMITER)));
       }
     }
