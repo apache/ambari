@@ -467,19 +467,18 @@ class _TestRecoveryManager(TestCase):
   def _test_update_rm_config(self, mock_uc):
     rm = RecoveryManager(tempfile.mktemp())
     rm.update_configuration_from_registration(None)
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "", -1)])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, "", -1)])
 
     mock_uc.reset_mock()
     rm.update_configuration_from_registration({})
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "", -1)])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, "", -1)])
 
     mock_uc.reset_mock()
     rm.update_configuration_from_registration(
       {"recoveryConfig": {
       "type" : "DEFAULT"}}
     )
-
-    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, False, "", -1)])
+    mock_uc.assert_has_calls([call(6, 60, 5, 12, False, False, "", -1)])
 
     mock_uc.reset_mock()
     rm.update_configuration_from_registration(
