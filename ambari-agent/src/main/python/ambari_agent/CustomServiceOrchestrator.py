@@ -153,7 +153,8 @@ class CustomServiceOrchestrator():
         self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
-        
+        self.file_cache.get_dashboard_base_dir(server_url_prefix)
+
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
 

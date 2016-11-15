@@ -832,6 +832,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     scriptDir = os.path.dirname(os.path.abspath(__file__))
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
+    customServiceMetricsDir = os.path.join(scriptDir, '../../../../dashboards/service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -853,7 +854,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       ams_hbase_env = configurations["ams-hbase-env"]["properties"]
 
     split_point_finder = FindSplitPointsForAMSRegions(
-      ams_hbase_site, ams_hbase_env, serviceMetricsDir, operatingMode, servicesList)
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, customServiceMetricsDir, operatingMode, servicesList)
 
     result = split_point_finder.get_split_points()
     precision_splits = ' '

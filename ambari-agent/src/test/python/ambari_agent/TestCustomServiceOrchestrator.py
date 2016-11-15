@@ -220,7 +220,7 @@ class TestCustomServiceOrchestrator(TestCase):
     except AgentException:
       pass # Expected
 
-
+  @patch.object(FileCache, "get_dashboard_base_dir")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(FileCache, "get_host_scripts_base_dir")
@@ -234,7 +234,8 @@ class TestCustomServiceOrchestrator(TestCase):
                       get_hook_base_dir_mock, get_service_base_dir_mock, 
                       get_host_scripts_base_dir_mock, 
                       resolve_hook_script_path_mock, 
-                      resolve_script_path_mock):
+                      resolve_script_path_mock,
+                      get_dashboard_base_dir_mock):
     
     FileCache_mock.return_value = None
     command = {
@@ -265,6 +266,7 @@ class TestCustomServiceOrchestrator(TestCase):
     unix_process_id = 111
     orchestrator.commands_in_progress = {command['taskId']: unix_process_id}
     get_hook_base_dir_mock.return_value = "/hooks/"
+    get_dashboard_base_dir_mock.return_value = "/dashboards/"
     # normal run case
     run_file_mock.return_value = {
         'stdout' : 'sss',
@@ -309,6 +311,7 @@ class TestCustomServiceOrchestrator(TestCase):
 
     pass
 
+  @patch.object(FileCache, "get_dashboard_base_dir")
   @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
@@ -323,7 +326,8 @@ class TestCustomServiceOrchestrator(TestCase):
                       get_hook_base_dir_mock, get_service_base_dir_mock,
                       get_host_scripts_base_dir_mock,
                       resolve_hook_script_path_mock, resolve_script_path_mock,
-                      kill_process_with_children_mock):
+                      kill_process_with_children_mock,
+                      get_dashboard_base_dir_mock):
     FileCache_mock.return_value = None
     command = {
       'role' : 'REGION_SERVER',
@@ -353,6 +357,7 @@ class TestCustomServiceOrchestrator(TestCase):
     unix_process_id = 111
     orchestrator.commands_in_progress = {command['taskId']: unix_process_id}
     get_hook_base_dir_mock.return_value = "/hooks/"
+    get_dashboard_base_dir_mock.return_value = "/dashboards/"
     run_file_mock_return_value = {
       'stdout' : 'killed',
       'stderr' : 'killed',
