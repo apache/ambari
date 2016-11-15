@@ -387,15 +387,21 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
   @Override
   public List<String> getLiveInstances() {
-    List<String> instances = haController.getLiveInstanceHostNames();
-    if (instances == null || instances.isEmpty()) {
-      try {
-        // Always return current host as live (embedded operation mode)
-        instances = Collections.singletonList(configuration.getInstanceHostnameFromEnv());
+
+    List<String> instances = null;
+    try {
+        if (haController == null) {
+          // Always return current host as live (embedded operation mode)
+          return Collections.singletonList(configuration.getInstanceHostnameFromEnv());
+        }
+        instances = haController.getLiveInstanceHostNames();
+        if (instances == null || instances.isEmpty()) {
+          // fallback
+          instances = Collections.singletonList(configuration.getInstanceHostnameFromEnv());
+        }
       } catch (UnknownHostException e) {
         LOG.debug("Exception on getting hostname from env.", e);
       }
-    }
     return instances;
   }
 
