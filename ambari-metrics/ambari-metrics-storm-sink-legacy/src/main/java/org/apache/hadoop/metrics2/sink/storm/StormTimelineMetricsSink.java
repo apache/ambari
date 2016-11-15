@@ -117,7 +117,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
-    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
     zkQuorum = configuration.getProperty("zookeeper.quorum");
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
