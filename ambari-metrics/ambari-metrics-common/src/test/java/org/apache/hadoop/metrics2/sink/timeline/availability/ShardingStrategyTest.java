@@ -49,4 +49,16 @@ public class ShardingStrategyTest {
     Assert.assertEquals("mycollector-1.hostname.domain", collectorShard1);
     Assert.assertEquals("mycollector-2.hostname.domain", collectorShard2);
   }
+
+  @Test
+  public void testShardStrategyOnOverflow() {
+    List<String> collectorHosts = new ArrayList<String>() {{
+      add("ambari-sid-4.c.pramod-thangali.internal");
+      add("ambari-sid-5.c.pramod-thangali.internal");
+    }};
+
+    MetricSinkWriteShardStrategy strategy = new MetricSinkWriteShardHostnameHashingStrategy("ambari-sid-4.c.pramod-thangali.internal");
+    String collector = strategy.findCollectorShard(collectorHosts);
+    Assert.assertTrue(collector != null && !collector.isEmpty());
+  }
 }

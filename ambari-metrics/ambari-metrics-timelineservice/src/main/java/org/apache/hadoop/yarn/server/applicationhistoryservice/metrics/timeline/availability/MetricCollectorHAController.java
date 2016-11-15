@@ -47,7 +47,7 @@ import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
 public class MetricCollectorHAController {
   private static final Log LOG = LogFactory.getLog(MetricCollectorHAController.class);
 
-  static final String CLUSTER_NAME = "ambari-metrics-cluster-unsecure";
+  static final String CLUSTER_NAME = "ambari-metrics-cluster";
   static final String METRIC_AGGREGATORS = "METRIC_AGGREGATORS";
   static final String DEFAULT_STATE_MODEL = "OnlineOffline";
   static final String INSTANCE_NAME_DELIMITER = "_";
