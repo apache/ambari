@@ -19,6 +19,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -133,6 +134,8 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
+    createRoleAuthorizations();
+    updateKafkaConfigs();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -201,7 +204,23 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * Create new role authorizations: CLUSTER.RUN_CUSTOM_COMMAND and AMBARI.RUN_CUSTOM_COMMAND
+   *
+   * @throws SQLException
+   */
+  protected void createRoleAuthorizations() throws SQLException {
+    LOG.info("Adding authorizations");
+
+    addRoleAuthorization("CLUSTER.RUN_CUSTOM_COMMAND", "Perform custom cluster-level actions",
+      Arrays.asList("AMBARI.ADMINISTRATOR:AMBARI", "CLUSTER.ADMINISTRATOR:CLUSTER"));
+
+    addRoleAuthorization("AMBARI.RUN_CUSTOM_COMMAND", "Perform custom administrative actions",
+      Collections.singletonList("AMBARI.ADMINISTRATOR:AMBARI"));
+  }
+
+  /**
    * Creates the servicecomponent_version table
+   *
    * @throws SQLException
    */
   private void createComponentVersionTable() throws SQLException {
@@ -221,12 +240,36 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     dbAccessor.addPKConstraint(COMPONENT_VERSION_TABLE, COMPONENT_VERSION_PK, "id");
 
     dbAccessor.addFKConstraint(COMPONENT_VERSION_TABLE, COMPONENT_VERSION_FK_COMPONENT, "component_id",
-        COMPONENT_TABLE, "id", false);
+      COMPONENT_TABLE, "id", false);
 
     dbAccessor.addFKConstraint(COMPONENT_VERSION_TABLE, COMPONENT_VERSION_FK_REPO_VERSION, "repo_version_id",
-        "repo_version", "repo_version_id", false);
+      "repo_version", "repo_version_id", false);
 
     addSequence("servicecomponent_version_id_seq", 0L, false);
+  }
+
+  protected void updateKafkaConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+
+          Config kafkaBrokerConfig = cluster.getDesiredConfigByType(KAFKA_BROKER);
+          if (kafkaBrokerConfig != null) {
+            Map<String, String> kafkaBrokerProperties = kafkaBrokerConfig.getProperties();
+
+            if (kafkaBrokerProperties != null && kafkaBrokerProperties.containsKey(KAFKA_TIMELINE_METRICS_HOST)) {
+              LOG.info("Removing kafka.timeline.metrics.host from kafka-broker");
+              removeConfigurationPropertiesFromCluster(cluster, KAFKA_BROKER, Collections.singleton("kafka.timeline.metrics.host"));
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -238,10 +281,10 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     // credential_store_supported SMALLINT DEFAULT 0 NOT NULL
     // credential_store_enabled SMALLINT DEFAULT 0 NOT NULL
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
-            new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
+      new DBColumnInfo(CREDENTIAL_STORE_SUPPORTED_COL, Short.class, null, 0, false));
 
     dbAccessor.addColumn(SERVICE_DESIRED_STATE_TABLE,
-            new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
+      new DBColumnInfo(CREDENTIAL_STORE_ENABLED_COL, Short.class, null, 0, false));
   }
 }
 
