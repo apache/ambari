@@ -645,6 +645,14 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>failover.strategy</name>
+    <value>round-robin</value>
+    <description>
+      Failover strategy for metric monitors
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
     <name>timeline.metrics.hbase.init.check.enabled</name>
     <value>true</value>
     <description>

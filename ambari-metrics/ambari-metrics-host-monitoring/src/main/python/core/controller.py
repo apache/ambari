@@ -20,7 +20,6 @@ limitations under the License.
 
 import logging
 import threading
-import time
 from Queue import Queue
 from threading import Timer
 from application_metric_map import ApplicationMetricMap

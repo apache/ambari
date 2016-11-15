@@ -37,9 +37,8 @@ class Event:
 
 class EmmitEvent(Event):
 
-  def __init__(self, application_metric_map, config):
+  def __init__(self, application_metric_map):
     Event.__init__(self)
-    self.collector_address = config.get_server_address()
     self.application_metric_map = application_metric_map
 
   def get_emmit_payload(self):

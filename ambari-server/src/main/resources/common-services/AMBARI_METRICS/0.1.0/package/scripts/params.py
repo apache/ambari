@@ -53,6 +53,8 @@ ams_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_script = "/usr/sbin/ambari-metrics-collector"
 ams_collector_pid_dir = status_params.ams_collector_pid_dir
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+failover_strategy_blacklisted_interval_seconds = default("/configurations/ams-env/failover_strategy_blacklisted_interval", "600")
+failover_strategy = default("/configurations/ams-site/failover.strategy", "round-robin")
 if default("/configurations/ams-site/timeline.metrics.service.http.policy", "HTTP_ONLY") == "HTTPS_ONLY":
   metric_collector_https_enabled = True
   metric_collector_protocol = 'https'

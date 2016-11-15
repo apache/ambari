@@ -18,7 +18,7 @@
 
 [default]
 debug_level = INFO
-hostname = {{hostname}}
+metrics_servers = {{ams_collector_hosts}}
 enable_time_threshold = false
 enable_value_threshold = false
 skip_disk_patterns = {{skip_disk_metrics_patterns}}
@@ -29,6 +29,7 @@ send_interval = {{metrics_report_interval}}
 [collector]
 collector_sleep_interval = 10
 max_queue_size = 5000
-host = {{metric_collector_host}}
+failover_strategy = {{failover_strategy}}
+failover_strategy_blacklisted_interval_seconds = {{failover_strategy_blacklisted_interval_seconds}}
 port = {{metric_collector_port}}
 https_enabled = {{metric_collector_https_enabled}}

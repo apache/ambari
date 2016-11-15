@@ -20,11 +20,13 @@ limitations under the License.
 
 import json
 import logging
+import time
 
 from unittest import TestCase
 from only_for_platform import get_platform, PLATFORM_WINDOWS
 from mock.mock import patch, MagicMock
 from security import CachedHTTPConnection
+from blacklisted_set import BlacklistedSet
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -68,7 +70,7 @@ class TestEmitter(TestCase):
   @patch.object(CachedHTTPConnection, "create_connection", new = MagicMock())
   @patch.object(CachedHTTPConnection, "getresponse", new = MagicMock())
   @patch.object(CachedHTTPConnection, "request")
-  def testRetryFetch(self, request_mock):
+  def testRetryFetchAndRoundRobin(self, request_mock):
     stop_handler = bind_signal_handlers()
 
     request_mock.return_value = MagicMock()
@@ -81,7 +83,7 @@ class TestEmitter(TestCase):
     emitter.RETRY_SLEEP_INTERVAL = .001
     emitter.submit_metrics()
 
-    self.assertEqual(request_mock.call_count, 3)
+    self.assertEqual(request_mock.call_count, 9)
     self.assertUrlData(request_mock)
 
   def assertUrlData(self, request_mock):
@@ -94,3 +96,26 @@ class TestEmitter(TestCase):
     self.assertEqual(metrics['metrics'][0]['metricname'],'metric1')
     self.assertEqual(metrics['metrics'][0]['starttime'],1)
     pass
+
+  def test_blacklisted_set(self):
+    hosts = ["1", "2", "3", "4"]
+    sleep_time = 1
+    bs = BlacklistedSet(hosts, sleep_time)
+    bs.blacklist("4")
+    counter = 0
+    for host in bs:
+      counter = counter + 1
+    self.assertEqual(counter, 3)
+    time.sleep(sleep_time)
+    counter = 0
+    for host in bs:
+      counter = counter + 1
+    self.assertEqual(counter, 4)
+    bs.blacklist("1")
+    bs.blacklist("2")
+    counter = 0
+    for host in bs:
+      counter = counter + 1
+    self.assertEqual(counter, 2)
+
+

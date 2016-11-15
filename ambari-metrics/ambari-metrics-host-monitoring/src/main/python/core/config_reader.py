@@ -86,6 +86,9 @@ EXITCODE_OUT_FILE = PID_DIR + os.sep + "ambari-metrics-host-monitoring.exitcode"
 SERVICE_USERNAME_KEY = "TMP_AMHM_USERNAME"
 SERVICE_PASSWORD_KEY = "TMP_AMHM_PASSWORD"
 
+# Failover strategies
+ROUND_ROBIN_FAILOVER_STRATEGY = 'round-robin'
+
 SETUP_ACTION = "setup"
 START_ACTION = "start"
 STOP_ACTION = "stop"
@@ -97,6 +100,7 @@ AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 config_content = """
 [default]
 debug_level = INFO
+metrics_servers = localhost,host1,host2
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -106,6 +110,8 @@ send_interval = 60
 [collector]
 collector_sleep_interval = 5
 max_queue_size = 5000
+failover_strategy = round-robin
+failover_strategy_blacklisted_interval_seconds = 0
 host = localhost
 port = 6188
 https_enabled = false
@@ -204,8 +210,14 @@ class Configuration:
   def get_collector_sleep_interval(self):
     return int(self.get("collector", "collector_sleep_interval", 10))
 
-  def get_hostname_config(self):
-    return self.get("default", "hostname", None)
+  def get_metrics_collector_hosts(self):
+    return self.get("default", "metrics_servers", "localhost").split(",")
+
+  def get_failover_strategy(self):
+    return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
+
+  def get_failover_strategy_blacklisted_interval_seconds(self):
+    return self.get("collector", "failover_strategy_blacklisted_interval_seconds", 600)
 
   def get_hostname_script(self):
     if self.hostname_script:
