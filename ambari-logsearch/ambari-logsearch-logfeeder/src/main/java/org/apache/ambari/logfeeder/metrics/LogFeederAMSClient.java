@@ -25,6 +25,8 @@ import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.log4j.Logger;
 
+import java.util.Collection;
+
 public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   private static final Logger LOG = Logger.getLogger(LogFeederAMSClient.class);
 
@@ -42,7 +44,7 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
-  public String getCollectorUri() {
+  public String getCollectorUri(String host) {
     return collectorHosts;
   }
 
@@ -53,8 +55,33 @@ public class LogFeederAMSClient extends AbstractTimelineMetricsSink {
   }
 
   @Override
+  protected String getZookeeperQuorum() {
+    return null;
+  }
+
+  @Override
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return null;
+  }
+
+  @Override
+  protected String getHostname() {
+    return null;
+  }
+
+  @Override
   protected boolean emitMetrics(TimelineMetrics metrics) {
     return super.emitMetrics(metrics);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return null;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return null;
   }
 
 }
