@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +56,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private long pollFrequency;
   private String hostname;
   private String port;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String zookeeperQuorum;
   private final static String COUNTER_METRICS_PROPERTY = "counters";
   private final Set<String> counterMetrics = new HashSet<String>();
@@ -99,7 +100,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
     metricsCaches = new HashMap<String, TimelineMetricsCache>();
-    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
     zookeeperQuorum = configuration.getProperty("zookeeper.quorum");
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");
@@ -130,6 +131,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
+  protected String getCollectorPort() {
+    return port;
+  }
+
+  @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
   }
@@ -140,8 +146,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
   }
 
   @Override

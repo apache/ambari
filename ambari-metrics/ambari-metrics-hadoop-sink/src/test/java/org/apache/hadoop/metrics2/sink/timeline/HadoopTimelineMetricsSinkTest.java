@@ -53,7 +53,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PORT;
-import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PROPERTY;
+import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_HOSTS_PROPERTY;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.COLLECTOR_PROTOCOL;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.MAX_METRIC_ROW_CACHE_SIZE;
 import static org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink.METRICS_SEND_INTERVAL;
@@ -100,7 +100,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getString(eq(COLLECTOR_PROPERTY), eq(""))).andReturn("localhost:6188").anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
@@ -172,7 +172,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getString(eq(COLLECTOR_PROPERTY), eq(""))).andReturn("localhost:6188").anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
@@ -184,6 +184,8 @@ public class HadoopTimelineMetricsSinkTest {
 
     expect(sink.findLiveCollectorHostsFromKnownCollector("localhost", "6188"))
       .andReturn(Collections.singletonList("localhost")).anyTimes();
+    expect(sink.findLiveCollectorHostsFromKnownCollector("localhost2", "6188"))
+            .andReturn(Collections.singletonList("localhost2")).anyTimes();
 
     conf.setListDelimiter(eq(','));
     expectLastCall().anyTimes();
@@ -300,13 +302,15 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getString(eq(COLLECTOR_PROPERTY), eq(""))).andReturn("localhost:6188").anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
 
     expect(sink.findLiveCollectorHostsFromKnownCollector("localhost", "6188"))
       .andReturn(Collections.singletonList("localhost")).anyTimes();
+    expect(sink.findLiveCollectorHostsFromKnownCollector("localhost2", "6188"))
+            .andReturn(Collections.singletonList("localhost2")).anyTimes();
 
     expect(conf.getInt(eq(MAX_METRIC_ROW_CACHE_SIZE), anyInt())).andReturn(10).anyTimes();
     expect(conf.getInt(eq(METRICS_SEND_INTERVAL), anyInt())).andReturn(10).anyTimes();

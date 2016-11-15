@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -27,7 +26,6 @@ import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 import org.apache.storm.metric.api.DataPoint;
 import org.apache.storm.metric.api.IClusterMetricsConsumer;
-import org.apache.storm.utils.Utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -47,7 +45,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private String applicationId;
   private int timeoutSeconds;
   private String port;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
 
@@ -75,11 +73,14 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
     return zkQuorum;
   }
 
-  @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
   }
 
+  @Override
+  protected String getCollectorPort() {
+    return port;
+  }
   @Override
   protected String getHostname() {
     return hostname;
@@ -102,8 +103,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       }
       Configuration conf = new Configuration("/storm-metrics2.properties");
 
-      collectors = conf.getProperty(COLLECTOR_PROPERTY);
-      protocol = conf.getProperty(COLLECTOR_PROTOCOL) != null ? conf.getProperty(COLLECTOR_PROTOCOL) : "http";
+      collectorHosts = parseHostsStringIntoCollection(conf.getProperty(COLLECTOR_HOSTS_PROPERTY).toString());
       port = conf.getProperty(COLLECTOR_PORT) != null ? conf.getProperty(COLLECTOR_PORT) : "6188";
       zkQuorum = conf.getProperty(ZOOKEEPER_QUORUM) != null ? conf.getProperty(ZOOKEEPER_QUORUM) : null;
 

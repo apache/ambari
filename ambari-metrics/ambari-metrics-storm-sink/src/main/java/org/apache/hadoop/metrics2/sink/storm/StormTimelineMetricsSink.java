@@ -61,12 +61,12 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private TimelineMetricsCache metricsCache;
   private String hostname;
   private int timeoutSeconds;
-  private String topologyName;
-  private String applicationId;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
   private String port;
+  private String topologyName;
+  private String applicationId;
 
   @Override
   protected String getCollectorUri(String host) {
@@ -89,8 +89,13 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return port;
   }
 
   @Override
@@ -120,8 +125,7 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
-
-    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    collectorHosts = parseHostsStringIntoCollection(configuration.getProperty(COLLECTOR_HOSTS_PROPERTY));
     zkQuorum = configuration.getProperty("zookeeper.quorum");
     protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
     port = configuration.getProperty(COLLECTOR_PORT, "6188");

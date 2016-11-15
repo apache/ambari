@@ -177,6 +177,7 @@ def flume(action = None):
         if params.has_metric_collector:
           extra_args = '-Dflume.monitoring.type=org.apache.hadoop.metrics2.sink.flume.FlumeTimelineMetricsSink ' \
                        '-Dflume.monitoring.node={0}:{1}'
+          # TODO check if this is used.
           extra_args = extra_args.format(params.metric_collector_host, params.metric_collector_port)
 
         flume_cmd = flume_base.format(agent, flume_agent_conf_dir,

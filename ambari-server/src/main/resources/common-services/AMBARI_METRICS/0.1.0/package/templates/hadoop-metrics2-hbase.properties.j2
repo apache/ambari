@@ -40,22 +40,26 @@ hbase.extendedperiod = 3600
 
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period=30
-hbase.collector={{metric_collector_host}}:{{metric_collector_port}}
+hbase.collector.hosts={{ams_collector_hosts}}
+hbase.port={{metric_collector_port}}
 
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period=30
-jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
+jvm.collector.hosts={{ams_collector_hosts}}
+jvm.port={{metric_collector_port}}
 
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period=30
-rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
+rpc.collector.hosts={{ams_collector_hosts}}
+rpc.port={{metric_collector_port}}
 
 *.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
 *.sink.timeline.slave.host.name={{hostname}}
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period={{metrics_collection_period}}
 hbase.sink.timeline.sendInterval={{metrics_report_interval}}000
-hbase.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+hbase.sink.timeline.collector.hosts={{ams_collector_hosts}}
+hbase.sink.timeline.port={{metric_collector_port}}
 hbase.sink.timeline.serviceName-prefix=ams
 
 # HTTPS properties

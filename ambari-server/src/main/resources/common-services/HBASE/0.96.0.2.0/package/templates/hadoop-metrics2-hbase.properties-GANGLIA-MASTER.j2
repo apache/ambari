@@ -54,21 +54,28 @@ hbase.extendedperiod = 3600
 
 hbase.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.period={{metrics_collection_period}}
-hbase.collector={{metric_collector_host}}:{{metric_collector_port}}
+hbase.collector.hosts={{ams_collector_hosts}}
+hbase.protocol={{metric_collector_protocol}}
+hbase.port={{metric_collector_port}}
 
 jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 jvm.period={{metrics_collection_period}}
-jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
+jvm.collector.hosts={{ams_collector_hosts}}
+jvm.protocol={{metric_collector_protocol}}
+jvm.port={{metric_collector_port}}
 
 rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 rpc.period={{metrics_collection_period}}
-rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
+rpc.collector.hosts={{ams_collector_hosts}}
+rpc.protocol={{metric_collector_protocol}}
+rpc.port={{metric_collector_port}}
 
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period={{metrics_collection_period}}
 hbase.sink.timeline.sendInterval={{metrics_report_interval}}000
-hbase.sink.timeline.collector={{metric_collector_hosts}}
+hbase.sink.timeline.collector.hosts={{ams_collector_hosts}}
 hbase.sink.timeline.protocol={{metric_collector_protocol}}
+hbase.sink.timeline.port={{metric_collector_port}}
 
 # HTTPS properties
 hbase.sink.timeline.truststore.path = {{metric_truststore_path}}

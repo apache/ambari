@@ -174,11 +174,6 @@ has_metric_collector = not len(ams_collector_hosts) == 0
 metric_collector_port = None
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \
-      'metrics_collector_vip_host' in config['configurations']['cluster-env']:
-    metric_collector_host = config['configurations']['cluster-env']['metrics_collector_vip_host']
-  else:
-    metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
-  if 'cluster-env' in config['configurations'] and \
       'metrics_collector_vip_port' in config['configurations']['cluster-env']:
     metric_collector_port = config['configurations']['cluster-env']['metrics_collector_vip_port']
   else:
@@ -203,12 +198,6 @@ metrics_collection_period = default("/configurations/ams-site/timeline.metrics.s
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-with-common-*.jar"
 metric_collector_legacy_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink-legacy-with-common-*.jar"
 
-# Collector hosts
-metric_collector_hosts = ""
-if ams_collector_hosts:
-  for host in ams_collector_hosts:
-    metric_collector_hosts += host + ':' + metric_collector_port + ','
-  metric_collector_hosts = metric_collector_hosts[:-1]
 
 # Cluster Zookeeper quorum
 zookeeper_quorum = ""

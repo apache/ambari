@@ -33,6 +33,7 @@ import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private String applicationId;
   private int timeoutSeconds;
   private String port;
-  private String collectors;
+  private Collection<String> collectorHosts;
   private String zkQuorum;
   private String protocol;
 
@@ -77,8 +78,13 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   }
 
   @Override
-  protected String getConfiguredCollectors() {
-    return collectors;
+  protected Collection<String> getConfiguredCollectorHosts() {
+    return collectorHosts;
+  }
+
+  @Override
+  protected String getCollectorPort() {
+    return port;
   }
 
   @Override
@@ -105,7 +111,7 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       Map stormConf = Utils.readStormConfig();
       this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
 
-      collectors = cf.get(COLLECTOR_PROPERTY).toString();
+      collectorHosts = parseHostsStringIntoCollection(cf.get(COLLECTOR_HOSTS_PROPERTY).toString());
       protocol = cf.get(COLLECTOR_PROTOCOL) != null ? cf.get(COLLECTOR_PROTOCOL).toString() : "http";
       port = cf.get(COLLECTOR_PORT) != null ? cf.get(COLLECTOR_PORT).toString() : "6188";
       zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
