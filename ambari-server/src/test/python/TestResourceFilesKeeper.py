@@ -82,8 +82,7 @@ class TestResourceFilesKeeper(TestCase):
       "call('../resources/TestAmbaryServer.samples/" \
       "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n " \
       "call('../resources/custom_actions'),\n " \
-      "call('../resources/host_scripts'),\n " \
-      "call('../resources/dashboards')]"
+      "call('../resources/host_scripts')]"
   else:
     UPDATE_DIRECTORY_ARCHIVE_CALL_LIST = \
       "[call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_stack\\\\HIVE\\\\package'),\n " \
@@ -92,18 +91,17 @@ class TestResourceFilesKeeper(TestCase):
       "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
       "call('..\\\\resources\\\\TestAmbaryServer.samples\\\\dummy_common_services\\\\HIVE\\\\0.11.0.2.0.5.0\\\\package'),\n " \
       "call('..\\\\resources\\\\custom_actions'),\n " \
-      "call('..\\\\resources\\\\host_scripts'),\n " \
-      "call('..\\\\resources\\\\dashboards')]"
+      "call('..\\\\resources\\\\host_scripts')]"
 
   def setUp(self):
     logging.basicConfig(level=logging.ERROR)
 
 
-  @patch.object(ResourceFilesKeeper, "update_directory_archives")
-  def test_perform_housekeeping(self, update_directory_archives_mock):
+  @patch.object(ResourceFilesKeeper, "update_directory_archieves")
+  def test_perform_housekeeping(self, update_directory_archieves_mock):
     resource_files_keeper = ResourceFilesKeeper(os.sep + "dummy-resources", os.sep + "dummy-path")
     resource_files_keeper.perform_housekeeping()
-    update_directory_archives_mock.assertCalled()
+    update_directory_archieves_mock.assertCalled()
     pass
 
 
@@ -111,7 +109,7 @@ class TestResourceFilesKeeper(TestCase):
   @patch.object(ResourceFilesKeeper, "list_common_services")
   @patch.object(ResourceFilesKeeper, "list_stacks")
   @patch("os.path.abspath")
-  def test_update_directory_archives(self, abspath_mock,
+  def test_update_directory_archieves(self, abspath_mock,
                                       list_active_stacks_mock,
                                       list_common_services_mock,
                                       update_directory_archive_mock):
@@ -122,7 +120,7 @@ class TestResourceFilesKeeper(TestCase):
                                               self.DUMMY_UNCHANGEABLE_COMMON_SERVICES]
     abspath_mock.side_effect = lambda s : s
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.TEST_STACKS_DIR)
-    resource_files_keeper.update_directory_archives()
+    resource_files_keeper.update_directory_archieves()
     self.assertEquals(pprint.pformat(
       update_directory_archive_mock.call_args_list),
       self.UPDATE_DIRECTORY_ARCHIVE_CALL_LIST)

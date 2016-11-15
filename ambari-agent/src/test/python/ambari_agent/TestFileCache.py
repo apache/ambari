@@ -117,18 +117,6 @@ class TestFileCache(TestCase):
       "('/var/lib/ambari-agent/cache', 'custom_actions', 'server_url_pref')")
     self.assertEquals(res, "dummy value")
 
-
-  @patch.object(FileCache, "provide_directory")
-  def test_get_dashboard_base_dir(self, provide_directory_mock):
-    provide_directory_mock.return_value = "dummy value"
-    fileCache = FileCache(self.config)
-    res = fileCache.get_dashboard_base_dir("server_url_pref")
-    self.assertEquals(
-      pprint.pformat(provide_directory_mock.call_args_list[0][0]),
-      "('/var/lib/ambari-agent/cache', 'dashboards', 'server_url_pref')")
-    self.assertEquals(res, "dummy value")
-
-
   @patch.object(FileCache, "build_download_url")
   def test_provide_directory_no_update(self, build_download_url_mock):
     try:

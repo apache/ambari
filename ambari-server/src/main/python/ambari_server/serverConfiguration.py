@@ -397,7 +397,6 @@ class ServerConfigDefaults(object):
     self.EXTENSION_LOCATION_DEFAULT = ""
     self.COMMON_SERVICES_LOCATION_DEFAULT = ""
     self.MPACKS_STAGING_LOCATION_DEFAULT = ""
-    self.DASHBOARD_LOCATION_DEFAULT = ""
     self.SERVER_TMP_DIR_DEFAULT = ""
 
     self.DEFAULT_VIEWS_DIR = ""
@@ -469,7 +468,6 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     self.EXTENSION_LOCATION_DEFAULT = "resources\\extensions"
     self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
     self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
-    self.DASHBOARD_LOCATION_DEFAULT = "resources\\dashboards"
     self.SERVER_TMP_DIR_DEFAULT = "data\\tmp"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
@@ -556,7 +554,6 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.EXTENSION_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/extensions")
     self.COMMON_SERVICES_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/common-services")
     self.MPACKS_STAGING_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/mpacks")
-    self.DASHBOARD_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/dashboards")
     self.SERVER_TMP_DIR_DEFAULT = AmbariPath.get("/var/lib/ambari-server/data/tmp")
 
     self.DEFAULT_VIEWS_DIR = AmbariPath.get("/var/lib/ambari-server/resources/views")
@@ -1431,14 +1428,6 @@ def get_mpacks_staging_location(properties):
   if not mpacks_staging_location:
     mpacks_staging_location = configDefaults.MPACKS_STAGING_LOCATION_DEFAULT
   return mpacks_staging_location
-
-
-#
-# Dashboard location
-#
-def get_dashboard_location(properties):
-  dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
-  return dashboard_location
 
 #
 # Server temp location
