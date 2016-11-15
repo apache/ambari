@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var helpers = require('test/helpers');
 
 describe('App.HostComponentRecommendationMixin', function() {
   var mixedObject;
@@ -25,7 +26,7 @@ describe('App.HostComponentRecommendationMixin', function() {
   });
 
   describe('#formatRecommendComponents', function() {
-    var cases = [
+    [
       {
         components: undefined,
         hosts: [],
@@ -51,9 +52,7 @@ describe('App.HostComponentRecommendationMixin', function() {
           Em.Object.create({ componentName: 'C2', hostName: 'h3'}),
         ]
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         expect(mixedObject.formatRecommendComponents(test.components, test.hosts)).to.be.eql(test.e);
       });
@@ -61,7 +60,6 @@ describe('App.HostComponentRecommendationMixin', function() {
   });
 
   describe('#getRecommendedHosts', function() {
-    var cases;
     beforeEach(function() {
       sinon.stub(mixedObject, 'loadComponentsRecommendationsFromServer');
       sinon.stub(mixedObject, 'getRecommendationRequestData');
@@ -74,7 +72,7 @@ describe('App.HostComponentRecommendationMixin', function() {
       mixedObject.formatRecommendComponents.restore();
     });
 
-    cases = [
+    [
       {
         opts: null,
         e: {
@@ -100,9 +98,7 @@ describe('App.HostComponentRecommendationMixin', function() {
         },
         m: 'should normaly merge defaults with passed options'
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         mixedObject.getRecommendedHosts(test.opts);
         expect(mixedObject.getRecommendationRequestData.args[0][0]).to.be.eql(test.e);
@@ -113,7 +109,8 @@ describe('App.HostComponentRecommendationMixin', function() {
   describe('#loadComponentsRecommedationsFromServer', function() {
     it('default request options checking', function() {
       mixedObject.loadComponentsRecommendationsFromServer('someData');
-      expect(App.ajax.send.args[0][0]).to.be.eql({
+      var args = helpers.findAjaxRequest('name', 'wizard.loadrecommendations');
+      expect(args[0]).to.be.eql({
         name: 'wizard.loadrecommendations',
         sender: mixedObject,
         data: 'someData',
@@ -124,14 +121,13 @@ describe('App.HostComponentRecommendationMixin', function() {
   });
 
   describe('#getRecommendationRequestData', function() {
-    var cases;
     beforeEach(function() {
       sinon.stub(App, 'get').withArgs('stackVersionURL').returns('/stack/url');
     });
     afterEach(function() {
       App.get.restore();
     });
-    cases = [
+    [
       {
         options: {
           hosts: ['h1'],
@@ -177,9 +173,7 @@ describe('App.HostComponentRecommendationMixin', function() {
         },
         m: 'when blueprint passed it should be used instead of generated blueprint'
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         expect(mixedObject.getRecommendationRequestData(test.options)).to.be.eql(test.e);
       });

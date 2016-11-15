@@ -25,10 +25,10 @@
       {{! Alert Definition Name }}
       <div class="definition-name row">
         {{#if controller.editing.label.isEditing}}
-          <div {{bindAttr class="controller.editing.label.isError:error :col-md-5 :name-text-field :form-group"}}>
+          <div {{bindAttr class="controller.editing.label.isError:error :col-md-8 :name-text-field"}}>
             {{view Em.TextField valueBinding="controller.editing.label.value" maxlength="255" class="form-control"}}
           </div>
-          <div class="edit-buttons">
+          <div class="edit-buttons align-right col-md-4">
             <button {{action cancelEdit controller.editing.label target="controller"}}
                 class="btn btn-default cancel-button">{{t common.cancel}}</button>
             <button {{bindAttr disabled="controller.editing.label.isError"}} {{action saveEdit controller.editing.label target="controller"}}
@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="status col-md-4">
+    <div class="status align-right col-md-4">
       {{view App.AlertDefinitionSummary contentBinding="view.controller.content"}}
     </div>
   </div>
@@ -85,7 +85,7 @@
       <div class="panel-body">
         {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
         {{#if App.router.mainAlertDefinitionConfigsController.canEdit}}
-          <div class="edit-buttons">
+          <div class="edit-buttons align-right">
             <button {{action cancelEditConfigs target="App.router.mainAlertDefinitionConfigsController"}}
                 class="btn btn-default">{{t common.cancel}}</button>
             <button {{bindAttr disabled="App.router.mainAlertDefinitionConfigsController.hasErrors"}} {{action saveConfigs target="App.router.mainAlertDefinitionConfigsController"}}

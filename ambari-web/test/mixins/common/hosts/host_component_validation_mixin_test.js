@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var helpers = require('test/helpers');
 
 describe('App.HostComponentValidationMixin', function() {
   var mixedObject;
@@ -25,7 +26,7 @@ describe('App.HostComponentValidationMixin', function() {
   });
 
   describe('#formatValidateComponents', function() {
-    var cases = [
+    [
       {
         components: undefined,
         hosts: [],
@@ -51,9 +52,7 @@ describe('App.HostComponentValidationMixin', function() {
           Em.Object.create({ componentName: 'C2', hostName: 'h3'}),
         ]
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         expect(mixedObject.formatValidateComponents(test.components, test.hosts)).to.be.eql(test.e);
       });
@@ -61,7 +60,6 @@ describe('App.HostComponentValidationMixin', function() {
   });
 
   describe('#validateSelectedHostComponents', function() {
-    var cases;
     beforeEach(function() {
       sinon.stub(mixedObject, 'getHostComponentValidationRequest');
       sinon.stub(mixedObject, 'getHostComponentValidationParams');
@@ -74,7 +72,7 @@ describe('App.HostComponentValidationMixin', function() {
       mixedObject.formatValidateComponents.restore();
     });
 
-    cases = [
+    [
       {
         opts: null,
         e: {
@@ -100,9 +98,7 @@ describe('App.HostComponentValidationMixin', function() {
         },
         m: 'should normaly merge defaults with passed options'
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         mixedObject.validateSelectedHostComponents(test.opts);
         expect(mixedObject.getHostComponentValidationParams.args[0][0]).to.be.eql(test.e);
@@ -113,7 +109,8 @@ describe('App.HostComponentValidationMixin', function() {
   describe('#getHostComponentValidationRequest', function() {
     it('default request options checking', function() {
       mixedObject.getHostComponentValidationRequest('someData');
-      expect(App.ajax.send.args[0][0]).to.be.eql({
+      var args = helpers.findAjaxRequest('name', 'config.validations');
+      expect(args[0]).to.be.eql({
         name: 'config.validations',
         sender: mixedObject,
         data: 'someData',
@@ -124,14 +121,13 @@ describe('App.HostComponentValidationMixin', function() {
   });
 
   describe('#getHostComponentValidationParams', function() {
-    var cases;
     beforeEach(function() {
       sinon.stub(App, 'get').withArgs('stackVersionURL').returns('/stack/url');
     });
     afterEach(function() {
       App.get.restore();
     });
-    cases = [
+    [
       {
         options: {
           hosts: ['h1'],
@@ -177,9 +173,7 @@ describe('App.HostComponentValidationMixin', function() {
         },
         m: 'when blueprint passed it should be used instead of generated blueprint'
       }
-    ];
-
-    cases.forEach(function(test) {
+    ].forEach(function(test) {
       it(test.m, function() {
         expect(mixedObject.getHostComponentValidationParams(test.options)).to.be.eql(test.e);
       });

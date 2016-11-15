@@ -30,13 +30,13 @@
               <button class="btn btn-primary step3-remove-selected-btn" {{bindAttr disabled="view.noHostsSelected"}}
                 {{action removeSelectedHosts target="controller" }}>
                 <i class="glyphicon glyphicon-trash glyphicon-white"></i>
-                {{t installer.step3.removeSelected}}
+                <span class="hidden-sm">{{t installer.step3.removeSelected}}</span>
               </button>
             {{/unless}}
             {{#unless isRetryDisabled}}
               <a class="btn btn-primary decommission" href="#" {{action retrySelectedHosts target="view"}}>
                 <i class="glyphicon glyphicon-repeat glyphicon-white"></i>
-                {{t installer.step3.retryFailed}}
+                <span class="hidden-sm">{{t installer.step3.retryFailed}}</span>
               </a>
             {{/unless}}
 
