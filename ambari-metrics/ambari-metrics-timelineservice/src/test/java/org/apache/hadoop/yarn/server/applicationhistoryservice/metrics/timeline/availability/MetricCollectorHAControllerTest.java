@@ -23,17 +23,16 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.helix.HelixManager;
 import org.apache.helix.HelixManagerFactory;
 import org.apache.helix.InstanceType;
+import org.apache.helix.api.id.StateModelDefId;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.CLUSTER_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.DEFAULT_STATE_MODEL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.METRIC_AGGREGATORS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.STATE_MODEL_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.CLUSTER_NAME;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -76,9 +75,9 @@ public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTes
     HelixManager manager2 = HelixManagerFactory.getZKHelixManager(CLUSTER_NAME,
       instanceConfig2.getInstanceName(),
       InstanceType.PARTICIPANT, haController.zkConnectUrl);
-    manager2.getStateMachineEngine().registerStateModelFactory(STATE_MODEL_NAME,
+    manager2.getStateMachineEngine().registerStateModelFactory(StateModelDefId.from(DEFAULT_STATE_MODEL),
       new OnlineOfflineStateModelFactory(instanceConfig2.getInstanceName(),
-        new AggregationTaskRunner(instanceConfig2.getInstanceName(), "")));
+        new AggregationTaskRunner(instanceConfig2.getInstanceName(), "", CLUSTER_NAME)));
     manager2.connect();
     haController.admin.rebalance(CLUSTER_NAME, METRIC_AGGREGATORS, 1);
 

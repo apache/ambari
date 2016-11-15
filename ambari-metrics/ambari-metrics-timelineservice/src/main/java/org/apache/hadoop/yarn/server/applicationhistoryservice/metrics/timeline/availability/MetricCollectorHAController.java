@@ -33,8 +33,8 @@ import org.apache.helix.manager.zk.ZKHelixAdmin;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.InstanceConfig;
 import org.apache.helix.model.LiveInstance;
-import org.apache.helix.model.OnlineOfflineSMD;
-
+import org.apache.helix.model.StateModelDefinition;
+import org.apache.helix.tools.StateModelConfigGenerator;;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,21 +42,21 @@ import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import static org.apache.helix.model.IdealState.RebalanceMode.FULL_AUTO;
 
 public class MetricCollectorHAController {
   private static final Log LOG = LogFactory.getLog(MetricCollectorHAController.class);
 
-  static final String CLUSTER_NAME = "ambari-metrics-cluster";
+  static final String CLUSTER_NAME = "ambari-metrics-cluster-unsecure";
   static final String METRIC_AGGREGATORS = "METRIC_AGGREGATORS";
-  static final String STATE_MODEL_NAME = OnlineOfflineSMD.name;
+  static final String DEFAULT_STATE_MODEL = "OnlineOffline";
   static final String INSTANCE_NAME_DELIMITER = "_";
 
   final String zkConnectUrl;
   final String instanceHostname;
   final InstanceConfig instanceConfig;
   final AggregationTaskRunner aggregationTaskRunner;
+  final TimelineMetricConfiguration configuration;
 
   // Cache list of known live instances
   final List<String> liveInstanceNames = new ArrayList<>();
@@ -69,6 +69,7 @@ public class MetricCollectorHAController {
   private volatile boolean isInitialized = false;
 
   public MetricCollectorHAController(TimelineMetricConfiguration configuration) {
+    this.configuration = configuration;
     String instancePort;
     try {
       instanceHostname = configuration.getInstanceHostnameFromEnv();
@@ -99,43 +100,53 @@ public class MetricCollectorHAController {
     instanceConfig.setHostName(instanceHostname);
     instanceConfig.setPort(instancePort);
     instanceConfig.setInstanceEnabled(true);
-    aggregationTaskRunner = new AggregationTaskRunner(instanceConfig.getInstanceName(), zkConnectUrl);
+    aggregationTaskRunner = new AggregationTaskRunner(
+      instanceConfig.getInstanceName(), zkConnectUrl, getClusterName());
+  }
+
+  /**
+   * Name of Helix znode
+   */
+  public String getClusterName() {
+    return CLUSTER_NAME;
   }
 
   /**
    * Initialize the instance with zookeeper via Helix
    */
   public void initializeHAController() throws Exception {
+    String clusterName = getClusterName();
     admin = new ZKHelixAdmin(zkConnectUrl);
     // create cluster
-    LOG.info("Creating zookeeper cluster node: " + CLUSTER_NAME);
-    admin.addCluster(CLUSTER_NAME, false);
+    LOG.info("Creating zookeeper cluster node: " + clusterName);
+    admin.addCluster(clusterName, false);
 
     // Adding host to the cluster
-    List<String> nodes = admin.getInstancesInCluster(CLUSTER_NAME);
+    List<String> nodes = admin.getInstancesInCluster(clusterName);
     if (nodes == null || !nodes.contains(instanceConfig.getInstanceName())) {
       LOG.info("Adding participant instance " + instanceConfig);
-      admin.addInstance(CLUSTER_NAME, instanceConfig);
+      admin.addInstance(clusterName, instanceConfig);
     }
 
     // Add a state model
-    if (admin.getStateModelDef(CLUSTER_NAME, STATE_MODEL_NAME) == null) {
+    if (admin.getStateModelDef(clusterName, DEFAULT_STATE_MODEL) == null) {
       LOG.info("Adding ONLINE-OFFLINE state model to the cluster");
-      admin.addStateModelDef(CLUSTER_NAME, STATE_MODEL_NAME, OnlineOfflineSMD.build());
+      admin.addStateModelDef(clusterName, DEFAULT_STATE_MODEL, new StateModelDefinition(
+        StateModelConfigGenerator.generateConfigForOnlineOffline()));
     }
 
     // Add resources with 1 cluster-wide replica
     // Since our aggregators are unbalanced in terms of work distribution we
     // only need to distribute writes to METRIC_AGGREGATE and
     // METRIC_RECORD_MINUTE
-    List<String> resources = admin.getResourcesInCluster(CLUSTER_NAME);
+    List<String> resources = admin.getResourcesInCluster(clusterName);
     if (!resources.contains(METRIC_AGGREGATORS)) {
       LOG.info("Adding resource " + METRIC_AGGREGATORS + " with 2 partitions and 1 replicas");
-      admin.addResource(CLUSTER_NAME, METRIC_AGGREGATORS, 2, OnlineOfflineSMD.name, FULL_AUTO.toString());
+      admin.addResource(clusterName, METRIC_AGGREGATORS, 2, DEFAULT_STATE_MODEL, FULL_AUTO.toString());
     }
     // this will set up the ideal state, it calculates the preference list for
     // each partition similar to consistent hashing
-    admin.rebalance(CLUSTER_NAME, METRIC_AGGREGATORS, 1);
+    admin.rebalance(clusterName, METRIC_AGGREGATORS, 1);
 
     // Start participant
     startAggregators();
@@ -173,7 +184,7 @@ public class MetricCollectorHAController {
 
   private void startController() throws Exception {
     manager = HelixManagerFactory.getZKHelixManager(
-      CLUSTER_NAME,
+      getClusterName(),
       instanceHostname,
       InstanceType.CONTROLLER,
       zkConnectUrl
@@ -245,7 +256,7 @@ public class MetricCollectorHAController {
   public void printClusterState() {
     StringBuilder sb = new StringBuilder("\n######################### Cluster HA state ########################");
 
-    ExternalView resourceExternalView = admin.getResourceExternalView(CLUSTER_NAME, METRIC_AGGREGATORS);
+    ExternalView resourceExternalView = admin.getResourceExternalView(getClusterName(), METRIC_AGGREGATORS);
     if (resourceExternalView != null) {
       getPrintableResourceState(resourceExternalView, METRIC_AGGREGATORS, sb);
     }
@@ -258,7 +269,7 @@ public class MetricCollectorHAController {
                                          StringBuilder sb) {
     TreeSet<String> sortedSet = new TreeSet<>(resourceExternalView.getPartitionSet());
     sb.append("\nCLUSTER: ");
-    sb.append(CLUSTER_NAME);
+    sb.append(getClusterName());
     sb.append("\nRESOURCE: ");
     sb.append(resourceName);
     for (String partitionName : sortedSet) {
