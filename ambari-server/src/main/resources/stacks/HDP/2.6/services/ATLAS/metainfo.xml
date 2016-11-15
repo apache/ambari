@@ -20,7 +20,15 @@
   <services>
     <service>
       <name>ATLAS</name>
-      <version>0.7.0.2.5</version>
+      <version>0.8.0.2.6</version>
+
+      <themes>
+        <theme>
+          <fileName>theme_version_2.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
     </service>
   </services>
 </metainfo>
