@@ -148,6 +148,7 @@ App.ConfigOverridable = Em.Mixin.create({
               popup.hide();
             });
           } else {
+            newConfigGroup.is_temporary = true;
             App.store.load(App.ServiceConfigGroup, newConfigGroup);
             App.store.commit();
             newConfigGroup = App.ServiceConfigGroup.find(newConfigGroup.id);
