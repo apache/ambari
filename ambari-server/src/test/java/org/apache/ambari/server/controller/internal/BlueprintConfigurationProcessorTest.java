@@ -7841,7 +7841,7 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("host1:6188",
+    assertEquals("0.0.0.0:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
 
@@ -7871,7 +7871,7 @@ public class BlueprintConfigurationProcessorTest {
 
     configProcessor.doUpdateForClusterCreate();
 
-    assertEquals("host1:6188",
+    assertEquals("0.0.0.0:6188",
       clusterConfig.getPropertyValue("ams-site", "timeline.metrics.service.webapp.address"));
   }
 
@@ -7881,7 +7881,7 @@ public class BlueprintConfigurationProcessorTest {
 
     Map<String, String> amsSite = new HashMap<String, String>();
     //default
-    amsSite.put("timeline.metrics.service.webapp.address", "localhost:6188");
+    amsSite.put("timeline.metrics.service.webapp.address", "0.0.0.0:6188");
     properties.put("ams-site", amsSite);
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();

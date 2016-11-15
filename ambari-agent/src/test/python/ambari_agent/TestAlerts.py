@@ -411,7 +411,7 @@ class TestAlerts(TestCase):
   def test_ams_alert(self, ma_load_metric_mock):
     definition_json = self._get_ams_alert_definition()
     configuration = {'ams-site':
-      {'timeline.metrics.service.webapp.address': 'c6401.ambari.apache.org:6188'}
+      {'timeline.metrics.service.webapp.address': '0.0.0.0:6188'}
     }
 
     collector = AlertCollector()
