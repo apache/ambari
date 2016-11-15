@@ -93,6 +93,8 @@ kafka_managed_log_dir = "/var/log/kafka"
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 kafka_env_sh_template = config['configurations']['kafka-env']['content']
+kafka_jaas_conf_template = default("/configurations/kafka_jaas_conf/content", None)
+kafka_client_jaas_conf_template = default("/configurations/kafka_client_jaas_conf/content", None)
 kafka_hosts = config['clusterHostInfo']['kafka_broker_hosts']
 kafka_hosts.sort()
 
