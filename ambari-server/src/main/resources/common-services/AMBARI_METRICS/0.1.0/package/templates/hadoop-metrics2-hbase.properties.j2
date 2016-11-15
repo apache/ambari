@@ -55,7 +55,7 @@ rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
 hbase.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 hbase.sink.timeline.period={{metrics_collection_period}}
 hbase.sink.timeline.sendInterval={{metrics_report_interval}}000
-hbase.sink.timeline.collector={{metric_collector_protocol}}://{{metric_collector_host}}:{{metric_collector_port}}
+hbase.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
 hbase.sink.timeline.serviceName-prefix=ams
 
 # HTTPS properties
