@@ -24,12 +24,12 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.easymock.EasyMock;
 import org.junit.Test;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME.METRIC_AGGREGATE_SECOND;
 
 public class TimelineMetricClusterAggregatorSecondTest {
 
@@ -44,9 +44,9 @@ public class TimelineMetricClusterAggregatorSecondTest {
     TimelineMetricMetadataManager metricMetadataManagerMock = EasyMock.createNiceMock(TimelineMetricMetadataManager.class);
 
     TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
-      "TimelineClusterAggregatorSecond", metricMetadataManagerMock, null, configuration, null,
-      aggregatorInterval, 2, "false", "", "", aggregatorInterval, sliceInterval
-    );
+      METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null,
+      configuration, null, aggregatorInterval, 2, "false", "", "",
+      aggregatorInterval, sliceInterval, null);
 
     secondAggregator.timeSliceIntervalMillis = sliceInterval;
     long roundedEndTime = AbstractTimelineAggregator.getRoundedAggregateTimeMillis(aggregatorInterval);
@@ -120,9 +120,9 @@ public class TimelineMetricClusterAggregatorSecondTest {
     EasyMock.replay(metricMetadataManagerMock);
 
     TimelineMetricClusterAggregatorSecond secondAggregator = new TimelineMetricClusterAggregatorSecond(
-      "TimelineClusterAggregatorSecond", metricMetadataManagerMock, null, configuration, null,
-      aggregatorInterval, 2, "false", "", "", aggregatorInterval, sliceInterval
-    );
+      METRIC_AGGREGATE_SECOND, metricMetadataManagerMock, null, configuration, null,
+      aggregatorInterval, 2, "false", "", "", aggregatorInterval,
+      sliceInterval, null);
 
     long startTime = AbstractTimelineAggregator.getRoundedCheckPointTimeMillis(System.currentTimeMillis(),aggregatorInterval);
     List<Long[]> timeslices = secondAggregator.getTimeSlices(startTime, startTime + aggregatorInterval);

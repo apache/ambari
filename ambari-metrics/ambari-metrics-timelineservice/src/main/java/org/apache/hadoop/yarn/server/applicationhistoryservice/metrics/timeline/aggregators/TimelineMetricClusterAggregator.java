@@ -19,6 +19,8 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner.AGGREGATOR_NAME;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
@@ -36,7 +38,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   private final TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(true);
   private final boolean isClusterPrecisionInputTable;
 
-  public TimelineMetricClusterAggregator(String aggregatorName,
+  public TimelineMetricClusterAggregator(AGGREGATOR_NAME aggregatorName,
                                          PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
@@ -45,11 +47,12 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
                                          String hostAggregatorDisabledParam,
                                          String inputTableName,
                                          String outputTableName,
-                                         Long nativeTimeRangeDelay) {
+                                         Long nativeTimeRangeDelay,
+                                         TimelineMetricHAController haController) {
     super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier,
       hostAggregatorDisabledParam, inputTableName, outputTableName,
-      nativeTimeRangeDelay);
+      nativeTimeRangeDelay, haController);
     isClusterPrecisionInputTable = inputTableName.equals(METRICS_CLUSTER_AGGREGATE_TABLE_NAME);
   }
 
