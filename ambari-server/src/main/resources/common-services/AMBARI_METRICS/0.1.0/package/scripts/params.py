@@ -78,6 +78,9 @@ dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
 dashboards_dirs.append(os.path.join(agent_cache_dir, service_package_folder,
                                    'files', 'grafana-dashboards', 'default'))
 
+# Custom services
+dashboards_dirs.append(os.path.join(agent_cache_dir, 'dashboards', 'grafana-dashboards'))
+
 def get_grafana_dashboard_defs():
   dashboard_defs = []
   for dashboards_dir in dashboards_dirs:
