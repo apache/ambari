@@ -128,6 +128,7 @@ import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
+import org.apache.ambari.server.security.authorization.GroupType;
 import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
@@ -970,7 +971,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (group != null) {
         throw new AmbariException("Group already exists.");
       }
-      users.createGroup(request.getGroupName());
+      users.createGroup(request.getGroupName(), GroupType.LOCAL);
     }
   }
 
@@ -3682,7 +3683,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // get them all
       if (null == request.getGroupName()) {
         for (Group group: users.getAllGroups()) {
-          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup());
+          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup(), group.getGroupType());
           responses.add(response);
         }
       } else {
@@ -3695,7 +3696,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 + request.getGroupName() + "'");
           }
         } else {
-          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup());
+          final GroupResponse response = new GroupResponse(group.getGroupName(), group.isLdapGroup(), group.getGroupType());
           responses.add(response);
         }
       }

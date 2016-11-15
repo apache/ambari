@@ -722,6 +722,21 @@ public class Configuration {
       "jce.name", null);
 
   /**
+   * The auto group creation by Ambari.
+   */
+  @Markdown(
+      description = "The auto group creation by Ambari")
+  public static final ConfigurationProperty<Boolean> AUTO_GROUP_CREATION = new ConfigurationProperty<>(
+      "auto.group.creation", Boolean.FALSE);
+
+  /**
+   * The PAM configuration file.
+   */
+  @Markdown(description = "The PAM configuration file.")
+  public static final ConfigurationProperty<String> PAM_CONFIGURATION_FILE = new ConfigurationProperty<>(
+      "pam.configuration", null);
+
+  /**
    * The type of authentication mechanism used by Ambari.
    *
    * @see ClientSecurityType
@@ -5591,5 +5606,13 @@ public class Configuration {
   public Integer getClientApiAcceptors() {
     String acceptors = getProperty(SRVR_API_ACCEPTOR_THREAD_COUNT);
     return StringUtils.isEmpty(acceptors) ? null : Integer.parseInt(acceptors);
+  }
+ 
+  public String getPamConfigurationFile() {
+    return getProperty(PAM_CONFIGURATION_FILE);
+  }
+
+  public String getAutoGroupCreation() {
+    return getProperty(AUTO_GROUP_CREATION);
   }
 }

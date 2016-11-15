@@ -52,8 +52,8 @@ from ambari_server.setupActions import BACKUP_ACTION, LDAP_SETUP_ACTION, LDAP_SY
   SETUP_ACTION, SETUP_SECURITY_ACTION,START_ACTION, STATUS_ACTION, STOP_ACTION, RESTART_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, START_ACTION, STATUS_ACTION, STOP_ACTION, UPGRADE_ACTION, \
   UPGRADE_STACK_ACTION, SETUP_JCE_ACTION, SET_CURRENT_ACTION, ENABLE_STACK_ACTION, SETUP_SSO_ACTION, \
-  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
-from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas
+  DB_CLEANUP_ACTION, INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION, PAM_SETUP_ACTION
+from ambari_server.setupSecurity import setup_ldap, sync_ldap, setup_master_key, setup_ambari_krb5_jaas, setup_pam
 from ambari_server.userInput import get_validated_string_input
 
 from ambari_server_main import server_process_main
@@ -648,7 +648,8 @@ def create_user_action_map(args, options):
         SETUP_SSO_ACTION: UserActionRestart(setup_sso, options),
         DB_CLEANUP_ACTION: UserAction(db_cleanup, options),
         INSTALL_MPACK_ACTION: UserAction(install_mpack, options),
-        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options)
+        UPGRADE_MPACK_ACTION: UserAction(upgrade_mpack, options),
+        PAM_SETUP_ACTION: UserAction(setup_pam)
       }
   return action_map
 

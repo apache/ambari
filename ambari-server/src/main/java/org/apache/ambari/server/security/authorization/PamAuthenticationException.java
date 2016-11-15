@@ -17,9 +17,20 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-public enum UserType {
-  LOCAL,
-  LDAP,
-  JWT,
-  PAM
+import org.springframework.security.core.AuthenticationException;
+
+public class PamAuthenticationException extends AuthenticationException{
+
+   public PamAuthenticationException() {
+        this("The user authentication failed");
+     }
+
+  public PamAuthenticationException(String msg, Throwable t) {
+    super(msg, t);
+  }
+
+  public PamAuthenticationException(String msg) {
+    super(msg);
+  }
+
 }

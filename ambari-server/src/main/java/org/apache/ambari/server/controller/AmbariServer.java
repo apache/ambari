@@ -100,6 +100,7 @@ import org.apache.ambari.server.security.authorization.AmbariLocalUserProvider;
 import org.apache.ambari.server.security.authorization.AmbariUserAuthorizationFilter;
 import org.apache.ambari.server.security.authorization.PermissionHelper;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.AmbariPamAuthenticationProvider;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
@@ -331,6 +332,8 @@ public class AmbariServer {
         injector.getInstance(AmbariUserAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
         injector.getInstance(AmbariInternalAuthenticationProvider.class));
+      factory.registerSingleton("ambariPamAuthenticationProvider",
+	injector.getInstance(AmbariPamAuthenticationProvider.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
