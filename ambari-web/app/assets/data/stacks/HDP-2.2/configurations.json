@@ -8800,13 +8800,13 @@
           }
         },
         {
-          "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/KAFKA/configurations/kafka.timeline.metrics.host",
+          "href" : "http://c6401:8080/api/v1/stacks/HDP/versions/2.2/services/KAFKA/configurations/kafka.timeline.metrics.hosts",
           "StackConfigurations" : {
             "final" : "false",
             "property_description" : "Timeline host",
-            "property_name" : "kafka.timeline.metrics.host",
+            "property_name" : "kafka.timeline.metrics.hosts",
             "property_type" : [ ],
-            "property_value" : "{{metric_collector_host}}",
+            "property_value" : "{{metric_collector_hosts}}",
             "service_name" : "KAFKA",
             "stack_name" : "HDP",
             "stack_version" : "2.2",

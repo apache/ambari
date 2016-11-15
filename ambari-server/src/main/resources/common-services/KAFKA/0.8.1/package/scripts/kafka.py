@@ -99,7 +99,7 @@ def kafka(upgrade_type=None):
       kafka_server_config['host.name'] = params.hostname
 
     if params.has_metric_collector:
-      kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
+      kafka_server_config['kafka.timeline.metrics.hosts'] = params.metric_collector_hosts
       kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
       kafka_server_config['kafka.timeline.metrics.protocol'] = params.metric_collector_protocol
       kafka_server_config['kafka.timeline.metrics.truststore.path'] = params.metric_truststore_path

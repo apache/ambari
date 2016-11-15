@@ -455,7 +455,7 @@
             "replica.high.watermark.checkpoint.interval.ms": "5000", 
             "zookeeper.connect": "c6407.ambari.apache.org:2181,c6408.ambari.apache.org:2181,c6409.ambari.apache.org:2181", 
             "controlled.shutdown.retry.backoff.ms": "5000", 
-            "kafka.timeline.metrics.host": "{{metric_collector_host}}", 
+            "kafka.timeline.metrics.host": "{{metric_collector_hosts}}",
             "kafka.timeline.metrics.reporter.sendInterval": "5900", 
             "num.partitions": "1", 
             "log.flush.interval.messages": "10000", 
