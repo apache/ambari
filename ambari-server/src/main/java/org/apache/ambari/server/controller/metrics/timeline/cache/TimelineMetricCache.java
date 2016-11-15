@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,6 +75,9 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
         t = t.getCause();
         if (t instanceof SocketTimeoutException) {
           throw new SocketTimeoutException(t.getMessage());
+        }
+        if (t instanceof ConnectException) {
+          throw new ConnectException(t.getMessage());
         }
       }
     }
@@ -132,6 +136,12 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
 
       LOG.debug("New temporal info: " + newKey.getTemporalInfo() +
         " for : " + existingKey.getMetricNames());
+
+      if (existingKey.getSpec() == null || !existingKey.getSpec().equals(newKey.getSpec())) {
+        existingKey.setSpec(newKey.getSpec());
+        LOG.debug("New spec: " + newKey.getSpec() +
+          " for : " + existingKey.getMetricNames());
+      }
     }
 
     return super.get(key);
