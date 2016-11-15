@@ -58,7 +58,7 @@ class AmsCollector(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_service_status(env, name='collector')
+    check_service_status(name='collector')
     
   def get_log_folder(self):
     import params

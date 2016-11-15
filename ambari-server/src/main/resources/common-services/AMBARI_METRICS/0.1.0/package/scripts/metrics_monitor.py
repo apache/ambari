@@ -53,7 +53,7 @@ class AmsMonitor(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_service_status(env, name='monitor')
+    check_service_status(name='monitor')
     
   def get_log_folder(self):
     import params
