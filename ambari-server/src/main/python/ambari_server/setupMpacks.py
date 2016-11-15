@@ -637,7 +637,9 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     _execute_hook(mpack_metadata, BEFORE_INSTALL_HOOK_NAME, tmp_root_dir)
 
   # Purge previously installed stacks and management packs
-  if options.purge and options.purge_list:
+  if options.purge:
+    if not 'purge_list' in options:
+      options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
     purge_resources = options.purge_list.split(",")
     validate_purge(options, purge_resources, tmp_root_dir, mpack_metadata, replay_mode)
     purge_stacks_and_mpacks(purge_resources, replay_mode)
