@@ -285,7 +285,7 @@ public class TestUsers {
 
   @Test
   public void testSetGroupLdap() throws Exception {
-    users.createGroup("group");
+    users.createGroup("group", GroupType.LOCAL);
 
     users.setGroupLdap("group");
     Assert.assertNotNull(users.getGroup("group"));
@@ -302,8 +302,8 @@ public class TestUsers {
   public void testCreateGetRemoveGroup() throws Exception {
     final String groupName = "engineering1";
     final String groupName2 = "engineering2";
-    users.createGroup(groupName);
-    users.createGroup(groupName2);
+    users.createGroup(groupName, GroupType.LOCAL);
+    users.createGroup(groupName2, GroupType.LOCAL);
 
     final Group group = users.getGroup(groupName);
     assertNotNull(group);
@@ -328,8 +328,8 @@ public class TestUsers {
   public void testMembers() throws Exception {
     final String groupName = "engineering";
     final String groupName2 = "engineering2";
-    users.createGroup(groupName);
-    users.createGroup(groupName2);
+    users.createGroup(groupName, GroupType.LOCAL);
+    users.createGroup(groupName2, GroupType.LOCAL);
     users.createUser("user1", "user1");
     users.createUser("user2", "user2");
     users.createUser("user3", "user3");

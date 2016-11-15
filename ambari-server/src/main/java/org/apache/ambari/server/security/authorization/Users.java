@@ -41,6 +41,7 @@ import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrincipalTypeDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
@@ -48,7 +49,10 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapUserGroupMemberDto;
 import org.apache.commons.lang.StringUtils;
@@ -87,6 +91,8 @@ public class Users {
   protected PrivilegeDAO privilegeDAO;
   @Inject
   protected ResourceDAO resourceDAO;
+  @Inject
+  protected ResourceTypeDAO resourceTypeDAO;
   @Inject
   protected PrincipalTypeDAO principalTypeDAO;
   @Inject
@@ -127,6 +133,11 @@ public class Users {
     if (userEntity == null) {
       userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
     }
+
+    if (userEntity == null) {
+        userEntity = userDAO.findUserByNameAndType(userName, UserType.PAM);
+    }
+
     return (null == userEntity) ? null : new User(userEntity);
   }
 
@@ -369,6 +380,18 @@ public class Users {
   }
 
   /**
+   * Gets group by given name & type.
+   *
+   * @param groupName group name
+   * @param groupType group type
+   * @return group
+   */
+  public Group getGroupByNameAndType(String groupName, GroupType groupType) {
+    final GroupEntity groupEntity = groupDAO.findGroupByNameAndType(groupName, groupType);
+    return (null == groupEntity) ? null : new Group(groupEntity);
+  }
+
+  /**
    * Gets group members.
    *
    * @param groupName group name
@@ -393,10 +416,10 @@ public class Users {
   }
 
   /**
-   * Creates new local group with provided name
+   * Creates new group with provided name & type
    */
   @Transactional
-  public synchronized void createGroup(String groupName) {
+  public synchronized void createGroup(String groupName, GroupType groupType) {
     // create an admin principal to represent this group
     PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE);
     if (principalTypeEntity == null) {
@@ -412,6 +435,7 @@ public class Users {
     final GroupEntity groupEntity = new GroupEntity();
     groupEntity.setGroupName(groupName);
     groupEntity.setPrincipal(principalEntity);
+    groupEntity.setgroupType(groupType);
 
     groupDAO.create(groupEntity);
   }
@@ -476,6 +500,32 @@ public class Users {
       user.getPrincipal().getPrivileges().add(adminPrivilege);
       principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
       userDAO.merge(user);
+    }
+  }
+
+  /**
+   * Grants privilege to provided group.
+   *
+   * @param groupId group id
+   * @param resourceId resource id
+   * @param resourceType resource type
+   * @param permissionName permission name
+   */
+  public synchronized void grantPrivilegeToGroup(Integer groupId, Long resourceId, ResourceType resourceType, String permissionName) {
+    final GroupEntity group = groupDAO.findByPK(groupId);
+    final PrivilegeEntity privilege = new PrivilegeEntity();
+    ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
+    resourceTypeEntity.setId(resourceType.getId());
+    resourceTypeEntity.setName(resourceType.name());
+    privilege.setPermission(permissionDAO.findPermissionByNameAndType(permissionName,resourceTypeEntity));
+    privilege.setPrincipal(group.getPrincipal());
+    privilege.setResource(resourceDAO.findById(resourceId));
+    if (!group.getPrincipal().getPrivileges().contains(privilege)) {
+      privilegeDAO.create(privilege);
+      group.getPrincipal().getPrivileges().add(privilege);
+      principalDAO.merge(group.getPrincipal()); //explicit merge for Derby support
+      groupDAO.merge(group);
+      privilegeDAO.merge(privilege);
     }
   }
 

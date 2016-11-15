@@ -17,7 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-public enum UserType {
+public enum GroupType {
   LOCAL,
   LDAP,
   JWT,

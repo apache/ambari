@@ -32,6 +32,7 @@
 
   <authentication-manager alias="authenticationManager">
     <authentication-provider ref="ambariLocalAuthenticationProvider"/>
+    <authentication-provider ref="ambariPamAuthenticationProvider"/>
     <authentication-provider ref="ambariLdapAuthenticationProvider"/>
     <authentication-provider ref="ambariInternalAuthenticationProvider"/>
     <authentication-provider ref="kerberosServiceAuthenticationProvider"/>
