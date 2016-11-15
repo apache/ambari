@@ -42,6 +42,20 @@ class BlacklistedSet(set):
       if time.time() > self.__dict.get(item):
         yield item
 
+  def get_actual_size(self):
+    size = 0
+    for item in self.__iter__():
+      size += 1
+    return size
+
+  def get_item_at_index(self, index):
+    i = 0
+    for item in self.__iter__():
+      if i == index:
+        return item
+      i += 1
+    return None
+
   def blacklist(self, item):
     self.__dict[item] = time.time() + self.__blacklist_timeout
 

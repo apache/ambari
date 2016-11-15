@@ -101,6 +101,7 @@ AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 config_content = """
 [default]
 debug_level = INFO
+hostname = localhost
 metrics_servers = ['localhost','host1','host2']
 enable_time_threshold = false
 enable_value_threshold = false
@@ -112,7 +113,7 @@ send_interval = 60
 collector_sleep_interval = 5
 max_queue_size = 5000
 failover_strategy = round-robin
-failover_strategy_blacklisted_interval_seconds = 0
+failover_strategy_blacklisted_interval_seconds = 60
 host = localhost
 port = 6188
 https_enabled = false
