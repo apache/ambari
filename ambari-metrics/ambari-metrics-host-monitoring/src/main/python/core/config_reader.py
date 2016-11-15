@@ -22,6 +22,7 @@ import ConfigParser
 import StringIO
 import json
 import os
+import ast
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 
@@ -100,7 +101,7 @@ AMBARI_AGENT_CONF = '/etc/ambari-agent/conf/ambari-agent.ini'
 config_content = """
 [default]
 debug_level = INFO
-metrics_servers = localhost,host1,host2
+metrics_servers = ['localhost','host1','host2']
 enable_time_threshold = false
 enable_value_threshold = false
 
@@ -210,8 +211,15 @@ class Configuration:
   def get_collector_sleep_interval(self):
     return int(self.get("collector", "collector_sleep_interval", 10))
 
+  def get_hostname_config(self):
+    return self.get("default", "hostname", None)
+
   def get_metrics_collector_hosts(self):
-    return self.get("default", "metrics_servers", "localhost").split(",")
+    hosts = self.get("default", "metrics_servers", "localhost")
+    if hosts is not "localhost":
+      return ast.literal_eval(hosts)
+    else:
+      return hosts
 
   def get_failover_strategy(self):
     return self.get("collector", "failover_strategy", ROUND_ROBIN_FAILOVER_STRATEGY)
