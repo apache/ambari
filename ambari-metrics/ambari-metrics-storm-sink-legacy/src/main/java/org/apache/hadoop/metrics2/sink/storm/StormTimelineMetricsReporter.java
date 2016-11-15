@@ -47,19 +47,43 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
   private NimbusClient nimbusClient;
   private String applicationId;
   private int timeoutSeconds;
+  private String port;
+  private String collectors;
+  private String zkQuorum;
+  private String protocol;
 
   public StormTimelineMetricsReporter() {
 
   }
 
   @Override
-  protected String getCollectorUri() {
+  protected String getCollectorUri(String host) {
     return this.collectorUri;
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   @Override
@@ -80,18 +104,24 @@ public class StormTimelineMetricsReporter extends AbstractTimelineMetricsSink
       Map cf = (Map) conf.get(METRICS_COLLECTOR_CATEGORY);
       Map stormConf = Utils.readStormConfig();
       this.nimbusClient = NimbusClient.getConfiguredClient(stormConf);
-      String collector = cf.get(COLLECTOR_PROPERTY).toString();
-      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
-        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
-        DEFAULT_POST_TIMEOUT_SECONDS;
-      applicationId = cf.get(APP_ID).toString();
-      collectorUri = collector + WS_V1_TIMELINE_METRICS;
+
+      collectors = cf.get(COLLECTOR_PROPERTY).toString();
+      protocol = cf.get(COLLECTOR_PROTOCOL) != null ? cf.get(COLLECTOR_PROTOCOL).toString() : "http";
+      port = cf.get(COLLECTOR_PORT) != null ? cf.get(COLLECTOR_PORT).toString() : "6188";
+      zkQuorum = cf.get(ZOOKEEPER_QUORUM) != null ? cf.get(ZOOKEEPER_QUORUM).toString() : null;
+
       if (collectorUri.toLowerCase().startsWith("https://")) {
         String trustStorePath = cf.get(SSL_KEYSTORE_PATH_PROPERTY).toString().trim();
         String trustStoreType = cf.get(SSL_KEYSTORE_TYPE_PROPERTY).toString().trim();
         String trustStorePwd = cf.get(SSL_KEYSTORE_PASSWORD_PROPERTY).toString().trim();
         loadTruststore(trustStorePath, trustStoreType, trustStorePwd);
       }
+
+      timeoutSeconds = cf.get(METRICS_POST_TIMEOUT_SECONDS) != null ?
+        Integer.parseInt(cf.get(METRICS_POST_TIMEOUT_SECONDS).toString()) :
+        DEFAULT_POST_TIMEOUT_SECONDS;
+      applicationId = cf.get(APP_ID).toString();
+
     } catch (Exception e) {
       LOG.warn("Could not initialize metrics collector, please specify " +
         "protocol, host, port under $STORM_HOME/conf/config.yaml ", e);

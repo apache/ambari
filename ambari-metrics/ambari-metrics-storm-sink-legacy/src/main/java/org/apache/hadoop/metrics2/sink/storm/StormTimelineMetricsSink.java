@@ -55,15 +55,39 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private int timeoutSeconds;
   private String topologyName;
   private String applicationId;
+  private String collectors;
+  private String zkQuorum;
+  private String protocol;
+  private String port;
 
   @Override
-  protected String getCollectorUri() {
+  protected String getCollectorUri(String host) {
     return collectorUri;
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zkQuorum;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   @Override
@@ -88,8 +112,16 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     applicationId = configuration.getProperty(CLUSTER_REPORTER_APP_ID, DEFAULT_CLUSTER_REPORTER_APP_ID);
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
-    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
-    if (collectorUri.toLowerCase().startsWith("https://")) {
+
+    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    zkQuorum = configuration.getProperty("zookeeper.quorum");
+    protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
+    port = configuration.getProperty(COLLECTOR_PORT, "6188");
+
+    // Initialize the collector write strategy
+    super.init();
+
+    if (protocol.toLowerCase().startsWith("https://")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();

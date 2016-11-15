@@ -31,14 +31,14 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController.CLUSTER_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController.METRIC_AGGREGATORS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController.STATE_MODEL_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.CLUSTER_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.METRIC_AGGREGATORS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController.STATE_MODEL_NAME;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 
-public class TimelineMetricHAControllerTest extends AbstractMiniHBaseClusterTest {
+public class MetricCollectorHAControllerTest extends AbstractMiniHBaseClusterTest {
   TimelineMetricConfiguration configuration;
 
   @Before
@@ -58,9 +58,9 @@ public class TimelineMetricHAControllerTest extends AbstractMiniHBaseClusterTest
     replay(configuration);
   }
 
-  @Test(timeout = 150000)
+  @Test(timeout = 180000)
   public void testHAControllerDistributedAggregation() throws Exception {
-    TimelineMetricHAController haController = new TimelineMetricHAController(configuration);
+    MetricCollectorHAController haController = new MetricCollectorHAController(configuration);
     haController.initializeHAController();
     // Wait for task assignment
     Thread.sleep(10000);

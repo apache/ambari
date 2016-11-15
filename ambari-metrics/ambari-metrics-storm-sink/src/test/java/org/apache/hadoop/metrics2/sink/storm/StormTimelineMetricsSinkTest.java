@@ -18,6 +18,18 @@
 
 package org.apache.hadoop.metrics2.sink.storm;
 
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
+import org.apache.storm.metric.api.IMetricsConsumer;
+import org.apache.storm.shade.com.google.common.collect.Lists;
+import org.junit.Ignore;
+import org.junit.Test;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import static org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink.METRIC_NAME_PREFIX_KAFKA_OFFSET;
 import static org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink.SYSTEM_TASK_ID;
 import static org.easymock.EasyMock.anyObject;
@@ -26,23 +38,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-
-import java.io.IOException;
-import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-import org.apache.storm.Constants;
-import org.apache.storm.shade.com.google.common.collect.Lists;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import org.apache.storm.metric.api.IMetricsConsumer;
 
 public class StormTimelineMetricsSinkTest {
   @Test

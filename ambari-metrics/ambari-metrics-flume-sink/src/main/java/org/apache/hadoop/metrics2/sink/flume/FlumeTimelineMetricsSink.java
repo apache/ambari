@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implements MonitorService {
   private String collectorUri;
+  private String protocol;
   // Key - component(instance_id)
   private Map<String, TimelineMetricsCache> metricsCaches;
   private int maxRowCacheSize;
@@ -53,6 +54,9 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private ScheduledExecutorService scheduledExecutorService;
   private long pollFrequency;
   private String hostname;
+  private String port;
+  private String collectors;
+  private String zookeeperQuorum;
   private final static String COUNTER_METRICS_PROPERTY = "counters";
   private final Set<String> counterMetrics = new HashSet<String>();
   private int timeoutSeconds = 10;
@@ -95,8 +99,15 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
         String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
     metricsCaches = new HashMap<String, TimelineMetricsCache>();
-    collectorUri = configuration.getProperty(COLLECTOR_PROPERTY) + WS_V1_TIMELINE_METRICS;
-    if (collectorUri.toLowerCase().startsWith("https://")) {
+    collectors = configuration.getProperty(COLLECTOR_PROPERTY);
+    zookeeperQuorum = configuration.getProperty("zookeeper.quorum");
+    protocol = configuration.getProperty(COLLECTOR_PROTOCOL, "http");
+    port = configuration.getProperty(COLLECTOR_PORT, "6188");
+    // Initialize the collector write strategy
+    super.init();
+
+    collectorUri = constructTimelineMetricUri(protocol, findPreferredCollectHost(), port);
+    if (protocol.contains("https")) {
       String trustStorePath = configuration.getProperty(SSL_KEYSTORE_PATH_PROPERTY).trim();
       String trustStoreType = configuration.getProperty(SSL_KEYSTORE_TYPE_PROPERTY).trim();
       String trustStorePwd = configuration.getProperty(SSL_KEYSTORE_PASSWORD_PROPERTY).trim();
@@ -109,13 +120,33 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   }
 
   @Override
-  public String getCollectorUri() {
-    return collectorUri;
+  public String getCollectorUri(String host) {
+    return constructTimelineMetricUri(protocol, host, port);
+  }
+
+  @Override
+  protected String getCollectorProtocol() {
+    return protocol;
   }
 
   @Override
   protected int getTimeoutSeconds() {
     return timeoutSeconds;
+  }
+
+  @Override
+  protected String getZookeeperQuorum() {
+    return zookeeperQuorum;
+  }
+
+  @Override
+  protected String getConfiguredCollectors() {
+    return collectors;
+  }
+
+  @Override
+  protected String getHostname() {
+    return hostname;
   }
 
   public void setPollFrequency(long pollFrequency) {

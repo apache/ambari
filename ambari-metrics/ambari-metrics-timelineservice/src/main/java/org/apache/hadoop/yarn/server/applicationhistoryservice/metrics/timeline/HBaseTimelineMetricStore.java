@@ -36,7 +36,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.AggregationTaskRunner;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.TimelineMetricHAController;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.availability.MetricCollectorHAController;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataKey;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.discovery.TimelineMetricMetadataManager;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.function.SeriesAggregateFunction;
@@ -45,7 +45,9 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConditionBuilder;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.TopNCondition;
+
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -56,8 +58,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_TOPN_HOSTS_LIMIT;
@@ -75,7 +78,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final Map<AggregationTaskRunner.AGGREGATOR_NAME, ScheduledExecutorService> scheduledExecutors = new HashMap<>();
   private TimelineMetricMetadataManager metricMetadataManager;
   private Integer defaultTopNHostsLimit;
-  private TimelineMetricHAController haController;
+  private MetricCollectorHAController haController;
 
   /**
    * Construct the service.
@@ -106,7 +109,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       // Start HA service
       if (configuration.isDistributedOperationModeEnabled()) {
         // Start the controller
-        haController = new TimelineMetricHAController(configuration);
+        haController = new MetricCollectorHAController(configuration);
         try {
           haController.initializeHAController();
         } catch (Exception e) {
@@ -384,7 +387,16 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
   @Override
   public List<String> getLiveInstances() {
-    return haController.getLiveInstanceHostNames();
+    List<String> instances = haController.getLiveInstanceHostNames();
+    if (instances == null || instances.isEmpty()) {
+      try {
+        // Always return current host as live (embedded operation mode)
+        instances = Collections.singletonList(configuration.getInstanceHostnameFromEnv());
+      } catch (UnknownHostException e) {
+        LOG.debug("Exception on getting hostname from env.", e);
+      }
+    }
+    return instances;
   }
 
   private void scheduleAggregatorThread(final TimelineMetricAggregator aggregator,
