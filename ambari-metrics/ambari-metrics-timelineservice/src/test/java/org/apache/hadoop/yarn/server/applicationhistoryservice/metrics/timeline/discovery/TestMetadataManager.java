@@ -122,13 +122,11 @@ public class TestMetadataManager extends AbstractMiniHBaseClusterTest {
     Assert.assertEquals(value2, savedData.get(key2));
 
     Map<String, Set<String>> cachedHostData = metadataManager.getHostedAppsCache();
-    Map<String, Set<String>> savedHostData = metadataManager.getPersistedHostedAppsData();
+    Map<String, Set<String>> savedHostData = metadataManager.getHostedAppsFromStore();
     Assert.assertEquals(cachedData.size(), savedData.size());
     Assert.assertEquals("dummy_app1", cachedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", cachedHostData.get("dummy_host2").iterator().next());
     Assert.assertEquals("dummy_app1", savedHostData.get("dummy_host1").iterator().next());
     Assert.assertEquals("dummy_app2", savedHostData.get("dummy_host2").iterator().next());
   }
-
-
 }
