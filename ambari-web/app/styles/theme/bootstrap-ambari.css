@@ -436,7 +436,7 @@ h2.table-title {
   margin-bottom: 20px;
 }
 .nav.nav-tabs li a {
-  border: none;
+  border-width: 0;
   border-radius: 0;
   border-bottom: 2px solid transparent;
   color: #666;
@@ -446,7 +446,7 @@ h2.table-title {
 .nav.nav-tabs li a:active,
 .nav.nav-tabs li a:focus {
   color: #333;
-  border: none;
+  border-width: 0;
   background: none;
 }
 .nav.nav-tabs li a .badge.badge-important {
@@ -469,25 +469,25 @@ h2.table-title {
   margin-right: -1px;
 }
 .nav-tabs-left li a {
-  border-bottom: 2px solid transparent !important;
+  border: 2px solid transparent !important;
 }
 .nav-tabs-left li.active a,
 .nav-tabs-left li.active a:hover,
 .nav-tabs-left li.active a:active,
 .nav-tabs-left li.active a:focus {
-  border-right: 2px solid #3FAE2A;
+  border-right: 2px solid #3FAE2A !important;
 }
 .nav-tabs-right li {
   margin-left: -1px;
 }
 .nav-tabs-right li a {
-  border-bottom: 2px solid transparent !important;
+  border: 2px solid transparent !important;
 }
 .nav-tabs-right li.active a,
 .nav-tabs-right li.active a:hover,
 .nav-tabs-right li.active a:active,
 .nav-tabs-right li.active a:focus {
-  border-left: 2px solid #3FAE2A;
+  border-left: 2px solid #3FAE2A !important;
 }
 .wizard {
   border: 2px solid #ebecf1;
