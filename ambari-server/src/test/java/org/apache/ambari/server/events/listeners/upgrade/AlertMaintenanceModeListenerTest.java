@@ -104,7 +104,7 @@ public class AlertMaintenanceModeListenerTest {
 
     EasyMock.replay(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO);
 
-    MaintenanceModeEvent hostEvent = new MaintenanceModeEvent(MaintenanceState.ON, host);
+    MaintenanceModeEvent hostEvent = new MaintenanceModeEvent(MaintenanceState.ON, 1 /* cluster id */, host);
     m_eventPublisher.publish(hostEvent);
 
     EasyMock.verify(hostAlert, serviceAlert, componentAlert, host, m_alertsDAO);

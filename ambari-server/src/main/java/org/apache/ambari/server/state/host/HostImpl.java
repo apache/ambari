@@ -1120,7 +1120,7 @@ public class HostImpl implements Host {
       hostStateDAO.merge(hostStateEntity);
 
       // broadcast the maintenance mode change
-      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+      MaintenanceModeEvent event = new MaintenanceModeEvent(state, clusterId, this);
       eventPublisher.publish(event);
     }
   }

@@ -35,7 +35,9 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.commons.lang.StringUtils;
 
@@ -160,7 +162,7 @@ public class RecoveryConfigHelper {
   }
 
   /**
-   * Maintenance mode of a service component host changed.
+   * Maintenance mode of a host, service or service component host changed.
    * @param event
    * @throws AmbariException
    */
@@ -168,10 +170,44 @@ public class RecoveryConfigHelper {
   @AllowConcurrentEvents
   public void handleMaintenanceModeEvent(MaintenanceModeEvent event)
       throws AmbariException {
-    ServiceComponentHost sch = event.getServiceComponentHost();
+    if (event.getHost() != null) {
+      /*
+       * If any one component in the host is recovery enabled,
+       * invalidate the host timestamp.
+       */
+      Cluster cluster = clusters.getCluster(event.getClusterId());
+      if (cluster == null) {
+        return;
+      }
 
-    if (sch != null && sch.isRecoveryEnabled()) {
-      invalidateRecoveryTimestamp(sch.getClusterName(), sch.getHostName());
+      Host host = event.getHost();
+      List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(host.getHostName());
+      for (ServiceComponentHost sch : scHosts) {
+        if (sch.isRecoveryEnabled()) {
+          invalidateRecoveryTimestamp(sch.getClusterName(), sch.getHostName());
+          break;
+        }
+      }
+    }
+    else if (event.getService() != null) {
+      /**
+       * Simply invalidate all the hosts in the cluster.
+       * The recovery config will be sent to all the hosts
+       * even if some of the hosts do not have components
+       * in recovery mode.
+       * Looping through all the hosts and its components
+       * to determine which host to send the recovery config
+       * may not be efficient.
+       */
+      Service service = event.getService();
+      invalidateRecoveryTimestamp(service.getCluster().getClusterName(), null);
+    }
+    else if (event.getServiceComponentHost() != null) {
+      ServiceComponentHost sch = event.getServiceComponentHost();
+
+      if (sch.isRecoveryEnabled()) {
+        invalidateRecoveryTimestamp(sch.getClusterName(), sch.getHostName());
+      }
     }
   }
 
@@ -281,14 +317,31 @@ public class RecoveryConfigHelper {
      * maintenance mode.
      * @return
      */
-    private List<String> getEnabledComponents(String hostname) {
+    private List<String> getEnabledComponents(String hostname) throws AmbariException {
       List<String> enabledComponents = new ArrayList<>();
 
-      if (cluster != null) {
-        List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostname);
+      if (cluster == null) {
+        return enabledComponents;
+      }
 
-        for (ServiceComponentHost sch : scHosts) {
-          if (sch.isRecoveryEnabled()) {
+      Host host = clusters.getHost(hostname);
+      if (host == null) {
+        return enabledComponents;
+      }
+
+      // if host is in maintenance mode then ignore all the components for auto start
+      if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.ON) {
+        return enabledComponents;
+      }
+
+      List<ServiceComponentHost> scHosts = cluster.getServiceComponentHosts(hostname);
+
+      for (ServiceComponentHost sch : scHosts) {
+        if (sch.isRecoveryEnabled()) {
+          Service service = cluster.getService(sch.getServiceName());
+
+          // service should not be in maintenance mode
+          if (service.getMaintenanceState() == MaintenanceState.OFF) {
             // Keep the components that are not in maintenance mode.
             if (sch.getMaintenanceState() == MaintenanceState.OFF) {
               enabledComponents.add(sch.getServiceComponentName());
