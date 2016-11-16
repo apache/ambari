@@ -32,7 +32,7 @@ import java.util.Set;
 
 public interface TimelineMetricStore {
   /**
-   * This method retrieves metrics stored byu the Timeline store.
+   * This method retrieves metrics stored by the Timeline store.
    *
    * @param metricNames Names of the metric, e.g.: cpu_user
    * @param hostnames Names of the host where the metric originated from
