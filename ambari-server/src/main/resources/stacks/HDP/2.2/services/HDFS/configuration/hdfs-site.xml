@@ -77,6 +77,6 @@
         <name>ranger.service.https.attrib.ssl.enabled</name>
       </property>
     </depends-on>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
