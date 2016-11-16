@@ -235,6 +235,7 @@
                     <move todir="${project.build.directory}/solr">
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
+                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
                     <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
                   </target>
@@ -493,6 +494,7 @@
                     <move todir="${project.build.directory}/solr">
                       <fileset dir="${project.build.directory}/solr-${solr.version}"/>
                     </move>
+                    <copy file="${project.basedir}/src/main/resources/solr" toDir="${project.build.directory}/solr/bin/" />
                     <chmod file="${project.build.directory}/solr/bin/**" perm="755"/>
                     <chmod file="${project.build.directory}/solr/server/scripts/**" perm="755"/>
                   </target>
