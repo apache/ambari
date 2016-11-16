@@ -313,6 +313,11 @@
       "name": "zkfc_version_advertised",
       "description": "ZKFC advertise version",
       "min_version": "2.5.0.0"
+    },
+    {
+      "name": "phoenix_core_hdfs_site_required",
+      "description": "HDFS and CORE site required for Phoenix",
+      "max_version": "2.5.9.9"
     }
   ]
 }

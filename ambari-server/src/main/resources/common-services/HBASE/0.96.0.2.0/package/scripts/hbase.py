@@ -29,7 +29,8 @@ from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory, Execute, File
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-
+from resource_management.libraries.functions.constants import StackFeature
+from resource_management.libraries.functions.stack_features import check_stack_feature
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hbase(name=None):
@@ -102,29 +103,28 @@ def hbase(name=None):
             group = params.user_group
   )
 
-  XmlConfig( "core-site.xml",
-             conf_dir = params.hbase_conf_dir,
-             configurations = params.config['configurations']['core-site'],
-             configuration_attributes=params.config['configuration_attributes']['core-site'],
-             owner = params.hbase_user,
-             group = params.user_group
-  )
-
-  if 'hdfs-site' in params.config['configurations']:
-    XmlConfig( "hdfs-site.xml",
-            conf_dir = params.hbase_conf_dir,
-            configurations = params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
-            owner = params.hbase_user,
-            group = params.user_group
+  if check_stack_feature(StackFeature.PHOENIX_CORE_HDFS_SITE_REQUIRED, params.version_for_stack_feature_checks):
+    XmlConfig( "core-site.xml",
+               conf_dir = params.hbase_conf_dir,
+               configurations = params.config['configurations']['core-site'],
+               configuration_attributes=params.config['configuration_attributes']['core-site'],
+               owner = params.hbase_user,
+               group = params.user_group
     )
-
-    XmlConfig("hdfs-site.xml",
-            conf_dir=params.hadoop_conf_dir,
-            configurations=params.config['configurations']['hdfs-site'],
-            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
-            owner=params.hdfs_user,
-            group=params.user_group
+    if 'hdfs-site' in params.config['configurations']:
+      XmlConfig( "hdfs-site.xml",
+              conf_dir = params.hbase_conf_dir,
+              configurations = params.config['configurations']['hdfs-site'],
+              configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+              owner = params.hbase_user,
+              group = params.user_group
+      )
+  else:
+    File(format("{params.hbase_conf_dir}/hdfs-site.xml"),
+         action="delete"
+    )
+    File(format("{params.hbase_conf_dir}/core-site.xml"),
+         action="delete"
     )
 
   if 'hbase-policy' in params.config['configurations']:
