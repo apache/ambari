@@ -220,7 +220,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           ambariHostName = socket.getfqdn()
           is_wildcard_value, hosts = self.get_hosts_for_proxyuser(ambari_user, services)
           if not is_wildcard_value:
-            hosts.put(ambariHostName)
+            hosts.add(ambariHostName)
             putCoreSiteProperty("hadoop.proxyuser.{0}.hosts".format(ambari_user), ",".join(hosts))
           putCoreSiteProperty("hadoop.proxyuser.{0}.groups".format(ambari_user), "*")
           old_ambari_user = self.getOldAmbariUser(services)
