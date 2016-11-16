@@ -170,7 +170,6 @@ public class HostOrderGrouping extends Grouping {
         StageWrapper startWrapper = new StageWrapper(StageWrapper.Type.RESTART, String.format("Start on %s", hostName),
             upgradeTasks.toArray(new TaskWrapper[upgradeTasks.size()]));
 
-
         String message = String.format("Please acknowledge that host %s has been prepared.", hostName);
 
         ManualTask mt = new ManualTask();
@@ -187,6 +186,7 @@ public class HostOrderGrouping extends Grouping {
         wrappers.add(manualWrapper);
         // !!! TODO install_packages for hdp and conf-select changes.  Hopefully these will no-op.
         wrappers.add(startWrapper);
+
       }
 
       return wrappers;

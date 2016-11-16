@@ -1450,6 +1450,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> requestParams = new HashMap<String, String>();
     requestParams.put("command", function);
 
+    // !!! it is unclear the implications of this on rolling or express upgrade.  To turn
+    // this off, set "allow-retry" to false in the Upgrade Pack group
+    if (allowRetry && context.getType() == UpgradeType.HOST_ORDERED) {
+      requestParams.put(KeyNames.COMMAND_RETRY_ENABLED, Boolean.TRUE.toString().toLowerCase());
+    }
+
     s_commandExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, requestParams);
 
     request.addStages(Collections.singletonList(stage));
