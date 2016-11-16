@@ -131,6 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     matchers.add(new AntPathRequestMatcher("/scripts/**"));
     matchers.add(new AntPathRequestMatcher("/libs/**"));
     matchers.add(new AntPathRequestMatcher("/templates/**"));
+    matchers.add(new AntPathRequestMatcher("/images/**"));
     matchers.add(new AntPathRequestMatcher("/favicon.ico"));
     matchers.add(new AntPathRequestMatcher("/api/v1/public/**"));
     matchers.add(new AntPathRequestMatcher("/api/v1/swagger.json"));
