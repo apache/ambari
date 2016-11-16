@@ -51,6 +51,7 @@ logger = logging.getLogger(__name__)
 MPACKS_REPLAY_LOG_FILENAME = "mpacks_replay.log"
 MPACKS_CACHE_DIRNAME = "cache"
 STACK_DEFINITIONS_RESOURCE_NAME = "stack-definitions"
+EXTENSION_DEFINITIONS_RESOURCE_NAME = "extension-definitions"
 SERVICE_DEFINITIONS_RESOURCE_NAME = "service-definitions"
 MPACKS_RESOURCE_NAME = "mpacks"
 
@@ -70,6 +71,7 @@ STACK_ADDON_SERVICE_DEFINITIONS_ARTIFACT_NAME = "stack-addon-service-definitions
 RESOURCE_FRIENDLY_NAMES = {
   STACK_DEFINITIONS_RESOURCE_NAME : "stack definitions",
   SERVICE_DEFINITIONS_RESOURCE_NAME: "service definitions",
+  EXTENSION_DEFINITIONS_RESOURCE_NAME: "extension definitions",
   MPACKS_RESOURCE_NAME: "management packs"
 }
 
@@ -309,7 +311,7 @@ def validate_purge(options, purge_list, mpack_dir, mpack_metadata, replay_mode=F
       err = "The management pack you are attempting to install does not contain {0}. Since this management pack " \
             "does not contain a stack, the --purge option with --purge-list={1} would cause your existing Ambari " \
             "installation to be unusable. Due to that we cannot install this management pack.".format(
-          RESOURCE_FRIENDLY_NAMES[STACK_DEFINITIONS_ARTIFACT_NAME], purge_list)
+          RESOURCE_FRIENDLY_NAMES[STACK_DEFINITIONS_RESOURCE_NAME], purge_list)
       print_error_msg(err)
       raise FatalException(1, err)
     else:
@@ -351,6 +353,10 @@ def purge_stacks_and_mpacks(purge_list, replay_mode=False):
       path = os.path.join(stack_location, file)
       if(os.path.isdir(path)):
         sudo.rmtree(path)
+
+  if EXTENSION_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(extension_location):
+    print_info_msg("Purging extension location: " + extension_location)
+    sudo.rmtree(extension_location)
 
   if SERVICE_DEFINITIONS_RESOURCE_NAME in purge_list and os.path.exists(service_definitions_location):
     print_info_msg("Purging service definitions location: " + service_definitions_location)

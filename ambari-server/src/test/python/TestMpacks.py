@@ -49,7 +49,8 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
 
 from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
   purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, \
-  STACK_DEFINITIONS_RESOURCE_NAME, SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
+  STACK_DEFINITIONS_RESOURCE_NAME, EXTENSION_DEFINITIONS_RESOURCE_NAME, \
+  SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
@@ -153,6 +154,7 @@ class TestMpacks(TestCase):
     options = self._create_empty_options_mock()
     get_ambari_version_mock.return_value = configs
     stacks_directory = configs[serverConfiguration.STACK_LOCATION_KEY]
+    extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     os_path_exists_mock.return_value = False
@@ -173,6 +175,15 @@ class TestMpacks(TestCase):
     os_path_exists_calls = [
       call(stacks_directory),
       call(common_services_directory),
+      call(mpacks_directory)
+    ]
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
+
+    options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, EXTENSION_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+    purge_stacks_and_mpacks(options.purge_list.split(","))
+    os_path_exists_calls = [
+      call(stacks_directory),
+      call(extensions_directory),
       call(mpacks_directory)
     ]
     os_path_exists_mock.assert_has_calls(os_path_exists_calls)
