@@ -502,7 +502,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       } else if (stdErr.contains("Cannot find KDC for requested realm while initializing kadmin interface")) {
         throw new KerberosRealmException(stdErr);
       } else {
-        throw new KerberosOperationException("Unexpected error condition executing the kadmin command");
+        throw new KerberosOperationException(String.format("Unexpected error condition executing the kadmin command. STDERR: %s", stdErr));
       }
     }
 

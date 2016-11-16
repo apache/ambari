@@ -49,6 +49,7 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
   // Groups
   public static final String GROUP_GROUPNAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_name");
   public static final String GROUP_LDAP_GROUP_PROPERTY_ID = PropertyHelper.getPropertyId("Groups", "ldap_group");
+  public static final String GROUP_GROUPTYPE_PROPERTY_ID  = PropertyHelper.getPropertyId("Groups", "group_type");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -131,6 +132,9 @@ public class GroupResourceProvider extends AbstractControllerResourceProvider {
 
       setResourceProperty(resource, GROUP_LDAP_GROUP_PROPERTY_ID,
           groupResponse.isLdapGroup(), requestedIds);
+
+      setResourceProperty(resource, GROUP_GROUPTYPE_PROPERTY_ID,
+          groupResponse.getGroupType(), requestedIds);
 
       resources.add(resource);
     }

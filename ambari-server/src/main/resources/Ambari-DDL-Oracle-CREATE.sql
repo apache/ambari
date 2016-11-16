@@ -286,6 +286,7 @@ CREATE TABLE groups (
   principal_id NUMBER(19) NOT NULL,
   group_name VARCHAR2(255) NOT NULL,
   ldap_group NUMBER(10) DEFAULT 0,
+  group_type VARCHAR(255) DEFAULT 'LOCAL' NOT NULL,
   CONSTRAINT PK_groups PRIMARY KEY (group_id),
   CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id),
   CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group));

@@ -170,6 +170,7 @@ class TestResourceFilesKeeper(TestCase):
     except Exception, e:
       self.fail('Unexpected exception thrown:' + str(e))
 
+  @patch("os.path.exists")
   @patch("os.listdir")
   @patch.object(ResourceFilesKeeper, "count_hash_sum")
   @patch.object(ResourceFilesKeeper, "read_hash_sum")
@@ -178,11 +179,12 @@ class TestResourceFilesKeeper(TestCase):
   def test_update_directory_archive(self, write_hash_sum_mock,
                                     zip_directory_mock, read_hash_sum_mock,
                                     count_hash_sum_mock,
-                                    os_listdir_mock):
+                                    os_listdir_mock, os_path_exists_mock):
     os_listdir_mock.return_value = ['file1', 'dir1']
     # Test situation when there is no saved directory hash
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
+    os_path_exists_mock.return_value = True
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
@@ -198,6 +200,7 @@ class TestResourceFilesKeeper(TestCase):
     # Test situation when saved directory hash == current hash
     read_hash_sum_mock.return_value = self.DUMMY_HASH
     count_hash_sum_mock.return_value = self.YA_HASH
+    os_path_exists_mock.return_value = True
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -212,6 +215,7 @@ class TestResourceFilesKeeper(TestCase):
     # Test situation when saved directory hash == current hash
     read_hash_sum_mock.return_value = self.DUMMY_HASH
     count_hash_sum_mock.return_value = self.DUMMY_HASH
+    os_path_exists_mock.return_value = True
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -227,6 +231,7 @@ class TestResourceFilesKeeper(TestCase):
     zip_directory_mock.side_effect = self.keeper_exc_side_effect
     read_hash_sum_mock.return_value = self.DUMMY_HASH
     count_hash_sum_mock.return_value = self.YA_HASH
+    os_path_exists_mock.return_value = True
     try:
       resource_files_keeper.update_directory_archive(self.SOME_PATH)
       self.fail('KeeperException not thrown')
@@ -247,6 +252,7 @@ class TestResourceFilesKeeper(TestCase):
     # Test nozip option
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
+    os_path_exists_mock.return_value = True
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH, nozip=True)
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
@@ -264,6 +270,26 @@ class TestResourceFilesKeeper(TestCase):
     os_listdir_mock.return_value = [] # Empty dir
     zip_directory_mock.side_effect = None
     read_hash_sum_mock.return_value = None # hash read from .hash file
+    os_path_exists_mock.return_value = True
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
+    resource_files_keeper.update_directory_archive(self.SOME_PATH)
+
+    self.assertTrue(read_hash_sum_mock.called)
+    self.assertTrue(count_hash_sum_mock.called)
+    self.assertTrue(zip_directory_mock.called)
+    self.assertFalse(write_hash_sum_mock.called)
+    pass
+
+    # Test no directory
+    read_hash_sum_mock.reset_mock()
+    count_hash_sum_mock.reset_mock()
+    zip_directory_mock.reset_mock()
+    write_hash_sum_mock.reset_mock()
+
+    # If the input directory doesn't exist, then write_hash_sum() should not be called
+    zip_directory_mock.side_effect = None
+    read_hash_sum_mock.return_value = None # hash read from .hash file
+    os_path_exists_mock.return_value = False
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
 
@@ -349,8 +375,10 @@ class TestResourceFilesKeeper(TestCase):
         self.fail('Unexpected exception thrown:' + str(e))
 
 
-  def test_zip_directory(self):
+  @patch("os.path.exists")
+  def test_zip_directory(self, os_path_exists_mock):
     # Test normal flow
+    os_path_exists_mock.return_value = True
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     resource_files_keeper.zip_directory(self.DUMMY_UNCHANGEABLE_PACKAGE)
     arc_file = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE,
@@ -385,6 +413,19 @@ class TestResourceFilesKeeper(TestCase):
       except Exception, e:
         self.fail('Unexpected exception thrown: ' + str(e))
     pass
+
+    # Test skip zipping of a missing directory
+    with patch("os.listdir") as os_listdir_mock:
+      os_path_exists_mock.return_value = False
+      os_listdir_mock.return_value = False # Empty dir
+      try:
+        skip_empty_directory = True
+        resource_files_keeper.zip_directory("empty-to-directory", skip_empty_directory)
+        self.assertTrue(os_path_exists_mock.called)
+      except Exception, e:
+        self.fail('Unexpected exception thrown: ' + str(e))
+    pass
+
 
   def test_is_ignored(self):
     resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)

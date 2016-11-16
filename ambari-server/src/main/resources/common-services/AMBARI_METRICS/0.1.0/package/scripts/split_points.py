@@ -118,49 +118,36 @@ class FindSplitPointsForAMSRegions():
     pass
 
   def initialize_ordered_set_of_metrics(self):
-    stackServiceFiles = [ f for f in os.listdir(self.serviceMetricsDir) if
-                  os.path.isfile(os.path.join(self.serviceMetricsDir, f)) ]
-
-    if os.path.exists(self.customServiceMetricsDir):
-      customServiceFiles = [ f for f in os.listdir(self.customServiceMetricsDir) if
-                  os.path.isfile(os.path.join(self.customServiceMetricsDir, f)) ]
-    else:
-      customServiceFiles = []
-
     metrics = set()
-
-    for file in stackServiceFiles:
-      # Process for stack services selected at deploy time or all stack services if
-      # services arg is not passed
-      if self.services is None or file.rstrip(metric_filename_ext) in self.services:
-        print 'Processing file: %s' % os.path.join(self.serviceMetricsDir, file)
-        service_metrics = set()
-        with open(os.path.join(self.serviceMetricsDir, file), 'r') as f:
-          for metric in f:
-            service_metrics.add(metric.strip())
-          pass
-        pass
-        metrics.update(self.find_equidistant_metrics(list(sorted(service_metrics))))
-      pass
-    pass
-
-    for file in customServiceFiles:
-      # Process for custom services selected at deploy time or all custom services if
-      # services arg is not passed
-      if self.services is None or file.rstrip(metric_filename_ext) in self.services:
-        print 'Processing file: %s' % os.path.join(self.customServiceMetricsDir, file)
-        service_metrics = set()
-        with open(os.path.join(self.customServiceMetricsDir, file), 'r') as f:
-          for metric in f:
-            service_metrics.add(metric.strip())
-          pass
-        pass
-        metrics.update(self.find_equidistant_metrics(list(sorted(service_metrics))))
-      pass
-    pass
+    self.gatherMetrics(metrics, self.serviceMetricsDir)
+    self.gatherMetrics(metrics, self.customServiceMetricsDir)
 
     self.metrics = sorted(metrics)
     print 'metrics length: %s' % len(self.metrics)
+
+
+  def gatherMetrics(self, metrics, dir):
+    if os.path.exists(dir):
+      files = [ f for f in os.listdir(dir) if
+                  os.path.isfile(os.path.join(dir, f)) ]
+    else:
+      return
+
+    for file in files:
+      # Process for stack services selected at deploy time or all stack services if
+      # services arg is not passed
+      if self.services is None or file.rstrip(metric_filename_ext) in self.services:
+        print 'Processing file: %s' % os.path.join(dir, file)
+        service_metrics = set()
+        with open(os.path.join(dir, file), 'r') as f:
+          for metric in f:
+            service_metrics.add(metric.strip())
+          pass
+        pass
+        metrics.update(self.find_equidistant_metrics(list(sorted(service_metrics))))
+      pass
+    pass
+
 
   # Pick 50 metric points for each service that are equidistant from
   # each other for a service

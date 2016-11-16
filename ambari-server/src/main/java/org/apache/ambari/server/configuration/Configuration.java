@@ -17,42 +17,23 @@
  */
 package org.apache.ambari.server.configuration;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Field;
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.annotations.Markdown;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.CommandExecutionType;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
@@ -89,16 +70,34 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.Field;
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The {@link Configuration} class is used to read from the
@@ -259,22 +258,9 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
 
   /**
-   * The configuration tag used for "global" properties affecting the entire
-   * cluster or the Ambari server itself.
-   */
-  @Deprecated
-  public static final String GLOBAL_CONFIG_TAG = "global";
-
-  /**
    * The configuration tag for {@code mapreduce2-log4j}
    */
   public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
-
-  /**
-   * The configuration property for determining whether RCA is enabled.
-   */
-  @Deprecated
-  public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
 
   /**
    * Threadpool sizing based on the number of available processors multiplied by
@@ -403,6 +389,12 @@ public class Configuration {
       examples = { "8h", "2w", "1m" } )
   public static final ConfigurationProperty<String> RECOMMENDATIONS_ARTIFACTS_LIFETIME = new ConfigurationProperty<>(
       "recommendations.artifacts.lifetime", "1w");
+
+    @Markdown(
+            description = "Maximum number of recommendations artifacts at a given time",
+            examples = {"50","10","100"} )
+    public static final ConfigurationProperty<Integer> RECOMMENDATIONS_ARTIFACTS_ROLLOVER_MAX = new ConfigurationProperty<>(
+            "recommendations.artifacts.rollover.max",100);
 
   /**
    * The directory on the Ambari Server file system used for storing
@@ -724,6 +716,21 @@ public class Configuration {
       examples = {"UnlimitedJCEPolicyJDK7.zip"})
   public static final ConfigurationProperty<String> JCE_NAME = new ConfigurationProperty<>(
       "jce.name", null);
+
+  /**
+   * The auto group creation by Ambari.
+   */
+  @Markdown(
+      description = "The auto group creation by Ambari")
+  public static final ConfigurationProperty<Boolean> AUTO_GROUP_CREATION = new ConfigurationProperty<>(
+      "auto.group.creation", Boolean.FALSE);
+
+  /**
+   * The PAM configuration file.
+   */
+  @Markdown(description = "The PAM configuration file.")
+  public static final ConfigurationProperty<String> PAM_CONFIGURATION_FILE = new ConfigurationProperty<>(
+      "pam.configuration", null);
 
   /**
    * The type of authentication mechanism used by Ambari.
@@ -2489,6 +2496,7 @@ public class Configuration {
           "log4j.monitor.delay", TimeUnit.MINUTES.toMillis(5));
 
   /**
+<<<<<<< a5fdae802210ae1f8d4fed2234f1651cbe61c2b5
    * Indicates whether parallel topology task creation is enabled for blueprint cluster provisioning.
    * Defaults to <code>false</code>.
    * @see #TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT
@@ -2503,6 +2511,20 @@ public class Configuration {
    */
   @Markdown(description = "The number of threads to use for parallel topology task creation if enabled")
   public static final ConfigurationProperty<Integer> TOPOLOGY_TASK_PARALLEL_CREATION_THREAD_COUNT = new ConfigurationProperty<>("topology.task.creation.parallel.threads", 10);
+
+  /**
+   * The number of acceptor threads for the agent jetty connector.
+   */
+  @Markdown(description = "Count of acceptors to configure for the jetty connector used for Ambari agent.")
+  public static final ConfigurationProperty<Integer> SRVR_AGENT_ACCEPTOR_THREAD_COUNT = new ConfigurationProperty<>(
+      "agent.api.acceptor.count", null);
+
+  /**
+   * The number of acceptor threads for the api jetty connector.
+   */
+  @Markdown(description = "Count of acceptors to configure for the jetty connector used for Ambari API.")
+  public static final ConfigurationProperty<Integer> SRVR_API_ACCEPTOR_THREAD_COUNT = new ConfigurationProperty<>(
+      "client.api.acceptor.count", null);
 
   private static final Logger LOG = LoggerFactory.getLogger(
     Configuration.class);
@@ -3150,6 +3172,11 @@ public class Configuration {
     return getProperty(RECOMMENDATIONS_ARTIFACTS_LIFETIME);
   }
 
+  public int getRecommendationsArtifactsRolloverMax() {
+        int rollovermax = Integer.parseInt(getProperty(RECOMMENDATIONS_ARTIFACTS_ROLLOVER_MAX));
+        return (rollovermax == 0) ? 100 : rollovermax;
+    }
+
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
   }
@@ -3600,7 +3627,7 @@ public class Configuration {
    *
    * @return true two-way SSL authentication is enabled
    */
-  public boolean getTwoWaySsl() {
+  public boolean isTwoWaySsl() {
     return Boolean.parseBoolean(getProperty(SRVR_TWO_WAY_SSL));
   }
 
@@ -5353,7 +5380,6 @@ public class Configuration {
     InputStream inputStream = null;
     try {
       if (System.getProperties().containsKey(AMBARI_CONFIGURATION_MD_TEMPLATE_PROPERTY)) {
-        // for using from IDEA or other tools without whole compilation
         inputStream = new FileInputStream(System.getProperties().getProperty(AMBARI_CONFIGURATION_MD_TEMPLATE_PROPERTY));
       } else {
         inputStream = Configuration.class.getResourceAsStream(MARKDOWN_TEMPLATE_FILE);
@@ -5715,7 +5741,31 @@ public class Configuration {
     return kerberosAuthProperties;
   }
 
-  public int getKerberosOperationRetries(){
+  public int getKerberosOperationRetries() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
+  }
+
+  /**
+   * Return configured acceptors for agent api connector. Default = null
+   */
+  public Integer getAgentApiAcceptors() {
+    String acceptors = getProperty(SRVR_AGENT_ACCEPTOR_THREAD_COUNT);
+    return StringUtils.isEmpty(acceptors) ? null : Integer.parseInt(acceptors);
+  }
+
+  /**
+   * Return configured acceptors for server api connector. Default = null
+   */
+  public Integer getClientApiAcceptors() {
+    String acceptors = getProperty(SRVR_API_ACCEPTOR_THREAD_COUNT);
+    return StringUtils.isEmpty(acceptors) ? null : Integer.parseInt(acceptors);
+  }
+ 
+  public String getPamConfigurationFile() {
+    return getProperty(PAM_CONFIGURATION_FILE);
+  }
+
+  public String getAutoGroupCreation() {
+    return getProperty(AUTO_GROUP_CREATION);
   }
 }

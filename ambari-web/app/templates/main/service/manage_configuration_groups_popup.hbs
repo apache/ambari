@@ -67,15 +67,15 @@
         </div>
       </div>
       <div class="row">
-        <div class="col-md-2 col-lg-2">{{t common.overrides}}</div>
-        <div class="col-md-10 col-lg-10">
+        <div class="col-md-3 col-lg-3 align-right">{{t common.overrides}}</div>
+        <div class="col-md-9 col-lg-9">
           <a href="#" class="properties-link" {{action showProperties target="controller"}}
             {{bindAttr data-original-title="tooltipText" }}>{{selectedConfigGroup.properties.length}} {{t common.properties}}</a>
         </div>
       </div>
       <div class="row">
-        <div class="col-md-2 col-lg-2"><span class="prrl">{{t common.description}}</span></div>
-        <div class="col-md-10 col-lg-10 group-description">{{selectedConfigGroup.description}}</div>
+        <div class="col-md-3 col-lg-3 align-right">{{t common.description}}</div>
+        <div class="col-md-9 col-lg-9 group-description">{{selectedConfigGroup.description}}</div>
       </div>
     </div>
   </div>

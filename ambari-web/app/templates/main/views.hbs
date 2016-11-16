@@ -25,11 +25,10 @@
           {{#if instance.visible}}
             <tr {{action "setView" instance target="controller"}}>
               <td class="icon">
-                <a class="view-icon-image" target="_blank"><img {{bindAttr src="instance.iconPath"}}></a>
+                <a class="view-icon-image"><img {{bindAttr src="instance.iconPath"}}></a>
               </td>
               <td class="label-version-description">
-                <p class="view-label-text">{{instance.label}}</p>
-                <p class="view-version-text"> &nbsp;&nbsp;({{instance.version}})</p> <br />
+                <h4 class="view-label-text">{{instance.label}} <small class="view-version-text"> &nbsp;&nbsp;({{instance.version}})</small></h4>
                 <p class="view-description-text">{{instance.description}}</p>
               </td>
             </tr>

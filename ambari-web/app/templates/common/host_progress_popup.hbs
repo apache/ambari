@@ -265,8 +265,8 @@
             {{#each hostLog in view.hostComponentLogs}}
               <div {{bindAttr class=":tab-pane :log-component-tab hostLog.tabClassName"}}>
                 <p {{bindAttr class="view.isClipBoardActive:hidden"}}>
-                  <span class="text-bold">{{t common.file}}: &nbsp; </span>
-                  <span class="text-bold muted">{{hostLog.fileName}}</span>
+                  <strong>{{t common.file}}: &nbsp; </strong>
+                  <strong class="muted">{{hostLog.fileName}}</strong>
                   {{#view App.LogSearchUILinkView linkQueryParamsBinding="hostLog.linkTail" tagName="span"}}
                     <a {{bindAttr href="view.formatedLink" class=":pull-right view.isLodaded::disabled"}} target="_blank">
                       <i class="icon-external-link"></i>

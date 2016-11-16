@@ -42,7 +42,7 @@ public class ConnectionInfo {
     @Inject
     public static void init(Configuration instance){
         conf = instance;
-        response.put(Configuration.SRVR_TWO_WAY_SSL.getKey(),String.valueOf(conf.getTwoWaySsl()));
+        response.put(Configuration.SRVR_TWO_WAY_SSL.getKey(),String.valueOf(conf.isTwoWaySsl()));
     }
 
     @GET
