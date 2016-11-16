@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, $translate) {
+.controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Cluster', 'View', 'Alert', 'ConfirmationModal', '$location', 'GroupConstants', '$translate', function($scope, Group, $routeParams, Cluster, View, Alert, ConfirmationModal, $location, GroupConstants, $translate) {
   var $t = $translate.instant;
   $scope.constants = {
     group: $t('common.group'),
@@ -68,6 +68,7 @@ angular.module('ambariAdminConsole')
 
   function loadMembers(){
     $scope.group.getMembers().then(function(members) {
+      $scope.group.groupTypeName = $t(GroupConstants.TYPES[$scope.group.group_type].LABEL_KEY);
       $scope.groupMembers = members;
       $scope.group.editingUsers = angular.copy($scope.groupMembers);
     });
@@ -77,6 +78,8 @@ angular.module('ambariAdminConsole')
     $scope.group.ldap_group = isLDAP;
     loadMembers();
   });
+
+  $scope.group.getGroupType();
 
   $scope.deleteGroup = function(group) {
     ConfirmationModal.show(
