@@ -159,10 +159,8 @@ public class TestHeartbeatMonitor {
     }};
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config config = configFactory.createNew(cluster, "hadoop-env",
+    Config config = configFactory.createNew(cluster, "hadoop-env", "version1",
         new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version1");
-    cluster.addConfig(config);
     cluster.addDesiredConfig("_test", Collections.singleton(config));
 
 
@@ -243,18 +241,15 @@ public class TestHeartbeatMonitor {
     }};
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config hadoopEnvConfig = configFactory.createNew(cluster, "hadoop-env",
+    Config hadoopEnvConfig = configFactory.createNew(cluster, "hadoop-env", "version1",
       new HashMap<String, String>() {{
         put("a", "b");
       }}, new HashMap<String, Map<String,String>>());
-    Config hbaseEnvConfig = configFactory.createNew(cluster, "hbase-env",
+    Config hbaseEnvConfig = configFactory.createNew(cluster, "hbase-env", "version1",
             new HashMap<String, String>() {{
               put("a", "b");
             }}, new HashMap<String, Map<String,String>>());
-    hadoopEnvConfig.setTag("version1");
-    cluster.addConfig(hadoopEnvConfig);
-    hbaseEnvConfig.setTag("version1");
-    cluster.addConfig(hbaseEnvConfig);
+
     cluster.addDesiredConfig("_test", Collections.singleton(hadoopEnvConfig));
 
 

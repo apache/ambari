@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -44,6 +45,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +80,10 @@ public class ConfigGroupImpl implements ConfigGroup {
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
-  Clusters clusters;
+  private Clusters clusters;
+
+  @Inject
+  private ConfigFactory configFactory;
 
   @AssistedInject
   public ConfigGroupImpl(@Assisted("cluster") Cluster cluster,
@@ -398,35 +403,24 @@ public class ConfigGroupImpl implements ConfigGroup {
     }
 
     if (configurations != null && !configurations.isEmpty()) {
-      for (Config config : configurations.values()) {
+      for (Entry<String, Config> entry : configurations.entrySet()) {
+        Config config = entry.getValue();
         ClusterConfigEntity clusterConfigEntity = clusterDAO.findConfig
           (cluster.getClusterId(), config.getType(), config.getTag());
 
         if (clusterConfigEntity == null) {
-          config.setVersion(cluster.getNextConfigVersion(config.getType()));
-          config.setStackId(cluster.getDesiredStackVersion());
-          // Create configuration
-          clusterConfigEntity = new ClusterConfigEntity();
-          clusterConfigEntity.setClusterId(clusterEntity.getClusterId());
-          clusterConfigEntity.setClusterEntity(clusterEntity);
-          clusterConfigEntity.setStack(clusterEntity.getDesiredStack());
-          clusterConfigEntity.setType(config.getType());
-          clusterConfigEntity.setVersion(config.getVersion());
-          clusterConfigEntity.setTag(config.getTag());
-          clusterConfigEntity.setData(gson.toJson(config.getProperties()));
-          if (null != config.getPropertiesAttributes()) {
-            clusterConfigEntity.setAttributes(gson.toJson(config.getPropertiesAttributes()));
-          }
-          clusterConfigEntity.setTimestamp(System.currentTimeMillis());
-          clusterDAO.createConfig(clusterConfigEntity);
-          clusterEntity.getClusterConfigEntities().add(clusterConfigEntity);
-          cluster.addConfig(config);
-          clusterDAO.merge(clusterEntity);
-          cluster.refresh();
+          config = configFactory.createNew(cluster, config.getType(), config.getTag(),
+              config.getProperties(), config.getPropertiesAttributes());
+
+          entry.setValue(config);
+
+          clusterConfigEntity = clusterDAO.findConfig(cluster.getClusterId(), config.getType(),
+              config.getTag());
         }
 
         ConfigGroupConfigMappingEntity configMappingEntity =
           new ConfigGroupConfigMappingEntity();
+
         configMappingEntity.setTimestamp(System.currentTimeMillis());
         configMappingEntity.setClusterId(clusterEntity.getClusterId());
         configMappingEntity.setClusterConfigEntity(clusterConfigEntity);

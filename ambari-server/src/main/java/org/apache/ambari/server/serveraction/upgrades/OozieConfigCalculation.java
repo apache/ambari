@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -27,10 +31,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.inject.Inject;
 
 /**
  * Changes oozie-env during upgrade (adds -Dhdp.version to $HADOOP_OPTS variable)
@@ -67,7 +68,7 @@ public class OozieConfigCalculation extends AbstractServerAction {
     }
 
     config.setProperties(properties);
-    config.persist(false);
+    config.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
                   String.format("Added -Dhdp.version to $HADOOP_OPTS variable at %s", TARGET_CONFIG_TYPE), "");

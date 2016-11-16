@@ -89,8 +89,7 @@ public class ConfigGroupTest {
     Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("a", "true");
     propertiesAttributes.put("final", attributes);
-    Config config = configFactory.createNew(cluster, "hdfs-site", properties, propertiesAttributes);
-    config.setTag("testversion");
+    Config config = configFactory.createNew(cluster, "hdfs-site", "testversion", properties, propertiesAttributes);
 
     Host host = clusters.getHost("h1");
 
@@ -154,11 +153,8 @@ public class ConfigGroupTest {
     Map<String, String> attributes = new HashMap<String, String>();
     attributes.put("key1", "true");
     propertiesAttributes.put("final", attributes);
-    Config config = new ConfigImpl("test-site");
-    config.setProperties(properties);
-    config.setPropertiesAttributes(propertiesAttributes);
-    config.setTag("version100");
 
+    Config config = configFactory.createNew(cluster, "test-site", "version100", properties, propertiesAttributes);
     configGroup.addConfiguration(config);
     Assert.assertEquals(2, configGroup.getConfigurations().values().size());
 

@@ -384,7 +384,7 @@ public class HostTest {
     clusters.mapHostToCluster("h1", "c1");
 
     ConfigFactory configFactory = injector.getInstance(ConfigFactory.class);
-    Config config = configFactory.createNew(c1, "global",
+    Config config = configFactory.createNew(c1, "global", "v1",
         new HashMap<String,String>() {{ put("a", "b"); put("x", "y"); }}, new HashMap<String, Map<String,String>>());
 
     try {
@@ -396,16 +396,14 @@ public class HostTest {
     }
 
 
-    config.setTag("v1");
     host.addDesiredConfig(c1.getClusterId(), true, "_test", config);
 
     Map<String, DesiredConfig> map = host.getDesiredConfigs(c1.getClusterId());
     Assert.assertTrue("Expect desired config to contain global", map.containsKey("global"));
     Assert.assertEquals("Expect global user to be '_test'", "_test", map.get("global").getUser());
 
-    config = configFactory.createNew(c1, "global",
+    config = configFactory.createNew(c1, "global", "v2",
         new HashMap<String,String>() {{ put("c", "d"); }}, new HashMap<String, Map<String,String>>());
-    config.setTag("v2");
     host.addDesiredConfig(c1.getClusterId(), true, "_test1", config);
 
     map = host.getDesiredConfigs(c1.getClusterId());

@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,9 +35,8 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigImpl;
+import org.apache.ambari.server.state.SecurityType;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,124 +59,50 @@ public class RangerKerberosConfigCalculationTest {
     m_clusters = EasyMock.createMock(Clusters.class);
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
-    Config hadoopConfig = new ConfigImpl("hadoop-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("hdfs_user", "hdfs");
-      }};
+    Config hadoopConfig = EasyMock.createNiceMock(Config.class);
+    expect(hadoopConfig.getType()).andReturn("hadoop-env").anyTimes();
+    expect(hadoopConfig.getProperties()).andReturn(Collections.singletonMap("hdfs_user", "hdfs")).anyTimes();
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
+    Config hiveConfig = EasyMock.createNiceMock(Config.class);
+    expect(hiveConfig.getType()).andReturn("hive-env").anyTimes();
+    expect(hiveConfig.getProperties()).andReturn(Collections.singletonMap("hive_user", "hive")).anyTimes();
 
+    Config yarnConfig = EasyMock.createNiceMock(Config.class);
+    expect(yarnConfig.getType()).andReturn("yarn-env").anyTimes();
+    expect(yarnConfig.getProperties()).andReturn(Collections.singletonMap("yarn_user", "yarn")).anyTimes();
 
-    Config hiveConfig = new ConfigImpl("hive-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("hive_user", "hive");
-      }};
+    Config hbaseConfig = EasyMock.createNiceMock(Config.class);
+    expect(hbaseConfig.getType()).andReturn("hbase-env").anyTimes();
+    expect(hbaseConfig.getProperties()).andReturn(Collections.singletonMap("hbase_user", "hbase")).anyTimes();
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
+    Config knoxConfig = EasyMock.createNiceMock(Config.class);
+    expect(knoxConfig.getType()).andReturn("knox-env").anyTimes();
+    expect(knoxConfig.getProperties()).andReturn(Collections.singletonMap("knox_user", "knox")).anyTimes();
 
-    Config yarnConfig = new ConfigImpl("yarn-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("yarn_user", "yarn");
-      }};
+    Map<String, String> mockProperties = new HashMap<String, String>() {{
+      put("storm_user", "storm");
+      put("storm_principal_name", "storm-c1@EXAMLE.COM");
+    }};
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
+    Config stormConfig = EasyMock.createNiceMock(Config.class);
+    expect(stormConfig.getType()).andReturn("storm-env").anyTimes();
+    expect(stormConfig.getProperties()).andReturn(mockProperties).anyTimes();
 
-    Config hbaseConfig = new ConfigImpl("hbase-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("hbase_user", "hbase");
-      }};
+    Config kafkaConfig = EasyMock.createNiceMock(Config.class);
+    expect(kafkaConfig.getType()).andReturn("kafka-env").anyTimes();
+    expect(kafkaConfig.getProperties()).andReturn(Collections.singletonMap("kafka_user", "kafka")).anyTimes();
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
+    Config kmsConfig = EasyMock.createNiceMock(Config.class);
+    expect(kmsConfig.getType()).andReturn("kms-env").anyTimes();
+    expect(kmsConfig.getProperties()).andReturn(Collections.singletonMap("kms_user", "kms")).anyTimes();
 
-    Config knoxConfig = new ConfigImpl("knox-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("knox_user", "knox");
-      }};
+    Config hdfsSiteConfig = EasyMock.createNiceMock(Config.class);
+    expect(hdfsSiteConfig.getType()).andReturn("hdfs-site").anyTimes();
+    expect(hdfsSiteConfig.getProperties()).andReturn(Collections.singletonMap("dfs.web.authentication.kerberos.keytab", "/etc/security/keytabs/spnego.kytab")).anyTimes();
 
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
-
-    Config stormConfig = new ConfigImpl("storm-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("storm_user", "storm");
-        put("storm_principal_name", "storm-c1@EXAMLE.COM");
-      }};
-
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
-
-    Config kafkaConfig = new ConfigImpl("kafka-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("kafka_user", "kafka");
-      }};
-
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
-
-    Config kmsConfig = new ConfigImpl("kms-env") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("kms_user", "kms");
-      }};
-
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
-
-    Config hdfsSiteConfig = new ConfigImpl("hdfs-site") {
-      Map<String, String> mockProperties = new HashMap<String, String>() {{
-        put("dfs.web.authentication.kerberos.keytab", "/etc/security/keytabs/spnego.kytab");
-      }};
-
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-    };
-
-    Config adminSiteConfig = new ConfigImpl("ranger-admin-site") {
-      Map<String, String> mockProperties = new HashMap<String, String>();
-      @Override
-      public Map<String, String> getProperties() {
-        return mockProperties;
-      }
-
-      @Override
-      public void setProperties(Map<String, String> properties) {
-        mockProperties.putAll(properties);
-      }
-
-      @Override
-      public void persist(boolean newConfig) {
-        // no-op
-      }
-    };
+    Config adminSiteConfig = EasyMock.createNiceMock(Config.class);
+    expect(adminSiteConfig.getType()).andReturn("ranger-admin-site").anyTimes();
+    expect(adminSiteConfig.getProperties()).andReturn(new HashMap<String,String>()).anyTimes();
 
     expect(cluster.getDesiredConfigByType("hadoop-env")).andReturn(hadoopConfig).atLeastOnce();
     expect(cluster.getDesiredConfigByType("hive-env")).andReturn(hiveConfig).atLeastOnce();
@@ -193,7 +119,8 @@ public class RangerKerberosConfigCalculationTest {
     expect(m_injector.getInstance(Clusters.class)).andReturn(m_clusters).atLeastOnce();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
 
-    replay(m_injector, m_clusters, cluster);
+    replay(m_injector, m_clusters, cluster, hadoopConfig, hiveConfig, yarnConfig, hbaseConfig,
+        knoxConfig, stormConfig, kafkaConfig, kmsConfig, hdfsSiteConfig, adminSiteConfig);
 
     m_clusterField = RangerKerberosConfigCalculation.class.getDeclaredField("m_clusters");
     m_clusterField.setAccessible(true);
@@ -236,7 +163,7 @@ public class RangerKerberosConfigCalculationTest {
     assertTrue(map.containsKey("ranger.plugins.storm.serviceuser"));
     assertTrue(map.containsKey("ranger.plugins.kafka.serviceuser"));
     assertTrue(map.containsKey("ranger.plugins.kms.serviceuser"));
-    assertTrue(map.containsKey("ranger.spnego.kerberos.keytab"));    
+    assertTrue(map.containsKey("ranger.spnego.kerberos.keytab"));
 
 
     assertEquals("hdfs", map.get("ranger.plugins.hdfs.serviceuser"));
@@ -254,4 +181,4 @@ public class RangerKerberosConfigCalculationTest {
 
   }
 
-} 
+}

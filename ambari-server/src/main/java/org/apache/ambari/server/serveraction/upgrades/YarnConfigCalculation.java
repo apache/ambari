@@ -67,7 +67,7 @@ public class YarnConfigCalculation extends AbstractServerAction {
     yarnSiteProperties.put(YARN_RM_ZK_ADDRESS_PROPERTY_NAME, zkServersStr);
     yarnSiteProperties.put(HADOOP_REGISTRY_ZK_QUORUM_PROPERTY_NAME, zkServersStr);
     yarnSiteConfig.setProperties(yarnSiteProperties);
-    yarnSiteConfig.persist(false);
+    yarnSiteConfig.save();
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
         String.format("%s was set from %s to %s. %s was set from %s to %s",

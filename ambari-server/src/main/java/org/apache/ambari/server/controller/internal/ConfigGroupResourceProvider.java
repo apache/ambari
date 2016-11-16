@@ -48,6 +48,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -100,6 +101,12 @@ public class ConfigGroupResourceProvider extends
 
   @Inject
   private static HostDAO hostDAO;
+  
+  /**
+   * Used for creating {@link Config} instances to return in the REST response.
+   */
+  @Inject
+  private static ConfigFactory configFactory;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -781,11 +788,7 @@ public class ConfigGroupResourceProvider extends
             }
           }
 
-          Config config = new ConfigImpl(type);
-          config.setTag(tag);
-          config.setProperties(configProperties);
-          config.setPropertiesAttributes(configAttributes);
-
+          Config config = configFactory.createReadOnly(type, tag, configProperties, configAttributes);
           configurations.put(config.getType(), config);
         }
       } catch (Exception e) {
