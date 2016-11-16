@@ -77,6 +77,10 @@
                   <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.io</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>org.apache.commons.lang</pattern>
+                  <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.lang</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.apache.curator</pattern>
                   <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.curator</shadedPattern>
                 </relocation>
@@ -152,6 +156,11 @@
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
       <version>1.9.13</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
