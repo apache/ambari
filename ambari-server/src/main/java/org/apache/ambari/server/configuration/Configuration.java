@@ -403,6 +403,12 @@ public class Configuration {
   public static final ConfigurationProperty<String> RECOMMENDATIONS_ARTIFACTS_LIFETIME = new ConfigurationProperty<>(
       "recommendations.artifacts.lifetime", "1w");
 
+    @Markdown(
+            description = "Maximum number of recommendations artifacts at a given time",
+            examples = {"50","10","100"} )
+    public static final ConfigurationProperty<Integer> RECOMMENDATIONS_ARTIFACTS_ROLLOVER_MAX = new ConfigurationProperty<>(
+            "recommendations.artifacts.rollover.max",100);
+
   /**
    * The directory on the Ambari Server file system used for storing
    * Recommendation API artifacts.
@@ -3178,6 +3184,11 @@ public class Configuration {
   public String getRecommendationsArtifactsLifetime() {
     return getProperty(RECOMMENDATIONS_ARTIFACTS_LIFETIME);
   }
+
+  public int getRecommendationsArtifactsRolloverMax() {
+        int rollovermax = Integer.parseInt(getProperty(RECOMMENDATIONS_ARTIFACTS_ROLLOVER_MAX));
+        return (rollovermax == 0) ? 100 : rollovermax;
+    }
 
   public String areHostsSysPrepped(){
     return getProperty(SYS_PREPPED_HOSTS);
