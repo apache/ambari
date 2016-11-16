@@ -47,7 +47,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       // when configurations were stored no need to apply recommendations again
       if (App.get('supports.kerberosStackAdvisor') && !stored.length) {
         self.bootstrapRecommendationPayload(kerberosDescriptor).then(function(recommendations) {
-          self.loadServerSideConfigsRecommendations(recommendations).done(function() {
+          self.loadServerSideConfigsRecommendations(recommendations).always(function() {
             self.applyServiceConfigs(stepConfigs);
           });
         });
@@ -209,7 +209,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var self = this;
     // stored configs from previous steps (Configure Kerberos or Customize Services for ASW)
     var storedServiceConfigs = this.get('wizardController.content.serviceConfigProperties');
-    var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
+    var installedServiceNames = ['Cluster', 'AMBARI'].concat(App.Service.find().mapProperty('serviceName'));
     var configProperties = configs.slice(0);
     var siteProperties = App.configsCollection.getAll();
     var realmValue;
