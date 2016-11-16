@@ -591,6 +591,18 @@
             </organization>
         </developer>
         <developer>
+            <id>mgergely</id>
+            <name>Miklos Gergely</name>
+            <email>mgergely@apache.org</email>
+            <timezone></timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>mithmatt</id>
             <name>Mithun Mathew</name>
             <email>mithmatt@apache.org</email>
