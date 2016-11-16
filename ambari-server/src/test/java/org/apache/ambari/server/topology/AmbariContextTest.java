@@ -330,7 +330,6 @@ public class AmbariContextTest {
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
-    configHelper.moveDeprecatedGlobals(stackId, group1Configuration.getFullProperties(1), CLUSTER_NAME);
     // replay all mocks
     replayAll();
 
@@ -370,7 +369,6 @@ public class AmbariContextTest {
     expect(clusterController.ensureResourceProvider(Resource.Type.ConfigGroup)).andReturn(configGroupResourceProvider).once();
     //todo: for now not using return value so just returning null
     expect(configGroupResourceProvider.createResources(capture(configGroupRequestCapture))).andReturn(null).once();
-    configHelper.moveDeprecatedGlobals(stackId, group1Configuration.getFullProperties(1), CLUSTER_NAME);
 
     reset(group1Info);
     expect(group1Info.getConfiguration()).andReturn(group1Configuration).anyTimes();
