@@ -637,9 +637,7 @@ def _install_mpack(options, replay_mode=False, is_upgrade=False):
     _execute_hook(mpack_metadata, BEFORE_INSTALL_HOOK_NAME, tmp_root_dir)
 
   # Purge previously installed stacks and management packs
-  if options.purge:
-    if not 'purge_list' in options:
-      options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
+  if options.purge and options.purge_list:
     purge_resources = options.purge_list.split(",")
     validate_purge(options, purge_resources, tmp_root_dir, mpack_metadata, replay_mode)
     purge_stacks_and_mpacks(purge_resources, replay_mode)
@@ -822,6 +820,8 @@ def replay_mpack_logs():
         print_info_msg(replay_log)
         print_info_msg("===========================================================================================")
         replay_options = _named_dict(ast.literal_eval(replay_log))
+        if 'purge_list' not in replay_options:
+          replay_options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
         if replay_options.mpack_command == INSTALL_MPACK_ACTION:
           install_mpack(replay_options, replay_mode=True)
         elif replay_options.mpack_command == UPGRADE_MPACK_ACTION:
