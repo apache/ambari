@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+/**
+ * This file only for variables and mixins!
+ */
+
 /************************************************************************
 * Health status(service/host/host component health)icons class names
 ***********************************************************************/
@@ -32,10 +36,11 @@
 * Health status(service/host/host component health)icon colors
 ***********************************************************************/
 @health-status-red: #ff0000;
+@health-status-blue: #0000ff;
 @health-status-green: #5AB400;
 @health-status-yellow: #FFD13D;
 @health-status-orange: #FF8E00;
-@maintenance-black: #000000;
+@maintenance-black: #000;
 /************************************************************************
 * Health status(service/host/host component health)icon colors ends
 ***********************************************************************/
@@ -176,21 +181,21 @@
   animation-iteration-count: infinite;
 }
 
-.infoPulse {
+.infoPulse() {
   .pulse(bluePulse);
   background-color: #006DCC;
 }
 
-.infoPulseInner {
+.infoPulseInner() {
   .pulse(bluePulseInner);
 }
 
-.warnPulse {
+.warnPulse() {
   .pulse(orangePulse);
   background-color: @health-status-orange;
 }
 
-.dangerPulse {
+.dangerPulse() {
   .pulse(redPulse);
   background-color: @health-status-red;
 }
@@ -209,286 +214,3 @@
 @modal-header-height: 50px;
 // modal footer height
 @modal-footer-height: 60px;
-
-.editable-list-container.well{
-  padding: 10px;
-  position: relative;
-  margin-bottom: 25px;
-  cursor: pointer;
-}
-.editable-list-container.well.edit-mode{
-  cursor: default;
-}
-.editable-list-container.well.disabled{
-  background: white;
-}
-
-.editable-list-container .items-box{
-
-}
-.editable-list-container .items-box ul.items-list{
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-
-.editable-list-container .items-box ul.items-list li.item{
-  display: inline-block;
-  padding: 4px 8px;
-  margin: 0 5px 5px 2px;
-  background: white;
-  border: 1px solid #ebebeb;
-  max-width: 100%;
-  white-space: nowrap;
-  position: relative;
-  a {
-    color: #555;
-  }
-}
-
-.editable-list-container.edit-mode .items-box ul.items-list li.item.deletable{
-  padding-right: 25px;
-}
-.editable-list-container .items-box ul.items-list li.item.global{
-  background-color: #f5f5f5;
-}
-
-.editable-list-container .items-box ul.items-list li.item .close{
-  margin: -2px 0 0 5px;
-  width: 13px;
-  outline: none;
-  position: absolute;
-  display: none;
-}
-.editable-list-container.edit-mode .items-box ul.items-list li.item .close{
-  display: inline-block;
-}
-
-.editable-list-container .items-box ul.items-list li a{
-  text-decoration: none;
-}
-
-.editable-list-container.edit-mode .items-box ul.items-list li.item.add-item-input .ember-text-field{
-  display: inline-block!important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
-  padding: 0 0;
-  margin: 0 0;
-  border: none;
-  width: 50px;
-  height: 18px;
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-  -webkit-transition: none;
-  -moz-transition: none;
-  -o-transition: none;
-  transition: none;
-}
-
-.editable-list-container .items-box ul.items-list li.item.add-item{
-  color: #ddd;
-}
-
-.typeahead-box{
-  position: absolute;
-  left: 0;
-  margin-top: 5px;
-  background: white;
-  border: 1px solid #ebebeb;
-  z-index: 1000;
-  min-width: 65px;
-  max-height: 150px;
-  overflow: auto;
-}
-.typeahead-box ul{
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
-.typeahead-box ul li{
-  padding: 3px 5px;
-  display: block;
-  cursor: pointer;
-}
-
-.typeahead-box ul li.selected, .typeahead-box ul li:hover{
-  background: #eee;
-}
-
-.editable-list-container .actions-panel{
-  position: absolute;
-  right: 5px;
-  bottom: -30px;
-  padding: 2px 5px 5px 5px;
-  background: #f5f5f5;
-  border: 1px solid #e3e3e3;
-  border-top: none;
-  border-radius: 0 0 4px 4px;
-
-  -webkit-transition: all 0.3s;
-  -o-transition: all 0.3s;
-  transition: all 0.3s;
-
-  -ms-transform-origin: 0% 0%; /* IE 9 */
-  -webkit-transform-origin: 0% 0%; /* Chrome, Safari, Opera */
-  transform-origin: 0% 0%;
-
-  -webkit-transform: rotateX(0deg);
-  -ms-transform: rotateX(0deg);
-  -o-transform: rotateX(0deg);
-  transform: rotateX(0deg);
-
-  .btn-xs {
-    padding: 1px 5px;
-    font-size: 12px;
-    line-height: 1.5;
-    border-radius: 3px;
-  }
-  .glyphicon-remove {
-    color: #000;
-  }
-  .glyphicon-ok {
-    color: white;
-  }
-}
-
-.editable-list-container.disabled .pencil-box{
-  display: none;
-}
-.editable-list-container .pencil-box{
-  position: absolute;
-  right: 5px;
-  top: 5px;
-  opacity: 0;
-  -webkit-transition: all 0.3s;
-  -o-transition: all 0.3s;
-  transition: all 0.3s;
-}
-.editable-list-container:hover .pencil-box{
-  opacity: 1;
-}
-.editable-list-container.edit-mode:hover .pencil-box{
-  opacity: 0;
-}
-
-.table-overlay {
-  position: absolute;
-  opacity: 0.9;
-  background-color: #fefefe;
-  .spinner {
-    display: none;
-  }
-}
-
-.host-elements {
-  border: 1px solid #ddd;
-  height: 120px;
-  overflow: auto;
-  padding: 5px;
-  ul {
-    margin-bottom: 0;
-  }
-  table {
-    width: 100%;
-    td {
-      width: 50%;
-      padding: 0;
-    }
-  }
-}
-
-.export-graph-list {
-  top: 25px;
-  min-width: 60px;
-  font-size: 14px;
-  cursor: auto;
-  a {
-    cursor: pointer;
-  }
-}
-
-.lh-btn {
-  line-height: 30px;
-}
-
-.text-bold {
-  font-weight: bold;
-}
-
-.pre-styled {
-  display: block;
-  padding: 9.5px;
-  margin: 0 0 10px;
-  font-size: 11px;
-  line-height: 14px;
-  font-family: monospace;
-  word-break: break-all;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  background-color: #f5f5f5;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  -webkit-border-radius: 4px;
-  -moz-border-radius: 4px;
-  border-radius: 4px;
-}
-
-.clear {
-  clear: both;
-}
-
-.noDisplay {
-  display: none !important;
-}
-
-.display {
-  display: block !important;
-}
-
-.display-inline-block {
-  display: inline-block;
-}
-
-.popover {
-  small {
-    font-size: 1.3rem;
-  }
-}
-
-.form-group {
-  .help-block {
-    &.help-inline {
-      margin-bottom: 0;
-    }
-  }
-}
-
-.alert {
-  & > ul, ol {
-    padding-left: inherit;
-  }
-}
-
-.dropdown-toggle.btn-icon {
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-::-webkit-scrollbar {
-  -webkit-appearance: none;
-}
-
-::-webkit-scrollbar:vertical {
-  width: 11px;
-}
-
-::-webkit-scrollbar:horizontal {
-  height: 11px;
-}
-
-::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  border: 2px solid white;
-  background-color: rgba(0, 0, 0, .5);
-}

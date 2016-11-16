@@ -46,6 +46,8 @@ import com.google.inject.Injector;
 public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
   protected static final String HOST_VERSION_TABLE = "host_version";
+  protected static final String GROUPS_TABLE = "groups";
+  protected static final String GROUP_TYPE_COL = "group_type";
   private static final String AMS_ENV = "ams-env";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_TIMELINE_METRICS_HOST = "kafka.timeline.metrics.host";
@@ -109,6 +111,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     updateHostVersionTable();
     createComponentVersionTable();
+    updateGroupsTable();
     dbAccessor.addColumn("stage",
       new DBAccessor.DBColumnInfo("command_execution_type", String.class, 32, CommandExecutionType.STAGE.toString(),
         false));
@@ -138,6 +141,14 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
 
     // Add the unique constraint to the host_version table
     dbAccessor.addUniqueConstraint(HOST_VERSION_TABLE, "UQ_host_repo", "repo_version_id", "host_id");
+  }
+
+  protected void updateGroupsTable() throws SQLException {
+    LOG.info("Updating the {} table", GROUPS_TABLE);
+
+    dbAccessor.addColumn(GROUPS_TABLE, new DBColumnInfo(GROUP_TYPE_COL, String.class, null, "LOCAL", false));
+    dbAccessor.executeQuery("UPDATE groups SET group_type='LDAP' WHERE ldap_group=1");
+    dbAccessor.addUniqueConstraint(GROUPS_TABLE, "UNQ_groups_0", "group_name", "group_type");
   }
 
   protected void updateAMSConfigs() throws AmbariException {

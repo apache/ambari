@@ -77,18 +77,29 @@
     <value>false</value>
     <description>Indicates whether or not Kerberos is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.file</name>
+    <display-name>Enable File Authentication</display-name>
     <value>true</value>
     <description>Indicates whether or not file based authentication is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.ldap</name>
+    <display-name>Enable LDAP Authentication</display-name>
     <value>false</value>
     <description>Indicates whether or not LDAP authentication is enabled.</description>
     <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>atlas.authentication.method.file.filename</name>

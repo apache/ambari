@@ -15,7 +15,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<metainfo>
+<metainfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <schemaVersion>2.0</schemaVersion>
   <services>
     <service>
@@ -32,6 +32,47 @@
           <cardinality>1-2</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <reassignAllowed>true</reassignAllowed>
+          <dependencies>
+            <dependency>
+              <name>HDFS/ZKFC</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+            <dependency>
+              <name>HDFS/JOURNALNODE</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+              <conditions>
+                <condition xsi:type="propertyExists">
+                  <configType>hdfs-site</configType>
+                  <property>dfs.nameservices</property>
+                </condition>
+              </conditions>
+            </dependency>
+          </dependencies>
           <commandScript>
             <script>scripts/namenode.py</script>
             <scriptType>PYTHON</scriptType>

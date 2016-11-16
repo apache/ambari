@@ -825,6 +825,8 @@ def replay_mpack_logs():
         print_info_msg(replay_log)
         print_info_msg("===========================================================================================")
         replay_options = _named_dict(ast.literal_eval(replay_log))
+        if 'purge_list' not in replay_options:
+          replay_options.purge_list = ",".join([STACK_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME])
         if replay_options.mpack_command == INSTALL_MPACK_ACTION:
           install_mpack(replay_options, replay_mode=True)
         elif replay_options.mpack_command == UPGRADE_MPACK_ACTION:

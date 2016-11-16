@@ -26,10 +26,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.DependencyConditionInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.VersionUtils;
@@ -135,9 +135,6 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
           }
         }
         if (ClusterTopologyImpl.isNameNodeHAEnabled(clusterConfigurations) && component.equals("NAMENODE")) {
-            if(!hostGroup.getComponentNames().contains("ZKFC")){
-              throw new InvalidTopologyException("Compoenent ZKFC is mandatory for hostgroup " + hostGroup+" when NAMENODE HA is enabled");
-            }
             Map<String, String> hadoopEnvConfig = clusterConfigurations.get("hadoop-env");
             if(hadoopEnvConfig != null && !hadoopEnvConfig.isEmpty() && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_active") && hadoopEnvConfig.containsKey("dfs_ha_initial_namenode_standby")) {
               ArrayList<HostGroup> hostGroupsForComponent = new ArrayList<HostGroup>( blueprint.getHostGroupsForComponent(component));
@@ -289,6 +286,19 @@ public class BlueprintValidatorImpl implements BlueprintValidator {
         AutoDeployInfo autoDeployInfo  = dependency.getAutoDeploy();
         boolean        resolved        = false;
 
+        //check if conditions are met, if any
+        if(dependency.hasDependencyConditions()) {
+          boolean conditionsSatisfied = true;
+          for (DependencyConditionInfo dependencyCondition : dependency.getDependencyConditions()) {
+            if (!dependencyCondition.isResolved(blueprint.getConfiguration().getFullProperties())) {
+              conditionsSatisfied = false;
+              break;
+            }
+          }
+          if(!conditionsSatisfied){
+            continue;
+          }
+        }
         if (dependencyScope.equals("cluster")) {
           Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
               componentName, new Cardinality("1+"), autoDeployInfo);

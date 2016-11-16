@@ -16,15 +16,12 @@
 * limitations under the License.
 }}
 
-<ul class="dropdown-menu" >
   {{#if view.hiddenWidgets.length}}
     <li class="add-widgets-dropdown-list">
       <ul>
         {{#each widget in view.hiddenWidgets}}
           <li>
-            <div class="checkbox">
-              {{view view.widgetCheckbox checkedBinding="widget.checked" labelBinding="widget.displayName"}}
-            </div>
+            {{view view.widgetCheckbox class="checkbox" checkedBinding="widget.checked" labelBinding="widget.displayName"}}
           </li>
         {{/each}}
       </ul>
@@ -36,11 +33,10 @@
   {{else}}
     <li>
       <ul>
-      <li>{{t dashboard.widgets.nothing}}</li>
+        <li>{{t dashboard.widgets.nothing}}</li>
       </ul>
     </li>
     <li>
       <button class="btn btn-default" {{action "closeFilter" target="view"}}>{{t common.cancel}}</button>
     </li>
   {{/if}}
-</ul>

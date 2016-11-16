@@ -82,7 +82,7 @@ App.supports = {
   skipComponentStartAfterInstall: false,
   preInstallChecks: false,
   hostComboSearchBox: true,
-  serviceAutoStart: false,
+  serviceAutoStart: true,
   logSearch: true,
   redhatSatellite: false,
   enableIpa: false,

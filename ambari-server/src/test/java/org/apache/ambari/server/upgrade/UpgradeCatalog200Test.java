@@ -805,7 +805,7 @@ public class UpgradeCatalog200Test {
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
-    Assert.assertEquals("1.7.0", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals(null, upgradeCatalog.getSourceVersion());
   }
 
   @Test

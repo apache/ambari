@@ -107,8 +107,6 @@
       }
       .textfield-error input {
         border-color: #b94a48;
-        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
         box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
       }
       .disabled-label {
@@ -278,22 +276,22 @@
   .version-column {
     min-height: 500px;
     width: 115px;
-    margin: 15px 7px 0px 7px;
+    margin: 15px 7px 0 7px;
     .version-column-display-name {
       color: #000;
       text-align: center;
       font-weight: 500;
       font-size: 16px;
       line-height: 18px;
-      padding: 5px 5px;
-      margin-bottom: 0px;
+      padding: 5px;
+      margin-bottom: 0;
     }
     .version-column-show-details {
       text-align: center;
       font-size: 13px;
-      padding: 5px 5px;
+      padding: 5px;
       border-bottom: 1px solid #e4e4e4;
-      margin-bottom: 0px;
+      margin-bottom: 0;
       a {
         cursor: pointer;
       }
@@ -335,7 +333,7 @@
         height: 2px;
         background: #e4e4e4;
         position: relative;
-        margin: 0px 0px 0px -15px;
+        margin: 0 0 0 -15px;
       }
       .line-separator {
         top: -7px;
@@ -435,7 +433,7 @@
 
 .repository-list {
   .os-block {
-    border-top: 1px solid #dddddd;
+    border-top: 1px solid #ddd;
     padding-top: 10px;
   }
   input[type="text"] {
@@ -473,7 +471,7 @@
     .ROLLING, .NON_ROLLING {
       background-color: #e4e4e4;
       .method-name,.method-icon,.method-description {
-        color: #333333;
+        color: #333;
       }
     }
     .ROLLING {
@@ -578,7 +576,7 @@
 .admin-cluster {
   .repositories-table {
     margin-bottom: 10px;
-    border: 1px solid #dddddd;
+    border: 1px solid #ddd;
     overflow: auto;
     div {
       float: left;
@@ -604,7 +602,7 @@
       width: 100%;
       .trow {
         width: 100%;
-        border-top: 1px solid #dddddd;
+        border-top: 1px solid #ddd;
         padding-top: 8px;
         .os-td {
           padding-top: 4px;
@@ -660,8 +658,6 @@
     }
     .textfield-error input {
       border-color: #b94a48;
-      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
       box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
     }
     .disabled-textfield input {

@@ -157,7 +157,7 @@ class ResourceFilesKeeper():
       if not self.nozip:
         self.zip_directory(directory, skip_empty_directory)
       # Skip generation of .hash file is directory is empty
-      if (skip_empty_directory and not os.listdir(directory)):
+      if (skip_empty_directory and (not os.path.exists(directory) or not os.listdir(directory))):
         self.dbg_out("Empty directory. Skipping generation of hash file for {0}".format(directory))
       else:
         self.write_hash_sum(directory, cur_hash)
@@ -232,7 +232,7 @@ class ResourceFilesKeeper():
     self.dbg_out("creating archive for directory {0}".format(directory))
     try:
       if skip_if_empty:
-        if not os.listdir(directory):
+        if not os.path.exists(directory) or not os.listdir(directory):
           self.dbg_out("Empty directory. Skipping archive creation for {0}".format(directory))
           return
 
