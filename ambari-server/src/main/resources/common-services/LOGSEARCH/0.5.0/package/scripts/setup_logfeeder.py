@@ -67,6 +67,7 @@ def setup_logfeeder():
          content=Template(file_name + ".j2")
          )
 
+  File(format("{logsearch_logfeeder_conf}/input.config-logfeeder-custom.json"), action='delete')
   for service, pattern_content in params.logfeeder_metadata.iteritems():
     File(format("{logsearch_logfeeder_conf}/input.config-" + service.replace('-logsearch-conf', '') + ".json"),
       content=InlineTemplate(pattern_content, extra_imports=[default])

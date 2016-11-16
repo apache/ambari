@@ -18,24 +18,22 @@
  {
    "service": {
 {% if logsearch_metadata and logsearch_metadata.keys()|length > 0 %}
-  {% for metadata_key, component_list in logsearch_metadata.iteritems() %}
+{%   for metadata_key, component_list in logsearch_metadata.iteritems() %}
     "{{ metadata_key.lower() }}": {
       "label": "{{ metadata_key }}",
       "components": [
-    {% for component in component_list %}
+{%     for component in component_list %}
         {
           "name": "{{ component }}"
-        }
-      {% if not loop.last %}
-        ,
-      {% endif %}
-    {% endfor %}
+        }{% if not loop.last %},{% endif %}
+
+{%     endfor %}
       ],
       "dependencies": [
       ]
     }
      ,
-  {% endfor %}
+{%   endfor %}
 {% endif %}
 {% if logfeeder_system_log_enabled %}
      "system" : {
