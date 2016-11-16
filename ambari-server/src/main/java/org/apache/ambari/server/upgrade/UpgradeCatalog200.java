@@ -84,14 +84,6 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    * {@inheritDoc}
    */
   @Override
-  public String getSourceVersion() {
-    return "1.7.0";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public String getTargetVersion() {
     return "2.0.0";
   }

@@ -258,22 +258,9 @@ public class Configuration {
   public static final String JAVAX_SSL_TRUSTSTORE_TYPE = "javax.net.ssl.trustStoreType";
 
   /**
-   * The configuration tag used for "global" properties affecting the entire
-   * cluster or the Ambari server itself.
-   */
-  @Deprecated
-  public static final String GLOBAL_CONFIG_TAG = "global";
-
-  /**
    * The configuration tag for {@code mapreduce2-log4j}
    */
   public static final String MAPREDUCE2_LOG4J_CONFIG_TAG = "mapreduce2-log4j";
-
-  /**
-   * The configuration property for determining whether RCA is enabled.
-   */
-  @Deprecated
-  public static final String RCA_ENABLED_PROPERTY = "rca_enabled";
 
   /**
    * Threadpool sizing based on the number of available processors multiplied by

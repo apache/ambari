@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
-import org.apache.ambari.server.upgrade.UpgradeCatalog170;
 import org.apache.ambari.server.utils.SecretReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -868,73 +867,6 @@ public class ConfigHelper {
     return controller.createConfig(cluster, type, properties, tag, propertyAttributes);
   }
 
-
-
-  /**
-   * Since global configs are deprecated since 1.7.0, but still supported.
-   * We should automatically map any globals used, to *-env dictionaries.
-   *
-   * @param configurations map of configurations keyed by type
-   */
-  public void moveDeprecatedGlobals(StackId stackId, Map<String, Map<String, String>> configurations, String clusterName) {
-    Map<String, String> globalConfigurations = new HashMap<String, String>();
-
-    if (configurations.get(Configuration.GLOBAL_CONFIG_TAG) == null ||
-        configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0) {
-      return;
-    }
-
-    globalConfigurations.putAll(configurations.get(Configuration.GLOBAL_CONFIG_TAG));
-
-    if (globalConfigurations != null && globalConfigurations.size() != 0) {
-      LOG.warn("Global configurations are deprecated, "
-          + "please use *-env");
-    }
-
-    for (Map.Entry<String, String> property : globalConfigurations.entrySet()) {
-      String propertyName = property.getKey();
-      String propertyValue = property.getValue();
-
-      Set<String> newConfigTypes = null;
-      try {
-        newConfigTypes = findConfigTypesByPropertyName(stackId, propertyName, clusterName);
-      } catch (AmbariException e) {
-        LOG.error("Exception while getting configurations from the stacks", e);
-        return;
-      }
-
-      newConfigTypes.remove(Configuration.GLOBAL_CONFIG_TAG);
-
-      String newConfigType = null;
-      if (newConfigTypes.size() > 0) {
-        newConfigType = newConfigTypes.iterator().next();
-      } else {
-        newConfigType = UpgradeCatalog170.getAdditionalMappingGlobalToEnv().get(propertyName);
-      }
-
-      if (newConfigType == null) {
-        LOG.warn("Cannot find where to map " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
-            " (value=" + propertyValue + ")");
-        continue;
-      }
-
-      LOG.info("Mapping config " + propertyName + " from " + Configuration.GLOBAL_CONFIG_TAG +
-          " to " + newConfigType +
-          " (value=" + propertyValue + ")");
-
-      configurations.get(Configuration.GLOBAL_CONFIG_TAG).remove(propertyName);
-
-      if (!configurations.containsKey(newConfigType)) {
-        configurations.put(newConfigType, new HashMap<String, String>());
-      }
-      configurations.get(newConfigType).put(propertyName, propertyValue);
-    }
-
-    if (configurations.get(Configuration.GLOBAL_CONFIG_TAG).size() == 0) {
-      configurations.remove(Configuration.GLOBAL_CONFIG_TAG);
-    }
-  }
-
   /**
    * Gets the default properties from the specified stack and services when a
    * cluster is first installed.
@@ -1063,14 +995,6 @@ public class ConfigHelper {
         // desired is set, but actual is not
         if (!serviceInfo.hasConfigDependency(type)) {
           stale = componentInfo != null && componentInfo.hasConfigType(type);
-        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
-          // find out if the keys are stale by first checking the target service,
-          // then all services
-          Collection<String> keys = mergeKeyNames(cluster, type, tags.values());
-
-          if (serviceInfo.hasDependencyAndPropertyFor(type, keys) || !hasPropertyFor(stackId, type, keys)) {
-            stale = true;
-          }
         } else {
           stale = true;
         }
@@ -1081,15 +1005,6 @@ public class ConfigHelper {
 
         if (!isTagChanged(tags, actualTags, hasGroupSpecificConfigsForType(cluster, sch.getHostName(), type))) {
           stale = false;
-        } else if (type.equals(Configuration.GLOBAL_CONFIG_TAG)) {
-          // tags are changed, need to find out what has changed,
-          // and if it applies
-          // to the service
-          Collection<String> changed = findChangedKeys(cluster, type,
-              tags.values(), actualTags.values());
-          if (serviceInfo.hasDependencyAndPropertyFor(type, changed)) {
-            stale = true;
-          }
         } else {
           stale = serviceInfo.hasConfigDependency(type) || componentInfo.hasConfigType(type);
         }

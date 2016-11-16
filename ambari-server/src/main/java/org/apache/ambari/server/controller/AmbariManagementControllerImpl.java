@@ -885,52 +885,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getType()));
     }
 
-    handleGlobalsBackwardsCompability(request, propertiesAttributes);
-
     Config config = createConfig(cluster, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
 
     return new ConfigurationResponse(cluster.getClusterName(), config);
-  }
-
-  private void handleGlobalsBackwardsCompability(ConfigurationRequest request,
-      Map<String, Map<String, String>> propertiesAttributes) throws AmbariException {
-    Cluster cluster = clusters.getCluster(request.getClusterName());
-    if(request.getType().equals(Configuration.GLOBAL_CONFIG_TAG)) {
-      Map<String, Map<String, String>> configTypes = new HashMap<String, Map<String, String>>();
-      configTypes.put(Configuration.GLOBAL_CONFIG_TAG, request.getProperties());
-      configHelper.moveDeprecatedGlobals(cluster.getCurrentStackVersion(), configTypes, cluster.getClusterName());
-
-      for(Map.Entry<String, Map<String, String>> configType : configTypes.entrySet()) {
-        String configTypeName = configType.getKey();
-        Map<String, String> properties = configType.getValue();
-
-        if(configTypeName.equals(Configuration.GLOBAL_CONFIG_TAG)) {
-          continue;
-        }
-
-        String tag;
-        if(cluster.getConfigsByType(configTypeName) == null) {
-          tag = "version1";
-        } else {
-          tag = "version" + System.currentTimeMillis();
-        }
-
-        Config config = createConfig(cluster, configTypeName, properties, tag, propertiesAttributes);
-
-        if (config != null) {
-          String authName = getAuthName();
-
-          if (cluster.addDesiredConfig(authName, Collections.singleton(config)) != null) {
-            LOG.info("cluster '" + cluster.getClusterName() + "' "
-                    + "changed by: '" + authName + "'; "
-                    + "type='" + config.getType() + "' "
-                    + "tag='" + config.getTag());
-          }
-        }
-
-      }
-    }
   }
 
   @Override

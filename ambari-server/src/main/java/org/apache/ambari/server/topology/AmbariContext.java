@@ -290,22 +290,6 @@ public class AmbariContext {
     }
   }
 
-  /**
-   * Since global configs are deprecated since 1.7.0, but still supported.
-   * We should automatically map any globals used, to *-env dictionaries.
-   *
-   * @param blueprintConfigurations map of blueprint configurations keyed by type
-   */
-  //todo: do once for all configs
-  public void convertGlobalProperties(ClusterTopology topology,
-                                      Map<String, Map<String, String>> blueprintConfigurations) throws AmbariException {
-
-    Stack stack = topology.getBlueprint().getStack();
-    StackId stackId = new StackId(stack.getName(), stack.getVersion());
-    getController().getConfigHelper().moveDeprecatedGlobals(
-        stackId, blueprintConfigurations, getClusterName(topology.getClusterId()));
-  }
-
   public Long getNextRequestId() {
     return getController().getActionManager().getNextRequestId();
   }
@@ -596,10 +580,6 @@ public class AmbariContext {
     // only get user provided configuration for host group which includes only CCT/HG and BP/HG properties
     Map<String, Map<String, String>> userProvidedGroupProperties =
         topologyHostGroupConfig.getFullProperties(1);
-
-    //todo: doesn't belong here.
-    //handling backwards compatibility for group configs
-    convertGlobalProperties(topology, userProvidedGroupProperties);
 
     // iterate over topo host group configs which were defined in
     for (Map.Entry<String, Map<String, String>> entry : userProvidedGroupProperties.entrySet()) {

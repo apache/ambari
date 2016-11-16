@@ -2503,12 +2503,6 @@ public class KerberosHelperImpl implements KerberosHelper {
     Map<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>();
     Map<String, Map<String, String>> configurationTags = ambariManagementController.findConfigurationTagsWithOverrides(cluster, hostname);
 
-    if (configurationTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-      configHelper.applyCustomConfig(
-          configurations, Configuration.GLOBAL_CONFIG_TAG,
-          Configuration.RCA_ENABLED_PROPERTY, "false", false);
-    }
-
     Map<String, Map<String, String>> configProperties = configHelper.getEffectiveConfigProperties(cluster, configurationTags);
 
     // Apply the configurations saved with the Execution Cmd on top of
