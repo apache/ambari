@@ -17,9 +17,9 @@
  */
 'use strict';
 
-angular.module('ambariAdminConsole').constant('UserConstants', {
+angular.module('ambariAdminConsole').constant('GroupConstants', {
   /**
-   * Available user_types 'values' and 'labels' map.
+   * Available group_types 'values' and 'labels' map.
    */
   TYPES: {
     LOCAL: {
@@ -33,10 +33,6 @@ angular.module('ambariAdminConsole').constant('UserConstants', {
     LDAP: {
       VALUE: 'LDAP',
       LABEL_KEY: 'common.ldap'
-    },
-    JWT: {
-      VALUE: 'JWT',
-      LABEL_KEY: 'common.jwt'
     }
   }
 });
