@@ -333,7 +333,7 @@ public class AmbariServer {
       factory.registerSingleton("ambariInternalAuthenticationProvider",
         injector.getInstance(AmbariInternalAuthenticationProvider.class));
       factory.registerSingleton("ambariPamAuthenticationProvider",
-	injector.getInstance(AmbariPamAuthenticationProvider.class));
+	      injector.getInstance(AmbariPamAuthenticationProvider.class));
 
       // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
@@ -409,28 +409,23 @@ public class AmbariServer {
 
       Map<String, String> configsMap = configs.getConfigsMap();
 
+      // Agents download cert on on-way connector but always communicate on
+      // two-way connector for server-agent communication
       SelectChannelConnector agentOneWayConnector = createSelectChannelConnectorForAgent(configs.getOneWayAuthPort(), false);
+      SelectChannelConnector agentTwoWayConnector = createSelectChannelConnectorForAgent(configs.getTwoWayAuthPort(), configs.isTwoWaySsl());
+
       // Override acceptor defaults if configured or use Jetty defaults
       Integer acceptors = configs.getAgentApiAcceptors() != null ?
         configs.getAgentApiAcceptors() : agentOneWayConnector.getAcceptors();
       agentOneWayConnector.setAcceptors(acceptors);
+      agentTwoWayConnector.setAcceptors(acceptors);
 
-      SelectChannelConnector agentTwoWayConnector = null;
-      if (configs.isTwoWaySsl()) {
-        agentTwoWayConnector = createSelectChannelConnectorForAgent(configs.getTwoWayAuthPort(), true);
-        agentTwoWayConnector.setAcceptors(acceptors);
-      }
-
-      // Account for both the connectors if configured
-      int totalAgentAcceptorCount = configs.isTwoWaySsl() ? acceptors * 2 : acceptors;
       // Agent Jetty thread pool - widen the thread pool if needed !
-      configureJettyThreadPool(serverForAgent, totalAgentAcceptorCount,
+      configureJettyThreadPool(serverForAgent, acceptors * 2,
         AGENT_THREAD_POOL_NAME, configs.getAgentThreadPoolSize());
 
       serverForAgent.addConnector(agentOneWayConnector);
-      if (agentTwoWayConnector != null) {
-        serverForAgent.addConnector(agentTwoWayConnector);
-      }
+      serverForAgent.addConnector(agentTwoWayConnector);
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
