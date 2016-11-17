@@ -887,11 +887,15 @@ describe('App.KerberosWizardStep4Controller', function() {
       });
       expect(c.getBlueprintPayloadObject([], {})).to.be.eql({
         "blueprint": {
+          "host_groups": [],
           "configurations": {
             "t1": {
               "properties": []
             }
           }
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
         }
       });
     });
