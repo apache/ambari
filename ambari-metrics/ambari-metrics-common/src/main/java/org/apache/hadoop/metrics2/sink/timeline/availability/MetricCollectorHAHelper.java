@@ -90,6 +90,12 @@ public class MetricCollectorHAHelper {
     } catch (Exception e) {
       LOG.warn("Unable to connect to zookeeper.", e);
       LOG.debug(e);
+    } finally {
+      try {
+        client.close();
+      } catch (Exception e) {
+        LOG.error("Caught exception while trying to close Zk connection.",e);
+      }
     }
 
     // [ambari-sid-3.c.pramod-thangali.internal_12001]
