@@ -105,6 +105,9 @@ hdp23properties.push({
         foreignKeys: ['ranger.ldap.ad.domain','ranger.ldap.ad.url','ranger.ldap.ad.base.dn','ranger.ldap.ad.bind.dn','ranger.ldap.ad.bind.password','ranger.ldap.ad.referral','ranger.ldap.ad.user.searchfilter']
       },
       {
+         displayName: 'PAM'
+      },
+      {
         displayName: 'UNIX',
         foreignKeys: ['ranger.unixauth.service.port', 'ranger.unixauth.service.hostname', 'ranger.unixauth.remote.login.enabled']
       },
