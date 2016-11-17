@@ -25,7 +25,10 @@ import sys
 import time
 import glob
 import subprocess
+import logging
 from ambari_commons import OSConst,OSCheck
+
+logger = logging.getLogger(__name__)
 
 # PostgreSQL settings
 PG_STATUS_RUNNING_DEFAULT = "running"
@@ -104,13 +107,13 @@ def save_pid(pid, pidfile):
     pfile = open(pidfile, "w")
     pfile.write("%s\n" % pid)
   except IOError as e:
-    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
+    logger.error("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
     except Exception as e:
-      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
+      logger.error("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
@@ -127,19 +130,20 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
     for item in pids:
       if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
         pfile.write("%s\n" % item["pid"])
+        logger.info("Ambari server started with PID " + str(item["pid"]))
       if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
         try:
           os.kill(int(item["pid"]), signal.SIGKILL)
         except:
           pass
   except IOError as e:
-    print_error_msg("Failed to write PID to " + pidfile + " due to " + str(e))
+    logger.error("Failed to write PID to " + pidfile + " due to " + str(e))
     pass
   finally:
     try:
       pfile.close()
     except Exception as e:
-      print_error_msg("Failed to close PID file " + pidfile + " due to " + str(e))
+      logger.error("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
 
 
