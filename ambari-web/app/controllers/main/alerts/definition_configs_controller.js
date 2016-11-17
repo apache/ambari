@@ -225,7 +225,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     var result = [];
     var alertDefinition = this.get('content');
     var isWizard = this.get('isWizard');
-    var units = this.get('content.reporting').findProperty('type','units') ?
+    var units = this.get('content.reporting') && this.get('content.reporting').findProperty('type','units') ?
       this.get('content.reporting').findProperty('type','units').get('text'): null;
 
     if (this.get('isWizard')) {
@@ -256,7 +256,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       }),
       App.AlertConfigProperties.Parameter.create({
-        value: alertDefinition.get('uri.connectionTimeout'),
+        value: isWizard ? '': alertDefinition.get('uri.connectionTimeout'),
         threshold: "CRITICAL",
         name: 'connection_timeout',
         label: 'Connection Timeout',
@@ -311,7 +311,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
       }),
       App.AlertConfigProperties.Parameter.create({
-        value: alertDefinition.get('uri.connectionTimeout'),
+        value: isWizard ? '': alertDefinition.get('uri.connectionTimeout'),
         threshold: "CRITICAL",
         name: 'connection_timeout',
         label: 'Connection Timeout',
@@ -404,7 +404,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
         valueMetric: units
       }),
       App.AlertConfigProperties.Parameter.create({
-        value: alertDefinition.get('uri.connectionTimeout'),
+        value: isWizard ? '': alertDefinition.get('uri.connectionTimeout'),
         name: 'connection_timeout',
         label: 'Connection Timeout',
         displayType: 'parameter',
@@ -447,20 +447,22 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       NUMERIC: App.AlertConfigProperties.Parameters.NumericMixin,
       PERCENT: App.AlertConfigProperties.Parameters.PercentageMixin
     };
-    alertDefinition.get('parameters').forEach(function (parameter) {
-      var mixin = mixins[parameter.get('type')] || {}; // validation depends on parameter-type
-      result.push(App.AlertConfigProperties.Parameter.create(mixin, {
-        value: isWizard ? '' : parameter.get('value'),
-        apiProperty: parameter.get('name'),
-        description: parameter.get('description'),
-        label: isWizard ? '' : parameter.get('displayName'),
-        threshold: isWizard ? '' : parameter.get('threshold'),
-        units: isWizard ? '' : parameter.get('units'),
-        type: isWizard ? '' : parameter.get('type'),
-        hidden: parameter.get('visibility') === "HIDDEN",
-        readonly: parameter.get('visibility') === "READ_ONLY"
-      }));
-    });
+    if (alertDefinition) {
+      alertDefinition.get('parameters').forEach(function (parameter) {
+        var mixin = mixins[parameter.get('type')] || {}; // validation depends on parameter-type
+        result.push(App.AlertConfigProperties.Parameter.create(mixin, {
+          value: isWizard ? '' : parameter.get('value'),
+          apiProperty: parameter.get('name'),
+          description: parameter.get('description'),
+          label: isWizard ? '' : parameter.get('displayName'),
+          threshold: isWizard ? '' : parameter.get('threshold'),
+          units: isWizard ? '' : parameter.get('units'),
+          type: isWizard ? '' : parameter.get('type'),
+          hidden: parameter.get('visibility') === "HIDDEN",
+          readonly: parameter.get('visibility') === "READ_ONLY"
+        }));
+      });
+    }
 
     return result;
   },
@@ -473,7 +475,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   renderAggregateConfigs: function () {
     var isWizard = this.get('isWizard');
     var alertDefinition = this.get('content');
-    var units = this.get('content.reporting').findProperty('type','units') ?
+    var units = this.get('content.reporting') && this.get('content.reporting').findProperty('type','units') ?
         this.get('content.reporting').findProperty('type','units').get('text'): null;
     return [
       App.AlertConfigProperties.Description.create({
