@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var blueprintUtils = require('utils/blueprint');
 require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, App.KDCCredentialsControllerMixin, {
@@ -362,13 +363,30 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         stackVersionUrl: App.get('stackVersionURL'),
         dataToSend: {
           recommend: 'configurations',
-          hosts: this.get('hostNames'),
+          hosts: App.get('allHostNames'),
           services: this.get('serviceNames'),
           recommendations: recommendations
         }
       },
       'success': 'loadRecommendationsSuccess',
       'error': 'loadRecommendationsError'
+    });
+  },
+
+  loadRecommendationsError: function(req, ajaxOpts, error, opt) {
+    var resp;
+    try {
+      resp = $.parseJSON(req.responseText);
+    } catch (e) { }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.error'),
+      secondary: false,
+      bodyClass: App.AjaxDefaultErrorPopupBodyView.extend({
+        type: opt.type || 'GET',
+        url: opt.url,
+        status: req.status,
+        message: resp && resp.message || req.responseText
+      })
     });
   },
 
@@ -474,9 +492,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @returns {object} payload for recommendations request
    */
   getBlueprintPayloadObject: function(configurations, kerberosDescriptor) {
-    var recommendations = this.get('hostGroups');
+    var recommendations = blueprintUtils.generateHostGroups(App.get('allHostNames'));
     var mergedConfigurations = this.mergeDescriptorToConfigurations(configurations, this.createServicesStackDescriptorConfigs(kerberosDescriptor));
-
     recommendations.blueprint.configurations = mergedConfigurations.reduce(function(p, c) {
       p[c.type] = {};
       p[c.type].properties = c.properties;
