@@ -47,7 +47,7 @@ def is_server_runing():
     pid = f.readline().strip()
 
     if not pid.isdigit():
-      err = "%s is corrupt. Removing" % (pid_file_path)
+      err = "'%s' is incorrect PID value. %s is corrupt. Removing" % (pid, pid_file_path)
       f.close()
       run_os_command("rm -f " + pid_file_path)
       raise NonFatalException(err)
