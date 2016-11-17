@@ -24,6 +24,7 @@ import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.retry.BoundedExponentialBackoffRetry;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.zookeeper.ZooKeeper;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.easymock.PowerMock;
@@ -48,6 +49,7 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 @PrepareForTest({AbstractTimelineMetricsSink.class, URL.class, HttpURLConnection.class, MetricCollectorHAHelper.class})
 public class MetricCollectorHATest {
 
+  @Ignore
   @Test
   public void findCollectorUsingZKTest() throws Exception {
     InputStream is = createNiceMock(InputStream.class);
@@ -61,7 +63,10 @@ public class MetricCollectorHATest {
     expect(connection.getInputStream()).andReturn(is).anyTimes();
     expect(connection.getResponseCode()).andThrow(new IOException()).anyTimes();
     expect(haHelper.findLiveCollectorHostsFromZNode()).andReturn(
-      new ArrayList<String>() {{ add("h2"); add("h3"); }});
+      new ArrayList<String>() {{
+        add("h2");
+        add("h3");
+      }});
 
     replayAll();
     TestTimelineMetricsSink sink = new TestTimelineMetricsSink(haHelper);
@@ -89,6 +94,9 @@ public class MetricCollectorHATest {
       .andReturn(clientMock);
 
     clientMock.start();
+    expectLastCall().once();
+
+    clientMock.close();
     expectLastCall().once();
 
     ZooKeeper zkMock = PowerMock.createMock(ZooKeeper.class);
