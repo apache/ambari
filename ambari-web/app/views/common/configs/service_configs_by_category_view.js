@@ -597,7 +597,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           } else {
             errorMessages.push(this.lineNumber(index) + Em.I18n.t('form.validator.configKey.specific').format(key));
           }
-        });
+        }, this);
 
         if (errorMessages.length > 0) {
           callback(errorMessages.join('<br>'), parsedConfig);
