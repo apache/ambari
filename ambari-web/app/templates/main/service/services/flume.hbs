@@ -22,7 +22,7 @@
     <a href="#" {{action filterHosts view.flumeHandlerComponent}}>{{view.summaryHeader}}</a>
     <a href="#" class="pull-right" {{action gotoConfigs target="controller"}}>{{t dashboard.services.flume.summary.configure}}</a>
     <div id="flume-agent-table-wrap" class="scrollable-container">
-      <table class="table table-hover table-bordered table-striped" id="flume-agents-table">
+      <table class="table table-hover advanced-header-table table-bordered table-striped" id="flume-agents-table">
         <thead>
           {{#view view.sortView contentBinding="view.filteredContent" class="label-row"}}
             {{view view.parentView.hostSort}}
@@ -130,7 +130,7 @@
           {{/each}}
         {{else}}
           <tr>
-            <td colspan="6" id="flume-agents-empty-label" class="empty-label">
+            <td colspan="5" id="flume-agents-empty-label" class="empty-label">
               {{t services.service.summary.flume.noAgents}}
             </td>
           </tr>

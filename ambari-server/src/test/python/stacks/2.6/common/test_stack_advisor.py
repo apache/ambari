@@ -568,6 +568,103 @@ class TestHDP26StackAdvisor(TestCase):
                       )
 
 
+  def test_recommendAtlasConfigurations(self):
+    configurations = {
+      "application-properties": {
+        "properties": {
+          "atlas.sso.providerurl": "",
+          "atlas.graph.index.search.solr.zookeeper-url": "",
+          "atlas.audit.hbase.zookeeper.quorum": "",
+          "atlas.graph.storage.hostname": "",
+          "atlas.kafka.bootstrap.servers": "",
+          "atlas.kafka.zookeeper.connect": "",
+          "atlas.authorizer.impl": "simple"
+        }
+      },
+      "infra-solr-env": {
+        "properties": {
+          "infra_solr_znode": "/infra-solr"
+        }
+      },
+      "ranger-atlas-plugin-properties": {
+        "properties": {
+          "ranger-atlas-plugin-enabled":"No"
+        }
+      },
+      "atlas-env": {
+        "properties": {
+          "atlas_server_max_new_size": "600",
+          "atlas_server_xmx": "2048"
+        }
+      }
+    }
+
+    clusterData = {}
+
+    expected = {
+      "application-properties": {
+        "properties": {
+          "atlas.sso.providerurl": "https://c6401.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso",
+          "atlas.graph.index.search.solr.zookeeper-url": "",
+          "atlas.audit.hbase.zookeeper.quorum": "",
+          "atlas.graph.storage.hostname": "",
+          "atlas.kafka.bootstrap.servers": "",
+          "atlas.kafka.zookeeper.connect": "",
+          "atlas.authorizer.impl": "simple"
+        }
+      },
+      "infra-solr-env": {
+        "properties": {
+          "infra_solr_znode": "/infra-solr"
+        }
+      },
+      "ranger-atlas-plugin-properties": {
+        "properties": {
+          "ranger-atlas-plugin-enabled":"No"
+        }
+      },
+      "atlas-env": {
+        "properties": {
+          "atlas_server_max_new_size": "600",
+          "atlas_server_xmx": "2048"
+        }
+      }
+    }
+
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.6/services/KNOX",
+          "StackServices": {
+            "service_name": "KNOX",
+            "service_version": "0.9.0.2.5",
+            "stack_name": "HDP",
+            "stack_version": "2.6"
+          },
+          "components": [
+            {
+              "href": "/api/v1/stacks/HDP/versions/2.6/services/KNOX/components/KNOX_GATEWAY",
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1+",
+                "component_category": "MASTER",
+                "component_name": "KNOX_GATEWAY",
+                "display_name": "Knox Gateway",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": ["c6401.ambari.apache.org"]
+              },
+              "dependencies": []
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+
+    self.stackAdvisor.recommendAtlasConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
 def load_json(self, filename):
   file = os.path.join(self.testDirectory, filename)
   with open(file, 'rb') as f:

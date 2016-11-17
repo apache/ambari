@@ -98,6 +98,13 @@ class TestRangerUsersync(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-usersync/conf/ranger-usersync-env-piddir.sh',
+      content = 'export USERSYNC_PID_DIR_PATH=/var/run/ranger\nexport UNIX_USERSYNC_USER=ranger',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/var/log/ranger/usersync',
       owner='ranger',
       group='ranger',

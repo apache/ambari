@@ -164,7 +164,7 @@
               <div class="col-md-4 summary-label summary-rack-label">{{t common.rack}}:</div>
               <div class="col-md-8 summary-rack-value">&nbsp;{{formatWordBreak view.content.rack}}
                 {{#isAuthorized "HOST.TOGGLE_MAINTENANCE"}}
-                  <a class="set-rack-id" {{action setRackId view.content target="controller"}}><i
+                  <a href="#" class="set-rack-id" {{action setRackId view.content target="controller"}}><i
                     class="glyphicon glyphicon-pencil"></i></a>
                 {{/isAuthorized}}
               </div>

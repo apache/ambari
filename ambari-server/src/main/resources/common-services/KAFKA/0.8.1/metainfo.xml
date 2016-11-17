@@ -83,6 +83,8 @@
         <config-type>zookeeper-env</config-type>
         <config-type>zoo.cfg</config-type>
         <config-type>ams-ssl-client</config-type>
+        <config-type>kafka_jaas_conf</config-type>
+        <config-type>kafka_client_jaas_conf</config-type>
       </configuration-dependencies>
       <osSpecifics>
         <osSpecific>

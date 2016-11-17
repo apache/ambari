@@ -228,6 +228,8 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
    * @class
    */
   plusButtonFilterView: Ember.View.extend({
+    tagName: 'ul',
+    classNames: ['dropdown-menu'],
     templateName: require('templates/main/dashboard/plus_button_filter'),
     hiddenWidgetsBinding: 'parentView.hiddenWidgets',
     visibleWidgetsBinding: 'parentView.visibleWidgets',

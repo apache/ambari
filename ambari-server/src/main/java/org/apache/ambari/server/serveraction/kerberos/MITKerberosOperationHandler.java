@@ -466,14 +466,17 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         if (tries == retryCount) {
           throw exception;
         }
-      } finally {
-        if (result != null && result.isSuccessful()) {
-          break; // break on successful result
-        }
-        tries++;
-        String message = String.format("Retrying to execute kadmin:\n\tCommand: %s", command);
-        LOG.warn(message);
       }
+
+      if (result != null && result.isSuccessful()) {
+        break; // break on successful result
+      }
+      tries++;
+
+      try { Thread.sleep(3000); } catch (InterruptedException e) {}
+
+      String message = String.format("Retrying to execute kadmin after a wait of 3 seconds :\n\tCommand: %s", command);
+      LOG.warn(message);
     }
 
 
@@ -502,7 +505,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       } else if (stdErr.contains("Cannot find KDC for requested realm while initializing kadmin interface")) {
         throw new KerberosRealmException(stdErr);
       } else {
-        throw new KerberosOperationException("Unexpected error condition executing the kadmin command");
+        throw new KerberosOperationException(String.format("Unexpected error condition executing the kadmin command. STDERR: %s", stdErr));
       }
     }
 

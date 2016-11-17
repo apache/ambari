@@ -461,7 +461,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfi
   addOverrides: function(data, allConfigs) {
     var self = this;
     data.items.forEach(function(group) {
-      if (group.group_name !== App.ServiceConfigGroup.defaultGroupName) {
+      if (![App.ServiceConfigGroup.defaultGroupName, App.ServiceConfigGroup.deletedGroupName].contains(group.group_name)) {
         var configGroup = App.ServiceConfigGroup.find().filterProperty('serviceName', group.service_name).findProperty('name', group.group_name);
         group.configurations.forEach(function(config) {
           for (var prop in config.properties) {

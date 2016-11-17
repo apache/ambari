@@ -89,6 +89,9 @@ class TestLogFeeder(RMFTestCase):
       self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/' + file_name,
                                 content=Template(file_name + ".j2")
                                 )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-logfeeder-custom.json',
+                              action=['delete']
+                              )
     self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-zookeeper.json',
                               content=InlineTemplate("pattern content")
                               )

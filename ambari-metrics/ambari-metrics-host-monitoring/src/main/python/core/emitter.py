@@ -20,7 +20,6 @@ limitations under the License.
 
 import logging
 import threading
-from spnego_kerberos_auth import SPNEGOKerberosAuth
 
 from security import CachedHTTPSConnection, CachedHTTPConnection
 from blacklisted_set import BlacklistedSet
@@ -32,10 +31,6 @@ class Emitter(threading.Thread):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   RETRY_SLEEP_INTERVAL = 5
   MAX_RETRY_COUNT = 3
-  cookie_cached = {}
-  kinit_cmd = None
-  klist_cmd = None
-  spnego_krb_auth = None
   """
   Wake up every send interval seconds and empty the application metric map.
   """
@@ -44,10 +39,6 @@ class Emitter(threading.Thread):
     logger.debug('Initializing Emitter thread.')
     self.lock = threading.Lock()
     self.send_interval = config.get_send_interval()
-    self.kinit_cmd = config.get_kinit_cmd()
-    if self.kinit_cmd:
-      logger.debug(self.kinit_cmd)
-    self.klist_cmd = config.get_klist_cmd()
     self.hostname = config.get_hostname_config()
     self.hostname_hash = self.compute_hash(self.hostname)
     self._stop_handler = stop_handler
@@ -72,7 +63,6 @@ class Emitter(threading.Thread):
         self.submit_metrics()
       except Exception, e:
         logger.warn('Unable to emit events. %s' % str(e))
-        self.cookie_cached = {}
       pass
       #Wait for the service stop event instead of sleeping blindly
       if 0 == self._stop_handler.wait(self.send_interval):
@@ -110,50 +100,17 @@ class Emitter(threading.Thread):
     headers = {"Content-Type" : "application/json", "Accept" : "*/*"}
     connection = self.get_connection(collector_host)
     logger.debug("message to send: %s" % data)
-
-    try:
-      if self.cookie_cached[connection.host]:
-        headers["Cookie"] = self.cookie_cached[connection.host]
-        logger.debug("Cookie: %s" % self.cookie_cached[connection.host])
-    except Exception, e:
-      self.cookie_cached = {}
-    pass
-
     retry_count = 0
     while retry_count < self.MAX_RETRY_COUNT:
       response = self.get_response_from_submission(connection, data, headers)
-      if response:
-        if response.status == 200:
-          return True
-        if response.status == 401 or response.status == 403:
-          self.cookie_cached = {}
-          auth_header = response.getheader('www-authenticate', None)
-          if auth_header == None:
-              logger.warn('www-authenticate header not found')
-          else:
-            self.spnego_krb_auth = SPNEGOKerberosAuth()
-            if self.spnego_krb_auth.get_negotiate_value(auth_header) == '':
-              response = self.spnego_krb_auth.authenticate_handshake(connection, "POST", self.AMS_METRICS_POST_URL, data, headers, self.kinit_cmd, self.klist_cmd)
-              if response:
-                logger.debug("response from authenticate_client: retcode = {0}, reason = {1}"
-                                                           .format(response.status, response.reason))
-                logger.debug(str(response.read()))
-                if response.status == 200:
-                  logger.debug("response headers: {0}".format(response.getheaders()))
-                  logger.debug("cookie_cached: %s" % self.cookie_cached)
-                  set_cookie_header = response.getheader('set-cookie', None)
-                  if set_cookie_header and self.spnego_krb_auth:
-                    set_cookie_val = self.spnego_krb_auth.get_hadoop_auth_cookie(set_cookie_header)
-                    logger.debug("set_cookie: %s" % set_cookie_val)
-                    if set_cookie_val:
-                      self.cookie_cached[connection.host] = set_cookie_val
-                  return True
-
-      logger.warn("Retrying after {0} ...".format(self.RETRY_SLEEP_INTERVAL))
-      retry_count += 1
-      #Wait for the service stop event instead of sleeping blindly
-      if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):
+      if response and response.status == 200:
         return True
+      else:
+        logger.warn("Retrying after {0} ...".format(self.RETRY_SLEEP_INTERVAL))
+        retry_count += 1
+        #Wait for the service stop event instead of sleeping blindly
+        if 0 == self._stop_handler.wait(self.RETRY_SLEEP_INTERVAL):
+          return True
     pass
 
     if retry_count >= self.MAX_RETRY_COUNT:

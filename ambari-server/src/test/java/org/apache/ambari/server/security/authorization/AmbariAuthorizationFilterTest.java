@@ -28,6 +28,8 @@ import junit.framework.Assert;
 
 import org.apache.ambari.server.audit.AuditLogger;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.security.AmbariEntryPoint;
@@ -322,6 +324,8 @@ public class AmbariAuthorizationFilterTest {
         bind(PasswordEncoder.class).toInstance(EasyMock.createMock(PasswordEncoder.class));
         bind(OsFamily.class).toInstance(EasyMock.createMock(OsFamily.class));
         bind(AuditLogger.class).toInstance(EasyMock.createNiceMock(AuditLogger.class));
+        bind(HookService.class).toInstance(EasyMock.createMock(HookService.class));
+        bind(HookContextFactory.class).toInstance(EasyMock.createMock(HookContextFactory.class));
       }
     });
 

@@ -101,6 +101,11 @@ public class UpgradeCatalog250Test {
 
     // !!! setup capture for host_version
     dbAccessor.addUniqueConstraint("host_version", "UQ_host_repo", "repo_version_id", "host_id");
+
+    Capture<DBAccessor.DBColumnInfo> groupGroupType = newCapture();
+    dbAccessor.addColumn(eq(UpgradeCatalog250.GROUPS_TABLE), capture(groupGroupType));
+    dbAccessor.addUniqueConstraint("groups", "UNQ_groups_0", "group_name", "group_type");
+
     expectLastCall().once();
 
     // !!! setup capture for servicecomponent_version
@@ -142,6 +147,14 @@ public class UpgradeCatalog250Test {
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog250 upgradeCatalog250 = injector.getInstance(UpgradeCatalog250.class);
     upgradeCatalog250.executeDDLUpdates();
+
+    DBAccessor.DBColumnInfo capturedGroupTypeColumn = groupGroupType.getValue();
+    Assert.assertNotNull(capturedGroupTypeColumn);
+    Assert.assertEquals(UpgradeCatalog250.GROUP_TYPE_COL, capturedGroupTypeColumn.getName());
+    Assert.assertEquals(String.class, capturedGroupTypeColumn.getType());
+    Assert.assertEquals(null, capturedGroupTypeColumn.getLength());
+    Assert.assertEquals("LOCAL", capturedGroupTypeColumn.getDefaultValue());
+    Assert.assertEquals(false, capturedGroupTypeColumn.isNullable());
 
     verify(dbAccessor);
 

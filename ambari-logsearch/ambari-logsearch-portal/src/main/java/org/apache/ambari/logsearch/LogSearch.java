@@ -45,6 +45,7 @@ import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.ResourceCollection;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.springframework.web.context.ContextLoaderListener;
@@ -154,9 +155,16 @@ public class LogSearch {
 
   private ServletContextHandler createSwaggerContext() throws URISyntaxException {
     ResourceHandler resourceHandler = new ResourceHandler();
-    resourceHandler.setResourceBase(LogSearch.class.getClassLoader()
-      .getResource("META-INF/resources/webjars/swagger-ui/2.1.0")
-      .toURI().toString());
+    ResourceCollection resources = new ResourceCollection(new String[] {
+      LogSearch.class.getClassLoader()
+        .getResource("META-INF/resources/webjars/swagger-ui/2.1.0")
+        .toURI().toString(),
+      LogSearch.class.getClassLoader()
+        .getResource("swagger")
+        .toURI().toString()
+    });
+    resourceHandler.setBaseResource(resources);
+    resourceHandler.setWelcomeFiles(new String[]{"swagger.html"}); // rewrite index.html from swagger-ui webjar
     ServletContextHandler context = new ServletContextHandler();
     context.setContextPath("/docs/");
     context.setHandler(resourceHandler);

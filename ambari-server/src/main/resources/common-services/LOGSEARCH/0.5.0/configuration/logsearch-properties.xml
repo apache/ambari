@@ -173,4 +173,67 @@
     <description>The path and query of the external server used to authenticate</description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>logsearch.auth.jwt.enabled</name>
+    <value>false</value>
+    <display-name>JWT authentication enabled</display-name>
+    <description>Enable JWT based authentication for Log Search portal</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.provider_url</name>
+    <value/>
+    <display-name>JWT authentication provider url</display-name>
+    <description>URL to the JWT authentication server</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.query.param.original_url</name>
+    <value>originalUrl</value>
+    <display-name>JWT original url query param</display-name>
+    <description>Name of the original request URL which is used to redirect to Log Search Portal</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.cookie.name</name>
+    <value>hadoop-jwt</value>
+    <display-name>JWT cookie name</display-name>
+    <description>The name of the cookie that contains the JWT token</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.audiances</name>
+    <value/>
+    <display-name>JWT expected audiances</display-name>
+    <description>Comma separated list of acceptable audiences for the JWT token</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.auth.jwt.public_key</name>
+    <value/>
+    <display-name>JWT authentication signing key</display-name>
+    <description>PEM formatted public key for JWT token without the header and the footer</description>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

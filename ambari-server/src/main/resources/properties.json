@@ -183,6 +183,7 @@
     "Group":[
         "Groups/group_name",
         "Groups/ldap_group",
+        "Groups/group_type",
         "_"
     ],
     "Member":[

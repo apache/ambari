@@ -40,13 +40,16 @@ DIR_SECTION = "directories"
 DIR_KEY = "dir_list"
 PROCESS_SECTION = "processes"
 PROCESS_KEY = "proc_list"
+PROCESS_OWNER_KEY = "proc_owner_list"
 ALT_SECTION = "alternatives"
 ALT_KEYS = ["symlink_list", "target_list"]
 ALT_ERASE_CMD = "alternatives --remove {0} {1}"
 USER_HOMEDIR_SECTION = "usr_homedir"
 
-hostcheck_result_fileContent = """[processes]
+hostcheck_result_fileContent = """
+[processes]
 proc_list = 323,434
+proc_owner_list = abc,efg
 
 [users]
 usr_list = rrdcached,ambari-qa,hive,oozie,hbase,hcat,mysql,mapred,hdfs,zookeeper,sqoop
@@ -102,7 +105,8 @@ class TestHostCleanup(TestCase):
       patch_join_mock.return_value = f2.name
       propMap = self.hostcleanup.read_host_check_file(tmpfile)
 
-    self.assertTrue('434' in propMap["processes"])
+    self.assertTrue('434' in propMap["processes"]["proc_list"])
+    self.assertTrue('abc' in propMap["processes"]["proc_owner_list"])
     self.assertTrue("mysql" in propMap["users"])
     self.assertTrue("HDP-epel" in propMap["repositories"])
     self.assertTrue("/etc/hadoop" in propMap["directories"])
@@ -220,7 +224,7 @@ class TestHostCleanup(TestCase):
     get_additional_dirs_method.return_value = ['/tmp/hadoop-yarn','/tmp/hsperfdata_007']
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
-                   PROCESS_SECTION:['abcd', 'pqrst'],
+                   PROCESS_SECTION:{PROCESS_KEY:['1234']},
                    ALT_SECTION:{ALT_KEYS[0]:['alt1','alt2'], ALT_KEYS[1]:[
                      'dir1']}, USER_HOMEDIR_SECTION:['decf']}
     get_os_type_method.return_value = 'redhat'
@@ -239,7 +243,7 @@ class TestHostCleanup(TestCase):
     do_erase_packages_method.assert_called_once_with(['abcd', 'pqrst'])
     do_erase_files_silent_method.assert_called_once_with(['abcd', 'pqrst'])
     do_delete_users_method.assert_called_once_with(['abcd', 'pqrst'])
-    do_kill_processes_method.assert_called_once_with(['abcd', 'pqrst'])
+    do_kill_processes_method.assert_called_once_with(['1234'])
     do_erase_alternatives_method.assert_called_once_with({ALT_KEYS[0]:['alt1',
                                               'alt2'], ALT_KEYS[1]:['dir1']})
 
@@ -270,7 +274,7 @@ class TestHostCleanup(TestCase):
     sys.stdout = out
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
-                   PROCESS_SECTION:['abcd', 'pqrst'],
+                   PROCESS_SECTION:{PROCESS_KEY:['abcd', 'pqrst']},
                    ALT_SECTION:{ALT_KEYS[0]:['alt1','alt2'], ALT_KEYS[1]:[
                      'dir1']}}
     get_os_type_method.return_value = 'redhat'
@@ -311,7 +315,7 @@ class TestHostCleanup(TestCase):
     sys.stdout = out
     propertyMap = {PACKAGE_SECTION:['abcd', 'pqrst'], USER_SECTION:['abcd', 'pqrst'],
                    REPO_SECTION:['abcd', 'pqrst'], DIR_SECTION:['abcd', 'pqrst'],
-                   PROCESS_SECTION:['abcd', 'pqrst']}
+                   PROCESS_SECTION:{PROCESS_KEY:['abcd', 'pqrst']}}
     get_os_type_method.return_value = 'redhat'
     find_repo_files_for_repos_method.return_value = ['abcd', 'pqrst']
     HostCleanup.SKIP_LIST = [PACKAGE_SECTION, REPO_SECTION]
@@ -369,7 +373,7 @@ class TestHostCleanup(TestCase):
     self.assertTrue(propertyMap.has_key(USER_SECTION))
     self.assertTrue(propertyMap.has_key(DIR_SECTION))
     self.assertTrue(propertyMap.has_key(PROCESS_SECTION))
-    self.assertEquals(propertyMap[PROCESS_SECTION][0], "323")
+    self.assertEquals(propertyMap[PROCESS_SECTION][PROCESS_KEY][0], "323")
 
     sys.stdout = sys.__stdout__
 

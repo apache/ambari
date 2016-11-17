@@ -46,7 +46,7 @@ def get_logfeeder_metadata(logsearch_meta_configs):
   """
   logfeeder_contents = {}
   for key, value in logsearch_meta_configs.iteritems():
-    if 'content' in logsearch_meta_configs[key]:
+    if 'content' in logsearch_meta_configs[key] and logsearch_meta_configs[key]['content'].strip():
       logfeeder_contents[key] = logsearch_meta_configs[key]['content']
       Logger.info("Found logfeeder pattern content in " + key)
   return logfeeder_contents
@@ -61,7 +61,17 @@ def get_logsearch_metadata(logsearch_meta_configs):
     if 'service_name' in logsearch_meta_configs[key] and 'component_mappings' in logsearch_meta_configs[key]:
       service_name = logsearch_meta_configs[key]['service_name']
       component_mappings = __parse_component_mappings(logsearch_meta_configs[key]['component_mappings'])
-      logsearch_service_component_mappings[service_name] = component_mappings
+      if service_name.strip() and component_mappings:
+        logsearch_service_component_mappings[service_name] = component_mappings
+    if 'service_component_mappings' in logsearch_meta_configs[key]:
+      service_component_mappings = logsearch_meta_configs[key]['service_component_mappings']
+      if service_component_mappings.strip():
+        for service_component_mapping in service_component_mappings.split('|'):
+          tokens = service_component_mapping.split('=')
+          service_name = tokens[0]
+          component_mappings = __parse_component_mappings(tokens[1])
+          if service_name.strip() and component_mappings:
+            logsearch_service_component_mappings[service_name] = component_mappings
 
   return logsearch_service_component_mappings
 

@@ -29,12 +29,13 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.GroupEntity;
+import org.apache.ambari.server.orm.entities.PrincipalEntity;
+import org.apache.ambari.server.security.authorization.GroupType;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-
-import org.apache.ambari.server.orm.entities.PrincipalEntity;
 
 @Singleton
 public class GroupDAO {
@@ -58,6 +59,20 @@ public class GroupDAO {
   public GroupEntity findGroupByName(String groupName) {
     final TypedQuery<GroupEntity> query = entityManagerProvider.get().createNamedQuery("groupByName", GroupEntity.class);
     query.setParameter("groupname", groupName.toLowerCase());
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException e) {
+      return null;
+    }
+  }
+
+  @RequiresSession
+  public GroupEntity findGroupByNameAndType(String groupName, GroupType groupType) {
+    // do case insensitive compare
+    TypedQuery<GroupEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT group_entity FROM GroupEntity group_entity WHERE group_entity.groupType=:type AND lower(group_entity.groupName)=lower(:name)", GroupEntity.class);
+    query.setParameter("type", groupType);
+    query.setParameter("name", groupName);
     try {
       return query.getSingleResult();
     } catch (NoResultException e) {

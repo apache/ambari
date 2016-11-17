@@ -17,16 +17,26 @@
  */
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.security.authorization.GroupType;
+
 /**
  * Represents a user group maintenance response.
  */
 public class GroupResponse {
   private final String groupName;
   private final boolean ldapGroup;
+  private final GroupType groupType;
+
+  public GroupResponse(String groupName, boolean ldapGroup, GroupType groupType) {
+    this.groupName = groupName;
+    this.ldapGroup = ldapGroup;
+    this.groupType = groupType;
+  }
 
   public GroupResponse(String groupName, boolean ldapGroup) {
     this.groupName = groupName;
     this.ldapGroup = ldapGroup;
+    this.groupType = GroupType.LOCAL;
   }
 
   public String getGroupName() {
@@ -35,6 +45,10 @@ public class GroupResponse {
 
   public boolean isLdapGroup() {
     return ldapGroup;
+  }
+
+  public GroupType getGroupType() {
+    return groupType;
   }
 
   @Override

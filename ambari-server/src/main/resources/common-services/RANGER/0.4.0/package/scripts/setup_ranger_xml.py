@@ -119,6 +119,14 @@ def setup_ranger_admin(upgrade_type=None):
     create_parents=True
   )
 
+  if params.stack_supports_pid:
+    File(format('{ranger_conf}/ranger-admin-env-piddir.sh'),
+      content = format("export RANGER_PID_DIR_PATH={ranger_pid_dir}\nexport RANGER_USER={unix_user}"),
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode=0755
+    )
+
   Directory(params.admin_log_dir,
     owner = params.unix_user,
     group = params.unix_group,
@@ -360,6 +368,14 @@ def setup_usersync(upgrade_type=None):
     create_parents=True
   )
 
+  if params.stack_supports_pid:
+    File(format('{ranger_ugsync_conf}/ranger-usersync-env-piddir.sh'),
+      content = format("export USERSYNC_PID_DIR_PATH={ranger_pid_dir}\nexport UNIX_USERSYNC_USER={unix_user}"),
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode=0755
+    )
+
   Directory(params.usersync_log_dir,
     owner = params.unix_user,
     group = params.unix_group,
@@ -474,6 +490,14 @@ def setup_tagsync(upgrade_type=None):
     group = params.user_group,
     cd_access = "a",
   )
+
+  if params.stack_supports_pid:
+    File(format('{ranger_tagsync_conf}/ranger-tagsync-env-piddir.sh'),
+      content = format("export TAGSYNC_PID_DIR_PATH={ranger_pid_dir}\nexport UNIX_TAGSYNC_USER={unix_user}"),
+      owner = params.unix_user,
+      group = params.unix_group,
+      mode=0755
+    )
 
   Directory(params.tagsync_log_dir,
     create_parents = True,

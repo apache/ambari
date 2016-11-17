@@ -59,7 +59,7 @@
           <commandScript>
             <script>scripts/oozie_server.py</script>
             <scriptType>PYTHON</scriptType>
-            <timeout>1200</timeout>
+            <timeout>1800</timeout>
           </commandScript>
           <logs>
             <log>
@@ -162,7 +162,7 @@
       <commandScript>
         <script>scripts/service_check.py</script>
         <scriptType>PYTHON</scriptType>
-        <timeout>300</timeout>
+        <timeout>600</timeout>
       </commandScript>
 
       <requiredServices>

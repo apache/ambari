@@ -32,6 +32,8 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -270,7 +272,8 @@ public class ClusterEffectiveVersionTest extends EasyMockSupport {
       binder.bind(KerberosHelper.class).toInstance(EasyMock.createNiceMock(KerberosHelper.class));
       binder.bind(Users.class).toInstance(EasyMock.createNiceMock(Users.class));
       binder.bind(AmbariEventPublisher.class).toInstance(createNiceMock(AmbariEventPublisher.class));
-
+      binder.bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
+      binder.bind(HookService.class).toInstance(createMock(HookService.class));
       binder.install(new FactoryModuleBuilder().implement(
           Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
 

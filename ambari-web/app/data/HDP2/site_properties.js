@@ -2264,6 +2264,27 @@ var hdp2properties = [
     "category": "Advanced logsearch-properties",
     "index": 11
   },
+  {
+    "name": "logsearch.auth.jwt.audiances",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 12
+  },
+  {
+    "name": "logsearch.auth.jwt.cookie.name",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 13
+  },
+  {
+    "name": "logsearch.auth.jwt.query.param.original_url",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 14
+  },
   /*infra-solr-client-log4j*/
   {
     "name": "infra_solr_client_log_dir",

@@ -23,6 +23,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.metrics2.sink.timeline.availability.MetricCollectorHAHelper;
@@ -477,24 +478,21 @@ public abstract class AbstractTimelineMetricsSink {
   /**
    * Parses input Sting of format "['host1', 'host2']" into Collection of hostnames
    */
-  protected Collection<String> parseHostsStringIntoCollection(String hostsString) {
+  public Collection<String> parseHostsStringIntoCollection(String hostsString) {
     Set<String> hosts = new HashSet<>();
 
-    if (hostsString == null) {
+    if (StringUtils.isEmpty(hostsString)) {
       LOG.error("No Metric collector configured.");
       return hosts;
     }
 
-    hostsString = hostsString.replace("[", "");
-    hostsString = hostsString.replace("]", "");
-    hostsString = hostsString.replace("'", "");
+    String[] untrimmedHosts = hostsString.split(",");
 
-    String [] hostNamesWithApostrophes  = hostsString.split(",");
-
-    for (String host : hostNamesWithApostrophes) {
-      host = host.trim();
-      if (host.equals("")) continue;
-      hosts.add(host);
+    for (String host : untrimmedHosts) {
+      host = StringUtils.substringBetween(host, "'");
+      if (StringUtils.isEmpty(host))
+        continue;
+      hosts.add(host.trim());
     }
 
     return hosts;

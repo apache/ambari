@@ -32,7 +32,7 @@
     </div>
     {{#if view.parentView.availableConfigGroups.length}}
       <div class="select-create-config-group-div">
-        <span class="btn-group">
+        <div class="btn-group">
           <button class="btn btn-default" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>{{view.parentView.selectedConfigGroup.name}}</button>
           <button class="btn btn-default dropdown-toggle btn-icon" data-toggle="dropdown" {{bindAttr disabled="view.parentView.optionCreateConfigGroup"}}>
             <span class="caret"></span>
@@ -47,7 +47,7 @@
                </li>
             {{/each}}
           </ul>
-        </span>
+        </div>
         <div class="message">{{t config.group.selection.dialog.option.select.msg}}</div>
       </div>
     {{else}}

@@ -168,6 +168,16 @@ public class MetricsCollectorHAClusterState {
         return true;
       }
     }
+
+    //If no host is alive, check if some dead collectors have become live.
+    testAndAddDeadCollectorsToLiveList();
+
+    //try one more time
+    for (String host : liveCollectorHosts) {
+      if (HostStatusHelper.isHostLive(managementController, clusterName, host)) {
+        return true;
+      }
+    }
     return false;
     }
 

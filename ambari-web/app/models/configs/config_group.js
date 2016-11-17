@@ -161,6 +161,8 @@ App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
 
 App.ServiceConfigGroup.defaultGroupName = 'Default';
 
+App.ServiceConfigGroup.deletedGroupName = 'Deleted';
+
 /**
  * Delete all records with isTemporary:true
  * @method

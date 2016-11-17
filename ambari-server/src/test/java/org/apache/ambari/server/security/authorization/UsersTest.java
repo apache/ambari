@@ -21,7 +21,12 @@ package org.apache.ambari.server.security.authorization;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
+
+import org.apache.ambari.server.hooks.HookContextFactory;
+import org.apache.ambari.server.hooks.HookService;
+import org.apache.ambari.server.hooks.users.UserHookService;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
@@ -51,6 +56,8 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.newCapture;
 
 public class UsersTest extends EasyMockSupport {
+
+
   @Test
   public void testGetUserAuthorities() throws Exception {
     Injector injector = getInjector();
@@ -106,6 +113,7 @@ public class UsersTest extends EasyMockSupport {
     expect(privilegeDAO.findAllByPrincipal(capture(principalEntitiesCapture))).andReturn(privilegeEntities).times(1);
     expect(privilegeDAO.findAllByPrincipal(capture(rolePrincipalEntitiesCapture))).andReturn(rolePrivilegeEntities).times(1);
 
+
     replayAll();
 
     Users user = injector.getInstance(Users.class);
@@ -139,6 +147,8 @@ public class UsersTest extends EasyMockSupport {
         bind(MemberDAO.class).toInstance(createMock(MemberDAO.class));
         bind(PrivilegeDAO.class).toInstance(createMock(PrivilegeDAO.class));
         bind(PasswordEncoder.class).toInstance(createMock(PasswordEncoder.class));
+        bind(HookService.class).toInstance(createMock(HookService.class));
+        bind(HookContextFactory.class).toInstance(createMock(HookContextFactory.class));
       }
     });
   }

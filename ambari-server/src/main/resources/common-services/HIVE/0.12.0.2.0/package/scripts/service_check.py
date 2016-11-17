@@ -18,8 +18,7 @@ limitations under the License.
 
 """
 
-import socket
-import sys
+import os
 import time
 import subprocess
 
@@ -27,15 +26,14 @@ from hcat_service_check import hcat_service_check
 from webhcat_service_check import webhcat_service_check
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
-from resource_management.core.resources.system import Execute, File
+from resource_management.core.resources.system import Execute
 from resource_management.core.exceptions import Fail
-from resource_management.core.source import StaticFile
+
 
 class HiveServiceCheck(Script):
   pass
@@ -173,7 +171,7 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       beeline_url.append('principal={key}')
 
     exec_path = params.execute_path
-    if params.version and params.stack_root:
+    if params.version:
       upgrade_hive_bin = format("{stack_root}/{version}/hive2/bin")
       exec_path =  os.environ['PATH'] + os.pathsep + params.hadoop_bin_dir + os.pathsep + upgrade_hive_bin
 

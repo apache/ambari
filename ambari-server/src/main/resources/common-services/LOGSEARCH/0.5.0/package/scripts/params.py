@@ -147,6 +147,7 @@ ambari_server_log_dir = '/var/log/ambari-server'
 ambari_agent_log_dir = '/var/log/ambari-agent'
 hst_log_dir = '/var/log/hst'
 hst_activity_log_dir = '/var/log/smartsense-activity'
+nifi_log_dir = default('/configurations/nifi-env/nifi_node_log_dir', '/var/log/nifi')
 
 # System logs
 logfeeder_system_messages_content = config['configurations']['logfeeder-system_log-env']['logfeeder_system_messages_content']
