@@ -16,14 +16,23 @@
 * limitations under the License.
 }}
 
-<h2>{{t alerts.add.step1.header}}</h2>
-
-{{#each type in controller.alertDefinitionsTypes}}
-  <a href="#" {{bindAttr class=":btn type.isActive:active"}} {{action selectType type target="controller"}}>
-    <span {{bindAttr class="type.icon"}}></span> {{type.value}}
-  </a>
-{{/each}}
-
-<div class="btn-area">
-  <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
+<div id="create-alert-wizard-step1">
+  <h2>{{t alerts.add.step1.header}}</h2>
+  <div class="alert alert-info">{{t alerts.add.step1.header.description}}</div>
+  <div class="alert-types-container row-fluid">
+    {{#each type in controller.alertDefinitionsTypes}}
+      <div class="span4 alert-type" rel="selectable-tooltip"
+        {{translateAttr data-original-title="alerts.add.wizard.step1.body.choose.tooltip"}}
+        {{action "selectType" type target="controller"}}>
+        <div {{bindAttr class="type.name :icon :span3"}}>
+          <span {{bindAttr class="type.icon"}}></span>
+        </div>
+        <div class="label-description span9">
+          <p class="label-text">{{type.displayName}}</p>
+          <p class="description-text">{{type.description}}</p>
+        </div>
+      </div>
+    {{/each}}
+  </div>
 </div>
+

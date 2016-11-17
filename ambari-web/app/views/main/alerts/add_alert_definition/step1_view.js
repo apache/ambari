@@ -24,6 +24,9 @@ App.AddAlertDefinitionStep1View = Em.View.extend({
 
   didInsertElement: function() {
     this.get('controller').loadStep();
+    Em.run.later(this, function () {
+      App.tooltip($("[rel='selectable-tooltip']"));
+    }, 300);
   }
 
 });

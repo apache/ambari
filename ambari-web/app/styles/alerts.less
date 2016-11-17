@@ -669,3 +669,67 @@
   max-height: 200px;
   overflow-y: scroll;
 }
+
+/***** Start styles for alert create wizard *****/
+#create-alert-wizard-step1 {
+  .alert-types-container {
+    .alert-type {
+      height: 155px;
+      width: 30.5%;
+      margin: 0px 8px 20px 8px;
+      padding: 10px;
+      background: white;
+      border: 1px solid #ccc;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+    }
+    .alert-type:hover {
+      cursor: pointer;
+      border: 1px solid #eee;
+      background: #eee;
+    }
+    .icon {
+      span {
+        font-size: 35px;
+        line-height: 3.5;
+        margin-left: 5px;
+      }
+    }
+    .icon.PORT {
+      color: #F6D955;
+    }
+    .icon.WEB {
+      color: #9ADCD4;
+    }
+    .icon.METRIC {
+      color: #F69F79;
+    }
+    .icon.SCRIPT {
+      color: #F2C2AA;
+    }
+    .icon.AGGREGATE {
+      color: #8AD4C7;
+    }
+    .icon.RAW {
+      color: #C9A6B2;
+    }
+    .label-description {
+      padding-top: 10px;
+      .label-text {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .description-text {
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
+

@@ -325,3 +325,57 @@ App.AlertMetricsSourceDefinition.FIXTURES = [];
 App.AlertMetricsUriDefinition.FIXTURES = [];
 App.AlertMetricsAmsDefinition.FIXTURES = [];
 App.AlertDefinitionParameter.FIXTURES = [];
+
+
+App.AlertType = DS.Model.extend({
+  name: DS.attr('string'),
+  displayName: DS.attr('string'),
+  iconPath: DS.attr('string'),
+  description: DS.attr('string'),
+  properties: DS.attr('array')
+});
+
+App.AlertType.FIXTURES = [
+  {
+    id: 'PORT',
+    name: 'PORT',
+    icon_path: 'icon-signin',
+    display_name: 'Port',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.port.description')
+  },
+  {
+    id: 'WEB',
+    name: 'WEB',
+    icon_path: 'icon-globe',
+    display_name: 'Web',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.web.description')
+  },
+  {
+    id: 'METRIC',
+    name: 'METRIC',
+    display_name: 'Metric',
+    icon_path: 'icon-bolt',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.metric.description')
+  },
+  {
+    id: 'SCRIPT',
+    name: 'SCRIPT',
+    icon_path: 'icon-file-text',
+    display_name: 'Script',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.script.description')
+  },
+  {
+    id: 'AGGREGATE',
+    name: 'AGGREGATE',
+    icon_path: 'icon-plus',
+    display_name: 'Aggregate',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.aggregate.description')
+  },
+  {
+    id: 'RAW',
+    name: 'RAW',
+    icon_path: 'icon-align-justify',
+    display_name: 'Raw',
+    description: Em.I18n.t('alerts.add.wizard.step1.body.raw.description')
+  }
+];
