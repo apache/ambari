@@ -1256,7 +1256,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
   'admin.manageJournalNode.label': 'Manage JournalNode',
-  'admin.manageJournalNode.wizard.header': 'Manage JournalNode Wizard',
+  'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
   'admin.manageJournalNode.wizard.step3.header': 'Save Namespace',
@@ -1266,7 +1266,7 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step7.header': 'BootStrap StandBy NameNode',
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
-  'admin.manageJournalNode.wizard.step1.body': 'Assign hosts to JournalNodes',
+  'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
   'admin.manageJournalNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
   '<b>Review Configuration Changes.</b></br>' +
   'The following lists the configuration changes that will be made by the Wizard to manage JournalNode. This information is for <b> review only </b>.' +
@@ -1290,10 +1290,10 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.step4.save.configuration.note' : 'This configuration is created by Manage JournalNode Wizard',
 
-  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Wait all services to be started',
-  'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Please wait while services are started',
+  'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
-  'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step8.notice.completed':'JournalNodes has been processed successfully.',
 
   'admin.manageJournalNode.wizard.step3.body':
@@ -1317,7 +1317,7 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.wizard.step7.body':
   '<div class="alert alert-info">' +
-  '<ol start="3">' +
+  '<ol start="1">' +
   '<li>Login to the Additional NameNode host <b>{1}</b>.<br>' +
   '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from previous steps.</div>' +
   '</li>' +
