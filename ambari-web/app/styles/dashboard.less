@@ -1,0 +1,350 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import 'common.less';
+
+#dashboard-widgets-container{
+  #widgets-options-menu {
+    .add-widgets-text .dropdown-menu {
+      overflow: auto;
+      width: 210px;
+    }
+  }
+
+  #dashboard-widgets {
+    .caption {
+      height: 25px;
+    }
+    .spinner {
+      margin: 55px auto;
+    }
+    .chart-container {
+      .spinner {
+        margin: 15px auto 35px;
+      }
+    }
+    .span2p4 {
+      float: left;
+      width: 19.60%;
+      *width: 19.60%;
+    }
+    .thumbnails > div {
+      margin: 0 3px 3px 0;
+      height: 163px;
+    }
+    .thumbnails li {
+      height: 160px;
+      width: 100%;
+      margin: 3px 3px 0 0;
+    }
+
+    .img-thumbnail .corner-icon {
+      display: none;
+      position: relative;
+      padding: 7px 0;
+      .glyphicon-remove-sign{
+        color: #000;
+        text-shadow: #fff 0 0 15px;
+        position: absolute;
+        left: -10px;
+        top: -10px;
+      }
+      .glyphicon-edit, .glyphicon-save {
+        color: #555;
+      }
+    }
+    .export-graph-list {
+      top: 30px;
+      li {
+        margin: 0;
+        height: auto;
+      }
+    }
+    .img-thumbnail .hidden-info-general{
+      color: #555;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: none;
+      display: none;
+      position: relative;
+      z-index: 7;
+    }
+    .hidden-info-two-line{
+      padding-top: 60px;
+    }
+    .hidden-info-three-line{
+      padding-top: 50px;
+    }
+    .hidden-info-five-line{
+      padding-top: 40px;
+      tr > td {
+        line-height: 18px;
+      }
+    }
+    .hidden-info-six-line{
+      padding-top: 37px;
+      tr > td {
+        line-height: 16px;
+      }
+    }
+    .img-thumbnail .caption {
+      padding: 7px 0;
+      color: #555;
+      font-weight:bold;
+      font-size: 12px;
+      text-align: left;
+      position: relative;
+    }
+    .img-thumbnail .widget-content{
+      text-align: center;
+      font-size: 35px;
+      padding-top: 40px; //svg
+      position: relative;
+      .disabled-hdfs-link {
+        pointer-events: none;
+        color: grey;
+        cursor: default;
+      }
+      .screensaver{ // graph onload wait
+        width: 90%;
+        height: 105px;
+        border: 1px solid silver;
+        color: #fff;
+        i {
+          font-size: inherit;
+        }
+      }
+    }
+    .img-thumbnail .widget-content-isNA{ // for pie chart n\a
+      text-align: center;
+      font-size: 35px;
+      color: #D6DDDF;
+      padding-top: 70px;
+      font-weight: bold;
+      position: relative;
+    }
+    .img-thumbnail{
+      background-color: #fff;
+      z-index: 3;
+    }
+    .has-hidden-info {
+      ul {
+        margin: 0;
+      }
+    }
+    .has-hidden-info .img-thumbnail:hover {
+      cursor: move;
+      .corner-icon{
+        display:block;
+        text-decoration: none;
+        z-index: 9;
+      }
+      .hidden-info-general{
+        display: block;
+      }
+      .caption{
+        margin-left: -10px;
+        z-index: 7;
+      }
+      .slots-caption{
+        margin-left: -13px;
+        z-index: 7;
+      }
+      .content-mx(@top) {
+        top: @top;
+        opacity: 0.3;
+        z-index: 5;
+      }
+      .widget-content, .widget-content-isNA {
+        .content-mx(-104px);
+      }
+      .uptime-content{
+        top: -116px;
+      }
+      .uptime-content-isNA{
+        top: -95px;
+      }
+      .slots-content-isNA{
+        top: -82px;
+      }
+      .content-hidden-two-line{
+        .content-mx(-105px);
+      }
+      .content-hidden-three-line{
+        .content-mx(-116px);
+      }
+      .content-hidden-four-line{
+        .content-mx(-126px);
+      }
+      .content-hidden-five-line{
+        .content-mx(-140px);
+      }
+      .content-hidden-six-line{
+        .content-mx(-143px);
+      }
+    }
+
+    .cluster-metrics {
+      position: relative;
+      .chart-container{
+        margin: 0 10px;
+        .chart-y-axis{
+          margin-top: 10px;
+        }
+        .chart svg{
+          margin-right: 20px;
+        }
+        .rickshaw_legend{
+          padding-top: 3px;
+        }
+        .chart-legend {
+          top: 120px;
+          left:15px;
+          text-align: left;
+          z-index: 3;
+          ul >li{
+            max-height: 10px;
+          }
+        }
+      }
+      &> ul {
+        margin:0;
+      }
+      .alert {
+        padding: 0;
+        font-size: 12px;
+      }
+      .img-thumbnail:hover {
+        cursor: move;
+        .corner-icon {
+          display:block;
+          text-decoration: none;
+          z-index: 9;
+        }
+        .caption {
+          margin-left: -10px;
+        }
+      }
+    }
+
+    .links .img-thumbnail{
+      li{
+        height:20px;
+      }
+      .link-button{
+        float: right;
+        .disabled-hdfs-quick-link {
+          pointer-events: none;
+          color: #808080;
+          cursor: default;
+        }
+      }
+
+      .widget-content{
+        text-align: center;
+        font-size: 11px;
+        color: #555;
+        padding-top: 40px;
+        table{
+          vertical-position: center;
+          text-align: center;
+          margin-left:auto;
+          margin-right:auto;
+        }
+        td{
+          padding-top: 2px;
+        }
+      }
+    }
+    .links .img-thumbnail:hover{
+      cursor: move;
+      .corner-icon{
+        display:block;
+        text-decoration: none;
+        z-index: 9;
+      }
+      .caption{
+        margin-left: -10px;
+      }
+    }
+    .img-thumbnail .widget-content .svg {
+      position: relative;
+    }
+
+    .widget-cn(@color) {
+      color: @color;
+      padding-top: 70px;
+      font-weight: bold;
+    }
+    .is-red{
+      .widget-content {
+        .widget-cn(@health-status-red);
+      }
+    }
+    .is-orange{
+      .widget-content {
+        .widget-cn(@health-status-orange);
+      }
+    }
+    .is-green {
+      .widget-content {
+        .widget-cn(@health-status-green);
+      }
+    }
+    .is-na {
+      position: relative;
+      .widget-content {
+        .widget-cn(#D6DDDF);
+        text-shadow: none;
+      }
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+
+  #dashboard-widgets-container {
+
+    #dashboard-widgets {
+      .span2p4 {
+        float: left;
+        width: 19.47%;
+        *width: 19.47%;
+      }
+      .thumbnails > div {
+        margin-right: 5px;
+      }
+      .img-thumbnail {
+        .caption, .hidden-info-two-line, .hidden-info-three-line {
+          font-size: 14px;
+        }
+        .hidden-info-five-line, .hidden-info-six-line {
+          font-size: 12px;
+        }
+      }
+      .links .img-thumbnail {
+        .widget-content {
+          font-weight: bold;
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+}

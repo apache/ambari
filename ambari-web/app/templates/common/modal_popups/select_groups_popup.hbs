@@ -22,10 +22,8 @@
     <div class="col-sm-8">
       {{#if view.hasGroups}}
         {{view Ember.Select contentBinding="view.groups" valueBinding="view.selectedGroup" disabledBinding="view.disabled"}}
-        {{else}}
-        <span class="line-height-30">
-          {{t popup.dependent.configs.select.config.group.no.groups}}
-        </span>
+      {{else}}
+        <p>{{t popup.dependent.configs.select.config.group.no.groups}}</p>
       {{/if}}
     </div>
   </div>

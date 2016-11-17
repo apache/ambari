@@ -19,7 +19,7 @@
 {{#if view.isConfigAvailable}}
     <div class="row host-configs">
         <div class="col-md-2">
-          <div class="well services-host-menu">
+          <div class="well side-menu-well">
             {{view App.MainHostServiceMenuView}}
           </div>
         </div>
@@ -28,7 +28,7 @@
         </div>
     </div>
 {{else}}
-    <div class="services-host-menu">
+    <div class="side-menu-well">
         <i class="message alert alert-info">{{t hosts.host.serviceNotAvailable}}</i>
     </div>
 {{/if}}
