@@ -753,15 +753,13 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
 
-    makeConfig(cluster, "global", "version1",
+    makeConfig(cluster, "hdfs-site", "version0",
         new HashMap<String,String>() {{
           put("a", "b");
-          put("dfs_namenode_name_dir", "/foo1"); // HDFS only
-          put("mapred_log_dir_prefix", "/foo2"); // MR2 only
         }}, new HashMap<String, Map<String,String>>());
 
     Map<String, Map<String, String>> actual = new HashMap<String, Map<String, String>>() {{
-      put("global", new HashMap<String,String>() {{ put("tag", "version1"); }});
+      put("hdfs-site", new HashMap<String,String>() {{ put("tag", "version0"); }});
     }};
 
     sch1.updateActualConfigs(actual);
@@ -776,7 +774,7 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
 
     makeConfig(cluster, "hdfs-site", "version1",
-        new HashMap<String,String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+        new HashMap<String,String>() {{ put("a1", "b1"); }}, new HashMap<String, Map<String,String>>());
 
     // HDP-x/HDFS/hdfs-site is not on the actual, but it is defined, so it is stale
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
@@ -845,16 +843,20 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
 
-    // change 'global' property only affecting global/HDFS
-    makeConfig(cluster, "global", "version2",
-      new HashMap<String,String>() {{
-        put("a", "b");
-        put("dfs_namenode_name_dir", "/foo3"); // HDFS only
-        put("mapred_log_dir_prefix", "/foo2"); // MR2 only
-      }}, new HashMap<String, Map<String,String>>());
+    makeConfig(cluster, "mapred-site", "version1",
+      new HashMap<String, String>() {{ put("a", "b"); }},
+      new HashMap<String, Map<String,String>>());
 
-    Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());
-    Assert.assertTrue(sch2.convertToResponse(null).isStaleConfig());
+    actual.put("mapred-site", new HashMap<String, String>() {{ put ("tag", "version1"); }});
+
+    Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
+    Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
+    Assert.assertTrue(sch3.convertToResponse(null).isStaleConfig());
+
+    sch3.updateActualConfigs(actual);
+
+    Assert.assertFalse(sch1.convertToResponse(null).isStaleConfig());
+    Assert.assertFalse(sch2.convertToResponse(null).isStaleConfig());
     Assert.assertFalse(sch3.convertToResponse(null).isStaleConfig());
 
     // Change core-site property, only HDFS property
