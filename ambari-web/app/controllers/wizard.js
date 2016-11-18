@@ -1307,10 +1307,53 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var hasServicesWithSlave = services.someProperty('hasSlave');
     var hasServicesWithClient = services.someProperty('hasClient');
     var hasServicesWithCustomAssignedNonMasters = services.someProperty('hasNonMastersWithCustomAssignment');
-    this.set('content.skipSlavesStep', !hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters);
+    var hasDependentSlaveComponent = this.hasDependentSlaveComponent(services);
+    this.set('content.skipSlavesStep', (!hasServicesWithSlave && !hasServicesWithClient || !hasServicesWithCustomAssignedNonMasters) && !hasDependentSlaveComponent);
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', step).set('value', this.get('content.skipSlavesStep'));
     }
+  },
+
+  /**
+   * Determine if there is some service with some component, that has dependent slave component already installed in cluster, but not on all hosts
+   * @param services
+   * @returns {boolean}
+   */
+  hasDependentSlaveComponent: function (services) {
+    var result = false;
+    var dependentSlaves = [];
+    var hosts = this.get('content.hosts');
+
+    if (hosts) {
+      services.forEach(function (service) {
+        service.get('serviceComponents').forEach(function (component) {
+          component.get('dependencies').forEach(function (dependency) {
+            var dependentService = App.StackService.find().findProperty('serviceName', dependency.serviceName);
+            var dependentComponent = dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
+            if (dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
+              dependentSlaves.push({component: dependentComponent.get('componentName'), count: 0});
+            }
+          });
+        });
+      });
+
+      var hostNames = Em.keys(hosts);
+      for (var i = 0; i < dependentSlaves.length; i++) {
+        var maxToInstall = App.StackServiceComponent.find().findProperty('componentName', dependentSlaves[i].component).get('maxToInstall');
+        maxToInstall = maxToInstall === Infinity ? hostNames.length : maxToInstall;
+        hostNames.forEach(function (hostName) {
+          var hostComponents = hosts[hostName].hostComponents.mapProperty('HostRoles.component_name');
+          dependentSlaves[i].count += hostComponents.contains(dependentSlaves[i].component);
+        });
+
+        if (dependentSlaves[i].count < maxToInstall) {
+          result = true;
+          break;
+        }
+      }
+    }
+
+    return result;
   },
 
   /**

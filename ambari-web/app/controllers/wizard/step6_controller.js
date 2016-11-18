@@ -432,6 +432,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     } else {
      this.restoreComponentsSelection(hostsObj, slaveComponents);
     }
+    this.enableCheckboxesForDependentComponents(hostsObj);
     this.selectClientHost(hostsObj);
     return hostsObj;
   },
@@ -456,6 +457,46 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         }
       });
     });
+  },
+
+  /**
+   * Enable checkboxes for dependent components of already installed services, that can be added
+   * @param hostsObj
+   */
+  enableCheckboxesForDependentComponents: function (hostsObj) {
+    var dependentSlaves = {};
+    App.StackService.find().filterProperty('isSelected').forEach(function (service) {
+      service.get('serviceComponents').forEach(function (component) {
+        component.get('dependencies').forEach(function (dependency) {
+          var dependentService = App.StackService.find().findProperty('serviceName', dependency.serviceName);
+          var dependentComponent = dependentService.get('serviceComponents').findProperty('componentName', dependency.componentName);
+          if (dependentComponent.get('isSlave') && dependentService.get('isInstalled')) {
+            dependentSlaves[dependentComponent.get('componentName')] = [];
+          }
+        });
+      });
+    });
+
+    if (!Em.keys(dependentSlaves)) return false;
+
+    hostsObj.forEach(function (hostObj) {
+      hostObj.checkboxes.forEach(function (checkbox) {
+        if (dependentSlaves[checkbox.component] && !checkbox.isInstalled) {
+          dependentSlaves[checkbox.component].push(checkbox);
+        }
+      });
+    });
+
+    for (var component in dependentSlaves) {
+      if (dependentSlaves.hasOwnProperty(component)) {
+        var maxToInstall = App.StackServiceComponent.find().findProperty('componentName', component).get('maxToInstall');
+        maxToInstall = maxToInstall === Infinity ? hostsObj.length : maxToInstall;
+        if (maxToInstall > hostsObj.length - dependentSlaves[component].length) {
+          dependentSlaves[component].setEach('isDisabled', false);
+        }
+      }
+    }
+    return true;
   },
 
   /**
