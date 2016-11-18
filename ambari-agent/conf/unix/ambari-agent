@@ -102,15 +102,15 @@ cd $AGENT_WORKING_DIR
 
 change_files_permissions() {
     if [ ! -z "$KEYSDIR" ]; then
-        ambari-sudo.sh chown -R $current_user "$KEYSDIR"
+        /var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "$KEYSDIR"
     fi
-	ambari-sudo.sh mkdir -p "${AMBARI_PID_DIR:?}"
-	ambari-sudo.sh chown -R $current_user "${AMBARI_PID_DIR:?}/"
-	ambari-sudo.sh mkdir -p "${AMBARI_AGENT_LOG_DIR:?}"
-	ambari-sudo.sh chown -R $current_user:$current_group "${AMBARI_AGENT_LOG_DIR:?}/"
-	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
-	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
-	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
+	/var/lib/ambari-agent/ambari-sudo.sh mkdir -p "${AMBARI_PID_DIR:?}"
+	/var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "${AMBARI_PID_DIR:?}/"
+	/var/lib/ambari-agent/ambari-sudo.sh mkdir -p "${AMBARI_AGENT_LOG_DIR:?}"
+	/var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user:$current_group "${AMBARI_AGENT_LOG_DIR:?}/"
+	/var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
+	/var/lib/ambari-agent/ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
+	/var/lib/ambari-agent/ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
 
@@ -177,7 +177,7 @@ case "${1:-}" in
           PID=`cat $PIDFILE`
           if ! (ps -p $PID >/dev/null 2>/dev/null); then
             echo "$PIDFILE found with no process. Removing $PID..."
-            ambari-sudo.sh rm -f $PIDFILE
+            /var/lib/ambari-agent/ambari-sudo.sh rm -f $PIDFILE
           else
             tput bold
             echo "ERROR: $AMBARI_AGENT already running"
@@ -266,7 +266,7 @@ case "${1:-}" in
             fi
           fi
           echo "Removing PID file at $PIDFILE"
-          ambari-sudo.sh rm -f $PIDFILE
+          /var/lib/ambari-agent/ambari-sudo.sh rm -f $PIDFILE
           tput bold
           echo "$AMBARI_AGENT successfully stopped"
           tput sgr0
