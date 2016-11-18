@@ -25,11 +25,11 @@ set -e
 killtree() {
     local _pid=$1
     local _sig=${2:--TERM}
-    ambari-sudo.sh kill -stop ${_pid} # needed to stop quickly forking parent from producing children between child killing and parent killing
+    /var/lib/amabari-agen/ambari-sudo.sh kill -stop ${_pid} # needed to stop quickly forking parent from producing children between child killing and parent killing
     for _child in $(ps -o pid --no-headers --ppid ${_pid}); do
         killtree ${_child} ${_sig}
     done
-    ambari-sudo.sh kill -${_sig} ${_pid}
+    /var/lib/amabari-agen/ambari-sudo.sh kill -${_sig} ${_pid}
 }
 
 if [ $# -eq 0 -o $# -gt 2 ]; then
