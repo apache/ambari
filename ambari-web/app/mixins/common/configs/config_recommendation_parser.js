@@ -155,11 +155,21 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 
     Em.set(config, 'recommendedValue', recommendedValue);
     if (this.allowUpdateProperty(parentProperties, Em.get(config, 'name'), Em.get(config, 'filename'))) {
-      Em.setProperties(config, {
-        value: recommendedValue,
-        errorMessage: '',
-        warnMessage: ''
-      });
+      var allowConfigUpdate = true;
+      // workaround for capacity-scheduler
+      if (this.get('currentlyChangedConfig')) {
+        var cId = App.config.configId(this.get('currentlyChangedConfig.name'), this.get('currentlyChangedConfig.fileName'));
+        if (App.config.configId(config.get('name'), config.get('filename')) === cId) {
+          allowConfigUpdate = false;
+        }
+      }
+      if (allowConfigUpdate) {
+        Em.setProperties(config, {
+          value: recommendedValue,
+          errorMessage: '',
+          warnMessage: ''
+        });
+      }
       if (!Em.isNone(recommendedValue) && !Em.get(config, 'hiddenBySection')) {
         Em.set(config, 'isVisible', true);
       }
