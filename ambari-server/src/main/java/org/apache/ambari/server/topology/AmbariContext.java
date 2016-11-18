@@ -71,7 +71,6 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
@@ -558,7 +557,6 @@ public class AmbariContext {
           addedHost = true;
           if (! group.getHosts().containsKey(host.getHostId())) {
             group.addHost(host);
-            group.persistHostMapping();
           }
 
         } catch (AmbariException e) {

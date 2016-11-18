@@ -1332,8 +1332,6 @@ public class ClusterTest {
       configGroupFactory.createNew(c1, "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
         Collections.<Long, Host>emptyMap());
 
-    configGroup.persist();
-
     c1.addConfigGroup(configGroup);
 
     scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1349,7 +1347,6 @@ public class ClusterTest {
 
     configGroup.setConfigurations(Collections.singletonMap("hdfs-site", config3));
 
-    configGroup.persist();
     scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
     assertEquals("SCV 3 should be created", Long.valueOf(3), scvResponse.getVersion());
 
@@ -1388,7 +1385,6 @@ public class ClusterTest {
             new HashMap<>(Collections.singletonMap("hdfs-site", config4)),
             Collections.<Long, Host>emptyMap());
 
-    configGroup2.persist();
     c1.addConfigGroup(configGroup2);
 
     scvResponse = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup2);
@@ -1421,7 +1417,6 @@ public class ClusterTest {
         ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
 
     ConfigGroup configGroup = configGroupFactory.createNew(c1, "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
-    configGroup.persist();
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -1481,7 +1476,6 @@ public class ClusterTest {
         ImmutableMap.of("p1", "v2"), ImmutableMap.<String, Map<String,String>>of());
 
     ConfigGroup configGroup = configGroupFactory.createNew(c1, "configGroup1", "version1", "test description", ImmutableMap.of(hdfsSiteConfigV2.getType(), hdfsSiteConfigV2), ImmutableMap.<Long, Host>of());
-    configGroup.persist();
 
     c1.addConfigGroup(configGroup);
     ServiceConfigVersionResponse hdfsSiteConfigResponseV2 = c1.createServiceConfigVersion("HDFS", "admin", "test note", configGroup);
@@ -2341,7 +2335,6 @@ public class ClusterTest {
           }
         }, Collections.<Long, Host> emptyMap());
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     clusterEntity = clusterDAO.findByName("c1");

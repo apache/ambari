@@ -252,7 +252,6 @@ public class ConfigHelperTest {
       LOG.info("Config group created with tag " + tag);
       configGroup.setTag(tag);
 
-      configGroup.persist();
       cluster.addConfigGroup(configGroup);
 
       return configGroup.getId();

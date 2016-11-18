@@ -409,7 +409,6 @@ public class AmbariManagementControllerTest {
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
       tag, "", configMap, hostMap);
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     return configGroup.getId();
@@ -7011,7 +7010,6 @@ public class AmbariManagementControllerTest {
     ConfigGroup configGroup = cluster.getConfigGroups().get(groupId);
     configGroup.setHosts(new HashMap<Long, Host>() {{ put(3L,
       clusters.getHost(host3)); }});
-    configGroup.persist();
 
     requestId = startService(cluster1, serviceName2, false, false);
     mapredInstall = null;

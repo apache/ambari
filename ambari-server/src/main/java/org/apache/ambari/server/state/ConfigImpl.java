@@ -23,12 +23,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 import javax.annotation.Nullable;
 
 import org.apache.ambari.server.events.ClusterConfigChangedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.logging.LockFactory;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
@@ -71,7 +72,7 @@ public class ConfigImpl implements Config {
    *
    * @see #properties
    */
-  private final ReentrantReadWriteLock propertyLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock propertyLock;
 
   /**
    * The property attributes for this configuration.
@@ -94,7 +95,9 @@ public class ConfigImpl implements Config {
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
-      Gson gson, AmbariEventPublisher eventPublisher) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+
+    propertyLock = lockFactory.newReadWriteLock("configurationPropertyLock");
 
     this.cluster = cluster;
     this.type = type;
@@ -140,7 +143,8 @@ public class ConfigImpl implements Config {
 
   @AssistedInject
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
-      ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher) {
+      ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
+      LockFactory lockFactory) {
     this.cluster = cluster;
     this.clusterDAO = clusterDAO;
     this.gson = gson;
@@ -333,7 +337,7 @@ public class ConfigImpl implements Config {
    * Persist the cluster and configuration entities in their own transaction.
    */
   @Transactional
-  private void persistEntitiesInTransaction(ClusterConfigEntity entity) {
+  void persistEntitiesInTransaction(ClusterConfigEntity entity) {
     ClusterEntity clusterEntity = entity.getClusterEntity();
 
     clusterDAO.createConfig(entity);

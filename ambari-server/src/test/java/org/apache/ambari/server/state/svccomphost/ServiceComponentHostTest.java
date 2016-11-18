@@ -561,7 +561,6 @@ public class ServiceComponentHostTest {
     final ConfigGroup configGroup = configGroupFactory.createNew(cluster,
       "cg1", "t1", "", new HashMap<String, Config>(), new HashMap<Long, Host>());
 
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     Map<String, Map<String,String>> actual =
@@ -822,7 +821,6 @@ public class ServiceComponentHostTest {
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "g1",
       "t1", "", new HashMap<String, Config>() {{ put("hdfs-site", c); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     // HDP-x/HDFS/hdfs-site updated host to changed property
@@ -875,7 +873,6 @@ public class ServiceComponentHostTest {
     configGroup = configGroupFactory.createNew(cluster, "g2",
       "t2", "", new HashMap<String, Config>() {{ put("core-site", c1); }},
       new HashMap<Long, Host>() {{ put(hostEntity.getHostId(), host); }});
-    configGroup.persist();
     cluster.addConfigGroup(configGroup);
 
     Assert.assertTrue(sch1.convertToResponse(null).isStaleConfig());

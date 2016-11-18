@@ -445,7 +445,6 @@ public class AmbariContextTest {
 
     expect(configGroup1.getHosts()).andReturn(Collections.singletonMap(2L, host2)).once();
     configGroup1.addHost(host1);
-    configGroup1.persistHostMapping();
 
     // replay all mocks
     replayAll();
