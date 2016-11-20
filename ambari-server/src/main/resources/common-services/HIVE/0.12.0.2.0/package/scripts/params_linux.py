@@ -312,6 +312,7 @@ hive_server_host = hive_server_hosts[0] if len(hive_server_hosts) > 0 else None
 
 hive_server_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
 hive_server_interactive_host = hive_server_interactive_hosts[0] if len(hive_server_interactive_hosts) > 0 else None
+hive_server_interactive_ha = True if len(hive_server_interactive_hosts) > 1 else False
 # End, Common Hosts and Ports
 
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
