@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
+  <target>*</target>
+  <target-stack>*</target-stack>
+  <type>ROLLING</type>
+  <order>
+    <group name="GANGLIA_UPGRADE" title="Ganglia">
+      <add-after-group>ZOOKEEPER_CONFIG_CONDITION_TEST</add-after-group>
+      <skippable>true</skippable>
+      <allow-retry>true</allow-retry>
+      <service name="GANGLIA">
+        <component>HST_SERVER</component>
+      </service>
+    </group>
+  </order>
+
+  <processing>
+    <service name="GANGLIA">
+      <component name="GANGLIA_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+  </processing>
+</upgrade>
