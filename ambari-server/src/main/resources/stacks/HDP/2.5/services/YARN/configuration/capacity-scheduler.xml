@@ -26,7 +26,7 @@
       </property>
       <property>
         <type>hive-interactive-env</type>
-        <name>num_llap_nodes</name>
+        <name>llap_queue_capacity</name>
       </property>
     </depends-on>
     <on-ambari-upgrade add="false"/>

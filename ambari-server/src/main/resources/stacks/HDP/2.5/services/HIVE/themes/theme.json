@@ -63,7 +63,11 @@
           ]
         },
         {
-          "config": "hive-interactive-env/num_llap_nodes",
+          "config": "hive-interactive-env/llap_queue_capacity",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
           "subsection-name": "interactive-query-row1-col1",
           "depends-on": [
             {
@@ -85,8 +89,12 @@
           ]
         },
         {
-          "config": "hive-interactive-site/hive.server2.tez.sessions.per.default.queue",
+          "config": "hive-interactive-env/copy_num_llap_nodes",
           "subsection-name": "interactive-query-row1-col1",
+          "property_value_attributes": {
+            "ui_only_property": true,
+            "copy": "hive-interactive-env/num_llap_nodes"
+          },
           "depends-on": [
             {
               "configs":[
@@ -218,12 +226,23 @@
         }
       },
       {
-        "config": "hive-interactive-env/num_llap_nodes",
+        "config": "hive-interactive-env/copy_num_llap_nodes",
+        "widget": {
+          "type": "label",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-interactive-env/llap_queue_capacity",
         "widget": {
           "type": "slider",
           "units": [
             {
-              "unit-name": "int"
+              "unit-name": "percent"
             }
           ]
         }
