@@ -32,7 +32,7 @@
           {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
       </div>
       <div class="pull-right operations-button pull-right">
-          <button class="btn" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
           <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
   </div>
