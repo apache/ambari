@@ -28,7 +28,7 @@
     </div>
     <div class="col-md-6">
       <div class="pull-right operations-button">
-        <button class="btn btn-default" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+        <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
         <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
     </div>

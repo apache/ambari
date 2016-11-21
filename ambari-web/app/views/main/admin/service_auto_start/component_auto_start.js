@@ -31,6 +31,14 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
     this.initSwitcher();
   },
 
+  syncComponentRecoveryStatus: function () {
+    this.set('savedRecoveryEnabled', this.get('component.recoveryEnabled'))
+  }.observes('component.syncTrigger'),
+
+  revertComponentRecoveryStatus: function () {
+    this.set('component.recoveryEnabled', this.get('savedRecoveryEnabled'));
+  }.observes('component.revertTrigger'),
+
   onValueChange: function () {
     this.get('switcher').bootstrapSwitch('state', this.get('component.recoveryEnabled'));
   }.observes('component.recoveryEnabled'),
@@ -52,6 +60,7 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
         onSwitchChange: function (event, state) {
           self.set('tab.enabledComponents', self.get('tab.enabledComponents') + (state ? 1 : -1));
           self.set('recoveryEnabled', state);
+          self.set('component.recoveryEnabled', state);
           self.set('component.valueChanged', self.get('savedRecoveryEnabled') !== state);
           self.get('parentView.controller').checkValuesChange();
         }
