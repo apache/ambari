@@ -7657,6 +7657,75 @@ class TestHDP25StackAdvisor(TestCase):
     # Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment")
+    self.assertEquals(configurations['storm-site']['properties']['storm.cluster.metrics.consumer.register'], 'null')
+    self.assertEquals(configurations['storm-site']['properties']['topology.metrics.consumer.register'], 'null')
+
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "STORM",
+              "service_version" : "1.0.1.0.0"
+            }
+          },
+          {
+            "StackServices": {
+              "service_name": "RANGER",
+              "service_version": "0.6.0"
+
+            },
+            "components": [
+              {
+                "StackServiceComponents": {
+                  "component_name": "RANGER_ADMIN",
+                  "hostnames": ["host1"]
+                }
+              }
+            ]
+          },
+          {
+            "StackServices": {
+              "service_name": "AMBARI_METRICS"
+            },
+            "components": [{
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1"]
+              }
+
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1"]
+              }
+
+            }]
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.5"
+      },
+      "configurations": {
+        "storm-site": {
+          "properties": {
+            "nimbus.authorizer" : "org.apache.storm.security.auth.authorizer.SimpleACLAuthorizer",
+            "nimbus.impersonation.acl" :"{{{storm_bare_jaas_principal}} : {hosts: ['*'], groups: ['*']}}"
+          },
+          "property_attributes": {}
+        },
+        "storm-env": {
+          "properties":{
+            "storm_principal_name": "storm_user@ECAMPLE.COM"
+          },
+        },
+        "ranger-storm-plugin-properties": {
+          "properties": {
+            "ranger-storm-plugin-enabled": "No"
+          }
+        }
+      }
+    }
 
     # Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment
     configurations['storm-site']['properties'] = {}
@@ -7664,6 +7733,13 @@ class TestHDP25StackAdvisor(TestCase):
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
+    self.assertEquals(configurations['storm-site']['properties']['storm.cluster.metrics.consumer.register'], '[{"class": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"}]')
+    self.assertEquals(configurations['storm-site']['properties']['topology.metrics.consumer.register'], '[{"class": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsSink", '
+                                                                                                      '"parallelism.hint": 1, '
+                                                                                                      '"whitelist": ["kafkaOffset\\\..+/", "__complete-latency", "__process-latency", '
+                                                                                                      '"__receive\\\.population$", "__sendqueue\\\.population$", "__execute-count", "__emit-count", '
+                                                                                                      '"__ack-count", "__fail-count", "memory/heap\\\.usedBytes$", "memory/nonHeap\\\.usedBytes$", '
+                                                                                                      '"GC/.+\\\.count$", "GC/.+\\\.timeMs$"]}]')
 
     # Test nimbus.authorizer with Ranger Storm plugin being enabled in kerberos environment
     configurations['storm-site']['properties'] = {}
