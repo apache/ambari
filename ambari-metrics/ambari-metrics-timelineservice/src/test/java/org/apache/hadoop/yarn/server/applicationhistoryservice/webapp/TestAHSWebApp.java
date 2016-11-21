@@ -21,7 +21,6 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.webapp;
 import static org.apache.hadoop.yarn.webapp.Params.TITLE;
 import static org.mockito.Mockito.mock;
 
-import org.apache.hadoop.yarn.server.resourcemanager.webapp.AboutPage;
 import org.junit.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.ApplicationBaseProtocol;
