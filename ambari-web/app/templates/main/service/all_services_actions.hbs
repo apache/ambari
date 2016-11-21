@@ -33,27 +33,27 @@
           {{/isAuthorized}}
           {{#isAuthorized "SERVICE.START_STOP"}}
             <li class="divider"></li>
-            <li {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}>
+            <li {{bindAttr class="view.serviceController.isStartAllDisabled:disabled"}}>
               <a href="#" data-toggle="modal"
-                {{bindAttr class="view.serviceController.isStartAllDisabled:disabled" }}
+                {{bindAttr class="view.serviceController.isStartAllDisabled:disabled"}}
                 {{action "startAllService" target="view.serviceController"}}>
-                <i {{bindAttr class=":glyphicon glyphicon-play view.serviceController.isStartAllDisabled:disabled:enabled " }}></i>
+                <i {{bindAttr class=":glyphicon :glyphicon-play view.serviceController.isStartAllDisabled:disabled:enabled"}}></i>
                 {{t services.service.startAll}}
               </a>
             </li>
-            <li {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}>
+            <li {{bindAttr class="view.serviceController.isStopAllDisabled:disabled"}}>
               <a href="#" data-toggle="modal"
-                {{bindAttr class="view.serviceController.isStopAllDisabled:disabled" }}
+                {{bindAttr class="view.serviceController.isStopAllDisabled:disabled"}}
                 {{action "stopAllService" target="view.serviceController"}}>
-                <i {{bindAttr class=":glyphicon glyphicon-stop view.serviceController.isStopAllDisabled:disabled:enabled" }}></i>
+                <i {{bindAttr class=":glyphicon :glyphicon-stop view.serviceController.isStopAllDisabled:disabled:enabled"}}></i>
                 {{t services.service.stopAll}}
               </a>
             </li>
-            <li {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}>
+            <li {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled"}}>
               <a href="#" data-toggle="modal"
-                {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled" }}
+                {{bindAttr class="view.serviceController.isRestartAllRequiredDisabled:disabled"}}
                 {{action "restartAllRequired" target="view.serviceController"}}>
-                <i {{bindAttr class=":glyphicon glyphicon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+                <i {{bindAttr class=":glyphicon :glyphicon-repeat view.serviceController.isRestartAllRequiredDisabled:disabled:enabled"}}></i>
                 {{t services.service.restartAllRequired}}
               </a>
             </li>

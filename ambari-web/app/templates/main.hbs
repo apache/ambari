@@ -16,13 +16,13 @@
 * limitations under the License.
 }}
 {{#if isServerClientVersionMismatch}}
-  <div id="version-mismatch-title">{{t app.versionMismatchAlert.title}}</div>
+  <h3 id="version-mismatch-title">{{t app.versionMismatchAlert.title}}</h3>
   <div class="alert alert-danger">
     {{{versionConflictAlertBody}}}
   </div>
 {{else}}
   {{#unless isClusterDataLoaded}}
-    <h2>{{t app.loadingPlaceholder}} </h2>
+    <h2>{{t app.loadingPlaceholder}}</h2>
     <div class="progress">
       <div class="progress-bar progress-bar-striped active" {{bindAttr style="controller.clusterDataLoadedPercent"}}></div>
     </div>

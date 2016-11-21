@@ -24,6 +24,7 @@ import logging
 import multiprocessing
 from ambari_agent.PythonReflectiveExecutor import PythonReflectiveExecutor
 from ambari_agent.RemoteDebugUtils import bind_debug_signal_handlers
+from ambari_agent.ExitHelper import ExitHelper
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class StatusCommandsExecutor(multiprocessing.Process):
 
     self.status_command_timeout = int(self.config.get('agent', 'status_command_timeout', 5)) # in seconds
     self.hasTimeoutedEvent = multiprocessing.Event()
+    ExitHelper().register(self.kill)
 
   def run(self):
     try:

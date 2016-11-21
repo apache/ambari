@@ -33,7 +33,7 @@ App.StatusIconView = Em.View.extend({
     'SKIPPED_FAILED': 'glyphicon glyphicon-share-alt failed',
     'PENDING': 'glyphicon glyphicon-cog pending',
     'QUEUED': 'glyphicon glyphicon-cog queued',
-    'IN_PROGRESS': 'glyphicon glyphicon-cogs in_progress',
+    'IN_PROGRESS': 'icon-cogs in_progress',
     'HOLDING': 'glyphicon glyphicon-pause',
     'SUSPENDED': 'glyphicon glyphicon-pause',
     'ABORTED': 'glyphicon glyphicon-minus aborted',

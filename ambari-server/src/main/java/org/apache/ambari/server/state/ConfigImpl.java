@@ -51,6 +51,11 @@ public class ConfigImpl implements Config {
    */
   private final static Logger LOG = LoggerFactory.getLogger(ConfigImpl.class);
 
+  /**
+   * A label for {@link #hostLock} to use with the {@link LockFactory}.
+   */
+  private static final String PROPERTY_LOCK_LABEL = "configurationPropertyLock";
+
   public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
   private final long configId;
@@ -97,7 +102,7 @@ public class ConfigImpl implements Config {
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
       Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
 
-    propertyLock = lockFactory.newReadWriteLock("configurationPropertyLock");
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.cluster = cluster;
     this.type = type;
@@ -145,6 +150,8 @@ public class ConfigImpl implements Config {
   ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity,
       ClusterDAO clusterDAO, Gson gson, AmbariEventPublisher eventPublisher,
       LockFactory lockFactory) {
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
+
     this.cluster = cluster;
     this.clusterDAO = clusterDAO;
     this.gson = gson;
@@ -206,7 +213,9 @@ public class ConfigImpl implements Config {
       @Assisted("tag") @Nullable String tag,
       @Assisted Map<String, String> properties,
       @Assisted @Nullable Map<String, Map<String, String>> propertiesAttributes, ClusterDAO clusterDAO,
-      Gson gson, AmbariEventPublisher eventPublisher) {
+      Gson gson, AmbariEventPublisher eventPublisher, LockFactory lockFactory) {
+
+    propertyLock = lockFactory.newReadWriteLock(PROPERTY_LOCK_LABEL);
 
     this.tag = tag;
     this.type = type;

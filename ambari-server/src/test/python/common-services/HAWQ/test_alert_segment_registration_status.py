@@ -39,9 +39,9 @@ RESULT_STATE_SKIPPED = 'SKIPPED'
 
 class TestAlertRegistrationStatus(RMFTestCase):
 
-  HOST_LIST_A = ['HOST1','HOST2','HOST3','HOST4']
-  HOST_LIST_B = ['HOST1','HOST3','HOST5','HOST4']
-  HOST_LIST_C = ['HOST1','HOST2','HOST3']
+  HOST_LIST_A = ['host1','host2','host3','host4']
+  HOST_LIST_B = ['host1','host3','host5','host4']
+  HOST_LIST_C = ['host1','host2','host3']
 
   def setUp(self):
     """

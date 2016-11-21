@@ -313,12 +313,19 @@ App.CapacitySceduler = App.ServiceConfigTextArea.extend({
     if (!config.get('isValid') && config.get('isNotDefaultValue')) return $.Deferred().resolve().promise();
     controller = controller || this.get('controller');
     if (controller && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(controller.get('name'))) {
-      return controller.loadConfigRecommendations(config.get('value').split('\n').map(function (_property) {
+      var schedulerConfigs = config.get('value').split('\n').map(function (_property) {
         return {
           "type": 'capacity-scheduler',
           "name": _property.split('=')[0]
         }
-      }));
+      });
+      if (!schedulerConfigs.someProperty('name', 'capacity-scheduler')) {
+        schedulerConfigs.push({
+          "type": 'capacity-scheduler',
+          "name": 'capacity-scheduler'
+        });
+      }
+      return controller.loadConfigRecommendations(schedulerConfigs);
     }
 
     return $.Deferred().resolve().promise();

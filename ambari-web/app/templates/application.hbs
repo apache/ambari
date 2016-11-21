@@ -24,7 +24,7 @@
   <div id="top-nav">
     <nav class="navbar navbar-default navbar-static-top">
       <div class="container main-container">
-        <div class="navbar-header">
+        <div class="navbar-header navbar-nav">
           {{#if enableLinks}}
             <a {{translateAttr href="topnav.logo.href"}} class="navbar-brand logo">
               <img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari">
@@ -33,7 +33,7 @@
             <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>
           {{/if}}
         </div>
-        <p class="navbar-text brand-wrapper">
+        <p class="navbar-text navbar-nav brand-wrapper">
           {{#if enableLinks}}
             <a {{translateAttr href="topnav.logo.href"}} class="ambari-link" title="Apache Ambari">{{t app.name}}</a>
             {{! cluster name }}
@@ -70,7 +70,7 @@
             {{/if}}
           {{! alerts label end }}
           {{else}}
-            <a title="Apache Ambari">{{t app.name}}</a>
+            <a title="Apache Ambari" class="ambari-link">{{t app.name}}</a>
           {{/if}}
         </p>
 

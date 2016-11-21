@@ -341,8 +341,9 @@ public abstract class AbstractTimelineMetricsSink {
 
     // Lookup Zookeeper for live hosts - max 10 seconds wait time
     if (allKnownLiveCollectors.size() == 0 && getZookeeperQuorum() != null) {
-      LOG.info("No live collectors from configuration. Requesting zookeeper...");
-      allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
+      //TODO : Bring back Zk fallback after proper curation.
+      LOG.info("No live collectors from configuration. Not requesting zookeeper...");
+      //allKnownLiveCollectors.addAll(collectorHAHelper.findLiveCollectorHostsFromZNode());
     }
 
     if (allKnownLiveCollectors.size() != 0) {

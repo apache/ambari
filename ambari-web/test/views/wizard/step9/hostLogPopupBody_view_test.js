@@ -220,7 +220,7 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
         },
         {
           status: 'in_progress',
-          icon:'glyphicon glyphicon-cogs'
+          icon:'icon-cogs'
         },
         {
           status: 'completed',

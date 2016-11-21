@@ -149,7 +149,7 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
         if (taskInfo.get('status') == 'pending' || taskInfo.get('status') == 'queued') {
           taskInfo.set('icon', 'glyphicon glyphicon-cog');
         } else if (taskInfo.get('status') == 'in_progress') {
-          taskInfo.set('icon', 'glyphicon glyphicon-cogs');
+          taskInfo.set('icon', 'icon-cogs');
         } else if (taskInfo.get('status') == 'completed') {
           taskInfo.set('icon', 'glyphicon glyphicon-ok');
         } else if (taskInfo.get('status') == 'failed') {

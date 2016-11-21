@@ -155,6 +155,7 @@
       <div class="select-wrap tasks-list-select">
         {{t common.show}}:
         {{view Ember.Select
+            class="form-control"
             contentBinding="view.categories"
             optionValuePath="content.value"
             optionLabelPath="content.label"

@@ -44,56 +44,60 @@ export default Ember.Route.extend({
     var self = this;
 
     function loadView(){
-          controller.startTests().then(function() {
+      if (model.get("hiveserverTest")
+        && model.get("hdfsTest")
+        && model.get("atsTest")
+        && model.get("userhomeTest")) {
+        Ember.run.later(this, function() {
+          self.send('transition');
+        }, 2000);
+      }
 
-            if (model.get("hiveserverTest")
-                && model.get("hdfsTest")
-                && model.get("atsTest")
-                && model.get("userhomeTest")) {
-              Ember.run.later(this, function() {
-                self.send('transition');
-              }, 2000);
-            }
-          });
-        }
+    }
 
-    controller.checkConnection().then(function(){
-      var percent = model.get('percent');
-      model.set("hiveserverTest",true);
-      model.set("hiveserver" + 'TestDone', true);
-      model.set('percent', percent + 25);
-      loadView();
-    },function(){
-        if(model.get('ldapFailure')) {
+
+    function checkHive() {
+      controller.checkConnection().then(function () {
+        var percent = model.get('percent');
+        model.set("hiveserverTest", true);
+        model.set("hiveserver" + 'TestDone', true);
+        model.set('percent', percent + 25);
+        loadView();
+      }, function () {
+        if (model.get('ldapFailure')) {
           var percent = model.get('percent');
-          controller.requestLdapPassword(function(){
+          controller.requestLdapPassword(function () {
             // check the connection again
-            controller.checkConnection().then(function(){
-              model.set("hiveserverTest",true);
+            controller.checkConnection().then(function () {
+              model.set("hiveserverTest", true);
               model.set("hiveserver" + 'TestDone', true);
               model.set('percent', percent + 25);
               loadView();
-            },function(){
+            }, function () {
               var percent = model.get('percent');
               var checkFailedMessage = "Hive authentication failed";
               var errors = controller.get("errors");
               errors += checkFailedMessage;
               errors += '<br>';
               controller.set("errors", errors);
-              model.get("hiveserverTest",false);
+              model.get("hiveserverTest", false);
               model.set("hiveserver" + 'TestDone', true);
               model.set('percent', percent + 25);
               loadView();
             });
           });
         } else {
-          model.get("hiveserverTest",false);
+          model.get("hiveserverTest", false);
           model.set("hiveserver" + 'TestDone', true);
           model.set('percent', model.get('percent') + 25);
           loadView();
         }
-    });
+      });
+    }
 
+    controller.startTests().then(function() {
+      checkHive();
+    });
 
   },
 
