@@ -277,6 +277,8 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     self.assertEqual(run_file_mock.call_count, 3)
+    # Should only be called for METRICS_GRAFANA
+    self.assertFalse(get_dashboard_base_dir_mock.called)
 
     run_file_mock.reset_mock()
 
@@ -297,6 +299,25 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.SCRIPT_TYPE_PYTHON)
 
+    run_file_mock.reset_mock()
+
+    # For role=METRICS_GRAFANA, dashboards should be sync'd
+    command['role'] = 'METRICS_GRAFANA'
+    get_dashboard_base_dir_mock.reset_mock()
+    get_dashboard_base_dir_mock.return_value = "/dashboards/"
+
+    run_file_mock.return_value = {
+        'stdout' : 'sss',
+        'stderr' : 'eee',
+        'exitcode': 0,
+      }
+    ret = orchestrator.runCommand(command, "out.txt", "err.txt")
+    self.assertEqual(ret['exitcode'], 0)
+    self.assertTrue(run_file_mock.called)
+    self.assertEqual(run_file_mock.call_count, 3)
+    self.assertTrue(get_dashboard_base_dir_mock.called)
+
+    command['role'] = 'REGION_SERVER'
     run_file_mock.reset_mock()
 
     # unknown script type case
