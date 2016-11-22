@@ -6803,7 +6803,8 @@ class TestHDP25StackAdvisor(TestCase):
                                                                             "atlas.kafka.bootstrap.servers": "",
                                                                             "atlas.kafka.zookeeper.connect": "",
                                                                             "atlas.graph.storage.hostname": "",
-                                                                            "atlas.audit.hbase.zookeeper.quorum": ""
+                                                                            "atlas.audit.hbase.zookeeper.quorum": "",
+                                                                            "atlas.authentication.method.ldap": "false"
                                                                             }}}
     hosts = self.prepareHosts([])
     result = self.stackAdvisor.validateConfigurations(services, hosts)
