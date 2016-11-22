@@ -147,6 +147,7 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
 
     #<editor-fold desc="LDAP and AD">
     auth_type = application_properties['atlas.authentication.method.ldap.type']
+    auth_ldap_enable = application_properties['atlas.authentication.method.ldap'].lower() == 'true'
     Logger.info("Validating Atlas configs, authentication type: %s" % str(auth_type))
 
     # Required props
@@ -176,10 +177,11 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     elif auth_type.lower() == "none":
       pass
 
-    for prop in props_to_require:
-      if prop not in application_properties or application_properties[prop] is None or application_properties[prop].strip() == "":
-        validationItems.append({"config-name": prop,
-                                "item": self.getErrorItem("If authentication type is %s, this property is required." % auth_type)})
+    if auth_ldap_enable:
+      for prop in props_to_require:
+        if prop not in application_properties or application_properties[prop] is None or application_properties[prop].strip() == "":
+          validationItems.append({"config-name": prop,
+                                  "item": self.getErrorItem("If authentication type is %s, this property is required." % auth_type)})
     #</editor-fold>
 
     if application_properties['atlas.graph.index.search.backend'] == 'solr5' and \
