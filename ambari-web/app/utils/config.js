@@ -131,7 +131,7 @@ App.config = Em.Object.create({
     this.set('preDefinedServiceConfigs', allTabs);
   },
 
-  secureConfigs: require('data/HDP2/secure_mapping'),
+  secureConfigs: require('data/configs/wizards/secure_mapping'),
 
   secureConfigsMap: function () {
     var ret = {};
@@ -141,7 +141,7 @@ App.config = Em.Object.create({
     return ret;
   }.property('secureConfigs.[]'),
 
-  kerberosIdentities: require('data/HDP2/kerberos_identities').configProperties,
+  kerberosIdentities: require('data/configs/wizards/kerberos_identities').configProperties,
 
   kerberosIdentitiesMap: function() {
     var map = {};
@@ -177,23 +177,14 @@ App.config = Em.Object.create({
     return baseStackFolder;
   },
 
-  allPreDefinedSiteProperties: function() {
-    var sitePropertiesForCurrentStack = this.preDefinedConfigFile(this.mapCustomStack(), 'site_properties');
-    if (sitePropertiesForCurrentStack) {
-      return sitePropertiesForCurrentStack.configProperties;
-    } else if (App.get('isHadoop23Stack')) {
-      return require('data/HDP2.3/site_properties').configProperties;
-    } else {
-      return require('data/HDP2.2/site_properties').configProperties;
-    }
-  }.property('App.isHadoop23Stack'),
+  allPreDefinedSiteProperties: require('data/configs/site_properties').configProperties,
 
   preDefinedSiteProperties: function () {
     var serviceNames = App.StackService.find().mapProperty('serviceName').concat('MISC');
     return this.get('allPreDefinedSiteProperties').filter(function(p) {
       return serviceNames.contains(p.serviceName);
     });
-  }.property('allPreDefinedSiteProperties'),
+  }.property().volatile(),
 
   /**
    * map of <code>preDefinedSiteProperties</code> provide search by index
@@ -207,14 +198,6 @@ App.config = Em.Object.create({
     }, this);
     return map;
   }.property('preDefinedSiteProperties'),
-
-  preDefinedConfigFile: function(folder, file) {
-    try {
-      return require('data/{0}/{1}'.format(folder, file));
-    } catch (err) {
-      // the file doesn't exist, which might be expected.
-    }
-  },
 
   serviceByConfigTypeMap: function () {
     var ret = {};

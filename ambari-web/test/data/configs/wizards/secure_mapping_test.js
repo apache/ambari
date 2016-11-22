@@ -16,41 +16,21 @@
  * limitations under the License.
  */
 
-/*
-sign will be compared like: <clusterSelectedStackVersion> sign <stackVersionNumber> if true use this baseStackFolder
-Example:
- {
- "stackName": "PHD",
- "stackVersionNumber": "3.0",
- "sign": "<",
- "baseStackFolder": "HDP2"
- }
- This rule will work for any PHD version number that is lower than 3.0 (2.9,2.8, e.t.c)
-*/
+require('utils/helper');
+var mappedProperties = require('data/configs/wizards/secure_mapping');
 
-module.exports = [
-  {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.3",
-    "sign": "=",
-    "baseStackFolder": "HDP2.3"
-  },
-  {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.0",
-    "sign": "=",
-    "baseStackFolder": "HDP2.2"
-  },
-  {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.0",
-    "sign": "<",
-    "baseStackFolder": "HDP2"
-  },
-  {
-    "stackName": "HDF",
-    "stackVersionNumber": "2.0",
-    "sign": ">=",
-    "baseStackFolder": "HDP2.3"
-  }
-];
+describe('secure mapping properties', function () {
+
+  // All mapped properties should have value of string type
+  mappedProperties.forEach(function(mappedProperty){
+    it('Value of "{0}" should be string'.format(mappedProperty.name), function () {
+      expect(mappedProperty.value).to.be.a('string');
+    });
+  });
+  mappedProperties.forEach(function(mappedProperty){
+    it('Value of "{0}" should have serviceName and filename attribute'.format(mappedProperty.name), function () {
+      expect(mappedProperty).to.have.property('serviceName');
+      expect(mappedProperty).to.have.property('filename');
+    });
+  });
+});

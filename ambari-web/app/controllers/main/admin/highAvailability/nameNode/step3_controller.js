@@ -35,7 +35,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   selectedService: null,
   stepConfigs: [],
   serverConfigData: {},
-  haConfig: $.extend(true, {}, require('data/HDP2/ha_properties').haConfig),
+  haConfig: $.extend(true, {}, require('data/configs/wizards/ha_properties').haConfig),
   once: false,
   isLoaded: false,
   versionLoaded: true,
@@ -339,4 +339,3 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   isNextDisabled: Em.computed.not('isLoaded')
 
 });
-

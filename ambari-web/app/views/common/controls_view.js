@@ -1052,11 +1052,12 @@ App.CheckDBConnectionView = Ember.View.extend({
       OOZIE: ['oozie.db.schema.name', 'oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password', 'oozie.service.JPAService.jdbc.driver', 'oozie.service.JPAService.jdbc.url'],
       HIVE: ['ambari.hive.db.schema.name', 'javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword', 'javax.jdo.option.ConnectionDriverName', 'javax.jdo.option.ConnectionURL'],
       KERBEROS: ['kdc_hosts'],
-      RANGER: App.get('isHadoop23Stack') ? ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
+      RANGER: App.StackService.find('RANGER').compareCurrentVersion('0.5') > -1 ?
+          ['db_user', 'db_password', 'db_name', 'ranger.jpa.jdbc.url', 'ranger.jpa.jdbc.driver'] :
           ['db_user', 'db_password', 'db_name', 'ranger_jdbc_connection_url', 'ranger_jdbc_driver']
     };
     return propertiesMap[this.get('parentView.service.serviceName')];
-  }.property('App.isHadoop23Stack'),
+  }.property(),
   /** @property {Object} propertiesPattern - check pattern according to type of connection properties **/
   propertiesPattern: function() {
     var patterns = {

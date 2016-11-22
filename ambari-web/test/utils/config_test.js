@@ -199,49 +199,7 @@ describe('App.config', function() {
     });
   });
 
-  describe('#mapCustomStack', function() {
-    before(function() {
-      setups.setupStackVersion(this, 'HDF-2.2');
-    });
-
-    it('versions of HDF > 2.0 should map with HDP 2.3 stack based property definitions', function() {
-      var baseStackFolder = App.config.mapCustomStack();
-      expect(baseStackFolder).to.equal("HDP2.3");
-    });
-
-    it('versions of HDF = 2.0 should map with HDP 2.3 stack based property definitions', function() {
-      App.set('currentStackVersion', 'HDF-2.0');
-      var baseStackFolder = App.config.mapCustomStack();
-      expect(baseStackFolder).to.equal("HDP2.3");
-    });
-
-
-    after(function() {
-      setups.restoreStackVersion(this);
-    });
-  });
-
-  describe('#preDefinedConfigFile', function() {
-    before(function() {
-      setups.setupStackVersion(this, 'BIGTOP-0.8');
-    });
-
-    it('bigtop site properties should be ok.', function() {
-      var bigtopSiteProperties = App.config.preDefinedConfigFile('BIGTOP', 'site_properties');
-      expect(bigtopSiteProperties).to.be.ok;
-    });
-
-    it('a non-existing file should not be ok.', function () {
-      var notExistingSiteProperty = App.config.preDefinedConfigFile('notExisting');
-      expect(notExistingSiteProperty).to.not.be.ok;
-    });
-
-    after(function() {
-      setups.restoreStackVersion(this);
-    });
-  });
-
-  describe('#preDefinedSiteProperties-bigtop', function () {
+  describe.skip('#preDefinedSiteProperties-bigtop', function () {
     before(function() {
       setups.setupStackVersion(this, 'BIGTOP-0.8');
     });
@@ -326,7 +284,7 @@ describe('App.config', function() {
       expect(Em.keys(miscCategory.get('configTypes'))).to.eql(['cluster-env', 'hadoop-env', 'oozie-env']);
     });
   });
-  
+
   describe('#isManagedMySQLForHiveAllowed', function () {
 
     var cases = [

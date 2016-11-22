@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 
 App.ReassignMasterWizardStep5View = Em.View.extend({
 
@@ -28,7 +29,7 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
       return '';
     }
     var
-      atsDir = App.get('isHadoop23Stack') ? "timeline-state-store.ldb" : "leveldb-timeline-store.ldb",
+      atsDir = App.StackService.find('YARN').compareCurrentVersion('2.7') > -1 ? "timeline-state-store.ldb" : "leveldb-timeline-store.ldb",
       componentDir = this.get('controller.content.componentDir') || '',
       componentDirCmd = componentDir.replace(/,/g, ' '),
       sourceHost = this.get('controller.content.reassignHosts.source'),

@@ -15,29 +15,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-var App = require('app');
 
-var tezPropsToCategory = {
-  'General': [
-    'tez.am.launch.cmd-opts',
-    'tez.am.launch.env',
-    'tez.task.resource.memory.mb',
-    'tez.task.launch.cmd-opts',
-    'tez.task.launch.env',
-    'tez.grouping.split-waves',
-    'tez.grouping.min-size',
-    'tez.grouping.max-size',
-    'tez.runtime.compress',
-    'tez.runtime.compress.codec'
-  ]
-};
-
-var tezProps = [];
-
-for (var category in tezPropsToCategory) {
-  tezProps = tezProps.concat(App.config.generateConfigPropertiesByName(tezPropsToCategory[category], 
-    { category: category, serviceName: 'TEZ', filename: 'tez-site.xml'}));
-}
-
-module.exports = tezProps;
-
+module.exports = [
+  {
+    "category": "KNOX_GATEWAY",
+    "filename": "knox-env.xml",
+    "name": "knox_master_secret",
+    "serviceName": "KNOX"
+  },
+  {
+    "filename": "ranger-knox-plugin-properties.xml",
+    "index": 1,
+    "name": "ranger-knox-plugin-enabled",
+    "serviceName": "KNOX"
+  }
+];

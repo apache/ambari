@@ -2557,12 +2557,16 @@ describe('App.MainHostDetailsController', function () {
         callback();
       });
       sinon.stub(controller, 'loadConfigs', Em.K);
+      sinon.stub(App.StackService, 'find').returns({
+        compareCurrentVersion: function() {}
+      });
     });
 
     afterEach(function () {
       controller.removeHostComponentModel.restore();
       controller.isServiceMetricsLoaded.restore();
       controller.loadConfigs.restore();
+      App.StackService.find.restore();
     });
 
     it('ZOOKEEPER_SERVER component', function () {
@@ -2658,12 +2662,16 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(controller, 'loadConfigs');
       sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
       this.stub = sinon.stub(App.router, 'get');
+      sinon.stub(App.StackService, 'find').returns({
+        compareCurrentVersion: function() {}
+      })
     });
     afterEach(function () {
       controller.loadConfigs.restore();
       controller.removeObserver.restore();
       controller.isServiceMetricsLoaded.restore();
       this.stub.restore();
+      App.StackService.find.restore();
     });
 
     it('No operations of ZOOKEEPER_SERVER', function () {
@@ -3484,31 +3492,42 @@ describe('App.MainHostDetailsController', function () {
       this.serviceMock = sinon.stub(App.Service, 'find');
       sinon.stub(controller, 'loadConfigs');
       this.mock = sinon.stub(App, 'get')
+      this.stackServiceMock = sinon.stub(App.StackService, 'find');
     });
     afterEach(function () {
       this.serviceMock.restore();
       this.mock.restore();
       controller.loadConfigs.restore();
+      this.stackServiceMock.restore();
     });
-    it("storm not installed, hadoop stack is 2.2", function () {
+    it("should not update configs when storm not installed, storm version >= 0.10", function () {
       this.serviceMock.returns(Em.Object.create({
         isLoaded: false
       }));
       this.mock.returns(false);
+      this.stackServiceMock.returns(App.StackService.createRecord({
+        serviceVersion: '0.10.1.1'
+      }));
       controller.updateStormConfigs();
       expect(controller.loadConfigs.called).to.be.false;
     });
-    it("storm installed, hadoop stack is 2.2", function () {
+    it("should not update configs when storm installed, storm version is less 0.10", function () {
       this.serviceMock.returns(Em.Object.create({
         isLoaded: true
+      }));
+      this.stackServiceMock.returns(App.StackService.createRecord({
+        serviceVersion: '0.9.1.1'
       }));
       this.mock.returns(false);
       controller.updateStormConfigs();
       expect(controller.loadConfigs.called).to.be.false;
     });
-    it("storm installed, hadoop stack is 2.3", function () {
+    it("should update configs when storm installed, storm version >= 0.10", function () {
       this.serviceMock.returns(Em.Object.create({
         isLoaded: true
+      }));
+      this.stackServiceMock.returns(App.StackService.createRecord({
+        serviceVersion: '0.10.1.1'
       }));
       this.mock.returns(true);
       controller.updateStormConfigs();

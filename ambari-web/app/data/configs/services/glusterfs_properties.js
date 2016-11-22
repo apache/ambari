@@ -17,78 +17,77 @@
  */
 
 module.exports = [
-/**********************************************GLUSTERFS***************************************/
   {
+    "category": "General",
+    "filename": "core-site.xml",
     "name": "fs.glusterfs.impl",
-    "filename": "core-site.xml",
-    "serviceName": "GLUSTERFS",
-    "category": "General"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General",
+    "filename": "core-site.xml",
     "name": "fs.AbstractFileSystem.glusterfs.impl",
-    "filename": "core-site.xml",
-    "serviceName": "GLUSTERFS",
-    "category": "General"
+    "serviceName": "GLUSTERFS"
   },
   {
-    "name": "hadoop_heapsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
     "category": "General Hadoop",
-    "index": 1
+    "filename": "hadoop-env.xml",
+    "index": 1,
+    "name": "hadoop_heapsize",
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "hdfs_log_dir_prefix",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "hadoop_pid_dir_prefix",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "namenode_heapsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "namenode_opt_newsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "namenode_opt_maxnewsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "namenode_opt_permsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "namenode_opt_maxpermsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
+    "category": "General Hadoop",
+    "filename": "hadoop-env.xml",
     "name": "dtnode_heapsize",
-    "serviceName": "GLUSTERFS",
-    "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "serviceName": "GLUSTERFS"
   },
   {
-    "name": "glusterfs_user",
-    "serviceName": "GLUSTERFS",
+    "category": "General Hadoop",
     "filename": "hadoop-env.xml",
-    "category": "General Hadoop"
+    "name": "glusterfs_user",
+    "serviceName": "GLUSTERFS"
   }
 ];

@@ -16,41 +16,30 @@
  * limitations under the License.
  */
 
-/*
-sign will be compared like: <clusterSelectedStackVersion> sign <stackVersionNumber> if true use this baseStackFolder
-Example:
- {
- "stackName": "PHD",
- "stackVersionNumber": "3.0",
- "sign": "<",
- "baseStackFolder": "HDP2"
- }
- This rule will work for any PHD version number that is lower than 3.0 (2.9,2.8, e.t.c)
-*/
-
 module.exports = [
   {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.3",
-    "sign": "=",
-    "baseStackFolder": "HDP2.3"
+    "category": "General",
+    "filename": "mapred-site.xml",
+    "name": "mapreduce.map.memory.mb",
+    "serviceName": "MAPREDUCE2"
   },
   {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.0",
-    "sign": "=",
-    "baseStackFolder": "HDP2.2"
+    "category": "General",
+    "filename": "mapred-site.xml",
+    "name": "mapreduce.reduce.memory.mb",
+    "serviceName": "MAPREDUCE2"
   },
   {
-    "stackName": "PHD",
-    "stackVersionNumber": "3.0",
-    "sign": "<",
-    "baseStackFolder": "HDP2"
+    "category": "General",
+    "filename": "mapred-site.xml",
+    "name": "mapreduce.task.io.sort.mb",
+    "serviceName": "MAPREDUCE2"
   },
   {
-    "stackName": "HDF",
-    "stackVersionNumber": "2.0",
-    "sign": ">=",
-    "baseStackFolder": "HDP2.3"
+    "category": "HISTORYSERVER",
+    "filename": "mapred-env.xml",
+    "index": 1,
+    "name": "jobhistory_heapsize",
+    "serviceName": "MAPREDUCE2"
   }
 ];

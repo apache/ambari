@@ -17,10 +17,9 @@
  */
 
 require('utils/helper');
-require('data/HDP2/gluster_fs_properties');
-var siteProperties = require('data/HDP2.2/site_properties').configProperties;
+var siteProperties = require('data/configs/site_properties').configProperties;
 
-describe('hdp2SiteProperties', function () {
+describe('data configs site_properties', function () {
   /**
    * @stackProperties: All the properties that are derived from stack definition
    */
@@ -49,6 +48,7 @@ describe('hdp2SiteProperties', function () {
         });
       });
     });
+
 
     /**
      * displayTypes <code>supportTextConnection<code> and <code>radio button<code>
