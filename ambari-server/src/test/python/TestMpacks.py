@@ -48,9 +48,10 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 serverConfiguration.search_file = _search_file
 
 from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
-  purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, \
+  purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, uninstall_mpack, \
   STACK_DEFINITIONS_RESOURCE_NAME, EXTENSION_DEFINITIONS_RESOURCE_NAME, \
-  SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME
+  SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME, GRAFANA_DASHBOARDS_DIRNAME, \
+  DASHBOARDS_DIRNAME, SERVICE_METRICS_DIRNAME
 
 with patch.object(os, "geteuid", new=MagicMock(return_value=0)):
   from resource_management.core import sudo
@@ -63,6 +64,7 @@ def get_configs():
     serverConfiguration.STACK_LOCATION_KEY : "/var/lib/ambari-server/resources/stacks",
     serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : "/var/lib/ambari-server/resources/common-services",
     serverConfiguration.EXTENSION_PATH_PROPERTY : "/var/lib/ambari-server/resources/extensions",
+    serverConfiguration.DASHBOARD_PATH_PROPERTY : "/var/lib/ambari-server/resources/dashboards",
     serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory,
     serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp",
     serverConfiguration.JDBC_DATABASE_PROPERTY: "postgres"
@@ -70,6 +72,7 @@ def get_configs():
   return configs
 
 configs = get_configs()
+
 
 class TestMpacks(TestCase):
 
@@ -272,20 +275,30 @@ class TestMpacks(TestCase):
                             call('/var/lib/ambari-server/resources/common-services'),
                             call(mpacks_directory),
                             call(mpacks_directory + '/cache'),
+                            call('/var/lib/ambari-server/resources/dashboards'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0'),
                             call('/var/lib/ambari-server/resources/common-services/SERVICEA'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/common-services/SERVICEA/1.0/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/common-services/SERVICEA/2.0/dashboards'),
                             call('/var/lib/ambari-server/resources/common-services/SERVICEB'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/common-services/SERVICEB/1.0.0/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/common-services/SERVICEB/2.0.0/dashboards'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/stacks/MYSTACK/1.0/services/SERVICEA/dashboards'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/stacks/MYSTACK/1.1/services/SERVICEA/dashboards'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
                             call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/stacks/MYSTACK/2.0/services/SERVICEA/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/stacks/MYSTACK/2.0/services/SERVICEB/dashboards'),
                             call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/hooks/after_install.py')]
     """
-    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False, False,
+    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False, False, False,
                                        False, False, False, False, False, False,
+                                       False, False, False, False, False, False, False, False,
                                        False, False, False, False, True]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
@@ -296,6 +309,7 @@ class TestMpacks(TestCase):
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
     extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
+    dashboards_directory = serverConfiguration.get_dashboard_location(configs)
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.0")
 
     run_os_command_calls = [
@@ -314,6 +328,9 @@ class TestMpacks(TestCase):
       call(common_services_directory),
       call(mpacks_directory),
       call(mpacks_directory + '/cache'),
+      call(dashboards_directory),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
       call(os.path.join(common_services_directory, "SERVICEA")),
       call(os.path.join(common_services_directory, "SERVICEB")),
       call(os.path.join(stacks_directory, "MYSTACK")),
@@ -385,20 +402,9 @@ class TestMpacks(TestCase):
     download_mpack_mock.return_value = "/tmp/myextension.tar.gz"
     expand_mpack_mock.return_value = "mpacks/myextension-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
-    """
-    os_path_exists_calls = [call('/tmp/myextension.tar.gz'),
-                            call('mpacks/myextension-ambari-mpack-1.0.0.0/mpack.json'),
-                            call('/var/lib/ambari-server/resources/stacks'),
-                            call('/var/lib/ambari-server/resources/extensions'),
-                            call('/var/lib/ambari-server/resources/common-services'),
-                            call(mpacks_directory),
-                            call(mpacks_directory + '/cache'),
-                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0'),
-                            call('/var/lib/ambari-server/resources/extensions'),
-                            call('/var/lib/ambari-server/resources/extensions/MYEXTENSION')]
-    """
-    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False,
-                                       False, True, False]
+
+    os_path_exists_mock.side_effect = [True, True, True, False, True, False, False, False,
+                                       False, True, False, False, False]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -407,10 +413,29 @@ class TestMpacks(TestCase):
     extensions_directory = configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "myextension-ambari-mpack-1.0.0.0")
+    dashboards_directory = serverConfiguration.get_dashboard_location(configs)
+
+    os_path_exists_calls = [call('/tmp/myextension.tar.gz'),
+                            call('mpacks/myextension-ambari-mpack-1.0.0.0/mpack.json'),
+                            call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/common-services'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/cache'),
+                            call('/var/lib/ambari-server/resources/dashboards'),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/extensions/MYEXTENSION'),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/extensions/MYEXTENSION/1.0/services'),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/extensions/MYEXTENSION/1.1/services')]
+
     os_mkdir_calls = [
       call(extensions_directory),
       call(mpacks_directory),
       call(mpacks_directory + '/cache'),
+      call(dashboards_directory),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
       call(os.path.join(extensions_directory, "MYEXTENSION"))
     ]
     create_symlink_calls = [
@@ -422,6 +447,7 @@ class TestMpacks(TestCase):
            "1.1", None)
     ]
 
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
@@ -449,27 +475,11 @@ class TestMpacks(TestCase):
     download_mpack_mock.return_value = "/tmp/myservice.tar.gz"
     expand_mpack_mock.return_value = "mpacks/myservice-ambari-mpack-1.0.0.0"
     get_ambari_version_mock.return_value = "2.4.0.0"
-    """
-    os_path_exists_calls = [call('/tmp/myservice.tar.gz'),
-                            call('mpacks/myservice-ambari-mpack-1.0.0.0/mpack.json'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
-                            call('/var/lib/ambari-server/resources/stacks'),
-                            call('/var/lib/ambari-server/resources/extensions'),
-                            call('/var/lib/ambari-server/resources/common-services'),
-                            call(mpacks_directory),
-                            call(mpacks_directory + '/cache'),
-                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0'),
-                            call('/var/lib/ambari-server/resources/common-services/MYSERVICE'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0/services'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services')]
-    """
+
     os_path_exists_mock.side_effect = [True, True, True, True, True, True,
-                                       True, True, False, False, True,
-                                       True, True, True, True, True]
+                                       True, True, False, False, False, False,
+                                       True, True, True, False, True, True,
+                                       True, False]
 
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
@@ -481,8 +491,33 @@ class TestMpacks(TestCase):
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "myservice-ambari-mpack-1.0.0.0")
+    dashboards_directory = serverConfiguration.get_dashboard_location(configs)
+
+    os_path_exists_calls = [call('/tmp/myservice.tar.gz'),
+                            call('mpacks/myservice-ambari-mpack-1.0.0.0/mpack.json'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
+                            call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/common-services'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/cache'),
+                            call('/var/lib/ambari-server/resources/dashboards'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0'),
+                            call('/var/lib/ambari-server/resources/common-services/MYSERVICE'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/common-services/MYSERVICE/1.0.0/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0/services'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/custom-services/MYSERVICE/1.0.0/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/custom-services/MYSERVICE/2.0.0/dashboards')]
 
     os_mkdir_calls = [
+      call(dashboards_directory),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
       call(os.path.join(common_services_directory, "MYSERVICE"))
     ]
     create_symlink_calls = [
@@ -496,12 +531,14 @@ class TestMpacks(TestCase):
            os.path.join(stacks_directory, "MYSTACK/2.0/services/MYSERVICE"))
     ]
 
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
     os_symlink_mock.assert_has_calls(os_symlink_calls)
     self.assertTrue(add_replay_log_mock.called)
 
+  @patch("ambari_server.setupMpacks.create_symlink_using_path")
   @patch("os.path.exists")
   @patch("shutil.move")
   @patch("os.mkdir")
@@ -517,7 +554,7 @@ class TestMpacks(TestCase):
   def test_upgrade_stack_mpack(self, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
                                uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
                                get_ambari_version_mock, create_symlink_mock, os_mkdir_mock, shutil_move_mock,
-                               os_path_exists_mock):
+                               os_path_exists_mock, create_symlink_using_path_mock):
     options = self._create_empty_options_mock()
     options.mpack_path = "/path/to/mystack-1.0.0.1.tar.gz"
     download_mpack_mock.side_effect = ["/tmp/mystack-1.0.0.1.tar.gz", "/tmp/mystack-1.0.0.1.tar.gz"]
@@ -525,46 +562,14 @@ class TestMpacks(TestCase):
     get_ambari_version_mock.return_value = "2.4.0.0"
     run_os_command_mock.return_value = (0, "", "")
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
-    """
-    os_path_exists_calls = [call('/tmp/mystack-1.0.0.1.tar.gz'),
-                            call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
-                            call('mpacks/mystack-ambari-mpack-1.0.0.1/hook/before_upgrade.py'),
-                            call(mpacks_directory),
-                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json'),
-                            call('/tmp/mystack-1.0.0.1.tar.gz'),
-                            call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
-                            call('/var/lib/ambari-server/resources/stacks'),
-                            call('/var/lib/ambari-server/resources/extensions'),
-                            call('/var/lib/ambari-server/resources/common-services'),
-                            call(mpacks_directory),
-                            call(mpacks_directory + '/cache'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1'),
-                            call('/var/lib/ambari-server/resources/common-services/SERVICEA'),
-                            call('/var/lib/ambari-server/resources/common-services/SERVICEB'),
-                            call('/var/lib/ambari-server/resources/common-services/SERVICEC'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0/services'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1/services'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services')]
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0'),
-                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0/services'),
-                            call(mpacks_directory),
-                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
-                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/hooks/after_upgrade.py')]
-    """
     os_path_exists_mock.side_effect = [True, True, True, True, True, True, True, True,
-                                       True, True, True, True, True, True, True,
-                                       False, True, True, False, True, True, True,
-                                       True, True, True, True, False, False,
-                                       True, True, True, True, True, True]
+                                       True, True, True, True, True, True, True, False,
+                                       False, True, False, False, True, False, False,
+                                       False, False, False, True, True, True, False,
+                                       True, True, False, True, True, False, False,
+                                       False, False, False, True, True, True, True,
+                                       True, True, True, False, True, False, True, True,
+                                       True, True, True, True]
     get_ambari_properties_mock.return_value = configs
     shutil_move_mock.return_value = True
 
@@ -574,6 +579,64 @@ class TestMpacks(TestCase):
     common_services_directory = configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
     mpacks_directory = configs[serverConfiguration.MPACKS_STAGING_PATH_PROPERTY]
     mpacks_staging_directory = os.path.join(mpacks_directory, "mystack-ambari-mpack-1.0.0.1")
+    dashboards_directory = serverConfiguration.get_dashboard_location(configs)
+
+    os_path_exists_calls = [call('/tmp/mystack-1.0.0.1.tar.gz'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call('/tmp/mystack-1.0.0.1.tar.gz'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call('mpacks/mystack-ambari-mpack-1.0.0.1/hooks/before_upgrade.py'),
+                            call('/var/lib/ambari-server/resources/stacks'),
+                            call('/var/lib/ambari-server/resources/extensions'),
+                            call('/var/lib/ambari-server/resources/common-services'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/cache'),
+                            call('/var/lib/ambari-server/resources/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1'),
+                            call('/var/lib/ambari-server/resources/common-services/SERVICEA'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEA/1.0/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEA/2.0/dashboards'),
+                            call('/var/lib/ambari-server/resources/common-services/SERVICEB'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEB/1.0.0/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEB/2.0.0/dashboards'),
+                            call('/var/lib/ambari-server/resources/common-services/SERVICEC'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEC/1.0.0/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/common-services/SERVICEC/2.0.0/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/1.0/services/SERVICEA/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/1.1/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/1.1/services/SERVICEA/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/2.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/2.0/services/SERVICEA/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/2.0/services/SERVICEB/dashboards'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0'),
+                            call('/var/lib/ambari-server/resources/stacks/MYSTACK/3.0/services'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEA/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEB/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEB/dashboards/grafana-dashboards'),
+                            call('/var/lib/ambari-server/resources/dashboards/grafana-dashboards/SERVICEB'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEB/dashboards/service-metrics/SERVICEB.txt'),
+                            call('/var/lib/ambari-server/resources/dashboards/service-metrics/SERVICEB.txt'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards/grafana-dashboards'),
+                            call('/var/lib/ambari-server/resources/dashboards/grafana-dashboards/SERVICEC'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards/service-metrics/SERVICEC.txt'),
+                            call('/var/lib/ambari-server/resources/dashboards/service-metrics/SERVICEC.txt'),
+                            call(mpacks_directory),
+                            call(mpacks_directory + '/myextension-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/myservice-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.0/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/mpack.json'),
+                            call(mpacks_directory + '/mystack-ambari-mpack-1.0.0.1/hooks/after_upgrade.py')]
 
     run_os_command_calls = [
       call([
@@ -587,6 +650,9 @@ class TestMpacks(TestCase):
     ]
 
     os_mkdir_calls = [
+      call(dashboards_directory),
+      call(os.path.join(dashboards_directory, GRAFANA_DASHBOARDS_DIRNAME)),
+      call(os.path.join(dashboards_directory, SERVICE_METRICS_DIRNAME)),
       call(os.path.join(common_services_directory, "SERVICEC")),
       call(os.path.join(stacks_directory, "MYSTACK/3.0")),
       call(os.path.join(stacks_directory, "MYSTACK/3.0/services"))
@@ -642,13 +708,25 @@ class TestMpacks(TestCase):
            "SERVICEB", True),
       call(os.path.join(mpacks_staging_directory, "stacks/MYSTACK/3.0/services"),
            os.path.join(stacks_directory, "MYSTACK/3.0/services"),
-           "SERVICEC", True)
+           "SERVICEC", True),
+      call(os.path.join(mpacks_staging_directory, "stacks/MYSTACK/3.0/services/SERVICEC/dashboards/service-metrics"),
+           os.path.join(dashboards_directory, "service-metrics"),
+           "SERVICEC.txt", True)
     ]
 
+    create_symlink_using_path_calls = [
+      call(os.path.join(mpacks_staging_directory, "stacks/MYSTACK/3.0/services/SERVICEC/dashboards/grafana-dashboards"),
+           os.path.join(dashboards_directory, "grafana-dashboards/SERVICEC"), True)
+    ]
+
+    os_path_exists_mock.assert_has_calls(os_path_exists_calls)
     self.assertFalse(purge_stacks_and_mpacks_mock.called)
     run_os_command_mock.assert_has_calls(run_os_command_calls)
     os_mkdir_mock.assert_has_calls(os_mkdir_calls)
     create_symlink_mock.assert_has_calls(create_symlink_calls)
+    self.assertEqual(18, create_symlink_mock.call_count)
+    create_symlink_using_path_mock.assert_has_calls(create_symlink_using_path_calls)
+    self.assertEqual(1, create_symlink_using_path_mock.call_count)
     uninstall_mpack_mock.assert_has_calls([call("mystack-ambari-mpack", "1.0.0.0")])
     self.assertTrue(add_replay_log_mock.called)
 
@@ -683,6 +761,41 @@ class TestMpacks(TestCase):
 
     install_mpack_mock.assert_has_calls([call(install_replay_options, replay_mode=True)])
     upgrade_mpack_mock.assert_has_calls([call(upgrade_replay_options, replay_mode=True)])
+
+  @patch("resource_management.core.sudo.unlink")
+  @patch("resource_management.core.sudo.rmtree")
+  @patch("ambari_server.setupMpacks.get_ambari_version")
+  @patch("ambari_server.setupMpacks.get_ambari_properties")
+  def test_uninstall_mpack(self, get_ambari_properties_mock, get_ambari_version_mock, sudo_rmtree_mock, sudo_unlink_mock):
+    test_directory = os.path.dirname(os.path.abspath(__file__))
+    mpacks_directory = os.path.join(test_directory, "mpacks")
+    uninstall_directory = os.path.join(test_directory, "uninstall")
+    fake_configs = {
+      serverConfiguration.STACK_LOCATION_KEY : os.path.join(uninstall_directory, "stacks"),
+      serverConfiguration.COMMON_SERVICES_PATH_PROPERTY : os.path.join(uninstall_directory, "common-services"),
+      serverConfiguration.EXTENSION_PATH_PROPERTY : os.path.join(uninstall_directory, "extensions"),
+      serverConfiguration.MPACKS_STAGING_PATH_PROPERTY : mpacks_directory,
+      serverConfiguration.DASHBOARD_PATH_PROPERTY : os.path.join(uninstall_directory, "dashboards"),
+      serverConfiguration.SERVER_TMP_DIR_PROPERTY : "/tmp"
+    }
+
+    get_ambari_version_mock.return_value = "2.4.0.0"
+    get_ambari_properties_mock.return_value = fake_configs
+    stacks_directory = fake_configs[serverConfiguration.STACK_LOCATION_KEY]
+    extension_directory = fake_configs[serverConfiguration.EXTENSION_PATH_PROPERTY]
+    common_services_directory = fake_configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
+    dashboard_directory = fake_configs[serverConfiguration.DASHBOARD_PATH_PROPERTY]
+
+    uninstall_mpack("mystack-ambari-mpack", "1.0.0.1")
+
+    self.assertEqual(1, sudo_rmtree_mock.call_count)
+    self.assertEqual(6, sudo_unlink_mock.call_count)
+    sudo_unlink_mock_calls = [call(os.path.join(stacks_directory, "2.0/SERVICEB")),
+                              call(os.path.join(stacks_directory, "2.0/files/metainfo2.xml")),
+                              call(os.path.join(extension_directory, "SERVICEB")),
+                              call(os.path.join(common_services_directory, "SERVICEB")),
+                              call(os.path.join(dashboard_directory, "SERVICEB")),
+                              call(os.path.join(dashboard_directory, "files/STORM.txt"))]
 
   def _create_empty_options_mock(self):
     options = MagicMock()

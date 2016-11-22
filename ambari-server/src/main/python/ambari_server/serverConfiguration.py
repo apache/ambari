@@ -186,6 +186,7 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 DEFAULT_DB_NAME = "ambari"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
+DASHBOARD_PATH_PROPERTY = 'dashboards.path'
 EXTENSION_PATH_PROPERTY = 'extensions.path'
 COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
 MPACKS_STAGING_PATH_PROPERTY = 'mpacks.staging.path'
@@ -1437,7 +1438,13 @@ def get_mpacks_staging_location(properties):
 # Dashboard location
 #
 def get_dashboard_location(properties):
-  dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
+  try:
+    dashboard_location = properties[DASHBOARD_PATH_PROPERTY]
+  except KeyError:
+    dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
+
+  if not dashboard_location:
+    dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
   return dashboard_location
 
 #
