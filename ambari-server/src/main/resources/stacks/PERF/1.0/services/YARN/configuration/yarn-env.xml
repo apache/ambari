@@ -30,7 +30,7 @@
       <unit>MB</unit>
       <type>int</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- These properties exist in HDP 2.2 and higher. -->
@@ -53,7 +53,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- These properties exist in HDP 2.3 and higher. -->
@@ -61,7 +61,7 @@
     <name>is_supported_yarn_ranger</name>
     <value>true</value>
     <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- yarn-env.sh -->
@@ -196,6 +196,6 @@
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>
