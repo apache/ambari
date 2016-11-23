@@ -2534,12 +2534,10 @@ public class ClusterImpl implements Cluster {
     if (serviceConfigEntity.getGroupId() == null) {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
       List<ClusterConfigMappingEntity> mappingEntities =
-          clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
+          clusterDAO.getSelectedConfigMappingByTypes(getClusterId(), new ArrayList<>(configTypes));
       for (ClusterConfigMappingEntity entity : mappingEntities) {
-        if (configTypes.contains(entity.getType()) && entity.isSelected() > 0) {
-          entity.setSelected(0);
-          entity = clusterDAO.mergeConfigMapping(entity);
-        }
+        entity.setSelected(0);
+        clusterDAO.mergeConfigMapping(entity);
       }
 
       for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
@@ -2599,14 +2597,12 @@ public class ClusterImpl implements Cluster {
   @Transactional
   void selectConfig(String type, String tag, String user) {
     Collection<ClusterConfigMappingEntity> entities =
-        clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
+      clusterDAO.getLatestClusterConfigMappingsEntityByType(getClusterId(), type);
 
     //disable previous config
     for (ClusterConfigMappingEntity e : entities) {
-      if (e.isSelected() > 0 && e.getType().equals(type)) {
-        e.setSelected(0);
-        e = clusterDAO.mergeConfigMapping(e);
-      }
+      e.setSelected(0);
+      clusterDAO.mergeConfigMapping(e);
     }
 
     ClusterEntity clusterEntity = getClusterEntity();
@@ -2672,32 +2668,15 @@ public class ClusterImpl implements Cluster {
   }
 
   private List<ClusterConfigEntity> getClusterConfigEntitiesByService(String serviceName) {
-    List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>();
-
-    //add configs from this service
     Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-    for (ClusterConfigMappingEntity mappingEntity : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
-      if (mappingEntity.isSelected() > 0 && configTypes.contains(mappingEntity.getType())) {
-        ClusterConfigEntity configEntity =
-          clusterDAO.findConfig(getClusterId(), mappingEntity.getType(), mappingEntity.getTag());
-        if (configEntity != null) {
-          configEntities.add(configEntity);
-        } else {
-          LOG.error("Desired cluster config type={}, tag={} is not present in database," +
-            " unable to add to service config version");
-        }
-      }
-    }
-    return configEntities;
+    return clusterDAO.getLatestClusterConfigsByTypes(getClusterId(), new ArrayList<>(configTypes));
   }
 
   @Override
   public Config getDesiredConfigByType(String configType) {
-    for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(
-        getClusterId())) {
-      if (e.isSelected() > 0 && e.getType().equals(configType)) {
-        return getConfig(e.getType(), e.getTag());
-      }
+    List<ClusterConfigMappingEntity> entities = clusterDAO.getLatestClusterConfigMappingsEntityByType(getClusterId(), configType);
+    if (!entities.isEmpty()) {
+      return getConfig(configType, entities.get(0).getTag());
     }
 
     return null;
@@ -3454,5 +3433,4 @@ public class ClusterImpl implements Cluster {
 
     m_clusterPropertyCache.clear();
   }
-
 }
