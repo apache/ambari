@@ -3068,12 +3068,7 @@ class TestHDP22StackAdvisor(TestCase):
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
           'dfs.namenode.handler.count': '25',
-          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4',
-          'dfs.data.dir': '/hadoop/hdfs/data',
-          'fs.checkpoint.dir': '/hadoop/hdfs/namesecondary',
-          'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
-          'dfs.name.dir': '/hadoop/hdfs/namenode',
-          'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary'
+          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
         },
         'property_attributes': {
           'dfs.datanode.failed.volumes.tolerated': {'maximum': '4'},
@@ -3749,11 +3744,7 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false",
-          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
-          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
-          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local",
-          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/dev/shm/hadoop/yarn/log,/vagrant/hadoop/yarn/log"
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
@@ -3809,11 +3800,7 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
-          "hadoop.registry.rm.enabled": "false",
-          "yarn.timeline-service.leveldb-state-store.path": "/hadoop/yarn/timeline",
-          "yarn.timeline-service.leveldb-timeline-store.path": "/hadoop/yarn/timeline",
-          "yarn.nodemanager.local-dirs": "/hadoop/yarn/local,/dev/shm/hadoop/yarn/local,/vagrant/hadoop/yarn/local",
-          "yarn.nodemanager.log-dirs": "/hadoop/yarn/log,/dev/shm/hadoop/yarn/log,/vagrant/hadoop/yarn/log"
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           "yarn.nodemanager.container-executor.cgroups.mount": {

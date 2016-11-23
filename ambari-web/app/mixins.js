@@ -66,3 +66,4 @@ require('mixins/common/widgets/widget_mixin');
 require('mixins/common/widgets/widget_section');
 require('mixins/unit_convert/base_unit_convert_mixin');
 require('mixins/unit_convert/convert_unit_widget_view_mixin');
+require('utils/configs/mount_points_based_initializer_mixin');
