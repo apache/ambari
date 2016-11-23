@@ -126,6 +126,17 @@
       </service>
     </group>
 
+    <group xsi:type="cluster" name="UPDATE_RANGER_KMS_SITE" title="Update Ranger KMS Configuration">
+      <direction>UPGRADE</direction>
+      <skippable>true</skippable>
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Calculating Proxy Properties under kms-site">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKmsProxyConfig">
+          <summary>Adding Ranger proxy user properties under kms-site</summary>
+        </task>
+      </execute-stage>
+    </group>
+
     <group name="RANGER_KMS" title="Ranger_KMS">
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
