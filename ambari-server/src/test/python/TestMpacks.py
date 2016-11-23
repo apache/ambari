@@ -48,7 +48,7 @@ with patch.object(platform, "linux_distribution", return_value = MagicMock(retur
                 serverConfiguration.search_file = _search_file
 
 from ambari_server.setupMpacks import install_mpack, upgrade_mpack, replay_mpack_logs, \
-  purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, uninstall_mpack, \
+  purge_stacks_and_mpacks, validate_purge, read_mpack_metadata, _uninstall_mpack, \
   STACK_DEFINITIONS_RESOURCE_NAME, EXTENSION_DEFINITIONS_RESOURCE_NAME, \
   SERVICE_DEFINITIONS_RESOURCE_NAME, MPACKS_RESOURCE_NAME, GRAFANA_DASHBOARDS_DIRNAME, \
   DASHBOARDS_DIRNAME, SERVICE_METRICS_DIRNAME
@@ -546,13 +546,13 @@ class TestMpacks(TestCase):
   @patch("ambari_server.setupMpacks.get_ambari_version")
   @patch("ambari_server.setupMpacks.get_ambari_properties")
   @patch("ambari_server.setupMpacks.add_replay_log")
-  @patch("ambari_server.setupMpacks.uninstall_mpack")
+  @patch("ambari_server.setupMpacks._uninstall_mpack")
   @patch("ambari_server.setupMpacks.purge_stacks_and_mpacks")
   @patch("ambari_server.setupMpacks.expand_mpack")
   @patch("ambari_server.setupMpacks.download_mpack")
   @patch("ambari_server.setupMpacks.run_os_command")
   def test_upgrade_stack_mpack(self, run_os_command_mock, download_mpack_mock, expand_mpack_mock, purge_stacks_and_mpacks_mock,
-                               uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
+                               _uninstall_mpack_mock, add_replay_log_mock, get_ambari_properties_mock,
                                get_ambari_version_mock, create_symlink_mock, os_mkdir_mock, shutil_move_mock,
                                os_path_exists_mock, create_symlink_using_path_mock):
     options = self._create_empty_options_mock()
@@ -727,7 +727,7 @@ class TestMpacks(TestCase):
     self.assertEqual(18, create_symlink_mock.call_count)
     create_symlink_using_path_mock.assert_has_calls(create_symlink_using_path_calls)
     self.assertEqual(1, create_symlink_using_path_mock.call_count)
-    uninstall_mpack_mock.assert_has_calls([call("mystack-ambari-mpack", "1.0.0.0")])
+    _uninstall_mpack_mock.assert_has_calls([call("mystack-ambari-mpack", "1.0.0.0")])
     self.assertTrue(add_replay_log_mock.called)
 
 
@@ -786,7 +786,7 @@ class TestMpacks(TestCase):
     common_services_directory = fake_configs[serverConfiguration.COMMON_SERVICES_PATH_PROPERTY]
     dashboard_directory = fake_configs[serverConfiguration.DASHBOARD_PATH_PROPERTY]
 
-    uninstall_mpack("mystack-ambari-mpack", "1.0.0.1")
+    _uninstall_mpack("mystack-ambari-mpack", "1.0.0.1")
 
     self.assertEqual(1, sudo_rmtree_mock.call_count)
     self.assertEqual(6, sudo_unlink_mock.call_count)

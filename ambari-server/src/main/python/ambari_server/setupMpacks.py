@@ -34,7 +34,7 @@ from ambari_server.serverConfiguration import get_ambari_properties, get_ambari_
   get_common_services_location, get_mpacks_staging_location, get_server_temp_location, get_extension_location, \
   get_java_exe_path, read_ambari_user, parse_properties_file, JDBC_DATABASE_PROPERTY, get_dashboard_location
 from ambari_server.setupSecurity import ensure_can_start_under_current_user, generate_env
-from ambari_server.setupActions import INSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
+from ambari_server.setupActions import INSTALL_MPACK_ACTION, UNINSTALL_MPACK_ACTION, UPGRADE_MPACK_ACTION
 from ambari_server.userInput import get_YN_input
 from ambari_server.dbConfiguration import ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 
@@ -582,7 +582,7 @@ def search_mpacks(mpack_name, max_mpack_version=None):
           results.append((staged_mpack_name, staged_mpack_version))
   return results
 
-def uninstall_mpacks(mpack_name, max_mpack_version=None):
+def _uninstall_mpacks(mpack_name, max_mpack_version=None):
   """
   Uninstall all "mpack_name" management packs.
   If "max_mpack_version" is specified uninstall only management packs < max_mpack_version
@@ -591,9 +591,9 @@ def uninstall_mpacks(mpack_name, max_mpack_version=None):
   """
   results = search_mpacks(mpack_name, max_mpack_version)
   for result in results:
-    uninstall_mpack(result[0], result[1])
+    _uninstall_mpack(result[0], result[1])
 
-def uninstall_mpack(mpack_name, mpack_version):
+def _uninstall_mpack(mpack_name, mpack_version):
   """
   Uninstall specific management pack
   :param mpack_name: Management pack name
@@ -818,27 +818,43 @@ def get_replay_log_file():
   replay_log_file = os.path.join(mpacks_staging_location, MPACKS_REPLAY_LOG_FILENAME)
   return replay_log_file
 
-def add_replay_log(mpack_command, mpack_archive_path, purge, force, verbose):
+def add_replay_log(mpack_command, mpack_archive_path, purge, purge_list, force, verbose):
   """
   Helper function to add mpack replay log entry
   :param mpack_command: mpack command
   :param mpack_archive_path: mpack archive path (/var/lib/ambari-server/resources/mpacks/mpack.tar.gz)
   :param purge: purge command line option
+  :param purge: purge list command line option
   :param force: force command line option
   :param verbose: verbose command line option
   """
   replay_log_file = get_replay_log_file()
-  log = { 'mpack_command' : mpack_command, 'mpack_path' : mpack_archive_path, 'purge' : purge, 'force' : force, 'verbose' : verbose }
+  log = { 'mpack_command' : mpack_command, 'mpack_path' : mpack_archive_path, 'purge' : purge, 'purge_list': purge_list, 'force' : force, 'verbose' : verbose }
   with open(replay_log_file, "a") as replay_log:
     replay_log.write("{0}\n".format(log))
 
+def remove_replay_logs(mpack_name):
+  replay_log_file = get_replay_log_file()
+  logs = []
+  if os.path.exists(replay_log_file):
+    with open(replay_log_file, "r") as f:
+      for log in f:
+        log = log.strip()
+        options = _named_dict(ast.literal_eval(log))
+        (name, version) = _get_mpack_name_version(options.mpack_path)
+        if mpack_name != name:
+          logs.append(log)
+    with open(replay_log_file, "w") as replay_log:
+      for log in logs:
+        replay_log.write("{0}\n".format(log))
+
 def install_mpack(options, replay_mode=False):
-  logger.info("Install mpack.")
   """
   Install management pack
   :param options: Command line options
   :param replay_mode: Flag to indicate if executing command in replay mode
   """
+  logger.info("Install mpack.")
   # Force install when replaying logs
   if replay_mode:
     options.force = True
@@ -848,15 +864,39 @@ def install_mpack(options, replay_mode=False):
   _execute_hook(mpack_metadata, AFTER_INSTALL_HOOK_NAME, mpack_staging_dir)
 
   if not replay_mode:
-    add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
+    add_replay_log(INSTALL_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
+
+def uninstall_mpack(options, replay_mode=False):
+  """
+  Uninstall management pack
+  :param options: Command line options
+  :param replay_mode: Flag to indicate if executing command in replay mode
+  """
+  logger.info("Uninstall mpack.")
+  mpack_name = options.mpack_name
+
+  if not mpack_name:
+    print_error_msg("Management pack name not specified!")
+    raise FatalException(-1, 'Management pack name not specified!')
+
+  results = search_mpacks(mpack_name)
+  if not results:
+    print_error_msg("No management packs found that can be uninstalled!")
+    raise FatalException(-1, 'No management packs found that can be uninstalled!')
+
+  _uninstall_mpacks(mpack_name)
+
+  print_info_msg("Management pack {0} successfully uninstalled!".format(mpack_name))
+  if not replay_mode:
+    remove_replay_logs(mpack_name)
 
 def upgrade_mpack(options, replay_mode=False):
-  logger.info("Upgrade mpack.")
   """
   Upgrade management pack
   :param options: command line options
   :param replay_mode: Flag to indicate if executing command in replay mode
   """
+  logger.info("Upgrade mpack.")
   mpack_path = options.mpack_path
   if options.purge:
     print_error_msg("Purge is not supported with upgrade_mpack action!")
@@ -879,14 +919,14 @@ def upgrade_mpack(options, replay_mode=False):
   (mpack_metadata, mpack_name, mpack_version, mpack_staging_dir, mpack_archive_path) = _install_mpack(options, replay_mode, is_upgrade=True)
 
   # Uninstall old management packs
-  uninstall_mpacks(mpack_name, mpack_version)
+  _uninstall_mpacks(mpack_name, mpack_version)
 
   # Execute post upgrade hook
   _execute_hook(mpack_metadata, AFTER_UPGRADE_HOOK_NAME, mpack_staging_dir)
 
   print_info_msg("Management pack {0}-{1} successfully upgraded!".format(mpack_name, mpack_version))
   if not replay_mode:
-    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.force, options.verbose)
+    add_replay_log(UPGRADE_MPACK_ACTION, mpack_archive_path, options.purge, options.purge_list, options.force, options.verbose)
 
 def replay_mpack_logs():
   """
