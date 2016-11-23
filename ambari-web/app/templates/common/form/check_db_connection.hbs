@@ -16,16 +16,22 @@
 * limitations under the License.
 }}
 
-<div class="entry-row form-group db-connection">
-  <div class="col-md-3 control-label"></div>
-  <div class="col-md-9">
-    <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
-    <div class="pull-left connection-result mll">
-      <a {{bindAttr class="view.isConnectionSuccess:mute:action"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
+<div class="entry-row db-connection">
+  <div class="col-md-3 form-group control-label"></div>
+  <div class="col-md-9 form-group">
+    <div class="row">
+      <div class="col-md-5">
+        <span {{bindAttr class=":pull-left :btn :btn-primary view.isBtnDisabled:disabled"}} {{action connectToDatabase target="view"}}>{{view.btnCaption}}</span>
+      </div>
+      <div class="connection-result col-md-5">
+        <a {{bindAttr class="view.isConnectionSuccess:mute:action :btn :btn-link"}} {{action showLogsPopup target="view"}}>{{view.responseCaption}}</a>
+      </div>
+      {{#if view.isConnecting}}
+        {{view App.SpinnerView classNames="mll pull-left"}}
+      {{/if}}
+      <div class="col-md-2">
+        <i {{bindAttr class="view.isConnectionSuccess:glyphicon-ok-sign:glyphicon-warning-sign :glyphicon view.isRequestResolved::hide"}}></i>
+      </div>
     </div>
-    {{#if view.isConnecting}}
-      {{view App.SpinnerView classNames="mll pull-left"}}
-    {{/if}}
-    <i {{bindAttr class=":pull-right view.isConnectionSuccess:glyphicon-ok-sign:glyphicon-warning-sign :glyphicon view.isRequestResolved::hide"}}></i>
   </div>
 </div>

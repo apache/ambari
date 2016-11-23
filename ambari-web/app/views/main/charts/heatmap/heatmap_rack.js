@@ -21,7 +21,7 @@ var lazyloading = require('utils/lazy_loading');
 
 App.MainChartsHeatmapRackView = Em.View.extend({
   templateName: require('templates/main/charts/heatmap/heatmap_rack'),
-  classNames: ['rack'],
+  classNames: ['rack', 'panel', 'panel-default'],
   classNameBindings: ['visualSchema'],
 
   /** rack status block class */
@@ -63,13 +63,22 @@ App.MainChartsHeatmapRackView = Em.View.extend({
    */
   hostCssStyle: function () {
     var rack = this.get('rack');
-    var widthPercent = 100;
     var hostCount = rack.get('hosts.length');
-    if (hostCount && hostCount < 11) {
-      widthPercent = (100 / hostCount) - 0.5;
-    } else {
-      widthPercent = 10; // max out at 10%
+    if (hostCount >= 12) {
+      return 'col-md-1';
     }
-    return "width:" + widthPercent + "%;float:left;";
+    if (hostCount === 1) {
+      return 'col-md-12';
+    }
+    if (hostCount === 2) {
+      return 'col-md-6';
+    }
+    if (hostCount === 3) {
+      return 'col-md-4';
+    }
+    if (hostCount === 4) {
+      return 'col-md-3';
+    }
+    return 'col-md-2';
   }.property('rack.isLoaded')
 });

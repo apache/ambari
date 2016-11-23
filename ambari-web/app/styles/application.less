@@ -461,16 +461,6 @@ table.diff {
   }
 }
 
-.row .tinyoffset {
-  margin-left: 3%!important;
-}
-
-.row .tinyspan {
-  width: 2%!important;
-  *width: 1.95%!important;
-  float: none;
-}
-
 .hidden-scroll {
   overflow-y: hidden;
 }
@@ -1168,22 +1158,6 @@ a:focus {
     .tab-marker-position (@health-status-yellow);
   }
 
-  .summary-view-host{
-    float: right;
-    padding-right: 20px;
-    a {
-      text-decoration: none;
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-    .category-name {
-      cursor: pointer;
-      color: #23527c;
-      font-size: 14px;
-      margin-left: 10px;
-    }
-  }
   .service-summary-component-red-dead {
     color: @health-status-red;
     display: inline;
@@ -1212,30 +1186,6 @@ a:focus {
     &:hover {
       text-decoration: none;
     }
-  }
-}
-
-#security-stages {
-  tr {
-    height: 50px;
-  }
-  td {
-    width: 180px;
-  }
-  .progress-wrapper {
-    width: 50%;
-    .progress {
-      margin-bottom: 0;
-    }
-  }
-  .progress-percentage {
-    margin-left: 10px;
-  }
-  a.remove-link {
-    text-decoration:none;
-    pointer-events: none;
-    color:black;
-    cursor: default;
   }
 }
 
@@ -1591,14 +1541,6 @@ table.graphs {
   border-radius: 4px;
   padding: 4px;
   background: #FFFDF6;
-  .warning-details {
-    padding-left: 16px;
-    padding-top: 5px;
-  }
-  .warning-list {
-    font-size: 0.95em;
-    font-style: italic;
-  }
 }
 
 .services-menu {
@@ -1660,68 +1602,10 @@ ul.filter {
 
 /*start charts rack*/
 .rack {
-  vertical-align: top;
-  border: 1px solid #D4D4D4;
-  margin-bottom: 10px;
-  margin-top:5px;
-  background-color: #fff;
 
   .rackHeader {
-    background-color: #F7F7F7;
     padding: 5px 5px 5px 10px;
-    border-bottom: 1px solid #D4D4D4;
-
-    .statusName {
-      font-size: 15px;
-      color: #006F9F;
-      text-shadow: #fff 0 0 1px;
-      font-weight: bold;
-      vertical-align: top;
-    }
-    .toggler {
-      background-repeat: no-repeat;
-      background-image: @rack-state-toggler;
-      display: block;
-      height: 22px;
-      position: relative;
-      width: 32px;
-      float: right;
-
-      span {
-        background-repeat: no-repeat;
-        background-image: @rack-state-plus;
-        display: block;
-        height: 17px;
-        left: 7px;
-        position: absolute;
-        top: 3px;
-        width: 18px;
-      }
-
-      span.isActive {
-        background-image: @rack-state-minus !important;
-        top: 10px;
-      }
-    }
-  }
-  .hostsSummary {
-    border-left: 1px solid #CDCDCD;
-    border-right: 1px solid #CDCDCD;
-    border-bottom: 1px solid #9f9f9f;
-    background-color: #f7f8fa;
-    font-size: 12px;
-    padding: 4px 0 4px 9px;
-    .textBlock {
-      color: #000;
-      padding-right: 10px;
-
-      div {
-        height: 12px;
-        margin: 0 3px 0 0;
-        width: 12px;
-        display: inline-block;
-      }
-    }
+    color: #006F9F;
   }
   .indicatorR {
     background-color: #E2001A;
@@ -1734,103 +1618,23 @@ ul.filter {
   .indicatorG {
     background-color: #88BF67;
   }
-  .statusIndicator {
-    display: inline-block;
-    width: 20px;
-    height: 19px;
-    margin-right: 10px;
-    margin-top: 4px;
-    float: left;
-    background-repeat: no-repeat;
-  }
-  .rackName {
-    margin-top: 4px;
-    float: left;
-  }
-  .statusIndicator.LIVE {
-    background-image: @rack-status-live;
-  }
-
-  .statusIndicator.CRITICAL {
-    background-image: @rack-status-critical;
-  }
-
-  .statusIndicator.DEAD {
-    background-image: @rack-status-dead;
-  }
 
   .hosts {
-    padding: 4px;
-    overflow: hidden;
-    display: none;
+    padding: 2px 15px;
 
-    .ember-view {
-      float: left;
-      width: 100%;
-      height: 43px;
-
-      .hostBlock {
-        height: 38px;
-        position: relative;
-        border: 1px solid #D4D4D4;
-        margin-right: 3px;
-      }
-    }
     .hostBlock {
+      height: 38px;
+      border: 1px solid #D4D4D4;
       border-radius: 4px;
     }
-    .hostBlock.HEALTHY {
-      background-color: #87BE73;
-    }
-    .hostBlock.UNHEALTHY {
-      background-color: #E40024;
-    }
-    .hostBlock.CRITICAL {
-      background: #F39236;
-    }
-    .ember-view:hover {
-    }
-  }
-
-  .hosts.isActive {
-    display: block;
   }
 }
 
 /*Start Heatmap*/
 .heatmap {
-  li.heatmap-metrics-dropdown-links{
-    cursor: pointer;
-  }
-  .rack.rack-5-2 {
-    .hosts {
-      height: 86px;
-    }
-  }
-  .rack.rack-5-4 {
-    .hosts {
-      height: 172px;
-    }
-  }
-  .rack.rack-5-6 {
-    .hosts {
-      height: 258px;
-    }
-  }
-  .rack.rack-5-8 {
-    .hosts {
-      height: 344px;
-    }
-  }
-  .rack.rack-5-10 {
-    .hosts {
-      height: 430px;
-    }
-  }
 
   .heatmap_host_details {
-    font-size: 12px;
-    line-height: 1.6em;
+
     border: 1px solid #D9D9D9;
     background: #f9f9f9;
     width: 280px;
@@ -1838,9 +1642,7 @@ ul.filter {
     position: absolute;
     z-index: 1000;
   }
-  .container-fluid {
-    padding: 0;
-  }
+
   .legend {
     margin-top: 20px;
     margin-bottom: 20px;
@@ -1857,9 +1659,6 @@ ul.filter {
     }
   }
 
-  h4 {
-    color: #777;
-  }
   .heatmap-host {
     display: block;
     width: 100%;

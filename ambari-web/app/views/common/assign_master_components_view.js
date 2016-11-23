@@ -173,7 +173,7 @@ App.AddControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge"],
+  classNames: ["label", 'extra-component'],
 
   classNameBindings: ['uniqueId'],
 
@@ -212,7 +212,7 @@ App.RemoveControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge"],
+  classNames: ["label", 'extra-component'],
 
   template: Em.Handlebars.compile('-'),
 

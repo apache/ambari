@@ -380,12 +380,6 @@
   }
 
   .remaining-hosts {
-    padding: 25px;
-    border-top: solid 1px #ccc;
-    border-left: solid 1px #ccc;
-    border-right: groove 5px #ccc;
-    border-bottom: groove 5px #ccc;
-    margin-top: 20px;
     background-color: #FCF8E3;
     color: #C09853;
   }
@@ -427,27 +421,22 @@
   }
 
   .hostName {
-    word-wrap: break-word!important;
-    white-space: normal;
-    width: 220px;
     line-height: 30px;
-    display: inline-block;
   }
   .hostString {
     margin-bottom: 5px;
     word-wrap: break-word;
   }
 
-  .badge {
+  .label {
     background-color: @green;
     color: #fff;
     cursor: pointer;
     font-weight: bold;
     text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
-  }
-
-  .badge:hover {
-    background-color: @green;
+    &:hover {
+      background-color: @green;
+    }
   }
 
   .alertFlag {

@@ -17,16 +17,17 @@
 }}
 
 <div class="dialog-delete-component">
-  <div class="warning">
-  <i class="glyphicon glyphicon-warning-sign"></i> <strong>{{componentsBody}}</strong>
-  </div>
-  <div class="row">
-    <div class="tinyoffset col-md-10 warning-list">
-    {{componentsStr}}
+  <div class="warning row row-no-pad">
+    <div class="col-md-1">
+      <i class="glyphicon glyphicon-warning-sign"></i>
+    </div>
+    <div class="col-md-11 warning-list">
+      <p><strong>{{componentsBody}}</strong><br /><em>{{componentsStr}}</em></p>
+      {{#if showBodyEnd}}
+        <div class="warning-details">
+          {{{componentsBodyEnd}}}
+        </div>
+      {{/if}}
     </div>
   </div>
-
-{{#if showBodyEnd}}
-  <div class="warning-details">{{{componentsBodyEnd}}}</div>
-{{/if}}
 </div>
