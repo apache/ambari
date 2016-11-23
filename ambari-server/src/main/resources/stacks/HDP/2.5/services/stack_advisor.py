@@ -1775,21 +1775,27 @@ class HDP25StackAdvisor(HDP24StackAdvisor):
     return llap_selected_queue_state
 
   """
-  Retrieves the passed in queue's 'AM fraction' from Capacity Scheduler.
+  Retrieves the passed in queue's 'AM fraction' from Capacity Scheduler. Returns default value of 0.1 if AM Percent
+  pertaining to passed-in queue is not present.
   """
   def __getQueueAmFractionFromCapacityScheduler(self, capacity_scheduler_properties, llap_daemon_selected_queue_name):
     # Identify the key which contains the AM fraction for 'llap_daemon_selected_queue_name'.
     cap_sched_keys = capacity_scheduler_properties.keys()
-    llap_selected_queue_am_percent_key =  None
+    llap_selected_queue_am_percent_key = None
     for key in cap_sched_keys:
-      if "yarn.scheduler.capacity.maximum-am-resource-percent" in key:
+      if key.endswith("."+llap_daemon_selected_queue_name+".maximum-am-resource-percent"):
         llap_selected_queue_am_percent_key = key
-        Logger.info("AM percent key got for {0} queue is : {1}".format(llap_daemon_selected_queue_name, llap_selected_queue_am_percent_key))
+        Logger.info("AM percent key got for '{0}' queue is : '{1}'".format(llap_daemon_selected_queue_name, llap_selected_queue_am_percent_key))
         break;
-    assert(llap_selected_queue_am_percent_key != None), "Couldn't determine '{0}' queue's relevant key for AM percent.".format(llap_daemon_selected_queue_name)
-    llap_selected_queue_am_percent = capacity_scheduler_properties.get(llap_selected_queue_am_percent_key)
-    Logger.info("value for key {0} is {1}".format(llap_selected_queue_am_percent_key, llap_selected_queue_am_percent))
-    return llap_selected_queue_am_percent
+    if llap_selected_queue_am_percent_key is None:
+      Logger.info("Returning default AM percent value : '0.1' for queue : {1}".format(llap_daemon_selected_queue_name))
+      return 0.1 # Default value to use if we couldn't retrieve queue's corresponding AM Percent key.
+    else:
+      llap_selected_queue_am_percent = capacity_scheduler_properties.get(llap_selected_queue_am_percent_key)
+      Logger.info("Returning read value for key '{0}' as : '{1}' for queue : '{2}'".format(llap_selected_queue_am_percent_key,
+                                                                                     llap_selected_queue_am_percent,
+                                                                                     llap_daemon_selected_queue_name))
+      return llap_selected_queue_am_percent
 
   """
   Calculates the total available capacity for the passed-in YARN queue of any level based on the percentages.
