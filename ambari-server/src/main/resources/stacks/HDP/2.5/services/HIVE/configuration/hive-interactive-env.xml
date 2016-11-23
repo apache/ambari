@@ -113,6 +113,16 @@
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>llap_extra_slider_opts</name>
+    <value></value>
+    <description>Additional slider specific opts for llap such as port range</description>
+    <display-name>Additional slider specific opts for llap</display-name>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>num_retries_for_checking_llap_status</name>
     <value>10</value>
     <description>After starting LLAP app, retry count to check LLAP status before starting HiveServer2.</description>

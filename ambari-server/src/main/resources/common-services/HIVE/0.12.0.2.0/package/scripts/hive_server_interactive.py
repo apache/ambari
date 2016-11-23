@@ -275,9 +275,9 @@ class HiveServerInteractiveDefault(HiveServerInteractive):
       unique_name = "llap-slider%s" % datetime.utcnow().strftime('%Y-%m-%d_%H-%M-%S')
 
       cmd = format("{stack_root}/current/hive-server2-hive2/bin/hive --service llap --instances {params.num_llap_nodes}"
-                   " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m "
+                   " --slider-am-container-mb {params.slider_am_container_mb} --size {params.llap_daemon_container_size}m"
                    " --cache {params.hive_llap_io_mem_size}m --xmx {params.llap_heap_size}m --loglevel {params.llap_log_level}"
-                   " --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
+                   " {params.llap_extra_slider_opts} --output {LLAP_PACKAGE_CREATION_PATH}/{unique_name}")
       if params.security_enabled:
         llap_keytab_splits = params.hive_llap_keytab_file.split("/")
         Logger.debug("llap_keytab_splits : {0}".format(llap_keytab_splits))
