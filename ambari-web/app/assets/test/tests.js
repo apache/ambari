@@ -65,7 +65,7 @@ var files = [
   'test/controllers/main/admin/kerberos/step6_controller_test',
   'test/controllers/main/admin/kerberos/step7_controller_test',
   'test/controllers/main/admin/kerberos/step8_controller_test',
-
+  'test/controllers/main/admin/service_auto_start_test',
   'test/controllers/main/admin/stack_and_upgrade_controller_test',
   'test/controllers/main/admin/stack_upgrade_history_controller_test',
   'test/controllers/main/admin/serviceAccounts_controller_test',
@@ -269,6 +269,8 @@ var files = [
   'test/views/main/admin/stack_upgrade/services_view_test',
   'test/views/main/admin/stack_upgrade/menu_view_test',
   'test/views/main/admin/stack_upgrade/failed_hosts_modal_view_test',
+  'test/views/main/admin/service_auto_start/component_auto_start_test',
+  'test/views/main/admin/service_auto_start_test',
   'test/views/main/dashboard/config_history_view_test',
   'test/views/main/dashboard/widget_test',
   'test/views/main/dashboard/widgets_test',

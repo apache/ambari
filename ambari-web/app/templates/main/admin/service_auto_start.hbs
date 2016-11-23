@@ -24,7 +24,7 @@
       <strong>{{t admin.serviceAutoStart.body.text}}</strong>
     </div>
     <div class="col-md-4">
-      {{view App.CheckboxView checkedBinding="view.switcherValue"}}
+      {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
     </div>
     <div class="col-md-6">
       <div class="pull-right operations-button">
@@ -33,7 +33,7 @@
       </div>
     </div>
   </div>
-    {{#if view.switcherValue}}
+    {{#if view.isLoaded}}
         <hr>
         <div class="row">
           <div class="col-md-4 col-lg-3"><h5>{{t common.service}}</h5></div>
@@ -59,20 +59,22 @@
             {{#each tab in controller.tabs}}
               <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name"}}>
                 <table class="table">
-                {{#each component in tab.componentRecovery}}
+                {{#each component in tab.components}}
                   <tr>
                     <td class="col-md-4">
                       {{component.display_name}}
                     </td>
                     <td class="col-md-8">
-                      {{view App.MainAdminServiceAutoStartComponentView recoveryEnabledBinding="component.recovery_enabled" componentBinding="component" tabBinding="tab"}}
+                      {{view App.MainAdminServiceAutoStartComponentView componentBinding="component" tabBinding="tab"}}
                     </td>
                   </tr>
                 {{/each}}
                   <tr>
                     <td class="col-md-4"></td>
                     <td class="col-md-8">
-                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
+                          {{t common.enableAll}}
+                      </a> |
                       <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
                     </td>
                   </tr>

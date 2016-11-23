@@ -21,23 +21,12 @@ var App = require('app');
 App.MainAdminServiceAutoStartComponentView = Em.View.extend({
   templateName: require('templates/main/admin/service_auto_start/component_auto_start'),
 
-  recoveryEnabled: false,
-  savedRecoveryEnabled: false,
   tab: null,
   component: null,
 
   didInsertElement: function () {
-    this.set('savedRecoveryEnabled', this.get('recoveryEnabled'));
     this.initSwitcher();
   },
-
-  syncComponentRecoveryStatus: function () {
-    this.set('savedRecoveryEnabled', this.get('component.recoveryEnabled'))
-  }.observes('component.syncTrigger'),
-
-  revertComponentRecoveryStatus: function () {
-    this.set('component.recoveryEnabled', this.get('savedRecoveryEnabled'));
-  }.observes('component.revertTrigger'),
 
   onValueChange: function () {
     this.get('switcher').bootstrapSwitch('state', this.get('component.recoveryEnabled'));
@@ -59,10 +48,8 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
           self.set('tab.enabledComponents', self.get('tab.enabledComponents') + (state ? 1 : -1));
-          self.set('recoveryEnabled', state);
           self.set('component.recoveryEnabled', state);
-          self.set('component.valueChanged', self.get('savedRecoveryEnabled') !== state);
-          self.get('parentView.controller').checkValuesChange();
+          self.get('controller').valueChanged();
         }
       }));
     }
