@@ -63,6 +63,8 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
    */
   typeahead: null,
 
+  classNames: ['form-control'],
+
   /**
    * When <code>value</code> (host_info) is changed this method is triggered
    * If new hostname is valid, this host is assigned to master component

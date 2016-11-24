@@ -67,6 +67,7 @@ module.exports.config = {
           'vendor/scripts/jquery.timeago.js',
           'vendor/scripts/jquery.ajax-retry.js',
           'vendor/scripts/jquery.sticky-kit.js',
+          'vendor/scripts/jquery.typeahead.js',
           'vendor/scripts/underscore.js',
           'vendor/scripts/backbone.js',
           'vendor/scripts/difflib.js',
