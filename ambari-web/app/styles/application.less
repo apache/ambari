@@ -868,11 +868,7 @@ a:focus {
 }
 
 /*****start styles for install tasks logs*****/
-.task-list-main-warp, .task-detail-info {
-  i {
-    font-size: 20px;
-    vertical-align: middle;
-  }
+.task-list-main-wrap, .task-detail-info {
   .pending, .queued {
     color: #999;
   }
@@ -890,11 +886,7 @@ a:focus {
   }
 }
 
-.task-list-main-warp {
-
-  .task-list-line-cursor {
-    cursor: pointer;
-  }
+.task-list-main-wrap {
 
   .request-schedule-abort {
     margin-top: 7px;
@@ -904,95 +896,16 @@ a:focus {
   }
 
   .task-top-wrap {
-
     width: 100%;
     border-bottom: 1px solid #CCC;
-    text-align: center;
     font-size: 15px;
     height: 40px;
-
-    .task-detail-back-to-hosts {
-      float: left;
-    }
-
-    .select-wrap {
-      float: right;
-      margin-top: -8px;
-      select {
-        width: 140px;
-      }
-    }
-
-    .tasks-list-select{
-      //margin-top: -28px;
-    }
-
-    .task-name-top {
-      width: 23%;
-      padding-left: 20px;
-    }
-    .start-time-top {
-      width: 20%;
-      padding-left: 5px;
-    }
-    .duration-top {
-      width: 10%;
-      padding-left: 5px;
-    }
-    .task-name-top,.start-time-top,.duration-top {
-      float: left;
-      text-align: left;
-    }
-
-
   }
 
   #host-log {
     max-height: 340px;
     overflow: auto;
     width: 100%;
-    .log-list-wrap {
-      padding: 10px 10px 10px 20px;
-      border-top: 1px solid #CCC;
-      border-bottom: 1px solid #CCC;
-      .show-details {
-        float: right;
-        cursor: pointer;
-        font-size: 16px;
-
-        i {
-          color: #333;
-        }
-      }
-
-      .task-list-line-cursor:before,.task-list-line-cursor:after {
-        display: table;
-        line-height: 0;
-        content: "";
-      }
-      .task-list-line-cursor:after {
-        clear: both;
-      }
-      .operation-name-icon-wrap {
-        float: left;
-        width: 35%;
-      }
-      .start-time-text {
-        margin-left: 5px;
-        width: 20%;
-        float: left;
-      }
-      .duration-text {
-        margin-left: 5px;
-        width: 10%;
-        float: left;
-      }
-      .time-summary {
-        padding-left: 0;
-        color: #808080;
-        font-size: 12px;
-      }
-    }
   }
 }
 
@@ -1026,19 +939,9 @@ a:focus {
   .task-top-wrap {
     width: 100%;
     border-bottom: 1px solid #CCC;
-    text-align: center;
     font-size: 15px;
     padding: 0 0 10px 0;
 
-    .task-detail-back {
-      float: left;
-    }
-
-    .task-detail-log-rolename {
-      position: relative;
-      left: 0;
-      top: 0;
-    }
     .task-detail-status-ico {
       content: "";
       margin-top: -4px;
@@ -1558,6 +1461,12 @@ table.graphs {
   .nav i {
     margin-top: 0;
     color: @green;
+  }
+  .services-heading {
+    padding: 8px;
+    color: #999;
+    font-size: 13px;
+    font-weight: bold;
   }
 }
 
@@ -2683,4 +2592,20 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 .side-menu-well {
   padding: 8px 0;
+}
+
+.table-body-wrap {
+  table {
+    table-layout: fixed;
+    margin-bottom: 0;
+  }
+}
+
+table.table.inner-table {
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+a.abort-icon:hover {
+  text-decoration: none;
 }

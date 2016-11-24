@@ -22,28 +22,36 @@
 <div {{bindAttr class="view.parentView.serverValidationFailed::hidden :alert :alert-warning"}}>
   {{t admin.stackVersions.editRepositories.validation.warning}}
 </div>
-<div class="row">
-  <div class="col-md-2"><strong>{{t common.os}}</strong></div>
-  <div class="col-md-10 row">
-    <div class="col-md-3"><strong>{{t common.name}}</strong></div>
-    <div class="col-md-9"><strong>{{t admin.cluster.repositories.baseUrl}}</strong></div>
-  </div>
-</div>
-{{#each os in view.content.operatingSystems}}
-  <div class="row os-block" {{bindAttr id="os.osType"}}>
-    <div class="col-md-2">
-      {{os.osType}}
-    </div>
-    <div class="col-md-10">
-      {{#each repository in os.repositories}}
-        <div {{bindAttr class="repository.repoName :row"}}>
-          <div class="col-md-3">{{repository.repoName}}</div>
-          <div {{bindAttr class="repository.hasError:error :form-group :col-md-9"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="view.content.useRedhatSatellite"}}</div>
-        </div>
-      {{/each}}
-    </div>
-  </div>
-{{/each}}
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th class="col-md-2">{{t common.os}}</th>
+      <th class="col-md-2">{{t common.name}}</th>
+      <th class="col-md-8">{{t admin.cluster.repositories.baseUrl}}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each os in view.content.operatingSystems}}
+      <tr {{bindAttr id="os.osType"}}>
+        <td class="col-md-2">{{os.osType}}</td>
+        <td class="col-md-10" colspan="2">
+          <table class="table table-condensed no-borders inner-table">
+            <tbody>
+              {{#each repository in os.repositories}}
+                <tr {{bindAttr class="repository.repoName"}}>
+                  <td class="col-md-2">{{repository.repoName}}</td>
+                  <td class="col-md-8">
+                    <div {{bindAttr class="repository.hasError:error :form-group"}}>{{view App.BaseUrlTextField repositoryBinding="repository" disabledBinding="view.content.useRedhatSatellite"}}</div>
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>
 
 <div id="skip-validation">
   {{#view view.skipCheckBox labelTranslate="installer.step1.advancedRepo.skipValidation.message"

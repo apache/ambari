@@ -16,49 +16,59 @@
 * limitations under the License.
 }}
 
-<div class="alerts-popup-wrap">
+<div class="alerts-popup-wrap table-body-wrap">
   {{#if view.isLoaded}}
-    <div class="alert-list-main-warp">
-      <div class="top-wrap">
-        <div class="service-top">{{t alerts.definition.details.serviceHost}}</div>
-        <div class="name-top">{{t alerts.fastAccess.popup.body.name}}</div>
-        <div class="last-triggered-top">{{t common.status}}</div>
-      </div>
-        <div id="alert-info">
-          {{#if view.isAlertEmptyList}}
-            <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
-          {{else}}
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th class="col-sm-4">{{t alerts.definition.details.serviceHost}}</th>
+          <th class="col-sm-4">{{t alerts.fastAccess.popup.body.name}}</th>
+          <th class="col-sm-4">{{t common.status}}</th>
+        </tr>
+      </thead>
+    </table>
+    <div id="alert-info">
+      {{#if view.isAlertEmptyList}}
+        <div class="alert-list-wrap">{{t alerts.fastAccess.popup.body.noalerts}}</div>
+      {{else}}
+        <table class="table table-hover">
+          <tbody>
             {{#each instance in view.pageContent}}
-              <div class="alert-list-wrap">
-                <div class="alert-list-line-cursor">
-                  <div class="service-text">
-                    {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
-                  </div>
-                  <div class="name-text">
-                    <div>
-                      <a href="#" {{action "gotoAlertDetails" instance target="view"}}>{{instance.label}}</a>
-                    </div>
-                    <div class="instance-text">
-                      {{instance.text}}
-                    </div>
-                  </div>
-                  <div class="status-col" {{bindAttr title="instance.lastTriggered"}}>
-                      {{view App.AlertInstanceStateView instanceBinding="instance"}}
-                  </div>
-              </div>
-            </div>
-          {{/each}}
-        {{/if}}
-      </div>
+              <tr>
+                <td class="col-sm-4">
+                  {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
+                </td>
+                <td class="col-sm-4">
+                  <a href="#" {{action "gotoAlertDetails" instance target="view"}}>{{instance.label}}</a>
+                  <div class="instance-text">
+                    {{instance.text}}
+                  </div>task-detail-log-info
+                </td>
+                <td class="col-sm-4" {{bindAttr title="instance.lastTriggered"}}>
+                  {{view App.AlertInstanceStateView instanceBinding="instance"}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{/if}}
     </div>
+    {{#if view.isPaginate}}
+      <table class="table table-hover">
+        <tfoot>
+          <tr>
+            <td colspan="3">
+              {{view App.PaginationView}}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    {{/if}}
 
     <div {{bindAttr class="view.filteringComplete:hidden :table-overlay"}}>
       {{view App.SpinnerView}}
     </div>
 
-    {{#if view.isPaginate}}
-      {{view App.PaginationView}}
-    {{/if}}
   {{else}}
     {{view App.SpinnerView}}
   {{/if}}

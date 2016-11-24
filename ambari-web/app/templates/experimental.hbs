@@ -40,7 +40,7 @@
       </thead>
       <tbody>
         {{#each support in controller.supports}}
-          <tr>
+          <tr {{bindAttr class="support.selected:active"}}>
             <td>{{support.name}}</td>
             <td></td>
             <td>{{view App.CheckboxView checkedBinding="support.selected"}}</td>

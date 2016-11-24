@@ -346,9 +346,10 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     type: 'number'
   }),
 
-  HostView:Em.View.extend({
-    content:null,
+  HostView: Em.View.extend({
+    content: null,
     tagName: 'tr',
+    classNameBindings: ['content.selected:active'],
     didInsertElement: function(){
       App.tooltip(this.$("[rel='HealthTooltip'], [rel='UsageTooltip'], [rel='ComponentsTooltip']"));
     },

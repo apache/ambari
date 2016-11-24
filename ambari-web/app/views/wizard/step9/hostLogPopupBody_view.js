@@ -21,6 +21,8 @@ var date = require('utils/date/date');
 
 App.WizardStep9HostLogPopupBodyView = Em.View.extend({
 
+  classNames: ['col-sm-12'],
+
   templateName: require('templates/wizard/step9/step9HostTasksLogPopup'),
 
   /**

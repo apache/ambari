@@ -104,7 +104,7 @@
           <table class="table table-hover">
             <tbody>
               {{#each entry in view.pageContent}}
-                <tr {{bindAttr class="entry.filtered::hidden"}}>
+                <tr {{bindAttr class="entry.filtered::hidden entry.selected:active"}}>
                   <td width="45%">
                     {{entry.host.hostName}}
                   </td>

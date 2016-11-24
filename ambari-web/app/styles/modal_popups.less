@@ -35,7 +35,6 @@
       width: 98.8%;
       min-height: 20px;
       cursor: pointer;
-      border-top: 1px solid #CCC;
       text-align: center;
       padding: 10px 10px 10px 0;
       font-size: 16px;
@@ -49,70 +48,15 @@
     &.scheduled{
       max-height: 255px;
     }
-    .col-md-2{
-      width:20%;
-      float: left;
-    }
-    .host-progress-num{
-      float: left;
-      padding-left: 8px;
-    }
-    .host-name-icon-wrap{
-      float: left;
-      width: 50%;
-      white-space: nowrap;
-    }
   }
   #host-info, #service-info, #host-log {
     .log-list-wrap {
-      cursor: pointer;
       padding: 10px 10px 10px 20px;
-      border-top: 1px solid #CCC;
-      border-bottom: 1px solid #CCC;
     }
-    .task-list-line-cursor{
-      width: 100%;
-      min-height: 20px;
-      .progress-wrapper{
-        .progress{
-          margin-bottom: 0;
-        }
+    .progress-wrapper {
+      .progress {
+        margin-bottom: 0;
       }
-      .show-details {
-        float: right;
-        cursor: pointer;
-        font-size: 16px;
-        i {
-          color: #333;
-        }
-      }
-      .operation-name-icon-wrap {
-        float: left;
-        width: 35%;
-      }
-      .start-time-text {
-        margin-left: 5px;
-        width: 20%;
-        float: left;
-      }
-      .duration-text {
-        margin-left: 5px;
-        width: 10%;
-        float: left;
-      }
-      .time-summary {
-        padding-left: 0;
-        color: #808080;
-        font-size: 12px;
-      }
-    }
-    .task-list-line-cursor:before,.task-list-line-cursor:after {
-      display: table;
-      line-height: 0;
-      content: "";
-    }
-    .task-list-line-cursor:after {
-      clear: both;
     }
   }
 }
@@ -355,11 +299,6 @@
 }
 
 .host-progress-popup {
-  #service-info, #host-info, #host-log {
-    .log-list-wrap:hover {
-      background-color: #e6e6e6;
-    }
-  }
   .task-detail-info {
 
     .task-detail-log-info {
