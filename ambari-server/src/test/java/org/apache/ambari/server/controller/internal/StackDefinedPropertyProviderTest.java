@@ -52,6 +52,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -157,6 +158,7 @@ public class StackDefinedPropertyProviderTest {
     field.set(null, amc);
     Clusters clustersMock = createNiceMock(Clusters.class);
     Cluster clusterMock = createNiceMock(Cluster.class);
+    expect(amc.getAmbariEventPublisher()).andReturn(createNiceMock(AmbariEventPublisher.class)).anyTimes();
     expect(amc.getClusters()).andReturn(clustersMock).anyTimes();
     expect(clustersMock.getCluster(CLUSTER_NAME_PROPERTY_ID)).andReturn(clusterMock).anyTimes();
     expect(clusterMock.getResourceId()).andReturn(2L).anyTimes();
