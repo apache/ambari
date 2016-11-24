@@ -181,7 +181,8 @@ module.exports = [
     "category": "LDAPSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.url",
-    "serviceName": "RANGER"
+    "serviceName": "RANGER",
+    "index": 1
   },
   {
     "category": "LDAPSettings",
@@ -205,13 +206,15 @@ module.exports = [
     "category": "LDAPSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.bind.dn",
-    "serviceName": "RANGER"
+    "serviceName": "RANGER",
+    "index": 2
   },
   {
     "category": "LDAPSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.bind.password",
-    "serviceName": "RANGER"
+    "serviceName": "RANGER",
+    "index": 3
   },
   {
     "category": "LDAPSettings",
@@ -223,7 +226,22 @@ module.exports = [
     "category": "LDAPSettings",
     "filename": "ranger-admin-site.xml",
     "name": "ranger.ldap.user.searchfilter",
-    "serviceName": "RANGER"
+    "serviceName": "RANGER",
+    "index": 4
+  },
+  {
+    "category": "LDAPSettings",
+    "filename": "ranger-admin-site.xml",
+    "name": "ranger.ldap.group.searchbase",
+    "serviceName": "RANGER",
+    "index": 5
+  },
+  {
+    "category": "LDAPSettings",
+    "filename": "ranger-admin-site.xml",
+    "name": "ranger.ldap.group.searchfilter",
+    "serviceName": "RANGER",
+    "index": 6
   },
   {
     "category": "KnoxSSOSettings",
