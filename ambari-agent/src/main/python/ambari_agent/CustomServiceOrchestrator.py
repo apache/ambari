@@ -42,6 +42,7 @@ class CustomServiceOrchestrator():
   """
 
   SCRIPT_TYPE_PYTHON = "PYTHON"
+  COMMAND_TYPE = "commandType"
   COMMAND_NAME_STATUS = "STATUS"
   COMMAND_NAME_SECURITY_STATUS = "SECURITY_STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
@@ -58,7 +59,6 @@ class CustomServiceOrchestrator():
   AMBARI_SERVER_HOST = "ambari_server_host"
   AMBARI_SERVER_PORT = "ambari_server_port"
   AMBARI_SERVER_USE_SSL = "ambari_server_use_ssl"
-  METRICS_GRAFANA = "METRICS_GRAFANA"
 
   FREQUENT_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS]
   DONT_DEBUG_FAILURES_FOR_COMMANDS = FREQUENT_COMMANDS
@@ -154,7 +154,11 @@ class CustomServiceOrchestrator():
         self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
-        if command['role'] == self.METRICS_GRAFANA:
+        from ActionQueue import ActionQueue  # To avoid cyclic dependency
+        if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
+          logger.info("Found it - " + str(command[self.COMMAND_TYPE]) + " yeah")
+          # limiting to only EXECUTION_COMMANDs for now
+          # TODO need a design for limiting to specific role/component such as METRICS_GRAFANA
           self.file_cache.get_dashboard_base_dir(server_url_prefix)
 
         script_path = self.resolve_script_path(base_dir, script)

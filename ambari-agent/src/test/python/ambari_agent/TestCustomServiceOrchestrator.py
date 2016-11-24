@@ -239,6 +239,7 @@ class TestCustomServiceOrchestrator(TestCase):
     
     FileCache_mock.return_value = None
     command = {
+      'commandType' : 'EXECUTION_COMMAND',
       'role' : 'REGION_SERVER',
       'hostLevelParams' : {
         'stack_name' : 'HDP',
@@ -277,8 +278,7 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     self.assertEqual(run_file_mock.call_count, 3)
-    # Should only be called for METRICS_GRAFANA
-    self.assertFalse(get_dashboard_base_dir_mock.called)
+    self.assertTrue(get_dashboard_base_dir_mock.called)
 
     run_file_mock.reset_mock()
 
