@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.events.AmbariEvent;
+import org.apache.ambari.server.events.ClusterConfigFinishedEvent;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.RequestFinishedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -114,6 +115,9 @@ public class TopologyManager {
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
 
+  @Inject
+  private AmbariEventPublisher ambariEventPublisher;
+
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
    * locking on the synchronized keyword.
@@ -145,8 +149,9 @@ public class TopologyManager {
       : executor;
   }
 
+  // executed by the IoC framework after creating the object (guice)
   @Inject
-  public void setEventPublisher(AmbariEventPublisher ambariEventPublisher) {
+  private void register() {
     ambariEventPublisher.register(this);
   }
 
@@ -280,6 +285,13 @@ public class TopologyManager {
 
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(
       ambariContext, topology, true, stackAdvisorBlueprintProcessor, configureSecurity));
+    executor.submit(new Callable<Boolean>() {
+      @Override
+      public Boolean call() throws Exception {
+        ambariEventPublisher.publish(new ClusterConfigFinishedEvent(clusterName));
+        return Boolean.TRUE;
+      }
+    });
     LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
@@ -352,7 +364,7 @@ public class TopologyManager {
 
     Map<String, String> requestInfoProps = new HashMap<>();
     requestInfoProps.put(org.apache.ambari.server.controller.spi.Request.REQUEST_INFO_BODY_PROPERTY,
-        "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
+      "{\"" + ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "\": " + descriptor + "}");
 
     org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
         Collections.singleton(properties), requestInfoProps, null);

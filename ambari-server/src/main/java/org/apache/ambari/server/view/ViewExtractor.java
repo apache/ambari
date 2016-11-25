@@ -74,7 +74,7 @@ public class ViewExtractor {
 
     try {
       // Remove directory if jar was updated since last extracting
-      if (archiveDir.exists() && viewArchive.lastModified() > archiveDir.lastModified()) {
+      if (archiveDir.exists() && viewArchive != null && viewArchive.lastModified() > archiveDir.lastModified()) {
         FileUtils.deleteDirectory(archiveDir);
       }
 

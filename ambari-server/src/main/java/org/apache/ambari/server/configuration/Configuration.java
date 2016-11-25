@@ -1839,6 +1839,22 @@ public class Configuration {
       "server.stages.parallel", Boolean.TRUE);
 
   /**
+   *
+   * Property driving the view extraction.
+   * It only applies to  blueprint deployments.
+   *
+   * If set to TRUE on ambari-server startup only the system views are loaded; non-system views are extracted upon a cluster
+   * creation request is received and the cluster configuration is successfully performed
+   *
+   * It is advised to use this property only in cases when ambari-server startup time is critical (eg. cloud environments)
+   *
+   * By default this is FALSE so all views are extracted and deployed at server startup.
+   */
+  @Markdown(description = "Drives view extraction in case of blueprint deployments; non-system views are deployed when cluster configuration is successful")
+  public static final ConfigurationProperty<Boolean> VIEW_EXTRACT_AFTER_CLUSTER_CONFIG =  new ConfigurationProperty<>("view.extract-after-cluster-config", Boolean.FALSE);
+
+
+  /**
    * In case this is set to DEPENDENCY_ORDERED one stage is created for each request and command dependencies are
    * handled directly by ActionScheduler. In case of STAGE (which is the default) one or more stages are
    * created depending on dependencies.
@@ -4286,6 +4302,11 @@ public class Configuration {
     return Integer.parseInt(getProperty(VIEW_REQUEST_THREADPOOL_MAX_SIZE));
   }
 
+  public Boolean extractViewsAfterClusterConfig() {
+    return Boolean.parseBoolean(getProperty(VIEW_EXTRACT_AFTER_CLUSTER_CONFIG));
+  }
+
+
   /**
    * Get the time, in ms, that a request to a view will wait for an available
    * thread to handle the request before returning an error.
@@ -5605,7 +5626,7 @@ public class Configuration {
     String acceptors = getProperty(SRVR_API_ACCEPTOR_THREAD_COUNT);
     return StringUtils.isEmpty(acceptors) ? null : Integer.parseInt(acceptors);
   }
- 
+
   public String getPamConfigurationFile() {
     return getProperty(PAM_CONFIGURATION_FILE);
   }
