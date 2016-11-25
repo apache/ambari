@@ -71,6 +71,7 @@ public class DocConstants {
     public static final String NUMBER_ROWS_D = "Getting rows after particular log entry - used in 'Preview' option";
     public static final String SCROLL_TYPE_D = "Used in 'Preview' feature for getting records 'after' or 'before'";
     public static final String UTC_OFFSET_D = "timezone offset";
+    public static final String HOST_PARAMS_D = "filter for hosts";
   }
 
   public class ServiceOperationDescriptions {

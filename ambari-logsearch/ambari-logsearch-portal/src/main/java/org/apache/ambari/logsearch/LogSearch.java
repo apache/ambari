@@ -63,12 +63,12 @@ public class LogSearch {
   private static final String HTTP_PROTOCOL = "http";
   private static final String HTTPS_PORT = "61889";
   private static final String HTTP_PORT = "61888";
-  
+
   private static final String WEB_RESOURCE_FOLDER = "webapps/app";
   private static final String ROOT_CONTEXT = "/";
   private static final Integer SESSION_TIMEOUT = 30;
 
- 
+
   public static void main(String[] argv) {
     LogSearch logSearch = new LogSearch();
     ManageStartEndTime.manage();
@@ -78,7 +78,7 @@ public class LogSearch {
       logger.error("Error running logsearch server", e);
     }
   }
-  
+
   public void run(String[] argv) throws Exception {
     Server server = buildSever(argv);
     HandlerList handlers = new HandlerList();
@@ -98,9 +98,10 @@ public class LogSearch {
 
   public Server buildSever(String argv[]) {
     Server server = new Server();
-    ServerConnector connector = new ServerConnector(server);
     boolean portSpecified = argv.length > 0;
     String protcolProperty = PropertiesHelper.getProperty(LOGSEARCH_PROTOCOL_PROP,HTTP_PROTOCOL);
+    HttpConfiguration httpConfiguration = new HttpConfiguration();
+    httpConfiguration.setRequestHeaderSize(65535);
     if (StringUtils.isEmpty(protcolProperty)) {
       protcolProperty = HTTP_PROTOCOL;
     }
@@ -109,18 +110,18 @@ public class LogSearch {
       logger.info("Building https server...........");
       port = portSpecified ? argv[0] : HTTPS_PORT;
       checkPort(Integer.parseInt(port));
-      HttpConfiguration https = new HttpConfiguration();
-      https.addCustomizer(new SecureRequestCustomizer());
+      httpConfiguration.addCustomizer(new SecureRequestCustomizer());
       SslContextFactory sslContextFactory = SSLUtil.getSslContextFactory();
       ServerConnector sslConnector = new ServerConnector(server,
           new SslConnectionFactory(sslContextFactory, "http/1.1"),
-          new HttpConnectionFactory(https));
+          new HttpConnectionFactory(httpConfiguration));
       sslConnector.setPort(Integer.parseInt(port));
       server.setConnectors(new Connector[] { sslConnector });
     } else {
       logger.info("Building http server...........");
       port = portSpecified ? argv[0] : HTTP_PORT;
       checkPort(Integer.parseInt(port));
+      ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(httpConfiguration));
       connector.setPort(Integer.parseInt(port));
       server.setConnectors(new Connector[] { connector });
     }

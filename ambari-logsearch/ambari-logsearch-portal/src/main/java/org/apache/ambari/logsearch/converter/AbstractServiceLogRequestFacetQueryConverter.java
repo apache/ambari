@@ -18,48 +18,27 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import org.apache.ambari.logsearch.common.LogType;
-import org.apache.ambari.logsearch.model.request.impl.ServiceAnyGraphRequest;
-import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
+import org.apache.ambari.logsearch.model.request.impl.BaseServiceLogRequest;
+import org.apache.ambari.logsearch.util.SolrUtil;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.data.solr.core.query.Criteria;
-import org.springframework.data.solr.core.query.FacetOptions;
 import org.springframework.data.solr.core.query.SimpleFacetQuery;
-import org.springframework.data.solr.core.query.SimpleFilterQuery;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.BUNDLE_ID;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
-import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.PATH;
 
-import javax.inject.Named;
-import java.util.Arrays;
-import java.util.List;
-
-@Named
-public class ServiceLogAnyGraphRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<ServiceAnyGraphRequest>{
+public abstract class AbstractServiceLogRequestFacetQueryConverter<SOURCE extends BaseServiceLogRequest>
+  extends AbstractLogRequestFacetQueryConverter<SOURCE> {
 
   @Override
-  public void appendFacetOptions(FacetOptions facetOptions, ServiceAnyGraphRequest request) {
-    facetOptions.addFacetOnField(LEVEL);
-  }
-
-  @Override
-  public FacetOptions.FacetSort getFacetSort() {
-    return FacetOptions.FacetSort.COUNT;
-  }
-
-  @Override
-  public String getDateTimeField() {
-    return LOGTIME;
-  }
-
-  @Override
-  public LogType getLogType() {
-    return LogType.SERVICE;
-  }
-
-  @Override
-  public void appendFacetQuery(SimpleFacetQuery facetQuery, ServiceAnyGraphRequest request) {
+  public void appendFacetQuery(SimpleFacetQuery facetQuery, SOURCE request) {
+    addEqualsFilterQuery(facetQuery, HOST, SolrUtil.escapeQueryChars(request.getHostName()));
+    addEqualsFilterQuery(facetQuery, PATH, SolrUtil.escapeQueryChars(request.getFileName()));
+    addEqualsFilterQuery(facetQuery, COMPONENT, SolrUtil.escapeQueryChars(request.getComponentName()));
+    addEqualsFilterQuery(facetQuery, BUNDLE_ID, request.getBundleId());
+    addInFiltersIfNotNullAndEnabled(facetQuery, request.getLevel(), LEVEL, true);
     addInFiltersIfNotNullAndEnabled(facetQuery, request.getHostList(), HOST, StringUtils.isEmpty(request.getHostName()));
   }
 }
