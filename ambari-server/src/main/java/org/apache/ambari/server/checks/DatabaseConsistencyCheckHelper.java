@@ -442,11 +442,13 @@ public class DatabaseConsistencyCheckHelper {
       connection = dbAccessor.getConnection();
     }
 
+    LOG.info("Getting ambari metainfo instance");
     if (ambariMetaInfo == null) {
       ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     }
 
     try {
+      LOG.info("Executing query 'GET_SERVICES_WITHOUT_CONFIGS'");
       statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
       rs = statement.executeQuery(GET_SERVICES_WITHOUT_CONFIGS_QUERY);
@@ -461,7 +463,7 @@ public class DatabaseConsistencyCheckHelper {
         }
 
       }
-
+      LOG.info("Executing query 'GET_SERVICE_CONFIG_WITHOUT_MAPPING'");
       rs = statement.executeQuery(GET_SERVICE_CONFIG_WITHOUT_MAPPING_QUERY);
       if (rs != null) {
         String serviceName = null, version = null, clusterName = null;
@@ -491,6 +493,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       //get stack info from db
+      LOG.info("Getting stack info from database");
       rs = statement.executeQuery(GET_STACK_NAME_VERSION_QUERY);
       if (rs != null) {
         while (rs.next()) {
@@ -505,6 +508,7 @@ public class DatabaseConsistencyCheckHelper {
       Map<String, Map<Integer, Multimap<String, String>>> dbClusterServiceVersionConfigs = new HashMap<>();
       Multimap<String, String> stackServiceConfigs = HashMultimap.create();
 
+      LOG.info("Executing query 'GET_SERVICES_WITH_CONFIGS'");
       rs = statement.executeQuery(GET_SERVICES_WITH_CONFIGS_QUERY);
       if (rs != null) {
         String serviceName = null, configType = null, clusterName = null;
@@ -539,12 +543,14 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       //compare service configs from stack with configs that we got from db
+      LOG.info("Comparing service configs from stack with configs that we got from db");
       for (Map.Entry<String, Map<String, String>> clusterStackInfoEntry : clusterStackInfo.entrySet()) {
         //collect required configs for all services from stack
         String clusterName = clusterStackInfoEntry.getKey();
         Map<String, String> stackInfo = clusterStackInfoEntry.getValue();
         String stackName = stackInfo.keySet().iterator().next();
         String stackVersion = stackInfo.get(stackName);
+        LOG.info("Getting services from metainfo");
         Map<String, ServiceInfo> serviceInfoMap = ambariMetaInfo.getServices(stackName, stackVersion);
         for (String serviceName : serviceNames) {
           LOG.info("Processing {}-{} / {}", stackName, stackVersion, serviceName);
@@ -562,6 +568,7 @@ public class DatabaseConsistencyCheckHelper {
         }
 
         //compare required service configs from stack with mapped service configs from db
+        LOG.info("Comparing required service configs from stack with mapped service configs from db");
         Map<Integer, Multimap<String, String>> dbServiceVersionConfigs = dbClusterServiceVersionConfigs.get(clusterName);
         if (dbServiceVersionConfigs != null) {
           for (Integer serviceVersion : dbServiceVersionConfigs.keySet()) {
@@ -585,6 +592,7 @@ public class DatabaseConsistencyCheckHelper {
       }
 
       //getting services which has mapped configs which are not selected in clusterconfigmapping
+      LOG.info("Getting services which has mapped configs which are not selected in clusterconfigmapping");
       rs = statement.executeQuery(GET_NOT_SELECTED_SERVICE_CONFIGS_QUERY);
       if (rs != null) {
         String serviceName = null, configType = null, clusterName = null;
