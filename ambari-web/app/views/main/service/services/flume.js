@@ -37,10 +37,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
       content.push(
         Em.Object.create({
           hostName: hostName,
-          agents: agents,
-          rowspan: agents.length,
-          firtstAgent: agents[0],
-          otherAgents: agents.without(agents[0])
+          agents: agents
         })
       );
     });
@@ -58,24 +55,6 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
     componentName: 'FLUME_HANDLER'
   }),
 
-  agentView: Em.View.extend({
-    content: null,
-    tagName: 'tr',
-
-    click: function (e) {
-      var numberOfAgents = this.get('content.agents').length;
-      if ($(e.target).attr('class') === "agent-host-name" || $(e.target).attr('class') === "agent-host-link") {
-        var currentTargetRow = $(e.currentTarget);
-        if ($(e.target).attr('class') === "agent-host-link") {
-          currentTargetRow = currentTargetRow.parent(".agent-host-name").parent();
-        }
-        currentTargetRow.parents("table:first").find('tr').removeClass('highlight');
-        currentTargetRow.addClass('highlight').nextAll("tr").slice(0, numberOfAgents - 1).addClass('highlight');
-        this.get('parentView').showAgentInfo(this.get('content'));
-      }
-    }
-  }),
-
   sortView: sort.wrapperView,
 
   hostSort: sort.fieldView.extend({
@@ -90,6 +69,14 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
     this.$().on('click', '.flume-agents-actions .dropdown-toggle', function () {
       self.setDropdownPosition(this);
     });
+  },
+
+  selectHost: function (e) {
+    var host = e && e.context;
+    this.get('pageContent').setEach('isActive', false);
+    if (host) {
+      this.showAgentInfo(host);
+    }
   },
 
   /**
@@ -131,6 +118,7 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
    * @param {object} host
    */
   showAgentInfo: function (host) {
+    Em.set(host, 'isActive', true);
     this.set('selectedHost', host);
     this.setAgentMetrics(host);
   },

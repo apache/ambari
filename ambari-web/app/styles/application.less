@@ -2180,86 +2180,60 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 
 #flume-summary {
-  text-align:left !important;
   max-height: 490px;
-  #flume-agents-table {
+  .table {
     margin: 0;
-    width: 100%;
-    .highlight {
-      td, th {
-        background-color: #BDC3C7 !important;
-        color: #666;
+    table-layout: fixed;
+  }
+  #flume-agents-table {
+    border-collapse: separate;
+    > tbody > tr > td {
+      &:last-of-type {
+        padding: 0;
+        &.empty-label {
+          padding: 8px;
+          text-align: center;
+        }
       }
     }
     th:first-child {
       width: 40%;
+      + th {
+        width: 30%;
+        ~ th {
+          width: 10%;
+        }
+      }
     }
-    th:first-child + th {
-      width: 30%;
-    }
-    th:first-child + th + th {
-      width: 10%;
-    }
-    th:first-child + th + th + th {
-      width: 10%;
-    }
-    th:first-child + th + th + th + th {
-      width: 10%;
-    }
-    td.agent-status {
-      width: 125px;
-    }
-    td.agent-name {
-      width: 20%;
-      overflow: hidden;
-    }
-    td.agent-host-name {
-      width: 20%;
-      overflow: hidden;
-      max-width: 90px;
-    }
-    .glyphicon-warning-sign {
-      color: @restart-indicator-color;
-    }
-    #flume-host-agent-row {
-      cursor: pointer;
-      text-align: left;
-      background-color: #fff;
-    }
-    .empty-label {
-      border-top: 1px solid #ddd;
-      text-align: center;
-    }
-  }
-  .wrapp-flume-status{
-    text-align: left;
-  }
-  .btn-wrapper {
-    margin: 0 5px 5px 0;
-    float: right;
-    width:60px;
-    position: static;
-  }
-  .flume-agents-actions {
-    .btn-group {
-      position: static;
-    }
-    a {
-      text-decoration: none;
-    }
-    a.dropdown-toggle {
-      padding: 2px 6px;
-      font-size: 11px;
-      line-height: 17px;
-    }
-    .dropdown-menu {
-      position: absolute;
+    td {
+      &.agent-host-name {
+        overflow: hidden;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+      }
+      &.agent-status {
+        width: 50%;
+      }
+      &.flume-agent-sources-count, &.flume-agent-channels-count {
+        width: 16.667%;
+      }
+      &.flume-agent-sink-count {
+        width: 16.666%;
+      }
+      .flume-agents-actions {
+        .btn-group {
+          position: static;
+        }
+        a {
+          text-decoration: none;
+        }
+      }
     }
   }
   .scrollable-container {
+    position: static;
     max-height: 450px;
-    width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 }
 

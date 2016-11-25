@@ -49,6 +49,14 @@ App.FlumeAgent = DS.Model.extend({
     UNKNOWN: App.healthIconClassYellow
   },
 
+  healthIconClass: Em.computed.getByKey('healthIconClassMap', 'status', ''),
+
+  healthIconClassMap: {
+    RUNNING: 'health-status-LIVE',
+    NOT_RUNNING: 'health-status-DEAD-RED',
+    UNKNOWN: 'health-status-DEAD-YELLOW'
+  },
+
   displayStatus: Em.computed.getByKey('displayStatusMap', 'status', Em.I18n.t('common.unknown')),
 
   displayStatusMap: {
