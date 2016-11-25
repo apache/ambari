@@ -33,6 +33,7 @@ import org.springframework.data.solr.core.query.SimpleFilterQuery;
 import org.springframework.data.solr.core.query.SimpleStringCriteria;
 
 import javax.inject.Inject;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,14 @@ public abstract class AbstractOperationHolderConverter <REQUEST_TYPE, QUERY_TYPE
 
   public Query addInFilterQuery(Query query, String field, List<String> values) {
     return this.addInFilterQuery(query, field, values, false);
+  }
+
+  public Query addInFiltersIfNotNullAndEnabled(Query query, String value, String field, boolean condition) {
+    if (value != null && condition) {
+      List<String> values = value.length() == 0 ? Arrays.asList("-1") : splitValueAsList(value, ",");
+      addInFilterQuery(query, field, values);
+    }
+    return query;
   }
 
   public Query addInFilterQuery(Query query, String field, List<String> values, boolean negate) {

@@ -53,6 +53,7 @@ public class BaseServiceLogRequestQueryConverter extends AbstractServiceLogReque
     if (CollectionUtils.isNotEmpty(levels)){
       addInFilterQuery(query, LEVEL, levels);
     }
+    addInFiltersIfNotNullAndEnabled(query, request.getHostList(), HOST, org.apache.commons.lang.StringUtils.isEmpty(request.getHostName()));
     addRangeFilter(query, LOGTIME, request.getFrom(), request.getTo());
     return query;
   }
