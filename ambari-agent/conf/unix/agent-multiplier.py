@@ -59,10 +59,12 @@ class Multiplier:
     self.log_dir = "/var/log/ambari-agent"
     self.config_dir = "/etc/ambari-agent/conf"
     self.pid_file = "/var/run/ambari-agent/ambari-agent.pid"
+    self.prefix_dir = "/var/lib/ambari-agent/data"
 
     # Ambari Agent config file to use as a template
     # Will change hostname and port after copying
     self.source_config_file = "/etc/ambari-agent/conf/ambari-agent.ini"
+    self.source_version_file = "/var/lib/ambari-agent/data/version"
     self.base_ping_port = 5000
 
     self.start = 0
@@ -159,11 +161,12 @@ class Multiplier:
       host_config_dir = host_home_dir + self.config_dir
       host_pid_file = host_home_dir + self.pid_file
       host_pid_dir = os.path.dirname(host_pid_file)
+      host_prefix = host_home_dir + self.prefix_dir
 
       if self.verbose:
         print "Analyzing host %s with port %d" % (host_name, host.ping_port)
 
-      for dir in [host_home_dir, host_log_dir, host_config_dir, host_pid_dir]:
+      for dir in [host_home_dir, host_log_dir, host_config_dir, host_pid_dir, host_prefix]:
         if not os.path.isdir(dir):
           print "Creating dir %s" % (dir)
           os.makedirs(dir)
@@ -174,6 +177,12 @@ class Multiplier:
         print "Copying config file %s" % str(host_config_file)
         shutil.copyfile(self.source_config_file, host_config_file)
 
+      # Copy version file
+      version_file = os.path.join(host_prefix, "version")
+      if not os.path.isfile(version_file):
+        print "Copying version file %s" % str(version_file)
+        shutil.copyfile(self.source_version_file, version_file)
+
       # Create hostname.sh script to use custom FQDN for each agent.
       host_name_script = os.path.join(host_config_dir, "hostname.sh")
       self.create_host_name_script(host_name, host_name_script)
@@ -183,7 +192,8 @@ class Multiplier:
                      "hostname_script": host_name_script,
                      "public_hostname_script": host_name_script,
                      "logdir": host_log_dir,
-                     "piddir": host_pid_dir}
+                     "piddir": host_pid_dir,
+                     "prefix": host_prefix}
       self.change_config(host_config_file, config_dict)
 
       # Change /etc/hosts file by appending each hostname.
