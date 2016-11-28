@@ -116,18 +116,6 @@ public class ClusterDAO {
   }
 
   @RequiresSession
-  public List<ClusterConfigEntity> getLatestClusterConfigsByTypes(Long clusterId, List<String> types) {
-    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
-      "ClusterConfigEntity.findLatestClusterConfigsByTypes",
-      ClusterConfigEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("types", types);
-
-    return daoUtils.selectList(query);
-  }
-
-  @RequiresSession
   public ClusterConfigEntity findConfig(Long clusterId, String type, Long version) {
     CriteriaBuilder cb = entityManagerProvider.get().getCriteriaBuilder();
     CriteriaQuery<ClusterConfigEntity> cq = cb.createQuery(ClusterConfigEntity.class);
@@ -248,18 +236,6 @@ public class ClusterDAO {
         "WHERE mapping.clusterId = :clusterId", ClusterConfigMappingEntity.class);
 
     query.setParameter("clusterId", clusterId);
-
-    return daoUtils.selectList(query);
-  }
-
-  @RequiresSession
-  public List<ClusterConfigMappingEntity> getLatestClusterConfigMappingsEntityByType(long clusterId, String configType) {
-    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
-      "ClusterConfigMappingEntity.findLatestClusterConfigMappingsByType",
-      ClusterConfigMappingEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("typeName", configType);
 
     return daoUtils.selectList(query);
   }

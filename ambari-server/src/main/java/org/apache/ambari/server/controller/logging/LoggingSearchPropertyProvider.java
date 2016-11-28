@@ -39,10 +39,8 @@ import org.apache.log4j.Logger;
 
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -75,7 +73,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
 
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate) throws SystemException {
-    Map<String, Boolean> isLogSearchRunning = new HashMap<>();
+
     for (Resource resource : resources) {
       // obtain the required identifying properties on the host component resource
       final String componentName = (String)resource.getPropertyValue(PropertyHelper.getPropertyId("HostRoles", "component_name"));
@@ -92,12 +90,7 @@ public class LoggingSearchPropertyProvider implements PropertyProvider {
         continue;
       }
 
-      Boolean isLogSearchRunningForSpecifiedCluster = isLogSearchRunning.get(clusterName);
-      if (isLogSearchRunningForSpecifiedCluster == null) {
-        isLogSearchRunningForSpecifiedCluster = logSearchServerRunning(clusterName);
-        isLogSearchRunning.put(clusterName, isLogSearchRunningForSpecifiedCluster);
-      }
-      if (!isLogSearchRunningForSpecifiedCluster) {
+      if (!logSearchServerRunning(clusterName)) {
         continue;
       }
 

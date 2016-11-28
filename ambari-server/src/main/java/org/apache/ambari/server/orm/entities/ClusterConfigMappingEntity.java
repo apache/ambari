@@ -23,8 +23,6 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -33,10 +31,6 @@ import javax.persistence.Table;
 @Table(name = "clusterconfigmapping")
 @Entity
 @IdClass(ClusterConfigMappingEntityPK.class)
-@NamedQueries({
-  @NamedQuery(name = "ClusterConfigMappingEntity.findLatestClusterConfigMappingsByType",
-    query = "SELECT mapping FROM ClusterConfigMappingEntity mapping WHERE mapping.clusterId = :clusterId AND mapping.selectedInd > 0 AND mapping.typeName = :typeName")})
-
 public class ClusterConfigMappingEntity {
 
   @Id

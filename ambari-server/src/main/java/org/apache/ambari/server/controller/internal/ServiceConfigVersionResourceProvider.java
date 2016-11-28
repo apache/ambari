@@ -91,9 +91,8 @@ public class ServiceConfigVersionResourceProvider extends
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID);
 
     // keys
-    KEY_PROPERTY_IDS.put(Resource.Type.Service,SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion,SERVICE_CONFIG_VERSION_SERVICE_NAME_PROPERTY_ID);
     KEY_PROPERTY_IDS.put(Resource.Type.Cluster,SERVICE_CONFIG_VERSION_CLUSTER_NAME_PROPERTY_ID);
-    KEY_PROPERTY_IDS.put(Resource.Type.ServiceConfigVersion,SERVICE_CONFIG_VERSION_PROPERTY_ID);
   }
 
 
