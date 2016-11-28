@@ -400,8 +400,8 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = async_result.get()
 
     self.assertEqual(ret['exitcode'], 1)
-    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. reason')
-    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. reason')
+    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
+    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
 
     self.assertTrue(kill_process_with_children_mock.called)
     self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())

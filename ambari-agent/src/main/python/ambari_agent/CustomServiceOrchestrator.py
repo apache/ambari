@@ -223,7 +223,7 @@ class CustomServiceOrchestrator():
       # if canceled and not background command
       if handle is None:
         cancel_reason = self.command_canceled_reason(task_id)
-        if cancel_reason:
+        if cancel_reason is not None:
           ret['stdout'] += cancel_reason
           ret['stderr'] += cancel_reason
 
@@ -251,10 +251,11 @@ class CustomServiceOrchestrator():
         logger.debug('Pop with taskId %s' % task_id)
         pid = self.commands_in_progress.pop(task_id)
         if not isinstance(pid, int):
-          if pid:
-            return '\nCommand aborted. ' + pid
+          reason = pid
+          if reason:
+            return "\nCommand aborted. Reason: '{0}'".format(reason)
           else:
-            return ''
+            return "\nCommand aborted."
     return None
 
   def requestComponentStatus(self, command):
