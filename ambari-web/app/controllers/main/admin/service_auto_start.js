@@ -208,7 +208,7 @@ App.MainAdminServiceAutoStartController = Em.Controller.extend({
         }
       }.property('enabledComponents', 'totalComponents'),
       components: Em.A([componentRecovery]),
-      enabledComponents: componentRecovery.recovery_enabled ? 1 : 0,
+      enabledComponents: componentRecovery.recoveryEnabled ? 1 : 0,
       totalComponents: 1,
       indicator: function () {
         var percentage = this.get('enabledComponents') / this.get('totalComponents');
