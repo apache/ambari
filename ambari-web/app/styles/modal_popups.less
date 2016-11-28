@@ -17,6 +17,49 @@
  */
 @import 'common.less';
 
+#modal {
+  outline: none;
+}
+
+.host-component-popup-wrap {
+  .task-top-wrap {
+    .operation-name-top {
+      width: 36%;
+      padding-left: 20px;
+      float: left;
+      text-align: left;
+    }
+  }
+  #service-info{
+    .show-more {
+      width: 98.8%;
+      min-height: 20px;
+      cursor: pointer;
+      text-align: center;
+      padding: 10px 10px 10px 0;
+      font-size: 16px;
+    }
+  }
+
+  #host-info, #service-info{
+    overflow: auto;
+    width: 100%;
+    max-height: 340px;
+    &.scheduled{
+      max-height: 255px;
+    }
+  }
+  #host-info, #service-info, #host-log {
+    .log-list-wrap {
+      padding: 10px 10px 10px 20px;
+    }
+    .progress-wrapper {
+      .progress {
+        margin-bottom: 0;
+      }
+    }
+  }
+}
 
 .modal {
   top: 5%;
@@ -90,30 +133,9 @@
 
 /*60% width modal window start*/
 .modal-edit-widget {
-  .modal-header{
-    min-width: 650px;
-  }
-  .modal-footer{
-    min-width: 650px;
-  }
-
   .modal-body {
 
-    max-height: 403px;
-    min-width: 650px;
-
-    #slider-range {
-      margin-top: 40px;
-      margin-bottom: 20px;
-      margin-left: 38px;
-      max-width: 630px;
-      max-height: 15px;
-    }
-    #min-height-limit .col-md-9{
-      min-height: 15px;
-    }
-    #min-height-limit .progress{
-      margin-left: 40px;
+    .progress {
       .bar-success {
         background-image: linear-gradient(to bottom, @health-status-green, @health-status-green);
         background-repeat: repeat-x;
@@ -131,35 +153,20 @@
       }
     }
 
-    .value-on-slider{
-      max-height: 100px;
-      margin-bottom: 40px;
-      margin-top: 10px;
-      text-align: center;
-    }
-    #slider-value1{
-      max-width: 65px;
-    }
-    #slider-value2{
-      max-width: 250px;
-    }
-    #slider-value3{
-      max-width: 250px;
-    }
-    #slider-value4{
-      max-width: 65px;
+    .value-on-slider {
+      margin-top: 30px;
     }
     .slider-error {
       color: #b94a48;
       .help-block {
         color: #b94a48;
       }
-    }
-    .slider-error input{
-      border-color: #b94a48;
-      -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-      -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      input{
+        border-color: #b94a48;
+        -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+        box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      }
     }
   }
 }
@@ -259,7 +266,6 @@
 
 /* modal fill screen popup */
 
-
 .full-height-modal {
   // padding from the top and bottom for full-height popup of window
   @modal-padding: 40px;
@@ -291,7 +297,6 @@
     }
   }
 }
-
 
 .host-progress-popup {
   .task-detail-info {
@@ -359,5 +364,35 @@
     .container {
       width: 1236px;
     }
+  }
+}
+
+.modal-graph-line {
+  .modal-dialog {
+    width: 810px;
+  }
+  .modal-body {
+    min-height: 450px !important;
+    overflow: hidden;
+    .corner-icon {
+      position: absolute;
+      right: 15px;
+      text-decoration: none;
+      .glyphicon-save {
+        color: #555;
+      }
+    }
+    .export-graph-list {
+      top: auto;
+      right: 15px;
+    }
+  }
+}
+
+.modal-body {
+  .api-error {
+    max-height: 403px;
+    word-wrap:break-word;
+    overflow: auto;
   }
 }

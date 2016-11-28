@@ -273,14 +273,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       configuration_attributes = self.getConfig()['configuration_attributes'][
         'hdfs-site']
     )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/usr/hdp/current/hadoop-client/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
-        'hdfs-site']
-    )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -380,14 +372,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes'][
-        'hdfs-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/usr/hdp/current/hadoop-client/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes'][
         'hdfs-site']

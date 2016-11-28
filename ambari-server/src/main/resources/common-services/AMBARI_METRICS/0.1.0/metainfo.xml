@@ -209,10 +209,6 @@
         <config-type>ams-env</config-type>
       </configuration-dependencies>
 
-      <excluded-config-types>
-        <config-type>storm-site</config-type>
-      </excluded-config-types>
-
       <quickLinksConfigurations>
         <quickLinksConfiguration>
           <fileName>quicklinks.json</fileName>

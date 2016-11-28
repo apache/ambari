@@ -84,7 +84,7 @@ class Master(Script):
                         recursive_chmod=True
                         )
 
-    spark_deps_full_path = glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar')[0]
+    spark_deps_full_path = self.get_zeppelin_spark_dependencies()[0]
     spark_dep_file_name = os.path.basename(spark_deps_full_path);
 
     params.HdfsResource(params.spark_jar_dir + "/" + spark_dep_file_name,
@@ -168,9 +168,8 @@ class Master(Script):
         zeppelin_kinit_cmd = format("{kinit_path_local} -kt {zeppelin_kerberos_keytab} {zeppelin_kerberos_principal}; ")
         Execute(zeppelin_kinit_cmd, user=params.zeppelin_user)
 
-    if glob.glob(
-            params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar') and os.path.exists(
-      glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies-*.jar')[0]):
+    zeppelin_spark_dependencies = self.get_zeppelin_spark_dependencies()
+    if zeppelin_spark_dependencies and os.path.exists(zeppelin_spark_dependencies[0]):
       self.create_zeppelin_dir(params)
 
     # if first_setup:
@@ -325,6 +324,10 @@ class Master(Script):
       else:
         return False
     return False
+
+  def get_zeppelin_spark_dependencies(self):
+    import params
+    return glob.glob(params.zeppelin_dir + '/interpreter/spark/dep/zeppelin-spark-dependencies*.jar')
 
 if __name__ == "__main__":
   Master().execute()

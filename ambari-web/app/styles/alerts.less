@@ -343,7 +343,6 @@
 
 }
 
-
 .service-block .summary-box-header {
   .alerts-crit-count, .alerts-warn-count, .no-alerts-label {
     padding: 4px 5px;
@@ -417,11 +416,6 @@
   .modal-body, .modal-footer, .modal-header {
     min-width: 600px;
   }
-  #alert-info {
-    .alert-list-wrap:hover {
-      background-color: #e6e6e6;
-    }
-  }
 }
 
 .service-alerts {
@@ -445,76 +439,16 @@
 }
 
 .alerts-popup-wrap {
-  .trim_hostname{
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .top-wrap {
-    width: 100%;
-    border-bottom: 1px solid #CCC;
-    text-align: center;
-    font-size: 15px;
-    padding: 0 0 20px 0;
-    height: 20px;
-    .name-top {
-      width: 32%;
-      padding-left: 10px;
-    }
-    .service-top {
-      width: 31%;
-      padding-left: 10px;
-    }
-    .status-top,.name-top,.service-top,.last-triggered-top {
-      float: left;
-      text-align: left;
-    }
-  }
-  #alert-info{
+  #alert-info {
     overflow: auto;
     max-height: 340px;
-    width: 100%;
     .alert-list-wrap {
       padding: 10px 5px;
-      border-top: 1px solid #CCC;
-      border-bottom: 1px solid #CCC;
     }
-    .alert-list-line-cursor{
-      width: 100%;
-      min-height: 20px;
-      .status-icon {
-        padding-right: 5px;
-        min-width: 20px;
-      }
-      .name-text {
-        float: left;
-        width: 33%;
-      }
-      .service-text {
-        padding-left: 5px;
-        width: 33%;
-        float: left;
-        .na-text {
-          color: #808080;
-        }
-      }
-    }
-    .alert-list-line-cursor:before,.alert-list-line-cursor:after {
-      display: table;
-      line-height: 0;
-      content: "";
-    }
-    .alert-list-line-cursor:after {
-      clear: both;
-    }
-    .show-more {
-      width: 98.8%;
-      min-height: 20px;
-      cursor: pointer;
-      border-top: 1px solid #CCC;
-      text-align: center;
-      padding: 10px 10px 10px 0;
-      font-size: 16px;
+    .trim_hostname {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 }
@@ -528,3 +462,117 @@
   max-height: 200px;
   overflow-y: scroll;
 }
+
+.alert-groups-dropdown {
+  overflow: auto;
+  max-height: 416px;
+}
+
+#alert-actions-button {
+  margin-right: 10px;
+}
+
+.alerts {
+  margin: 0;
+  overflow-y: auto;
+  li {
+    border-bottom: 1px solid #eee;
+    list-style: none;
+    padding: 5px;
+    background-position: 14px 9px;
+    background-repeat: no-repeat;
+    .date-time {
+      float: right;
+    }
+    p {
+      margin-bottom: 2px;
+    }
+    .container {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .title {
+      font-weight: normal;
+      font-size: 13px;
+    }
+    .status-icon {
+      padding-top: 7px;
+    }
+    .date-time {
+      color: #999;
+      font-style: italic;
+      font-size: small;
+      text-align: right;
+    }
+    .message {
+      font-size: 12px;
+      color: #777;
+    }
+    .serviceLink {
+      padding-left: 7px;
+    }
+  }
+  .alert {
+    margin: 7px;
+  }
+}
+
+/***** Start styles for alert create wizard *****/
+#create-alert-wizard-step1 {
+  .alert-types-container {
+    padding: 10px 15px;
+    .alert-type {
+      height: 150px;
+      width: 32%;
+      margin: 5px;
+      padding: 10px;
+      background: white;
+    }
+    .alert-type:hover {
+      cursor: pointer;
+    }
+    .icon {
+      .glyphicon {
+        font-size: 35px;
+        line-height: 3.5;
+      }
+    }
+    .icon.PORT {
+      color: #F6D955;
+    }
+    .icon.WEB {
+      color: #9ADCD4;
+    }
+    .icon.METRIC {
+      color: #F69F79;
+    }
+    .icon.SCRIPT {
+      color: #F2C2AA;
+    }
+    .icon.AGGREGATE {
+      color: #8AD4C7;
+    }
+    .icon.RAW {
+      color: #C9A6B2;
+    }
+    .label-description {
+      padding-top: 10px;
+      .label-text {
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .description-text {
+        font-size: 12px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
+
+/***** End styles for alert create wizard *****/
+

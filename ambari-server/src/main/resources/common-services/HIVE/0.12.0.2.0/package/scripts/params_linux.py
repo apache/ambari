@@ -312,6 +312,7 @@ hive_server_host = hive_server_hosts[0] if len(hive_server_hosts) > 0 else None
 
 hive_server_interactive_hosts = default('/clusterHostInfo/hive_server_interactive_hosts', [])
 hive_server_interactive_host = hive_server_interactive_hosts[0] if len(hive_server_interactive_hosts) > 0 else None
+hive_server_interactive_ha = True if len(hive_server_interactive_hosts) > 1 else False
 # End, Common Hosts and Ports
 
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
@@ -606,6 +607,7 @@ if has_hive_interactive:
   hive_llap_io_mem_size = config['configurations']['hive-interactive-site']['hive.llap.io.memory.size']
   llap_heap_size = config['configurations']['hive-interactive-env']['llap_heap_size']
   llap_app_name = config['configurations']['hive-interactive-env']['llap_app_name']
+  llap_extra_slider_opts = default('/configurations/hive-interactive-env/llap_extra_slider_opts', "")
   hive_llap_principal = None
   if security_enabled:
     hive_llap_keytab_file = config['configurations']['hive-interactive-site']['hive.llap.zk.sm.keytab.file']

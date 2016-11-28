@@ -24,6 +24,7 @@ from resource_management.libraries.script.script import Script
 from resource_management.core.resources.service import ServiceConfig
 from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.exceptions import Fail
+from resource_management.core import shell
 from resource_management.core.shell import as_user, as_sudo
 from resource_management.core.source import Template, InlineTemplate
 from resource_management.libraries.functions.format import format

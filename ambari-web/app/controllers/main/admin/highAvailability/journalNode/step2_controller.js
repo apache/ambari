@@ -35,7 +35,7 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
   selectedService: null,
   stepConfigs: [],
   serverConfigData: {},
-  moveJNConfig: $.extend(true, {}, require('data/HDP2/move_journal_node_properties').moveJNConfig),
+  moveJNConfig: $.extend(true, {}, require('data/configs/wizards/move_journal_node_properties').moveJNConfig),
   once: false,
   isLoaded: false,
   versionLoaded: true,
@@ -161,4 +161,3 @@ App.ManageJournalNodeWizardStep2Controller = Em.Controller.extend({
   isNextDisabled: Em.computed.not('isLoaded')
 
 });
-

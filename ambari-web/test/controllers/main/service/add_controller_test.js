@@ -316,6 +316,7 @@ describe('App.AddServiceController', function() {
       sinon.stub(this.controller, 'setDBProperty', function(key, value) {
         mock.db = value;
       });
+      sinon.stub(this.controller, 'hasDependentSlaveComponent');
       sinon.stub(App.store, 'commit', Em.K);
       this.mockStackService = sinon.stub(App.StackService, 'find');
       this.mockService = sinon.stub(App.Service, 'find');
@@ -324,6 +325,7 @@ describe('App.AddServiceController', function() {
     afterEach(function() {
       this.mockGetDBProperty.restore();
       this.controller.setDBProperty.restore();
+      this.controller.hasDependentSlaveComponent.restore();
       this.mockStackService.restore();
       this.mockService.restore();
       App.store.commit.restore();
@@ -561,6 +563,85 @@ describe('App.AddServiceController', function() {
       });
 
     });
+
+  });
+
+  describe('#getDependentServices', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+          Em.Object.create({
+            componentName: 'c1',
+            serviceName: 's1'
+          }),
+        Em.Object.create({
+          componentName: 'c2',
+          serviceName: 's2'
+        }),
+        Em.Object.create({
+          componentName: 'c3',
+          serviceName: 's3'
+        }),
+        Em.Object.create({
+          componentName: 'c4',
+          serviceName: 's1'
+        })
+      ]);
+    });
+
+    [
+      {
+        title: 'should return empty array',
+        sch: [],
+        expect: []
+      },
+      {
+        title: 'should return services for not installed slaves',
+        sch: [
+          {
+            componentName: 'c1',
+            hosts: [
+              {
+                isInstalled: false
+              },
+              {
+                isInstalled: true
+              }
+            ]
+          },
+          {
+            componentName: 'c2',
+            hosts: [
+              {
+                isInstalled: false
+              },
+              {
+                isInstalled: true
+              }
+            ]
+          },
+          {
+            componentName: 'c4',
+            hosts: [
+              {
+                isInstalled: false
+              },
+              {
+                isInstalled: true
+              }
+            ]
+          }
+        ],
+        expect: ['s1', 's2']
+      }
+    ].forEach(function (test) {
+          describe(test.title, function () {
+            it(function () {
+              addServiceController.set('content.slaveComponentHosts', test.sch);
+              expect(addServiceController.getDependentServices()).to.eql(test.expect);
+            });
+          })
+        });
 
   });
 

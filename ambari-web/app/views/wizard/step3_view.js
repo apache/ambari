@@ -311,7 +311,7 @@ App.WizardHostView = Em.View.extend({
 
   tagName: 'tr',
 
-  classNameBindings: ['hostInfo.bootStatus'],
+  classNameBindings: ['hostInfo.bootStatus', 'hostInfo.isChecked:active'],
 
   /**
    * Host from parent view

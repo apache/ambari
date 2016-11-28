@@ -170,13 +170,6 @@ class TestHbaseRegionServer(RMFTestCase):
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
     )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/etc/hadoop/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
     self.assertResourceCalled('File', '/etc/hbase/conf/hbase-policy.xml',
       owner = 'hbase',
       group = 'hadoop',
@@ -263,13 +256,6 @@ class TestHbaseRegionServer(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       conf_dir = '/etc/hbase/conf',
-      configurations = self.getConfig()['configurations']['hdfs-site'],
-      configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-      owner = 'hdfs',
-      group = 'hadoop',
-      conf_dir = '/etc/hadoop/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
     )
@@ -373,13 +359,6 @@ class TestHbaseRegionServer(RMFTestCase):
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
-
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
 
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
       owner = 'hbase',
@@ -487,13 +466,6 @@ class TestHbaseRegionServer(RMFTestCase):
       conf_dir = '/usr/hdp/current/hbase-regionserver/conf',
       configurations = self.getConfig()['configurations']['hdfs-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
-
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'hdfs',
-                              group = 'hadoop',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site'])
 
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
       owner = 'hbase',

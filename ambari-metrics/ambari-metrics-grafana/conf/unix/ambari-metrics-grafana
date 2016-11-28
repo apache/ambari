@@ -94,28 +94,12 @@ function isRunning() {
 
 case "$1" in
   start)
-    echo -n $"Starting $DESC: .... "
+    echo $"Starting $DESC: .... " >> $LOG_FILE
 
     isRunning
     if [ $? -eq 0 ]; then
-      echo "Already running."
+      echo "Already running." >> $LOG_FILE
       exit 0
-    fi
-
-    echo "$(date) Checking for previously running Grafana with out of sync PID..." >> $LOG_FILE
-    if [ -n "`ps ax | grep -w ambari-metrics-grafana/bin/grafana-server`" ]; then
-      PID=`ps aux | grep -w ambari-metrics-grafana/bin/grafana-server | head -n 1 | awk '{print $2}'`
-      echo "$(date) Grafana Server already running with PID: ${PID}. Killing that instance"  >> $LOG_FILE
-      kill "${PID}" >/dev/null 2>&1
-      sleep "${STOP_TIMEOUT}"
-
-      if kill -0 "${PID}" > /dev/null 2>&1; then
-        echo "$(date) WARNING: Grafana Server did not stop gracefully. Trying to kill with kill -9" >> $LOG_FILE
-        kill -9 "${PID}" >/dev/null 2>&1
-      fi
-
-    else
-      echo "$(date) No out of sync Grafana server process found" >> $LOG_FILE
     fi
 
     # Prepare environment
@@ -135,7 +119,7 @@ case "$1" in
       sleep 1
       # check if pid file has been written two
       if ! [[ -s $PID_FILE ]]; then
-        echo "FAILED"
+        echo "Start FAILED" >> $LOG_FILE
         exit 1
       fi
       i=0
@@ -152,11 +136,11 @@ case "$1" in
       done
     fi
 
-    echo "OK"
+    echo "OK" >> $LOG_FILE
     exit $return
     ;;
   stop)
-    echo -n "Stopping $DESC ..."
+    echo -n "Stopping $DESC ..." >> $LOG_FILE
 
     if [ -f "$PID_FILE" ]; then
       pid=$(cat "$PID_FILE")
@@ -165,18 +149,18 @@ case "$1" in
       sleep "${STOP_TIMEOUT}"
 
       if kill -0 "${pid}" > /dev/null 2>&1; then
-        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9"
+        echo "WARNING: $DESC did not stop gracefully after ${STOP_TIMEOUT} seconds: Trying to kill with kill -9" >> $LOG_FILE
         kill -9 "${pid}" >/dev/null 2>&1
       fi
 
       if ps -p "${pid}" > /dev/null 2>&1; then
-        echo "ERROR: Unable to kill ${pid}"
+        echo "ERROR: Unable to kill ${pid}" >> $LOG_FILE
       else
-        rm -f "${pidfile}" >/dev/null 2>&1
+        rm -f "$PID_FILE" >/dev/null 2>&1
       fi
       echo "OK"
     else
-      echo -n "(not running)"
+      echo -n "(not running)" >> $LOG_FILE
     fi
     exit 0
     ;;

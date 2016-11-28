@@ -216,6 +216,14 @@ def kms(upgrade_type=None):
       create_parents=True
     )
 
+    if params.stack_supports_pid:
+      File(format('{kms_conf_dir}/ranger-kms-env-piddir.sh'),
+        content = format("export RANGER_KMS_PID_DIR_PATH={ranger_kms_pid_dir}\nexport KMS_USER={kms_user}"),
+        owner = params.kms_user,
+        group = params.kms_group,
+        mode=0755
+      )
+
     Directory(params.kms_log_dir,
       owner = params.kms_user,
       group = params.kms_group,

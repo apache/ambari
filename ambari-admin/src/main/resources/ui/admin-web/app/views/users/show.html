@@ -23,7 +23,7 @@
       <li class="active"><span class="glyphicon glyphicon-flash" ng-show="user.admin"></span>{{user.user_name}}</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <div ng-switch="isCurrentUser || user.ldap_user">
+      <div ng-switch="isCurrentUser || user.user_type != 'LOCAL'">
         <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'common.cannotDelete' | translate: '{term: constants.user}'}}">{{'common.delete' | translate: '{term: constants.user}'}}</button>
         <button class="btn deleteuser-btn btn-danger" ng-switch-when="false" ng-click="deleteUser()">{{'common.delete' | translate: '{term: constants.user}'}}</button>
       </div>
@@ -52,7 +52,7 @@
     <div class="form-group">
       <label for="password" class="col-sm-2 control-label">{{'users.password' | translate}}</label>
       <div class="col-sm-10">
-        <div ng-switch="user.ldap_user">
+        <div ng-switch="user.user_type != 'LOCAL'">
           <button class="btn deleteuser-btn disabled btn-default" ng-switch-when="true" tooltip="{{'users.alerts.cannotChange' | translate: '{term: constants.password}'}}">{{'users.changePassword' | translate}}</button>
           <a href ng-click="openChangePwdDialog()" ng-switch-when="false" class="btn btn-default changepassword">{{'users.changePassword' | translate}}</a>
         </div>
@@ -60,9 +60,9 @@
       </div>
     </div>
     <div class="form-group">
-      <label for="groups" class="col-sm-2 control-label">{{'common.' + (user.ldap_user ? 'ldap' : 'local') | translate}} {{'users.groupMembership' | translate}}</label>
+      <label for="groups" class="col-sm-2 control-label">{{getUserMembership(user.user_type)}}</label>
       <div class="col-sm-10">
-        <editable-list items-source="editingGroupsList" resource-type="Group" editable="!user.ldap_user"></editable-list>
+        <editable-list items-source="editingGroupsList" resource-type="Group" editable="user.user_type == 'LOCAL'"></editable-list>
       </div>
         
     </div>

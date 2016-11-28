@@ -46,7 +46,7 @@ App.ActivateHawqStandbyWizardStep2Controller = Em.Controller.extend({
   renderConfigs: function () {
     newHawqMaster = App.HostComponent.find().findProperty('componentName','HAWQSTANDBY').get('hostName');
 
-    var configs = require('data/HDP2.3/hawq_activate_standby_properties').haConfig;
+    var configs = require('data/configs/wizards/hawq_activate_standby_properties').haConfig;
 
     var serviceConfig = App.ServiceConfig.create({
       serviceName: configs.serviceName,

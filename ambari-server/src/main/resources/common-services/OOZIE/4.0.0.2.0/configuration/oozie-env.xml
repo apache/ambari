@@ -45,6 +45,25 @@
     <description>Oozie Server Database.</description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>New Derby Database</value>
+          <label>New Derby</label>
+        </entry>
+        <entry>
+          <value>Existing MySQL / MariaDB Database</value>
+          <label>Existing MySQL / MariaDB</label>
+        </entry>
+        <entry>
+          <value>Existing PostgreSQL Database</value>
+          <label>Existing PostgreSQL</label>
+        </entry>
+        <entry>
+          <value>Existing Oracle Database</value>
+          <label>Existing Oracle</label>
+        </entry>
+      </entries>
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>

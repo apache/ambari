@@ -16,36 +16,21 @@
 * limitations under the License.
 }}
 
-<div class="rackHeader">
-  <div class="statusName clearfix">
-    <div {{bindAttr class="view.statusIndicator rack.status"}}></div>
-    <div class="rackName">{{rack.name}}</div>
+<div class="rackHeader panel-heading">
+  <div class="statusName">
+    <h3 class="panel-title rackName">{{rack.name}}</h3>
   </div>
 </div>
-<!--<div class="hostsSummary clearfix">-->
-  <!--<div class="textBlock">Total hosts: {{!rack.hosts.length}}</div>-->
-  <!--{{!#if view.heatmapIsOpened}}-->
-    <!--<div class="textBlock">-->
-      <!--<div class="indicatorG"></div>-->
-      <!--Hosts in live state: {{!rack.liveHostsCount}}-->
-    <!--</div>-->
-    <!--<div class="textBlock">-->
-      <!--<div class="indicatorY"></div>-->
-      <!--Hosts in critical state: {{!rack.criticalHostsCount}}-->
-    <!--</div>-->
-    <!--<div class="textBlock">-->
-      <!--<div class="indicatorR"></div>-->
-      <!--Hosts in dead state: {{!rack.deadHostsCount}}-->
-    <!--</div>-->
-  <!--{{!/if}}-->
-<!--</div>-->
-<div class="isActive hosts clearfix">
-  <div {{bindAttr  class="view.rack.isLoaded::hidden"}}>
-    {{#each view.hosts}}
-        <div {{bindAttr style="view.hostCssStyle"}}>
+
+<div class="isActive hosts clearfix panel-body">
+  <div {{bindAttr class="view.rack.isLoaded::hidden"}}>
+    <div class="row row-no-pad">
+      {{#each view.hosts}}
+        <div {{bindAttr class="view.hostCssStyle"}}>
           {{view App.MainChartsHeatmapHostView contentBinding="this"}}
         </div>
-    {{/each}}
+      {{/each}}
+    </div>
   </div>
   {{#unless view.rack.isLoaded}}
     {{view App.SpinnerView}}

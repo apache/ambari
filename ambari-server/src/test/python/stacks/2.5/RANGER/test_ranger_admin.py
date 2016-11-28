@@ -244,6 +244,13 @@ class TestRangerAdmin(RMFTestCase):
       create_parents=True
     )
 
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',
+      content = 'export RANGER_PID_DIR_PATH=/var/run/ranger\nexport RANGER_USER=ranger',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
+    )
+
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',
       owner='ranger',
       group='ranger',
@@ -385,6 +392,13 @@ class TestRangerAdmin(RMFTestCase):
       group = 'hadoop',
       cd_access = "a",
       create_parents=True
+    )
+
+    self.assertResourceCalled('File', '/usr/hdp/current/ranger-admin/conf/ranger-admin-env-piddir.sh',
+      content = 'export RANGER_PID_DIR_PATH=/var/run/ranger\nexport RANGER_USER=ranger',
+      owner = 'ranger',
+      group = 'ranger',
+      mode = 0755
     )
 
     self.assertResourceCalled('Directory', '/var/log/ranger/admin',

@@ -61,14 +61,14 @@
               </div>
               <div id="{{unbound category.category}}" class="panel-body collapse in" style="display: none">
                 {{#if category.warnings.length}}
-                  <table>
+                  <table class="table">
                     <thead>
-                    <tr>
-                      <th colspan="2">{{{category.message}}}</th>
-                    </tr>
-                    <tr>
-                      <th colspan="2"><b>{{category.type}}</b></th>
-                    </tr>
+                      <tr>
+                        <th colspan="4">{{{category.message}}}</th>
+                      </tr>
+                      <tr>
+                        <th colspan="4"><b>{{category.type}}</b></th>
+                      </tr>
                     </thead>
                     <tbody>
                       {{#each warning in category.warnings}}
@@ -76,9 +76,13 @@
                         <td class="warning-name" {{bindAttr data-original-title="warning.command"}} >{{{warning.name}}}</td>
                         {{#if warning.version}}
                           <td class="package-version">{{warning.version}}</td>
+                        {{else}}
+                          <td></td>
                         {{/if}}
                         {{#if warning.target}}
                           <td class="package-version">{{warning.target}}</td>
+                        {{else}}
+                          <td></td>
                         {{/if}}
                         <td>{{category.action}}
                           <a href="javascript:void(null);" rel='HostsListTooltip' {{bindAttr data-original-title="warning.hostsList"}} {{action showHostsPopup warning.hostsLong}}>

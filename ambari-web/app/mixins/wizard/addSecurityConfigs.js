@@ -27,7 +27,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
   kerberosDescriptor: {},
 
-  kerberosDescriptorProperties: require('data/HDP2/kerberos_descriptor_properties'),
+  kerberosDescriptorProperties: require('data/configs/wizards/kerberos_descriptor_properties'),
 
   /**
    * security configs, which values should be modified after APPLY CONFIGURATIONS stage

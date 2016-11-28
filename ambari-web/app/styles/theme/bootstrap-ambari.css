@@ -35,7 +35,6 @@
   outline: none;
   font-family: 'Roboto', sans-serif;
   text-transform: uppercase;
-  height: 34px;
   font-size: 14px;
   padding: 10px 20px;
   line-height: 14px;
@@ -213,6 +212,10 @@
   background-color: #429929;
   border: 1px solid #3FAE2A;
 }
+.navbar-btn {
+  margin-top: 7px;
+  margin-bottom: 7px;
+}
 .btn-regular-default-state {
   background-color: #FFF;
   color: #666;
@@ -374,8 +377,21 @@ h2.table-title {
   top: 4px;
   margin-bottom: 0;
 }
+.table thead > tr > th {
+  border-bottom-color: #EEE;
+}
 .table tfoot > tr:first-of-type > td {
   border-top-width: 2px;
+  border-top-color: #EEE;
+}
+.table > tbody > tr > td {
+  border-top-color: #EEE;
+}
+.table > tbody > tr.active {
+  background-color: #EEE;
+}
+.table > tbody > tr.active > td {
+  background-color: #EEE;
 }
 .table.table-hover .action {
   visibility: hidden;
@@ -392,13 +408,6 @@ h2.table-title {
 }
 .table.table-hover > tbody > tr > td {
   border-width: 0;
-}
-.table.table-hover > tbody > tr.active {
-  border-color: #EEE;
-  background-color: #EEE;
-}
-.table.table-hover > tbody > tr.active > td {
-  background-color: #EEE;
 }
 .table.table-hover > tbody > tr:hover {
   border-color: #A7DFF2;
@@ -436,7 +445,7 @@ h2.table-title {
   margin-bottom: 20px;
 }
 .nav.nav-tabs li a {
-  border: none;
+  border-width: 0;
   border-radius: 0;
   border-bottom: 2px solid transparent;
   color: #666;
@@ -446,7 +455,7 @@ h2.table-title {
 .nav.nav-tabs li a:active,
 .nav.nav-tabs li a:focus {
   color: #333;
-  border: none;
+  border-width: 0;
   background: none;
 }
 .nav.nav-tabs li a .badge.badge-important {
@@ -469,25 +478,25 @@ h2.table-title {
   margin-right: -1px;
 }
 .nav-tabs-left li a {
-  border-bottom: 2px solid transparent !important;
+  border: 2px solid transparent !important;
 }
 .nav-tabs-left li.active a,
 .nav-tabs-left li.active a:hover,
 .nav-tabs-left li.active a:active,
 .nav-tabs-left li.active a:focus {
-  border-right: 2px solid #3FAE2A;
+  border-right: 2px solid #3FAE2A !important;
 }
 .nav-tabs-right li {
   margin-left: -1px;
 }
 .nav-tabs-right li a {
-  border-bottom: 2px solid transparent !important;
+  border: 2px solid transparent !important;
 }
 .nav-tabs-right li.active a,
 .nav-tabs-right li.active a:hover,
 .nav-tabs-right li.active a:active,
 .nav-tabs-right li.active a:focus {
-  border-left: 2px solid #3FAE2A;
+  border-left: 2px solid #3FAE2A !important;
 }
 .wizard {
   border: 2px solid #ebecf1;

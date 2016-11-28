@@ -16,20 +16,22 @@
 * limitations under the License.
 }}
 
-<div class="wizard-content col-md-9">
+<div id="create-alert-wizard-step1" class="wizard-content col-md-9">
   <h4 class="step-title">{{t alerts.add.step1.header}}</h4>
-  <div class="panel panel-default">
-    <div class="panel-body">
-    {{#each type in controller.alertDefinitionsTypes}}
-        <a href="#" {{bindAttr class=":btn type.isActive:active"}} {{action selectType type target="controller"}}>
-            <span {{bindAttr class="type.icon"}}></span> {{type.value}}
-        </a>
-    {{/each}}
+  <p class="step-description">{{t alerts.add.step1.header.description}}</p>
+    <div class="alert-types-container row">
+      {{#each type in controller.alertDefinitionsTypes}}
+        <div class="col-md-4 row alert-type" rel="selectable-tooltip"
+          {{translateAttr data-original-title="alerts.add.wizard.step1.body.choose.tooltip"}}
+          {{action "selectType" type target="controller"}}>
+          <div {{bindAttr class="type.name :icon :col-md-3"}}>
+            <span {{bindAttr class="type.icon"}}></span>
+          </div>
+          <div class="label-description col-md-9">
+            <p class="label-text">{{type.displayName}}</p>
+            <p class="description-text">{{type.description}}</p>
+          </div>
+        </div>
+      {{/each}}
     </div>
-  </div>
-</div>
-<div class="wizard-footer col-md-12">
-  <div class="btn-area">
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</a>
-  </div>
 </div>

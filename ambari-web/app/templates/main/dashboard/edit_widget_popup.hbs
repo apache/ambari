@@ -23,27 +23,23 @@
     </div>
 
     <div class="row" id= "min-height-limit">
+      <div class="col-md-12">
        {{#if view.configPropertyObj.isIE9}}
-         {{#if view.configPropertyObj.isGreenOrangeRed}}
-             <div class="progress col-md-9">
-                 <div class="bar bar-success" style="width: 33%;"></div>
-                 <div class="bar bar-warning" style="width: 33%;"></div>
-                 <div class="bar bar-danger" style="width: 34%;"></div>
-             </div>
-         {{else}}
-             <div class="progress col-md-9">
-                 <div class="bar bar-danger" style="width: 33%;"></div>
-                 <div class="bar bar-warning" style="width: 33%;"></div>
-                 <div class="bar bar-success" style="width: 34%;"></div>
-             </div>
-         {{/if}}
+         <div class="progress">
+           <div {{bindAttr class=":bar view.configPropertyObj.isGreenOrangeRed:bar-success:bar-danger"}} style="width: 33%;"></div>
+           <div class="bar bar-warning" style="width: 33%;"></div>
+           <div {{bindAttr class=":bar view.configPropertyObj.isGreenOrangeRed:bar-danger:bar-success"}} style="width: 34%;"></div>
+         </div>
        {{else}}
-         <div class="col-md-9" id="slider-range"></div>
+         <div id="slider-range"></div>
        {{/if}}
+      </div>
     </div>
 
     <div class="row">
-        <div id="slider-value1" class="value-on-slider col-md-2">0</div>
+        <div id="slider-value1" class="value-on-slider col-md-2">
+          <input type="text" value="0" disabled="disabled" class="form-control" />
+        </div>
         <div id="slider-value2" {{bindAttr class="view.configPropertyObj.isThresh1Error:slider-error :value-on-slider :col-md-4 view.configPropertyObj.isThresh1Error:has-error"}}>
           {{view Ember.TextField class="form-control" valueBinding="view.configPropertyObj.thresh1"}}
           {{#if view.configPropertyObj.errorMessage1}}
@@ -56,7 +52,9 @@
             <span class="help-block validation-block">{{view.configPropertyObj.errorMessage2}}</span>
           {{/if}}
         </div>
-        <div id="slider-value4" class="value-on-slider col-md-2">{{view.configPropertyObj.maxValue}}</div>
+        <div id="slider-value4" class="value-on-slider col-md-2">
+          {{view Em.TextField valueBinding="view.configPropertyObj.maxValue" classNames="form-control" disabled="disabled"}}
+        </div>
     </div>
 
 </form>

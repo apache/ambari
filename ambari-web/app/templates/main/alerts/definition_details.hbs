@@ -74,7 +74,7 @@
           <div class="pull-right col-md-5">
             {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
               {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
-                <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right edit-link btn btn-link">
+                <a href="#" {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}} class="pull-right btn btn-link">
                   {{t common.edit}}
                 </a>
               {{/unless}}

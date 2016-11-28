@@ -107,4 +107,37 @@ export HADOOP_OPTS="-Dhdp.version=${HDP_VERSION} ${HADOOP_OPTS}"
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>oozie_database</name>
+    <value>New Derby Database</value>
+    <display-name>Oozie Database</display-name>
+    <description>Oozie Server Database.</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>New Derby Database</value>
+          <label>New Derby</label>
+        </entry>
+        <entry>
+          <value>Existing MySQL / MariaDB Database</value>
+          <label>Existing MySQL / MariaDB</label>
+        </entry>
+        <entry>
+          <value>Existing PostgreSQL Database</value>
+          <label>Existing PostgreSQL</label>
+        </entry>
+        <entry>
+          <value>Existing Oracle Database</value>
+          <label>Existing Oracle</label>
+        </entry>
+        <entry>
+          <value>Existing SQL Anywhere Database</value>
+          <label>Existing SQL Anywhere</label>
+        </entry>
+      </entries>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

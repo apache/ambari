@@ -18,9 +18,10 @@
 
 <div id="alerts">
   <div class="row">
-    <h2 class="table-title col-sm-1">{{t hosts.host.alerts.label}}</h2>
-  </div>
-
+    <div class="col-md-12">
+    <h2 class="table-title">{{t hosts.host.alerts.label}}</h2>
+    </div>
+    <div class="col-md-12">
   {{#if App.router.mainAlertInstancesController.isLoaded}}
 
     <table class="table advanced-header-table table-hover alerts-table" id="host-alerts-table">
@@ -81,5 +82,6 @@
   {{else}}
     {{view App.SpinnerView}}
   {{/if}}
-
+  </div>
+</div>
 </div>

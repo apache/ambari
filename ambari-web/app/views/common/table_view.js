@@ -70,12 +70,12 @@ App.TableView = Em.View.extend(App.UserPref, {
   totalCount: Em.computed.alias('content.length'),
 
   /**
-   * Determines whether cuurent page is the first one
+   * Determines whether current page is the first one
    */
-  isCurrentPageFirst: Em.computed.equal('startIndex', 1),
+  isCurrentPageFirst: Em.computed.lte('startIndex', 1),
 
   /**
-   * Determines whether cuurent page is the last one
+   * Determines whether current page is the last one
    */
   isCurrentPageLast: Em.computed.equalProperties('endIndex', 'filteredCount'),
 

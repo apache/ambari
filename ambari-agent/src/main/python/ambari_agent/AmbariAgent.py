@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import sys
 import subprocess
+import signal
 from Controller import AGENT_AUTO_RESTART_EXIT_CODE
 
 if os.environ.has_key("PYTHON_BIN"):
@@ -48,12 +49,18 @@ def main():
 
   mergedArgs = [PYTHON, AGENT_SCRIPT] + args
 
-  while status == AGENT_AUTO_RESTART_EXIT_CODE:
-    mainProcess = subprocess.Popen(mergedArgs)
-    mainProcess.communicate()
-    status = mainProcess.returncode
-    if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
-      os.remove(AGENT_PID_FILE)
+  # Become a parent for all subprocesses
+  os.setpgrp()
+
+  try:
+    while status == AGENT_AUTO_RESTART_EXIT_CODE:
+      mainProcess = subprocess.Popen(mergedArgs)
+      mainProcess.communicate()
+      status = mainProcess.returncode
+      if os.path.isfile(AGENT_PID_FILE) and status == AGENT_AUTO_RESTART_EXIT_CODE:
+        os.remove(AGENT_PID_FILE)
+  finally:
+    os.killpg(0, signal.SIGKILL)
 
 if __name__ == "__main__":
     main()

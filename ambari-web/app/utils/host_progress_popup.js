@@ -172,7 +172,7 @@ App.HostPopup = Em.Object.create({
     'FAILED': ['FAILED', 'icon-exclamation-sign', 'progress-bar-danger', false],
     'ABORTED': ['ABORTED', 'glyphicon glyphicon-minus', 'progress-bar-warning', false],
     'TIMEDOUT': ['TIMEDOUT', 'glyphicon glyphicon-time', 'progress-bar-warning', false],
-    'IN_PROGRESS': ['IN_PROGRESS', 'glyphicon glyphicon-cogs', 'progress-bar-info', true],
+    'IN_PROGRESS': ['IN_PROGRESS', 'icon-cogs', 'progress-bar-info', true],
     'COMPLETED': ['SUCCESS', 'glyphicon glyphicon-ok', 'progress-bar-success', false]
   },
 
@@ -182,8 +182,9 @@ App.HostPopup = Em.Object.create({
    * @type {Em.View}
    */
   abortIcon: Em.View.extend({
-    tagName: 'i',
-    classNames: ['abort-icon', 'icon-remove-circle', 'pointer'],
+    tagName: 'a',
+    classNames: ['action', 'abort-icon'],
+    template: Em.Handlebars.compile('<span class="icon icon-remove-circle"></span>'),
     click: function () {
       this.get('controller').abortRequest(this.get('servicesInfo'));
       return false;
@@ -360,7 +361,7 @@ App.HostPopup = Em.Object.create({
         return ['TIMEDOUT', 'glyphicon glyphicon-time', 'progress-bar-warning', false];
       }
       if (taskStatus === 'IN_PROGRESS') {
-        return ['IN_PROGRESS', 'glyphicon glyphicon-cogs', 'progress-bar-info', true]
+        return ['IN_PROGRESS', 'icon-cogs', 'progress-bar-info', true]
       }
     }
     if (isCompleted) {
@@ -560,7 +561,7 @@ App.HostPopup = Em.Object.create({
         var statusIconMap = {
           'pending': 'glyphicon glyphicon-cog',
           'queued': 'glyphicon glyphicon-cog',
-          'in_progress': 'glyphicon glyphicon-cogs',
+          'in_progress': 'icon-cogs',
           'completed': 'glyphicon glyphicon-ok',
           'failed': 'icon-exclamation-sign',
           'aborted': 'glyphicon glyphicon-minus',

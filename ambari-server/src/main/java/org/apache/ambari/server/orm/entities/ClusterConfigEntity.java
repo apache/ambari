@@ -55,7 +55,12 @@ import javax.persistence.UniqueConstraint;
     @NamedQuery(name = "ClusterConfigEntity.findClusterConfigMappingsByStack",
       query = "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
         "JOIN ClusterConfigEntity config ON mapping.typeName = config.type AND mapping.tag = config.tag " +
-        "WHERE mapping.clusterId = :clusterId AND config.stack = :stack")
+        "WHERE mapping.clusterId = :clusterId AND config.stack = :stack"),
+    @NamedQuery(name = "ClusterConfigEntity.findLatestClusterConfigsByTypes",
+      query = "SELECT cc FROM ClusterConfigEntity cc " +
+        "JOIN ClusterConfigMappingEntity ccm " +
+        "ON cc.clusterId = ccm.clusterId AND cc.type = ccm.typeName AND cc.tag = ccm.tag " +
+        "WHERE cc.clusterId = :clusterId AND ccm.selectedInd > 0 AND ccm.typeName IN :types")
 })
 
 public class ClusterConfigEntity {

@@ -1073,11 +1073,20 @@ Em.I18n.translations = {
   'form.validator.alertNotificationName':'Invalid Alert Notification Name. Only alphanumerics, hyphens, spaces and underscores are allowed.',
   'form.validator.configKey.specific':'"{0}" is invalid Key. Only alphanumerics, hyphens, underscores, asterisks and periods are allowed.',
 
-  'alerts.add.header': 'Create Alert Definition',
-  'alerts.add.step1.header': 'Choose Type',
-  'alerts.add.step2.header': 'Configure',
-  'alerts.add.step3.header': 'Review',
+  'alerts.add.header': 'Create Alert',
+  'alerts.add.step1.header': 'Choose Alert Type',
+  'alerts.add.step1.header.description': 'Select the type of alert you want to create',
+  'alerts.add.step2.header': 'Define Alert',
+  'alerts.add.step3.header': 'Specify Threshold',
   'alerts.add.step3.selectedType': 'Selected Type',
+
+  'alerts.add.wizard.step1.body.choose.tooltip': 'Click to select',
+  'alerts.add.wizard.step1.body.port.description':'Check TCP connectivity to a remote endpoint',
+  'alerts.add.wizard.step1.body.web.description':'Check for TCP connectivity and verify that a proper HTTP response code was returned',
+  'alerts.add.wizard.step1.body.metric.description':'Define JMX/AMS endpoints that can be queried for values',
+  'alerts.add.wizard.step1.body.script.description':'Defer all functionality to a Python script accessible to the Ambari agents from a specified relative or absolute path',
+  'alerts.add.wizard.step1.body.aggregate.description':'Combine the results of another alert definition from different nodes',
+  'alerts.add.wizard.step1.body.raw.description':'User can upload alert parameter using a JSON script',
 
   'alerts.fastAccess.popup.header': '{0} Critical or Warning Alerts',
   'alerts.fastAccess.popup.body.name': 'Alert Definition Name',
@@ -1284,7 +1293,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
   'admin.manageJournalNode.label': 'Manage JournalNode',
-  'admin.manageJournalNode.wizard.header': 'Manage JournalNode Wizard',
+  'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
   'admin.manageJournalNode.wizard.step3.header': 'Save Namespace',
@@ -1294,7 +1303,7 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step7.header': 'BootStrap StandBy NameNode',
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
-  'admin.manageJournalNode.wizard.step1.body': 'Assign hosts to JournalNodes',
+  'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
   'admin.manageJournalNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
   '<b>Review Configuration Changes.</b></br>' +
   'The following lists the configuration changes that will be made by the Wizard to manage JournalNode. This information is for <b> review only </b>.' +
@@ -1318,10 +1327,10 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.step4.save.configuration.note' : 'This configuration is created by Manage JournalNode Wizard',
 
-  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Wait all services to be started',
-  'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step8.notice.inProgress': 'Please wait while services are started',
+  'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
-  'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait JournalNodes being deployed',
+  'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step8.notice.completed':'JournalNodes has been processed successfully.',
 
   'admin.manageJournalNode.wizard.step3.body':
@@ -1345,7 +1354,7 @@ Em.I18n.translations = {
 
   'admin.manageJournalNode.wizard.step7.body':
   '<div class="alert alert-info">' +
-  '<ol start="3">' +
+  '<ol start="1">' +
   '<li>Login to the Additional NameNode host <b>{1}</b>.<br>' +
   '<div class="alert alert-warn"><strong>Important!</strong> Be sure to login to the Additional NameNode host.<br>This is a different host from previous steps.</div>' +
   '</li>' +
@@ -1691,7 +1700,7 @@ Em.I18n.translations = {
   'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
   'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
 
-  'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
+  'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
   'admin.stackVersions.version.install.confirm': 'You are about to install packages for version <strong>{0}</strong> on all hosts.',
   'admin.stackVersions.version.linkTooltip': 'Click to Edit Repositories',

@@ -68,7 +68,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   /**
    * used in services_config.js view to mark a config with security icon
    */
-  secureConfigs: require('data/HDP2/secure_mapping'),
+  secureConfigs: require('data/configs/wizards/secure_mapping'),
 
   /**
    * If configChangeObserver Modal is shown

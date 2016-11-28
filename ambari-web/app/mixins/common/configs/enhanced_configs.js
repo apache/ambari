@@ -62,6 +62,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   isControllerSupportsEnhancedConfigs: Em.computed.existsIn('name', ['wizardStep7Controller','mainServiceInfoConfigsController']),
 
+  /**
+   * Stores name and file name of changed config
+   * This used only for capacity-scheduler
+   *
+   * @property {object}
+   */
+  currentlyChangedConfig: null,
+
   dependenciesGroupMessage: Em.I18n.t('popup.dependent.configs.dependencies.for.groups'),
   /**
    * message fro alert box for dependent configs
@@ -94,7 +102,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   showSelectGroupsPopup: Em.computed.and('!selectedConfigGroup.isDefault', 'selectedService.dependentServiceNames.length'),
 
   /**
-   * set default values for dependentGroups
+    * set default values for dependentGroups
    * @method setDependentGroups
    */
   setDependentGroups: function () {
@@ -188,6 +196,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
 
       if (!stepConfigs.someProperty('serviceName', 'MISC')) {
         requiredTags.push({site: 'cluster-env', serviceName: 'MISC'});
+      }
+      if (Em.isArray(changedConfigs) && changedConfigs.mapProperty('type').uniq()[0] === 'capacity-scheduler') {
+        this.set('currentlyChangedConfig', {
+          name: 'capacity-scheduler',
+          fileName: 'capacity-scheduler.xml'
+        });
+      } else {
+        this.set('currentlyChangedConfig', null);
       }
 
       if (App.Service.find().someProperty('serviceName', 'HDFS') && !stepConfigs.someProperty('serviceName', 'HDFS')) {
@@ -297,9 +313,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     return Boolean(this.get('selectedConfigGroup.isDefault') && !Em.isNone(this.get('recommendationsConfigs'))
       && !this.get('stepConfigs').filter(function(stepConfig) {
       return stepConfig.get('changedConfigProperties').filter(function(c) {
-        return !this.get('changedProperties').map(function(changed) {
+        var changedConfigIds = this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
-        }).contains(App.config.configId(c.get('name'), c.get('filename')));
+        });
+        if (this.get('currentlyChangedConfig')) {
+          return changedConfigIds.contains(App.config.configId(this.get('currentlyChangedConfig.name'), this.get('currentlyChangedConfig.fileName')));
+        }
+        return !changedConfigIds.contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
     }, this).length);
   },
@@ -519,13 +539,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
       Em.set(config, 'value', recommended);
     }
   },
-  
+
   saveInitialRecommendations: function() {
     this.get('recommendations').forEach(function (r) {
       this.get('initialRecommendations').pushObject(r);
     }, this);
   },
-  
+
   /**
    * disable saving recommended value for current config
    * @param config

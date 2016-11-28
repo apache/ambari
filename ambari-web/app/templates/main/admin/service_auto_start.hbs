@@ -17,61 +17,85 @@
 }}
 
 <div class="admin-auto-start">
-  <div class="header background-text">
-    <strong>{{t admin.serviceAutoStart.header}}</strong>
-  </div>
-  <div>
-    {{t admin.serviceAutoStart.header.text}}
-  </div>
-  <br/>
+  <h4>{{t admin.serviceAutoStart.header}}</h4>
+  <p>{{t admin.serviceAutoStart.header.text}}</p>
   <div class="cluster-switcher row">
-      <div class="col-md-2">
-          <strong>{{t admin.serviceAutoStart.body.text}}</strong>
+    <div class="col-md-2">
+      <strong>{{t admin.serviceAutoStart.body.text}}</strong>
+    </div>
+    <div class="col-md-4">
+      {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
+    </div>
+    <div class="col-md-6">
+      <div class="pull-right operations-button">
+        <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+        <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
-      <div class="col-md-4">
-          {{view App.CheckboxView checkedBinding="view.switcherValue"}}
-      </div>
-      <div class="col-md-6">
-        <div class="pull-right operations-button">
-          <button class="btn btn-default" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
-          <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
-        </div>
-      </div>
+    </div>
   </div>
-    {{#if view.switcherValue}}
-        <hr>
-        <div class="row mlm"><h5 class="col-md-3">{{t common.service}}</h5><h5 class="col-md-3">{{t common.component}}</h5><h5 class="col-md-3">{{t common.status}}</h5></div>
+  {{#if view.isLoaded}}
+    <hr>
+    <div class="row">
+      <div class="col-md-4 col-lg-3">
+        <div class="services-heading">{{t common.service}}</div>
         <div class="row">
-            <ul class="nav nav-tabs nav-stacked col-md-3">
-                {{#each tab in controller.tabs}}
-                    <li {{bindAttr class="tab.isActive:active"}}>
-                        <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
-                            {{tab.display_name}}
-                            {{view App.MainAdminServiceAutoStartIndicatorView tabBinding="tab"}}
-                        </a>
-                    </li>
-                {{/each}}
+          <div class="col-md-12">
+            <ul class="nav nav-tabs nav-stacked nav-tabs-left">
+              {{#each tab in controller.tabs}}
+                <li {{bindAttr class="tab.isActive:active"}}>
+                  <a href="#" data-toggle="tab" {{bindAttr data-target="tab.headingClass"}}>
+                    {{tab.display_name}}
+                    {{view App.MainAdminServiceAutoStartIndicatorView tabBinding="tab"}}
+                  </a>
+                </li>
+              {{/each}}
             </ul>
-            <div class="tab-content col-md-9">
-                {{#each tab in controller.tabs}}
-                    <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name :row :mtm"}}>
-                        {{#each component in tab.componentRecovery}}
-                            <div class="row mbm">
-                                <div class="col-md-4">
-                                    {{component.display_name}}
-                                </div>
-                                <div class="col-md-8">
-                                    {{view App.MainAdminServiceAutoStartComponentView recoveryEnabledBinding="component.recovery_enabled" componentBinding="component" tabBinding="tab"}}
-                                </div>
-                            </div>
-                        {{/each}}
-                        <div class="col-md-offset-4">
-                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
-                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                        </div>
-                    </div>
-                {{/each}}
-            </div>
+          </div>
         </div>
-    {{/if}}
+      </div>
+      <div class="col-md-8 col-lg-9 row">
+        <div class="tab-content col-md-12">
+          {{#each tab in controller.tabs}}
+            <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name"}}>
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th class="col-md-4">
+                      {{t common.component}}
+                    </th>
+                    <th class="col-md-8">
+                      {{t common.status}}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{#each component in tab.components}}
+                    <tr>
+                      <td class="col-md-4">
+                        {{component.displayName}}
+                      </td>
+                      <td class="col-md-8">
+                        {{view App.MainAdminServiceAutoStartComponentView componentBinding="component" tabBinding="tab"}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td class="col-md-4"></td>
+                    <td class="col-md-8">
+                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
+                        {{t common.enableAll}}
+                      </a> |
+                      <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  {{/if}}
 </div>

@@ -17,10 +17,8 @@
  */
 
 var App = require('app');
-var stringUtils = require('utils/string_utils');
 
 App.MainAdminStackAndUpgradeView = Em.View.extend({
-  templateName: require('templates/main/admin/stack_and_upgrade'),
-  classNames: ['col-md-12']
+  templateName: require('templates/main/admin/stack_and_upgrade')
 });
 

@@ -238,32 +238,9 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
-    self.assertResourceCalled('Execute', ('cp',
-                                          '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
-                              path = ['/bin', '/usr/bin/'],
-                              sudo = True,
-                              )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
         mode = 0644,
-    )
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
-                              )
-    self.assertResourceCalled('File', '/tmp/start_metastore_script',
-                              content = StaticFile('startMetastore.sh'),
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa -verbose',
-        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord aaa -verbose'",
-        user = 'hive',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner = 'hive',
@@ -286,6 +263,29 @@ class TestHiveMetastore(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
+                              owner = 'hive',
+                              group = 'hadoop',
+                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
+                              )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+                              content = StaticFile('startMetastore.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord aaa -verbose',
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord aaa -verbose'",
+        user = 'hive',
+    )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hive',
@@ -339,34 +339,9 @@ class TestHiveMetastore(RMFTestCase):
                               group = 'root',
                               mode = 0644,
                               )
-    self.assertResourceCalled('Execute', ('cp',
-                                          '--remove-destination',
-                                          '/usr/share/java/mysql-connector-java.jar',
-                                          '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
-                              path = ['/bin', '/usr/bin/'],
-                              sudo = True,
-                              )
-    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
-        mode = 0644,
-    )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
         mode = 0644,
-    )
-
-    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
-                              owner = 'hive',
-                              group = 'hadoop',
-                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
-                              )
-
-    self.assertResourceCalled('File', '/tmp/start_metastore_script',
-                              content = StaticFile('startMetastore.sh'),
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd -verbose',
-        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord asd -verbose'",
-        user = 'hive',
     )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner = 'hive',
@@ -389,6 +364,30 @@ class TestHiveMetastore(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a',
                               )
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/etc/hive/conf.server/hadoop-metrics2-hivemetastore.properties',
+                              owner = 'hive',
+                              group = 'hadoop',
+                              content = Template('hadoop-metrics2-hivemetastore.properties.j2')
+                              )
+
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+                              content = StaticFile('startMetastore.sh'),
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('Execute', 'export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -initSchema -dbType mysql -userName hive -passWord asd -verbose',
+        not_if = "ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]export HIVE_CONF_DIR=/etc/hive/conf.server ; /usr/hdp/current/hive-server2/bin/schematool -info -dbType mysql -userName hive -passWord asd -verbose'",
+        user = 'hive',
+    )
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
@@ -683,7 +682,32 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
         mode = 0644)
-
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
+        content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+        content = StaticFile('startMetastore.sh'),
+        mode = 0755,
+    )
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar'),
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     u'/tmp/mysql-connector-java.jar',
+     u'/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
     self.assertResourceCalled('Execute', ('cp',
      '/usr/hdp/2.2.7.0-1234/hive/lib/mysql-connector-java.jar',
      '/usr/hdp/2.3.0.0-1234/hive/lib'),
@@ -743,6 +767,25 @@ class TestHiveMetastore(RMFTestCase):
      '--remove-destination',
      '/usr/share/java/mysql-connector-java.jar',
      '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-metastore/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
+        content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+        content = StaticFile('startMetastore.sh'),
+        mode = 0755,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     '/usr/share/java/mysql-connector-java.jar',
+     u'/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
@@ -849,7 +892,34 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
                               mode = 0644,
                               )
-
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/conf/conf.server/hadoop-metrics2-hivemetastore.properties',
+        content = Template('hadoop-metrics2-hivemetastore.properties.j2'),
+        owner = 'hive',
+        group = 'hadoop',
+    )
+    self.assertResourceCalled('File', '/tmp/start_metastore_script',
+        content = StaticFile('startMetastore.sh'),
+        mode = 0755,
+    )
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/tmp/sqla-client-jdbc.tar.gz',
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//sqla-client-jdbc.tar.gz'),
+    )
+    self.assertResourceCalled('Execute', ('tar', '-xvf', u'/tmp/sqla-client-jdbc.tar.gz', '-C', '/tmp'),
+        sudo = True,
+    )
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/hdp/current/hive-server2/lib',)
+    self.assertResourceCalled('Directory', '/usr/hdp/current/hive-server2/lib/native/lib64',
+        create_parents = True,
+    )
+    self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64',)
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R hive:hadoop /usr/hdp/current/hive-server2/lib/*',)
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/sqla-client-jdbc.tar.gz',
+        mode = 0644,
+    )
     self.assertResourceCalled('Execute',
                               ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/*.jar /usr/hdp/2.3.0.0-1234/hive/lib'))
 

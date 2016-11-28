@@ -21,6 +21,8 @@ package org.apache.ambari.logsearch.conf;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class AuthPropsConfig {
 
@@ -38,6 +40,18 @@ public class AuthPropsConfig {
   private String externalAuthLoginUrl;
   @Value("${logsearch.login.credentials.file:user_pass.json}")
   private String credentialsFile;
+  @Value("${logsearch.auth.jwt.enabled:false}")
+  private boolean authJwtEnabled;
+  @Value("${logsearch.auth.jwt.provider_url:}")
+  private String providedUrl;
+  @Value("${logsearch.auth.jwt.public_key:}")
+  private String publicKey;
+  @Value("${logsearch.auth.jwt.cookie.name:hadoop-jwt}")
+  private String cookieName;
+  @Value("${logsearch.auth.jwt.query.param.original_url:originalUrl=}")
+  private String originalUrlQueryParam;
+  @Value("#{'${logsearch.auth.jwt.audiances:}'.split(',')}")
+  private List<String> audiences;
 
   public boolean isAuthFileEnabled() {
     return authFileEnabled;
@@ -93,5 +107,53 @@ public class AuthPropsConfig {
 
   public void setAuthExternalEnabled(boolean authExternalEnabled) {
     this.authExternalEnabled = authExternalEnabled;
+  }
+
+  public boolean isAuthJwtEnabled() {
+    return authJwtEnabled;
+  }
+
+  public void setAuthJwtEnabled(boolean authJwtEnabled) {
+    this.authJwtEnabled = authJwtEnabled;
+  }
+
+  public String getProvidedUrl() {
+    return providedUrl;
+  }
+
+  public void setProvidedUrl(String providedUrl) {
+    this.providedUrl = providedUrl;
+  }
+
+  public String getPublicKey() {
+    return publicKey;
+  }
+
+  public void setPublicKey(String publicKey) {
+    this.publicKey = publicKey;
+  }
+
+  public String getCookieName() {
+    return cookieName;
+  }
+
+  public void setCookieName(String cookieName) {
+    this.cookieName = cookieName;
+  }
+
+  public String getOriginalUrlQueryParam() {
+    return originalUrlQueryParam;
+  }
+
+  public void setOriginalUrlQueryParam(String originalUrlQueryParam) {
+    this.originalUrlQueryParam = originalUrlQueryParam;
+  }
+
+  public List<String> getAudiences() {
+    return audiences;
+  }
+
+  public void setAudiences(List<String> audiences) {
+    this.audiences = audiences;
   }
 }
