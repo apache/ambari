@@ -216,10 +216,6 @@ module.exports = Em.Application.create({
     return (this.get('currentStackVersion') || this.get('defaultStackVersion')).replace(regExp, '');
   }.property('currentStackVersion', 'defaultStackVersion', 'currentStackName'),
 
-  isHadoop23Stack: function () {
-    return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.3") > -1);
-  }.property('currentStackVersionNumber'),
-
   isHadoopWindowsStack: Em.computed.equal('currentStackName', 'HDPWIN'),
 
   /**

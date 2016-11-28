@@ -132,6 +132,42 @@
                 }
               ]
             }
+          },
+          {
+            "name": "hive-database",
+            "display-name": "Database",
+            "layout": {
+              "tab-rows": 1,
+              "tab-columns": 1,
+              "sections": [
+                 {
+                  "name": "hive-database-configurations",
+                  "display-name": "Database Configurations",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "0",
+                  "column-span": "0",
+                  "section-columns": "2",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "hive-database-configurations-col-1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "hive-database-configurations-col-2",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
+            }
           }
         ]
       }
@@ -234,6 +270,34 @@
         {
           "config": "hive-site/hive.server2.use.SSL",
           "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-env/hive_database",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/ambari.hive.db.schema.name",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionUserName",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionURL",
+          "subsection-name": "hive-database-configurations-col-1"
+        },
+        {
+          "config": "hive-env/hive_database_type",
+          "subsection-name": "hive-database-configurations-col-2"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionDriverName",
+          "subsection-name": "hive-database-configurations-col-2"
+        },
+        {
+          "config": "hive-site/javax.jdo.option.ConnectionPassword",
+          "subsection-name": "hive-database-configurations-col-2"
         }
       ]
     },
@@ -431,8 +495,49 @@
         "widget": {
           "type": "list"
         }
+      },
+      {
+        "config": "hive-env/hive_database",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionUserName",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionPassword",
+        "widget": {
+          "type": "password"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionDriverName",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/javax.jdo.option.ConnectionURL",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-site/ambari.hive.db.schema.name",
+        "widget": {
+          "type": "text-field"
+        }
+      },
+      {
+        "config": "hive-env/hive_database_type",
+        "widget": {
+          "type": "text-field"
+        }
       }
     ]
   }
 }
-
