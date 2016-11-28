@@ -166,6 +166,24 @@ def setup_ranger_admin(upgrade_type=None):
 
     Link('/usr/bin/ranger-admin',
     to=format('{ranger_home}/ews/ranger-admin-services.sh'))
+  
+  if default("/configurations/ranger-admin-site/ranger.authentication.method", "") == 'PAM':
+    d = '/etc/pam.d'
+    if os.path.isdir(d):
+        File(format('{d}/ranger-admin'),
+            content=Template('ranger_admin_pam.j2'),
+            owner = params.unix_user,
+            group = params.unix_group,
+            mode=0644
+            )
+        File(format('{d}/ranger-remote'),
+            content=Template('ranger_remote_pam.j2'),
+            owner = params.unix_user,
+            group = params.unix_group,
+            mode=0644
+            )
+    else:
+    	Logger.error("Unable to use PAM authentication, /etc/pam.d/ directory does not exist.")
 
   Execute(('ln','-sf', format('{ranger_home}/ews/ranger-admin-services.sh'),'/usr/bin/ranger-admin'),
     not_if=format("ls /usr/bin/ranger-admin"),

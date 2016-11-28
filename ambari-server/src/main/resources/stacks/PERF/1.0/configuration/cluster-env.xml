@@ -34,7 +34,7 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- Define stack_features property in the base stack. DO NOT override this property for each stack version -->
@@ -50,7 +50,7 @@
       <overridable>false</overridable>
       <visible>false</visible>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <property>
@@ -69,7 +69,7 @@
     <name>security_enabled</name>
     <value>false</value>
     <description>Security</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
 </configuration>

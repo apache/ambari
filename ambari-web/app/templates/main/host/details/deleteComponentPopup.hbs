@@ -18,26 +18,28 @@
 
 <p>{{{deleteComponentMsg}}}</p>
 {{#if lastComponent}}
-  <div class="alert alert-danger row">
-    <div class='tinyspan tinyoffset'>{{view App.CheckboxView checkedBinding="isChecked"}}</div>
-    <div class='col-md-10'>{{{lastComponentError}}}</div>
+  <div class="alert alert-danger">
+    <div class="row row-no-pad">
+      <div class="col-md-1">{{view App.CheckboxView checkedBinding="isChecked"}}</div>
+      <div class="col-md-11">{{{lastComponentError}}}</div>
+    </div>
   </div>
 {{/if}}
 {{#if isZkServer}}
-  <div class='alert alert-warning'>{{{deleteZkServerMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteZkServerMsg}}}</div>
 {{/if}}
 {{#if isHiveMetastore}}
-  <div class='alert alert-warning'>{{{deleteHiveMetastoreMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteHiveMetastoreMsg}}}</div>
 {{/if}}
 {{#if isWebHCatServer}}
-  <div class='alert alert-warning'>{{{deleteWebHCatServerMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteWebHCatServerMsg}}}</div>
 {{/if}}
 {{#if isNimbus}}
-  <div class='alert alert-warning'>{{{deleteNimbusMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteNimbusMsg}}}</div>
 {{/if}}
 {{#if isRangerKMSServer}}
-  <div class='alert alert-warning'>{{{deleteRangerKMSServereMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteRangerKMSServereMsg}}}</div>
 {{/if}}
 {{#if isJournalNode}}
-    <div class='alert alert-warning'>{{{deleteJournalNodeMsg}}}</div>
+  <div class="alert alert-warning">{{{deleteJournalNodeMsg}}}</div>
 {{/if}}

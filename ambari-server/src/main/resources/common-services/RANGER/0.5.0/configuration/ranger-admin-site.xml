@@ -184,7 +184,7 @@
     <name>ranger.authentication.method</name>
     <value>UNIX</value>
     <display-name>Authentication method</display-name>
-    <description>Ranger admin Authentication - UNIX/LDAP/AD/NONE</description>
+    <description>Ranger admin Authentication - UNIX/PAM/LDAP/AD/NONE</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>

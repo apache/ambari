@@ -40,7 +40,7 @@
     </thead>
     <tbody>
     {{#each recommendation in view.parentView.recommendations}}
-      <tr>
+      <tr {{bindAttr class="recommendation.saveRecommended:active"}}>
         <td class="config-dependency-name">{{recommendation.propertyName}}</td>
         <td class="config-dependency-service">{{recommendation.serviceDisplayName}}</td>
         <td class="config-dependency-group">

@@ -24,26 +24,22 @@
       <strong>{{t admin.serviceAutoStart.body.text}}</strong>
     </div>
     <div class="col-md-4">
-      {{view App.CheckboxView checkedBinding="view.switcherValue"}}
+      {{view App.CheckboxView checkedBinding="controller.servicesAutoStart"}}
     </div>
     <div class="col-md-6">
       <div class="pull-right operations-button">
-        <button class="btn btn-default" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+        <button class="btn btn-default" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
         <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
     </div>
   </div>
-    {{#if view.switcherValue}}
-        <hr>
+  {{#if view.isLoaded}}
+    <hr>
+    <div class="row">
+      <div class="col-md-4 col-lg-3">
+        <div class="services-heading">{{t common.service}}</div>
         <div class="row">
-          <div class="col-md-4 col-lg-3"><h5>{{t common.service}}</h5></div>
-          <div class="col-md-8 col-lg-9 row">
-            <div class="col-md-4"><h5>{{t common.component}}</h5></div>
-            <div class="col-md-8"><h5>{{t common.status}}</h5></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-4 col-lg-3">
+          <div class="col-md-12">
             <ul class="nav nav-tabs nav-stacked nav-tabs-left">
               {{#each tab in controller.tabs}}
                 <li {{bindAttr class="tab.isActive:active"}}>
@@ -55,31 +51,51 @@
               {{/each}}
             </ul>
           </div>
-          <div class="tab-content col-md-8 col-lg-9">
-            {{#each tab in controller.tabs}}
-              <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name"}}>
-                <table class="table">
-                {{#each component in tab.componentRecovery}}
+        </div>
+      </div>
+      <div class="col-md-8 col-lg-9 row">
+        <div class="tab-content col-md-12">
+          {{#each tab in controller.tabs}}
+            <div {{bindAttr class=":tab-pane tab.isActive:active tab.service_name"}}>
+              <table class="table table-hover">
+                <thead>
                   <tr>
-                    <td class="col-md-4">
-                      {{component.display_name}}
-                    </td>
-                    <td class="col-md-8">
-                      {{view App.MainAdminServiceAutoStartComponentView recoveryEnabledBinding="component.recovery_enabled" componentBinding="component" tabBinding="tab"}}
-                    </td>
+                    <th class="col-md-4">
+                      {{t common.component}}
+                    </th>
+                    <th class="col-md-8">
+                      {{t common.status}}
+                    </th>
                   </tr>
-                {{/each}}
+                </thead>
+                <tbody>
+                  {{#each component in tab.components}}
+                    <tr>
+                      <td class="col-md-4">
+                        {{component.display_name}}
+                      </td>
+                      <td class="col-md-8">
+                        {{view App.MainAdminServiceAutoStartComponentView componentBinding="component" tabBinding="tab"}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </tbody>
+                <tfoot>
                   <tr>
                     <td class="col-md-4"></td>
                     <td class="col-md-8">
-                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
+                        {{t common.enableAll}}
+                      </a> |
                       <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
                     </td>
                   </tr>
-                </table>
-              </div>
-            {{/each}}
-          </div>
+                </tfoot>
+              </table>
+            </div>
+          {{/each}}
         </div>
-    {{/if}}
+      </div>
+    </div>
+  {{/if}}
 </div>

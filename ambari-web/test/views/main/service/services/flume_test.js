@@ -40,8 +40,6 @@ describe('App.MainDashboardServiceFlumeView', function () {
       ]);
       view.propertyDidChange('content');
       expect(view.get('content').mapProperty('hostName')).to.be.eql(['host1', 'host2']);
-      expect(view.get('content').mapProperty('rowspan')).to.be.eql([1, 2]);
-      expect(view.get('content').mapProperty('firtstAgent')).to.be.eql([{hostName: 'host1'}, {hostName: 'host2'}]);
     });
   });
 
@@ -162,18 +160,27 @@ describe('App.MainDashboardServiceFlumeView', function () {
 
   describe("#showAgentInfo()", function() {
 
+    var host;
+
     beforeEach(function() {
+      host = {hostName: 'host1'};
       sinon.stub(view, 'setAgentMetrics');
+      view.showAgentInfo(host);
     });
     afterEach(function() {
       view.setAgentMetrics.restore();
     });
 
-    it("setAgentMetrics should be called", function() {
-      var host = {hostName: 'host1'};
-      view.showAgentInfo(host);
+    it('setAgentMetrics should be called', function() {
       expect(view.setAgentMetrics.calledWith(host)).to.be.true;
+    });
+
+    it('proper host should be selected', function() {
       expect(view.get('selectedHost')).to.be.eql(host);
+    });
+
+    it('proper row should be highlighted', function() {
+      expect(Em.get(host, 'isActive')).to.be.true;
     });
   });
 });

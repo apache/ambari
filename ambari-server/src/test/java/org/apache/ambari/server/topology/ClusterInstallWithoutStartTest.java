@@ -360,7 +360,7 @@ public class ClusterInstallWithoutStartTest {
     expectLastCall().once();
 
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
-    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture);
+    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture).times(2);
 
     persistedTopologyRequest = new PersistedTopologyRequest(1, request);
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,

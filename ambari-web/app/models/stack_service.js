@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils');
 require('utils/helper');
 require('models/configs/objects/service_config_category');
 
@@ -179,7 +180,17 @@ App.StackService = DS.Model.extend({
       });
     }
     return configCategories;
-  }.property('serviceName', 'configTypes', 'serviceComponents')
+  }.property('serviceName', 'configTypes', 'serviceComponents'),
+
+  /**
+   * Compare specified version with current service version
+   * @param  {string} version [description]
+   * @return {number} 0 - equal, -1 - less, +1 - more @see stringUtils#compareVersions
+   */
+  compareCurrentVersion: function(version) {
+    var toMinor = this.get('serviceVersion').split('.').slice(0, 2).join('.');
+    return stringUtils.compareVersions(toMinor, version);
+  }
 });
 
 App.StackService.FIXTURES = [];

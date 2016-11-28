@@ -604,7 +604,7 @@ define([
                 });
           }
           //Templated Variables for Storm Components per Topology
-          if (interpolated.includes("stormComponent")) {
+          if (interpolated.indexOf("stormComponent") >= 0) {
             var componentName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.initMetricAppidMapping()
                 .then(function () {
@@ -657,7 +657,7 @@ define([
                 });
           };
           //Templated Variables for Storm Topics per Topology
-          if (interpolated.includes("stormTopic")) {
+          if (interpolated.indexOf("stormTopic") >= 0) {
             var topicName = interpolated.substring(0,interpolated.indexOf('.'));
             return this.getStormEntities().then(function () {
               var topicNames = Object.keys(stormEntities[topicName]);
@@ -669,7 +669,7 @@ define([
             });
           }
           //Templated Variables for Storm Partitions per Topic
-          if (interpolated.includes("stormPartition")) {
+          if (interpolated.indexOf("stormPartition") >= 0) {
             var topicN, topologyN;
             return this.getStormEntities().then(function () {
               var partitionNames = _.uniq(stormEntities[topologyN][topicN]);

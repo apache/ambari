@@ -40,7 +40,7 @@
               <a {{translateAttr title="common.openNewWindow"}} {{action openOutLog target="view"}} class="task-detail-open-dialog pull-right">
                 <i class="icon-external-link"></i> {{t common.open}}
               </a>
-              <a title="Click to Copy" {{action copyOutLog view.content target="view"}} class="task-detail-copy pull-right">
+              <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action copyOutLog view.content target="view"}} class="task-detail-copy pull-right">
                 <i class="glyphicon glyphicon-copy"></i> {{t common.copy}}
               </a>
             </div>
@@ -56,7 +56,7 @@
               <a {{translateAttr title="common.openNewWindow"}} {{action openErrorLog target="view"}} class="task-detail-open-dialog pull-right">
                 <i class="icon-external-link"></i> {{t common.open}}
               </a>
-              <a title="Click to Copy" {{action copyErrLog view.content target="view"}} class="task-detail-copy pull-right">
+              <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action copyErrLog view.content target="view"}} class="task-detail-copy pull-right">
                 <i class="glyphicon glyphicon-copy"></i> {{t common.copy}}
               </a>
             </div>

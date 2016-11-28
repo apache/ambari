@@ -47,6 +47,12 @@ describe('App.FlumeAgent', function () {
     UNKNOWN: App.healthIconClassYellow
   }});
 
+  App.TestAliases.testAsComputedGetByKey(getModel(), 'healthIconClass', 'healthIconClassMap', 'status', {defaultValue: '', map: {
+    RUNNING: 'health-status-LIVE',
+    NOT_RUNNING: 'health-status-DEAD-RED',
+    UNKNOWN: 'health-status-DEAD-YELLOW'
+  }});
+
   App.TestAliases.testAsComputedGetByKey(getModel(), 'displayStatus', 'displayStatusMap', 'status', {defaultValue: Em.I18n.t('common.unknown'), map: {
     RUNNING: Em.I18n.t('common.running'),
     NOT_RUNNING: Em.I18n.t('common.stopped'),

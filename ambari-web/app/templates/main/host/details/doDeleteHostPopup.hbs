@@ -16,29 +16,29 @@
 * limitations under the License.
 }}
 {{#if unknownComponents}}
-  {{t hosts.delete.popup.unknownComponents}}
-  <br /><br />
-  <div class='row'>
-    <div class='tinyoffset col-md-10'>
-      <i>{{unknownComponents}}</i>
+  <div class="row">
+    <div class="col-md-12">
+      <p>{{t hosts.delete.popup.unknownComponents}}<br /><i>{{unknownComponents}}</i></p>
     </div>
   </div>
-  <br />
 {{/if}}
 <p><i class="glyphicon glyphicon-warning-sign"></i> {{{deletePopupBody}}}</p>
 {{#if lastComponent}}
-    <div class="alert alert-danger row">
-        <div class='tinyspan tinyoffset'>{{view App.CheckboxView checkedBinding="isChecked"}}</div>
-        <div class='col-md-10'>{{view lastComponentError}}</div>
+  <div class="alert alert-danger">
+    <div class="row row-no-pad">
+      <div class="col-md-1">{{view App.CheckboxView checkedBinding="isChecked"}}</div>
+      <div class="col-md-10">{{view lastComponentError}}</div>
     </div>
+  </div>
 {{/if}}
-<br />
+
 {{#if toDecommissionComponents.length}}
-  <div class='alert alert-warning'>
+  <div class="alert alert-warning">
     {{view decommissionWarning}}
   </div>
 {{/if}}
-<div class='alert alert-warning'>{{{t common.important.strong}}}
+
+<div class="alert alert-warning">{{{t common.important.strong}}}
   {{#if unknownComponents}}
     {{t hosts.delete.popup.body.msg.unknownComponents}}
   {{/if}}
@@ -46,12 +46,11 @@
 </div>
 
 {{#unless unknownComponents}}
-  <div class='alert alert-warning'>
-  <!-- Agent is still online, so host record will be re-inserted on next heartbeat. -->
-  {{t hosts.delete.popup.body.msg5}}
-  <span class="text-danger">{{t hosts.delete.popup.body.msg6}}</span>
+  <div class="alert alert-warning">
+    <!-- Agent is still online, so host record will be re-inserted on next heartbeat. -->
+    {{t hosts.delete.popup.body.msg5}}
+    <span class="text-danger">{{t hosts.delete.popup.body.msg6}}</span>
   </div>
 {{/unless}}
 
-
-<div class='alert alert-warning'>{{{t common.important.strong}}} {{t hosts.delete.popup.body.msg3}}</div>
+<div class="alert alert-warning">{{{t common.important.strong}}} {{t hosts.delete.popup.body.msg3}}</div>

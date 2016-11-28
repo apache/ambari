@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
-
 /*
 sign will be compared like: <clusterSelectedStackVersion> sign <stackVersionNumber> if true use this baseStackFolder
 Example:

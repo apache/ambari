@@ -49,7 +49,7 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend(App.Blueprint
    */
   renderConfigs: function () {
 
-    var configs = $.extend(true, {}, require('data/HDP2/rm_ha_properties').haConfig);
+    var configs = $.extend(true, {}, require('data/configs/wizards/rm_ha_properties').haConfig);
 
     var serviceConfig = App.ServiceConfig.create({
       serviceName: configs.serviceName,

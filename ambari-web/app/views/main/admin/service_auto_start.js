@@ -20,49 +20,26 @@ var App = require('app');
 
 App.MainAdminServiceAutoStartView = Em.View.extend({
   templateName: require('templates/main/admin/service_auto_start'),
-  /**
-   * Value used in the checkbox.
-   *
-   * @property switcherValue
-   * @type {boolean}
-   */
-  switcherValue: false,
 
-  savedRecoveryEnabled: false,
+  /**
+   * @type {boolean}
+   * @default false
+   */
+  isLoaded: false,
 
   didInsertElement: function () {
     var self = this;
-    this.get('controller').loadClusterConfig().done(function (data) {
-      var tag = [
-        {
-          siteName: 'cluster-env',
-          tagName: data.Clusters.desired_configs['cluster-env'].tag,
-          newTagName: null
-        }
-      ];
-      App.router.get('configurationController').getConfigsByTags(tag).done(function (data) {
-        self.set('controller.clusterConfigs', data[0].properties);
-        self.set('switcherValue', data[0].properties.recovery_enabled === 'true');
-        self.set('savedRecoveryEnabled', self.get('switcherValue'));
-        // plugin should be initiated after applying binding for switcherValue
-        Em.run.later('sync', function() {
-          self.initSwitcher();
-        }.bind(self), 10);
-        self.get('controller').loadComponentsConfigs();
-      });
+    this.get('controller').load().then(function() {
+      self.set('isLoaded', true);
+      self.initSwitcher();
     });
   },
 
-  /**
-   * Init switcher plugin.
-   *
-   * @method initSwitcher
-   */
-  updateClusterConfigs: function (state){
-    this.set('switcherValue', state);
-    this.set('controller.clusterConfigs.recovery_enabled', '' + state);
-    this.set('controller.valueChanged', this.get('savedRecoveryEnabled') !== state);
-  },
+  onValueChange: function () {
+    if (this.get('switcher')) {
+      this.get('switcher').bootstrapSwitch('state', this.get('controller.servicesAutoStart'));
+    }
+  }.observes('controller.servicesAutoStart'),
 
   /**
    * Init switcher plugin.
@@ -71,17 +48,19 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
    */
   initSwitcher: function () {
     var self = this;
-    if (this.$()) {
-      this.$("input:eq(0)").bootstrapSwitch({
+    if (this.$) {
+      this.set('switcher', this.$("input:eq(0)").bootstrapSwitch({
+        state: self.get('controller.servicesAutoStart'),
         onText: Em.I18n.t('common.enabled'),
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
         onColor: 'success',
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
-          self.updateClusterConfigs(state);
+          self.set('controller.servicesAutoStart', state);
+          self.get('controller').valueChanged();
         }
-      });
+      }));
     }
   }
 });

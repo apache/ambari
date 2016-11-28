@@ -1246,7 +1246,7 @@ class ActionScheduler implements Runnable {
               hostRoleCommand.getStatus() == HostRoleStatus.IN_PROGRESS) {
           CancelCommand cancelCommand = new CancelCommand();
           cancelCommand.setTargetTaskId(hostRoleCommand.getTaskId());
-          cancelCommand.setReason("");
+          cancelCommand.setReason("Stage timeout");
           actionQueue.enqueue(hostRoleCommand.getHostName(), cancelCommand);
         }
       }

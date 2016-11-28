@@ -22,7 +22,7 @@
   </div>
 
   <div {{bindAttr class="view.isLoaded::hidden :row"}}>
-    <div class="col-md-3 task-list-main-warp">{{statusIcon controller.requestStatus}}
+    <div class="col-md-3 task-list-main-wrap">{{statusIcon controller.requestStatus}}
       &nbsp;{{view.upgradeStatusLabel}}</div>
     <div class="col-md-8">
       {{view App.ProgressBarView
@@ -35,7 +35,7 @@
     </div>
   </div>
 
-  <div class="task-list scrollable-block task-list-main-warp">
+  <div class="task-list scrollable-block task-list-main-wrap">
     {{#if view.isLoaded}}
       <div>
         {{#if view.runningItem}}

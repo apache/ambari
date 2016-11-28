@@ -63,6 +63,8 @@ App.InputHostView = Em.TextField.extend(App.SelectHost, {
    */
   typeahead: null,
 
+  classNames: ['form-control'],
+
   /**
    * When <code>value</code> (host_info) is changed this method is triggered
    * If new hostname is valid, this host is assigned to master component
@@ -173,7 +175,7 @@ App.AddControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge"],
+  classNames: ["label", 'extra-component'],
 
   classNameBindings: ['uniqueId'],
 
@@ -212,7 +214,7 @@ App.RemoveControlView = Em.View.extend({
 
   tagName: "span",
 
-  classNames: ["badge"],
+  classNames: ["label", 'extra-component'],
 
   template: Em.Handlebars.compile('-'),
 

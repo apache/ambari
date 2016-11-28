@@ -60,7 +60,7 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
    */
   renderConfigs: function () {
 
-    var configs = require('data/HDP2.3/hawq_ha_properties').haConfig;
+    var configs = require('data/configs/wizards/hawq_ha_properties').haConfig;
 
     var serviceConfig = App.ServiceConfig.create({
       serviceName: configs.serviceName,
@@ -157,4 +157,3 @@ App.AddHawqStandbyWizardStep3Controller = Em.Controller.extend({
   },
 
 });
-

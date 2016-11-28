@@ -24,34 +24,43 @@
   {{#if view.isNoTasksScheduled}}
     {{t installer.step9.host.status.noTasks}}
   {{else}}
-    <div {{bindAttr class="view.isLogWrapHidden::hidden :task-list-main-warp"}}>
-      <div class="task-top-wrap">
-        <div class="task-name-top task-detail-log-rolename">{{t common.tasks}}</div>
-        <div class="select-wrap">
-          {{t common.show}}:
-          {{view Ember.Select
-          class="form-control"
-          contentBinding="view.categories"
-          optionValuePath="content.value"
-          optionLabelPath="content.label"
-          selectionBinding="view.category"
-          }}
+    <div {{bindAttr class="view.isLogWrapHidden::hidden :task-list-main-wrap :table-body-wrap"}}>
+      <div class="row">
+        <h2 class="table-title col-sm-2">{{t common.tasks}}</h2>
+        <div class="table-controls row col-sm-10 pull-right">
+          <div class="col-sm-12">
+            <div class="btn-group pull-right">
+              {{view Ember.Select
+                classNames="form-control"
+                contentBinding="view.categories"
+                optionValuePath="content.value"
+                optionLabelPath="content.label"
+                selectionBinding="view.category"
+              }}
+            </div>
+          </div>
         </div>
       </div>
       <div id="host-log">
-        {{#each taskInfo in view.tasks}}
-          <div {{bindAttr class="taskInfo.isVisible::hidden :log-list-wrap"}}>
-            <div {{action toggleTaskLog taskInfo}} class="task-list-line-cursor">
-              <div class="operation-name-icon-wrap">
-                <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
-                <a href="#">
-                  {{taskInfo.commandDetail}}
-                </a>
-              </div>
-              <div class="show-details"><i class="glyphicon glyphicon-caret-right"></i></div>
-            </div>
-          </div>
-        {{/each}}
+        <table class="table table-hover">
+          <tbody>
+            {{#each taskInfo in view.tasks}}
+              <tr {{action toggleTaskLog taskInfo}} {{bindAttr class="taskInfo.isVisible::hidden :pointer"}}>
+                <td class="col-sm-3">
+                  <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
+                  <a href="#">
+                    {{taskInfo.commandDetail}}
+                  </a>
+                </td>
+                <td class="col-sm-9 text-right">
+                  <a class="action" href="#">
+                    <span class="icon icon-caret-right"></span>
+                  </a>
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
         {{#if view.isEmptyList}}
           <div class="log-list-wrap">{{t installer.step9.hostLog.popup.noTasksToShow}}</div>
         {{/if}}
@@ -60,20 +69,25 @@
 
     <div {{bindAttr class="view.isLogWrapHidden:hidden :task-detail-info"}}>
       <div class="task-top-wrap">
-        <a class="task-detail-back" href="javascript:void(null)" {{action backToTaskList}} ><i
-                class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.tasks}}</a>
-
-        <div>
-          <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
-          <div class="task-detail-ico-wrap">
-            <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="glyphicon glyphicon-copy"></i> {{t common.copy}}</a>
-            <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="glyphicon icon-external-link"></i> {{t common.open}}</a>
-          </div>
-          <span class="task-detail-log-rolename">
+        <div class="row">
+          <h2 class="table-title col-sm-5">
+            <i {{bindAttr class="view.openedTask.status :task-detail-status-ico view.openedTask.icon"}}></i>
             {{view.openedTask.commandDetail}}
-          </span>
+          </h2>
+          <div class="table-controls row col-sm-7 pull-right">
+            <div class="col-sm-12">
+              <button type="button" class="btn btn-link pull-right" {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}}>
+                <i class="icon icon-external-link"></i>&nbsp;{{t common.open}}
+              </button>
+              <button type="button" class="btn btn-link pull-right" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}}>
+                <i class="glyphicon glyphicon-copy"></i>&nbsp;{{t common.copy}}
+              </button>
+              <button type="button" class="btn btn-link pull-right" {{action backToTaskList}}>
+                <i class="glyphicon glyphicon-arrow-left"></i>&nbsp;{{t common.tasks}}
+              </button>
+            </div>
+          </div>
         </div>
-
       </div>
       {{#if view.isTaskLoaded}}
           <div class="task-detail-log-info">

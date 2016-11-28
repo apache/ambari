@@ -461,16 +461,6 @@ table.diff {
   }
 }
 
-.row .tinyoffset {
-  margin-left: 3%!important;
-}
-
-.row .tinyspan {
-  width: 2%!important;
-  *width: 1.95%!important;
-  float: none;
-}
-
 .hidden-scroll {
   overflow-y: hidden;
 }
@@ -878,11 +868,7 @@ a:focus {
 }
 
 /*****start styles for install tasks logs*****/
-.task-list-main-warp, .task-detail-info {
-  i {
-    font-size: 20px;
-    vertical-align: middle;
-  }
+.task-list-main-wrap, .task-detail-info {
   .pending, .queued {
     color: #999;
   }
@@ -900,11 +886,7 @@ a:focus {
   }
 }
 
-.task-list-main-warp {
-
-  .task-list-line-cursor {
-    cursor: pointer;
-  }
+.task-list-main-wrap {
 
   .request-schedule-abort {
     margin-top: 7px;
@@ -914,95 +896,16 @@ a:focus {
   }
 
   .task-top-wrap {
-
     width: 100%;
     border-bottom: 1px solid #CCC;
-    text-align: center;
     font-size: 15px;
     height: 40px;
-
-    .task-detail-back-to-hosts {
-      float: left;
-    }
-
-    .select-wrap {
-      float: right;
-      margin-top: -8px;
-      select {
-        width: 140px;
-      }
-    }
-
-    .tasks-list-select{
-      //margin-top: -28px;
-    }
-
-    .task-name-top {
-      width: 23%;
-      padding-left: 20px;
-    }
-    .start-time-top {
-      width: 20%;
-      padding-left: 5px;
-    }
-    .duration-top {
-      width: 10%;
-      padding-left: 5px;
-    }
-    .task-name-top,.start-time-top,.duration-top {
-      float: left;
-      text-align: left;
-    }
-
-
   }
 
   #host-log {
     max-height: 340px;
     overflow: auto;
     width: 100%;
-    .log-list-wrap {
-      padding: 10px 10px 10px 20px;
-      border-top: 1px solid #CCC;
-      border-bottom: 1px solid #CCC;
-      .show-details {
-        float: right;
-        cursor: pointer;
-        font-size: 16px;
-
-        i {
-          color: #333;
-        }
-      }
-
-      .task-list-line-cursor:before,.task-list-line-cursor:after {
-        display: table;
-        line-height: 0;
-        content: "";
-      }
-      .task-list-line-cursor:after {
-        clear: both;
-      }
-      .operation-name-icon-wrap {
-        float: left;
-        width: 35%;
-      }
-      .start-time-text {
-        margin-left: 5px;
-        width: 20%;
-        float: left;
-      }
-      .duration-text {
-        margin-left: 5px;
-        width: 10%;
-        float: left;
-      }
-      .time-summary {
-        padding-left: 0;
-        color: #808080;
-        font-size: 12px;
-      }
-    }
   }
 }
 
@@ -1036,19 +939,9 @@ a:focus {
   .task-top-wrap {
     width: 100%;
     border-bottom: 1px solid #CCC;
-    text-align: center;
     font-size: 15px;
     padding: 0 0 10px 0;
 
-    .task-detail-back {
-      float: left;
-    }
-
-    .task-detail-log-rolename {
-      position: relative;
-      left: 0;
-      top: 0;
-    }
     .task-detail-status-ico {
       content: "";
       margin-top: -4px;
@@ -1168,22 +1061,6 @@ a:focus {
     .tab-marker-position (@health-status-yellow);
   }
 
-  .summary-view-host{
-    float: right;
-    padding-right: 20px;
-    a {
-      text-decoration: none;
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-    .category-name {
-      cursor: pointer;
-      color: #23527c;
-      font-size: 14px;
-      margin-left: 10px;
-    }
-  }
   .service-summary-component-red-dead {
     color: @health-status-red;
     display: inline;
@@ -1212,30 +1089,6 @@ a:focus {
     &:hover {
       text-decoration: none;
     }
-  }
-}
-
-#security-stages {
-  tr {
-    height: 50px;
-  }
-  td {
-    width: 180px;
-  }
-  .progress-wrapper {
-    width: 50%;
-    .progress {
-      margin-bottom: 0;
-    }
-  }
-  .progress-percentage {
-    margin-left: 10px;
-  }
-  a.remove-link {
-    text-decoration:none;
-    pointer-events: none;
-    color:black;
-    cursor: default;
   }
 }
 
@@ -1591,14 +1444,6 @@ table.graphs {
   border-radius: 4px;
   padding: 4px;
   background: #FFFDF6;
-  .warning-details {
-    padding-left: 16px;
-    padding-top: 5px;
-  }
-  .warning-list {
-    font-size: 0.95em;
-    font-style: italic;
-  }
 }
 
 .services-menu {
@@ -1616,6 +1461,12 @@ table.graphs {
   .nav i {
     margin-top: 0;
     color: @green;
+  }
+  .services-heading {
+    padding: 8px;
+    color: #999;
+    font-size: 13px;
+    font-weight: bold;
   }
 }
 
@@ -1660,68 +1511,10 @@ ul.filter {
 
 /*start charts rack*/
 .rack {
-  vertical-align: top;
-  border: 1px solid #D4D4D4;
-  margin-bottom: 10px;
-  margin-top:5px;
-  background-color: #fff;
 
   .rackHeader {
-    background-color: #F7F7F7;
     padding: 5px 5px 5px 10px;
-    border-bottom: 1px solid #D4D4D4;
-
-    .statusName {
-      font-size: 15px;
-      color: #006F9F;
-      text-shadow: #fff 0 0 1px;
-      font-weight: bold;
-      vertical-align: top;
-    }
-    .toggler {
-      background-repeat: no-repeat;
-      background-image: @rack-state-toggler;
-      display: block;
-      height: 22px;
-      position: relative;
-      width: 32px;
-      float: right;
-
-      span {
-        background-repeat: no-repeat;
-        background-image: @rack-state-plus;
-        display: block;
-        height: 17px;
-        left: 7px;
-        position: absolute;
-        top: 3px;
-        width: 18px;
-      }
-
-      span.isActive {
-        background-image: @rack-state-minus !important;
-        top: 10px;
-      }
-    }
-  }
-  .hostsSummary {
-    border-left: 1px solid #CDCDCD;
-    border-right: 1px solid #CDCDCD;
-    border-bottom: 1px solid #9f9f9f;
-    background-color: #f7f8fa;
-    font-size: 12px;
-    padding: 4px 0 4px 9px;
-    .textBlock {
-      color: #000;
-      padding-right: 10px;
-
-      div {
-        height: 12px;
-        margin: 0 3px 0 0;
-        width: 12px;
-        display: inline-block;
-      }
-    }
+    color: #006F9F;
   }
   .indicatorR {
     background-color: #E2001A;
@@ -1734,103 +1527,23 @@ ul.filter {
   .indicatorG {
     background-color: #88BF67;
   }
-  .statusIndicator {
-    display: inline-block;
-    width: 20px;
-    height: 19px;
-    margin-right: 10px;
-    margin-top: 4px;
-    float: left;
-    background-repeat: no-repeat;
-  }
-  .rackName {
-    margin-top: 4px;
-    float: left;
-  }
-  .statusIndicator.LIVE {
-    background-image: @rack-status-live;
-  }
-
-  .statusIndicator.CRITICAL {
-    background-image: @rack-status-critical;
-  }
-
-  .statusIndicator.DEAD {
-    background-image: @rack-status-dead;
-  }
 
   .hosts {
-    padding: 4px;
-    overflow: hidden;
-    display: none;
+    padding: 2px 15px;
 
-    .ember-view {
-      float: left;
-      width: 100%;
-      height: 43px;
-
-      .hostBlock {
-        height: 38px;
-        position: relative;
-        border: 1px solid #D4D4D4;
-        margin-right: 3px;
-      }
-    }
     .hostBlock {
+      height: 38px;
+      border: 1px solid #D4D4D4;
       border-radius: 4px;
     }
-    .hostBlock.HEALTHY {
-      background-color: #87BE73;
-    }
-    .hostBlock.UNHEALTHY {
-      background-color: #E40024;
-    }
-    .hostBlock.CRITICAL {
-      background: #F39236;
-    }
-    .ember-view:hover {
-    }
-  }
-
-  .hosts.isActive {
-    display: block;
   }
 }
 
 /*Start Heatmap*/
 .heatmap {
-  li.heatmap-metrics-dropdown-links{
-    cursor: pointer;
-  }
-  .rack.rack-5-2 {
-    .hosts {
-      height: 86px;
-    }
-  }
-  .rack.rack-5-4 {
-    .hosts {
-      height: 172px;
-    }
-  }
-  .rack.rack-5-6 {
-    .hosts {
-      height: 258px;
-    }
-  }
-  .rack.rack-5-8 {
-    .hosts {
-      height: 344px;
-    }
-  }
-  .rack.rack-5-10 {
-    .hosts {
-      height: 430px;
-    }
-  }
 
   .heatmap_host_details {
-    font-size: 12px;
-    line-height: 1.6em;
+
     border: 1px solid #D9D9D9;
     background: #f9f9f9;
     width: 280px;
@@ -1838,9 +1551,7 @@ ul.filter {
     position: absolute;
     z-index: 1000;
   }
-  .container-fluid {
-    padding: 0;
-  }
+
   .legend {
     margin-top: 20px;
     margin-bottom: 20px;
@@ -1857,9 +1568,6 @@ ul.filter {
     }
   }
 
-  h4 {
-    color: #777;
-  }
   .heatmap-host {
     display: block;
     width: 100%;
@@ -2472,86 +2180,60 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 }
 
 #flume-summary {
-  text-align:left !important;
   max-height: 490px;
-  #flume-agents-table {
+  .table {
     margin: 0;
-    width: 100%;
-    .highlight {
-      td, th {
-        background-color: #BDC3C7 !important;
-        color: #666;
+    table-layout: fixed;
+  }
+  #flume-agents-table {
+    border-collapse: separate;
+    > tbody > tr > td {
+      &:last-of-type {
+        padding: 0;
+        &.empty-label {
+          padding: 8px;
+          text-align: center;
+        }
       }
     }
     th:first-child {
       width: 40%;
+      + th {
+        width: 30%;
+        ~ th {
+          width: 10%;
+        }
+      }
     }
-    th:first-child + th {
-      width: 30%;
-    }
-    th:first-child + th + th {
-      width: 10%;
-    }
-    th:first-child + th + th + th {
-      width: 10%;
-    }
-    th:first-child + th + th + th + th {
-      width: 10%;
-    }
-    td.agent-status {
-      width: 125px;
-    }
-    td.agent-name {
-      width: 20%;
-      overflow: hidden;
-    }
-    td.agent-host-name {
-      width: 20%;
-      overflow: hidden;
-      max-width: 90px;
-    }
-    .glyphicon-warning-sign {
-      color: @restart-indicator-color;
-    }
-    #flume-host-agent-row {
-      cursor: pointer;
-      text-align: left;
-      background-color: #fff;
-    }
-    .empty-label {
-      border-top: 1px solid #ddd;
-      text-align: center;
-    }
-  }
-  .wrapp-flume-status{
-    text-align: left;
-  }
-  .btn-wrapper {
-    margin: 0 5px 5px 0;
-    float: right;
-    width:60px;
-    position: static;
-  }
-  .flume-agents-actions {
-    .btn-group {
-      position: static;
-    }
-    a {
-      text-decoration: none;
-    }
-    a.dropdown-toggle {
-      padding: 2px 6px;
-      font-size: 11px;
-      line-height: 17px;
-    }
-    .dropdown-menu {
-      position: absolute;
+    td {
+      &.agent-host-name {
+        overflow: hidden;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+      }
+      &.agent-status {
+        width: 50%;
+      }
+      &.flume-agent-sources-count, &.flume-agent-channels-count {
+        width: 16.667%;
+      }
+      &.flume-agent-sink-count {
+        width: 16.666%;
+      }
+      .flume-agents-actions {
+        .btn-group {
+          position: static;
+        }
+        a {
+          text-decoration: none;
+        }
+      }
     }
   }
   .scrollable-container {
+    position: static;
     max-height: 450px;
-    width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
   }
 }
 
@@ -2884,4 +2566,20 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
 
 .side-menu-well {
   padding: 8px 0;
+}
+
+.table-body-wrap {
+  table {
+    table-layout: fixed;
+    margin-bottom: 0;
+  }
+}
+
+table.table.inner-table {
+  margin-bottom: 0;
+  background-color: transparent;
+}
+
+a.abort-icon:hover {
+  text-decoration: none;
 }

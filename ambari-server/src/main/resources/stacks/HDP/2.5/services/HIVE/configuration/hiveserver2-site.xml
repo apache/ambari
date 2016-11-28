@@ -26,6 +26,14 @@ limitations under the License.
     <on-ambari-upgrade add="true"/>
   </property>
   <property>
+    <name>hive.server2.metrics.enabled</name>
+    <value>true</value>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="false"/>
+  </property>
+  <property>
     <name>hive.service.metrics.reporter</name>
     <value>JSON_FILE, JMX, HADOOP2</value>
     <on-ambari-upgrade add="true"/>

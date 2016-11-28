@@ -100,7 +100,7 @@
           <tbody>
             {{#if view.pageContent}}
               {{#each entry in view.pageContent}}
-                <tr {{bindAttr class="entry.filtered::hidden"}}>
+                <tr {{bindAttr class="entry.filtered::hidden entry.selected:active"}}>
                   <td width="35%">
                     {{entry.label}}
                   </td>

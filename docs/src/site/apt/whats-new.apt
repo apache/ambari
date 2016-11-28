@@ -16,7 +16,7 @@
 
 What's New with Ambari?
 
-  * The latest release of Ambari is Ambari 2.4.1. This is a maintainenance release of Ambari 2.4.0.
+  * The latest release of Ambari is Ambari 2.4.2. This is a maintainenance release of Ambari 2.4.0.
 
   * Ambari 2.4.0 added the following features:
 
@@ -51,7 +51,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.4.1} how to install a Hadoop cluster using Ambari 2.4.1}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.4.2} how to install a Hadoop cluster using Ambari 2.4.2}}.
 
 Stay Tuned
 

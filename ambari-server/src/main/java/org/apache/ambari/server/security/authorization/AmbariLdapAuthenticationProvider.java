@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -24,7 +24,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -72,17 +71,21 @@ public class AmbariLdapAuthenticationProvider implements AuthenticationProvider 
 
         return new AmbariAuthentication(auth, userId);
       } catch (AuthenticationException e) {
-        LOG.debug("Got exception during LDAP authentification attempt", e);
+        LOG.debug("Got exception during LDAP authentication attempt", e);
         // Try to help in troubleshooting
         Throwable cause = e.getCause();
-        if (cause != null) {
-          // Below we check the cause of an AuthenticationException . If it is
-          // caused by another AuthenticationException, than probably
-          // the problem is with LDAP ManagerDN/password
-          if ((cause != e) && (cause instanceof
-                  org.springframework.ldap.AuthenticationException)) {
+        if ((cause != null) && (cause != e)) {
+          // Below we check the cause of an AuthenticationException to see what the actual cause is
+          // and then send an appropriate message to the caller.
+          if (cause instanceof org.springframework.ldap.CommunicationException) {
+            if (LOG.isDebugEnabled()) {
+              LOG.warn("Failed to communicate with the LDAP server: " + cause.getMessage(), e);
+            } else {
+              LOG.warn("Failed to communicate with the LDAP server: " + cause.getMessage());
+            }
+          } else if (cause instanceof org.springframework.ldap.AuthenticationException) {
             LOG.warn("Looks like LDAP manager credentials (that are used for " +
-                    "connecting to LDAP server) are invalid.", e);
+                "connecting to LDAP server) are invalid.", e);
           }
         }
         throw new InvalidUsernamePasswordCombinationException(e);

@@ -606,18 +606,18 @@
           ]
         },
         {
-          "config": "application-properties/atlas.sso.enabled",
+          "config": "application-properties/atlas.sso.knox.enabled",
           "subsection-name": "subsection-authentication-type"
         },
         {
-          "config": "application-properties/atlas.sso.providerurl",
+          "config": "application-properties/atlas.sso.knox.providerurl",
           "subsection-name": "subsection-atlas-sso",
           "depends-on": [
             {
               "configs":[
-                "application-properties/atlas.sso.enabled"
+                "application-properties/atlas.sso.knox.enabled"
               ],
-              "if": "${application-properties/atlas.sso.enabled}",
+              "if": "${application-properties/atlas.sso.knox.enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -632,14 +632,14 @@
           ]
         },
         {
-          "config": "application-properties/atlas.sso.publicKey",
+          "config": "application-properties/atlas.sso.knox.publicKey",
           "subsection-name": "subsection-atlas-sso",
           "depends-on": [
             {
               "configs":[
-                "application-properties/atlas.sso.enabled"
+                "application-properties/atlas.sso.knox.enabled"
               ],
-              "if": "${application-properties/atlas.sso.enabled}",
+              "if": "${application-properties/atlas.sso.knox.enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -654,14 +654,14 @@
           ]
         },
         {
-          "config": "application-properties/atlas.sso.browser.useragent",
+          "config": "application-properties/atlas.sso.knox.browser.useragent",
           "subsection-name": "subsection-atlas-sso",
           "depends-on": [
             {
               "configs":[
-                "application-properties/atlas.sso.enabled"
+                "application-properties/atlas.sso.knox.enabled"
               ],
-              "if": "${application-properties/atlas.sso.enabled}",
+              "if": "${application-properties/atlas.sso.knox.enabled}",
               "then": {
                 "property_value_attributes": {
                   "visible": true
@@ -817,25 +817,25 @@
         }
       },
       {
-        "config": "application-properties/atlas.sso.enabled",
+        "config": "application-properties/atlas.sso.knox.enabled",
         "widget": {
           "type":"checkbox"
         }
       },
       {
-        "config": "application-properties/atlas.sso.providerurl",
+        "config": "application-properties/atlas.sso.knox.providerurl",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "application-properties/atlas.sso.publicKey",
+        "config": "application-properties/atlas.sso.knox.publicKey",
         "widget": {
           "type": "text-field"
         }
       },
       {
-        "config": "application-properties/atlas.sso.browser.useragent",
+        "config": "application-properties/atlas.sso.knox.browser.useragent",
         "widget": {
           "type": "text-field"
         }
