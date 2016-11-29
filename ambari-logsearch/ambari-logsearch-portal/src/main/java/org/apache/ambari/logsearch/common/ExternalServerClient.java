@@ -23,9 +23,11 @@ import javax.inject.Named;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.ambari.logsearch.conf.AuthPropsConfig;
 import org.apache.ambari.logsearch.util.SSLUtil;
+import org.apache.commons.httpclient.auth.InvalidCredentialsException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -64,9 +66,15 @@ public class ExternalServerClient {
     WebTarget target = client.target(url);
     LOG.debug("URL: " + url);
     
-    Invocation.Builder invocationBuilder =  target.request(MediaType.APPLICATION_JSON_TYPE);
+    Invocation.Builder invocationBuilder =  target.request();
     try {
-      return invocationBuilder.get().readEntity(klass);
+      Response response = invocationBuilder.get();
+      if (response.getStatus() != Response.Status.OK.getStatusCode()
+        && response.getStatus() != Response.Status.FOUND.getStatusCode()) {
+        throw new InvalidCredentialsException(String.format("External auth failed with status code: %d, response: %s",
+          response.getStatus(), response.readEntity(String.class)));
+      }
+      return response.readEntity(klass);
     } catch (Exception e) {
       throw new Exception(e.getCause());
     } finally {
