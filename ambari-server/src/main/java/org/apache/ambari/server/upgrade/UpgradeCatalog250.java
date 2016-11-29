@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.CommandExecutionType;
@@ -123,7 +124,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-
+    updateHiveLlapConfigs();
   }
 
   /**
@@ -199,6 +200,56 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
 
     return content;
+  }
+
+  protected void updateHiveLlapConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          Set<String> installedServices = cluster.getServices().keySet();
+
+          if (installedServices.contains("HIVE")) {
+            Config hiveSite = cluster.getDesiredConfigByType("hive-interactive-site");
+            if (hiveSite != null) {
+              Map<String, String> hiveSiteProperties = hiveSite.getProperties();
+              String schedulerDelay = hiveSiteProperties.get("hive.llap.task.scheduler.locality.delay");
+              if (schedulerDelay != null) {
+                // Property exists. Change to new default if set to -1.
+                if (schedulerDelay.length() != 0) {
+                  try {
+                    int schedulerDelayInt = Integer.parseInt(schedulerDelay);
+                    if (schedulerDelayInt == -1) {
+                      // Old default. Set to new default.
+                      updateConfigurationProperties("hive-interactive-site", Collections
+                              .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
+                          false);
+                    }
+                  } catch (NumberFormatException e) {
+                    // Invalid existing value. Set to new default.
+                    updateConfigurationProperties("hive-interactive-site", Collections
+                            .singletonMap("hive.llap.task.scheduler.locality.delay", "8000"), true,
+                        false);
+                  }
+                }
+              }
+              updateConfigurationProperties("hive-interactive-site",
+                  Collections.singletonMap("hive.mapjoin.hybridgrace.hashtable", "true"), true,
+                  false);
+              updateConfigurationProperties("tez-interactive-site",
+                  Collections.singletonMap("tez.session.am.dag.submit.timeout.secs", "1209600"), true,
+                  false);
+              // Explicitly skipping hive.llap.allow.permanent.fns during upgrades, since it's related to security,
+              // and we don't know if the value is set by the user or as a result of the previous default.
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
