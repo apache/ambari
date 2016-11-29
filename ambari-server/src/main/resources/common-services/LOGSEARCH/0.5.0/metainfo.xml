@@ -72,6 +72,7 @@
             <config-type>logsearch-admin-json</config-type>
             <config-type>logsearch-service_logs-solrconfig.xml</config-type>
             <config-type>logsearch-audit_logs-solrconfig.xml</config-type>
+            <config-type>logfeeder-custom-logsearch-config</config-type>
           </configuration-dependencies>
         </component>
 
@@ -111,6 +112,10 @@
             <config-type>logfeeder-env</config-type>
             <config-type>logfeeder-grok</config-type>
             <config-type>logfeeder-log4j</config-type>
+            <config-type>logfeeder-system_log-env</config-type>
+            <config-type>logfeeder-ambari-config</config-type>
+            <config-type>logfeeder-output-config</config-type>
+            <config-type>logfeeder-custom-logsearch-config</config-type>
           </configuration-dependencies>
         </component>
 

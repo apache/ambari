@@ -35,6 +35,7 @@
   outline: none;
   font-family: 'Roboto', sans-serif;
   text-transform: uppercase;
+  height: 34px;
   font-size: 14px;
   padding: 10px 20px;
   line-height: 14px;
@@ -211,10 +212,6 @@
   color: #D1E8D1;
   background-color: #429929;
   border: 1px solid #3FAE2A;
-}
-.navbar-btn {
-  margin-top: 7px;
-  margin-bottom: 7px;
 }
 .btn-regular-default-state {
   background-color: #FFF;

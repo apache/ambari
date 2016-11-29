@@ -21,6 +21,7 @@ package org.apache.ambari.logsearch.model.request;
 import io.swagger.annotations.ApiParam;
 import org.apache.ambari.logsearch.common.LogSearchConstants;
 
+import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_PARAMS_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.LEVEL_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.HOST_NAME_D;
 import static org.apache.ambari.logsearch.doc.DocConstants.ServiceDescriptions.COMPONENT_NAME_D;
@@ -47,4 +48,9 @@ public interface ServiceLogParamDefinition {
 
   @ApiParam(value = FILE_NAME_D, name = LogSearchConstants.REQUEST_PARAM_FILE_NAME)
   void setFileName(String fileName);
+
+  String getHostList();
+
+  @ApiParam(value = HOST_PARAMS_D, name = LogSearchConstants.REQUEST_PARAM_HOSTS)
+  void setHostList(String hostList);
 }

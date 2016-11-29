@@ -23,8 +23,8 @@
 <div class="panel panel-default">
   <div class="panel-body">
     {{#if isAnyExpressionInvalid}}
-      <div class="alert alert-error">
-        Expression is not complete or is invalid!
+      <div class="alert alert-danger">
+        {{t widget.create.wizard.step2.body.invalid.expression}}
       </div>
     {{/if}}
     {{#each expression in expressions}}

@@ -418,6 +418,13 @@
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
       </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Calculating Ranger Properties">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKmsProxyConfig">
+          <summary>Adding Ranger proxy user properties</summary>
+        </task>
+      </execute-stage>
     </group>
 
     <!--

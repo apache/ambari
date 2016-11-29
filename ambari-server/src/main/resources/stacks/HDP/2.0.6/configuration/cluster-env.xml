@@ -274,4 +274,10 @@ gpgcheck=0</value>
     <description>For properties handled by handle_mounted_dirs this will make Ambari </description>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>hide_yarn_memory_widget</name>
+    <value>false</value>
+    <description>YARN Memory widget should be hidden by default on the dashboard.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>
