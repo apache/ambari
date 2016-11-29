@@ -20,12 +20,19 @@ package org.apache.ambari.logsearch.converter;
 
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogLevelCountRequest;
+import org.apache.ambari.logsearch.util.SolrUtil;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.solr.core.query.FacetOptions;
+import org.springframework.data.solr.core.query.SimpleFacetQuery;
 
 import javax.inject.Named;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.BUNDLE_ID;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.PATH;
 
 @Named
 public class ServiceLogLevelCountRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<ServiceLogLevelCountRequest> {
@@ -48,5 +55,14 @@ public class ServiceLogLevelCountRequestQueryConverter extends AbstractLogReques
   @Override
   public LogType getLogType() {
     return LogType.SERVICE;
+  }
+
+  @Override
+  public void appendFacetQuery(SimpleFacetQuery facetQuery, ServiceLogLevelCountRequest request) {
+    addEqualsFilterQuery(facetQuery, HOST, SolrUtil.escapeQueryChars(request.getHostName()));
+    addEqualsFilterQuery(facetQuery, PATH, SolrUtil.escapeQueryChars(request.getFileName()));
+    addEqualsFilterQuery(facetQuery, COMPONENT, SolrUtil.escapeQueryChars(request.getComponentName()));
+    addEqualsFilterQuery(facetQuery, BUNDLE_ID, request.getBundleId());
+    addInFiltersIfNotNullAndEnabled(facetQuery, request.getHostList(), HOST, StringUtils.isEmpty(request.getHostName()));
   }
 }

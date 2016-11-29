@@ -72,7 +72,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   private static final String PRINCIPAL = "logsearch.spnego.kerberos.principal";
   private static final String KEYTAB = "logsearch.spnego.kerberos.keytab";
   private static final String HOST_NAME = "logsearch.spnego.kerberos.host";
-  private static final String KERBEROS_ENABLE="logsearch.spnego.kerberos.enable";
+  private static final String KERBEROS_ENABLED = "logsearch.spnego.kerberos.enabled";
 
   private static final String NAME_RULES_PARAM = "kerberos.name.rules";
   private static final String TOKEN_VALID_PARAM = "token.validity";
@@ -230,7 +230,7 @@ public class LogsearchKRBAuthenticationFilter extends LogsearchKrbFilter {
   }
 
   private void isSpnegoEnable() {
-    spnegoEnable = PropertiesHelper.getBooleanProperty(KERBEROS_ENABLE, false);
+    spnegoEnable = PropertiesHelper.getBooleanProperty(KERBEROS_ENABLED, false);
     if (spnegoEnable) {
       spnegoEnable = false;
       String keytab = PropertiesHelper.getProperty(KEYTAB);

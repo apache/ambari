@@ -26,8 +26,10 @@ import org.apache.solr.client.solrj.SolrQuery;
 
 import javax.inject.Named;
 
+import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 
@@ -49,7 +51,19 @@ public class ServiceLogLevelDateRangeRequestQueryConverter extends AbstractDateR
     SolrQuery solrQuery = super.convert(request);
     if (StringUtils.isNotEmpty(request.getLevel())) {
       List<String> levels = Splitter.on(",").splitToList(request.getLevel());
-      solrQuery.addFilterQuery(String.format("%s:(%s)", LEVEL, StringUtils.join(levels, " OR ")));
+      if (levels.size() > 1) {
+        solrQuery.addFilterQuery(String.format("%s:(%s)", LEVEL, StringUtils.join(levels, " OR ")));
+      } else {
+        solrQuery.addFilterQuery(String.format("%s:%s", LEVEL, levels.get(0)));
+      }
+    }
+    if (request.getHostList() != null && StringUtils.isEmpty(request.getHostName())) {
+      List<String> hosts = request.getHostList().length() == 0 ? Arrays.asList("\\-1") : splitValueAsList(request.getHostList(), ",");
+      if (hosts.size() > 1) {
+        solrQuery.addFilterQuery(String.format("%s:(%s)", HOST, StringUtils.join(hosts, " OR ")));
+      } else {
+        solrQuery.addFilterQuery(String.format("%s:%s", HOST, hosts.get(0)));
+      }
     }
     return solrQuery;
   }

@@ -107,12 +107,21 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: {}
         },
         e: {
-          visibleL: totalWidgetsCount,
+          visibleL: totalWidgetsCount - 1,
           hiddenL: 1
         },
         m: 'All models are not null'
       }
     ]);
+
+    beforeEach(function() {
+      sinon.stub(view, 'resolveConfigDependencies');
+    });
+
+    afterEach(function() {
+      view.resolveConfigDependencies.restore();
+    });
+
     tests.forEach(function (test) {
       describe(test.m, function () {
 

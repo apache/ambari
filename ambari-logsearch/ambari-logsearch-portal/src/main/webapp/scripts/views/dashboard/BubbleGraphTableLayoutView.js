@@ -160,7 +160,7 @@ define(['require',
 						host_name :  host,
 						component_name : component,
 						sourceLogId: id
-					},that.graphParams,{treeParams:null}),
+					},that.graphParams,{hostList:null}),
 					globalVent : that.globalVent
 				});
 			}
@@ -619,7 +619,7 @@ define(['require',
 //							iMessage : that.collection.queryParams.iMessage,
 //							eMessage : that.collection.queryParams.eMessage,
 //							query : that.collection.queryParams.query
-						},that.collection.queryParams,{treeParams:null}),
+						},that.collection.queryParams,{hostList:null}),
 						globalVent : that.globalVent
 					}/*)*/);
 				} else {

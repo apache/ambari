@@ -29,22 +29,30 @@
   {{#if view.templateType.isTemplate}}
     {{template "templates/main/service/widgets/create/step2_template"}}
   {{/if}}
+  {{#if widgetPropertiesViews.length}}
   <div class="panel panel-default">
     <div class="panel-body">
         <form class="form-horizontal">
           {{#each property in widgetPropertiesViews}}
-            <div {{bindAttr class=":form-group :col-md-12 property.name property.isValid::error"}}>
-              <label class="control-label">{{property.label}}
-                {{#if property.isRequired }}
-                  <i class="glyphicon glyphicon-asterisk"></i>
-                {{/if}}
-              </label>
-              {{view property.viewClass propertyBinding="property"}}
+            <div {{bindAttr class="property.name property.isValid::error"}}>
+              <div class="form-group row">
+                <div class="col-md-2">
+                  <label class="control-label">{{property.label}}
+                    {{#if property.isRequired }}
+                      <i class="glyphicon glyphicon-asterisk"></i>
+                    {{/if}}
+                  </label>
+                </div>
+                <div class="col-md-3">
+                  {{view property.viewClass propertyBinding="property"}}
+                </div>
+              </div>
             </div>
           {{/each}}
         </form>
     </div>
   </div>
+  {{/if}}
 </div>
 <div class="wizard-footer col-md-12">
   <div class="btn-area">

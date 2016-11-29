@@ -109,7 +109,7 @@ define(['require',
 		},
 		fetchHosts : function(params){
 			var that = this;
-			$.extend(this.collection.queryParams,params,{treeParams:null});
+      $.extend(this.collection.queryParams, params, {hostList: null});
 			this.collection.fetch({
 				reset:true,
 				complete : function(){
@@ -250,7 +250,7 @@ define(['require',
 						params:_.extend({},{
 							host_name :  host,
 							component_name : component
-						},that.searchParams,{treeParams:null}),
+						},that.searchParams,{hostList:null}),
 						globalVent : that.globalVent
 					});
 				}
@@ -278,8 +278,8 @@ define(['require',
 					mainParent.find("input[data-type='H']").prop("indeterminate",false);
 				
 			}
-			var data = this.getCheckedHierarchyData();
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(_.pluck(data,"h"))});
+      var data = this.getCheckedHierarchyData();
+      this.vent.trigger("tree:search", {hostList: (_.pluck(data, "h")).toString()});
 		},
 		getCheckedHierarchyData : function(){
 			var data=[];
@@ -303,8 +303,8 @@ define(['require',
 			}else
 				this.$('.tree  input[type="checkbox"]').prop({"checked":false,"indeterminate":false});
 			var data = this.getCheckedHierarchyData();
-			this.params.treeParams = _.extend({},data);
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(_.pluck(data,"h"))});
+			this.params.hostList = _.extend({},data);
+			this.vent.trigger("tree:search",{hostList : (_.pluck(data,"h")).toString()});
 			
 		},
 		onSearchHostClick : function(e){
@@ -329,7 +329,7 @@ define(['require',
 			this.ui.searcHostBtn.find("i").removeClass().addClass("fa fa-search");
 		},
 		restoreCheckbox : function(){
-			var params = (this.params.treeParams) ? JSON.parse(this.params.treeParams) : undefined,that=this;
+      var params = (this.params.hostList) ? this.params.hostList.toString() : undefined, that = this;
 			if(params){
 				that.$("input[data-node]").prop("checked",false);
 				_.each(params,function(node){

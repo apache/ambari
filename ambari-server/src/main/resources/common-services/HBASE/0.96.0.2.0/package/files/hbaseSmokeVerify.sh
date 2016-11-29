@@ -25,7 +25,7 @@ hbase_cmd=$3
 echo "scan 'ambarismoketest'" | $hbase_cmd --config $conf_dir shell > /tmp/hbase_chk_verify
 cat /tmp/hbase_chk_verify
 echo "Looking for $data"
-grep -q $data /tmp/hbase_chk_verify
+tr -d '\n|\t| ' < /tmp/hbase_chk_verify | grep -q $data
 if [ "$?" -ne 0 ]
 then
   exit 1

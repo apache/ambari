@@ -18,23 +18,18 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import com.google.common.base.Splitter;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogComponentLevelRequest;
-import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.FacetOptions;
-import org.springframework.data.solr.core.query.SimpleFacetQuery;
-import org.springframework.data.solr.core.query.SimpleFilterQuery;
 
 import javax.inject.Named;
-import java.util.List;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LEVEL;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 
 @Named
-public class ServiceLogComponentLevelRequestQueryConverter extends AbstractLogRequestFacetQueryConverter<ServiceLogComponentLevelRequest> {
+public class ServiceLogComponentLevelRequestQueryConverter extends AbstractServiceLogRequestFacetQueryConverter<ServiceLogComponentLevelRequest> {
 
   @Override
   public FacetOptions.FacetSort getFacetSort() {
@@ -44,14 +39,6 @@ public class ServiceLogComponentLevelRequestQueryConverter extends AbstractLogRe
   @Override
   public String getDateTimeField() {
     return LOGTIME;
-  }
-
-  @Override
-  public void appendFacetQuery(SimpleFacetQuery facetQuery, ServiceLogComponentLevelRequest request) {
-    List<String> levels = Splitter.on(",").splitToList(request.getLevel()); // TODO: add @Valid on request object to make sure not throw exception if levels are missing
-    SimpleFilterQuery filterQuery = new SimpleFilterQuery();
-    filterQuery.addCriteria(new Criteria(LEVEL).in(levels));
-    facetQuery.addFilterQuery(filterQuery);
   }
 
   @Override

@@ -251,16 +251,19 @@ logfeeder_truststore_location = config['configurations']['logfeeder-env']['logfe
 logfeeder_truststore_password = config['configurations']['logfeeder-env']['logfeeder_truststore_password']
 logfeeder_truststore_type = config['configurations']['logfeeder-env']['logfeeder_truststore_type']
 
-logfeeder_default_services = ['ambari', 'logsearch']
-logfeeder_default_config_file_names = ['global.config.json', 'output.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_default_services]
+logfeeder_ambari_config_content = config['configurations']['logfeeder-ambari-config']['content']
+logfeeder_output_config_content = config['configurations']['logfeeder-output-config']['content']
+
+logfeeder_default_services = ['logsearch']
+logfeeder_default_config_file_names = ['global.config.json'] + ['input.config-%s.json' % (tag) for tag in logfeeder_default_services]
 logfeeder_custom_config_file_names = ['input.config-%s.json' % (tag.replace('-logsearch-conf', ''))
                                       for tag, content in logfeeder_metadata.iteritems() if any(logfeeder_metadata)]
 
 if logfeeder_system_log_enabled:
-  default_config_files = ','.join(logfeeder_default_config_file_names + logfeeder_custom_config_file_names
+  default_config_files = ','.join(['output.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names
                                   + ['input.config-system_messages.json', 'input.config-secure_log.json'])
 else:
-  default_config_files = ','.join(logfeeder_default_config_file_names + logfeeder_custom_config_file_names)
+  default_config_files = ','.join(['output.config.json','input.config-ambari.json'] + logfeeder_default_config_file_names + logfeeder_custom_config_file_names)
 
 
 logfeeder_grok_patterns = config['configurations']['logfeeder-grok']['default_grok_patterns']
@@ -293,8 +296,10 @@ logfeeder_properties['logfeeder.config.files'] = format(logfeeder_properties['lo
 logfeeder_properties['logfeeder.solr.zk_connect_string'] = zookeeper_quorum + infra_solr_znode
 
 if security_enabled:
-  logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
-  logfeeder_properties['logfeeder.solr.jaas.file'] = logfeeder_jaas_file
+  if 'logfeeder.solr.kerberos.enable' not in logfeeder_properties:
+    logfeeder_properties['logfeeder.solr.kerberos.enable'] = 'true'
+  if 'logfeeder.solr.jaas.file' not in logfeeder_properties:
+    logfeeder_properties['logfeeder.solr.jaas.file'] = logfeeder_jaas_file
 
 logfeeder_checkpoint_folder = logfeeder_properties['logfeeder.checkpoint.folder']
 

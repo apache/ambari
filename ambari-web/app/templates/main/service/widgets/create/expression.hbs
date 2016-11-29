@@ -17,34 +17,42 @@
 }}
 
 <div class="actions-field row">
-  {{view App.AddMetricExpressionView class="add-metric-menu col-md-2"}}
-  <div class="col-md-2">
-    <div class="btn-group add-operator">
-      <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
+  <div class="col-md-12">
+    {{! add metric }}
+    {{view App.AddMetricExpressionView class="add-metric-menu pull-left"}}
+    {{! add metric end }}
+
+    {{! add operator }}
+    <div class="btn-group add-operator pull-left mlm">
+      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
         {{t dashboard.widgets.wizard.step2.newOperator}}
         <span class="caret"></span>
-      </a>
+      </button>
       <ul class="dropdown-menu">
         {{#each operator in view.OPERATORS}}
           <li><a href="#" {{action addOperator operator target="view"}}>{{operator}}</a></li>
         {{/each}}
       </ul>
     </div>
-  </div>
-  <div class="col-md-7 row add-number">
-    <div class="input-group col-md-5">
-      {{view App.AddNumberExpressionView valueBinding="view.numberValue" class="form-control col-md-3"}}
-      <div class="input-group-btn">
-        <button class="btn btn-default" {{action addNumber target="view"}} {{bindAttr disabled="view.isNumberValueInvalid"}}>{{t dashboard.widgets.wizard.step2.newNumber}}</button>
+    {{! add operator end }}
+
+    {{! add number }}
+    <div class="add-number pull-left mlm">
+      <div class="input-group">
+        {{view App.AddNumberExpressionView valueBinding="view.numberValue" class="form-control"}}
+        <div class="input-group-btn">
+          <button class="btn btn-default" {{action addNumber target="view"}} {{bindAttr disabled="view.isNumberValueInvalid"}}>{{t dashboard.widgets.wizard.step2.newNumber}}</button>
+        </div>
       </div>
     </div>
+    {{! add number end }}
   </div>
 </div>
 {{#if view.isInvalid}}
-  <div class="alert alert-error">
-    Invalid expression!
+  <div class="alert alert-danger">
+    {{t widget.create.wizard.step2.body.invalid.expression2}}
     {{#if view.isInvalidTextfield}}
-      Only numbers or operators are allowed in this field.
+      {{t widget.create.wizard.step2.body.invalid.msg2}}
     {{/if}}
   </div>
 {{/if}}

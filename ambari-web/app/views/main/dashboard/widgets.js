@@ -116,6 +116,16 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     }, this);
   },
 
+  resolveConfigDependencies: function(visibleFull, hiddenFull) {
+    var clusterEnv = App.router.get('clusterController.clusterEnv').properties;
+
+    if (clusterEnv['hide_yarn_memory_widget'] === 'true') {
+      hiddenFull.push(['20', 'YARN Memory']);
+    } else {
+      visibleFull.splice(visibleFull.indexOf('19'), 0, '20');
+    }
+  },
+
   /**
    * Load widget statuses to <code>initPrefObject</code>
    */
@@ -126,7 +136,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
       '6', '7', '8', '9', //host metrics
       '1', '5', '3', '10', //hdfs
       '13', '12', '14', '16', //hbase
-      '17', '18', '19', '20', '23', // all yarn
+      '17', '18', '19', '23', // all yarn
       '21', // storm
       '22', // flume
       '24', // hawq
@@ -135,6 +145,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     var hiddenFull = [
       ['15', 'Region In Transition']
     ];
+    this.resolveConfigDependencies(visibleFull, hiddenFull);
 
     // Display widgets for host metrics if the stack definition has a host metrics service to display it.
     if (this.get('host_metrics_model') == null) {
@@ -155,7 +166,9 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
       hbase.forEach(function (item) {
         visibleFull = visibleFull.without(item);
       }, this);
-      hiddenFull = [];
+      hiddenFull = hiddenFull.filter(function(item) {
+        return item[0] !== '15';
+      });
     }
     if (this.get('yarn_model') == null) {
       var yarn = ['17', '18', '19', '20', '23'];

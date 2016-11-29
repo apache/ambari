@@ -209,7 +209,7 @@ public class ServiceLogsManager extends ManagerBase<SolrServiceLogData, ServiceL
   public NameValueDataListResponse getLogsLevelCount(ServiceLogLevelCountRequest request) {
     SimpleFacetQuery facetQuery = conversionService.convert(request, SimpleFacetQuery.class);
     QueryResponse response = serviceLogsSolrDao.process(facetQuery, "/service/logs/levels/counts");
-    return graphDataGenerator.getNameValueDataListResponseWithDefaults(response, LogSearchConstants.SUPPORTED_LOG_LEVELS);
+    return graphDataGenerator.getNameValueDataListResponseWithDefaults(response, LogSearchConstants.SUPPORTED_LOG_LEVELS, false);
   }
 
   public BarGraphDataListResponse getHistogramData(ServiceGraphRequest request) {
