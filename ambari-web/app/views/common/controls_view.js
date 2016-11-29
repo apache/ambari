@@ -943,7 +943,7 @@ App.ServiceConfigComponentHostsView = Ember.View.extend(App.ServiceConfigMultipl
 
   viewName: 'serviceConfigSlaveHostsView',
 
-  classNames: ['component-hosts'],
+  classNames: ['component-hosts', 'form-text'],
 
   valueBinding: 'serviceConfig.value',
 

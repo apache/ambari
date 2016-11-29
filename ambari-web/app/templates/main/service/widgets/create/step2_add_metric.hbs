@@ -17,8 +17,8 @@
 }}
 
 <div class="btn-group dropdown">
-  <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">{{t dashboard.widgets.wizard.step2.newMetric}}
-    &nbsp;<span class="caret"></span></a>
+  <button class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">{{t dashboard.widgets.wizard.step2.newMetric}}
+    &nbsp;<span class="caret"></span></button>
   <ul class="dropdown-menu service-level-dropdown">
     {{#if controller.content.isMetricsLoaded}}
       <!--service level-->
@@ -42,9 +42,11 @@
                     {{view App.JqueryChosenView optionsBinding="view.parentView.AGGREGATE_FUNCTIONS" elementIdBinding="component.aggregatorId" selectionObjBinding="view.aggregateFnSelectionObj"}}
                   </li>
                   <li class="actions-buttons">
-                    <button class="btn btn-default" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>
-                    <button {{bindAttr class=":btn :btn-primary component.isAddEnabled::disabled"}} href="#"
-                      {{action addMetric component target="view"}}>{{t common.add}}</button>
+                    <div>
+                      <button class="btn btn-default" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>
+                      <button {{bindAttr class=":btn :btn-primary component.isAddEnabled::disabled"}}
+                        {{action addMetric component target="view"}}>{{t common.add}}</button>
+                    </div>
                   </li>
                 </ul>
               </li>

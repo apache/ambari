@@ -19,7 +19,8 @@
 App.JqueryChosenView = Em.View.extend({
   templateName: require('templates/common/chosen_plugin'),
   tagName: 'select',
-  // This needs to be binded from template
+  classNames: ['form-control'],
+  // This needs to be bound from template
   elementId: '',
   title: '',
   options: [],
@@ -42,23 +43,5 @@ App.JqueryChosenView = Em.View.extend({
       no_results_text: self.get('selectionObj.no_results_text')
     }).change(self.get('selectionObj.onChangeCallback'));
 
-    // Expand the dropdown to accommodate the largest option on mouseenter event
-    // and reset it to the original fixed width on the mouseleave event
-    Em.run.later(this, function() {
-      var chosenDropDownId = elementId + '_chosen' + ' .chosen-drop';
-      var chosenDropDownEl;
-      $(chosenDropDownId)
-        .each(function() {
-          chosenDropDownEl = $(this);
-          chosenDropDownEl.data("origWidth", chosenDropDownEl.outerWidth());
-        })
-        .mouseenter(function(){
-          $(this).css("width", "auto");
-        })
-        .mouseleave(function(){
-          chosenDropDownEl = $(this);
-          chosenDropDownEl.css("width", chosenDropDownEl.data("origWidth"));
-        });
-    }, 1000);
   }
 });

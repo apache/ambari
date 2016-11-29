@@ -17,16 +17,20 @@
 }}
 
 <div class="row">
-  <div class="col-md-3 badge-container"><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span>&nbsp;</div>
-  <div {{bindAttr class=":col-md-2 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
+  <div class="col-md-4 badge-container">
+    <label><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span></label>
+  </div>
+  <div {{bindAttr class=":col-md-8 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.ok.tooltip"}}>
-    {{view Em.TextField valueBinding="view.property.smallValue" class ="col-md-10 form-control"}}
-</div>
+    {{view Em.TextField valueBinding="view.property.smallValue" class="form-control"}}
+  </div>
 </div>
 <div class="row">
-  <div class="col-md-3 badge-container"><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span>&nbsp;</div>
-  <div {{bindAttr class=":col-md-2 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
+  <div class="col-md-4 badge-container">
+    <label><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span></label>
+  </div>
+  <div {{bindAttr class=":col-md-8 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.warning.tooltip"}}>
-    {{view Em.TextField valueBinding="view.property.bigValue" class ="col-md-10 form-control"}}
+    {{view Em.TextField valueBinding="view.property.bigValue" class="form-control"}}
   </div>
 </div>
