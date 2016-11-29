@@ -124,7 +124,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    updateHiveLlapConfigs();
+
   }
 
   /**
@@ -135,6 +135,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAMSConfigs();
     updateKafkaConfigs();
+    updateHiveLlapConfigs();
   }
 
   protected void updateHostVersionTable() throws SQLException {
