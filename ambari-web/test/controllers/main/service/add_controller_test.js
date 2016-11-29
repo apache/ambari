@@ -566,14 +566,14 @@ describe('App.AddServiceController', function() {
 
   });
 
-  describe('#getDependentServices', function () {
+  describe('#getServicesBySelectedSlaves', function () {
 
     beforeEach(function () {
       sinon.stub(App.StackServiceComponent, 'find').returns([
-          Em.Object.create({
-            componentName: 'c1',
-            serviceName: 's1'
-          }),
+        Em.Object.create({
+          componentName: 'c1',
+          serviceName: 's1'
+        }),
         Em.Object.create({
           componentName: 'c2',
           serviceName: 's2'
@@ -593,6 +593,23 @@ describe('App.AddServiceController', function() {
       {
         title: 'should return empty array',
         sch: [],
+        expect: []
+      },
+      {
+        title: 'should return empty array if component is absent in StackServiceComponent model',
+        sch: [
+          {
+            componentName: 'c5',
+            hosts: [
+              {
+                isInstalled: false
+              },
+              {
+                isInstalled: true
+              }
+            ]
+          },
+        ],
         expect: []
       },
       {
@@ -638,7 +655,7 @@ describe('App.AddServiceController', function() {
           describe(test.title, function () {
             it(function () {
               addServiceController.set('content.slaveComponentHosts', test.sch);
-              expect(addServiceController.getDependentServices()).to.eql(test.expect);
+              expect(addServiceController.getServicesBySelectedSlaves()).to.eql(test.expect);
             });
           })
         });
