@@ -62,6 +62,16 @@ def setup_logfeeder():
        encoding="utf-8"
        )
 
+  File(format("{logsearch_logfeeder_conf}/input.config-ambari.json"),
+       content=InlineTemplate(params.logfeeder_ambari_config_content),
+       encoding="utf-8"
+       )
+
+  File(format("{logsearch_logfeeder_conf}/output.config.json"),
+       content=InlineTemplate(params.logfeeder_output_config_content),
+       encoding="utf-8"
+       )
+
   for file_name in params.logfeeder_default_config_file_names:
     File(format("{logsearch_logfeeder_conf}/" + file_name),
          content=Template(file_name + ".j2")
