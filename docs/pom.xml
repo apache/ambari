@@ -611,7 +611,7 @@
                 <role>Committer</role>
             </roles>
             <organization>
-                Pivotal
+                Uber
             </organization>
         </developer>
         <developer>
@@ -773,7 +773,7 @@
         <developer>
             <id>rzang</id>
             <name>Richard Zang</name>
-            <email>rzang@hortonworks.com</email>
+            <email>rzang@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>PMC</role>
