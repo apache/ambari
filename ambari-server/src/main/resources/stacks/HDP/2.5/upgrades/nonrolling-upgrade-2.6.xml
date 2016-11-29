@@ -36,8 +36,9 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
+        <condition xsi:type="config" type="yarn-site" property="yarn.resourcemanager.work-preserving-recovery.enabled" value="true" comparison="not-equals"/>
         <task xsi:type="manual">
-          <message>Before continuing, please stop all YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
+          <message>Before continuing, please stop all YARN queues.</message>
         </task>
       </execute-stage>
 
@@ -440,6 +441,20 @@
       </service>
     </group>
 
+    <group xsi:type="cluster" name="START_YARN_QUEUES" title="Start YARN Queues">
+      <direction>UPGRADE</direction>
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <parallel-scheduler/>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Start YARN Queues">
+        <condition xsi:type="config" type="yarn-site" property="yarn.resourcemanager.work-preserving-recovery.enabled" value="true" comparison="not-equals"/>
+        <task xsi:type="manual">
+          <message>Before continuing, please start all YARN queues.</message>
+        </task>
+      </execute-stage>
+    </group>
+
     <group xsi:type="restart" name="HBASE" title="HBASE">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -688,16 +703,6 @@
       
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
-      </execute-stage>
-    </group>
-
-    <group xsi:type="cluster" name="MANUAL_STEPS" title="Finishing Upgrade">
-      <direction>UPGRADE</direction>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Start YARN Queues">
-        <task xsi:type="manual">
-          <message>Please start previously stopped YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
-        </task>
       </execute-stage>
     </group>
 
