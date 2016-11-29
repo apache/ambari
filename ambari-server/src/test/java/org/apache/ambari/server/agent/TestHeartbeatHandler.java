@@ -48,6 +48,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -171,22 +172,31 @@ public class TestHeartbeatHandler {
     ActionManager am = actionManagerTestHelper.getMockActionManager();
     expect(am.getTasks(anyObject(List.class))).andReturn(new ArrayList<HostRoleCommand>());
     replay(am);
+
+    Cluster cluster = heartbeatTestHelper.getDummyCluster();
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.addServiceComponent(DATANODE);
+    hdfs.addServiceComponent(NAMENODE);
+    hdfs.addServiceComponent(SECONDARY_NAMENODE);
+    Collection<Host> hosts = cluster.getHosts();
+    assertEquals(hosts.size(), 1);
+
     Clusters fsm = clusters;
-    fsm.addHost(DummyHostname1);
-    Host hostObject = clusters.getHost(DummyHostname1);
+    Host hostObject = hosts.iterator().next();
     hostObject.setIPv4("ipv4");
     hostObject.setIPv6("ipv6");
     hostObject.setOsType(DummyOsType);
 
+    String hostname = hostObject.getHostName();
     ActionQueue aq = new ActionQueue();
 
     HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
     Register reg = new Register();
     HostInfo hi = new HostInfo();
-    hi.setHostName(DummyHostname1);
+    hi.setHostName(hostname);
     hi.setOS(DummyOs);
     hi.setOSRelease(DummyOSRelease);
-    reg.setHostname(DummyHostname1);
+    reg.setHostname(hostname);
     reg.setHardwareProfile(hi);
     reg.setAgentVersion(metaInfo.getServerVersion());
     handler.handleRegistration(reg);
@@ -195,19 +205,21 @@ public class TestHeartbeatHandler {
 
     ExecutionCommand execCmd = new ExecutionCommand();
     execCmd.setRequestAndStage(2, 34);
-    execCmd.setHostname(DummyHostname1);
-    aq.enqueue(DummyHostname1, new ExecutionCommand());
+    execCmd.setHostname(hostname);
+    execCmd.setClusterName(cluster.getClusterName());
+    execCmd.setServiceName(HDFS);
+    aq.enqueue(hostname, execCmd);
     HeartBeat hb = new HeartBeat();
     hb.setResponseId(0);
     HostStatus hs = new HostStatus(Status.HEALTHY, DummyHostStatus);
     List<Alert> al = new ArrayList<Alert>();
     al.add(new Alert());
     hb.setNodeStatus(hs);
-    hb.setHostname(DummyHostname1);
+    hb.setHostname(hostname);
 
     handler.handleHeartBeat(hb);
     assertEquals(HostState.HEALTHY, hostObject.getState());
-    assertEquals(0, aq.dequeueAll(DummyHostname1).size());
+    assertEquals(0, aq.dequeueAll(hostname).size());
   }
 
 
