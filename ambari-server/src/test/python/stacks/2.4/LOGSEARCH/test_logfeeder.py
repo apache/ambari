@@ -62,7 +62,7 @@ class TestLogFeeder(RMFTestCase):
                               )
     self.assertResourceCalled('PropertiesFile', '/etc/ambari-logsearch-logfeeder/conf/logfeeder.properties',
                               properties={'logfeeder.checkpoint.folder': '/etc/ambari-logsearch-logfeeder/conf/checkpoints',
-                                          'logfeeder.config.files': 'global.config.json,output.config.json,input.config-ambari.json,input.config-logsearch.json,input.config-zookeeper.json',
+                                          'logfeeder.config.files': 'output.config.json,input.config-ambari.json,global.config.json,input.config-logsearch.json,input.config-zookeeper.json',
                                           'logfeeder.metrics.collector.hosts': '',
                                           'logfeeder.solr.core.config.name': 'history',
                                           'logfeeder.solr.zk_connect_string': 'c6401.ambari.apache.org:2181/infra-solr'
@@ -79,10 +79,18 @@ class TestLogFeeder(RMFTestCase):
                               content=InlineTemplate('GP'),
                               encoding='utf-8'
                               )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/input.config-ambari.json',
+                              content=InlineTemplate('ambari-grok-filter'),
+                              encoding='utf-8'
+                              )
+    self.assertResourceCalled('File', '/etc/ambari-logsearch-logfeeder/conf/output.config.json',
+                              content=InlineTemplate('output-grok-filter'),
+                              encoding='utf-8'
+                              )
 
-    logfeeder_supported_services = ['ambari','logsearch']
+    logfeeder_supported_services = ['logsearch']
 
-    logfeeder_config_file_names = ['global.config.json', 'output.config.json'] + \
+    logfeeder_config_file_names = ['global.config.json'] + \
                                   ['input.config-%s.json' % (tag) for tag in logfeeder_supported_services]
 
     for file_name in logfeeder_config_file_names:
