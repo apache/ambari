@@ -21,10 +21,6 @@
     <service>
       <name>KNOX</name>
       <version>0.9.0.2.5</version>
-      <credential-store>
-        <supported>true</supported>
-        <enabled>false</enabled>
-      </credential-store>
     </service>
   </services>
 </metainfo>
