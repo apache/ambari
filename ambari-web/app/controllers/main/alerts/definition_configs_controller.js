@@ -54,7 +54,7 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
    * @type {Array}
    */
   allServices: function () {
-    return App.Service.find().mapProperty('displayName');
+    return App.Service.find().mapProperty('displayName').concat('CUSTOM');
   }.property(),
 
   /**
@@ -72,55 +72,58 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
   }.property(),
 
   /**
-   * Change options of "Component", after changing value of "Service" config
+   * If any service selected, show related components, hide PORT and HOST field
+   * If CUSTOM was selected, show no component, and show PORT and HOST field
    * @method onServiceSelect
    */
   onServiceSelect: function () {
     var serviceProperty = this.get('configs').findProperty('name', 'service');
-    if (serviceProperty && serviceProperty.get('value') !== 'Ambari') {
-      var componentsProperty = this.get('configs').findProperty('name', 'component');
+    var componentsProperty = this.get('configs').findProperty('name', 'component');
+    var defaultPortProperty = this.get('configs').findProperty('name', 'default_port');
+    var uriProperty = this.get('configs').findProperty('name', 'uri');
+    if (serviceProperty && serviceProperty.get('value') == 'CUSTOM') {
+      componentsProperty.set('options', ['No component']);
+      componentsProperty.set('canEdit', false);
+      var results = this.get('configs');
+      if (defaultPortProperty && uriProperty) {
+        results = results.filter(function (config) {
+          return config.name != 'default_port' && config.name != 'uri';
+        });
+      }
+      if (!defaultPortProperty) {
+        results = results.concat([
+          App.AlertConfigProperties.DefaultPort.create({
+            value: '8050'
+          }),
+          App.AlertConfigProperties.URI.create({
+            value: ''
+          })
+        ]);
+        this.set('configs', results);
+      }
+    } else if (serviceProperty && serviceProperty.get('value') !== 'CUSTOM' && componentsProperty.get('value') && componentsProperty.get('value') != 'No component') {
       componentsProperty.set('options', ['No component'].concat(App.HostComponent.find().filterProperty('service.displayName', serviceProperty.get('value')).mapProperty('displayName').uniq()));
+      if (!defaultPortProperty) {
+        var results = this.get('configs').concat([
+          App.AlertConfigProperties.DefaultPort.create({
+            value: '8060'
+          }),
+          App.AlertConfigProperties.URI.create({
+            value: ''
+          })
+        ]);
+        this.set('configs', results);
+      }
+    } else if (serviceProperty && serviceProperty.get('value') !== 'CUSTOM') {
+      componentsProperty.set('options', ['No component'].concat(App.HostComponent.find().filterProperty('service.displayName', serviceProperty.get('value')).mapProperty('displayName').uniq()));
+      if (defaultPortProperty && uriProperty) {
+        var results = this.get('configs').filter(function (config) {
+          return config.name != 'default_port' && config.name != 'uri';
+        });
+        this.set('configs', results);
+      }
     }
   }.observes('configs.@each.value'),
-
-  /**
-   * OnSelect handler for <code>select_type</code> property
-   * disable fields related to definition type and set options to select lists
-   */
-  changeType: function (selectedType) {
-    if (selectedType === 'alert_type_service') {
-      this.get('configs').findProperty('name', 'service').setProperties({
-        isDisabled: false,
-        options: this.get('allServices'),
-        value: this.get('allServices')[0]
-      });
-      this.get('configs').findProperty('name', 'component').setProperties({
-        isDisabled: false,
-        value: 'No component'
-      });
-      this.get('configs').findProperty('name', 'scope').setProperties({
-        isDisabled: false,
-        options: this.get('allScopes'),
-        value: this.get('allScopes')[0]
-      });
-    } else {
-      this.get('configs').findProperty('name', 'service').setProperties({
-        isDisabled: true,
-        options: ['Ambari'],
-        value: 'Ambari'
-      });
-      this.get('configs').findProperty('name', 'component').setProperties({
-        isDisabled: true,
-        options: ['Ambari Agent'],
-        value: 'Ambari Agent'
-      });
-      this.get('configs').findProperty('name', 'scope').setProperties({
-        isDisabled: true,
-        options: ['Host'],
-        value: 'Host'
-      });
-    }
-  },
 
   /**
    * @return {string|Null}
@@ -185,33 +188,68 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     var isWizard = this.get('isWizard');
 
     if (this.get('isWizard')) {
-      result = result.concat(this.renderCommonWizardConfigs());
-    }
+      result = result.concat([
+        App.AlertConfigProperties.AlertName.create({
+          value: ''
+        }),
+        App.AlertConfigProperties.Service.create({
+          options: this.get('allServices'),
+          value: this.get('allServices')[0],
+          isShifted: true
+        }),
+        App.AlertConfigProperties.Component.create({
+          options: this.get('allComponents'),
+          value: 'No component',
+          isShifted: true
+        }),
 
-    result = result.concat([
-      App.AlertConfigProperties.Description.create({
-        value: isWizard ? '' : alertDefinition.get('description')
-      }),
-      App.AlertConfigProperties.Interval.create({
-        value: isWizard ? '' : alertDefinition.get('interval')
-      }),
-      App.AlertConfigProperties.Thresholds.OkThreshold.create({
-        label: 'Thresholds',
-        showInputForValue: false,
-        text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
-      }),
-      App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
-        valueMetric: 'Seconds',
-        text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
-      }),
-      App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
-        valueMetric: 'Seconds',
-        text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
-        value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
-      })
-    ]);
+        //should be on next step
+        App.AlertConfigProperties.Interval.create({
+          value: isWizard ? '' : alertDefinition.get('interval')
+        }),
+        App.AlertConfigProperties.Thresholds.OkThreshold.create({
+          label: 'Thresholds',
+          showInputForValue: false,
+          text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
+        }),
+        App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
+          valueMetric: 'Seconds',
+          text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+        }),
+        App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
+          valueMetric: 'Seconds',
+          text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
+        })
+      ]);
+    } else {
+      result = result.concat([
+        App.AlertConfigProperties.Description.create({
+          value: isWizard ? '' : alertDefinition.get('description')
+        }),
+        App.AlertConfigProperties.Interval.create({
+          value: isWizard ? '' : alertDefinition.get('interval')
+        }),
+        App.AlertConfigProperties.Thresholds.OkThreshold.create({
+          label: 'Thresholds',
+          showInputForValue: false,
+          text: isWizard ? '' : this.getThresholdsProperty('ok', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('ok', 'value')
+        }),
+        App.AlertConfigProperties.Thresholds.WarningThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
+          valueMetric: 'Seconds',
+          text: isWizard ? '' : this.getThresholdsProperty('warning', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('warning', 'value')
+        }),
+        App.AlertConfigProperties.Thresholds.CriticalThreshold.create(App.AlertConfigProperties.Thresholds.PositiveMixin, {
+          valueMetric: 'Seconds',
+          text: isWizard ? '' : this.getThresholdsProperty('critical', 'text'),
+          value: isWizard ? '' : this.getThresholdsProperty('critical', 'value')
+        })
+      ]);
+    }
 
     return result;
   },
@@ -558,9 +596,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       App.AlertConfigProperties.AlertName.create({
         value: ''
       }),
-      App.AlertConfigProperties.ServiceAlertType.create({
-        value: true
-      }),
       App.AlertConfigProperties.Service.create({
         options: this.get('allServices'),
         value: this.get('allServices')[0],
@@ -574,9 +609,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       App.AlertConfigProperties.Scope.create({
         options: this.get('allScopes'),
         isShifted: true
-      }),
-      App.AlertConfigProperties.HostAlertType.create({
-        value: false
       })
     ];
   },
