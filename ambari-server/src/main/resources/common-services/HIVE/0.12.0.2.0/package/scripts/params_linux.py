@@ -599,6 +599,7 @@ if has_hive_interactive:
   tez_interactive_user = config['configurations']['tez-env']['tez_user']
   num_retries_for_checking_llap_status = default('/configurations/hive-interactive-env/num_retries_for_checking_llap_status', 10)
   # Used in LLAP slider package creation
+  yarn_nm_mem = config['configurations']['yarn-site']['yarn.nodemanager.resource.memory-mb']
   num_llap_nodes = config['configurations']['hive-interactive-env']['num_llap_nodes']
   llap_daemon_container_size = config['configurations']['hive-interactive-site']['hive.llap.daemon.yarn.container.mb']
   llap_log_level = config['configurations']['hive-interactive-env']['llap_log_level']
