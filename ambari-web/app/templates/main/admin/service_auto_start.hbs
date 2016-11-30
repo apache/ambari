@@ -80,17 +80,19 @@
                     </tr>
                   {{/each}}
                 </tbody>
-                <tfoot>
-                  <tr>
-                    <td class="col-md-4"></td>
-                    <td class="col-md-8">
-                      <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
-                        {{t common.enableAll}}
-                      </a> |
-                      <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                    </td>
-                  </tr>
-                </tfoot>
+                {{#isAuthorized "SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS"}}
+                  <tfoot>
+                    <tr>
+                      <td class="col-md-4"></td>
+                      <td class="col-md-8">
+                        <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>
+                            {{t common.enableAll}}
+                        </a> |
+                        <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                      </td>
+                    </tr>
+                  </tfoot>
+                {{/isAuthorized}}
               </table>
             </div>
           {{/each}}
