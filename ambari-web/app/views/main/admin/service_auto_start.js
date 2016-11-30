@@ -30,8 +30,11 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
 
   savedRecoveryEnabled: false,
 
+  isDisabled: false,
+
   didInsertElement: function () {
     var self = this;
+    this.set('isDisabled', !App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS'));
     this.get('controller').loadClusterConfig().done(function (data) {
       var tag = [
         {
@@ -77,6 +80,7 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
         onColor: 'success',
+        disabled: this.get('isDisabled'),
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
           self.updateClusterConfigs(state);

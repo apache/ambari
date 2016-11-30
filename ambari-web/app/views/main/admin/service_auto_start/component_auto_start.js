@@ -56,6 +56,7 @@ App.MainAdminServiceAutoStartComponentView = Em.View.extend({
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
         onColor: 'success',
+        disabled: this.get('parentView.isDisabled'),
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
           self.set('tab.enabledComponents', self.get('tab.enabledComponents') + (state ? 1 : -1));

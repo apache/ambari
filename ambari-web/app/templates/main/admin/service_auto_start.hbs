@@ -63,10 +63,12 @@
                                 </div>
                             </div>
                         {{/each}}
-                        <div class="offset4">
-                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
-                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                        </div>
+                        {{#isAuthorized "SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS"}}
+                            <div class="offset4">
+                                <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                                <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                            </div>
+                        {{/isAuthorized}}
                     </div>
                 {{/each}}
             </div>

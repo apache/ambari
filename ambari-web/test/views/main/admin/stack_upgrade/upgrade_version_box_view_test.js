@@ -718,7 +718,7 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'UPGRADING',
           isLink: true,
           action: 'openUpgradeDialog',
-          iconClass: 'glyphicon glyphicon-pause',
+          iconClass: 'icon-pause',
           text: Em.I18n.t('admin.stackVersions.version.upgrade.pause')
         },
         title: 'upgrading, holding, isWizardRestricted=true'
