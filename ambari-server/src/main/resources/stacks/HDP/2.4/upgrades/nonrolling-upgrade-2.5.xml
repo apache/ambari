@@ -22,12 +22,15 @@
   <type>NON_ROLLING</type>
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
-    <check>org.apache.ambari.server.checks.AtlasPresenceCheck</check>
+    <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
+      </check-properties>
+      <check-properties name="org.apache.ambari.server.checks.ServicePresenceCheck">
+        <property name="no-upgrade-support-service-names">Atlas</property>
       </check-properties>
     </configuration>
   </prerequisite-checks>
