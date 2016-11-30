@@ -24,25 +24,34 @@ App.AddAlertDefinitionStep1Controller = Em.Controller.extend({
 
   /**
    * List of available alert definition types
-   * @type {{name: string, isActive: boolean}[]}
+   * @type {{value: string, isActive: boolean}[]}
    */
-  alertDefinitionsTypes: function () {
-    return App.AlertType.find().map(function(option) {
-      return Em.Object.create({
-        name: option.get('name'),
-        displayName: option.get('displayName'),
-        icon: option.get('iconPath'),
-        description: option.get('description')
-      });
-    });
-  }.property(),
+  alertDefinitionsTypes: [
+    Em.Object.create({value: 'PORT', isActive: false, icon: 'icon-signal'}),
+    Em.Object.create({value: 'METRIC', isActive: false, icon: 'icon-bolt'}),
+    Em.Object.create({value: 'WEB', isActive: false, icon: 'icon-globe'}),
+    Em.Object.create({value: 'AGGREGATE', isActive: false, icon: 'icon-plus-sign-alt'}),
+    Em.Object.create({value: 'SCRIPT', isActive: false, icon: 'icon-code'}),
+    Em.Object.create({value: 'SERVER', isActive: false, icon: 'icon-desktop'}),
+    Em.Object.create({value: 'RECOVERY', isActive: false, icon: 'icon-desktop'})
+  ],
+
+  /**
+   * "Next"-button is disabled if user doesn't select any alert definition type
+   * @type {boolean}
+   */
+  isSubmitDisabled: Em.computed.everyBy('alertDefinitionsTypes', 'isActive', false),
 
   /**
    * Set selectedType if it exists in the wizard controller
    * @method loadStep
    */
   loadStep: function() {
-    this.set('content.selectedType', '');
+    this.get('alertDefinitionsTypes').setEach('isActive', false);
+    var selectedType = this.get('content.selectedType');
+    if(selectedType) {
+      this.selectType({context: {value: selectedType}});
+    }
   },
 
   /**
@@ -52,10 +61,10 @@ App.AddAlertDefinitionStep1Controller = Em.Controller.extend({
    */
   selectType: function(e) {
     var type = e.context,
-        types = this.get('alertDefinitionsTypes');
-    this.set('content.selectedType', type.name);
-    $("[rel='selectable-tooltip']").trigger('mouseleave');
-    App.router.send('next');
+      types = this.get('alertDefinitionsTypes');
+    types.setEach('isActive', false);
+    types.findProperty('value', type.value).set('isActive', true);
+    this.set('content.selectedType', type.value);
   }
 
 });

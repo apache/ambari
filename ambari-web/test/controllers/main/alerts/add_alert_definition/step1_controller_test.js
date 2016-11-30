@@ -30,13 +30,13 @@ describe('App.AddAlertDefinitionStep1Controller', function () {
   describe('#selectType', function() {
 
     beforeEach(function () {
-      controller.get('content').set('selectedType', '');
+      controller.get('alertDefinitionsTypes').setEach('isActive', false);
     });
 
     it('should set isActive for selected type', function () {
       var e = {context: {value: 'PORT'}};
       controller.selectType(e);
-      expect(controller.get('content.selectedType')).to.equal('PORT');
+      expect(controller.get('alertDefinitionsTypes').findProperty('value', 'PORT').get('isActive')).to.be.true;
     });
 
   });
@@ -45,12 +45,30 @@ describe('App.AddAlertDefinitionStep1Controller', function () {
 
     beforeEach(function () {
       controller.set('content.selectedType', 'PORT');
+
     });
 
     it('should set predefined type', function () {
       controller.loadStep();
-      expect(controller.get('content.selectedType').to.equal(''));
+      expect(controller.get('alertDefinitionsTypes').findProperty('value', 'PORT').get('isActive')).to.be.true;
     });
 
   });
+
+  describe('#isSubmitDisabled', function () {
+
+    beforeEach(function () {
+      controller.get('alertDefinitionsTypes').setEach('isActive', false);
+    });
+
+    it('should be based on isActive', function () {
+
+      expect(controller.get('isSubmitDisabled')).to.be.true;
+      controller.get('alertDefinitionsTypes').objectAt(0).set('isActive', true);
+      expect(controller.get('isSubmitDisabled')).to.be.false;
+
+    });
+
+  });
+
 });
