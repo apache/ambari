@@ -21,19 +21,6 @@
     <service>
       <name>ZOOKEEPER</name>
       <version>3.4.6.2.5</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>ubuntu14,ubuntu16</osFamily>
-          <packages>
-            <package>
-              <name>zookeeper-${stack_version}</name>
-            </package>
-            <package>
-              <name>zookeeper-${stack_version}-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
     </service>
   </services>
 </metainfo>
