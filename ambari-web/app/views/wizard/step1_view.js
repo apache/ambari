@@ -51,6 +51,8 @@ App.WizardStep1View = Em.View.extend({
     $("[rel=skip-validation-tooltip]").tooltip('destroy');
     $("[rel=use-redhat-tooltip]").tooltip('destroy');
     $('.add-os-button,.redhat-label').tooltip('destroy');
+    $('.icon-undo').tooltip('destroy');
+    $('.action .icon').tooltip('destroy');
   },
 
   /**
@@ -66,6 +68,11 @@ App.WizardStep1View = Em.View.extend({
       }),
       secondary: false
     });
+  },
+
+  removeOS() {
+    $('.action .icon').tooltip('destroy');
+    return this.get('controller').removeOS(...arguments);
   },
 
   /**
