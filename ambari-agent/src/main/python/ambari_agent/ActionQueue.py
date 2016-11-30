@@ -125,7 +125,7 @@ class ActionQueue(threading.Thread):
   def cancel(self, commands):
     for command in commands:
 
-      logger.info("Canceling command {tid}".format(tid = str(command['target_task_id'])))
+      logger.info("Canceling command with taskId = {tid}".format(tid = str(command['target_task_id'])))
       logger.debug(pprint.pformat(command))
 
       task_id = command['target_task_id']
@@ -321,7 +321,7 @@ class ActionQueue(threading.Thread):
         else:
           status = self.FAILED_STATUS
           if (commandresult['exitcode'] == -signal.SIGTERM) or (commandresult['exitcode'] == -signal.SIGKILL):
-            logger.info('Command {cid} was canceled!'.format(cid=taskId))
+            logger.info('Command with taskId = {cid} was canceled!'.format(cid=taskId))
             break
 
       if status != self.COMPLETED_STATUS and retryAble and retryDuration > 0:
@@ -330,17 +330,17 @@ class ActionQueue(threading.Thread):
           delay = retryDuration
         retryDuration -= delay  # allow one last attempt
         commandresult['stderr'] += "\n\nCommand failed. Retrying command execution ...\n\n"
-        logger.info("Retrying command id {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
+        logger.info("Retrying command with taskId = {cid} after a wait of {delay}".format(cid=taskId, delay=delay))
         time.sleep(delay)
         continue
       else:
-        logger.info("Quit retrying for command id {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
+        logger.info("Quit retrying for command with taskId = {cid}. Status: {status}, retryAble: {retryAble}, retryDuration (sec): {retryDuration}, last delay (sec): {delay}"
                     .format(cid=taskId, status=status, retryAble=retryAble, retryDuration=retryDuration, delay=delay))
         break
 
     # final result to stdout
     commandresult['stdout'] += '\n\nCommand completed successfully!\n' if status == self.COMPLETED_STATUS else '\n\nCommand failed after ' + str(numAttempts) + ' tries\n'
-    logger.info('Command {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
+    logger.info('Command with taskId = {cid} completed successfully!'.format(cid=taskId) if status == self.COMPLETED_STATUS else 'Command with taskId = {cid} failed after {attempts} tries'.format(cid=taskId, attempts=numAttempts))
 
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
