@@ -1255,7 +1255,7 @@ Em.I18n.translations = {
   'admin.kerberos.disable.notice.completed': 'Services have been successfully tested without kerberos environment.',
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
-  'admin.manageJournalNode.label': 'Manage JournalNode',
+  'admin.manageJournalNode.label': 'Manage JournalNodes',
   'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
@@ -1263,14 +1263,12 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step4.header': 'Add/Remove JournalNodes',
   'admin.manageJournalNode.wizard.step5.header': 'Format JournalNodes',
   'admin.manageJournalNode.wizard.step6.header': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step7.header': 'BootStrap StandBy NameNode',
+  'admin.manageJournalNode.wizard.step7.header': 'BootStrap Standby NameNode',
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-  '<b>Review Configuration Changes.</b></br>' +
-  'The following lists the configuration changes that will be made by the Wizard to manage JournalNode. This information is for <b> review only </b>.' +
-  '</div>',
+  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<b>Configuration Change Review.</b></br>' +
+  'As part of this process, configuration changes are required. Please review the changes below, and note that they are for <b>review only</b>.  Future steps in this wizard will update this configuration, and restart <b>all</b> services automatically.',
 
   'admin.manageJournalNode.wizard.step4.task0.title' : 'Stop Standby NameNode',
   'admin.manageJournalNode.wizard.step4.task1.title': 'Stop Services',
@@ -1294,7 +1292,7 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
   'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step8.notice.completed':'JournalNodes has been processed successfully.',
+  'admin.manageJournalNode.wizard.step8.notice.completed':'Completed update to JournalNodes.',
 
   'admin.manageJournalNode.wizard.step3.body':
   '<ol>' +
