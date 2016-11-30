@@ -199,7 +199,7 @@ public class RetryUpgradeActionService extends AbstractScheduledService {
     List<HostRoleCommandEntity> holdingCommands = m_hostRoleCommandDAO.findByRequestIdAndStatuses(requestId, HOLDING_STATUSES);
     if (holdingCommands.size() > 0) {
       for (HostRoleCommandEntity hrc : holdingCommands) {
-        LOG.debug("Comparing task id: {}, original start time: {}, now: {}",
+        LOG.debug("Comparing taskId: {}, original start time: {}, now: {}",
             hrc.getTaskId(), hrc.getOriginalStartTime(), now);
 
         /*
