@@ -344,6 +344,7 @@ Em.I18n.translations = {
   'common.end.time': 'End Time',
   'common.rolling': 'Rolling',
   'common.express': 'Express',
+  'common.hostOrdered': 'Host Ordered',
   'common.rolling.downgrade': 'Rolling Downgrade',
   'common.express.downgrade': 'Express Downgrade',
 
