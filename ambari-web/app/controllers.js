@@ -85,6 +85,7 @@ require('controllers/main/admin/highAvailability/journalNode/step6_controller');
 require('controllers/main/admin/highAvailability/journalNode/step7_controller');
 require('controllers/main/admin/highAvailability/journalNode/step8_controller');
 require('controllers/main/admin/stack_and_upgrade_controller');
+require('controllers/main/admin/stack_upgrade_history_controller');
 require('controllers/main/admin/serviceAccounts_controller');
 require('utils/polling');
 require('controllers/main/admin/kerberos');
