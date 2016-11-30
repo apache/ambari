@@ -119,19 +119,19 @@ def save_pid(pid, pidfile):
       pass
 
 
-def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, skip_daemonize=False):
+def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
     Save pid which is not included to exclude_list to pidfile.
-    If kill_exclude_list is set to true,  all processes in that
-    list would be killed. It's might be useful to daemonize child process
 
     exclude_list contains list of full executable paths which should be excluded
   """
+  pid_saved = False
   try:
     pfile = open(pidfile, "w")
     for item in pids:
       if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
         pfile.write("%s\n" % item["pid"])
+        pid_saved = True
         logger.info("Ambari server started with PID " + str(item["pid"]))
       if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
         try:
@@ -147,67 +147,33 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
     except Exception as e:
       logger.error("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
+  return pid_saved
 
+def get_live_pids_count(pids):
+  """
+    Check pids for existence
+  """
+  return len([pid for pid in pids if pid_exists(pid)])
 
-def wait_for_pid(pids, server_init_timeout, occupy_port_timeout, init_web_ui_timeout,
-                 server_out_file, db_check_log, properties):
-  """
-    Check pid for existence during timeout
-  """
-  from ambari_server.serverConfiguration import get_ambari_server_ui_port
-  ambari_server_ui_port = int(get_ambari_server_ui_port(properties))
-  server_ui_port_occupied = False
+def wait_for_ui_start(ambari_server_ui_port, timeout=1):
+
   tstart = time.time()
-  pid_live = 0
-  while int(time.time()-tstart) <= occupy_port_timeout and len(pids) > 0:
-    sys.stdout.write('.')
-    sys.stdout.flush()
-    pid_live = 0
-    for item in pids:
-      if pid_exists(item["pid"]):
-        pid_live += 1
-    time.sleep(1)
-
+  while int(time.time()-tstart) <= timeout:
     try:
       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       sock.settimeout(1)
       sock.connect(('localhost', ambari_server_ui_port))
       print "\nServer started listening on " + str(ambari_server_ui_port)
-      server_ui_port_occupied = True
-      break
+      return True
     except Exception as e:
       #print str(e)
       pass
 
-  if 'Database consistency check: failed' in open(server_out_file).read():
-    print "\nDB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
-          "If you use this \"--skip-database-check\" option, do not make any changes to your cluster topology " \
-          "or perform a cluster upgrade until you correct the database consistency issues. See " + \
-          db_check_log + "for more details on the consistency issues."
-  elif 'Database consistency check: warning' in open(server_out_file).read():
-    print "\nDB configs consistency check found warnings. See " + db_check_log + " for more details."
-  else:
-    print "\nDB configs consistency check: no errors and warnings were found."
-
-
-  if not server_ui_port_occupied:
-    raise FatalException(1, "Server not yet listening on http port " + str(ambari_server_ui_port) +
-                            " after " + str(occupy_port_timeout + server_init_timeout) + " seconds. Exiting.")
-
-  tstart = time.time()
-  print "Waiting for 10 seconds, for server WEB UI initialization"
-  while int(time.time()-tstart) <= init_web_ui_timeout and len(pids) > 0:
     sys.stdout.write('.')
     sys.stdout.flush()
-    pid_live = 0
-    for item in pids:
-      if pid_exists(item["pid"]):
-        pid_live += 1
     time.sleep(1)
 
-
-  return pid_live
-
+  return False
 
 def get_symlink_path(path_to_link):
   """
