@@ -69,7 +69,9 @@
     </div>
       <div id="serviceConfig">
         {{#if controller.isLoaded}}
+          <div class="alert alert-info">
             {{{t admin.manageJournalNode.wizard.step3.confirm.config.body}}}
+          </div>
             {{view App.ServiceConfigView isNotEditableBinding="controller.isNotEditable"}}
         {{else}}
             {{view App.SpinnerView}}
