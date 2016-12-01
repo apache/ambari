@@ -52,7 +52,37 @@ public final class ConfigurationCondition extends Condition {
      * Equals comparison.
      */
     @XmlEnumValue("equals")
-    EQUALS;
+    EQUALS,
+
+    /**
+     * Not equals comparison.
+     */
+    @XmlEnumValue("not-equals")
+    NOT_EQUALS,
+
+    /**
+     * String contains.
+     */
+    @XmlEnumValue("contains")
+    CONTAINS,
+
+    /**
+     * Does not contain.
+     */
+    @XmlEnumValue("not-contains")
+    NOT_CONTAINS,
+
+    /**
+     * Exists with any value.
+     */
+    @XmlEnumValue("exists")
+    EXISTS,
+
+    /**
+     * Does not exist.
+     */
+    @XmlEnumValue("not-exists")
+    NOT_EXISTS;
   }
 
   /**
@@ -68,10 +98,16 @@ public final class ConfigurationCondition extends Condition {
   public String property;
 
   /**
-   * The value to compare against.
+   * The value to compare against; only valid if comparison type is in (=, !=, contains, !contains).
    */
   @XmlAttribute(name = "value")
   public String value;
+
+  /**
+   * The value to return if comparison type is in (=, !=, contains, !contains) and the config is missing.
+   */
+  @XmlAttribute(name = "return_value_if_config_missing")
+  public boolean returnValueIfConfigMissing;
 
   /**
    * The type of comparison to make.
@@ -84,7 +120,7 @@ public final class ConfigurationCondition extends Condition {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("type", type).add("property", property).add(value,
+    return Objects.toStringHelper(this).add("type", type).add("property", property).add("value",
         value).add("comparison", comparisonType).omitNullValues().toString();
   }
 
@@ -94,20 +130,40 @@ public final class ConfigurationCondition extends Condition {
   @Override
   public boolean isSatisfied(UpgradeContext upgradeContext) {
     Cluster cluster = upgradeContext.getCluster();
+
+    boolean propertyExists = false;
     Config config = cluster.getDesiredConfigByType(type);
-    if (null == config) {
-      return false;
+    Map<String, String> properties = null;
+    if (null != config) {
+      properties = config.getProperties();
+      if (properties.containsKey(property)) {
+        propertyExists = true;
+      }
     }
 
-    Map<String, String> properties = config.getProperties();
-    if (MapUtils.isEmpty(properties)) {
-      return false;
+    if (comparisonType == ComparisonType.EXISTS) {
+      return propertyExists;
+    }
+    if (comparisonType == ComparisonType.NOT_EXISTS) {
+      return !propertyExists;
+    }
+
+    // If property doesn't exist, we cannot make any claims using =, !=, contains !contains.
+    // Therefore, check if the Upgrade Pack provided a default return value when the config is missing.
+    if (!propertyExists) {
+      return returnValueIfConfigMissing;
     }
 
     String propertyValue = properties.get(property);
     switch (comparisonType) {
       case EQUALS:
         return StringUtils.equals(propertyValue, value);
+      case NOT_EQUALS:
+        return !StringUtils.equals(propertyValue, value);
+      case CONTAINS:
+        return StringUtils.contains(propertyValue, value);
+      case NOT_CONTAINS:
+        return !StringUtils.contains(propertyValue, value);
       default:
         return false;
     }
