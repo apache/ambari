@@ -43,6 +43,10 @@
         </component>
       </components>
 
+      <configuration-dependencies>
+        <config-type>zk-alert-config</config-type>
+      </configuration-dependencies>
+
       <!-- No packages to install. -->
       <osSpecifics></osSpecifics>
     </service>

@@ -22,14 +22,14 @@ import logging
 
 from resource_management.libraries.functions.simulate_perf_cluster_alert_behaviour import simulate_perf_cluster_alert_behaviour
 
-ALERT_BEHAVIOUR_TYPE = "{{hdfs-alert-config/alert.behavior.type}}"
+ALERT_BEHAVIOUR_TYPE = "{{happy-alert-config/alert.behavior.type}}"
 
-ALERT_SUCCESS_PERCENTAGE = "{{hdfs-alert-config/alert.success.percentage}}"
+ALERT_SUCCESS_PERCENTAGE = "{{happy-alert-config/alert.success.percentage}}"
 
-ALERT_TIMEOUT_RETURN_VALUE = "{{hdfs-alert-config/alert.timeout.return.value}}"
-ALERT_TIMEOUT_SECS = "{{hdfs-alert-config/alert.timeout.secs}}"
+ALERT_TIMEOUT_RETURN_VALUE = "{{happy-alert-config/alert.timeout.return.value}}"
+ALERT_TIMEOUT_SECS = "{{happy-alert-config/alert.timeout.secs}}"
 
-ALERT_FLIP_INTERVAL_MINS = "{{hdfs-alert-config/alert.flip.interval.mins}}"
+ALERT_FLIP_INTERVAL_MINS = "{{happy-alert-config/alert.flip.interval.mins}}"
 
 logger = logging.getLogger('ambari_alerts')
 
