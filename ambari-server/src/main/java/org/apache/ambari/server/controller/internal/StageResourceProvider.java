@@ -339,7 +339,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     CalculatedStatus status;
     if (summary.isEmpty()) {
       // Delete host might have cleared all HostRoleCommands
-      status = CalculatedStatus.getCompletedStatus();
+      status = CalculatedStatus.COMPLETED;
     } else {
       status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
     }
