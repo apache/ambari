@@ -126,34 +126,56 @@ class ServiceCheckDefault(ServiceCheck):
       if "application" in item:
         application_name = item
 
-    for rm_webapp_address in params.rm_webapp_addresses_list:
-      info_app_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
+    # Find out the active RM from RM list
+    # Raise an exception if the active rm cannot be determined
+    active_rm_webapp_address = self.get_active_rm_webapp_address()
+    Logger.info("Active Resource Manager web app address is : " + active_rm_webapp_address);
 
-      get_app_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
+    # Verify job state from active resource manager via rest api
+    info_app_url = params.scheme + "://" + active_rm_webapp_address + "/ws/v1/cluster/apps/" + application_name
+    get_app_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + info_app_url
 
-      return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
-                                            user=params.smokeuser,
-                                            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-                                            )
+    return_code, stdout, _ = get_user_call_output(get_app_info_cmd,
+                                                  user=params.smokeuser,
+                                                  path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                                                  )
 
-      # Handle HDP<2.2.8.1 where RM doesn't do automatic redirection from standby to active
-      if stdout.startswith("This is standby RM. Redirecting to the current active RM:"):
-        Logger.info(format("Skipped checking of {rm_webapp_address} since returned '{stdout}'"))
-        continue
+    try:
+      json_response = json.loads(stdout)
+    except Exception as e:
+      raise Fail(format("Response from YARN API was not a valid JSON. Response: {stdout}"))
 
-      try:
-        json_response = json.loads(stdout)
-      except Exception as e:
-        raise Fail(format("Response from YARN API was not a valid JSON. Response: {stdout}"))
-      
-      if json_response is None or 'app' not in json_response or \
-              'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
-        raise Fail("Application " + app_url + " returns invalid data.")
+    if json_response is None or 'app' not in json_response or \
+            'state' not in json_response['app'] or 'finalStatus' not in json_response['app']:
+      raise Fail("Application " + app_url + " returns invalid data.")
 
-      if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
-        raise Fail("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
+    if json_response['app']['state'] != "FINISHED" or json_response['app']['finalStatus'] != "SUCCEEDED":
+      raise Fail("Application " + app_url + " state/status is not valid. Should be FINISHED/SUCCEEDED.")
 
+  def get_active_rm_webapp_address(self):
+    import params
+    active_rm_webapp_address = None
+    rm_webapp_addresses = params.rm_webapp_addresses_list
+    if rm_webapp_addresses is not None and len(rm_webapp_addresses) > 0:
+      for rm_webapp_address in rm_webapp_addresses:
+        rm_state_url = params.scheme + "://" + rm_webapp_address + "/ws/v1/cluster/info"
+        get_cluster_info_cmd = "curl --negotiate -u : -ks --location-trusted --connect-timeout " + CURL_CONNECTION_TIMEOUT + " " + rm_state_url
+        try:
+          return_code, stdout, _ = get_user_call_output(get_cluster_info_cmd,
+                                                        user=params.smokeuser,
+                                                        path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+                                                        )
+          json_response = json.loads(stdout)
+          if json_response is not None and 'clusterInfo' in json_response \
+            and json_response['clusterInfo']['haState'] == "ACTIVE":
+              active_rm_webapp_address = rm_webapp_address
+              break
+        except Exception as e:
+          Logger.warning(format("Cluster info is not available from calling {get_cluster_info_cmd}"))
 
+    if active_rm_webapp_address is None:
+      raise Fail('Resource Manager state is not available. Failed to determine the active Resource Manager web application address from {0}'.format(','.join(rm_webapp_addresses)));
+    return active_rm_webapp_address
 
 if __name__ == "__main__":
   ServiceCheck().execute()
