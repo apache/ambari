@@ -59,6 +59,10 @@
           <function>prepare</function>
         </task>
       </execute-stage>
+
+      <execute-stage service="SPARK" component="LIVY_SERVER" title="Apply config changes for Livy Server">
+        <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs"/>
+      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">

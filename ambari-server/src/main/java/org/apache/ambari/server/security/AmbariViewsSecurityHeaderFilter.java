@@ -46,5 +46,6 @@ public class AmbariViewsSecurityHeaderFilter extends AbstractSecurityHeaderFilte
     setXContentTypeHeader(configuration.getViewsXContentTypeHTTPResponseHeader());
     setCacheControlHeader(configuration.getViewsCacheControlHTTPResponseHeader());
     setPragmaHeader(configuration.getViewsPragmaHTTPResponseHeader());
+    setCharset(configuration.getViewsCharsetHTTPResponseHeader());
   }
 }

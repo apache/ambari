@@ -972,7 +972,7 @@ describe('App.WizardStep6Controller', function () {
       });
   });
 
-  describe('#getHostNames', function () {
+  describe('#getAllHosts', function () {
     var tests = Em.A([
       {
         hosts: {
@@ -1010,8 +1010,8 @@ describe('App.WizardStep6Controller', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         controller.set('content.hosts', test.hosts);
-        var r = controller.getHostNames();
-        expect(r).to.eql(test.e);
+        var r = controller.getAllHosts();
+        expect(r.mapProperty('hostName')).to.eql(test.e);
       });
     });
   });

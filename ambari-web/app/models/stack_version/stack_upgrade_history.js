@@ -31,7 +31,7 @@ App.StackUpgradeHistory = DS.Model.extend({
   skipServiceCheckFailures: DS.attr('boolean'),
   endTime: DS.attr('number'),
   startTime: DS.attr('number'),
-  createTime: DS.attr('number'),
+  createTime: DS.attr('number')
 });
 
 App.StackUpgradeHistory.FIXTURES = [];

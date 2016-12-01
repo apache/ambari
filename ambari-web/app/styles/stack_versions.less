@@ -444,8 +444,14 @@
   .method-options {
     margin: 10px;
 
+    .method-option {
+      margin-bottom: 5px;
+    }
     .img-thumbnail {
-
+      background-color: #e4e4e4;
+      .method-name,.method-icon,.method-description {
+        color: #333;
+      }
       cursor: pointer;
       border: none;
       width: 99%;
@@ -464,18 +470,12 @@
       }
     }
 
-    .ROLLING, .NON_ROLLING {
-      background-color: #e4e4e4;
-      .method-name,.method-icon,.method-description {
-        color: #333;
-      }
-    }
     .ROLLING {
       .method-icon {
         margin-left: 88px;
       }
     }
-    .NON_ROLLING {
+    .NON_ROLLING, .HOST_ORDERED {
       .method-icon {
         margin-left: 94px;
       }

@@ -79,7 +79,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.API_USE_SSL.getKey(), "false");
-
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), Configuration.HTTP_CHARSET.getDefaultValue());
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
       }
@@ -101,7 +101,9 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     expectLastCall().once();        
     servletResponse.setHeader(AbstractSecurityHeaderFilter.PRAGMA_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.PRAGMA_HEADER));
     expectLastCall().once();
-    
+    servletResponse.setCharacterEncoding(Configuration.HTTP_CHARSET.getDefaultValue());
+    expectLastCall().once();
+
     FilterChain filterChain = createStrictMock(FilterChain.class);
     filterChain.doFilter(servletRequest, servletResponse);
     expectLastCall().once();
@@ -129,7 +131,7 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(Configuration.API_USE_SSL.getKey(), "true");
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey(), httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME.getKey(), httpPassFile.getName());
-
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), Configuration.HTTP_CHARSET.getDefaultValue());
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
       }
@@ -153,7 +155,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     expectLastCall().once();
     servletResponse.setHeader(AbstractSecurityHeaderFilter.PRAGMA_HEADER, defatulPropertyValueMap.get(AbstractSecurityHeaderFilter.PRAGMA_HEADER));
     expectLastCall().once();
-
+    servletResponse.setCharacterEncoding(Configuration.HTTP_CHARSET.getDefaultValue());
+    expectLastCall().once();
     FilterChain filterChain = createStrictMock(FilterChain.class);
     filterChain.doFilter(servletRequest, servletResponse);
     expectLastCall().once();
@@ -186,7 +189,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER), "custom4");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER), "custom5");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.PRAGMA_HEADER), "custom6");
-
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), "custom7");
+        properties.setProperty(Configuration.VIEWS_HTTP_CHARSET.getKey(), "custom7");
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
       }
@@ -208,7 +212,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     expectLastCall().once();
     servletResponse.setHeader(AbstractSecurityHeaderFilter.PRAGMA_HEADER, "custom6");
     expectLastCall().once();
-
+    servletResponse.setCharacterEncoding("custom7");
+    expectLastCall().once();
     FilterChain filterChain = createStrictMock(FilterChain.class);
     filterChain.doFilter(servletRequest, servletResponse);
     expectLastCall().once();
@@ -242,7 +247,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_CONTENT_TYPE_HEADER), "custom4");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.CACHE_CONTROL_HEADER), "custom5");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.PRAGMA_HEADER), "custom6");
-
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), "custom7");
+        properties.setProperty(Configuration.VIEWS_HTTP_CHARSET.getKey(), "custom7");
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
         bind(Configuration.class).toInstance(new Configuration(properties));
       }
@@ -266,7 +272,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
     expectLastCall().once();
     servletResponse.setHeader(AbstractSecurityHeaderFilter.PRAGMA_HEADER, "custom6");
     expectLastCall().once();
-
+    servletResponse.setCharacterEncoding("custom7");
+    expectLastCall().once();
     FilterChain filterChain = createStrictMock(FilterChain.class);
     filterChain.doFilter(servletRequest, servletResponse);
     expectLastCall().once();
@@ -293,6 +300,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
         Properties properties = new Properties();
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey(), httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME.getKey(), httpPassFile.getName());
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), "");
+        properties.setProperty(Configuration.VIEWS_HTTP_CHARSET.getKey(), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "");
@@ -339,6 +348,8 @@ public abstract class AbstractSecurityHeaderFilterTest extends EasyMockSupport {
         properties.setProperty(Configuration.API_USE_SSL.getKey(), "true");
         properties.setProperty(Configuration.CLIENT_API_SSL_KSTR_DIR_NAME.getKey(), httpPassFile.getParent());
         properties.setProperty(Configuration.CLIENT_API_SSL_CRT_PASS_FILE_NAME.getKey(), httpPassFile.getName());
+        properties.setProperty(Configuration.HTTP_CHARSET.getKey(), "");
+        properties.setProperty(Configuration.VIEWS_HTTP_CHARSET.getKey(), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.STRICT_TRANSPORT_HEADER), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_FRAME_OPTIONS_HEADER), "");
         properties.setProperty(propertyNameMap.get(AbstractSecurityHeaderFilter.X_XSS_PROTECTION_HEADER), "");

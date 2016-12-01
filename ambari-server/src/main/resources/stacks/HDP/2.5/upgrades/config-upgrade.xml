@@ -44,5 +44,17 @@
         </changes>
       </component>
     </service>
+
+    <service name="SPARK">
+      <component name="LIVY_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs">
+            <type>livy-conf</type>
+            <transfer operation="move" from-key="livy.server.kerberos.keytab" to-key="livy.server.launch.kerberos.keytab" />
+            <transfer operation="move" from-key="livy.server.kerberos.principal" to-key="livy.server.launch.kerberos.principal" />
+          </definition>
+        </changes>
+      </component>
+    </service>
   </services>
 </upgrade-config-changes>

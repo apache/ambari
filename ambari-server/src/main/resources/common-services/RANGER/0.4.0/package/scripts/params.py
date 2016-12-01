@@ -385,3 +385,17 @@ if audit_solr_enabled and is_solrCloud_enabled:
   # Check external solrCloud
   if is_external_solrCloud_enabled and is_external_solrCloud_kerberos:
     ranger_is_solr_kerberised = "true"
+
+hbase_master_hosts = default("/clusterHostInfo/hbase_master_hosts", [])
+is_hbase_ha_enabled = True if len(hbase_master_hosts) > 1 else False
+is_namenode_ha_enabled = True if len(namenode_hosts) > 1 else False
+ranger_hbase_plugin_enabled = False
+ranger_hdfs_plugin_enabled = False
+
+
+if is_hbase_ha_enabled:
+  if not is_empty(config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']):
+    ranger_hbase_plugin_enabled = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes'
+if is_namenode_ha_enabled:
+  if not is_empty(config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled']):
+    ranger_hdfs_plugin_enabled = config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes'

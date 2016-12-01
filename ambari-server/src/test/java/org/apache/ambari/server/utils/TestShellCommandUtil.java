@@ -126,16 +126,19 @@ public class TestShellCommandUtil {
 
       @Override
       public String getResponse(String query) {
-        if(query.contains("Arg1")) {
+        if (query.contains("Arg1")) {
           return "a1";
-        }
-        else if(query.contains("Arg2")) {
+        } else if (query.contains("Arg2")) {
           done = true; // this is the last expected prompt
           return "a2";
-        }
-        else {
+        } else {
           return null;
         }
+      }
+
+      @Override
+      public void start() {
+
       }
     };
 

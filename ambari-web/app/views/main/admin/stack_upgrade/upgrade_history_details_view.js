@@ -81,5 +81,5 @@ App.MainAdminStackUpgradeHistoryDetailsView = Em.View.extend({
     } else {
       return "";
     }
-  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade'),
+  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade')
 });

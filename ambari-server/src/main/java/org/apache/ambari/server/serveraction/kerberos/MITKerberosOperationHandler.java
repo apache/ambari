@@ -473,9 +473,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       }
       tries++;
 
-      try { Thread.sleep(3000); } catch (InterruptedException e) {}
+      try { Thread.sleep(1000 * configuration.getKerberosOperationRetryTimeout()); } catch (InterruptedException e) {}
 
-      String message = String.format("Retrying to execute kadmin after a wait of 3 seconds :\n\tCommand: %s", command);
+      String message = String.format("Retrying to execute kadmin after a wait of %d seconds :\n\tCommand: %s",
+          configuration.getKerberosOperationRetryTimeout(),
+          command);
       LOG.warn(message);
     }
 
@@ -521,8 +523,8 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     /**
      * The queue of responses to return
      */
-    private final Queue<String> responses = new LinkedList<String>();
-
+    private LinkedList<String> responses;
+    private Queue<String> currentResponses;
 
     /**
      * Constructor.
@@ -531,6 +533,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
      * @param userPassword  the user's password (optional)
      */
     public InteractivePasswordHandler(String adminPassword, String userPassword) {
+      responses = new LinkedList<String>();
 
       if (adminPassword != null) {
         responses.offer(adminPassword);
@@ -540,16 +543,23 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
         responses.offer(userPassword);
         responses.offer(userPassword);  // Add a 2nd time for the password "confirmation" request
       }
+
+      currentResponses = new LinkedList<String>(responses);
     }
 
     @Override
     public boolean done() {
-      return responses.size() == 0;
+      return currentResponses.size() == 0;
     }
 
     @Override
     public String getResponse(String query) {
-      return responses.poll();
+      return currentResponses.poll();
+    }
+
+    @Override
+    public void start() {
+      currentResponses = new LinkedList<String>(responses);
     }
   }
 }

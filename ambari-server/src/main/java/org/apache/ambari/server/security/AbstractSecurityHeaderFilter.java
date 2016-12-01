@@ -103,6 +103,11 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
    */
   private String pragmaHeader = Configuration.HTTP_PRAGMA_HEADER_VALUE.getDefaultValue();
 
+  /**
+   * The value for the Charset HTTP response header.
+   */
+  private String charset = Configuration.HTTP_CHARSET.getDefaultValue();
+
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -169,6 +174,10 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
     this.pragmaHeader = pragmaHeader;
   }
 
+  protected void setCharset(String charset) {
+    this.charset = charset;
+  }
+
   private void doFilterInternal(ServletRequest servletRequest, ServletResponse servletResponse) {
     if (servletResponse instanceof HttpServletResponse) {
       HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
@@ -201,6 +210,11 @@ public abstract class AbstractSecurityHeaderFilter implements Filter {
       // Conditionally set the X-Pragma HTTP response header if a value is supplied
       if (!StringUtils.isEmpty(pragmaHeader)) {
         httpServletResponse.setHeader(PRAGMA_HEADER, pragmaHeader);
+      }
+
+      // Conditionally set the Charset HTTP response header if a value is supplied
+      if (!StringUtils.isEmpty(charset)) {
+        httpServletResponse.setCharacterEncoding(charset);
       }
     }
   }

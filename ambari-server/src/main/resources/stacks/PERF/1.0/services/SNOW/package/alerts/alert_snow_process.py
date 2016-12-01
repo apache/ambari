@@ -20,32 +20,30 @@ limitations under the License.
 
 import logging
 
-RESULT_CODE_OK = 'OK'
-RESULT_CODE_CRITICAL = 'CRITICAL'
-RESULT_CODE_UNKNOWN = 'UNKNOWN'
+from resource_management.libraries.functions.simulate_perf_cluster_alert_behaviour import simulate_perf_cluster_alert_behaviour
 
-OK_MESSAGE = 'All NodeManagers are healthy'
+ALERT_BEHAVIOUR_TYPE = "{{snow-alert-config/alert.behavior.type}}"
 
-NODEMANAGER_HTTP_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.address}}'
-NODEMANAGER_HTTPS_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.https.address}}'
-YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
+ALERT_SUCCESS_PERCENTAGE = "{{snow-alert-config/alert.success.percentage}}"
 
-KERBEROS_KEYTAB = '{{yarn-site/yarn.nodemanager.webapp.spnego-keytab-file}}'
-KERBEROS_PRINCIPAL = '{{yarn-site/yarn.nodemanager.webapp.spnego-principal}}'
-SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
-SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
-EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
+ALERT_TIMEOUT_RETURN_VALUE = "{{snow-alert-config/alert.timeout.return.value}}"
+ALERT_TIMEOUT_SECS = "{{snow-alert-config/alert.timeout.secs}}"
+
+ALERT_FLIP_INTERVAL_MINS = "{{snow-alert-config/alert.flip.interval.mins}}"
 
 logger = logging.getLogger('ambari_alerts')
 
+alert_behaviour_properties = {"alert_behaviour_type" : ALERT_BEHAVIOUR_TYPE, "alert_success_percentage" : ALERT_SUCCESS_PERCENTAGE,
+                              "alert_timeout_return_value" : ALERT_TIMEOUT_RETURN_VALUE, "alert_timeout_secs" : ALERT_TIMEOUT_SECS,
+                              "alert_flip_interval_mins" : ALERT_FLIP_INTERVAL_MINS}
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return NODEMANAGER_HTTP_ADDRESS_KEY, NODEMANAGER_HTTPS_ADDRESS_KEY, EXECUTABLE_SEARCH_PATHS, \
-    YARN_HTTP_POLICY_KEY, SMOKEUSER_KEY, KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY
+  return (ALERT_BEHAVIOUR_TYPE, ALERT_SUCCESS_PERCENTAGE, ALERT_TIMEOUT_RETURN_VALUE, ALERT_TIMEOUT_SECS,
+          ALERT_FLIP_INTERVAL_MINS)
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -57,12 +55,5 @@ def execute(configurations={}, parameters={}, host_name=None):
   parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
-  result_code = RESULT_CODE_UNKNOWN
 
-  if configurations is None:
-    return (result_code, ['There were no configurations supplied to the script.'])
-
-  result_code = RESULT_CODE_OK
-  label = OK_MESSAGE
-
-  return (result_code, [label])
+  return simulate_perf_cluster_alert_behaviour(alert_behaviour_properties, configurations)

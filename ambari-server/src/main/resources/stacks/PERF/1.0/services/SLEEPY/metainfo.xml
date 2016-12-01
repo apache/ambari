@@ -52,6 +52,11 @@
           <default>true</default>
         </theme>
       </themes>
+
+      <configuration-dependencies>
+        <config-type>sleepy-alert-config</config-type>
+      </configuration-dependencies>
+
     </service>
   </services>
 </metainfo>

@@ -97,12 +97,12 @@ class CustomServiceOrchestrator():
       if task_id in self.commands_in_progress.keys():
         pid = self.commands_in_progress.get(task_id)
         self.commands_in_progress[task_id] = reason
-        logger.info("Canceling command with task_id - {tid}, " \
+        logger.info("Canceling command with taskId = {tid}, " \
                     "reason - {reason} . Killing process {pid}"
                     .format(tid=str(task_id), reason=reason, pid=pid))
         shell.kill_process_with_children(pid)
       else: 
-        logger.warn("Unable to find pid by taskId = %s" % task_id)
+        logger.warn("Unable to find process associated with taskId = %s" % task_id)
 
   def get_py_executor(self, forced_command_name):
     """
