@@ -21,7 +21,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend(App.AddSecurityConfigs, App.ConfigsLoader,
   App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ThemesMappingMixin, App.ConfigsSaverMixin,
-  App.ConfigsComparator, App.ComponentActionsByConfigs, App.TrackRequestMixin, {
+  App.ConfigsComparator, App.ComponentActionsByConfigs, {
 
   name: 'mainServiceInfoConfigsController',
 
