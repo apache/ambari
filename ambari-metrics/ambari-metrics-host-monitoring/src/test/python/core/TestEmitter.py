@@ -83,7 +83,7 @@ class TestEmitter(TestCase):
     emitter.RETRY_SLEEP_INTERVAL = .001
     emitter.submit_metrics()
 
-    self.assertEqual(request_mock.call_count, 9)
+    self.assertEqual(request_mock.call_count, 3)
     self.assertUrlData(request_mock)
 
   def assertUrlData(self, request_mock):
