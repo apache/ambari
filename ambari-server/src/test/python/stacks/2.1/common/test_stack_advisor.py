@@ -487,6 +487,8 @@ class TestHDP21StackAdvisor(TestCase):
       "hdfs-site": {
         "properties": {
           'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+          'dfs.namenode.name.dir': '/hadoop/hdfs/namenode',
+          'dfs.namenode.checkpoint.dir': '/hadoop/hdfs/namesecondary',
           'dfs.datanode.du.reserved': '10240000000'
         }
       }
