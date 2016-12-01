@@ -280,4 +280,14 @@ gpgcheck=0</value>
     <description>YARN Memory widget should be hidden by default on the dashboard.</description>
     <on-ambari-upgrade add="true"/>
   </property>
+   <property>
+    <name>agent_mounts_ignore_list</name>
+    <value/>
+    <description>Comma separated list of the mounts which would be ignored by Ambari during property values suggestion by Stack Advisor</description>
+    <on-ambari-upgrade add="false"/>
+    <value-attributes>
+      <visible>true</visible>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
 </configuration>

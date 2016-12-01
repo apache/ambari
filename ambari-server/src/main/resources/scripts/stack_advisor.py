@@ -70,13 +70,11 @@ def main(argv=None):
   if len(args) < 3:
     sys.stderr.write(USAGE)
     sys.exit(2)
-    pass
 
   action = args[0]
   if action not in ALL_ACTIONS:
     sys.stderr.write(USAGE)
     sys.exit(2)
-    pass
 
   hostsFile = args[1]
   servicesFile = args[2]
@@ -89,6 +87,7 @@ def main(argv=None):
   stackName = services["Versions"]["stack_name"]
   stackVersion = services["Versions"]["stack_version"]
   parentVersions = []
+
   if "stack_hierarchy" in services["Versions"]:
     parentVersions = services["Versions"]["stack_hierarchy"]["stack_versions"]
 
@@ -96,8 +95,9 @@ def main(argv=None):
 
   # Perform action
   actionDir = os.path.realpath(os.path.dirname(args[1]))
-  result = {}
-  result_file = "non_valid_result_file.json"
+
+  # filter
+  hosts = stackAdvisor.filterHostMounts(hosts, services)
 
   if action == RECOMMEND_COMPONENT_LAYOUT_ACTION:
     result = stackAdvisor.recommendComponentLayout(services, hosts)
@@ -111,12 +111,11 @@ def main(argv=None):
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
     result = stackAdvisor.recommendConfigurationDependencies(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
-  else: # action == VALIDATE_CONFIGURATIONS
+  else:  # action == VALIDATE_CONFIGURATIONS
     result = stackAdvisor.validateConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations-validation.json")
 
   dumpJson(result, result_file)
-  pass
 
 
 def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
