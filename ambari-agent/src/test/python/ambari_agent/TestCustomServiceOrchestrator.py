@@ -239,6 +239,7 @@ class TestCustomServiceOrchestrator(TestCase):
     
     FileCache_mock.return_value = None
     command = {
+      'commandType' : 'EXECUTION_COMMAND',
       'role' : 'REGION_SERVER',
       'hostLevelParams' : {
         'stack_name' : 'HDP',
@@ -277,6 +278,7 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(ret['exitcode'], 0)
     self.assertTrue(run_file_mock.called)
     self.assertEqual(run_file_mock.call_count, 3)
+    self.assertTrue(get_dashboard_base_dir_mock.called)
 
     run_file_mock.reset_mock()
 
@@ -297,6 +299,25 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual(run_file_mock.call_args_list[0][0][1][0],
                                   CustomServiceOrchestrator.SCRIPT_TYPE_PYTHON)
 
+    run_file_mock.reset_mock()
+
+    # For role=METRICS_GRAFANA, dashboards should be sync'd
+    command['role'] = 'METRICS_GRAFANA'
+    get_dashboard_base_dir_mock.reset_mock()
+    get_dashboard_base_dir_mock.return_value = "/dashboards/"
+
+    run_file_mock.return_value = {
+        'stdout' : 'sss',
+        'stderr' : 'eee',
+        'exitcode': 0,
+      }
+    ret = orchestrator.runCommand(command, "out.txt", "err.txt")
+    self.assertEqual(ret['exitcode'], 0)
+    self.assertTrue(run_file_mock.called)
+    self.assertEqual(run_file_mock.call_count, 3)
+    self.assertTrue(get_dashboard_base_dir_mock.called)
+
+    command['role'] = 'REGION_SERVER'
     run_file_mock.reset_mock()
 
     # unknown script type case
@@ -379,8 +400,8 @@ class TestCustomServiceOrchestrator(TestCase):
     ret = async_result.get()
 
     self.assertEqual(ret['exitcode'], 1)
-    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. reason')
-    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. reason')
+    self.assertEquals(ret['stdout'], 'killed\nCommand aborted. Reason: \'reason\'')
+    self.assertEquals(ret['stderr'], 'killed\nCommand aborted. Reason: \'reason\'')
 
     self.assertTrue(kill_process_with_children_mock.called)
     self.assertFalse(command['taskId'] in orchestrator.commands_in_progress.keys())

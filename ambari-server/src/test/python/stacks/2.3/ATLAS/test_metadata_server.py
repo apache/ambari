@@ -366,7 +366,10 @@ class TestMetadataServer(RMFTestCase):
                               user = 'atlas',
     )
 
-  def test_stop_default(self):
+  @patch('os.path.isdir')
+  def test_stop_default(self, is_dir_mock):
+    is_dir_mock.return_value = True
+
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
                        command = "stop",

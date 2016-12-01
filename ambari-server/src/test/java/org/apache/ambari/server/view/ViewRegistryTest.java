@@ -345,6 +345,7 @@ public class ViewRegistryTest {
     expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();
     expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
     expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
+    expect(configuration.extractViewsAfterClusterConfig()).andReturn(Boolean.FALSE).anyTimes();
 
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive});
 
@@ -574,6 +575,7 @@ public class ViewRegistryTest {
     expect(configuration.getViewExtractionThreadPoolCoreSize()).andReturn(2).anyTimes();
     expect(configuration.getViewExtractionThreadPoolMaxSize()).andReturn(3).anyTimes();
     expect(configuration.getViewExtractionThreadPoolTimeout()).andReturn(10000L).anyTimes();
+    expect(configuration.extractViewsAfterClusterConfig()).andReturn(Boolean.FALSE).anyTimes();
 
     expect(viewDir.listFiles()).andReturn(new File[]{viewArchive}).anyTimes();
 

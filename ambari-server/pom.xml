@@ -272,6 +272,8 @@
             <exclude>src/test/resources/users.ldif</exclude>
             <exclude>src/test/resources/mpacks_replay.log</exclude>
             <exclude>src/test/python/stacks/2.5/HIVE/*.txt</exclude>
+            <exclude>src/test/python/mpacks/mystack-ambari-mpack-1.0.0.1/stacks/MYSTACK/3.0/services/SERVICEC/dashboards/service-metrics/STORM.txt</exclude>
+            <exclude>src/test/python/uninstall/dashboards/files/STORM.txt</exclude>
             <exclude>src/main/resources/hive-schema-0.10.0.oracle.sql</exclude>
             <exclude>src/main/resources/hive-schema-0.12.0.oracle.sql</exclude>
             <exclude>src/main/resources/db/serial</exclude>

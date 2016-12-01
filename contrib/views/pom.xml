@@ -32,6 +32,8 @@
     <ambari.version>2.5.0.0.0</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
     <hadoop.version>2.7.1</hadoop.version>
+    <views.jars.dir>views-jars</views.jars.dir>
+    <views.jars.dir.rel>../target/${views.jars.dir}</views.jars.dir.rel>
   </properties>
   <modules>
     <module>utils</module>
@@ -47,7 +49,10 @@
     <module>zeppelin</module>
     <module>hueambarimigration</module>
     <module>hive-next</module>
+    <module>hive</module>
     <module>wfmanager</module>
+    <!--ambari-views-package should be last in the module list for it to function properly-->
+    <module>ambari-views-package</module>
   </modules>
   <build>
     <pluginManagement>

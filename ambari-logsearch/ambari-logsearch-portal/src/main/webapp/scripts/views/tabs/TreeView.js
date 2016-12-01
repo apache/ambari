@@ -151,7 +151,7 @@ define(['require',
 			this.restoreCheckbox();
 		},
 		restoreCheckbox : function(){
-			var params = (this.params.treeParams) ? JSON.parse(this.params.treeParams) : undefined,that=this;
+			var params = (this.params.hostList) ? JSON.parse(this.params.hostList) : undefined,that=this;
 			if(params){
 				that.$("input[data-node]").prop("checked",false);
 				_.each(params,function(node){
@@ -274,8 +274,8 @@ define(['require',
 			}else
 				this.$('.tree  input[type="checkbox"]').prop({"checked":false,"indeterminate":false});
 			var data = this.getCheckedHierarchyData();
-			this.params.treeParams = _.extend({},data);
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.params.hostList = _.extend({},data);
+			this.vent.trigger("tree:search",{hostList : data.toString()});
 			
 		},
 		onChangeNodeCheckbox : function(e){
@@ -300,7 +300,7 @@ define(['require',
 				
 			}
 			var data = this.getCheckedHierarchyData();
-			this.vent.trigger("tree:search",{treeParams : JSON.stringify(data)});
+			this.vent.trigger("tree:search",{hostList : data.toString()});
 		},
 		onNewTabIconClick : function(e){
 			var $el = $(e.currentTarget),host,component,that=this;
@@ -311,7 +311,7 @@ define(['require',
 					params:_.extend({},{
 						host_name :  host,
 						component_name : component
-					},that.searchParams,{treeParams:null}),
+					},that.searchParams,{hostList:null}),
 					globalVent : that.globalVent
 				}/*)*/);
 			}

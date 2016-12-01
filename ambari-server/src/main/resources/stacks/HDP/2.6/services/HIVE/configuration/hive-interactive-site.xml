@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent hive/hive-site.
+       It inherits the other required configs from hive/hive-site.
+       The inheritance logic in order to get hive2/hive-site goes like this :
+
+       1. We read the hive/hive-site which includes the stack defaults and Stack Advisor recommended values.
+       2. We take the read hive/hive-site (step 1), and on top of it apply the hive-interactive-site to get
+          hive2/hive-site.
+
+       Therefore, any config defined here will override the config value read from hive2/hive-site (step 1).
+  -->
+  <property>
+    <name>hive.llap.task.scheduler.locality.delay</name>
+    <value>8000</value>
+    <description>
+      Amount of time to wait (in ms) before allocating a request which contains location information,
+      to a location other than the ones requested. Set to -1 for an infinite delay, 0
+      for no delay.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.mapjoin.hybridgrace.hashtable</name>
+    <value>true</value>
+    <description>Whether to use hybrid grace hash join as the join method for mapjoin. Tez only.</description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+  <property>
+    <name>hive.llap.enable.grace.join.in.llap</name>
+    <value>false</value>
+    <description>Override if grace join should be allowed to run in llap for regular map joins.
+      Dynamic partitioned joins will honor the hive.mapjoin.hybridgrace.hashtable property in LLAP
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>

@@ -30,8 +30,11 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
 
   savedRecoveryEnabled: false,
 
+  isDisabled: false,
+
   didInsertElement: function () {
     var self = this;
+    this.set('isDisabled', !App.isAuthorized('SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS'));
     this.get('controller').loadClusterConfig().done(function (data) {
       var tag = [
         {
@@ -72,17 +75,33 @@ App.MainAdminServiceAutoStartView = Em.View.extend({
   initSwitcher: function () {
     var self = this;
     if (this.$()) {
-      this.$("input:eq(0)").bootstrapSwitch({
+      this.set('switcher', this.$("input:eq(0)").bootstrapSwitch({
         onText: Em.I18n.t('common.enabled'),
         offText: Em.I18n.t('common.disabled'),
         offColor: 'default',
         onColor: 'success',
+        disabled: this.get('isDisabled'),
         handleWidth: Math.max(Em.I18n.t('common.enabled').length, Em.I18n.t('common.disabled').length) * 8,
         onSwitchChange: function (event, state) {
           self.updateClusterConfigs(state);
         }
-      });
+      }));
     }
-  }
+  },
+
+  syncComponentRecoveryStatus: function () {
+    this.set('savedRecoveryEnabled', this.get('switcherValue'));
+  }.observes('controller.syncTrigger'),
+
+  revertComponentRecoveryStatus: function () {
+    this.set('switcherValue', this.get('savedRecoveryEnabled'));
+    if (this.get('controller.clusterConfigs')) {
+      this.set('controller.clusterConfigs.recovery_enabled', '' +  this.get('savedRecoveryEnabled'));
+    }
+    var switcher = this.get('switcher');
+    if (switcher) {
+      switcher.bootstrapSwitch('state', this.get('savedRecoveryEnabled'));
+    }
+  }.observes('controller.revertTrigger')
 });
 

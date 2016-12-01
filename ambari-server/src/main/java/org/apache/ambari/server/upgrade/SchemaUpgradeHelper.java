@@ -45,6 +45,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.persist.PersistService;
+import org.springframework.jdbc.support.JdbcUtils;
 
 public class SchemaUpgradeHelper {
   private static final Logger LOG = LoggerFactory.getLogger
@@ -330,7 +331,7 @@ public class SchemaUpgradeHelper {
   /**
    * Checks if source version meets minimal requirements for upgrade
    *
-   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link SchemaUpgradeHelper.getMinimalUpgradeCatalogVersion}
+   * @param minUpgradeVersion min allowed version for the upgrade, could be obtained via {@link #getMinimalUpgradeCatalogVersion()}
    * @param sourceVersion current version of the Database, which need to be upgraded
    *
    * @return  true if upgrade is allowed or false if not
@@ -343,6 +344,29 @@ public class SchemaUpgradeHelper {
     return VersionUtils.compareVersions(sourceVersion, minUpgradeVersion) >= 0;
   }
 
+  private List<String> getMyISAMTables() throws SQLException {
+    if (!configuration.getDatabaseType().equals(Configuration.DatabaseType.MYSQL)) {
+      return Collections.emptyList();
+    }
+    List<String> myISAMTables = new ArrayList<>();
+    String query = String.format("SELECT table_name FROM information_schema.tables WHERE table_schema = '%s' " +
+      "AND engine = 'MyISAM' AND table_type = 'BASE TABLE'", configuration.getServerDBName());
+    Statement statement = null;
+    ResultSet rs = null;
+    try {
+      statement = dbAccessor.getConnection().createStatement();
+      rs = statement.executeQuery(query);
+      if (rs != null) {
+        while (rs.next()) {
+          myISAMTables.add(rs.getString("table_name"));
+        }
+      }
+    } finally {
+      JdbcUtils.closeResultSet(rs);
+      JdbcUtils.closeStatement(statement);
+    }
+    return myISAMTables;
+  }
 
   /**
    * Upgrade Ambari DB schema to the target version passed in as the only
@@ -362,6 +386,15 @@ public class SchemaUpgradeHelper {
 
       Injector injector = Guice.createInjector(new UpgradeHelperModule(), new AuditLoggerModule());
       SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
+
+      //Fail if MySQL database has tables with MyISAM engine
+      List<String> myISAMTables = schemaUpgradeHelper.getMyISAMTables();
+      if (!myISAMTables.isEmpty()) {
+        String errorMessage = String.format("Unsupported MyISAM table %s detected. " +
+            "For correct upgrade database should be migrated to InnoDB engine.", myISAMTables.get(0));
+        LOG.error(errorMessage);
+        throw new AmbariException(errorMessage);
+      }
 
       String targetVersion = schemaUpgradeHelper.getAmbariServerVersion();
       LOG.info("Upgrading schema to target version = " + targetVersion);

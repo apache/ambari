@@ -172,16 +172,16 @@ public class GraphDataGenerator {
   public BarGraphDataListResponse getGraphDataWithDefaults(QueryResponse queryResponse, String field, String[] defaults) {
     BarGraphDataListResponse response = new BarGraphDataListResponse();
     BarGraphData barGraphData = new BarGraphData();
-    List<NameValueData> nameValues = generateLevelCountData(queryResponse, defaults);
+    List<NameValueData> nameValues = generateLevelCountData(queryResponse, defaults, true);
     barGraphData.setName(field);
     barGraphData.setDataCount(nameValues);
     response.setGraphData(Lists.newArrayList(barGraphData));
     return response;
   }
 
-  public NameValueDataListResponse getNameValueDataListResponseWithDefaults(QueryResponse response, String[] defaults) {
+  public NameValueDataListResponse getNameValueDataListResponseWithDefaults(QueryResponse response, String[] defaults, boolean emptyResponseDisabled) {
     NameValueDataListResponse result = new NameValueDataListResponse();
-    result.setvNameValues(generateLevelCountData(response, defaults));
+    result.setvNameValues(generateLevelCountData(response, defaults, emptyResponseDisabled));
     return result;
   }
 
@@ -325,11 +325,11 @@ public class GraphDataGenerator {
     return extensionTree;
   }
 
-  private List<NameValueData> generateLevelCountData(QueryResponse queryResponse, String[] defaults) {
+  private List<NameValueData> generateLevelCountData(QueryResponse queryResponse, String[] defaults, boolean emptyResponseEnabled) {
     List<NameValueData> nameValues = Lists.newLinkedList();
     Map<String, NameValueData> linkedMap = Maps.newLinkedHashMap();
     List<Count> counts = generateCount(queryResponse);
-    if (!CollectionUtils.isNotEmpty(counts)) {
+    if (!CollectionUtils.isNotEmpty(counts) && emptyResponseEnabled) {
       return nameValues;
     }
     for (String defaultValue : defaults) {
@@ -338,13 +338,15 @@ public class GraphDataGenerator {
       nameValue.setValue("0");
       linkedMap.put(defaultValue, nameValue);
     }
-    for (Count count : counts) {
-      if (!linkedMap.containsKey(count.getName())) {
-        NameValueData nameValue = new NameValueData();
-        String name = count.getName().toUpperCase();
-        nameValue.setName(name);
-        nameValue.setValue(String.valueOf(count.getCount()));
-        linkedMap.put(name, nameValue);
+    if (CollectionUtils.isNotEmpty(counts)) {
+      for (Count count : counts) {
+        if (!linkedMap.containsKey(count.getName())) {
+          NameValueData nameValue = new NameValueData();
+          String name = count.getName().toUpperCase();
+          nameValue.setName(name);
+          nameValue.setValue(String.valueOf(count.getCount()));
+          linkedMap.put(name, nameValue);
+        }
       }
     }
 

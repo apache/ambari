@@ -32,7 +32,7 @@
           {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
       </div>
       <div class="pull-right operations-button pull-right">
-          <button class="btn" {{action doReload target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
+          <button class="btn" {{action revertStatus target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.discard}}</button>
           <button class="btn btn-success" {{action showSavePopup target="controller"}} {{bindAttr disabled="controller.isSaveDisabled"}}>{{t common.save}}</button>
       </div>
   </div>
@@ -63,10 +63,12 @@
                                 </div>
                             </div>
                         {{/each}}
-                        <div class="offset4">
-                            <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
-                            <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
-                        </div>
+                        {{#isAuthorized "SERVICE.START_STOP, CLUSTER.MODIFY_CONFIGS"}}
+                            <div class="offset4">
+                                <a href="#" class="enable-all-link" {{action enableAll tab target="controller"}}>{{t common.enableAll}}</a> |
+                                <a href="#" {{action disableAll tab target="controller"}}>{{t common.disableAll}}</a>
+                            </div>
+                        {{/isAuthorized}}
                     </div>
                 {{/each}}
             </div>

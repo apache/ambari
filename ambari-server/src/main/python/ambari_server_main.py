@@ -38,8 +38,8 @@ from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
 from ambari_server.setupSecurity import generate_env, \
   ensure_can_start_under_current_user
-from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, wait_for_pid, \
-  save_main_pid_ex, check_exitcode
+from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, locate_all_file_paths, looking_for_pid, \
+  save_main_pid_ex, check_exitcode, get_live_pids_count
 from ambari_server.serverClassPath import ServerClassPath
 
 logger = logging.getLogger(__name__)
@@ -101,8 +101,8 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
     "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
 
-SERVER_INIT_TIMEOUT = 5
-SERVER_START_TIMEOUT = 30
+SERVER_START_TIMEOUT = 5
+SERVER_START_RETRIES = 4
 
 SERVER_PING_TIMEOUT_WINDOWS = 5
 SERVER_PING_ATTEMPTS_WINDOWS = 4
@@ -114,6 +114,7 @@ EXITCODE_NAME = "ambari-server.exitcode"
 CHECK_DATABASE_SKIPPED_PROPERTY = "check_database_skipped"
 
 AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Check {1} for more information."
+AMBARI_SERVER_NOT_STARTED_MSG = "Ambari Server java process hasn't been started or can't be determined."
 
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
@@ -200,12 +201,23 @@ def wait_for_server_start(pidFile, scmStatus):
   #wait for server process for SERVER_START_TIMEOUT seconds
   sys.stdout.write('Waiting for server start...')
   sys.stdout.flush()
+  pids = []
+  server_started = False
+  # looking_for_pid() might return partrial pid list on slow hardware
+  for i in range(1, SERVER_START_RETRIES):
+    pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_START_TIMEOUT)
 
-  pids = looking_for_pid(SERVER_SEARCH_PATTERN, SERVER_INIT_TIMEOUT)
-  found_pids = wait_for_pid(pids, SERVER_START_TIMEOUT)
+    sys.stdout.write('\n')
+    sys.stdout.flush()
 
-  sys.stdout.write('\n')
-  sys.stdout.flush()
+    if save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
+                        locate_all_file_paths('bash', '/bin') +
+                        locate_all_file_paths('dash', '/bin'), IS_FOREGROUND):
+      server_started = True
+      break
+    else:
+      sys.stdout.write("Unable to determine server PID. Retrying...\n")
+      sys.stdout.flush()
 
   if 'Database consistency check: failed' in open(configDefaults.SERVER_OUT_FILE).read():
     print "DB configs consistency check failed. Run \"ambari-server start --skip-database-check\" to skip. " \
@@ -218,15 +230,13 @@ def wait_for_server_start(pidFile, scmStatus):
   else:
     print "DB configs consistency check: no errors and warnings were found."
 
-
-  if found_pids <= 0:
+  if server_started:
+    return
+  elif get_live_pids_count(pids) <= 0:
     exitcode = check_exitcode(os.path.join(configDefaults.PID_DIR, EXITCODE_NAME))
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
-    save_main_pid_ex(pids, pidFile, locate_all_file_paths('sh', '/bin') +
-                                     locate_all_file_paths('bash', '/bin') +
-                                     locate_all_file_paths('dash', '/bin'), True, IS_FOREGROUND)
-
+    raise FatalException(-1, AMBARI_SERVER_NOT_STARTED_MSG)
 
 def server_process_main(options, scmStatus=None):
   properties = get_ambari_properties()
@@ -358,7 +368,7 @@ def server_process_main(options, scmStatus=None):
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
     pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
-    save_pid(pidJava, pidfile)
+
     print "Server PID at: "+pidfile
     print "Server out at: "+configDefaults.SERVER_OUT_FILE
     print "Server log at: "+configDefaults.SERVER_LOG_FILE

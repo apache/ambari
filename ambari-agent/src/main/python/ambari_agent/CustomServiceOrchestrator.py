@@ -42,6 +42,7 @@ class CustomServiceOrchestrator():
   """
 
   SCRIPT_TYPE_PYTHON = "PYTHON"
+  COMMAND_TYPE = "commandType"
   COMMAND_NAME_STATUS = "STATUS"
   COMMAND_NAME_SECURITY_STATUS = "SECURITY_STATUS"
   CUSTOM_ACTION_COMMAND = 'ACTIONEXECUTE'
@@ -96,12 +97,12 @@ class CustomServiceOrchestrator():
       if task_id in self.commands_in_progress.keys():
         pid = self.commands_in_progress.get(task_id)
         self.commands_in_progress[task_id] = reason
-        logger.info("Canceling command with task_id - {tid}, " \
+        logger.info("Canceling command with taskId = {tid}, " \
                     "reason - {reason} . Killing process {pid}"
                     .format(tid=str(task_id), reason=reason, pid=pid))
         shell.kill_process_with_children(pid)
       else: 
-        logger.warn("Unable to find pid by taskId = %s" % task_id)
+        logger.warn("Unable to find process associated with taskId = %s" % task_id)
 
   def get_py_executor(self, forced_command_name):
     """
@@ -153,7 +154,12 @@ class CustomServiceOrchestrator():
         self.file_cache.get_host_scripts_base_dir(server_url_prefix)          
         hook_dir = self.file_cache.get_hook_base_dir(command, server_url_prefix)
         base_dir = self.file_cache.get_service_base_dir(command, server_url_prefix)
-        self.file_cache.get_dashboard_base_dir(server_url_prefix)
+        from ActionQueue import ActionQueue  # To avoid cyclic dependency
+        if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
+          logger.info("Found it - " + str(command[self.COMMAND_TYPE]) + " yeah")
+          # limiting to only EXECUTION_COMMANDs for now
+          # TODO need a design for limiting to specific role/component such as METRICS_GRAFANA
+          self.file_cache.get_dashboard_base_dir(server_url_prefix)
 
         script_path = self.resolve_script_path(base_dir, script)
         script_tuple = (script_path, base_dir)
@@ -217,7 +223,7 @@ class CustomServiceOrchestrator():
       # if canceled and not background command
       if handle is None:
         cancel_reason = self.command_canceled_reason(task_id)
-        if cancel_reason:
+        if cancel_reason is not None:
           ret['stdout'] += cancel_reason
           ret['stderr'] += cancel_reason
 
@@ -245,10 +251,11 @@ class CustomServiceOrchestrator():
         logger.debug('Pop with taskId %s' % task_id)
         pid = self.commands_in_progress.pop(task_id)
         if not isinstance(pid, int):
-          if pid:
-            return '\nCommand aborted. ' + pid
+          reason = pid
+          if reason:
+            return "\nCommand aborted. Reason: '{0}'".format(reason)
           else:
-            return ''
+            return "\nCommand aborted."
     return None
 
   def requestComponentStatus(self, command):

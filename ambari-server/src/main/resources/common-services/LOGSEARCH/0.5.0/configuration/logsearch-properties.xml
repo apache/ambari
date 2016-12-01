@@ -236,4 +236,44 @@
     </value-attributes>
     <on-ambari-upgrade add="true"/>
   </property>
+  <property>
+    <name>logsearch.spnego.kerberos.enabled</name>
+    <value/>
+    <display-name>Http Spnego enabled</display-name>
+    <description>Enable SPNEGO based authentication on the Log Search UI</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.principal</name>
+    <value/>
+    <display-name>Http Spnego principal</display-name>
+    <description>Principal for SPNEGO authentication for Http requests</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.keytab</name>
+    <value/>
+    <display-name>Http Spnego keytab</display-name>
+    <description>Keytab for SPNEGO authentication for Http requests</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>logsearch.spnego.kerberos.host</name>
+    <value>localhost</value>
+    <display-name>Http Spnego hostname</display-name>
+    <description>Fully-qualified host name in the Kerberos service principal name (SPN) that is used by SPNEGO</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <on-ambari-upgrade add="true"/>
+  </property>
 </configuration>

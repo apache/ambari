@@ -2285,6 +2285,34 @@ var hdp2properties = [
     "category": "Advanced logsearch-properties",
     "index": 14
   },
+  {
+    "name": "logsearch.spnego.kerberos.enabled",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 15
+  },
+  {
+    "name": "logsearch.spnego.kerberos.keytab",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 16
+  },
+  {
+    "name": "logsearch.spnego.kerberos.principal",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 17
+  },
+  {
+    "name": "logsearch.spnego.kerberos.host",
+    "serviceName": "LOGSEARCH",
+    "filename": "logsearch-properties.xml",
+    "category": "Advanced logsearch-properties",
+    "index": 18
+  },
   /*infra-solr-client-log4j*/
   {
     "name": "infra_solr_client_log_dir",

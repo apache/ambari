@@ -23,14 +23,9 @@ describe('App.ajax', function() {
 
   beforeEach(function() {
     App.ajax.send.restore();
-    sinon.stub(App.logger, 'setTimer');
     sinon.spy(App.ajax, 'send'); // no sense to test stubbed function, so going to spy on it
     App.set('apiPrefix', '/api/v1');
     App.set('clusterName', 'tdk');
-  });
-
-  afterEach(function() {
-    App.logger.setTimer.restore();
   });
 
   describe('#send', function() {
@@ -167,7 +162,7 @@ describe('App.ajax', function() {
       });
     });
   });
-
+  
   describe('#abortRequests', function () {
 
     var xhr = {
@@ -197,6 +192,6 @@ describe('App.ajax', function() {
     it('should clear requests array', function () {
       expect(requests).to.have.length(0);
     });
-
+    
   });
 });

@@ -49,7 +49,7 @@ class HDP26StackAdvisor(HDP25StackAdvisor):
         knox_host = knox_hosts[0]
       if 'gateway-site' in services['configurations'] and 'gateway.port' in services['configurations']["gateway-site"]["properties"]:
         knox_port = services['configurations']["gateway-site"]["properties"]['gateway.port']
-      putAtlasApplicationProperty('atlas.sso.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
+      putAtlasApplicationProperty('atlas.sso.knox.providerurl', 'https://{0}:{1}/gateway/knoxsso/api/v1/websso'.format(knox_host, knox_port))
 
   def recommendDruidConfigurations(self, configurations, clusterData, services, hosts):
 

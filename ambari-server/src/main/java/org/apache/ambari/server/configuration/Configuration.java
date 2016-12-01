@@ -1407,6 +1407,9 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
+  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
+      "kerberos.operation.retry.timeout", 10);
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -1837,6 +1840,22 @@ public class Configuration {
   @Markdown(description = "Determines whether operations in different execution requests can be run concurrently.")
   public static final ConfigurationProperty<Boolean> PARALLEL_STAGE_EXECUTION = new ConfigurationProperty<>(
       "server.stages.parallel", Boolean.TRUE);
+
+  /**
+   *
+   * Property driving the view extraction.
+   * It only applies to  blueprint deployments.
+   *
+   * If set to TRUE on ambari-server startup only the system views are loaded; non-system views are extracted upon a cluster
+   * creation request is received and the cluster configuration is successfully performed
+   *
+   * It is advised to use this property only in cases when ambari-server startup time is critical (eg. cloud environments)
+   *
+   * By default this is FALSE so all views are extracted and deployed at server startup.
+   */
+  @Markdown(description = "Drives view extraction in case of blueprint deployments; non-system views are deployed when cluster configuration is successful")
+  public static final ConfigurationProperty<Boolean> VIEW_EXTRACT_AFTER_CLUSTER_CONFIG =  new ConfigurationProperty<>("view.extract-after-cluster-config", Boolean.FALSE);
+
 
   /**
    * In case this is set to DEPENDENCY_ORDERED one stage is created for each request and command dependencies are
@@ -4286,6 +4305,11 @@ public class Configuration {
     return Integer.parseInt(getProperty(VIEW_REQUEST_THREADPOOL_MAX_SIZE));
   }
 
+  public Boolean extractViewsAfterClusterConfig() {
+    return Boolean.parseBoolean(getProperty(VIEW_EXTRACT_AFTER_CLUSTER_CONFIG));
+  }
+
+
   /**
    * Get the time, in ms, that a request to a view will wait for an available
    * thread to handle the request before returning an error.
@@ -5590,6 +5614,10 @@ public class Configuration {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
   }
 
+  public int getKerberosOperationRetryTimeout() {
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
+  }
+
   /**
    * Return configured acceptors for agent api connector. Default = null
    */
@@ -5605,7 +5633,7 @@ public class Configuration {
     String acceptors = getProperty(SRVR_API_ACCEPTOR_THREAD_COUNT);
     return StringUtils.isEmpty(acceptors) ? null : Integer.parseInt(acceptors);
   }
- 
+
   public String getPamConfigurationFile() {
     return getProperty(PAM_CONFIGURATION_FILE);
   }

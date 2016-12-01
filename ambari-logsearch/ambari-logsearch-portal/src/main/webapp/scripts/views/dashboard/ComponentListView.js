@@ -191,7 +191,7 @@ define(['require',
 						params:_.extend({},{
 							host_name :  host,
 							component_name : component
-						},that.searchParams,{treeParams:null}),
+            }, that.searchParams, {hostList: null}),
 						globalVent : that.globalVent
 					});
 				},

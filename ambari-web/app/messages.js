@@ -130,6 +130,7 @@ Em.I18n.translations = {
   'common.open':'Open',
   'common.copy':'Copy',
   'common.complete':'Complete',
+  'common.completed':'Completed',
   'common.metrics':'Metrics',
   'common.timeRange':'Time Range',
   'common.name':'Name',
@@ -172,6 +173,7 @@ Em.I18n.translations = {
   'common.recommission':'Recommission',
   'common.failure': 'Failure',
   'common.type': 'Type',
+  'common.direction': 'Direction',
   'common.close': 'Close',
   'common.warning': 'Warning',
   'common.critical': 'Critical',
@@ -192,6 +194,7 @@ Em.I18n.translations = {
   'common.repositories':'Repositories',
   'common.stack.versions':'Stack Versions',
   'common.versions':'Versions',
+  'common.upgrade.history':'Upgrade History',
   'common.serviceAccounts': 'Service Accounts',
   'common.add': 'Add',
   'common.edit': 'Edit',
@@ -203,6 +206,7 @@ Em.I18n.translations = {
   'common.details':'Details',
   'common.stats':'Stats',
   'common.abort': 'Abort',
+  'common.aborted': 'Aborted',
   'common.misc': 'Misc',
   'common.userSettings': 'User Settings',
   'common.aboutAmbari': 'About',
@@ -334,6 +338,14 @@ Em.I18n.translations = {
   'common.logs': 'Logs',
   'common.warn.message': '<div class="alert alert-warn">{0}</div>',
   'common.link': 'Link',
+  'common.from.version': 'From Version',
+  'common.to.version': 'To Version',
+  'common.start.time': 'Start Time',
+  'common.end.time': 'End Time',
+  'common.rolling': 'Rolling',
+  'common.express': 'Express',
+  'common.rolling.downgrade': 'Rolling Downgrade',
+  'common.express.downgrade': 'Express Downgrade',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1255,7 +1267,7 @@ Em.I18n.translations = {
   'admin.kerberos.disable.notice.completed': 'Services have been successfully tested without kerberos environment.',
   'admin.kerberos.wizard.step1.notice.inProgress': 'Please wait while cluster is being unkerberized',
 
-  'admin.manageJournalNode.label': 'Manage JournalNode',
+  'admin.manageJournalNode.label': 'Manage JournalNodes',
   'admin.manageJournalNode.wizard.header': 'Manage JournalNodes Wizard',
   'admin.manageJournalNode.wizard.step1.header': 'Assign JournalNodes',
   'admin.manageJournalNode.wizard.step2.header': 'Review',
@@ -1263,14 +1275,12 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.step4.header': 'Add/Remove JournalNodes',
   'admin.manageJournalNode.wizard.step5.header': 'Format JournalNodes',
   'admin.manageJournalNode.wizard.step6.header': 'Start Active NameNode',
-  'admin.manageJournalNode.wizard.step7.header': 'BootStrap StandBy NameNode',
+  'admin.manageJournalNode.wizard.step7.header': 'BootStrap Standby NameNode',
   'admin.manageJournalNode.wizard.step8.header': 'Start All Services',
 
   'admin.manageJournalNode.wizard.step1.body': 'Add, or Remove JournalNodes',
-  'admin.manageJournalNode.wizard.step3.confirm.config.body':'<div class="alert alert-info">' +
-  '<b>Review Configuration Changes.</b></br>' +
-  'The following lists the configuration changes that will be made by the Wizard to manage JournalNode. This information is for <b> review only </b>.' +
-  '</div>',
+  'admin.manageJournalNode.wizard.step3.confirm.config.body': '<b>Configuration Change Review.</b></br>' +
+  'As part of this process, configuration changes are required. Please review the changes below, and note that they are for <b>review only</b>.  Future steps in this wizard will update this configuration, and restart <b>all</b> services automatically.',
 
   'admin.manageJournalNode.wizard.step4.task0.title' : 'Stop Standby NameNode',
   'admin.manageJournalNode.wizard.step4.task1.title': 'Stop Services',
@@ -1294,7 +1304,7 @@ Em.I18n.translations = {
   'admin.manageJournalNode.wizard.progressPage.notice.inProgress': 'Please wait while JournalNodes are being deployed',
   'admin.manageJournalNode.wizard.step6.notice.inProgress': 'Please wait for related services to be started',
   'admin.manageJournalNode.wizard.step4.notice.inProgress': 'Please wait while JournalNodes are being deployed',
-  'admin.manageJournalNode.wizard.step8.notice.completed':'JournalNodes has been processed successfully.',
+  'admin.manageJournalNode.wizard.step8.notice.completed':'Completed update to JournalNodes.',
 
   'admin.manageJournalNode.wizard.step3.body':
   '<ol>' +
@@ -1730,6 +1740,22 @@ Em.I18n.translations = {
   'admin.stackVersions.hosts.popup.primary': "Go to Hosts",
 
   'admin.stackVersions.details.install.hosts.popup.title': "Install {0} version",
+  'admin.stackVersions.upgradeHistory.upgrade': 'Upgrades',
+  'admin.stackVersions.upgradeHistory.downgrade': 'Downgrades',
+  'admin.stackVersions.upgradeHistory.show.details': 'Click to show more details on {0}',
+  'admin.stackVersions.upgradeHistory.success': 'Sucessful {0}',
+  'admin.stackVersions.upgradeHistory.aborted': 'Aborted {0}',
+  'admin.stackVersions.upgradeHistory.summary': 'Summary',
+  'admin.stackVersions.upgradeHistory.history': 'History',
+  'admin.stackVersions.upgradeHistory.filter.all': 'All ({0})',
+  'admin.stackVersions.upgradeHistory.filter.upgrade': 'Upgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.downgrade': 'Downgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.successful.upgrade': 'Successful Upgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.successful.downgrade': 'Successful Downgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.aborted.upgrade': 'Aborted Upgrade ({0})',
+  'admin.stackVersions.upgradeHistory.filter.aborted.downgrade': 'Aborted Downgrade ({0})',
+  'admin.stackVersions.upgradeHistory.no.history': 'No upgrade/downgrade history available',
+  'admin.stackVersions.upgradeHistory.record.title': '{0} {1} to {2}',
 
   'admin.stackUpgrade.preCheck.warning.message': "{0} Warning {1}",
   'admin.stackUpgrade.preCheck.bypass.message': "{0} Error {1}",

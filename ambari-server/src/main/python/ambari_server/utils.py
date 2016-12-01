@@ -117,19 +117,19 @@ def save_pid(pid, pidfile):
       pass
 
 
-def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, skip_daemonize=False):
+def save_main_pid_ex(pids, pidfile, exclude_list=[], skip_daemonize=False):
   """
     Save pid which is not included to exclude_list to pidfile.
-    If kill_exclude_list is set to true,  all processes in that
-    list would be killed. It's might be useful to daemonize child process
 
     exclude_list contains list of full executable paths which should be excluded
   """
+  pid_saved = False
   try:
     pfile = open(pidfile, "w")
     for item in pids:
       if pid_exists(item["pid"]) and (item["exe"] not in exclude_list):
         pfile.write("%s\n" % item["pid"])
+        pid_saved = True
         logger.info("Ambari server started with PID " + str(item["pid"]))
       if pid_exists(item["pid"]) and (item["exe"] in exclude_list) and not skip_daemonize:
         try:
@@ -145,23 +145,13 @@ def save_main_pid_ex(pids, pidfile, exclude_list=[], kill_exclude_list=False, sk
     except Exception as e:
       logger.error("Failed to close PID file " + pidfile + " due to " + str(e))
       pass
+  return pid_saved
 
-
-def wait_for_pid(pids, timeout):
+def get_live_pids_count(pids):
   """
-    Check pid for existence during timeout
+    Check pids for existence
   """
-  tstart = time.time()
-  pid_live = 0
-  while int(time.time()-tstart) <= timeout and len(pids) > 0:
-    sys.stdout.write('.')
-    sys.stdout.flush()
-    pid_live = 0
-    for item in pids:
-      if pid_exists(item["pid"]):
-        pid_live += 1
-    time.sleep(1)
-  return pid_live
+  return len([pid for pid in pids if pid_exists(pid)])
 
 
 def get_symlink_path(path_to_link):

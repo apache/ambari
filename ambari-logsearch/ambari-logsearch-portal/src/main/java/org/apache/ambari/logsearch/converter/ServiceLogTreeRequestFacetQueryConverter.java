@@ -18,17 +18,10 @@
  */
 package org.apache.ambari.logsearch.converter;
 
-import com.google.common.base.Splitter;
 import org.apache.ambari.logsearch.common.LogType;
 import org.apache.ambari.logsearch.model.request.impl.ServiceLogHostComponentRequest;
-import org.springframework.data.solr.core.query.Criteria;
 import org.springframework.data.solr.core.query.FacetOptions;
-import org.springframework.data.solr.core.query.SimpleFacetQuery;
-import org.springframework.data.solr.core.query.SimpleFilterQuery;
-
 import javax.inject.Named;
-
-import java.util.List;
 
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.COMPONENT;
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.HOST;
@@ -36,7 +29,7 @@ import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants
 import static org.apache.ambari.logsearch.solr.SolrConstants.ServiceLogConstants.LOGTIME;
 
 @Named
-public class ServiceLogTreeRequestFacetQueryConverter extends AbstractLogRequestFacetQueryConverter<ServiceLogHostComponentRequest>{
+public class ServiceLogTreeRequestFacetQueryConverter extends AbstractServiceLogRequestFacetQueryConverter<ServiceLogHostComponentRequest>{
 
   @Override
   public FacetOptions.FacetSort getFacetSort() {
@@ -51,14 +44,6 @@ public class ServiceLogTreeRequestFacetQueryConverter extends AbstractLogRequest
   @Override
   public LogType getLogType() {
     return LogType.SERVICE;
-  }
-
-  @Override
-  public void appendFacetQuery(SimpleFacetQuery facetQuery, ServiceLogHostComponentRequest request) {
-    List<String> levels = Splitter.on(",").splitToList(request.getLevel());
-    SimpleFilterQuery filterQuery = new SimpleFilterQuery();
-    filterQuery.addCriteria(new Criteria(LEVEL).in(levels));
-    facetQuery.addFilterQuery(filterQuery);
   }
 
   @Override

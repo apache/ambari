@@ -210,6 +210,7 @@ public class UpgradeCatalog250Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
+    Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateHIVEInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHIVEInteractiveConfigs");
     Method updateTEZInteractiveConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateTEZInteractiveConfigs");
@@ -219,6 +220,7 @@ public class UpgradeCatalog250Test {
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateHIVEInteractiveConfigs)
       .addMockedMethod(updateTEZInteractiveConfigs)
+      .addMockedMethod(updateHiveLlapConfigs)
       .addMockedMethod(addNewConfigurationsFromXml)
       .createMock();
 
@@ -236,6 +238,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateTEZInteractiveConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateHiveLlapConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog250);

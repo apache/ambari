@@ -58,8 +58,12 @@ class Master(Script):
     # update the configs specified by user
     self.configure(env)
 
-    Execute('echo spark_version:' + params.spark_version + ' detected for spark_home: '
-            + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
+    if params.spark_version:
+      Execute('echo spark_version:' + str(params.spark_version) + ' detected for spark_home: '
+              + params.spark_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
+    if params.spark2_version:
+      Execute('echo spark2_version:' + str(params.spark2_version) + ' detected for spark2_home: '
+              + params.spark2_home + ' >> ' + params.zeppelin_log_file, user=params.zeppelin_user)
 
   def create_zeppelin_dir(self, params):
     params.HdfsResource(format("/user/{zeppelin_user}"),
@@ -138,9 +142,10 @@ class Master(Script):
     File(format("{params.conf_dir}/log4j.properties"), content=params.log4j_properties_content,
          owner=params.zeppelin_user, group=params.zeppelin_group)
 
-    # copy hive-site.xml
-    File(format("{params.conf_dir}/hive-site.xml"), content=StaticFile("/etc/spark/conf/hive-site.xml"),
-         owner=params.zeppelin_user, group=params.zeppelin_group)
+    # copy hive-site.xml only if Spark 1.x is installed
+    if 'spark-defaults' in params.config['configurations']:
+        File(format("{params.conf_dir}/hive-site.xml"), content=StaticFile("/etc/spark/conf/hive-site.xml"),
+             owner=params.zeppelin_user, group=params.zeppelin_group)
 
     if len(params.hbase_master_hosts) > 0:
       # copy hbase-site.xml

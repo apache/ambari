@@ -70,6 +70,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
       protected void configure() {
         Configuration configuration = EasyMock.createNiceMock(Configuration.class);
         expect(configuration.getServerOsFamily()).andReturn("redhat6").anyTimes();
+        expect(configuration.getKerberosOperationRetryTimeout()).andReturn(1).anyTimes();
         replay(configuration);
 
         bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
@@ -545,6 +546,28 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
     handler.open(credentials, realm, KERBEROS_ENV_MAP);
     handler.testAdministratorCredentials();
     handler.close();
+  }
+
+  @Test
+  public void testInteractivePasswordHandler() {
+    MITKerberosOperationHandler.InteractivePasswordHandler handler = new MITKerberosOperationHandler.InteractivePasswordHandler("admin_password", "user_password");
+
+    handler.start();
+    Assert.assertEquals("admin_password", handler.getResponse("password"));
+    Assert.assertFalse(handler.done());
+    Assert.assertEquals("user_password", handler.getResponse("password"));
+    Assert.assertFalse(handler.done());
+    Assert.assertEquals("user_password", handler.getResponse("password"));
+    Assert.assertTrue(handler.done());
+
+    // Test restarting
+    handler.start();
+    Assert.assertEquals("admin_password", handler.getResponse("password"));
+    Assert.assertFalse(handler.done());
+    Assert.assertEquals("user_password", handler.getResponse("password"));
+    Assert.assertFalse(handler.done());
+    Assert.assertEquals("user_password", handler.getResponse("password"));
+    Assert.assertTrue(handler.done());
   }
 
   private MITKerberosOperationHandler createMock(){

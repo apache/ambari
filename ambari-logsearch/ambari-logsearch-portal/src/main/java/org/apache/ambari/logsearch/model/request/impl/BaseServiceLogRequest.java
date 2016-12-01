@@ -43,6 +43,9 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @QueryParam(LogSearchConstants.REQUEST_PARAM_BUNDLE_ID)
   private String bundleId;
 
+  @QueryParam(LogSearchConstants.REQUEST_PARAM_HOSTS)
+  private String hostList;
+
   @Override
   public String getLevel() {
     return level;
@@ -91,5 +94,15 @@ public class BaseServiceLogRequest extends BaseLogRequest
   @Override
   public void setBundleId(String bundleId) {
     this.bundleId = bundleId;
+  }
+
+  @Override
+  public String getHostList() {
+    return hostList;
+  }
+
+  @Override
+  public void setHostList(String hostList) {
+    this.hostList = hostList;
   }
 }

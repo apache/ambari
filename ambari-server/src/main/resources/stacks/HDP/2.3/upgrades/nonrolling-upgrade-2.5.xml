@@ -22,11 +22,14 @@
   <type>NON_ROLLING</type>
   <prerequisite-checks>
     <check>org.apache.ambari.server.checks.RangerAuditDbCheck</check>
-    <check>org.apache.ambari.server.checks.AtlasPresenceCheck</check>
+    <check>org.apache.ambari.server.checks.ServicePresenceCheck</check>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
+      </check-properties>
+      <check-properties name="org.apache.ambari.server.checks.ServicePresenceCheck">
+        <property name="no-upgrade-support-service-names">Atlas</property>
       </check-properties>
     </configuration>
   </prerequisite-checks>
@@ -433,6 +436,13 @@
       <!-- RANGER KMS -->
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Apply config changes for Ranger KMS Server">
         <task xsi:type="configure" id="hdp_2_5_0_0_remove_ranger_kms_audit_db"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Calculating Ranger Properties">
+        <condition xsi:type="security" type="kerberos"/>
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.RangerKmsProxyConfig">
+          <summary>Adding Ranger proxy user properties</summary>
+        </task>
       </execute-stage>
 
       <!-- KNOX -->

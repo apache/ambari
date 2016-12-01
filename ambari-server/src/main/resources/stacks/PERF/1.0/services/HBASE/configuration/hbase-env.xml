@@ -30,7 +30,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
@@ -44,7 +44,7 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_master_heapsize</name>
@@ -58,19 +58,19 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_user_nofile_limit</name>
     <value>32000</value>
     <description>Max open files limit setting for HBASE user.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for HBASE user.</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_java_io_tmpdir</name>
@@ -79,17 +79,17 @@
     <value-attributes>
       <type>directory</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_principal_name</name>
     <description>HBase principal name</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_user_keytab</name>
     <description>HBase keytab path</description>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_regionserver_shutdown_timeout</name>
@@ -117,7 +117,7 @@
       <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_pid_dir</name>
@@ -129,7 +129,7 @@
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_max</name>
@@ -144,7 +144,7 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
@@ -154,7 +154,7 @@
     <value-attributes>
       <type>float</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_user</name>
@@ -166,7 +166,7 @@
       <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
   <property>
     <name>hbase_max_direct_memory_size</name>
@@ -197,7 +197,7 @@
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 
   <!-- These properties exist in HDP 2.3 and higher. -->
@@ -287,6 +287,6 @@ export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS {% if hbase_max_direct_memory_size 
     <value-attributes>
       <type>content</type>
     </value-attributes>
-    <on-ambari-upgrade add="true"/>
+    <on-ambari-upgrade add="false"/>
   </property>
 </configuration>

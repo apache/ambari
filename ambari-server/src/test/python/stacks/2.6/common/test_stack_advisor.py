@@ -572,7 +572,7 @@ class TestHDP26StackAdvisor(TestCase):
     configurations = {
       "application-properties": {
         "properties": {
-          "atlas.sso.providerurl": "",
+          "atlas.sso.knox.providerurl": "",
           "atlas.graph.index.search.solr.zookeeper-url": "",
           "atlas.audit.hbase.zookeeper.quorum": "",
           "atlas.graph.storage.hostname": "",
@@ -604,7 +604,7 @@ class TestHDP26StackAdvisor(TestCase):
     expected = {
       "application-properties": {
         "properties": {
-          "atlas.sso.providerurl": "https://c6401.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso",
+          "atlas.sso.knox.providerurl": "https://c6401.ambari.apache.org:8443/gateway/knoxsso/api/v1/websso",
           "atlas.graph.index.search.solr.zookeeper-url": "",
           "atlas.audit.hbase.zookeeper.quorum": "",
           "atlas.graph.storage.hostname": "",

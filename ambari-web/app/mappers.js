@@ -44,3 +44,4 @@ require('mappers/alert_notification_mapper');
 require('mappers/root_service_mapper');
 require('mappers/widget_mapper');
 require('mappers/widget_layout_mapper');
+require('mappers/stack_upgrade_history_mapper');

@@ -26,6 +26,7 @@ delimiter ;
 
 # USE @schema;
 
+SET default_storage_engine=INNODB;
 
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,

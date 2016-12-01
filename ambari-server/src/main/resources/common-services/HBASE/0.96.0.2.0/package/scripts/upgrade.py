@@ -29,7 +29,9 @@ from resource_management.libraries.functions import conf_select, stack_select
 from resource_management.libraries.functions.constants import StackFeature
 from resource_management.libraries.functions.stack_features import check_stack_feature
 from resource_management.libraries.functions.decorator import retry
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import check_process_status
+
 
 def prestart(env, stack_component):
   import params
@@ -63,7 +65,6 @@ def is_regionserver_registered(cmd, user, hostname, regex_search_flags):
   Queries HBase through the HBase shell to see which servers have successfully registered. This is
   useful in cases, such as upgrades, where we must ensure that a RegionServer has not only started,
   but also completed it's registration handshake before moving into upgrading the next RegionServer.
-
   The hbase shell is used along with the "show 'simple'" command in order to determine if the
   specified host has registered.
   :param cmd:

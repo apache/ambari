@@ -16,6 +16,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+# Python Imports
+import os
+
+# Local Imports
 from metadata import metadata
 from resource_management import Fail
 from resource_management.libraries.functions import conf_select
@@ -121,6 +125,20 @@ class MetadataServer(Script):
 
     env.set_params(params)
     daemon_cmd = format('source {params.conf_dir}/atlas-env.sh; {params.metadata_stop_script}')
+
+    # If the pid dir doesn't exist, this means either
+    # 1. The user just added Atlas service and issued a restart command (stop+start). So stop should be a no-op
+    # since there's nothing to stop.
+    # OR
+    # 2. The user changed the value of the pid dir config and incorrectly issued a restart command.
+    # In which case the stop command cannot do anything since Ambari doesn't know which process to kill.
+    # The start command will spawn another instance.
+    # The user should have issued a stop, changed the config, and then started it.
+    if not os.path.isdir(params.pid_dir):
+      Logger.info("*******************************************************************")
+      Logger.info("Will skip the stop command since this is the first time stopping/restarting Atlas "
+                  "and the pid dir does not exist, %s\n" % params.pid_dir)
+      return
 
     try:
       Execute(daemon_cmd,

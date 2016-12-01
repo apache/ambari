@@ -198,6 +198,27 @@ def setup_ranger_admin(upgrade_type=None):
 
   create_core_site_xml(ranger_conf)
 
+  if params.stack_supports_ranger_kerberos and params.security_enabled:
+    if params.is_hbase_ha_enabled and params.ranger_hbase_plugin_enabled:
+      XmlConfig("hbase-site.xml",
+        conf_dir=ranger_conf,
+        configurations=params.config['configurations']['hbase-site'],
+        configuration_attributes=params.config['configuration_attributes']['hbase-site'],
+        owner=params.unix_user,
+        group=params.unix_group,
+        mode=0644
+      )
+
+    if params.is_namenode_ha_enabled and params.ranger_hdfs_plugin_enabled:
+      XmlConfig("hdfs-site.xml",
+        conf_dir=ranger_conf,
+        configurations=params.config['configurations']['hdfs-site'],
+        configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+        owner=params.unix_user,
+        group=params.unix_group,
+        mode=0644
+      )
+
 def setup_ranger_db(stack_version=None):
   import params
   
