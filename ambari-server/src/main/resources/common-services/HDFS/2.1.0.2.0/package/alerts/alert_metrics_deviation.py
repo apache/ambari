@@ -178,7 +178,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     else:
       collector_webapp_address = configurations[METRICS_COLLECTOR_WEBAPP_ADDRESS_KEY].split(":")
       if valid_collector_webapp_address(collector_webapp_address):
-        collector_host = select_metric_collector_for_sink(app_id.lower()).split(":")[0]
+        collector_host = select_metric_collector_for_sink(app_id.lower())
         collector_port = int(collector_webapp_address[1])
       else:
         return (RESULT_STATE_UNKNOWN, ['{0} value should be set as "fqdn_hostname:port", but set to {1}'.format(

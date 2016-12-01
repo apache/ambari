@@ -477,7 +477,7 @@ public abstract class AbstractTimelineMetricsSink {
     return sb.toString();
   }
   /**
-   * Parses input Sting of format "['host1', 'host2']" into Collection of hostnames
+   * Parses input Sting of format "host1,host2" into Collection of hostnames
    */
   public Collection<String> parseHostsStringIntoCollection(String hostsString) {
     Set<String> hosts = new HashSet<>();
@@ -487,10 +487,8 @@ public abstract class AbstractTimelineMetricsSink {
       return hosts;
     }
 
-    String[] untrimmedHosts = hostsString.split(",");
 
-    for (String host : untrimmedHosts) {
-      host = StringUtils.substringBetween(host, "'");
+    for (String host : hostsString.split(",")) {
       if (StringUtils.isEmpty(host))
         continue;
       hosts.add(host.trim());
