@@ -758,13 +758,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     upgradeContext.setSupportedServices(supportedServices);
     upgradeContext.setScope(scope);
 
+    String downgradeFromVersion = null;
+
     if (direction.isDowngrade()) {
       if (requestMap.containsKey(UPGRADE_FROM_VERSION)) {
-        upgradeContext.setDowngradeFromVersion((String) requestMap.get(UPGRADE_FROM_VERSION));
+        downgradeFromVersion = (String) requestMap.get(UPGRADE_FROM_VERSION);
       } else {
         UpgradeEntity lastUpgradeItemForCluster = s_upgradeDAO.findLastUpgradeForCluster(cluster.getClusterId());
-        upgradeContext.setDowngradeFromVersion(lastUpgradeItemForCluster.getToVersion());
+        downgradeFromVersion = lastUpgradeItemForCluster.getToVersion();
       }
+
+      upgradeContext.setDowngradeFromVersion(downgradeFromVersion);
     }
 
     // optionally skip failures - this can be supplied on either the request or
@@ -922,7 +926,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     UpgradeEntity entity = new UpgradeEntity();
-    entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
+
+    if (null != downgradeFromVersion) {
+      entity.setFromVersion(downgradeFromVersion);
+    } else {
+      entity.setFromVersion(cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion());
+    }
+
     entity.setToVersion(version);
     entity.setUpgradeGroups(groupEntities);
     entity.setClusterId(cluster.getClusterId());
@@ -931,7 +941,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setUpgradeType(pack.getType());
     entity.setAutoSkipComponentFailures(skipComponentFailures);
     entity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
-    entity.setDowngradeAllowed(pack.isDowngradeAllowed());
+
+    if (upgradeContext.getDirection().isDowngrade()) {
+      // !!! You can't downgrade a Downgrade, no matter what the upgrade pack says.
+      entity.setDowngradeAllowed(false);
+    } else {
+      entity.setDowngradeAllowed(pack.isDowngradeAllowed());
+    }
 
     req.getRequestStatusResponse();
     return createUpgradeInsideTransaction(cluster, req, entity);

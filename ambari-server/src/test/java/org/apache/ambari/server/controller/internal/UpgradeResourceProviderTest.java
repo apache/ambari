@@ -708,7 +708,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgradeDao.findUpgrade(Long.parseLong(id));
     assertNotNull(entity);
-    assertEquals("2.1.1", entity.getFromVersion());
+    assertEquals("2.1.1.0", entity.getFromVersion());
     assertEquals("2.2.0.0", entity.getToVersion());
     assertEquals(Direction.DOWNGRADE, entity.getDirection());
 
@@ -1249,7 +1249,7 @@ public class UpgradeResourceProviderTest {
       Map<String, String> map = gson.<Map<String, String>> fromJson(se.getCommandParamsStage(),Map.class);
       assertTrue(map.containsKey("upgrade_direction"));
       assertEquals("upgrade", map.get("upgrade_direction"));
-      
+
       if(map.containsKey("upgrade_type")){
         assertEquals("rolling_upgrade", map.get("upgrade_type"));
       }
