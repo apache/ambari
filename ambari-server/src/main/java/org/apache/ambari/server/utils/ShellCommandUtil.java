@@ -434,6 +434,8 @@ public class ShellCommandUtil {
       BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
       BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
+      interactiveHandler.start();
+
       while (!interactiveHandler.done()) {
         StringBuilder query = new StringBuilder();
 
@@ -546,11 +548,18 @@ public class ShellCommandUtil {
     boolean done();
 
     /**
-     * Gnven a query, returns the relative response to send to the shell command (via stdin)
+     * Given a query, returns the relative response to send to the shell command (via stdin)
      *
      * @param query a string containing the query that needs a response
      * @return a string or null if no response is needed
      */
     String getResponse(String query);
+
+    /**
+     * Starts or resets this handler.
+     * <p>
+     * It is expected that the caller calls this before using handler.
+     */
+    void start();
   }
 }

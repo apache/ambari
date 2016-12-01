@@ -49,15 +49,17 @@ The following are the properties which can be used to configure Ambari.
 | agent.stack.retry.tries | The number of times an Ambari Agent should retry package installation when it fails due to a repository error. <br/><br/> This property is related to `agent.stack.retry.on_repo_unavailability`. |`5` | 
 | agent.task.timeout | The time, in seconds, before agent commands are killed. This does not include package installation commands. |`900` | 
 | agent.threadpool.size.max | The size of the Jetty connection pool used for handling incoming Ambari Agent requests. |`25` | 
+| alerts.ambari.snmp.dispatcher.udp.port | The UDP port to use when binding the Ambari SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
 | alerts.cache.enabled | Determines whether current alerts should be cached. Enabling this can increase performance on large cluster, but can also result in lost alert data if the cache is not flushed frequently. |`false` | 
 | alerts.cache.flush.interval | The time, in minutes, after which cached alert information is flushed to the database<br/><br/> This property is related to `alerts.cache.enabled`. |`10` | 
 | alerts.cache.size | The size of the alert cache.<br/><br/> This property is related to `alerts.cache.enabled`. |`50000` | 
 | alerts.execution.scheduler.maxThreads | The number of threads used to handle alerts received from the Ambari Agents. The value should be increased as the size of the cluster increases. |`2` | 
 | alerts.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | | 
-| alerts.ambari.snmp.dispatcher.udp.port | The UDP port to use when binding the SNMP dispatcher on Ambari Server startup. If no port is specified, then a random port will be used. | |
-| alerts.template.file | The full path to the XML file that describes the different alert templates. | |
+| alerts.template.file | The full path to the XML file that describes the different alert templates. | | 
 | ambari.display.url | The URL to use when creating messages which should include the Ambari Server URL.<br/><br/>The following are examples of valid values:<ul><li>`http://ambari.apache.org:8080`</ul> | | 
 | ambari.ldap.isConfigured | An internal property used for unit testing and development purposes. |`false` | 
+| ambari.post.user.creation.hook | The location of the post user creation hook on the ambari server hosting machine. |`/var/lib/ambari-server/resources/scripts/post-user-creation-hook.sh` | 
+| ambari.post.user.creation.hook.enabled | Indicates whether the post user creation is enabled or not. By default is false. |`false` | 
 | ambari.python.wrap | The name of the shell script used to wrap all invocations of Python by Ambari.  |`ambari-python-wrap` | 
 | anonymous.audit.name | The name of the user given to requests which are executed without any credentials. |`_anonymous` | 
 | api.authenticated.user | The username of the default user assumed to be executing API calls. When set, authentication is not required in order to login to Ambari or use the REST APIs.   | | 
@@ -105,6 +107,7 @@ The following are the properties which can be used to configure Ambari.
 | authentication.ldap.usernameAttribute | The attribute used for determining the user name, such as `uid`. |`uid` | 
 | authorization.ldap.adminGroupMappingRules | A comma-separate list of groups which would give a user administrative access to Ambari when syncing from LDAP. This is only used when `authorization.ldap.groupSearchFilter` is blank.<br/><br/>The following are examples of valid values:<ul><li>`administrators`<li>`Hadoop Admins,Hadoop Admins.*,DC Admins,.*Hadoop Operators`</ul> |`Ambari Administrators` | 
 | authorization.ldap.groupSearchFilter | The DN to use when searching for LDAP groups. | | 
+| auto.group.creation | The auto group creation by Ambari |`false` | 
 | bootstrap.dir | The directory on the Ambari Server file system used for storing Ambari Agent bootstrap information such as request responses. |`/var/run/ambari-server/bootstrap` | 
 | bootstrap.master_host_name | The host name of the Ambari Server which will be used by the Ambari Agents for communication. | | 
 | bootstrap.script | The location and name of the Python script used to bootstrap new Ambari Agent hosts. |`/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py` | 
@@ -138,6 +141,7 @@ The following are the properties which can be used to configure Ambari.
 | kerberos.check.jaas.configuration | Determines whether Kerberos-enabled Ambari deployments should use JAAS to validate login credentials. |`false` | 
 | kerberos.keytab.cache.dir | The location on the Ambari Server where Kerberos keytabs are cached. |`/var/lib/ambari-server/data/cache` | 
 | kerberos.operation.retries | The number of times failed kerberos operations should be retried to execute. |`3` | 
+| kerberos.operation.retry.timeout | The time to wait (in seconds) between failed kerberos operations retries. |`10` | 
 | ldap.sync.username.collision.behavior | Determines how to handle username collision while updating from LDAP.<br/><br/>The following are examples of valid values:<ul><li>`skip`<li>`convert`</ul> |`convert` | 
 | log4j.monitor.delay | Indicates the delay, in milliseconds, for the log4j monitor to check for changes |`300000` | 
 | metadata.path | The location on the Ambari Server where the stack resources exist.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/stacks`</ul> | | 
@@ -146,8 +150,10 @@ The following are the properties which can be used to configure Ambari.
 | metrics.retrieval-service.request.ttl.enabled | Enables throttling requests to the same endpoint within a fixed amount of time. This property will prevent Ambari from making new metric requests to update the cache for URLs which have been recently retrieved.<br/><br/> This property is related to `metrics.retrieval-service.request.ttl`. |`true` | 
 | mpacks.staging.path | The Ambari Management Pack staging directory on the Ambari Server.<br/><br/>The following are examples of valid values:<ul><li>`/var/lib/ambari-server/resources/mpacks`</ul> | | 
 | packages.pre.installed | Determines whether Ambari Agent instances have already have the necessary stack software installed |`false` | 
+| pam.configuration | The PAM configuration file. | | 
 | proxy.allowed.hostports | A comma-separated whitelist of host and port values which Ambari Server can use to determine if a proxy value is valid. |`*:*` | 
 | recommendations.artifacts.lifetime | The amount of time that Recommendation API data is kept on the Ambari Server file system. This is specified using a `hdwmy` syntax for pairing the value with a time unit (hours, days, weeks, months, years)<br/><br/>The following are examples of valid values:<ul><li>`8h`<li>`2w`<li>`1m`</ul> |`1w` | 
+| recommendations.artifacts.rollover.max | Maximum number of recommendations artifacts at a given time<br/><br/>The following are examples of valid values:<ul><li>`50`<li>`10`<li>`100`</ul> |`100` | 
 | recommendations.dir | The directory on the Ambari Server file system used for storing Recommendation API artifacts. |`/var/run/ambari-server/stack-recommendations` | 
 | recovery.disabled_components | A comma-separated list of component names which are not included in automatic recovery attempts.<br/><br/>The following are examples of valid values:<ul><li>`NAMENODE,ZOOKEEPER_SERVER`</ul> | | 
 | recovery.enabled_components | A comma-separated list of component names which are included in automatic recovery attempts.<br/><br/>The following are examples of valid values:<ul><li>`NAMENODE,ZOOKEEPER_SERVER`</ul> | | 
@@ -222,16 +228,16 @@ The following are the properties which can be used to configure Ambari.
 | server.jdbc.user.passwd | The password for the user when logging into the database. |`bigdata` | 
 | server.locks.profiling | Enable the profiling of internal locks. |`false` | 
 | server.metrics.retrieval-service.thread.priority | The priority of threads used by the service which retrieves JMX and REST metrics directly from their respective endpoints. |`5` | 
-| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`16` | 
-| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`32` | 
-| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`320` | 
+| server.metrics.retrieval-service.threadpool.size.core | The core number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`8` | 
+| server.metrics.retrieval-service.threadpool.size.max | The maximum number of threads used to retrieve JMX and REST metrics directly from their respective endpoints. |`16` | 
+| server.metrics.retrieval-service.threadpool.worker.size | The number of queued requests allowed for JMX and REST metrics before discarding old requests which have not been fullfilled. |`160` | 
 | server.operations.retry-attempts | The number of retry attempts for failed API and blueprint operations. |`0` | 
 | server.os_family | The operating system family for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`redhat`<li>`ubuntu`</ul> | | 
 | server.os_type | The operating system version for all hosts in the cluster. This is used when bootstrapping agents and when enabling Kerberos.<br/><br/>The following are examples of valid values:<ul><li>`6`<li>`7`</ul> | | 
 | server.persistence.type | The type of database connection being used. Unless using an embedded PostgresSQL server, then this should be `remote`.<br/><br/>The following are examples of valid values:<ul><li>`local`<li>`remote`</ul> |`local` | 
 | server.property-provider.threadpool.completion.timeout | The maximum time, in milliseconds, that federated requests for data can execute before being terminated. Increasing this value could result in degraded performanc from the REST APIs. |`5000` | 
-| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
-| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`32` | 
+| server.property-provider.threadpool.size.core | The core number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`8` | 
+| server.property-provider.threadpool.size.max | The maximum number of threads that will be used to retrieve data from federated datasources, such as remote JMX endpoints. |`16` | 
 | server.property-provider.threadpool.worker.size | The maximum size of pending federated datasource requests, such as those to JMX endpoints, which can be queued before rejecting new requests. |`2147483647` | 
 | server.script.timeout | The time, in milliseconds, until an external script is killed. |`5000` | 
 | server.stage.command.execution_type | How to execute commands in one stage |`STAGE` | 
@@ -262,6 +268,9 @@ The following are the properties which can be used to configure Ambari.
 | stack.upgrade.bypass.prechecks | Determines whether pre-upgrade checks will be skipped when performing a rolling or express stack upgrade. |`false` | 
 | stackadvisor.script | The location and name of the Python stack advisor script executed when configuring services. |`/var/lib/ambari-server/resources/scripts/stack_advisor.py` | 
 | task.query.parameterlist.size | The maximum number of tasks which can be queried by ID from the database. |`999` | 
+| topology.task.creation.parallel | Indicates whether parallel topology task creation is enabled |`false` | 
+| topology.task.creation.parallel.threads | The number of threads to use for parallel topology task creation if enabled |`10` | 
+| view.extract-after-cluster-config | Drives view extraction in case of blueprint deployments; non-system views are deployed when cluster configuration is successful |`false` | 
 | view.extraction.threadpool.size.core | The number of threads used to extract Ambari Views when Ambari Server is starting up. |`10` | 
 | view.extraction.threadpool.size.max | The maximum number of threads used to extract Ambari Views when Ambari Server is starting up. |`20` | 
 | view.extraction.threadpool.timeout | The time, in milliseconds, that non-core threads will live when extraction views on Ambari Server startup. |`100000` | 

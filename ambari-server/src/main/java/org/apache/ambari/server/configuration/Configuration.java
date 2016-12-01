@@ -1407,6 +1407,9 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
+  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
+      "kerberos.operation.retry.timeout", 10);
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -5609,6 +5612,10 @@ public class Configuration {
 
   public int getKerberosOperationRetries() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
+  }
+
+  public int getKerberosOperationRetryTimeout() {
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
   }
 
   /**
