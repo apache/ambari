@@ -168,6 +168,7 @@
       <osSpecifics></osSpecifics>
 
       <configuration-dependencies>
+        <config-type>hbase-alert-config</config-type>
         <config-type>core-site</config-type> <!-- hbase puts core-site in it's folder -->
         <config-type>hbase-policy</config-type>
         <config-type>hbase-site</config-type>

@@ -20,32 +20,30 @@ limitations under the License.
 
 import logging
 
-RESULT_STATE_OK = 'OK'
+from resource_management.libraries.functions.simulate_perf_cluster_alert_behaviour import simulate_perf_cluster_alert_behaviour
 
-OK_MESSAGE = 'Ok'
+ALERT_BEHAVIOUR_TYPE = "{{hdfs-alert-config/alert.behavior.type}}"
 
-NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
-NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
-NN_HTTP_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
+ALERT_SUCCESS_PERCENTAGE = "{{hdfs-alert-config/alert.success.percentage}}"
 
-HDFS_SITE_KEY = '{{hdfs-site}}'
-KERBEROS_KEYTAB = '{{hdfs-site/dfs.web.authentication.kerberos.keytab}}'
-KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
-SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
-SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
-EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
+ALERT_TIMEOUT_RETURN_VALUE = "{{hdfs-alert-config/alert.timeout.return.value}}"
+ALERT_TIMEOUT_SECS = "{{hdfs-alert-config/alert.timeout.secs}}"
+
+ALERT_FLIP_INTERVAL_MINS = "{{hdfs-alert-config/alert.flip.interval.mins}}"
 
 logger = logging.getLogger('ambari_alerts')
+
+alert_behaviour_properties = {"alert_behaviour_type" : ALERT_BEHAVIOUR_TYPE, "alert_success_percentage" : ALERT_SUCCESS_PERCENTAGE,
+                              "alert_timeout_return_value" : ALERT_TIMEOUT_RETURN_VALUE, "alert_timeout_secs" : ALERT_TIMEOUT_SECS,
+                              "alert_flip_interval_mins" : ALERT_FLIP_INTERVAL_MINS}
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
-
-  :rtype tuple
   """
-  return (HDFS_SITE_KEY, NN_HTTP_ADDRESS_KEY, NN_HTTPS_ADDRESS_KEY, NN_HTTP_POLICY_KEY, EXECUTABLE_SEARCH_PATHS,
-          KERBEROS_KEYTAB, KERBEROS_PRINCIPAL, SECURITY_ENABLED_KEY, SMOKEUSER_KEY)
+  return (ALERT_BEHAVIOUR_TYPE, ALERT_SUCCESS_PERCENTAGE, ALERT_TIMEOUT_RETURN_VALUE, ALERT_TIMEOUT_SECS,
+          ALERT_FLIP_INTERVAL_MINS)
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -53,22 +51,9 @@ def execute(configurations={}, parameters={}, host_name=None):
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  configurations : a mapping of configuration key to value
-  parameters : a mapping of script parameter key to value
-  host_name : the name of this host where the alert is running
-
-  :type configurations dict
-  :type parameters dict
-  :type host_name str
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
+  host_name (string): the name of this host where the alert is running
   """
 
-  if configurations is None:
-    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
-
-  # hdfs-site is required
-  if not HDFS_SITE_KEY in configurations:
-    return 'SKIPPED', ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)]
-
-  result_code = RESULT_STATE_OK
-  label = OK_MESSAGE
-  return (result_code, [label])
+  return simulate_perf_cluster_alert_behaviour(alert_behaviour_properties, configurations)

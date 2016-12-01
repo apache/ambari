@@ -227,6 +227,7 @@
       </requiredServices>
 
       <configuration-dependencies>
+        <config-type>hdfs-alert-config</config-type>
         <config-type>core-site</config-type>
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-env</config-type>
