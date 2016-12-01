@@ -761,6 +761,9 @@
         </upgrade>
       </component>
       <component name="LIVY_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_5_0_0_rename_spark_livy_configs" />
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
