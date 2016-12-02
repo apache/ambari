@@ -23,24 +23,24 @@ App.EditableWidgetMixin = Em.Mixin.create({
   hintInfo: '',
 
   editWidget: function () {
-    var parent = this;
+    var self = this;
     var configObj = Ember.Object.create({
-      thresh1: parent.get('thresh1') + '',
-      thresh2: parent.get('thresh2') + '',
-      hintInfo: parent.get('hintInfo'),
+      thresholdMin: self.get('thresholdMin') + '',
+      thresholdMax: self.get('thresholdMax') + '',
+      hintInfo: self.get('hintInfo'),
       isThresh1Error: false,
       isThresh2Error: false,
       errorMessage1: "",
       errorMessage2: "",
       maxValue: 'infinity',
       observeNewThresholdValue: function () {
-        var thresh1 = this.get('thresh1');
-        var thresh2 = this.get('thresh2');
-        if (thresh1.trim() !== "") {
-          if (isNaN(thresh1) || thresh1 < 0) {
+        var thresholdMin = this.get('thresholdMin');
+        var thresholdMax = this.get('thresholdMax');
+        if (thresholdMin.trim() !== "") {
+          if (isNaN(thresholdMin) || thresholdMin < 0) {
             this.set('isThresh1Error', true);
             this.set('errorMessage1', 'Invalid! Enter a number larger than 0');
-          } else if ( this.get('isThresh2Error') === false && parseFloat(thresh2)<= parseFloat(thresh1)){
+          } else if ( this.get('isThresh2Error') === false && parseFloat(thresholdMax)<= parseFloat(thresholdMin)){
             this.set('isThresh1Error', true);
             this.set('errorMessage1', 'Threshold 1 should be smaller than threshold 2 !');
           } else {
@@ -52,8 +52,8 @@ App.EditableWidgetMixin = Em.Mixin.create({
           this.set('errorMessage1', 'This is required');
         }
 
-        if (thresh2.trim() !== "") {
-          if (isNaN(thresh2) || thresh2 < 0) {
+        if (thresholdMax.trim() !== "") {
+          if (isNaN(thresholdMax) || thresholdMax < 0) {
             this.set('isThresh2Error', true);
             this.set('errorMessage2', 'Invalid! Enter a number larger than 0');
           } else {
@@ -65,12 +65,12 @@ App.EditableWidgetMixin = Em.Mixin.create({
           this.set('errorMessage2', 'This is required');
         }
 
-      }.observes('thresh1', 'thresh2')
+      }.observes('thresholdMin', 'thresholdMax')
 
     });
 
-    var browserVerion = this.getInternetExplorerVersion();
-    App.ModalPopup.show( {
+    var browserVersion = this.getInternetExplorerVersion();
+    App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.popupHeader'),
       classNames: [ 'modal-edit-widget'],
       modalDialogClasses: ['modal-lg'],
@@ -82,17 +82,12 @@ App.EditableWidgetMixin = Em.Mixin.create({
       onPrimary: function () {
         configObj.observeNewThresholdValue();
         if (!configObj.isThresh1Error && !configObj.isThresh2Error) {
-          parent.set('thresh1', parseFloat(configObj.get('thresh1')) );
-          parent.set('thresh2', parseFloat(configObj.get('thresh2')) );
-          if (!App.get('testMode')) {
-            //save to persist
-            var bigParent = parent.get('parentView');
-            bigParent.getUserPref(bigParent.get('persistKey'));
-            var oldValue = bigParent.get('currentPrefObject');
-            oldValue.threshold[parseInt(parent.id, 10)] = [configObj.get('thresh1'), configObj.get('thresh2')];
-            bigParent.postUserPref(bigParent.get('persistKey'),oldValue);
-          }
 
+          var parent = self.get('parentView');
+          var userPreferences = parent.get('userPreferences');
+          userPreferences.threshold[Number(self.get('id'))] = [configObj.get('thresholdMin'), configObj.get('thresholdMax')];
+          parent.saveWidgetsSettings(userPreferences);
+          parent.renderWidgets();
           this.hide();
         }
       },
@@ -102,7 +97,7 @@ App.EditableWidgetMixin = Em.Mixin.create({
         var colors = [App.healthStatusGreen, App.healthStatusOrange, App.healthStatusRed]; //color green, orange ,red
         var handlers = [33, 66]; //fixed value
 
-        if (browserVerion === -1 || browserVerion > 9) {
+        if (browserVersion === -1 || browserVersion > 9) {
           configObj.set('isIE9', false);
           configObj.set('isGreenOrangeRed', true);
           $("#slider-range").slider({
@@ -112,7 +107,7 @@ App.EditableWidgetMixin = Em.Mixin.create({
             max: 100,
             values: handlers,
             create: function (event, ui) {
-              parent.updateColors(handlers, colors);
+              self.updateColors(handlers, colors);
             }
           });
         } else {

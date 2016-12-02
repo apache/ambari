@@ -20,7 +20,6 @@ var App = require('app');
 var stringUtils = require('utils/string_utils');
 
 require('utils/configs/config_initializer_class');
-require('utils/configs/mount_points_based_initializer_mixin');
 require('utils/configs/hosts_based_initializer_mixin');
 
 /**
@@ -53,7 +52,7 @@ function getZKBasedConfig() {
  *
  * @instance ConfigInitializer
  */
-App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedInitializerMixin, App.HostsBasedInitializerMixin, {
+App.ConfigInitializer = App.ConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
   initializers: function() {
     return {
@@ -111,26 +110,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
       'templeton.zookeeper.hosts': getZKBasedConfig(),
       'hadoop.registry.zk.quorum': getZKBasedConfig(),
       'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
-      'instance.zookeeper.host': getZKBasedConfig(),
-
-      'dfs.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
-      'dfs.namenode.name.dir': this.getMultipleMountPointsConfig('NAMENODE', 'file'),
-      'dfs.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
-      'dfs.datanode.data.dir': this.getMultipleMountPointsConfig('DATANODE', 'file'),
-      'yarn.nodemanager.local-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
-      'yarn.nodemanager.log-dirs': this.getMultipleMountPointsConfig('NODEMANAGER'),
-      'mapred.local.dir': this.getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
-      'log.dirs': this.getMultipleMountPointsConfig('KAFKA_BROKER'),
-
-      'fs.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-      'dfs.namenode.checkpoint.dir': this.getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-      'yarn.timeline-service.leveldb-timeline-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-      'yarn.timeline-service.leveldb-state-store.path': this.getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-      'dataDir': this.getSingleMountPointConfig('ZOOKEEPER_SERVER'),
-      'oozie_data_dir': this.getSingleMountPointConfig('OOZIE_SERVER'),
-      'storm.local.dir': this.getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
-      '*.falcon.graph.storage.directory': this.getSingleMountPointConfig('FALCON_SERVER'),
-      '*.falcon.graph.serialize.path': this.getSingleMountPointConfig('FALCON_SERVER')
+      'instance.zookeeper.host': getZKBasedConfig()
     }
   }.property(''),
 
@@ -146,9 +126,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
   },
 
   initializerTypes: [
-    {name: 'zookeeper_based', method: '_initAsZookeeperServersList'},
-    {name: 'single_mountpoint', method: '_initAsSingleMountPoint'},
-    {name: 'multiple_mountpoints', method: '_initAsMultipleMountPoints'}
+    {name: 'zookeeper_based', method: '_initAsZookeeperServersList'}
   ],
 
   /**

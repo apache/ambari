@@ -42,7 +42,7 @@ var App = require('app');
  * @property {?object[]} slaveComponentHosts
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, App.TrackRequestMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, App.GroupsMappingMixin, {
 
   name: 'wizardStep7Controller',
 

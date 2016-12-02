@@ -26,7 +26,7 @@ var App = require('app');
  */
 App.NotScrollableTextArea = Em.TextArea.extend({
 
-  didInsertElement() {
+  didInsertElement: function() {
     this.fitHeight();
     this.$().select();
   },

@@ -20,10 +20,6 @@ var App = require('app');
 
 App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.NameNodeRpc'),
-  id: '5',
-
-  model_type: 'hdfs',
   hiddenInfo: function () {
     return [
       this.get('content') + ' average RPC',
@@ -31,13 +27,11 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend(App.EditableWidgetMixin
     ];
   }.property('content'),
 
-  thresh1: 0.5,
-  thresh2: 2,
   maxValue: 'infinity',
 
-  isGreen: Em.computed.lteProperties('data', 'thresh1'),
+  isGreen: Em.computed.lteProperties('data', 'thresholdMin'),
 
-  isRed: Em.computed.gtProperties('data', 'thresh2'),
+  isRed: Em.computed.gtProperties('data', 'thresholdMax'),
 
   data: function () {
     if (this.get('model.nameNodeRpc')) {

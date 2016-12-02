@@ -1410,6 +1410,9 @@ public class Configuration {
   public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRIES = new ConfigurationProperty<>(
       "kerberos.operation.retries", 3);
 
+  @Markdown(description = "The time to wait (in seconds) between failed kerberos operations retries.")
+  public static final ConfigurationProperty<Integer> KERBEROS_OPERATION_RETRY_TIMEOUT = new ConfigurationProperty<>(
+      "kerberos.operation.retry.timeout", 10);
   /**
    * The type of connection pool to use with JDBC connections to the database.
    */
@@ -2290,6 +2293,14 @@ public class Configuration {
   public static final ConfigurationProperty<String> HTTP_PRAGMA_HEADER_VALUE = new ConfigurationProperty<>(
       "http.pragma", "no-cache");
 
+   /**
+   * The value that will be used to set the {@code Charset} HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the Character encoding to HTTP response header.")
+  public static final ConfigurationProperty<String> HTTP_CHARSET = new ConfigurationProperty<>(
+      "http.charset", "utf-8");
+
+
   /**
    * The value that will be used to set the {@code Strict-Transport-Security}
    * HTTP response header for Ambari View requests.
@@ -2338,6 +2349,14 @@ public class Configuration {
   @Markdown(description = "The value that will be used to set the `PRAGMA` HTTP response header for Ambari View requests.")
   public static final ConfigurationProperty<String> VIEWS_HTTP_PRAGMA_HEADER_VALUE = new ConfigurationProperty<>(
       "views.http.pragma", "no-cache");
+
+   /**
+   * The value that will be used to set the {@code CHARSET} to HTTP response header.
+   */
+  @Markdown(description = "The value that will be used to set the Character encoding to HTTP response header for Ambari View requests.")
+  public static final ConfigurationProperty<String> VIEWS_HTTP_CHARSET = new ConfigurationProperty<>(
+      "views.http.charset", "utf-8");
+
 
   /**
    * The time, in milliseconds, that requests to connect to a URL to retrieve
@@ -3536,6 +3555,21 @@ public class Configuration {
     return getProperty(HTTP_PRAGMA_HEADER_VALUE);
   }
 
+   /**
+   * Get the value that should be set for the <code>Charset</code> HTTP response header for Ambari Server UI.
+   * <p/>
+   * By default this will be <code>utf-8</code>. For example:
+   * <p/>
+   * <code>
+   * utf-8
+   * </code>
+   *
+   * @return the Charset value - null or "" indicates that the value is not set
+   */
+  public String getCharsetHTTPResponseHeader() {
+    return getProperty(HTTP_CHARSET);
+  }
+
   /**
    * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Views.
    * <p/>
@@ -3626,6 +3660,21 @@ public class Configuration {
    */
   public String getViewsPragmaHTTPResponseHeader() {
     return getProperty(VIEWS_HTTP_PRAGMA_HEADER_VALUE);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Charset</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>utf-8</code>. For example:
+   * <p/>
+   * <code>
+   * utf-8
+   * </code>
+   *
+   * @return the Charset value - null or "" indicates that the value is not set
+   */
+  public String getViewsCharsetHTTPResponseHeader() {
+    return getProperty(VIEWS_HTTP_CHARSET);
   }
 
   /**
@@ -5764,6 +5813,10 @@ public class Configuration {
 
   public int getKerberosOperationRetries() {
     return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRIES));
+  }
+
+  public int getKerberosOperationRetryTimeout() {
+    return Integer.valueOf(getProperty(KERBEROS_OPERATION_RETRY_TIMEOUT));
   }
 
   /**

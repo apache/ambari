@@ -32,21 +32,21 @@ public class AbstractTimelineMetricSinkTest {
     AbstractTimelineMetricsSink sink = new TestTimelineMetricsSink();
     Collection<String> hosts;
 
-    hosts = sink.parseHostsStringIntoCollection("[]");
+    hosts = sink.parseHostsStringIntoCollection("");
     Assert.assertTrue(hosts.isEmpty());
 
-    hosts = sink.parseHostsStringIntoCollection("[u'test1.123.abc.def.local']");
+    hosts = sink.parseHostsStringIntoCollection("test1.123.abc.def.local");
     Assert.assertTrue(hosts.size() == 1);
     Assert.assertTrue(hosts.contains("test1.123.abc.def.local"));
 
-    hosts = sink.parseHostsStringIntoCollection("['test1.123.abc.def.local']");
+    hosts = sink.parseHostsStringIntoCollection("test1.123.abc.def.local ");
     Assert.assertTrue(hosts.size() == 1);
     Assert.assertTrue(hosts.contains("test1.123.abc.def.local"));
 
-    hosts = sink.parseHostsStringIntoCollection("[u'test1.123.abc.def.local', u'test1.456.abc.def.local']");
+    hosts = sink.parseHostsStringIntoCollection("test1.123.abc.def.local,test1.456.abc.def.local");
     Assert.assertTrue(hosts.size() == 2);
 
-    hosts = sink.parseHostsStringIntoCollection("['test1.123.abc.def.local', 'test1.456.abc.def.local']");
+    hosts = sink.parseHostsStringIntoCollection("test1.123.abc.def.local, test1.456.abc.def.local");
     Assert.assertTrue(hosts.size() == 2);
     Assert.assertTrue(hosts.contains("test1.123.abc.def.local"));
     Assert.assertTrue(hosts.contains("test1.456.abc.def.local"));

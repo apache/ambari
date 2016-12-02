@@ -99,7 +99,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"localhost"," localhost2"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
@@ -171,7 +171,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"localhost", "localhost2"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();
@@ -301,7 +301,7 @@ public class HadoopTimelineMetricsSinkTest {
     expect(conf.getString("slave.host.name")).andReturn("localhost").anyTimes();
     expect(conf.getParent()).andReturn(null).anyTimes();
     expect(conf.getPrefix()).andReturn("service").anyTimes();
-    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"['localhost", "'localhost2']"}).anyTimes();
+    expect(conf.getStringArray(eq(COLLECTOR_HOSTS_PROPERTY))).andReturn(new String[]{"localhost", "localhost2"}).anyTimes();
     expect(conf.getString(eq("serviceName-prefix"), eq(""))).andReturn("").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PROTOCOL), eq("http"))).andReturn("http").anyTimes();
     expect(conf.getString(eq(COLLECTOR_PORT), eq("6188"))).andReturn("6188").anyTimes();

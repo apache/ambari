@@ -351,28 +351,35 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
   },
 
   /**
-   * Get active host names
-   * @return {string[]}
-   * @method getHostNames
+   * Returns list of new hosts
+   *
+   * @param {object[]} [allHosts=null]
+   * @return {object[]}
    */
-  getHostNames: function () {
-    var hostInfo = this.get('content.hosts');
-    var hostNames = [];
-    //flag identify whether get all hosts or only uninstalled(newly added) hosts
-    var getUninstalledHosts = this.get('content.controllerName') !== 'addServiceController';
-
-    for (var index in hostInfo) {
-      if (hostInfo.hasOwnProperty(index)) {
-        if (hostInfo[index].bootStatus === 'REGISTERED') {
-          if (!getUninstalledHosts || !hostInfo[index].isInstalled) {
-            hostNames.push(hostInfo[index].name);
-          }
-        }
-      }
-    }
-    return hostNames;
+  getNewHosts: function(allHosts) {
+    var hosts = allHosts || this.getAllHosts();
+    return hosts.filterProperty('isInstalled', false);
   },
 
+  /**
+   * Returns list of registered hosts
+   *
+   * @return {object[{hostName, isInstalled}]}
+   */
+  getAllHosts: function() {
+    var self = this;
+    var hosts = self.get('content.hosts');
+    return Em.keys(this.get('content.hosts')).reduce(function(res, hostName) {
+      var host = hosts[hostName];
+      if (Em.get(host, 'bootStatus') !== 'REGISTERED') {
+        return res;
+      }
+      return res.concat({
+        hostName: hostName,
+        isInstalled: Em.getWithDefault(host, 'isInstalled', false)
+      });
+    }, []);
+  },
   /**
    * Load all data needed for this module. Then it automatically renders in template
    * @method render
@@ -382,9 +389,10 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       masterHosts = [],
       headers = this.get('headers'),
       masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq(),
-      masterHostNamesMap = masterHostNames.toWickMap();
+      masterHostNamesMap = masterHostNames.toWickMap(),
+      hosts = this.get('isAddHostWizard') ? this.getNewHosts() : this.getAllHosts();
 
-    this.getHostNames().forEach(function (_hostName) {
+    hosts.mapProperty('hostName').forEach(function (_hostName) {
       var hasMaster = masterHostNamesMap[_hostName];
 
       var obj = {
@@ -403,7 +411,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
       };
 
       if (hasMaster) {
-        masterHosts.pushObject(obj)
+        masterHosts.pushObject(obj);
       } else {
         hostsObj.pushObject(obj);
       }
@@ -640,7 +648,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     var selectedServices = App.StackService.find().filterProperty('isSelected').mapProperty('serviceName');
     var installedServices = App.StackService.find().filterProperty('isInstalled').mapProperty('serviceName');
     var services = installedServices.concat(selectedServices).uniq();
-    var hostNames = this.get('hosts').mapProperty('hostName');
+    var hostNames = this.getAllHosts().mapProperty('hostName');
 
     var bluePrintsForValidation = this.getValidationBlueprint();
     this.set('content.recommendationsHostGroups', bluePrintsForValidation);
@@ -660,7 +668,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.HostComponentValidationMixi
     var slaveBlueprint = this.getCurrentBlueprint();
     var masterBlueprint = null;
     var invisibleInstalledMasters = [];
-    var hostNames = this.get('hosts').mapProperty('hostName');
+    var hostNames = this.getAllHosts().mapProperty('hostName');
     var invisibleSlavesAndClients = App.StackServiceComponent.find().filter(function (component) {
       return component.get("isSlave") && component.get("isShownOnInstallerSlaveClientPage") === false ||
         component.get("isClient") && component.get("isRequiredOnAllHosts");

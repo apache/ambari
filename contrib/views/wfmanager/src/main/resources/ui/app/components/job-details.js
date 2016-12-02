@@ -349,6 +349,7 @@ export default Ember.Component.extend({
           url = url + '&type=action&scope='+ params.logActionList;
         }
         Ember.$.get(url,function(response){
+          response = response.trim().length > 0 ? response : "No messages present";
           this.set('model.jobLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);
@@ -356,6 +357,7 @@ export default Ember.Component.extend({
       },
       getErrorLog : function (){
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=errorlog',function(response){
+          response = response.trim().length > 0 ? response : "No messages present";
           this.set('model.errorLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);
@@ -363,6 +365,7 @@ export default Ember.Component.extend({
       },
       getAuditLog : function (){
         Ember.$.get(Ember.ENV.API_URL+'/v2/job/'+this.get('id')+'?show=auditlog',function(response){
+          response = response.trim().length > 0 ? response : "No messages present";
           this.set('model.auditLog', response);
         }.bind(this)).fail(function(error){
           this.set('error', error);

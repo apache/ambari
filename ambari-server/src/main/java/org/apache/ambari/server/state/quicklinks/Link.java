@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.state.quicklinks;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -45,6 +50,9 @@ public class Link{
 
   @JsonProperty("protocol")
   private Protocol protocol;
+
+  @JsonProperty("properties")
+  private List<String> properties;
 
   public String getName() {
     return name;
@@ -102,6 +110,14 @@ public class Link{
     this.protocol = protocol;
   }
 
+  @Nullable
+  public List<String> getProperties() {
+    return properties;
+  }
+
+  public void setProperties(List<String> properties) {
+    this.properties = properties;
+  }
 
   public boolean isRemoved(){
     //treat a link as removed if the section only contains a name
@@ -132,5 +148,10 @@ public class Link{
     } else {
       port.mergetWithParent(parentLink.getPort());
     }
+
+    if (null == properties && null != parentLink.properties) {
+      properties = parentLink.properties;
+    }
   }
+
 }

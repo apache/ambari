@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.stack;
 
+import com.google.common.collect.Lists;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.quicklinks.Check;
 import org.apache.ambari.server.state.quicklinks.Link;
@@ -28,7 +29,10 @@ import org.apache.ambari.server.state.quicklinks.QuickLinksConfiguration;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -110,6 +114,38 @@ public class QuickLinksConfigurationModuleTest {
       assertEquals("mapred-site", check.getSite());
     }
   }
+
+  @Test
+  public void testResolveOverrideProperties() throws Exception{
+    QuickLinks[] results = resolveQuickLinks("parent_quicklinks_with_properties.json",
+        "child_quicklinks_with_properties.json");
+    QuickLinks parentQuickLinks = results[0];
+    QuickLinks childQuickLinks = results[1];
+
+    //resolved quicklinks configuration
+    QuickLinksConfiguration childQuickLinksConfig = childQuickLinks.getQuickLinksConfiguration();
+    assertNotNull(childQuickLinksConfig);
+
+    //links
+    List<Link> links = childQuickLinksConfig.getLinks();
+    assertNotNull(links);
+    assertEquals(3, links.size());
+    Map<String, Link> linksByName = new HashMap<>();
+    for (Link link: links) {
+      linksByName.put(link.getName(), link);
+    }
+    assertEquals("Links are not properly overridden for foo_ui",
+        Lists.newArrayList("authenticated", "sso"),
+        linksByName.get("foo_ui").getProperties());
+    assertEquals("Parent links for foo_jmx are not inherited.",
+        Lists.newArrayList("authenticated"),
+        linksByName.get("foo_jmx").getProperties());
+    assertEquals("Links are not properly overridden for foo_logs",
+        new ArrayList<>(),
+        linksByName.get("foo_logs").getProperties());
+
+  }
+
 
   private QuickLinks[] resolveQuickLinks(String parentJson, String childJson) throws AmbariException{
     File parentQuiclinksFile = new File(this.getClass().getClassLoader().getResource(parentJson).getFile());

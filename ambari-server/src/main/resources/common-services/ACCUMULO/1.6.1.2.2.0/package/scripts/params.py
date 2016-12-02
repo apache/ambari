@@ -122,7 +122,7 @@ info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 # metrics2 properties
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
-ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
+ams_collector_hosts = ",".join(default("/clusterHostInfo/metrics_collector_hosts", []))
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   if 'cluster-env' in config['configurations'] and \

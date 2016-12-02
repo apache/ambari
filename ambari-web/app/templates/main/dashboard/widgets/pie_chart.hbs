@@ -42,7 +42,10 @@
 
         {{#if view.isPieExist}}
           <div {{bindAttr class=":widget-content view.hoverContentTopClass"}}>
-            {{view view.content modelBinding="view.model" thresh1Binding="view.thresh1" thresh2Binding="view.thresh2"}}
+            {{view view.content
+                modelBinding="view.model"
+                thresholdMinBinding="view.thresholdMin"
+                thresholdMaxBinding="view.thresholdMax"}}
           </div>
         {{else}}
           <div class="widget-content-isNA">{{t services.service.summary.notAvailable}}</div>

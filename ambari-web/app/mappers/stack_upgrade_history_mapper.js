@@ -50,5 +50,5 @@ App.stackUpgradeHistoryMapper = App.QuickDataMapper.create({
     App.store.loadMany(this.get('model'), result);
     App.store.commit();
     App.set('isStackUpgradeHistoryLoaded',true);
-  },
+  }
 });

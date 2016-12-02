@@ -386,25 +386,30 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           var property = context.get('componentName') ? 'componentName' : 'serviceName';
           var serviceDefinitions = this.get('controller.content').filterProperty(property, context.get(property));
           // definitions should be sorted in order: critical, warning, ok, unknown, other
-          var criticalDefinitions = [], warningDefinitions = [], okDefinitions = [], unknownDefinitions = [];
+          var definitionTypes = {
+            "isCritical": [],
+            "isWarning": [],
+            "isOK": [],
+            "isUnknown": []
+          };
+
           serviceDefinitions.forEach(function (definition) {
-            if (definition.get('isCritical')) {
-              criticalDefinitions.push(definition);
-              serviceDefinitions = serviceDefinitions.without(definition);
-            } else if (definition.get('isWarning')) {
-              warningDefinitions.push(definition);
-              serviceDefinitions = serviceDefinitions.without(definition);
-            } else if (definition.get('isOK')) {
-              okDefinitions.push(definition);
-              serviceDefinitions = serviceDefinitions.without(definition);
-            } else if (definition.get('isUnknown')) {
-              unknownDefinitions.push(definition);
-              serviceDefinitions = serviceDefinitions.without(definition);
-            }
+            Object.keys(definitionTypes).forEach(function (type) {
+              if (definition.get(type)) {
+                definition.set('isCollapsed', true);
+                definitionTypes[type].push(definition);
+                serviceDefinitions = serviceDefinitions.without(definition);
+              }
+            });
           });
-          serviceDefinitions = criticalDefinitions.concat(warningDefinitions, okDefinitions, unknownDefinitions, serviceDefinitions);
+          serviceDefinitions = definitionTypes.isCritical.concat(definitionTypes.isWarning, definitionTypes.isOK, definitionTypes.isUnknown, serviceDefinitions);
+
           return serviceDefinitions;
         }.property('controller.content'),
+        onToggleBlock: function (alert) {
+          this.$('#' + alert.context.clientId).toggle('blind', 500);
+          alert.context.set("isCollapsed", !alert.context.get("isCollapsed"));
+        },
         gotoAlertDetails: function (event) {
           if (event && event.context) {
             this.get('parentView').hide();

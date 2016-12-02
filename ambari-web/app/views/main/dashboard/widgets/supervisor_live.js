@@ -20,11 +20,6 @@ var App = require('app');
 
 App.SuperVisorUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitWidgetMixin, {
 
-  title: Em.I18n.t('dashboard.widgets.SuperVisorUp'),
-  id: '21',
-
-  model_type: 'storm',
-
   hiddenInfo: function () {
     return [
       this.get('superVisorsLive') + ' ' + Em.I18n.t('dashboard.services.hdfs.nodes.live'),
@@ -34,8 +29,6 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend(App.EditableWithLimitW
 
   hiddenInfoClass: "hidden-info-two-line",
 
-  thresh1: 40,
-  thresh2: 70,
   maxValue: 100,
 
   superVisorsLive: Em.computed.alias('model.superVisorsStarted'),

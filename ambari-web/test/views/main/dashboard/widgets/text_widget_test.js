@@ -22,7 +22,7 @@ require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 
 function getView() {
-  return App.TextDashboardWidgetView.create({thresh1:40, thresh2:70});
+  return App.TextDashboardWidgetView.create({thresholdMin:40, thresholdMax:70});
 }
 
 describe('App.TextDashboardWidgetView', function() {
@@ -43,8 +43,8 @@ describe('App.TextDashboardWidgetView', function() {
   ];
 
   tests.forEach(function(test) {
-    describe('data - ' + test.data + ' | thresh1 - 40 | thresh2 - 70', function() {
-      var textDashboardWidgetView = App.TextDashboardWidgetView.create({thresh1:40, thresh2:70});
+    describe('data - ' + test.data + ' | thresholdMin - 40 | thresholdMax - 70', function() {
+      var textDashboardWidgetView = App.TextDashboardWidgetView.create({thresholdMin:40, thresholdMax:70});
       textDashboardWidgetView.set('data', test.data);
       it('isNA', function() {
         expect(textDashboardWidgetView.get('isNA')).to.equal(test.e.isNA);
@@ -52,9 +52,9 @@ describe('App.TextDashboardWidgetView', function() {
     });
   });
 
-  App.TestAliases.testAsComputedGtProperties(getView(), 'isGreen', 'data', 'thresh2');
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isGreen', 'data', 'thresholdMax');
 
-  App.TestAliases.testAsComputedLteProperties(getView(), 'isRed', 'data', 'thresh1');
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isRed', 'data', 'thresholdMin');
 
   App.TestAliases.testAsComputedAnd(getView(), 'isOrange', ['!isGreen', '!isRed']);
 

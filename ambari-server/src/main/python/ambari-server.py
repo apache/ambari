@@ -35,7 +35,7 @@ from ambari_commons.os_utils import remove_file
 from ambari_server.BackupRestore import main as BackupRestore_main
 from ambari_server.dbConfiguration import DATABASE_NAMES, LINUX_DBMS_KEYS_LIST
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, PID_NAME
-from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
+from ambari_server.serverUtils import is_server_runing, refresh_stack_hash, wait_for_server_to_stop
 from ambari_server.serverSetup import reset, setup, setup_jce_policy
 from ambari_server.serverUpgrade import upgrade, upgrade_stack, set_current
 from ambari_server.setupHttps import setup_https, setup_truststore
@@ -62,6 +62,8 @@ from ambari_server.ambariPath import AmbariPath
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
+
+SERVER_STOP_TIMEOUT = 30
 
 class UserActionPossibleArgs(object):
   def __init__(self, i_fn, i_possible_args_numbers, *args, **kwargs):
@@ -166,6 +168,14 @@ def stop(args):
     except OSError, e:
       print_info_msg("Unable to stop Ambari Server - " + str(e))
       return
+
+    print "Waiting for server stop..."
+    logger.info("Waiting for server stop...")
+
+    if not wait_for_server_to_stop(SERVER_STOP_TIMEOUT):
+      print "Ambari-server failed to stop"
+      logger.info("Ambari-server failed to stop")
+
     pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
     os.remove(pid_file_path)
     print "Ambari Server stopped"

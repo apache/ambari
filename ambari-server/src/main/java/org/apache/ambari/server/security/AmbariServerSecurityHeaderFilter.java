@@ -50,6 +50,7 @@ public class AmbariServerSecurityHeaderFilter extends AbstractSecurityHeaderFilt
     setXContentTypeHeader(configuration.getXContentTypeHTTPResponseHeader());
     setCacheControlHeader(configuration.getCacheControlHTTPResponseHeader());
     setPragmaHeader(configuration.getPragmaHTTPResponseHeader());
+    setCharset(configuration.getCharsetHTTPResponseHeader());
   }
 
 }

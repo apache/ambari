@@ -20,11 +20,6 @@ var App = require('app');
 
 App.HBaseMasterUptimeView = App.UptimeTextDashboardWidgetView.extend({
 
-  title: Em.I18n.t('dashboard.widgets.HBaseMasterUptime'),
-  id: '16',
-
-  model_type: 'hbase',
-
   component: 'Hbase Master',
   modelField: 'masterStartTime',
 

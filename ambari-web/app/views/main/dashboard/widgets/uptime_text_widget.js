@@ -27,8 +27,6 @@ App.UptimeTextDashboardWidgetView = App.TextDashboardWidgetView.extend({
 
   hiddenInfoClass: "hidden-info-three-line",
 
-  thresh1: 5,
-  thresh2: 10,
   maxValue: 'infinity',
 
   component: null,

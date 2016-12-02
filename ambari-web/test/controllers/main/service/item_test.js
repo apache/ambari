@@ -1380,6 +1380,7 @@ describe('App.MainServiceItemController', function () {
       sinon.stub(App.ModalPopup, 'show');
       sinon.stub(App.format, 'role', function(name) {return name});
       sinon.stub(mainServiceItemController, 'kerberosDeleteWarning');
+      sinon.stub(mainServiceItemController, 'showLastWarning');
 
       mainServiceItemController.reopen({
         interDependentServices: []
@@ -1439,7 +1440,7 @@ describe('App.MainServiceItemController', function () {
       this.allowUninstallServices.returns(true);
       this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.stopped}), Em.Object.create({workStatus: App.Service.statesMap.stopped})]);
       mainServiceItemController.deleteService('S1');
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(mainServiceItemController.showLastWarning.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and install failed", function() {
@@ -1447,7 +1448,7 @@ describe('App.MainServiceItemController', function () {
       this.allowUninstallServices.returns(true);
       this.mockService.returns([Em.Object.create({workStatus: App.Service.statesMap.install_failed}), Em.Object.create({workStatus: App.Service.statesMap.install_failed})]);
       mainServiceItemController.deleteService('S1');
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      expect(mainServiceItemController.showLastWarning.calledOnce).to.be.true;
     });
 
     it("service has not dependent services, and not stopped", function() {
@@ -1671,27 +1672,27 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'loadConfigRecommendations', Em.K);
+      sinon.stub(mainServiceItemController, 'saveConfigs', Em.K);
       sinon.stub(mainServiceItemController, 'deleteServiceCall', Em.K);
       mainServiceItemController.reopen({
         interDependentServices: []
       })
     });
     afterEach(function() {
-      mainServiceItemController.loadConfigRecommendations.restore();
+      mainServiceItemController.saveConfigs.restore();
       mainServiceItemController.deleteServiceCall.restore();
     });
 
     it("window.location.reload should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {});
       expect(mainServiceItemController.deleteServiceCall.called).to.be.false;
-      expect(mainServiceItemController.loadConfigRecommendations.calledOnce).to.be.true;
+      expect(mainServiceItemController.saveConfigs.calledOnce).to.be.true;
     });
 
     it("deleteServiceCall should be called", function() {
       mainServiceItemController.deleteServiceCallSuccessCallback([], null, {servicesToDeleteNext: true});
       expect(mainServiceItemController.deleteServiceCall.calledOnce).to.be.true;
-      expect(mainServiceItemController.loadConfigRecommendations.called).to.be.false;
+      expect(mainServiceItemController.saveConfigs.called).to.be.false;
     });
   });
 

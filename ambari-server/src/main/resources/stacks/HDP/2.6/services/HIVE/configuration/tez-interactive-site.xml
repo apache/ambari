@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<configuration supports_final="true">
+  <!--
+  Note: This file includes only those configs which are supposed to have different value from the parent tez/tez-site.
+        It inherits the other required configs from tez/tez-site.
+        The inheritance logic in order to get tez_hive2/tez-site goes like this :
+
+        1. We read the tez/tez-site which includes the stack defaults and Stack Advisor recommended values.
+        2. We take the read tez/tez-site (step 1), and on top of it apply the tez-interactive-site to get tez_hive2/tez-site.
+
+        Therefore, any config defined here will override the config value read from tez/tez-site (step 1).
+  -->
+  <property>
+    <name>tez.task.heartbeat.timeout.check-ms</name>
+    <value>11000</value>
+    <description>The time interval, in milliseconds, at which the AM will check
+      for timed out tasks
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.task.timeout-ms</name>
+    <value>20000</value>
+    <description>Amount of time the Tez AM waits before marking a task which
+      has not sent in a heartbeat, as timed out
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.am.client.heartbeat.timeout.secs</name>
+    <value>60</value>
+    <description>The time interval, after which an AM will kill itself, if it
+      does not receive a heartbeat from the client.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.am.client.heartbeat.poll.interval.millis</name>
+    <value>6000</value>
+    <description>The interval at which the AM checks for a client heartbeat
+      timeout
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.am.node-blacklisting.enabled</name>
+    <value>false</value>
+    <description>Whether to enable blacklisting in Tez AMs. Disable for LLAP
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+  <property>
+    <name>tez.session.am.dag.submit.timeout.secs</name>
+    <value>1209600</value>
+    <description>The amoung of time an AM will wait, before killing itself,
+      if not DAG is submitted.
+    </description>
+    <on-ambari-upgrade add="true"/>
+  </property>
+
+</configuration>

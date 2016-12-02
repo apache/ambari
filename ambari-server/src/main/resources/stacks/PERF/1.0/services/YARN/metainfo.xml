@@ -122,6 +122,7 @@
           -->
 
           <configuration-dependencies>
+            <config-type>yarn-alert-config</config-type>
             <config-type>capacity-scheduler</config-type>
             <config-type>hdfs-site</config-type>
           </configuration-dependencies>
@@ -193,6 +194,7 @@
       </components>
 
       <configuration-dependencies>
+        <config-type>yarn-alert-config</config-type>
         <config-type>yarn-site</config-type>
         <config-type>yarn-env</config-type>
         <config-type>hdfs-site</config-type>
@@ -324,6 +326,7 @@
       </requiredServices>
 
       <configuration-dependencies>
+        <config-type>yarn-alert-config</config-type>
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-env</config-type>
         <config-type>core-site</config-type>
