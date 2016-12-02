@@ -26,7 +26,16 @@ delimiter ;
 
 # USE @schema;
 
-SET default_storage_engine=INNODB;
+-- Set default_storage_engine to InnoDB
+-- storage_engine variable should be used for versions prior to MySQL 5.6
+set @version_short = substring_index(@@version, '.', 2);
+set @major = cast(substring_index(@version_short, '.', 1) as SIGNED);
+set @minor = cast(substring_index(@version_short, '.', -1) as SIGNED);
+set @engine_stmt = IF(@major >= 5 AND @minor>=6, 'SET default_storage_engine=INNODB', 'SET storage_engine=INNODB');
+prepare statement from @engine_stmt;
+execute statement;
+DEALLOCATE PREPARE statement;
+
 
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
