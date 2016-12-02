@@ -212,12 +212,14 @@ public class UpgradeCatalog250Test {
     Method updateAmsConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateAMSConfigs");
     Method updateKafkaConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHiveLlapConfigs = UpgradeCatalog250.class.getDeclaredMethod("updateHiveLlapConfigs");
+    Method updateTablesForZeppelinViewRemoval = UpgradeCatalog250.class.getDeclaredMethod("updateTablesForZeppelinViewRemoval");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
     UpgradeCatalog250 upgradeCatalog250 = createMockBuilder(UpgradeCatalog250.class)
       .addMockedMethod(updateAmsConfigs)
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateHiveLlapConfigs)
+      .addMockedMethod(updateTablesForZeppelinViewRemoval)
       .addMockedMethod(addNewConfigurationsFromXml)
       .createMock();
 
@@ -232,6 +234,9 @@ public class UpgradeCatalog250Test {
     expectLastCall().once();
 
     upgradeCatalog250.updateHiveLlapConfigs();
+    expectLastCall().once();
+
+    upgradeCatalog250.updateTablesForZeppelinViewRemoval();
     expectLastCall().once();
 
     replay(upgradeCatalog250);

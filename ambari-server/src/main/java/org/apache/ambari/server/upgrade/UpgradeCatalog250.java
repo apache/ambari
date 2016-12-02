@@ -136,6 +136,7 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateKafkaConfigs();
     updateHiveLlapConfigs();
+    updateTablesForZeppelinViewRemoval();
   }
 
   protected void updateHostVersionTable() throws SQLException {
@@ -177,6 +178,11 @@ public class UpgradeCatalog250 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateTablesForZeppelinViewRemoval() throws SQLException {
+    dbAccessor.executeQuery("DELETE from viewinstance WHERE view_name='ZEPPELIN{1.0.0}'", true);
+    dbAccessor.executeQuery("DELETE from viewmain WHERE view_name='ZEPPELIN{1.0.0}'", true);
+    dbAccessor.executeQuery("DELETE from viewparameter WHERE view_name='ZEPPELIN{1.0.0}'", true);
+  }
 
   protected String updateAmsEnvContent(String content) {
     if (content == null) {

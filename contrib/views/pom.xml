@@ -46,7 +46,6 @@
     <module>tez</module>
     <module>hawq</module>
     <module>storm</module>
-    <module>zeppelin</module>
     <module>hueambarimigration</module>
     <module>hive-next</module>
     <module>hive</module>
