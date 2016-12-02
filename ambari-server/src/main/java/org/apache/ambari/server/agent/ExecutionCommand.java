@@ -112,13 +112,6 @@ public class ExecutionCommand extends AgentCommand {
   @SerializedName("availableServices")
   private Map<String, String> availableServices = new HashMap<>();
 
-  /**
-   * "true" or "false" indicating whether this
-   * service is enabled for credential store use.
-   */
-  @SerializedName("credentialStoreEnabled")
-  private String credentialStoreEnabled;
-
   public String getCommandId() {
     return commandId;
   }
@@ -300,27 +293,6 @@ public class ExecutionCommand extends AgentCommand {
 
   public void setServiceType(String serviceType) {
 	this.serviceType = serviceType;
-  }
-
-  /**
-   * Get a value indicating whether this service is enabled
-   * for credential store use.
-   *
-   * @return "true" or "false", any other value is
-   * considered as "false"
-   */
-  public String getCredentialStoreEnabled() {
-    return credentialStoreEnabled;
-  }
-
-  /**
-   * Set a value indicating whether this service is enabled
-   * for credential store use.
-   *
-   * @param credentialStoreEnabled
-   */
-  public void setCredentialStoreEnabled(String credentialStoreEnabled) {
-    this.credentialStoreEnabled = credentialStoreEnabled;
   }
 
   public String getComponentName() {
