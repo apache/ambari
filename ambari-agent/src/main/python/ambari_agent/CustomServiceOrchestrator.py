@@ -29,6 +29,8 @@ from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
 from PythonReflectiveExecutor import PythonReflectiveExecutor
+from resource_management.core.utils import PasswordString
+import subprocess
 import Constants
 import hostname
 
@@ -65,6 +67,11 @@ class CustomServiceOrchestrator():
   REFLECTIVELY_RUN_COMMANDS = FREQUENT_COMMANDS # -- commands which run a lot and often (this increases their speed)
   DONT_BACKUP_LOGS_FOR_COMMANDS = FREQUENT_COMMANDS
 
+  # Path where hadoop credential JARS will be available
+  DEFAULT_CREDENTIAL_SHELL_LIB_PATH = '/var/lib/ambari-agent/cred/lib'
+  DEFAULT_CREDENTIAL_CONF_DIR = '/var/lib/ambari-agent/cred/conf'
+  DEFAULT_CREDENTIAL_SHELL_CMD = 'org.apache.hadoop.security.alias.CredentialShell'
+
   def __init__(self, config, controller):
     self.config = config
     self.tmp_dir = config.get('agent', 'prefix')
@@ -77,6 +84,14 @@ class CustomServiceOrchestrator():
     self.public_fqdn = hostname.public_hostname(config)
     # cache reset will be called on every agent registration
     controller.registration_listeners.append(self.file_cache.reset)
+
+    # Construct the hadoop credential lib JARs path
+    self.credential_shell_lib_path = os.path.join(config.get('security', 'credential_lib_dir',
+                                                             self.DEFAULT_CREDENTIAL_SHELL_LIB_PATH), '*')
+
+    self.credential_conf_dir = config.get('security', 'credential_conf_dir', self.DEFAULT_CREDENTIAL_CONF_DIR)
+
+    self.credential_shell_cmd = config.get('security', 'credential_shell_cmd', self.DEFAULT_CREDENTIAL_SHELL_CMD)
 
     # Clean up old status command files if any
     try:
@@ -113,6 +128,102 @@ class CustomServiceOrchestrator():
       return PythonReflectiveExecutor(self.tmp_dir, self.config)
     else:
       return PythonExecutor(self.tmp_dir, self.config)
+
+  def getProviderDirectory(self, service_name):
+    """
+    Gets the path to the service conf folder where the JCEKS file will be created.
+
+    :param service_name: Name of the service, for example, HIVE
+    :return: lower case path to the service conf folder
+    """
+
+    # The stack definition scripts of the service can move the
+    # JCEKS file around to where it wants, which is usually
+    # /etc/<service_name>/conf
+
+    conf_dir = os.path.join(self.credential_conf_dir, service_name.lower())
+    if not os.path.exists(conf_dir):
+      os.makedirs(conf_dir, 0644)
+
+    return conf_dir
+
+  def getAffectedConfigTypes(self, commandJson):
+    """
+    Gets the affected config types for the service in this command
+
+    :param commandJson:
+    :return:
+    """
+    return commandJson.get('configuration_attributes')
+
+  def getCredentialProviderPropertyName(self):
+    """
+    Gets the property name used by the hadoop credential provider
+    :return:
+    """
+    return 'hadoop.security.credential.provider.path'
+
+  def generateJceks(self, commandJson):
+    """
+    Generates the JCEKS file with passwords for the service specified in commandJson
+
+    :param commandJson: command JSON
+    :return: An exit value from the external process that generated the JCEKS file. None if
+    there are no passwords in the JSON.
+    """
+    cmd_result = None
+    roleCommand = None
+    if 'roleCommand' in commandJson:
+      roleCommand = commandJson['roleCommand']
+
+    logger.info('generateJceks: roleCommand={0}'.format(roleCommand))
+
+    # Password properties for a config type, if present,
+    # are under configuration_attributes:config_type:hidden:{prop1:attributes1, prop2, attributes2}
+    passwordProperties = {}
+    config_types = self.getAffectedConfigTypes(commandJson)
+    for config_type in config_types:
+      elem = config_types.get(config_type)
+      hidden = elem.get('hidden')
+      if hidden is not None:
+        passwordProperties[config_type] = hidden
+
+    # Set up the variables for the external command to generate a JCEKS file
+    java_home = commandJson['hostLevelParams']['java_home']
+    java_bin = '{java_home}/bin/java'.format(java_home=java_home)
+
+    cs_lib_path = self.credential_shell_lib_path
+    serviceName = commandJson['serviceName']
+
+    # Gather the password values and remove them from the configuration
+    configs = commandJson.get('configurations')
+    for key, value in passwordProperties.items():
+      config = configs.get(key)
+      if config is not None:
+        file_path = os.path.join(self.getProviderDirectory(serviceName), "{0}.jceks".format(key))
+        if os.path.exists(file_path):
+          os.remove(file_path)
+        provider_path = 'jceks://file{file_path}'.format(file_path=file_path)
+        logger.info('provider_path={0}'.format(provider_path))
+        for alias in value:
+          pwd = config.get(alias)
+          if pwd is not None:
+            # Remove the clear text password
+            config.pop(alias, None)
+            # Add JCEKS provider path instead
+            config[self.getCredentialProviderPropertyName()] = provider_path
+            logger.debug("config={0}".format(config))
+            protected_pwd = PasswordString(pwd)
+            # Generate the JCEKS file
+            cmd = (java_bin, '-cp', cs_lib_path, self.credential_shell_cmd, 'create',
+                   alias, '-value', protected_pwd, '-provider', provider_path)
+            logger.info(cmd)
+            cmd_result = subprocess.call(cmd)
+            logger.info('cmd_result = {0}'.format(cmd_result))
+            os.chmod(file_path, 0644) # group and others should have read access so that the service user can read
+
+    return cmd_result
+
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
                  override_output_files=True, retry=False):
@@ -173,6 +284,15 @@ class CustomServiceOrchestrator():
         handle = command['__handle']
         handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
+
+      # If command contains credentialStoreEnabled, then
+      # generate the JCEKS file for the configurations.
+      credentialStoreEnabled = False
+      if 'credentialStoreEnabled' in command:
+        credentialStoreEnabled = (command['credentialStoreEnabled'] == "true")
+
+      if credentialStoreEnabled == True:
+        self.generateJceks(command)
 
       json_path = self.dump_command_to_json(command, retry)
       pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
