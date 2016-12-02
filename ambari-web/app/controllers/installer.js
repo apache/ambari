@@ -841,7 +841,6 @@ App.InstallerController = App.WizardController.extend({
       selectedStack.get('operatingSystems').forEach(function (os) {
         if (os.get('isSelected') && !os.get('isEmpty')) {
           os.get('repositories').forEach(function (repo) {
-            if (!repo.get('isUtils') && wizardStep1Controller.inappropriateUrlForStackVersion(repo, stackVersion)) return;
             repo.setProperties({
               errorTitle: '',
               errorContent: '',
@@ -889,8 +888,8 @@ App.InstallerController = App.WizardController.extend({
       }
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
-    this.set('content.isCheckInProgress', false);
     if (!this.get('validationCnt')) {
+      this.set('content.isCheckInProgress', false);
       data.dfd.resolve();
     }
   },
