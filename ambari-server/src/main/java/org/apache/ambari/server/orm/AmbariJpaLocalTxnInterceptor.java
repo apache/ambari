@@ -218,12 +218,17 @@ public class AmbariJpaLocalTxnInterceptor implements MethodInterceptor {
   /**
    * Returns True if rollback DID NOT HAPPEN (i.e. if commit should continue).
    *
-   * @param transactional The metadata annotaiton of the method
+   * @param transactional The metadata annotation of the method
    * @param e             The exception to test for rollback
    * @param txn           A JPA Transaction to issue rollbacks on
    */
-  private boolean rollbackIfNecessary(Transactional transactional, Exception e,
+  static boolean rollbackIfNecessary(Transactional transactional, Exception e,
                                       EntityTransaction txn) {
+    if (txn.getRollbackOnly()) {
+      txn.rollback();
+      return false;
+    }
+
     boolean commit = true;
 
     //check rollback clauses
