@@ -186,7 +186,6 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 DEFAULT_DB_NAME = "ambari"
 
 SECURITY_KEYS_DIR = "security.server.keys_dir"
-DASHBOARD_PATH_PROPERTY = 'dashboards.path'
 EXTENSION_PATH_PROPERTY = 'extensions.path'
 COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
 MPACKS_STAGING_PATH_PROPERTY = 'mpacks.staging.path'
@@ -398,8 +397,8 @@ class ServerConfigDefaults(object):
     self.EXTENSION_LOCATION_DEFAULT = ""
     self.COMMON_SERVICES_LOCATION_DEFAULT = ""
     self.MPACKS_STAGING_LOCATION_DEFAULT = ""
-    self.DASHBOARD_LOCATION_DEFAULT = ""
     self.SERVER_TMP_DIR_DEFAULT = ""
+    self.DASHBOARD_DIRNAME = "dashboards"
 
     self.DEFAULT_VIEWS_DIR = ""
 
@@ -470,7 +469,6 @@ class ServerConfigDefaultsWindows(ServerConfigDefaults):
     self.EXTENSION_LOCATION_DEFAULT = "resources\\extensions"
     self.COMMON_SERVICES_LOCATION_DEFAULT = "resources\\common-services"
     self.MPACKS_STAGING_LOCATION_DEFAULT = "resources\\mpacks"
-    self.DASHBOARD_LOCATION_DEFAULT = "resources\\dashboards"
     self.SERVER_TMP_DIR_DEFAULT = "data\\tmp"
 
     self.DEFAULT_VIEWS_DIR = "resources\\views"
@@ -557,7 +555,6 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.EXTENSION_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/extensions")
     self.COMMON_SERVICES_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/common-services")
     self.MPACKS_STAGING_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/mpacks")
-    self.DASHBOARD_LOCATION_DEFAULT = AmbariPath.get("/var/lib/ambari-server/resources/dashboards")
     self.SERVER_TMP_DIR_DEFAULT = AmbariPath.get("/var/lib/ambari-server/data/tmp")
 
     self.DEFAULT_VIEWS_DIR = AmbariPath.get("/var/lib/ambari-server/resources/views")
@@ -1438,13 +1435,8 @@ def get_mpacks_staging_location(properties):
 # Dashboard location
 #
 def get_dashboard_location(properties):
-  try:
-    dashboard_location = properties[DASHBOARD_PATH_PROPERTY]
-  except KeyError:
-    dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
-
-  if not dashboard_location:
-    dashboard_location = configDefaults.DASHBOARD_LOCATION_DEFAULT
+  resources_dir = get_resources_location(properties)
+  dashboard_location = os.path.join(resources_dir, configDefaults.DASHBOARD_DIRNAME)
   return dashboard_location
 
 #

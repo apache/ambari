@@ -343,6 +343,7 @@ public class ExecutionCommand extends AgentCommand {
     String SCRIPT_TYPE = "script_type";
     String SERVICE_PACKAGE_FOLDER = "service_package_folder";
     String HOOKS_FOLDER = "hooks_folder";
+    String CUSTOM_FOLDER = "custom_folder";
     String STACK_NAME = "stack_name";
     String SERVICE_TYPE = "service_type";
     String STACK_VERSION = "stack_version";

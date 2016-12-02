@@ -45,7 +45,6 @@ class FileCache():
   STACKS_CACHE_DIRECTORY="stacks"
   COMMON_SERVICES_DIRECTORY="common-services"
   CUSTOM_ACTIONS_CACHE_DIRECTORY="custom_actions"
-  DASHBOARD_DIRECTORY="dashboards"
   HOST_SCRIPTS_CACHE_DIRECTORY="host_scripts"
   HASH_SUM_FILE=".hash"
   ARCHIVE_NAME="archive.zip"
@@ -100,12 +99,17 @@ class FileCache():
                                   server_url_prefix)
 
 
-  def get_dashboard_base_dir(self, server_url_prefix):
+  def get_custom_resources_subdir(self, command, server_url_prefix):
     """
-    Returns a base directory for dashboards
+    Returns a custom directory which must be a subdirectory of the resources dir
     """
+    try:
+      custom_dir = command['commandParams']['custom_folder']
+    except KeyError:
+      return None
+
     return self.provide_directory(self.cache_dir,
-                                  self.DASHBOARD_DIRECTORY,
+                                  custom_dir,
                                   server_url_prefix)
 
 

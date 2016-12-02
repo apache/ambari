@@ -25,6 +25,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
@@ -2216,6 +2217,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     commandParams.put(SERVICE_PACKAGE_FOLDER,
       serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
+
+    String customCacheDirectory = componentInfo.getCustomFolder();
+    if (customCacheDirectory != null) {
+      File customCache = new File(configs.getResourceDirPath(), customCacheDirectory);
+      if (customCache.exists() && customCache.isDirectory()) {
+        commandParams.put(CUSTOM_FOLDER, customCacheDirectory);
+      }
+    }
 
     String clusterName = cluster.getClusterName();
     if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
